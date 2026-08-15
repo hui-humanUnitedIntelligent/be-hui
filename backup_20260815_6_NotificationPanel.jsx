@@ -11,7 +11,6 @@ import BelegViewerModal from "./BelegViewerModal.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
-import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 
 // ══════════════════════════════════════════════════════════════
 // NOTIFICATION PANEL  — Side-Drawer, via createPortal(document.body) gerendert
@@ -174,22 +173,6 @@ function DetailModal({ n, onClose, onAction }) {
   // BELEG-006 (2026-08-14): Beleg-Vorschau nach Speichern -- ersetzt das automatische
   // Share-Sheet, siehe BelegViewerModal.jsx fuer die Begruendung.
   const [receiptPreview, setReceiptPreview] = useState(null);
-
-  // ── BACK-BUTTON-STACK-FIX (2026-08-15, Michael-Report) ──────────────────
-  // Vorher: Beim Klick auf "Werk ansehen" wurde dieses Modal SOFORT via
-  // onClose() geschlossen, danach das Panel selbst (siehe NotificationButton.
-  // handleAction). Die System-Zurueck-Taste hatte danach nichts mehr zum
-  // Zurueckkehren -- sie sprang direkt aus dem gesamten Resonanzzentrum.
-  // Fix: Dieses Modal registriert sich jetzt selbst im globalen Back-Button-
-  // Stack (wie jedes andere Modal/Sheet in der App). "Werk ansehen" schliesst
-  // dieses Modal NICHT mehr aktiv -- es bleibt "logisch offen" (State bleibt
-  // erhalten), wird aber ausgeblendet solange eine Werk/Erlebnis/Talent-
-  // Vorschau (ContentPreviewSheet) darueber offen ist (verhindert doppelte,
-  // zu dunkle Backdrops). Schliesst der Nutzer die Vorschau (X oder System-
-  // Zurueck-Taste), erscheint dieses Modal automatisch wieder -- exakt die
-  // "Auswahl, wo man Werk ansehen anklicken kann", die Michael zurueck will.
-  useModalRegistration(true, onClose, "NotificationDetailModal");
-  const { item: previewItem } = useContentPreview();
 
   // ── Typ-spezifische Konfiguration ─────────────────────────────────────────
   const cfg = (() => {
@@ -764,11 +747,6 @@ function DetailModal({ n, onClose, onAction }) {
   const hasEntityAction = cfg.entityId && cfg.entityType;
   const hasUrlAction    = cfg.actionUrl;
 
-  // Ausblenden solange eine Entity-Vorschau (Werk/Erlebnis/Talent) darueber
-  // offen ist -- siehe Kommentar oben bei useModalRegistration. Modal bleibt
-  // im React-Tree (State/Registration lebt weiter), rendert aber nichts.
-  if (previewItem) return null;
-
   return (
     <>
     <div
@@ -854,17 +832,11 @@ function DetailModal({ n, onClose, onAction }) {
         {(hasEntityAction || hasUrlAction) && cfg.actionLabel && (
           <button
             onClick={() => {
-              // FIX (2026-08-15): Bei Entity-Vorschau (Werk/Erlebnis/Talent)
-              // dieses Modal NICHT schliessen -- es bleibt "logisch offen" im
-              // Hintergrund (wird oben via previewItem-Check ausgeblendet) und
-              // erscheint automatisch wieder, wenn die Vorschau schliesst.
-              // Bei URL-Navigation (hasUrlAction, z.B. navigate()) schliesst
-              // sich das Modal wie bisher -- das ist ein echter Seitenwechsel,
-              // kein gestapeltes Overlay.
+              onClose();
+              // Entity-Preview bevorzugt, dann URL
               if (hasEntityAction) {
                 onAction({ ...n, _openRef: true });
               } else if (hasUrlAction) {
-                onClose();
                 onAction({ ...n, _openUrl: cfg.actionUrl });
               }
             }}
@@ -906,9 +878,7 @@ function DetailModal({ n, onClose, onAction }) {
         {cfg.offerLinkId && cfg.offerLinkType && (
           <button
             onClick={() => {
-              // FIX (2026-08-15): analog zum "Werk ansehen"-Button oben --
-              // Modal bleibt logisch offen, damit die System-Zurueck-Taste
-              // nach dem Schliessen der Vorschau hierher zurueckkehrt.
+              onClose();
               onAction({ ...n, _openRef: true, _refType: cfg.offerLinkType, _refId: cfg.offerLinkId });
             }}
             style={{

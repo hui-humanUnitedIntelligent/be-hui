@@ -501,35 +501,30 @@ export default function MyBasisProfile({ onClose, profileId }) {
   useModalRegistration(showResonanz, () => setShowResonanz(false), "MyBasisProfile-Resonanz");
   useModalRegistration(showNotifications, () => setShowNotifications(false), "MyBasisProfile-Notifications");
 
-  // BACK-BUTTON-STACK-FIX (2026-08-15, Michael-Report): analog zum Fix in
-  // NotificationButton.jsx — setShowNotifications(false) stand vorher
-  // unbedingt vor dem gesamten Switch und schloss das Resonanzzentrum-Panel
-  // (inkl. DetailModal darin) IMMER, auch beim Oeffnen einer reinen Entity-
-  // Vorschau (openRef). Jetzt: nur noch bei echten Seitenwechseln schliessen.
-  const handleNotifAction = (n) => {
+const handleNotifAction = (n) => {
+    // 1. action_url hat Vorrang
+    if (n.action_url) {
+      setShowNotifications(false);
+      // Intern-Routing via Typ trotzdem ausführen für nahtlose UX
+    }
     const meta = n.metadata || {};
     const targetId = meta.target_id || meta.actor_id || n.actor_id || null;
     const werkId   = meta.werk_id   || null;
 
+    setShowNotifications(false); // Panel schließen
+
     // ── RESONANZ-BUCHUNG-001 (2026-08-08): "Mit Nutzer chatten" aus dem
     //    Buchungsdetail-Modal — typunabhängig, hat Vorrang vor dem Switch ──
     if (n._openChat) {
-      setShowNotifications(false);
       const chatObj = typeof n._openChat === "object" ? n._openChat : { id: n._openChat, display_name: null };
       setChatRecipient(chatObj);
       setShowChat(true);
       return;
     }
-    // BELEG-002: Angebot-Link aus DetailModal (_refType/_refId) — Vorschau
-    // bleibt im Panel-Kontext, kein Schliessen.
+    // BELEG-002: Angebot-Link aus DetailModal (_refType/_refId)
     if (n._openRef && n._refType && n._refId) {
       openRef({ type: n._refType, id: n._refId });
       return;
-    }
-    // 1. action_url ohne Entity-Ref → echter Seitenwechsel, Panel schliessen
-    if (n.action_url && !n._openRef) {
-      setShowNotifications(false);
-      // Intern-Routing via Typ trotzdem ausführen für nahtlose UX
     }
 
     switch (n.type) {
@@ -546,7 +541,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
       case "follow":
       case "follow_request":
       case "new_follower":
-        setShowNotifications(false);
         if (targetId) openProfileById(targetId);
         break;
 
@@ -556,7 +550,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
       case "booking":
       case "message":
       case "new_message":
-        setShowNotifications(false);
         if (targetId) { setChatRecipient(targetId); setShowChat(true); }
         break;
 
@@ -564,19 +557,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
       case "impact":
       case "project_update":
       case "impact_update":
-        setShowNotifications(false);
         switchTab("impact");
         break;
 
       case "community":
       case "community_update":
-        setShowNotifications(false);
         switchTab("discover");
         break;
 
       case "inspiration":
       case "discover":
-        setShowNotifications(false);
         switchTab("discover");
         break;
 
@@ -586,7 +576,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         if (n._openRef && n.entity_id) {
           openRef({ type: n.entity_type || "work", id: n.entity_id });
         } else if (werkId) {
-          setShowNotifications(false);
           setShowWerkDetail(werkId);
         }
         break;
@@ -679,13 +668,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
         if (n._openRef && (n.metadata?.project_id || n.entity_id)) {
           openRef({ type: "project", id: n.metadata?.project_id || n.entity_id });
         } else {
-          setShowNotifications(false);
           switchTab("impact");
         }
         break;
       case "impact_project_submitted":
       case "impact_project_deleted":
-        setShowNotifications(false);
         switchTab("impact");
         break;
 
@@ -712,7 +699,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         if (shareEntityId && shareEntityType) {
           openRef({ type: shareEntityType, id: shareEntityId });
         } else if (shareActionUrl) {
-          setShowNotifications(false);
           const path = shareActionUrl.startsWith("http")
             ? new URL(shareActionUrl).pathname
             : shareActionUrl;
@@ -728,7 +714,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         }
         // _openUrl: DetailModal hat eine URL → navigate
         else if (n._openUrl) {
-          setShowNotifications(false);
           const path = n._openUrl.startsWith("http")
             ? new URL(n._openUrl).pathname
             : n._openUrl;

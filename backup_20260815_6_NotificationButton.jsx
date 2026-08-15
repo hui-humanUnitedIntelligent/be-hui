@@ -37,33 +37,21 @@ export default function NotificationButton({ count = 0, userId = "" }) {
   }
 
   // ── onAction: identische Logik wie MyBasisProfile.handleNotifAction ──
-  //
-  // BACK-BUTTON-STACK-FIX (2026-08-15, Michael-Report): Vorher stand hier
-  // ein unbedingtes setOpen(false) VOR dem gesamten Switch -- das schloss
-  // das komplette Resonanzzentrum-Panel (inkl. dem darin liegenden
-  // DetailModal) IMMER, auch wenn nur eine Werk/Erlebnis/Talent-Vorschau
-  // (openRef) darueber geoeffnet wurde. Ergebnis: die System-Zurueck-Taste
-  // hatte nach dem Schliessen der Vorschau nichts mehr zum Zurueckkehren --
-  // sie sprang direkt zur Startseite statt zur "Neue Bestellung"-Auswahl.
-  // Fix: setOpen(false) wird jetzt NUR noch bei echten Seitenwechseln
-  // aufgerufen (Chat oeffnen, Profil oeffnen, Impact/Discover navigieren,
-  // URL-Navigation) -- bei openRef(...) (Entity-Vorschau) bleibt das Panel
-  // (und das DetailModal darin, siehe NotificationPanel.jsx previewItem-
-  // Check) im Hintergrund bestehen.
   const handleAction = useCallback((n) => {
     if (!n) return;
     const meta = n.metadata || {};
     const targetId = meta.target_id || meta.actor_id || n.actor_id || null;
     const werkId  = meta.werk_id   || null;
 
+    setOpen(false);
+
     // ── "Mit Nutzer chatten" aus Buchungsdetail-Modal (typunabhängig, Vorrang) ──
     if (n._openChat) {
-      setOpen(false);
       const chatId = typeof n._openChat === "object" ? n._openChat.id : n._openChat;
       actions?.[A.OPEN_CHAT]?.({ recipientId: chatId, name: typeof n._openChat === "object" ? n._openChat.display_name : null, source: S.HOME });
       return;
     }
-    // BELEG-002: Angebot-Link aus DetailModal — Vorschau bleibt im Panel-Kontext
+    // BELEG-002: Angebot-Link aus DetailModal
     if (n._openRef && n._refType && n._refId) {
       openRef({ type: n._refType, id: n._refId });
       return;
@@ -81,7 +69,6 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "follow":
       case "follow_request":
       case "new_follower":
-        setOpen(false);
         if (targetId) actions?.[A.OPEN_PROFILE]?.({ creatorId: targetId, source: S.HOME });
         break;
 
@@ -90,7 +77,6 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "booking":
       case "message":
       case "new_message":
-        setOpen(false);
         if (targetId) actions?.[A.OPEN_CHAT]?.({ recipientId: targetId, source: S.HOME });
         break;
 
@@ -100,7 +86,6 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "impact_project_submitted":
       case "impact_project_deleted":
       case "impact_project_completed":
-        setOpen(false);
         actions?.[A.GO_IMPACT]?.();
         break;
 
@@ -108,7 +93,6 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "community_update":
       case "inspiration":
       case "discover":
-        setOpen(false);
         actions?.[A.GO_DISCOVER]?.();
         break;
 
@@ -116,7 +100,6 @@ export default function NotificationButton({ count = 0, userId = "" }) {
         if (n._openRef && n.entity_id) {
           openRef({ type: n.entity_type || "work", id: n.entity_id });
         } else if (werkId) {
-          setOpen(false);
           navigate(`/work/${werkId}`);
         }
         break;
@@ -197,13 +180,11 @@ export default function NotificationButton({ count = 0, userId = "" }) {
         if (n._openRef && n.entity_id && n.entity_type) {
           openRef({ type: n.entity_type, id: n.entity_id });
         } else if (n._openUrl) {
-          setOpen(false);
           const path = n._openUrl.startsWith("http")
             ? new URL(n._openUrl).pathname
             : n._openUrl;
           navigate(path);
         } else if (n.action_url) {
-          setOpen(false);
           const path = n.action_url.startsWith("http")
             ? new URL(n.action_url).pathname
             : n.action_url;

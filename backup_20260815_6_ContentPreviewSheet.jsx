@@ -25,7 +25,6 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
-import { formatNumberDE } from "../../lib/formatters.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
@@ -314,39 +313,6 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                 </div>
               )}
 
-              {/* Werk: Preis + Kategorie — FIX (2026-08-15, Michael-Report):
-                  Die Werk-Vorschau zeigte bisher (anders als Talent-Angebote)
-                  weder Preis noch Kategorie an, obwohl beide Felder in der
-                  works-Tabelle vorhanden sind ("lückenhaft, was der Nutzer
-                  gekauft hat" bei Bestellungs-Benachrichtigungen). Additiv,
-                  identische Pill-Optik wie der bestehende Talent-Preis-Chip. */}
-              {item.type === "work" && (item.price != null || item._raw?.category) && (
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
-                  {item.price != null && (
-                    <div style={{
-                      display:"inline-flex", alignItems:"center", gap:6,
-                      background:"rgba(13,196,181,0.10)", borderRadius:99,
-                      padding:"7px 16px",
-                    }}>
-                      <span style={{ fontSize:16, fontWeight: 600, color:"rgba(0,150,136,1)" }}>
-                        {formatNumberDE(Number(item.price))} €
-                      </span>
-                    </div>
-                  )}
-                  {item._raw?.category && (
-                    <div style={{
-                      display:"inline-flex", alignItems:"center",
-                      background:"rgba(26,26,46,0.05)", borderRadius:99,
-                      padding:"7px 16px",
-                    }}>
-                      <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>
-                        {item._raw.category}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              )}
-
               {/* Talent-Angebot: Preis + Profil + Buchen Buttons */}
               {item.type === "talent" && (
                 <>
@@ -463,15 +429,8 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
       </div>
 
       {/* Bottom-Spacer: Navbar (72px) + safe-area — verhindert Abschneiden
-          auf iOS (Safari ignoriert paddingBottom bei overflowY:auto).
-          FIX (2026-08-15, Michael-Report): env(safe-area-inset-bottom) lieferte
-          auf diesem Android-Geraet 0px zurueck (bekanntes WebView-Verhalten,
-          siehe Memory #716 -- windowFullscreen/env()-Inkonsistenzen), wodurch
-          der "Profil ansehen"-Button hinter der System-Navigationsleiste
-          verschwand. Jetzt: native --hui-safe-bottom (von MainActivity.java via
-          WindowInsetsCompat injiziert, SSOT fuer echte Insets) zuerst, env()
-          nur als Fallback fuer Browser/Vorschau ohne native Bridge. */}
-      <div style={{ height:"calc(88px + var(--hui-safe-bottom, env(safe-area-inset-bottom, 0px)))", flexShrink:0 }}/>
+          auf iOS (Safari ignoriert paddingBottom bei overflowY:auto) */}
+      <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))", flexShrink:0 }}/>
 
       {/* KOMMENTAR.1: EIN Kommentar-Sheet fuer ALLE Typen (post_comments,
           generisch ueber post_id+post_type, Migration 073). */}
