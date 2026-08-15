@@ -1,4 +1,4 @@
-import { platformPath, getAuthRedirectUrl } from '../../lib/platform.js';
+import { platformPath } from '../../lib/platform.js';
 import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // src/components/settings/SettingsModal.jsx
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
@@ -221,11 +221,6 @@ function PasswordBlock() {
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
-      {saved && (
-        <div style={{ marginTop:8, fontSize:12, color:T.teal, lineHeight:1.4 }}>
-          ✅ Passwort geändert. Wir haben dir zur Sicherheit eine Bestätigungs-E-Mail gesendet.
-        </div>
-      )}
     </Row>
   );
 }
@@ -252,24 +247,17 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
     }
     setSaving(true);
     try {
-      // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail an neue Adresse).
-      // BUGFIX 2026-08-15 (gleiche Klasse wie LoginPage.jsx signUp()): OHNE
-      // emailRedirectTo faellt Supabase auf den site_url-Fallback zurueck
-      // (Marketing-Landingpage) statt auf /auth/callback zu leiten.
-      const { error: authErr } = await supabase.auth.updateUser(
-        { email: newEmail.trim() },
-        { emailRedirectTo: getAuthRedirectUrl() }
-      );
+      // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail)
+      const { error: authErr } = await supabase.auth.updateUser({ email: newEmail.trim() });
       if (authErr) throw new Error(authErr.message);
-      // 2. profiles-Tabelle sofort mitziehen (optimistisch — die eigentliche
-      // Auth-E-Mail wechselt erst nach Bestätigung des Links, siehe unten)
+      // 2. profiles-Tabelle sofort mitziehen
       await supabase.from("profiles")
         .update({ email: newEmail.trim(), updated_at: new Date().toISOString() })
         .eq("id", profile?.id);
       // 3. UI-Zustand aktualisieren
       onProfileUpdate?.({ ...profile, email: newEmail.trim() });
       setSaved(true); setOldEmail(""); setNewEmail("");
-      setTimeout(() => setSaved(false), 8000);
+      setTimeout(() => setSaved(false), 5000);
     } catch(e) {
       setError(e.message || "Fehler beim Ändern der E-Mail");
     } finally {
@@ -291,9 +279,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
       <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
       {saved && (
         <div style={{ marginTop:8, fontSize:12, color:T.teal, lineHeight:1.4 }}>
-          ✅ Bestätigungs-Link an deine neue E-Mail-Adresse gesendet. Bitte bestätige
-          dort — erst danach wird die neue E-Mail zu deinem Login. Du erhältst
-          zusätzlich eine Benachrichtigung, sobald die Änderung abgeschlossen ist.
+          ✅ E-Mail geändert. Falls eine Bestätigung nötig ist, prüfe deine neue Inbox.
         </div>
       )}
     </Row>
