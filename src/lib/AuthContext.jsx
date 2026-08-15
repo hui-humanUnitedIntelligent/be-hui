@@ -83,6 +83,45 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // ── OAuth-Profildaten-Sync (additiv, 2026-08-15) ──────────────────
+  // Bei Login via Google/Apple: Avatar + Name aus den OAuth-Metadaten
+  // (raw_user_meta_data) in profiles uebernehmen — ABER NUR wenn das
+  // Profil-Feld noch leer ist. Ueberschreibt niemals eigene Anpassungen
+  // des Nutzers (z.B. selbst hochgeladenes Avatar oder gesetzter Name).
+  // Fuer NEUE Nutzer erledigt bereits der DB-Trigger handle_new_user()
+  // dasselbe bei der Profilerstellung — dieser Sync ist die Ergaenzung
+  // fuer bereits bestehende Profile (z.B. spaeteres Verknuepfen von Google).
+  const oauthSyncedRef = useRef(new Set());
+  const syncOAuthProfileData = useCallback(async (authUser) => {
+    try {
+      if (!authUser) return;
+      const provider = authUser.app_metadata?.provider;
+      if (!provider || provider === "email") return; // nur echte OAuth-Logins
+      if (oauthSyncedRef.current.has(authUser.id)) return; // einmal pro Session reicht
+      oauthSyncedRef.current.add(authUser.id);
+
+      const meta = authUser.user_metadata || {};
+      const metaAvatar = meta.avatar_url || meta.picture || null;
+      const metaName   = meta.full_name || meta.name || null;
+      if (!metaAvatar && !metaName) return;
+
+      const { data: prof } = await ProfileService.getById(authUser.id);
+      if (!prof) return; // Trigger legt das Profil ohnehin mit den Metadaten an
+
+      const updates = {};
+      if (metaAvatar && !prof.avatar_url) updates.avatar_url = metaAvatar;
+      if (metaName && !prof.display_name) updates.display_name = metaName;
+      if (Object.keys(updates).length === 0) return;
+
+      const { data: updated } = await ProfileService.update(authUser.id, updates);
+      if (updated) {
+        setProfile(prev => (prev && prev.id === authUser.id) ? { ...prev, ...updated } : prev);
+      }
+    } catch (e) {
+      console.warn("[HUI] syncOAuthProfileData:", e?.message);
+    }
+  }, []);
+
   // ── Auth-State setzen (zentralisiert, idempotent) ─────────────────
   const applySession = useCallback((session) => {
     const u = session?.user ?? null;
@@ -159,6 +198,7 @@ export function AuthProvider({ children }) {
       // AUFGABE 4: TOKEN_REFRESHED aus Profil-Reload entfernt
       if (u && ["SIGNED_IN","USER_UPDATED","INITIAL_SESSION"].includes(event)) {
         if (!profileLoadingRef.current) loadProfile(u.id);
+        syncOAuthProfileData(u);
       }
       if (!u) {
         setProfile(null);
@@ -185,6 +225,7 @@ export function AuthProvider({ children }) {
         if (!session) { applySession(null); return; }
         const u = applySession(session);
         if (u && !profileLoadingRef.current) loadProfile(u.id);
+        if (u) syncOAuthProfileData(u);
       } catch (e) {
         console.error("[AUTH_GET_SESSION_ERROR]", e);
         if (!authSettledRef.current) {
