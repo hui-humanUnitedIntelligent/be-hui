@@ -797,7 +797,11 @@ export default function LoginPage() {
           </div>
 
           {}
-          {(mode === 'login' || mode === 'register') && (
+          {/* ARCHIVED 2026-08-15: Google/Apple OAuth-Login ausgebaut.
+              Provider in Supabase noch nicht aktiviert (keine Credentials).
+              Code bleibt erhalten fuer spaetere Reaktivierung.
+              Siehe _archived/oauth_login_buttons.jsx fuer das Original-Markup.
+          {mode === 'login' || mode === 'register' ? (
             <>
               <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
                 <SocialBtn
@@ -818,7 +822,8 @@ export default function LoginPage() {
               <Divider label="oder per E-Mail" />
               <div style={{ height: 16 }}/>
             </>
-          )}
+          ) : null
+          } */}
 
           {}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
