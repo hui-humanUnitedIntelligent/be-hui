@@ -234,8 +234,8 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
           // Sheet wird per marginBottom ueber die System-Navbar gehoben —
           // dadurch ist der GESAMTE Sheet-Boden sichtbar, nicht nur der
           // Inhalt per Spacer davorgeschoben. (2026-08-15, 3. Fix-Versuch)
-          maxHeight:"calc(92dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 44px)) - max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px))",
-          marginBottom:"max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px)",
+          maxHeight:"calc(92dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 44px)) - max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px)))",
+          marginBottom:"max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px))",
           overflowY:"auto",
           background:T.sheet, borderTopLeftRadius:24, borderTopRightRadius:24,
           boxShadow:"0 -8px 40px rgba(20,24,22,0.25)",

@@ -375,7 +375,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           </div>
 
           {/* Bottom-Spacer: verhindert Abschneiden hinter Navbar */}
-          <div style={{ height:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))" }}/>
+          <div style={{ height:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px)))" }}/>
         </div>
       </div>
 

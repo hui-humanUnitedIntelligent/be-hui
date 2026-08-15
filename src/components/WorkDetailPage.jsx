@@ -598,7 +598,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       WebkitOverflowScrolling:"touch",
       background:C.warm,
       fontFamily:"Inter,sans-serif",
-      paddingBottom:"calc(90px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px))" }}>
+      paddingBottom:"calc(90px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px)))" }}>
       <style>{CSS}</style>
       <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>
 
