@@ -902,7 +902,7 @@ export default function SearchCommandCenter({
         // alles. Nutzer kann dann in den Vorschlägen Personen finden.
         // Besser: Wir setzen einen speziellen query-Modus.
         setKiMode("people");
-        setOpen(true);
+        inputRef.current?.focus();
         break;
 
       case "nearby":
@@ -919,7 +919,7 @@ export default function SearchCommandCenter({
         if (radius.isWorldwide) {
           radius.setRadiusKm(25);
         }
-        setOpen(true);
+        inputRef.current?.focus();
         break;
 
       case "match":
@@ -930,7 +930,7 @@ export default function SearchCommandCenter({
         setTypeFilter(null);
         setActiveCategories([]);
         setKiMode("match");
-        setOpen(true);
+        inputRef.current?.focus();
         break;
 
       case "help":
@@ -940,7 +940,7 @@ export default function SearchCommandCenter({
         setTypeFilter("experience");
         setActiveCategories([]);
         setKiMode(null);
-        setOpen(true);
+        inputRef.current?.focus();
         break;
 
       case "events":
@@ -955,7 +955,7 @@ export default function SearchCommandCenter({
         if (radius.isWorldwide) {
           radius.setRadiusKm(50);
         }
-        setOpen(true);
+        inputRef.current?.focus();
         break;
 
       case "discover":
@@ -965,14 +965,14 @@ export default function SearchCommandCenter({
         setTypeFilter(null);
         setActiveCategories([]);
         setKiMode("discover");
-        setOpen(true);
+        inputRef.current?.focus();
         break;
 
       default:
         // Fallback: altes Verhalten (nur Text setzen)
         setQuery(text);
         setKiMode(null);
-        setOpen(true);
+        inputRef.current?.focus();
     }
   }
   function toggleFilter(f){
@@ -1017,7 +1017,7 @@ export default function SearchCommandCenter({
   // ersten Tap also nicht verschwinden). Aktive Chips heben sich direkt in
   // derselben Zeile per Tuerkis-Highlighting ab (siehe unten) -- keine
   // separate zweite Leiste noetig.
-  const showCategoriesAndHistory = open && !query.trim() && activeCategories.length === 0 && !kiMode && !typeFilter;
+  const showCategoriesAndHistory = open && !query.trim() && activeCategories.length === 0;
   const showFilters              = open; // Filter bleiben sichtbar, auch waehrend Live-Search
 
   // ── SEARCH-BAR — Visual Polish Pass: mehr Hoehe, weichere Rundung, kein
