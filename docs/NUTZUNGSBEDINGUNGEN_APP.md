@@ -64,7 +64,8 @@ Durch die Registrierung und Nutzung der HUI-App erklärt der Nutzer sein Einvers
 - Werke können von Talenten/Wirkern kostenlos oder kostenpflichtig angeboten werden.
 - Der Kaufpreis wird vom Ersteller festgelegt.
 - Zahlungen erfolgen über den integrierten Zahlungsdienstleister Stripe.
-- HUI erhebt eine Plattformgebühr von 15 % des Kaufpreises. Diese teilt sich auf: Impact-Fonds (15 % der Gebühr) und Unternehmen/Ambassador (85 % der Gebühr).
+- HUI erhebt eine Plattformgebühr von 20 % des Kaufpreises (Balanced-Growth-Modell). Der Talent/Wirker erhält 80 % des Kaufpreises.
+- Die Plattformgebühr (20 %) wird intern aufgeteilt: 50 % Unternehmen, 30 % Impact-Fonds, 20 % Innovationsfonds.
 
 ### 4.2 Escrow-System (Sicherungs-System)
 - Bei kostenpflichtigen Käufen wird die Zahlung zunächst sichergestellt (Escrow).
@@ -78,7 +79,7 @@ Durch die Registrierung und Nutzung der HUI-App erklärt der Nutzer sein Einvers
 - Stornierungs- und Rückerstattungsbedingungen werden jeweils beim Angebot ausgewiesen.
 
 ### 4.4 Ambassador-Vergütung
-- Ambassador erhalten eine Provision für erfolgreiche Empfehlungen, gestaffelt nach Aktivität (5 %, 10 %, 15 %, 20 %).
+- Ambassador erhalten eine Provision aus dem Unternehmensanteil der Plattformgebühr für erfolgreiche Empfehlungen, gestaffelt nach Empfehlungs-Anzahl (5 %, 10 %, 15 %, 20 %).
 - Die Auszahlung erfolgt über Stripe Connect nach Freigabe durch das HUI-Team.
 
 ### 4.5 Mitgliedschaft

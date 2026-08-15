@@ -80,7 +80,8 @@ const SECTIONS = [
       { h: "4.1 Werke kaufen", items: [
         "Werke können kostenlos oder kostenpflichtig angeboten werden.",
         "Zahlungen erfolgen über den Zahlungsdienstleister Stripe.",
-        "HUI erhebt eine Plattformgebühr von 15 % des Kaufpreises.",
+        "HUI erhebt eine Plattformgebühr von 20 % des Kaufpreises (Balanced-Growth-Modell) — der Talent/Wirker erhält 80 %.",
+        "Die Plattformgebühr wird aufgeteilt: 50 % Unternehmen, 30 % Impact-Fonds, 20 % Innovationsfonds.",
       ]},
       { h: "4.2 Escrow-System (Sicherungs-System)", items: [
         "Bei kostenpflichtigen Käufen wird die Zahlung zunächst sichergestellt.",
@@ -94,7 +95,7 @@ const SECTIONS = [
         "Stornierungsbedingungen werden beim Angebot ausgewiesen.",
       ]},
       { h: "4.4 Ambassador-Vergütung", items: [
-        "Ambassador erhalten eine Provision (5 % bis 20 %) für erfolgreiche Empfehlungen.",
+        "Ambassador erhalten eine Provision aus dem Unternehmensanteil der Plattformgebühr (5 % bis 20 %, gestaffelt nach Empfehlungs-Anzahl).",
         "Die Auszahlung erfolgt über Stripe Connect nach Freigabe.",
       ]},
       { h: "4.5 Mitgliedschaft", items: [
