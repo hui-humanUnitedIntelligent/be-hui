@@ -1,7 +1,5 @@
 // src/components/onboarding/OnboardingTutorial.jsx
-// HUI Onboarding-Tutorial — Basis (6 Schritte) + Erweitert (6 Schritte, echte Profil-Kacheln)
-// 2026-08-15: Orb-Schritt ("Mein HUI") entfernt — Orb ist aktuell funktionslos (statisches Logo,
-//             siehe Stabilisierungs-Phase-Entscheidung), Tutorial-Hinweis wäre irreführend gewesen.
+// HUI Onboarding-Tutorial — Basis (7 Schritte) + Erweitert (6 Schritte, echte Profil-Kacheln)
 // Systemweite Design-Regeln: Fuchs fest unverzerrt, kompakter Weiter-Button,
 // Spotlight nie verdeckt. Keine bestehenden UI-Elemente werden veraendert.
 // 2026-08-11: Button halbiert + in Fuchs-Container integriert (nie abgedeckt).
@@ -31,6 +29,7 @@ const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — 
 const STEPS = [
   { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
   { selector: 'button[aria-label="Entdecken"]',      text: "Hier findest du alles \u00fcber HUI: Menschen, Werke, Erlebnisse und neue Ideen.",    placement: "top" },
+  { selector: 'button[aria-label="Mein HUI"]',       text: "Hier entsteht Neues. Der Orb ist dein Zugang, um selbst etwas zu erschaffen.",    placement: "top" },
   { selector: 'button[aria-label="Impact"]',         text: "Hier findest du alle Projekte, die wir gemeinsam unterst\u00fctzen. Erstelle doch selbst eins!", placement: "top" },
   { selector: 'button[aria-label="Profil"]',          text: "Hier kannst du dein eigenes Profil gestalten und personalisieren.",                 placement: "top" },
   { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.",     placement: "bottom" },
