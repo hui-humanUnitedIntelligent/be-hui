@@ -81,40 +81,6 @@ function adjustFixedElements(inset) {
     try { computed = getComputedStyle(child); } catch { continue; }
     if (computed.position !== "fixed") continue;
 
-    // KEYBOARD-DOUBLESHIFT-FIX (2026-08-15): Nutzer-Report — beim Öffnen der
-    // Tastatur in CommentsSheet/ConversationRoom/SettingsModal/ProfilBearbeitenModal/
-    // ImpactUpdateSheet/ImpactProjektUpdateSheet/HuiMomentSheet verschob sich das
-    // GESAMTE Sheet zu weit nach oben, Header verschwand, weißer Balken sichtbar,
-    // Eingabefeld nicht erreichbar. Root Cause: ALLE diese Sheets sind
-    // "position:fixed; inset:0" Vollbild-Wrapper (direkte body-Kinder) MIT einem
-    // intern geschachtelten Panel, das sich SELBST bereits ueber
-    // "bottom: var(--hui-keyboard-inset)" / "maxHeight: calc(Xdvh - var(--hui-keyboard-inset))"
-    // korrekt ueber die Tastatur hebt. Dieser globale Handler hat ZUSAETZLICH den
-    // AEUSSEREN Vollbild-Wrapper per "bottom: insetPx" verschoben (mit unveraendertem
-    // top:0 verkuerzt das die Wrapper-Hoehe von unten) — das innere Panel positioniert
-    // sich dann relativ zu diesem bereits verkuerzten Wrapper NOCH EINMAL um "inset"
-    // nach oben = doppelte Verschiebung, Header wandert aus dem Bild, weisser Bereich
-    // wird sichtbar. FIX: Vollbild-Overlays (Hoehe >= 70% der Viewport-Hoehe) werden
-    // hier gar nicht mehr beruehrt — sie regeln ihre Tastatur-Sicherheit bereits
-    // vollstaendig selbst ueber die CSS-Variable (die dieser Handler weiterhin oben
-    // in onKeyboardChange() korrekt setzt). Nur ECHTE schmale Leisten (z.B. ein
-    // schwebender Speichern-Button-Balken < 70% Bildschirmhoehe) werden weiterhin
-    // wie bisher per "bottom: insetPx" ueber die Tastatur geschoben.
-    let rectHeight = 0;
-    try { rectHeight = child.getBoundingClientRect().height; } catch { rectHeight = 0; }
-    const isFullscreenOverlay = rectHeight >= window.innerHeight * 0.7;
-    if (isFullscreenOverlay) {
-      // Falls dieses Element vorher (bei einem frueheren, kleineren inset-Wert)
-      // bereits faelschlich anjustiert wurde, jetzt sauber zuruecksetzen.
-      const saved = savedStyles.get(child);
-      if (saved) {
-        child.style.bottom = saved.bottom;
-        child.style.transition = saved.transition;
-        savedStyles.delete(child);
-      }
-      continue;
-    }
-
     if (inset > 0) {
       if (!savedStyles.has(child)) {
         savedStyles.set(child, {
