@@ -343,6 +343,7 @@ export default function LoginPage() {
 
   // Modes: 'splash' | 'login' | 'register' | 'forgot' | 'onboarding'
   const [mode,       setMode]       = useState('splash');
+  const [showTerms,  setShowTerms]  = useState(false);
   const [email,      setEmail]      = useState('');
   const [pw,         setPw]         = useState('');
   const [showPw,     setShowPw]     = useState(false);
