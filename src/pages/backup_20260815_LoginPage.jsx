@@ -6,7 +6,6 @@ import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
 import { HUILogoWordmark } from '../components/brand/HUILogo.jsx';
 import NutzungsbedingungenModal from '../components/auth/NutzungsbedingungenModal.jsx';
-import EmailVerificationModal from '../components/auth/EmailVerificationModal.jsx';
 import { getAuthRedirectUrl } from '../lib/platform.js';
 
 // ── Design Tokens ───────────────────────────────────────────────
@@ -318,9 +317,25 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation(); // DEEPLINK.1 (2026-07-09) — Rueckweg nach Login
 
-  // REGISTRATION-UPGRADE-001: Keine automatische Vorbefüllung des Reflink-Feldes.
-  // Reflink wird NUR manuell eingegeben (Validierung via resolveRefLink).
-  // localStorage-Eintrag bleibt für processReferralForUser erhalten (OAuth-Flows).
+  // Ref-Link aus URL-Param (?ref=username) ODER localStorage vorausfüllen
+  useEffect(() => {
+    const refParam = searchParams.get('ref');
+    if (refParam) {
+      setRefLink(`https://be-hui.com/${refParam}`);
+      return;
+    }
+    // Fallback: localStorage (gesetzt von RefRedirect wenn Nutzer über be-hui.com/username kam)
+    try {
+      const stored = localStorage.getItem('hui_referral_ambassador');
+      if (stored) {
+        let parsed; try { parsed = JSON.parse(stored); } catch(e) { parsed = null; }
+        if (parsed?.expiry && Date.now() < parsed.expiry && parsed.username) {
+          setRefLink(`https://be-hui.com/${parsed.username}`);
+        }
+      }
+    } catch (e) { /* ignorieren */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [searchParams] = useSearchParams();
 
@@ -338,14 +353,6 @@ export default function LoginPage() {
   const [usernameErr, setUsernameErr] = useState('');
   const [refLink,    setRefLink]    = useState('');
   const [refValid,   setRefValid]   = useState(null);
-  // REGISTRATION-UPGRADE-001 (2026-08-15): Neue Pflichtfelder
-  const [anrede,     setAnrede]     = useState('');
-  const [geburtsdatum, setGeburtsdatum] = useState('');
-  const [pw2,        setPw2]        = useState('');
-  const [showPw2,    setShowPw2]    = useState(false);
-  const [showVerification, setShowVerification] = useState(false);
-  // Speichere Register-Credentials für Polling im Verifikations-Modal
-  const [regCredentials, setRegCredentials] = useState({ email: '', password: '' });
   const [loading,    setLoading]    = useState(false);
   const [err,        setErr]        = useState('');
   const [success,    setSuccess]    = useState('');
@@ -494,52 +501,22 @@ export default function LoginPage() {
     }
   }
 
-  // ── Altersberechnung ──
-  function calculateAge(birthdate) {
-    const today = new Date();
-    const birth = new Date(birthdate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
-  }
-
   async function handleRegister(e) {
     e.preventDefault(); clearMessages(); setUsernameErr('');
 
     // ── Pflichtfeld-Validierung ──
-    if (!anrede)                { setErr('Bitte wähle eine Anrede.');                        return; }
-    if (!fullName.trim())       { setErr('Bitte gib deinen Vornamen ein.');                 return; }
-    if (!lastName.trim())       { setErr('Bitte gib deinen Nachnamen ein.');               return; }
-    if (!username.trim())       { setErr('Bitte wähle einen Benutzernamen.');              return; }
-    if (!email)                 { setErr('Bitte gib deine E-Mail ein.');                   return; }
-    if (!pw)                    { setErr('Bitte gib ein Passwort ein.');                   return; }
-    if (pw.length < 6)          { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
-    if (!pw2)                   { setErr('Bitte wiederhole dein Passwort.');               return; }
-    if (pw !== pw2)             { setErr('Die Passwörter stimmen nicht überein.');          return; }
-    if (!geburtsdatum)          { setErr('Bitte gib dein Geburtsdatum ein.');               return; }
-
-    // Altersprüfung ≥ 16
-    const age = calculateAge(geburtsdatum);
-    if (age < 16) {
-      setErr('Du musst mindestens 16 Jahre alt sein, um ein Konto zu erstellen.');
-      return;
-    }
+    if (!fullName.trim())   { setErr('Bitte gib deinen Vornamen ein.');    return; }
+    if (!lastName.trim())   { setErr('Bitte gib deinen Nachnamen ein.');   return; }
+    if (!username.trim())   { setErr('Bitte wähle einen Benutzernamen.');  return; }
+    if (!email)             { setErr('Bitte gib deine E-Mail ein.');       return; }
+    if (!pw)                { setErr('Bitte gib ein Passwort ein.');       return; }
+    if (pw.length < 6)      { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
 
     // Username-Format prüfen
     const uname = username.trim().toLowerCase().replace(/\s+/g, '_');
     if (!/^[a-z0-9_]{3,30}$/.test(uname)) {
       setErr('Benutzername: 3-30 Zeichen, nur Buchstaben, Zahlen und _');
       return;
-    }
-
-    // Reflink-Validierung (wenn eingegeben)
-    if (refLink.trim()) {
-      const refResult = await resolveRefLink(refLink.trim());
-      if (!refResult?.ambassadorId) {
-        setErr('Dieser Reflink ist ungültig.');
-        return;
-      }
     }
 
     setLoading(true);
@@ -559,12 +536,14 @@ export default function LoginPage() {
     const combinedName = `${fullName.trim()} ${lastName.trim()}`;
 
     // ── Ref-Link auflösen (manuelles Feld ODER localStorage ODER URL) ──
+    // Prio 1: Manuell eingetippt im Formular (Helper sichert + versucht sofort aufzuloesen)
     await persistManualRefLinkToStorage();
     let ambassadorId = null;
     try {
       let justStored = null; try { justStored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null'); } catch(e) {}
       if (justStored?.ambassadorId) ambassadorId = justStored.ambassadorId;
     } catch {}
+    // Prio 2: localStorage (gesetzt von RefRedirect wenn Nutzer über Link kam)
     if (!ambassadorId) {
       try {
         let stored = null; try { stored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null'); } catch(e) {}
@@ -574,9 +553,6 @@ export default function LoginPage() {
       } catch {}
     }
 
-    // ── Supabase signUp ──
-    // REGISTRATION-UPGRADE-001: mailer_autoconfirm=false → Supabase sendet
-    // Bestätigungs-Mail, KEINE Session wird zurückgegeben.
     const { error, data: signUpData } = await supabase.auth.signUp({
       email, password: pw,
       options: {
@@ -584,8 +560,6 @@ export default function LoginPage() {
           full_name:    combinedName,
           display_name: fullName.trim(),
           username:     uname,
-          anrede:       anrede,
-          geburtsdatum: geburtsdatum,
         },
       },
     });
@@ -595,7 +569,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Profil mit allen Pflichtfeldern befüllen (inkl. anrede + geburtsdatum)
+    // Profil sofort mit allen Pflichtfeldern befüllen
     if (signUpData?.user?.id) {
       const profileData = {
         id:           signUpData.user.id,
@@ -603,13 +577,16 @@ export default function LoginPage() {
         display_name: fullName.trim(),
         username:     uname,
         email:        email,
-        anrede:       anrede,
-        geburtsdatum: geburtsdatum,
         updated_at:   new Date().toISOString(),
       };
+      // referred_by NICHT mehr im rohen Upsert mitschicken — direkt nach Signup ist die
+      // Session evtl. noch nicht vollständig aktiv (RLS: auth.uid()=id), wodurch das Feld
+      // beim rohen .upsert() unbemerkt verworfen werden kann (Fehler wurde nie geprüft).
       await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
 
-      // referred_by über SECURITY-DEFINER-RPC setzen
+      // referred_by GARANTIERT über die SECURITY-DEFINER-RPC setzen (umgeht RLS komplett,
+      // idempotent per "WHERE referred_by IS NULL"). Das ist jetzt der einzige Schreibweg
+      // fuer referred_by beim Signup.
       if (ambassadorId) {
         try {
           const { data: rpcRes, error: rpcErr } = await supabase.rpc('rpc_register_with_ambassador', {
@@ -618,6 +595,7 @@ export default function LoginPage() {
           });
           if (rpcErr || rpcRes?.ok === false) {
             console.warn('[HUI Referral] rpc_register_with_ambassador fehlgeschlagen:', rpcErr?.message || rpcRes?.error);
+            // localStorage NICHT löschen → processReferralForUser holt es beim naechsten Login nach
           } else {
             try { localStorage.removeItem('hui_referral_ambassador'); } catch {}
           }
@@ -625,16 +603,20 @@ export default function LoginPage() {
           console.warn('[HUI Referral] rpc_register_with_ambassador Exception:', e);
         }
       } else {
+        // Kein ambassadorId sofort aufgeloest → Fallback ueber localStorage/AuthCallback
         processReferralForUser(signUpData.user.id).catch(() => {});
       }
     }
 
-    // ── KEIN Auto-Login mehr ──
-    // Stattdessen: Verifikations-Modal anzeigen, das alle 3 Sekunden
-    // prüft ob die E-Mail bestätigt wurde.
-    setLoading(false);
-    setRegCredentials({ email, password: pw });
-    setShowVerification(true);
+    // Auto-login
+    const { error: loginErr } = await supabase.auth.signInWithPassword({ email, password: pw });
+    if (loginErr) {
+      setSuccess('Konto erstellt! Bitte einloggen.');
+      setMode('login'); setLoading(false);
+    } else {
+      setMode('onboarding');
+      setLoading(false);
+    }
   }
 
   async function handleForgot(e) {
@@ -850,40 +832,6 @@ export default function LoginPage() {
             {}
             {mode === 'register' && (
               <>
-                {/* Anrede — REGISTRATION-UPGRADE-001 */}
-                <div style={{ position: 'relative' }}>
-                  <select
-                    id="anrede"
-                    value={anrede}
-                    onChange={e => setAnrede(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      background: T.glass,
-                      border: '1.5px solid rgba(255,255,255,0.13)',
-                      borderRadius: 14,
-                      fontSize: 14,
-                      color: anrede ? T.white : 'rgba(255,255,255,0.38)',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
-                      caretColor: T.teal,
-                      appearance: 'none',
-                      WebkitAppearance: 'none',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <option value="" disabled style={{ background: '#1a1a1a', color: '#999' }}>Anrede *</option>
-                    <option value="Herr" style={{ background: '#1a1a1a', color: '#fff' }}>Herr</option>
-                    <option value="Frau" style={{ background: '#1a1a1a', color: '#fff' }}>Frau</option>
-                    <option value="Divers" style={{ background: '#1a1a1a', color: '#fff' }}>Divers</option>
-                  </select>
-                  <svg style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-                    width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
-                    <path d="M6 9l6 6 6-6"/>
-                  </svg>
-                </div>
                 {/* Vorname */}
                 <GlassInput
                   id="firstname"
@@ -933,30 +881,6 @@ export default function LoginPage() {
                     {usernameErr}
                   </div>
                 )}
-                {/* Geburtsdatum — REGISTRATION-UPGRADE-001 */}
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="geburtsdatum"
-                    type="date"
-                    value={geburtsdatum}
-                    onChange={e => setGeburtsdatum(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 16px',
-                      background: T.glass,
-                      border: '1.5px solid rgba(255,255,255,0.13)',
-                      borderRadius: 14,
-                      fontSize: 14,
-                      color: geburtsdatum ? T.white : 'rgba(255,255,255,0.38)',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
-                      caretColor: T.teal,
-                    }}
-                  />
-                </div>
               </>
             )}
 
@@ -990,26 +914,6 @@ export default function LoginPage() {
               />
             )}
 
-            {/* Passwort wiederholen — REGISTRATION-UPGRADE-001 (nur bei Registrierung) */}
-            {mode === 'register' && (
-              <GlassInput
-                id="password2"
-                type={showPw2 ? 'text' : 'password'}
-                value={pw2}
-                onChange={e => { setPw2(e.target.value); clearMessages(); }}
-                placeholder="Passwort wiederholen *"
-                autoComplete="new-password"
-                rightSlot={
-                  <button type="button" onClick={() => setShowPw2(v => !v)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer',
-                      color: T.muted, padding: 0, fontSize: 14, fontFamily: 'inherit',
-                      lineHeight: 1 }}>
-                    {showPw2 ? '●' : '○'}
-                  </button>
-                }
-              />
-            )}
-
             {/* REF-LINK — nur bei Registrierung sichtbar */}
             {mode === 'register' && (
               <div style={{ marginTop: 8 }}>
@@ -1017,7 +921,7 @@ export default function LoginPage() {
                   type="text"
                   value={refLink}
                   onChange={e => setRefLink(e.target.value)}
-                  placeholder="Reflink (optional)"
+                  placeholder="Reflink Optional"
                   autoComplete="off"
                   rightSlot={
                     refLink.trim() ? (
@@ -1090,12 +994,6 @@ export default function LoginPage() {
         </div>
       </div>
       <NutzungsbedingungenModal open={showTerms} onClose={() => setShowTerms(false)} />
-      <EmailVerificationModal
-        open={showVerification}
-        email={regCredentials.email}
-        password={regCredentials.password}
-        onClose={() => setShowVerification(false)}
-      />
     </div>
   );
 }
