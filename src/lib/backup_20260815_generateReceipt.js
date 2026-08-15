@@ -51,35 +51,6 @@ function isNative() {
   return _isNative;
 }
 
-// BELEG-007 (2026-08-15): Nutzer-Report — orangene Fehlermeldung "Speichern
-// fehlgeschlagen (\"Filesystem\" plugin is not implemented on android)" beim
-// Beleg-Download im Talent-Profil, trotz vorheriger BELEG-004-Fixes. Root Cause:
-// dieser exakte Fehlertext kommt AUSSCHLIESSLICH aus @capacitor/core's generischem
-// registerPlugin()-Proxy, wenn `window.Capacitor.PluginHeaders` (vom nativen Bridge
-// beim App-Start injiziert) KEINEN Eintrag fuer "Filesystem" enthaelt — d.h. der
-// gerade installierte native Android-Shell hat die Filesystem-Plugin-Klasse zur
-// Laufzeit nicht registriert (unabhaengig davon ob der JS-Code korrekt ist).
-// Das kann nach jedem OTA-Update passieren, bei dem der Nutzer eine AELTERE APK
-// installiert hat, ODER wenn die Bridge aus irgendeinem Grund die Registrierung
-// verpasst hat — OTA kann das NICHT nachtraeglich fixen (native Plugin-Registrierung
-// ist Java-Bridge-Zustand, kein WWW-Bundle-Inhalt).
-// FIX: Verfuegbarkeit proaktiv PRUEFEN statt blind zu versuchen + Fehler zu fangen.
-// Ist Filesystem nicht verfuegbar, wird direkt (ohne Zwischen-Fehlversuch und ohne
-// alarmierende orangene Fehler-Toast) der Blob-Download-Fallback genutzt — der
-// funktioniert unabhaengig vom Capacitor-Plugin-Status und liefert dem Nutzer die
-// Datei trotzdem zuverlaessig aus.
-function isFilesystemPluginAvailable() {
-  try {
-    return !!(
-      window.Capacitor &&
-      typeof window.Capacitor.isPluginAvailable === "function" &&
-      window.Capacitor.isPluginAvailable("Filesystem")
-    );
-  } catch {
-    return false;
-  }
-}
-
 export async function generateReceipt(data) {
   try {
     const { default: jsPDF } = await import("jspdf");
@@ -313,15 +284,7 @@ export async function generateReceipt(data) {
       // waehrend jsPDF-Chunk laedt + Filesystem im Hintergrund arbeitet.
       toast.info("Beleg wird gespeichert …", { duration: 2500 });
       const saved = await saveNative(doc, fileName);
-      // BELEG-007: Nur bei echtem Filesystem-Save "gespeichert" behaupten — beim
-      // Fallback zeigte saveNative bereits (falls unerwartet) eine eigene Toast an,
-      // eine zusaetzliche pauschale "gespeichert ✓" waere dort irrefuehrend
-      // (suggeriert dauerhaften Speicherort, den es beim Fallback nicht gibt).
-      if (saved.method === "filesystem") {
-        toast.info("Beleg gespeichert ✓", { duration: 2000 });
-      } else {
-        toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
-      }
+      toast.info("Beleg gespeichert ✓", { duration: 2000 });
       return { fileName, uri: saved.uri, native: true, receiptData: data };
     } else {
       // Web/Desktop: klassischer Browser Download
@@ -345,34 +308,7 @@ export async function generateReceipt(data) {
  * App-Deinstallation erhalten und ist bereits als <external-path> in file_paths.xml
  * deklariert (FileProvider-Voraussetzung, seit 2026-07-09 im APK compiliert).
  */
-function blobDownloadFallback(doc, fileName) {
-  const blob = doc.output("blob");
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
-
 async function saveNative(doc, fileName) {
-  // BELEG-007: Erst PRUEFEN ob das native Filesystem-Plugin auf diesem Geraet
-  // ueberhaupt registriert ist, statt es blind zu versuchen. Fehlt es, ist das
-  // KEIN unerwarteter Fehler (der Blob-Fallback liefert die Datei trotzdem
-  // zuverlaessig aus) — also keine alarmierende Fehler-Toast, sondern direkt
-  // und ruhig der Fallback-Pfad mit ehrlichem method-Flag fuer den Aufrufer.
-  if (!isFilesystemPluginAvailable()) {
-    console.warn("[generateReceipt] Filesystem-Plugin auf diesem Geraet nicht registriert — nutze Download-Fallback.");
-    try {
-      blobDownloadFallback(doc, fileName);
-      return { uri: null, method: "fallback" };
-    } catch (err2) {
-      console.error("[generateReceipt] Fallback failed (no Filesystem plugin):", err2);
-      toast.error("Beleg konnte nicht gespeichert werden. Bitte Speicher-Zugriff für HUI prüfen.");
-      throw err2;
-    }
-  }
-
   try {
     // BELEG-004: Filesystem ist ein Modul-Level registerPlugin()-Proxy (siehe Dateikopf).
 
@@ -395,15 +331,21 @@ async function saveNative(doc, fileName) {
       path: fileName,
     });
 
-    return { uri: uriResult.uri, method: "filesystem" };
+    return { uri: uriResult.uri };
   } catch (err) {
     console.error("[generateReceipt] Native save failed:", err);
     const errMsg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage) : "Unbekannter Fehler";
     // Fallback: Blob-Download versuchen (funktioniert evtl. auf manchen WebViews)
     try {
-      blobDownloadFallback(doc, fileName);
+      const blob = doc.output("blob");
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
       toast.warn("Speichern fehlgeschlagen (" + errMsg.substring(0, 60) + "). Download-Fallback genutzt.");
-      return { uri: null, method: "fallback" };
+      return { uri: null };
     } catch (err2) {
       console.error("[generateReceipt] Fallback also failed:", err2);
       // BELEG-002: nie mehr stiller Fail — Nutzer bekommt IMMER eine Rückmeldung.
