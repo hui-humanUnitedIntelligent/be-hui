@@ -204,6 +204,7 @@ export default function HUIBottomNavigation({
         overflow: "visible",
         width: "100%",
         height: NAV_RESERVED_HEIGHT_CSS,
+        marginTop: "8px",
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
         // .agents/rules/footer-navbar-zindex.md — Bugfund 2026-07-04/05, 16 betroffene Stellen gefixt).
@@ -243,7 +244,7 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 20 - ORB_OVERHANG,  // = -31 (2026-08-15: +8px tiefer, Michael-Feedback)
+            top: 12 - ORB_OVERHANG,  // = -39, Logo-Position unverändert
             left: "50%",
             transform: "translateX(-50%)",
             width: ORB_D,
