@@ -973,7 +973,21 @@ export default function LoginPage() {
         {}
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', lineHeight: 1.8 }}>
-            Mit der Registrierung stimmst du den <span style={{ textDecoration: 'underline' }}>Nutzungsbedingungen</span> zu.
+            Mit der Registrierung stimmst du den{' '}
+            <span
+              role="link"
+              tabIndex={0}
+              onClick={() => window.open('https://be-hui.com/nutzungsbedingungen', '_blank', 'noopener')}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://be-hui.com/nutzungsbedingungen', '_blank', 'noopener'); }}
+              style={{
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                color: 'rgba(255,255,255,0.42)',
+              }}
+            >
+              Nutzungsbedingungen
+            </span>{' '}
+            zu.
           </div>
         </div>
       </div>
