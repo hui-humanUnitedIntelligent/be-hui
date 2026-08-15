@@ -22,24 +22,6 @@ export const NAV_GEOMETRY = Object.freeze({
   SINK_RATIO: 0.50,
 });
 
-// ── SAFE-AREA GUARD (2026-08-15) ─────────────────────────────────────
-// Nutzer-Report (Screenshot): Navbar plötzlich riesig, viel weißer
-// Leerraum unterhalb der Labels bis zur System-Navigationsleiste.
-// ROOT CAUSE: `data-hui-nav-bar` nutzt `boxSizing:"content-box"` +
-// `paddingBottom: NAV_SAFE_BOTTOM_CSS` — das SVG-Hintergrund-Pill
-// (position:absolute, inset:0) spannt sich über die GESAMTE Padding-Box
-// (Inhalt + Padding), d.h. jeder ungewöhnlich große --hui-safe-bottom-Wert
-// (von MainActivity.java via WindowInsetsCompat injiziert) blässt die
-// GESAMTE Tabbar-Höhe 1:1 auf. Reale Android-System-Navigationsleisten
-// (3-Button ODER Geste) liegen praktisch immer <= 56dp — alles darüber
-// ist ein Anzeichen für einen fehlerhaften/veralteten Inset-Wert auf der
-// nativen Seite (z.B. IME-Reste, Dichte-Rundungsfehler, Geräte-Eigenheit).
-// FIX: harte Obergrenze von 56px auf den safe-bottom-Anteil — schützt
-// die gesamte Navbar-Geometrie gegen jeden fehlerhaften nativen Wert,
-// ohne normale Geräte zu beeinträchtigen (deren echte Insets liegen
-// alle darunter). Rein additiv, rein CSS/JS, kein natives Rebuild nötig.
-const SAFE_BOTTOM_MAX_PX = 56;
-
 const { TAB_H, GAP, CORNER_R, SINK_RATIO, ORB_D: _ORB_D } = NAV_GEOMETRY;
 
 export const ORB_D   = NAV_GEOMETRY.ORB_D;
@@ -64,14 +46,14 @@ export const NAV_BLOCK_HEIGHT = ORB_OVERHANG + TAB_H;   // 57 + 64 = 121px
 
 /** CSS value for feed clearance — used by scroll container and fixed overlays */
 export const NAV_CLEARANCE_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + min(${SAFE_BOTTOM_MAX_PX}px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px)))`;
+  `calc(${NAV_BLOCK_HEIGHT}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
 
 /** CSS value for nav container total height (Orb-Überhang + Tabbar + Safe-Area) —
  *  weiterhin exportiert für Konsumenten, die die VOLLE optische Nav-Zone
  *  brauchen (z.B. WerkeKorb-Button-Clearance), aber NICHT mehr für die
  *  eigene reservierte Layout-Box der Navigation verwendet (siehe unten). */
 export const NAV_CONTAINER_HEIGHT_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + min(${SAFE_BOTTOM_MAX_PX}px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px)))`;
+  `calc(${NAV_BLOCK_HEIGHT}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
 
 /** CSS value for the nav's OWN reserved flex-layout height — bewusst OHNE
  *  den Orb-Überhang. Der Überhang-Bereich war im Code zwar schon transparent,
@@ -83,7 +65,7 @@ export const NAV_CONTAINER_HEIGHT_CSS =
  *  wieder sichtbaren) Feed hinweg (siehe Orb-top-Kompensation in
  *  HUIBottomNavigation.jsx). */
 export const NAV_RESERVED_HEIGHT_CSS =
-  `calc(${TAB_H}px + min(${SAFE_BOTTOM_MAX_PX}px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px)))`;
+  `calc(${TAB_H}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
 
 /** CSS value for safe-area bottom padding inside nav.
  *
@@ -98,7 +80,7 @@ export const NAV_RESERVED_HEIGHT_CSS =
  * Auf Geräten ohne Systemleiste (0px) greift der SAFE_B-Puffer.
  */
 export const NAV_SAFE_BOTTOM_CSS =
-  `min(${SAFE_BOTTOM_MAX_PX}px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px))`;
+  `max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px)`;
 
 /** CSS value for content-area bottom spacer — used as the LAST child in every
  *  scrollable tab (Feed, Discover, Impact, Momente).
@@ -107,7 +89,7 @@ export const NAV_SAFE_BOTTOM_CSS =
  *  All pages MUST use: <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
  *  as their very last child — never a hard-coded pixel value. */
 export const NAV_CONTENT_SPACER_CSS =
-  `calc(${NAV_BLOCK_HEIGHT}px + min(${SAFE_BOTTOM_MAX_PX}px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px)) + 24px)`;
+  `calc(${NAV_BLOCK_HEIGHT}px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, ${NAV_GEOMETRY.SAFE_B}px), ${NAV_GEOMETRY.SAFE_B}px) + 24px)`;
 
 /**
  * Build organic SVG tabbar path with center notch.
