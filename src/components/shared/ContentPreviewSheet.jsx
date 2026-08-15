@@ -231,7 +231,11 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
         onTouchEnd={handleDragEnd}
         style={{
           width:"100%", maxWidth:560,
-          maxHeight:"calc(92dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 44px)))",
+          // Sheet wird per marginBottom ueber die System-Navbar gehoben —
+          // dadurch ist der GESAMTE Sheet-Boden sichtbar, nicht nur der
+          // Inhalt per Spacer davorgeschoben. (2026-08-15, 3. Fix-Versuch)
+          maxHeight:"calc(92dvh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 44px)) - max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px))",
+          marginBottom:"max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px)",
           overflowY:"auto",
           background:T.sheet, borderTopLeftRadius:24, borderTopRightRadius:24,
           boxShadow:"0 -8px 40px rgba(20,24,22,0.25)",

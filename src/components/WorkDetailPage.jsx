@@ -598,7 +598,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       WebkitOverflowScrolling:"touch",
       background:C.warm,
       fontFamily:"Inter,sans-serif",
-      paddingBottom:"calc(90px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))" }}>
+      paddingBottom:"calc(90px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px))" }}>
       <style>{CSS}</style>
       <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>
 
@@ -831,9 +831,9 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       </div>
 
       {/* ── Sticky Commerce Bar ── */}
-      <div style={{ position:"fixed", bottom:0, left:"50%",
+      <div style={{ position:"fixed", bottom:"max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)", left:"50%",
         transform:"translateX(-50%)", width:"100%", maxWidth:680,
-        padding:"12px 20px", paddingBottom:"max(12px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))",
+        padding:"12px 20px", paddingBottom:12,
         background:"rgba(249,247,244,0.96)", backdropFilter:"blur(16px)",
         borderTop:`1px solid ${C.border}`,
         display:"flex", gap:10, zIndex:10500 }}>

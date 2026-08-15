@@ -17,7 +17,7 @@ export const APP_VERSION: string = version;
  * Android versionCode — wird von release.sh aus build.gradle synchronisiert.
  * Im Web-Kontext irrelevant, aber für Capacitor/Android-Sync.
  */
-export const APP_VERSION_CODE: number = 221;
+export const APP_VERSION_CODE: number = 222;
 
 /**
  * Zentrale Utility-Funktion für die App-Version.
