@@ -9,12 +9,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
-import android.webkit.PermissionRequest;
-import android.webkit.WebChromeClient;
-import android.Manifest;
-import android.content.pm.PackageManager;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,43 +18,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
-
-    private static final int MIC_PERMISSION_REQUEST_CODE = 1001;
-    private WebView webViewRef;
-
-    // JS-Interface für Mikrofon-Berechtigung
-    // Wird von JS aufgerufen: window.__HUI_MIC.requestPermission()
-    public class MicPermissionInterface {
-        @android.webkit.JavascriptInterface
-        public void requestPermission() {
-            runOnUiThread(() -> {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.RECORD_AUDIO)
-                        == PackageManager.PERMISSION_GRANTED) {
-                    if (webViewRef != null) {
-                        webViewRef.evaluateJavascript(
-                            "window.__HUI_MIC_PERMISSION_RESULT(true)", null);
-                    }
-                } else {
-                    ActivityCompat.requestPermissions(MainActivity.this,
-                        new String[]{Manifest.permission.RECORD_AUDIO},
-                        MIC_PERMISSION_REQUEST_CODE);
-                }
-            });
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MIC_PERMISSION_REQUEST_CODE) {
-            boolean granted = grantResults.length > 0
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED;
-            if (webViewRef != null) {
-                webViewRef.evaluateJavascript(
-                    "window.__HUI_MIC_PERMISSION_RESULT(" + granted + ")", null);
-            }
-        }
-    }
 
     // SCALE-FIX (2026-08-10): Android "Anzeigegröße" (Display Size) ist eine
     // System-Einstellung, die die effektive Density (densityDpi) für ALLE Apps
@@ -126,45 +83,6 @@ public class MainActivity extends BridgeActivity {
             // textZoom hart auf 100 fixieren — verhindert Rundungsfehler bei
             // Zeichenbreiten durch System-Textgrößen-Einstellungen (Xiaomi etc.)
             webView.getSettings().setTextZoom(100);
-
-            // ── Mikrofon: JS-Interface registrieren ──────────────────
-            // Erlaubt JS, die Android Runtime Permission für RECORD_AUDIO
-            // anzufordern. Die Web Speech API (webkitSpeechRecognition)
-            // benötigt diese Berechtigung, funktioniert aber nicht zuverlässig
-            // über den Standard-WebView-Permission-Flow.
-            webViewRef = webView;
-            webView.addJavascriptInterface(new MicPermissionInterface(), "__HUI_MIC");
-            // MediaPlayback ohne User-Gesture erlauben (für SpeechRecognition)
-            webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
-
-            // ── WebChromeClient: Mikrofon-Permission für WebView gewähren ──
-            // Override onPermissionRequest: wenn die WebView Mikrofon anfordert
-            // (z.B. via getUserMedia), automatisch gewähren — die echte
-            // Runtime Permission wurde bereits via MicPermissionInterface
-            // angefordert. Ohne diesen Override würde die WebView den
-            // Zugriff still ablehnen.
-            webView.setWebChromeClient(new WebChromeClient() {
-                @Override
-                public void onPermissionRequest(final PermissionRequest request) {
-                    runOnUiThread(() -> {
-                        // Nur Audio-Ressourcen gewähren (keine Kamera)
-                        String[] resources = request.getResources();
-                        boolean hasAudio = false;
-                        for (String r : resources) {
-                            if (r.equals(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) {
-                                hasAudio = true;
-                                break;
-                            }
-                        }
-                        if (hasAudio) {
-                            request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
-                        } else {
-                            // Für andere Ressourcen: Default-Verhalten
-                            // (nicht gewähren, nicht ablehnen)
-                        }
-                    });
-                }
-            });
 
             // ── NATIVE PINCH-ZOOM DEAKTIVIEREN (2026-08-11) ──────────────
             // BUG (Nutzer-Screenshots 2026-08-11): Beim Pinch-Zoom auf ein

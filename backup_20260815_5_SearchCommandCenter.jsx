@@ -766,44 +766,6 @@ export default function SearchCommandCenter({
   // ── Spracherkennung (Web Speech API) — 2026-08-12, Michael-Auftrag ──
   // Mikrofon-Icon rechts neben der Suchleiste startet/stoppt die
   // Spracherkennung. Erkannter Text wird direkt ins Suchfeld geschrieben.
-  // ── Mikrofon-Berechtigung anfordern (Android Runtime Permission) ──
-  // Nutzt native Bridge (__HUI_MIC) falls verfügbar (Capacitor/Android),
-  // fällt zurück auf Web API (navigator.mediaDevices.getUserMedia) für
-  // Browser. Gibt true/false zurück.
-  async function requestMicPermission() {
-    // 1. Native Android Bridge (Capacitor)
-    if (window.__HUI_MIC && typeof window.__HUI_MIC.requestPermission === "function") {
-      return new Promise((resolve) => {
-        window.__HUI_MIC_PERMISSION_RESULT = (granted) => {
-          resolve(granted === true || granted === "true");
-          window.__HUI_MIC_PERMISSION_RESULT = null;
-        };
-        try {
-          window.__HUI_MIC.requestPermission();
-        } catch {
-          resolve(false);
-        }
-        // Timeout: 10s
-        setTimeout(() => {
-          if (window.__HUI_MIC_PERMISSION_RESULT) {
-            window.__HUI_MIC_PERMISSION_RESULT = null;
-            resolve(false);
-          }
-        }, 10000);
-      });
-    }
-    // 2. Web Fallback (Browser)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        return true;
-      } catch { return false; }
-    }
-    // 3. Keine Methode verfügbar
-    return false;
-  }
-
   function toggleVoiceInput(){
     // Bereits aktiv → stoppen
     if (recognitionRef.current) {
@@ -814,68 +776,45 @@ export default function SearchCommandCenter({
     }
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      // Nicht unterstützt — kurzes Feedback im Suchfeld
-      setQuery("Spracheingabe wird auf diesem Gerät nicht unterstützt");
-      setTimeout(() => setQuery(""), 2000);
-      return;
-    }
+    if (!SpeechRecognition) return; // nicht unterstützt → no-op
 
-    // Permission anfordern, dann Recognition starten
+    const recog = new SpeechRecognition();
+    recog.lang = "de-DE";
+    recog.interimResults = true;
+    recog.continuous = false;
+    recog.maxAlternatives = 1;
+
+    let finalText = "";
+
+    recog.onresult = (e) => {
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const tr = e.results[i];
+        if (tr.isFinal) finalText += tr[0].transcript;
+        else interim += tr[0].transcript;
+      }
+      const display = (finalText + interim).trim();
+      if (display) {
+        setQuery(display.slice(0, 200));
+      }
+    };
+
+    recog.onerror = () => {
+      setListening(false);
+      recognitionRef.current = null;
+    };
+
+    recog.onend = () => {
+      setListening(false);
+      recognitionRef.current = null;
+      // Fokus zurück ins Suchfeld
+      inputRef.current?.focus();
+    };
+
+    recognitionRef.current = recog;
     setListening(true);
     open_();
-
-    requestMicPermission().then((granted) => {
-      if (!granted) {
-        setListening(false);
-        setQuery("Mikrofon-Berechtigung benötigt — in den Einstellungen erlauben");
-        setTimeout(() => setQuery(""), 3000);
-        return;
-      }
-
-      const recog = new SpeechRecognition();
-      recog.lang = "de-DE";
-      recog.interimResults = true;
-      recog.continuous = false;
-      recog.maxAlternatives = 1;
-
-      let finalText = "";
-
-      recog.onresult = (e) => {
-        let interim = "";
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          const tr = e.results[i];
-          if (tr.isFinal) finalText += tr[0].transcript;
-          else interim += tr[0].transcript;
-        }
-        const display = (finalText + interim).trim();
-        if (display) {
-          setQuery(display.slice(0, 200));
-        }
-      };
-
-      recog.onerror = (e) => {
-        setListening(false);
-        recognitionRef.current = null;
-        // "not-allowed" = Berechtigung widerrufen, "no-speech" = nichts gesagt
-        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-          setQuery("Mikrofon-Zugriff verweigert — in App-Einstellungen erlauben");
-          setTimeout(() => setQuery(""), 3000);
-        }
-      };
-
-      recog.onend = () => {
-        setListening(false);
-        recognitionRef.current = null;
-        inputRef.current?.focus();
-      };
-
-      recognitionRef.current = recog;
-      try { recog.start(); } catch {
-        setListening(false);
-        recognitionRef.current = null;
-      }
-    });
+    try { recog.start(); } catch { setListening(false); recognitionRef.current = null; }
   }
   function saveHistory(q){ if(!q.trim())return; const n=[q,...history.filter(h=>h!==q)].slice(0,8); setHistory(n); try{localStorage.setItem("hui_search_history",JSON.stringify(n));}catch{} }
   function handleHistory(q){ setQuery(q); inputRef.current?.focus(); }
