@@ -68,23 +68,20 @@ function getImages(werk) {
 /* ── Avatar ─────────────────────────────────────────────────────────── */
 function Avatar({ url, name, size = 40 }) {
   const initials = (name || "?").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  if (url) return (
+    <img loading="lazy" decoding="async" src={url} alt={name}
+      style={{ width:size, height:size, borderRadius:"50%",
+        objectFit:"cover", border:"2px solid white",
+        boxShadow:"0 2px 10px rgba(0,0,0,0.15)", flexShrink:0 }}/>
+  );
   return (
-    <div style={{ position:"relative", width:size, height:size, flexShrink:0 }}>
-      {url && (
-        <img loading="lazy" decoding="async" src={url} alt={name}
-          style={{ width:size, height:size, borderRadius:"50%",
-            objectFit:"cover", border:"2px solid white",
-            boxShadow:"0 2px 10px rgba(0,0,0,0.15)", display:"block" }}
-          onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
-      )}
-      <div style={{ width:size, height:size, borderRadius:"50%",
-        background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
-        display: url ? "none" : "flex", alignItems:"center", justifyContent:"center",
-        fontSize:size*0.34, fontWeight: 600, color:"white",
-        border:"2px solid white", boxShadow:"0 2px 10px rgba(0,0,0,0.15)",
-        letterSpacing:-0.5, position:"absolute", top:0, left:0 }}>
-        {initials}
-      </div>
+    <div style={{ width:size, height:size, borderRadius:"50%",
+      background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      fontSize:size*0.34, fontWeight: 600, color:"white",
+      border:"2px solid white", boxShadow:"0 2px 10px rgba(0,0,0,0.15)",
+      flexShrink:0, letterSpacing:-0.5 }}>
+      {initials}
     </div>
   );
 }
@@ -649,85 +646,66 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           </h1>
         </div>
 
-        {/* ── Creator Section — NICHT klickbar (2026-07-29). Button öffnet Profil.
-            LAYOUT-SQUEEZE-FIX (2026-08-15, Michael-Report — Screenshot
-            "Pinscher mit dem Perlohrring"/Linda, "viele Fehler hier. Name
-            Avatar, Text"): ROOT CAUSE verifiziert per DB-Query — username
-            "milileo69" und bio "Offizielle 1. Testerin der Besten App der
-            Welt!" sind vollständig und korrekt in der DB, avatar_url lädt
-            per curl mit HTTP 200. Der Bug war rein Layout: Name/Username/
-            Bio-Spalte (flex:1) und die Buttons-Reihe ("Profil ansehen" +
-            "Folge ich", flexShrink:0) standen in DERSELBEN Flex-Zeile neben
-            dem Avatar — die zwei Pill-Buttons zusammen sind breiter als der
-            verbleibende Platz auf einem Smartphone-Screen, wodurch die
-            Namensspalte auf eine winzige Breite gequetscht wurde und Text
-            mitten im Wort umbrach ("@milile"/"o69", "Offiziell"/"e 1....").
-            Fix: Buttons in eine EIGENE Zeile UNTERHALB von Avatar+Name+Bio
-            verschoben (zweizeiliges Kartenlayout) — Namensspalte hat jetzt
-            immer die volle Kartenbreite abzüglich nur des Avatars. ── */}
+        {/* ── Creator Section — NICHT klickbar (2026-07-29). Button öffnet Profil. ── */}
         <div
           style={{ margin:"16px 20px 0", padding:"14px 16px",
             background:C.card, borderRadius:18,
             border:`1px solid ${C.border}`,
-            boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
-          <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-            <Avatar url={avatarUrl} name={displayName} size={46}/>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
-                <span style={{ fontWeight: 600, fontSize:15, color:C.ink,
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                  {displayName}
-                </span>
-                {creator?.is_wirker && (
-                  <span style={{ fontSize:13 }}>✦</span>
-                )}
+            boxShadow:"0 2px 12px rgba(0,0,0,0.05)",
+            display:"flex", alignItems:"center", gap:12 }}>
+          <Avatar url={avatarUrl} name={displayName} size={46}/>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
+              <span style={{ fontWeight: 600, fontSize:15, color:C.ink,
+                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {displayName}
+              </span>
+              {creator?.is_wirker && (
+                <span style={{ fontSize:13 }}>✦</span>
+              )}
+            </div>
+            <div style={{ fontSize:12, color:C.muted }}>@{username}</div>
+            {creator?.bio && (
+              <div style={{ fontSize:12, color:C.ink2, marginTop:4,
+                lineHeight:1.5, overflow:"hidden",
+                display:"-webkit-box", WebkitLineClamp:2,
+                WebkitBoxOrient:"vertical" }}>
+                {creator.bio}
               </div>
-              <div style={{ fontSize:12, color:C.muted, overflow:"hidden",
-                textOverflow:"ellipsis", whiteSpace:"nowrap" }}>@{username}</div>
-              {creator?.bio && (
-                <div style={{ fontSize:12, color:C.ink2, marginTop:4,
-                  lineHeight:1.5, overflow:"hidden",
-                  display:"-webkit-box", WebkitLineClamp:2,
-                  WebkitBoxOrient:"vertical" }}>
-                  {creator.bio}
-                </div>
-              )}
-            </div>
-            <div style={{ color:C.muted, fontSize:18, flexShrink:0, marginTop:2 }}>›</div>
+            )}
           </div>
-          {(creator?.id || (user?.id && creator?.id && user.id !== creator.id)) && (
-            <div style={{ display:"flex", gap:8, marginTop:12 }}>
-              {creator?.id && (
-                <button
-                  onClick={() => {
-                    if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
-                      window.__HUI_OPEN_PROFILE__(creator.id);
-                    } else {
-                      navigate(`/profile/${username}`);
-                    }
-                  }}
-                  style={{ padding:"7px 14px",
-                    background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
-                    borderRadius:50, fontSize:12, fontWeight: 600, color:"#0DC4B5",
-                    cursor:"pointer", fontFamily:"inherit" }}
-                >Profil ansehen</button>
-              )}
-              {user?.id && creator?.id && user.id !== creator.id && (
-                <button onClick={handleFollow}
-                  style={{ padding:"7px 14px",
-                    background: following
-                      ? "rgba(0,0,0,0.06)"
-                      : "linear-gradient(135deg,#16D7C5,#11C5B7)",
-                    border:"none", borderRadius:50,
-                    fontSize:12, fontWeight: 600,
-                    color: following ? "#888" : "white",
-                    cursor:"pointer", fontFamily:"inherit",
-                    transition:"all .2s" }}>
-                  {following ? "Folge ich" : "Folgen"}
-                </button>
-              )}
-            </div>
-          )}
+          <div style={{ display:"flex", gap:8, flexShrink:0, alignItems:"center" }}>
+            {creator?.id && (
+              <button
+                onClick={() => {
+                  if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
+                    window.__HUI_OPEN_PROFILE__(creator.id);
+                  } else {
+                    navigate(`/profile/${username}`);
+                  }
+                }}
+                style={{ padding:"7px 14px",
+                  background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
+                  borderRadius:50, fontSize:12, fontWeight: 600, color:"#0DC4B5",
+                  cursor:"pointer", fontFamily:"inherit" }}
+              >Profil ansehen</button>
+            )}
+            {user?.id && creator?.id && user.id !== creator.id && (
+              <button onClick={handleFollow}
+                style={{ padding:"7px 14px",
+                  background: following
+                    ? "rgba(0,0,0,0.06)"
+                    : "linear-gradient(135deg,#16D7C5,#11C5B7)",
+                  border:"none", borderRadius:50,
+                  fontSize:12, fontWeight: 600,
+                  color: following ? "#888" : "white",
+                  cursor:"pointer", fontFamily:"inherit",
+                  transition:"all .2s" }}>
+                {following ? "Folge ich" : "Folgen"}
+              </button>
+            )}
+            <div style={{ color:C.muted, fontSize:18 }}>›</div>
+          </div>
         </div>
 
         {/* ── Social Actions ── */}
