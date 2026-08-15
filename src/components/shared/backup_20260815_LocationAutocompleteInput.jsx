@@ -38,7 +38,7 @@ const D = {
  */
 export default function LocationAutocompleteInput({
   value = "", onChange = () => {}, onPick = () => {}, disabled = false,
-  placeholder = "Straße, Ort", style = {}, onKeyDown = null,
+  placeholder = "Straße, Ort", style = {},
 }) {
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -80,7 +80,6 @@ export default function LocationAutocompleteInput({
         onChange={e => { onChange(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         onBlur={() => { blurTimeoutRef.current = setTimeout(() => setOpen(false), 180); }}
-        onKeyDown={onKeyDown || undefined}
         style={style}
       />
       {showDropdown && (

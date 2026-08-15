@@ -32,19 +32,8 @@ import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 // (SearchCommandCenter, DiscoverPage/TalenteSection) lesen ausschliesslich
 // radius.stages aus dem Context -- der Wert kommt zu 100% von hier, es gibt
 // keine zweite/hartcodierte Werteliste mehr im Projekt.
-// UMKREISSUCHE-DEFAULT-FIX (2026-08-15, Michael-Request): "weltweit soll
-// im Suchfeld als erstes von der Reihe sein und immer aktiv. Der Feed soll
-// immer weltweit zeigen. erst wenn ich die Umkreissuche aktiviere zeigt es
-// mir von meinem Standort aus alle Ergebnisse an." Vorher stand "world" als
-// LETZTE Stufe im Array (ganz hinten in der Pill-Reihe) und der Default war
-// 25km (nicht weltweit) -- neue Installationen/User ohne gespeicherten Wert
-// bekamen also standardmaessig eine lokale 25km-Einschraenkung statt
-// weltweiter Ergebnisse. RADIUS_OPTIONS ist SSOT (siehe Header-Kommentar
-// oben) -- die Reihenfolge hier propagiert automatisch in ALLE Konsumenten
-// (SearchCommandCenter-RadiusRow, DiscoverPage-LocationRadiusRow), keine
-// zweite Stelle muss angepasst werden.
-export const RADIUS_OPTIONS = ["world", 10, 25, 50, 100, 250, 500];
-export const DEFAULT_RADIUS_KM = "world";
+export const RADIUS_OPTIONS = [10, 25, 50, 100, 250, 500, "world"];
+export const DEFAULT_RADIUS_KM = 25;
 
 export function radiusLabel(stage) {
   return stage === "world" ? "Weltweit 🌍" : `${stage} km`;

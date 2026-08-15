@@ -23,7 +23,6 @@ import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js"
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { fetchSearchSuggestions, highlightMatch, hasAnySuggestions, SUGGESTIONS_MIN_QUERY_LEN } from "../../../lib/searchSuggestions.js";
-import LocationAutocompleteInput from "../../shared/LocationAutocompleteInput.jsx";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -248,41 +247,18 @@ function RadiusRow({ radius }) {
       </div>
       {manualOpen && (
         <div style={{display:"flex",gap:6,marginTop:8,animation:"hui-search-fade-in .18s ease both"}}>
-          {/* AUTOVORSCHLAEGE-FIX (2026-08-15, Michael-Request): "es soll
-              Autovorschläge angeben können oder eigenen Standort mit gps".
-              Vorher: reines Text-Input ohne Live-Vorschlaege, nur Enter/OK
-              geocodete den ERSTEN Nominatim-Treffer blind (konnte bei
-              mehrdeutigen Ortsnamen der falsche Ort sein). Jetzt:
-              wiederverwendete LocationAutocompleteInput.jsx (bereits SSOT
-              in TalentAngebotWizard/WerkWizard/ExperienceWizard und in
-              DiscoverPages eigener LocationRadiusRow) -- zeigt Live-
-              Vorschlaege waehrend des Tippens, Klick auf einen Vorschlag
-              uebernimmt die EXAKTEN Koordinaten direkt (kein zweites
-              Geocoding mehr noetig). Enter ohne Auswahl bleibt als
-              Fallback erhalten (submitManual() nimmt dann weiterhin den
-              ersten Treffer). GPS-Standort ist bereits ueber den
-              "Standort"-Chip links in der Reihe abgedeckt (Tap ->
-              requestBrowserLocation()) -- keine zweite GPS-Loesung nötig. */}
-          <div style={{flex:1, minWidth:0}}>
-            <LocationAutocompleteInput
-              value={manualQuery}
-              onChange={setManualQuery}
-              onPick={(place) => {
-                radius.setGeo({ lat: place.lat, lng: place.lng, label: place.label?.split(",")[0] || place.label, source: "manual" });
-                setManualOpen(false);
-                setManualQuery("");
-              }}
-              onKeyDown={e => { if (e.key === "Enter") submitManual(); }}
-              placeholder="PLZ oder Ort eingeben…"
-              style={{
-                width:"100%", boxSizing:"border-box",
-                border:"1px solid rgba(26,53,48,0.09)", borderRadius:99,
-                padding:"7px 13px", fontSize:12, outline:"none", background:"rgba(26,53,48,0.02)",
-                color:T.ink, fontFamily:"inherit",
-              }}
-            />
-          </div>
-          <button className="dc-tag" onClick={()=>{ if (manualQuery.trim()) submitManual(); }} style={{
+          <input
+            value={manualQuery}
+            onChange={e=>setManualQuery(e.target.value.slice(0,200))}
+            onKeyDown={e=>{ if (e.key==="Enter") submitManual(); }}
+            placeholder="PLZ oder Ort eingeben…"
+            style={{
+              flex:1, minWidth:0, border:"1px solid rgba(26,53,48,0.09)", borderRadius:99,
+              padding:"7px 13px", fontSize:12, outline:"none", background:"rgba(26,53,48,0.02)",
+              color:T.ink,
+            }}
+          />
+          <button className="dc-tag" onClick={submitManual} style={{
             flexShrink:0, background:T.teal, color:"#fff", border:"none", borderRadius:99,
             padding:"7px 15px", fontSize:12, fontWeight:600, cursor:"pointer",
           }}>OK</button>
