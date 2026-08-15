@@ -37,18 +37,6 @@ function fmtDate(d) {
   try { return formatDateDE(new Date(d), { month:"short", year:"numeric" }); }
   catch { return ""; }
 }
-// VORBEI-BADGE (2026-08-15, Michael-Request — Screenshot "Erlebnisse &
-// Projekte"-Kacheln): "baue über dem Modal das in der Vergangenheit liegt
-// einen Hinweis in rot 'Vorbei'". Gleiche Datums-Vergleichslogik wie
-// isPastExperience in ContentPreviewSheet.jsx (Uhrzeit-neutral, Tagesbasis).
-function isPastDate(d) {
-  if (!d) return false;
-  const dt = new Date(d);
-  if (isNaN(dt.getTime())) return false;
-  const today = new Date(); today.setHours(0,0,0,0);
-  dt.setHours(0,0,0,0);
-  return dt < today;
-}
 
 function Sk({ w, h, r=8 }) {
   return <div style={{ width:w, height:h, borderRadius:r, flexShrink:0,
@@ -131,21 +119,11 @@ export function ExperiencesSection({
               onClick={() => { const item = normalizePostForPreview(ex, "experience"); if (item) openPreview(item); }}
               style={{ flexShrink:0, width:110, cursor:"pointer" }}>
               <div style={{ width:110, height:100, borderRadius:T.r16, overflow:"hidden",
-                background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6, position:"relative" }}>
+                background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6 }}>
                 {ex.cover_url
                   ? <img loading="lazy" decoding="async" src={optimizeCard(ex.cover_url)} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
                       onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
                   : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>}
-                {isPastDate(ex.date) && (
-                  <div style={{
-                    position:"absolute", top:6, left:6,
-                    background:"rgba(220,38,38,0.92)", color:"#fff",
-                    fontSize:9.5, fontWeight:700, letterSpacing:"0.02em",
-                    padding:"3px 8px", borderRadius:T.r99, lineHeight:1,
-                  }}>
-                    Vorbei
-                  </div>
-                )}
               </div>
               <div style={{ fontSize:11.5, fontWeight: 600, color:T.ink, lineHeight:1.3,
                 marginBottom:2, overflow:"hidden", display:"-webkit-box",
