@@ -715,9 +715,7 @@ const TABS = [
   { id: "verkaeufe",label: "Verkäufe" },
   { id: "buchungen",label: "Buchungen" },
   { id: "gebucht",  label: "Gebucht" },
-  // "Support"-Tab entfernt (2026-08-15, auf Wunsch von Michael) — in Käufe/Verkäufe
-  // nicht benötigt. MeineSupports-Komponente bleibt im Code erhalten
-  // (No-Regression-Protection), ist aber hier nicht mehr erreichbar.
+  { id: "support",  label: "Support" },
 ];
 
 
@@ -891,7 +889,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
               Käufe/Verkäufe
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
-              Käufe, Verkäufe, Buchungen
+              Käufe, Verkäufe, Buchungen & Support
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -939,6 +937,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} />}
           {tab === "buchungen" && <MeineBuchungen userId={userId} />}
           {tab === "gebucht"   && <WerHatMichGebucht userId={userId} />}
+          {tab === "support"   && <MeineSupports userId={userId} />}
         </div>
       </div>
     </div>
