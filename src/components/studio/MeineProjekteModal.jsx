@@ -120,6 +120,34 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
           .in("id", allIds);
         const map = {};
         (projData || []).forEach(p => { map[p.id] = p; });
+
+        // Fallback: Solange impact_projects (noch) leer/unvollstaendig ist, laeuft
+        // die aktuelle Abstimmung ueber impact_applications (siehe ImpactPage.jsx
+        // VotingSection monthlyTop3-Fallback: project_id in impact_votes/project_support
+        // referenziert dort direkt die impact_applications.id). Ohne diesen Fallback
+        // bleiben Name/Status leer ("Projekt (ID vorbereitet)" / "Unbekannt").
+        const missingIds = allIds.filter(id => !map[id]);
+        if (missingIds.length > 0) {
+          const { data: appFallback } = await supabase
+            .from("impact_applications")
+            .select("id,project_name,short_desc,status,funding_goal,cover_url")
+            .in("id", missingIds);
+          (appFallback || []).forEach(a => {
+            map[a.id] = {
+              id: a.id,
+              name: a.project_name,
+              icon: "💚",
+              color: "#0DC4B5",
+              // In der aktuellen Abstimmungsrunde befindliche Projekte gelten als "voting"
+              // (erzeugt den passenden violetten "Abstimmung"-Status statt "Unbekannt")
+              status: "voting",
+              description: a.short_desc,
+              awarded_eur: a.funding_goal,
+              distributed_at: null,
+            };
+          });
+        }
+
         setProjects(map);
       }
 
