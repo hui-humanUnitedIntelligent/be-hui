@@ -343,6 +343,10 @@ export default function LoginPage() {
 
   const [pw2,        setPw2]        = useState('');
   const [showPw2,    setShowPw2]    = useState(false);
+  // EMAIL-DUPLICATE-PROTECTION (Migration 113): Zeigt "Passwort vergessen?"
+  // Button unter der Fehlermeldung, wenn Registrierung wegen existierender
+  // E-Mail blockiert wurde.
+  const [emailBlocked, setEmailBlocked] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   // Speichere Register-Credentials für Polling im Verifikations-Modal
   const [regCredentials, setRegCredentials] = useState({ email: '', password: '' });
@@ -379,12 +383,13 @@ export default function LoginPage() {
     return () => clearTimeout(t);
   }, [mode]);
 
-  function clearMessages() { setErr(''); setSuccess(''); }
+  function clearMessages() { setErr(''); setSuccess(''); setEmailBlocked(false); }
 
   function translateError(msg = '') {
     if (msg.includes('Invalid login credentials')) return 'E-Mail oder Passwort stimmen nicht überein.';
     if (msg.includes('Email not confirmed'))        return 'Bitte bestätige zuerst deine E-Mail.';
-    if (msg.includes('already registered'))         return 'Diese E-Mail ist bereits registriert.';
+    if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user_already_exists'))
+                                                     return 'Diese E-Mail-Adresse wird bereits verwendet. Bitte logge dich ein oder nutze Passwort-Wiederherstellung.';
     if (msg.includes('Password should be'))         return 'Das Passwort muss mindestens 6 Zeichen haben.';
     if (msg.includes('rate limit'))                 return 'Zu viele Versuche — bitte kurz warten.';
     if (msg.toLowerCase().includes('banned'))         return 'Dein Konto wird von einem Admin geprüft. Bei Fragen: support@be-hui.com';
@@ -541,6 +546,43 @@ export default function LoginPage() {
       return;
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // EMAIL-DUPLICATE-PROTECTION (Migration 113, 2026-08-15)
+    // ═══════════════════════════════════════════════════════════════
+    // VOR signUp() prüfen ob die E-Mail bereits in auth.users existiert.
+    // Das ist kritisch: Supabase signUp() mit mailer_autoconfirm=false
+    // erstellt bei Duplikat-Index KEINEN neuen User, aber je nach Config
+    // kann es eine Session zurückgeben oder stillschweigend verhalten.
+    // Wir dürfen NIEMALS zulassen dass ein Duplikat-Eintrag zu einem
+    // automatischen Login führt. Daher: explizite RPC-Prüfung VORHER.
+    const { data: emailExists, error: emailCheckErr } = await supabase.rpc('rpc_check_email_exists', {
+      p_email: email,
+    });
+    if (emailCheckErr) {
+      // RPC-Fehler → sicherheitshalber blockieren (fail-closed)
+      console.warn('[HUI Register] rpc_check_email_exists error:', emailCheckErr?.message);
+      setErr('E-Mail-Prüfung fehlgeschlagen. Bitte versuche es erneut.');
+      setLoading(false);
+      return;
+    }
+    if (emailExists === true) {
+      // E-Mail existiert bereits → Registrierung stoppen, kein signUp(),
+      // keine Session, kein Profil, kein Login, kein Redirect.
+      setErr('Diese E-Mail-Adresse wird bereits verwendet. Bitte logge dich ein oder nutze Passwort-Wiederherstellung.');
+      setEmailBlocked(true);
+      setLoading(false);
+      // Sicherheits-Log via RPC (Migration 113)
+      try {
+        await supabase.rpc('rpc_log_registration_blocked', {
+          p_email: email,
+          p_reason: 'existing_email',
+        });
+      } catch (e) {
+        console.warn('[HUI Register] log error:', e);
+      }
+      return;
+    }
+
     const combinedName = `${fullName.trim()} ${lastName.trim()}`;
 
     // ── Ref-Link auflösen (manuelles Feld ODER localStorage ODER URL) ──
@@ -585,7 +627,25 @@ export default function LoginPage() {
       },
     });
     if (error) {
-      setErr(translateError(error.message));
+      // EMAIL-DUPLICATE-PROTECTION: Falls Supabase selbst den Duplikat-Fehler
+      // wirft (user_already_exists / already registered), zusätzlich
+      // emailBlocked setzen für den "Passwort vergessen?" Button.
+      const errStr = (error.message || '').toLowerCase();
+      if (errStr.includes('already') || errStr.includes('user_already_exists') || errStr.includes('registered')) {
+        setErr(translateError(error.message));
+        setEmailBlocked(true);
+        // Sicherheits-Log
+        try {
+          await supabase.rpc('rpc_log_registration_blocked', {
+            p_email: email,
+            p_reason: 'supabase_signup_rejected',
+          });
+        } catch (e) {
+          console.warn('[HUI Register] log error:', e);
+        }
+      } else {
+        setErr(translateError(error.message));
+      }
       setLoading(false);
       return;
     }
@@ -1023,6 +1083,19 @@ export default function LoginPage() {
                 <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
                     fontSize: 13, color: T.muted, fontFamily: 'inherit' }}>
+                  Passwort vergessen?
+                </button>
+              </div>
+            )}
+
+            {/* EMAIL-DUPLICATE-PROTECTION: "Passwort vergessen?" Button
+                erscheint unter der Fehlermeldung, wenn die Registrierung
+                wegen existierender E-Mail blockiert wurde. */}
+            {mode === 'register' && emailBlocked && (
+              <div style={{ textAlign: 'center', marginTop: -4 }}>
+                <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 13, color: T.teal, fontFamily: 'inherit', fontWeight: 600 }}>
                   Passwort vergessen?
                 </button>
               </div>
