@@ -24,7 +24,6 @@ import { useHome }   from "../components/home/HomeShell.jsx";
 // AmbassadorModal direkt importiert (kein lazy/Suspense)
 import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
-import { useNotifications } from "../lib/useNotifications.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 // HuiStudio direkt importiert (kein lazy/Suspense)
 import MeineResonanz from "./studio/MeineResonanz.jsx";
@@ -2176,17 +2175,11 @@ function MeinBereichChooserRow({ icon, label, desc, onPress }) {
   );
 }
 
-// MEIN-BEREICH-UPDATE-DOT (2026-08-15, Michael-Request): "wenn ein Update
-// vom SADB kommt wie z.b ein Werk wurde freigegeben. oder du tätigst eine
-// Buchung und bekommst einen Beleg. dann soll 'Mein Bereich' einen roten
-// Punkt oben rechts vom Kreis am Kreisrand angezeigt werden". showDot ist
-// additiv/optional (Default false) -- bestehende Aufrufer ohne den Prop
-// verhalten sich unveraendert.
-function MeinBereichTile({ icon, label, onPress, showDot = false }) {
+function MeinBereichTile({ icon, label, onPress }) {
   return (
     <button
       onClick={onPress}
-      aria-label={showDot ? `${label} — neues Update` : label}
+      aria-label={label}
       className="mbp-press-light"
       style={{
         display:"flex", flexDirection:"column", alignItems:"center", gap:8,
@@ -2194,22 +2187,12 @@ function MeinBereichTile({ icon, label, onPress, showDot = false }) {
         padding:"4px 2px", WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
       }}
     >
-      <span style={{ position:"relative", flexShrink:0 }}>
-        <span style={{
-          width:52, height:52, borderRadius:"50%",
-          background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          flexShrink:0, color:"rgba(14,196,184,0.85)",
-        }}>{icon}</span>
-        {showDot && (
-          <span style={{
-            position:"absolute", top:-2, right:-2,
-            width:11, height:11, borderRadius:"50%",
-            background:"#EF4444", border:"2px solid #FFFFFF",
-            boxShadow:"0 1px 3px rgba(239,68,68,0.45)",
-          }} aria-hidden="true"/>
-        )}
-      </span>
+      <span style={{
+        width:52, height:52, borderRadius:"50%",
+        background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
+        display:"flex", alignItems:"center", justifyContent:"center",
+        flexShrink:0, color:"rgba(14,196,184,0.85)",
+      }}>{icon}</span>
       <span style={{
         fontSize:11, fontWeight:600, color:"rgba(26,26,24,0.75)",
         textAlign:"center", lineHeight:1.3, maxWidth:72,
@@ -2232,42 +2215,6 @@ function MeinBereichMenu({
 }) {
   const { switchTab } = useHome();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
-
-  // MEIN-BEREICH-UPDATE-DOT (2026-08-15, Michael-Request) -- SSOT ist die
-  // bestehende notifications-Tabelle + is_read (siehe Memory #637/#877,
-  // exakt dasselbe Feld, das schon den Resonanzzentrum-Glocken-Badge
-  // fuellt). Kein neues Feld/keine neue Tabelle noetig -- nur eine neue
-  // GRUPPIERUNG der bereits vorhandenen Daten nach Kachel. useNotifications()
-  // ist mehrfach-mount-sicher (Realtime-Channel-Dedupe ueber Topic-Name),
-  // daher unbedenklich hier zusaetzlich aufgerufen (Resonanzzentrum-Panel
-  // selbst ruft den Hook ebenfalls separat auf).
-  const { items: notifItems, markRead: markNotifRead } = useNotifications();
-
-  // type -> Kachel-Zuordnung. Nur "wichtige" SADB-Updates (Freigabe-
-  // Entscheidungen + Buchungs-/Kaufbelege) loesen den Punkt aus -- bewusst
-  // NICHT jede Interaktion (Kommentar/Like/Follower), die bleiben
-  // ausschliesslich im Resonanzzentrum sichtbar (kein zweiter Kanal fuer
-  // dieselbe Info, sonst zwei widersprechende Signale).
-  const TILE_NOTIF_TYPES = {
-    werke:        ["work_approved", "work_rejected"],
-    talente:      ["talent_approved", "talent_rejected"],
-    erlebnisse:   ["experience_approved", "experience_rejected", "project_approved", "project_rejected", "impact_project_approved", "impact_project_rejected", "impact_project_submitted"],
-    finanzen:     ["order_confirmed", "new_order", "order", "talent_booking_paid", "talent_booking_confirmed", "support_received", "support_succeeded"],
-  };
-  const unreadNotifTypes = new Set((notifItems || []).filter(n => !n.is_read).map(n => n.type));
-  const hasTileDot = (tileKey) => (TILE_NOTIF_TYPES[tileKey] || []).some(t => unreadNotifTypes.has(t));
-
-  // Beim Oeffnen der Kachel: alle zugehoerigen Notifications als gelesen
-  // markieren -- der Punkt verschwindet, sobald der Nutzer den Bereich
-  // gesehen hat (gleiches Prinzip wie das Oeffnen des Resonanzzentrums).
-  const openDrawerAndClearDot = (tileKey, drawerKey, extra) => {
-    const types = TILE_NOTIF_TYPES[tileKey] || [];
-    (notifItems || []).forEach(n => {
-      if (!n.is_read && types.includes(n.type)) markNotifRead(n.id);
-    });
-    if (extra) extra();
-    setActiveDrawer(drawerKey);
-  };
 
   // PRELOAD: Wenn ein Drawer geöffnet wird, sofort die zugehörigen Wizard-Chunks
   // preloaden, damit der "Hinzufügen"-Button instant reagiert.
@@ -2322,17 +2269,17 @@ function MeinBereichMenu({
           rowGap:18, columnGap:4,
         }}>
           {isTalent && (
-            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label="Meine Werke" showDot={hasTileDot("werke")} onPress={() => openDrawerAndClearDot("werke", "werke")} />
+            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label="Meine Werke" onPress={() => setActiveDrawer("werke")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" showDot={hasTileDot("talente")} onPress={() => openDrawerAndClearDot("talente", "talente")} />
+            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" onPress={() => setActiveDrawer("talente")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" showDot={hasTileDot("erlebnisse")} onPress={() => openDrawerAndClearDot("erlebnisse", "erlebnisse")} />
+            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" onPress={() => setActiveDrawer("erlebnisse")} />
           )}
           <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
           <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Käufe/Verkäufe" showDot={hasTileDot("finanzen")} onPress={() => openDrawerAndClearDot("finanzen", null, () => setShowFinanzModal(true))} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Käufe/Verkäufe" onPress={() => setShowFinanzModal(true)} />
           <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
           <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>
