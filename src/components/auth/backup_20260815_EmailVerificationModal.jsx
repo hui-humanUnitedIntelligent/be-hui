@@ -27,23 +27,13 @@ export default function EmailVerificationModal({ open, email, password, onClose 
   const pollRef = useRef(null);
   const cooldownRef = useRef(null);
 
-  // ── Polling: alle 3 Sekunden rpc_check_email_confirmed (leise, kein Auth-Versuch) ──
-  // Vorher: signInWithPassword bei jedem Tick → 400 Bad Request solange nicht
-  // bestätigt (Console-Rauschen, siehe Report 2026-08-15). Jetzt: read-only RPC
-  // ohne Passwort-Versuch. signInWithPassword wird erst EIN EINZIGES MAL
-  // aufgerufen, sobald die RPC bestätigt meldet — dann garantiert erfolgreich.
+  // ── Polling: alle 3 Sekunden signInWithPassword versuchen ──
   const checkConfirmed = useCallback(async () => {
-    if (!email) return;
+    if (!email || !password) return;
     try {
-      const { data: isConfirmed, error: rpcErr } = await supabase.rpc('rpc_check_email_confirmed', {
-        p_email: email,
-      });
-      if (rpcErr || !isConfirmed) return; // weiter pollen
-
-      // E-Mail ist bestätigt → jetzt einmalig einloggen, um die Session zu erhalten
-      if (!password) return;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (data?.session && !error) {
+        // E-Mail bestätigt! Session aktiv.
         setConfirmed(true);
         setPolling(false);
         if (pollRef.current) clearInterval(pollRef.current);
@@ -57,6 +47,7 @@ export default function EmailVerificationModal({ open, email, password, onClose 
           }
         }, 1000);
       }
+      // error enthält "Email not confirmed" → weiter pollen
     } catch (e) {
       // Netzwerkfehler etc → weiter pollen
     }

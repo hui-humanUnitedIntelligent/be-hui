@@ -562,19 +562,9 @@ export default function LoginPage() {
     // ── Supabase signUp ──
     // REGISTRATION-UPGRADE-001: mailer_autoconfirm=false → Supabase sendet
     // Bestätigungs-Mail, KEINE Session wird zurückgegeben.
-    // BUGFIX 2026-08-15: emailRedirectTo fehlte hier komplett (im Gegensatz zu
-    // Magic-Link/Reset-Password weiter unten, die bereits getAuthRedirectUrl()
-    // nutzen). Ohne diese Option fällt Supabase auf den Auth-Setting-Fallback
-    // 'site_url' (https://be-hui.vercel.app/ — die reine Marketing-Landingpage)
-    // zurück, statt auf /auth/callback zu leiten. Ergebnis: Bestätigt man die
-    // Mail am Computer, öffnet sich nur die Webseite statt der Web-App
-    // (/app/Home). getAuthRedirectUrl() liefert automatisch den korrekten
-    // Pfad je Plattform: '/app/auth/callback' im Web-Browser (→ Web-App),
-    // '/auth/callback' in der nativen App (→ App öffnet sich wieder).
     const { error, data: signUpData } = await supabase.auth.signUp({
       email, password: pw,
       options: {
-        emailRedirectTo: getAuthRedirectUrl(),
         data: {
           full_name:    combinedName,
           display_name: fullName.trim(),
