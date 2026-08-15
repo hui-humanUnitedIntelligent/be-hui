@@ -25,7 +25,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
-import { formatNumberDE, formatDateDE } from "../../lib/formatters.js";
+import { formatNumberDE } from "../../lib/formatters.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
@@ -317,84 +317,6 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   )}
                 </div>
               )}
-
-              {/* Erlebnis: Termin + Preis + Ort + Format — FIX (2026-08-15,
-                  Michael-Report): "ein Erlebnis geteilt aber keine Text
-                  Infos oder Uhrzeiten sichtbar ... bei Klick im Home Feed
-                  sollen die Leute wissen was sie buchen". ROOT CAUSE: Die
-                  Feed-KARTE (ExperienceContent.jsx) liest bereits korrekt
-                  item._raw.date/description/category — aber die VOLLBILD-
-                  VORSCHAU (dieses Sheet, öffnet sich beim Antippen der
-                  Karte) hatte für type==="experience" ÜBERHAUPT KEINEN
-                  eigenen Info-Block (nur "work" und "talent" hatten einen).
-                  Beim Test-Erlebnis "Zwergen werfen" waren date=2026-10-15,
-                  price=20€, location_text und format="vor_ort" in der DB
-                  bereits vorhanden — sie wurden nur nie angezeigt. Additiv,
-                  gleiche Pill-Optik wie der bestehende Werk-Preis-Chip. */}
-              {(item.type === "experience" || item.type === "erlebnis") && (() => {
-                const raw = item._raw || {};
-                const FORMAT_LABELS = { vor_ort:"Vor Ort", online:"Online", hybrid:"Vor Ort & Online" };
-                let dateStr = null;
-                if (raw.date) {
-                  try { dateStr = formatDateDE(new Date(raw.date), { day:"numeric", month:"long", year:"numeric" }); }
-                  catch { dateStr = raw.date; }
-                }
-                const timeStr = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : null;
-                const formatLabel = raw.format ? (FORMAT_LABELS[raw.format] || raw.format) : null;
-                const hasAnyInfo = dateStr || timeStr || item.price != null || item.location || formatLabel || raw.category;
-                if (!hasAnyInfo) return null;
-                return (
-                  <div style={{ marginBottom:16 }}>
-                    {/* Termin-Zeile — eigene, deutlich sichtbare Zeile (kein
-                        Verwechseln mit dem "vor X Min"-Post-Zeitstempel oben) */}
-                    {(dateStr || timeStr) && (
-                      <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:10,
-                        fontSize:14, fontWeight:600, color:T.ink }}>
-                        <span>📅</span>
-                        <span>{[dateStr, timeStr].filter(Boolean).join(" · ")}</span>
-                      </div>
-                    )}
-                    <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                      {item.price != null && (
-                        <div style={{
-                          display:"inline-flex", alignItems:"center", gap:6,
-                          background:"rgba(13,196,181,0.10)", borderRadius:99,
-                          padding:"7px 16px",
-                        }}>
-                          <span style={{ fontSize:16, fontWeight: 600, color:"rgba(0,150,136,1)" }}>
-                            {item.price > 0 ? formatNumberDE(Number(item.price)) + " €" : "Kostenlos"}
-                          </span>
-                        </div>
-                      )}
-                      {formatLabel && (
-                        <div style={{
-                          display:"inline-flex", alignItems:"center",
-                          background:"rgba(26,26,46,0.05)", borderRadius:99,
-                          padding:"7px 16px",
-                        }}>
-                          <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>{formatLabel}</span>
-                        </div>
-                      )}
-                      {raw.category && (
-                        <div style={{
-                          display:"inline-flex", alignItems:"center",
-                          background:"rgba(26,26,46,0.05)", borderRadius:99,
-                          padding:"7px 16px",
-                        }}>
-                          <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>{raw.category}</span>
-                        </div>
-                      )}
-                    </div>
-                    {item.location && (
-                      <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:10,
-                        fontSize:12.5, color:T.inkFaint }}>
-                        <HUILocationIcon size={13}/>
-                        <span>{item.location}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
 
               {/* Werk: Preis + Kategorie — FIX (2026-08-15, Michael-Report):
                   Die Werk-Vorschau zeigte bisher (anders als Talent-Angebote)

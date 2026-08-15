@@ -695,7 +695,7 @@ export default function FavoritesPage({ currentUser, onView, onImpact, onDiscove
         // Phase 4C: echte Experiences laden
         const { data: userExps } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,category,description,caption,price,date,time_start,time_end,format,location_text,max_participants,status,user_id,created_at")
+          .select("id,title,cover_url,category,description,price,date,location_text,max_participants,status,user_id,created_at")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("date", { ascending: true })
