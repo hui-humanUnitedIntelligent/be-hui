@@ -56,7 +56,6 @@ export default function KontoSettingsPage() {
   const [website, setWebsite] = useState('');
   const [locationLabel, setLocationLabel] = useState('');
   const [saving, setSaving] = useState(false);
-  const [geburtsdatum, setGeburtsdatum] = useState('');
   const [toast, setToast] = useState(null);
 
   // Ref: verhindert dass profile-Updates aus Hintergrund (Token-Refresh, saveProfile)
@@ -82,11 +81,6 @@ export default function KontoSettingsPage() {
       setWebsite(profile.website || '');
       setLocationLabel(profile.location_label || '');
       profileInitialized.current = true;
-      // Geburtsdatum via RPC laden (sensible Spalte — nicht im regulären SELECT-Grant)
-      try {
-        const { data: sensData } = await supabase.rpc('rpc_get_my_sensitive_profile_fields');
-        if (sensData?.geburtsdatum) setGeburtsdatum(sensData.geburtsdatum);
-      } catch {}
     }
   }, [user?.id]); // profile bewusst NICHT in Dependencies — verhindert Überschreiben von Eingaben
 
@@ -94,12 +88,6 @@ export default function KontoSettingsPage() {
 
   async function handleSaveIdentity() {
     setSaving(true);
-    // Geburtsdatum separat updaten (sensible Spalte, nicht im IDENTITY_CONTRACT)
-    try {
-      await supabase.from('profiles')
-        .update({ geburtsdatum: geburtsdatum || null, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
-    } catch (e) { console.warn('[KontoSettings] geburtsdatum update:', e); }
     const { error } = await saveProfile({
       display_name: displayName.trim(),
       bio: bio.trim() || null,
@@ -188,25 +176,6 @@ export default function KontoSettingsPage() {
               <TextAreaField label="Über dich" value={bio} onChange={setBio} placeholder="Erzähl von dir" />
               <InputField label="Ort" value={locationLabel} onChange={setLocationLabel} placeholder="Wo du lebst" />
               <InputField label="Website" value={website} onChange={setWebsite} placeholder="https://…" />
-              {/* Geburtsdatum — sensible Spalte, optional */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>Geburtsdatum (optional)</label>
-                <input
-                  type="date"
-                  value={geburtsdatum || ''}
-                  onChange={e => setGeburtsdatum(e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
-                  style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 10,
-                    border: `1px solid ${C.border}`, background: C.cream,
-                    fontSize: 14, fontFamily: 'Inter, sans-serif', color: C.ink,
-                    outline: 'none', boxSizing: 'border-box',
-                  }}
-                />
-                <span style={{ fontSize: 11, color: C.muted }}>
-                  Wird nicht öffentlich angezeigt. Mindestalter 16 Jahre.
-                </span>
-              </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                 <button onClick={handleSaveIdentity} disabled={saving} style={{
                   padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
@@ -224,7 +193,6 @@ export default function KontoSettingsPage() {
               {bio && <p style={{ fontSize: 14, color: C.ink, lineHeight: 1.6, marginBottom: 8 }}>{bio}</p>}
               {locationLabel && <p style={{ fontSize: 13, color: C.muted, marginBottom: 4 }}>📍 {locationLabel}</p>}
               {website && <p style={{ fontSize: 13, color: C.teal, marginBottom: 4 }}>{website}</p>}
-              {geburtsdatum && <p style={{ fontSize: 13, color: C.muted, marginBottom: 4 }}>Geburtsdatum: {new Date(geburtsdatum).toLocaleDateString('de-DE')}</p>}
               <button onClick={() => setEditing(true)} style={{
                 marginTop: 12, padding: '8px 16px', borderRadius: 10,
                 border: `1px solid ${C.border}`, background: 'transparent',

@@ -340,13 +340,12 @@ export default function LoginPage() {
   const [refValid,   setRefValid]   = useState(null);
   // REGISTRATION-UPGRADE-001 (2026-08-15): Neue Pflichtfelder
   const [anrede,     setAnrede]     = useState('');
-  const [geburtsdatum, setGeburtsdatum] = useState('');
+
   const [pw2,        setPw2]        = useState('');
   const [showPw2,    setShowPw2]    = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   // Speichere Register-Credentials für Polling im Verifikations-Modal
   const [regCredentials, setRegCredentials] = useState({ email: '', password: '' });
-  const [dobFocused, setDobFocused] = useState(false);
   const [loading,    setLoading]    = useState(false);
   const [err,        setErr]        = useState('');
   const [success,    setSuccess]    = useState('');
@@ -496,14 +495,7 @@ export default function LoginPage() {
   }
 
   // ── Altersberechnung ──
-  function calculateAge(birthdate) {
-    const today = new Date();
-    const birth = new Date(birthdate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
-  }
+  
 
   async function handleRegister(e) {
     e.preventDefault(); clearMessages(); setUsernameErr('');
@@ -518,14 +510,6 @@ export default function LoginPage() {
     if (pw.length < 6)          { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
     if (!pw2)                   { setErr('Bitte wiederhole dein Passwort.');               return; }
     if (pw !== pw2)             { setErr('Die Passwörter stimmen nicht überein.');          return; }
-    // Geburtsdatum ist OPTIONAL — Altersprüfung ≥16 nur wenn Nutzer es angibt
-    if (geburtsdatum) {
-      const age = calculateAge(geburtsdatum);
-      if (age < 16) {
-        setErr('Du musst mindestens 16 Jahre alt sein, um ein Konto zu erstellen.');
-        return;
-      }
-    }
 
     // Username-Format prüfen
     const uname = username.trim().toLowerCase().replace(/\s+/g, '_');
@@ -586,7 +570,7 @@ export default function LoginPage() {
           display_name: fullName.trim(),
           username:     uname,
           anrede:       anrede,
-          geburtsdatum: geburtsdatum,
+  
         },
       },
     });
@@ -596,7 +580,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Profil befüllen (anrede Pflicht, geburtsdatum optional)
+    // Profil befüllen (anrede Pflicht)
     if (signUpData?.user?.id) {
       const profileData = {
         id:           signUpData.user.id,
@@ -605,7 +589,7 @@ export default function LoginPage() {
         username:     uname,
         email:        email,
         anrede:       anrede,
-        geburtsdatum: geburtsdatum,
+
         updated_at:   new Date().toISOString(),
       };
       await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
@@ -934,42 +918,7 @@ export default function LoginPage() {
                     {usernameErr}
                   </div>
                 )}
-                {/* Geburtsdatum — REGISTRATION-UPGRADE-001 (optional) */}
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="geburtsdatum"
-                    type="date"
-                    value={geburtsdatum}
-                    onChange={e => setGeburtsdatum(e.target.value)}
-                    onFocus={() => setDobFocused(true)}
-                    onBlur={() => setDobFocused(false)}
-                    max={new Date().toISOString().split('T')[0]}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: T.glass,
-                      border: '1.5px solid rgba(255,255,255,0.13)',
-                      borderRadius: 14,
-                      fontSize: 14,
-                      color: geburtsdatum ? T.white : 'rgba(255,255,255,0.38)',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
-                      caretColor: T.teal,
-                    }}
-                  />
-                  {!geburtsdatum && !dobFocused && (
-                    <div style={{
-                      position: 'absolute', inset: 0, pointerEvents: 'none',
-                      display: 'flex', alignItems: 'center', paddingLeft: 14,
-                      background: T.glass, borderRadius: 14,
-                      fontSize: 14, color: 'rgba(255,255,255,0.38)',
-                      fontFamily: 'inherit',
-                    }}>
-                      Geburtsdatum optional
-                    </div>
-                  )}
-                </div>
+
               </>
             )}
 
