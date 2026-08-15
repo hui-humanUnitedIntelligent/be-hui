@@ -174,25 +174,17 @@ function useTransparenz() {
     const fetch = async () => {
       try {
         const now30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-        // FIX (2026-08-15, Migration 119): impact_votes hat seit der
-        // Security-Hardening (Migration 104, 2026-08-12) eine RLS-Policy,
-        // die SELECTs auf "eigene Stimmen" beschraenkt (voter_id=auth.uid()).
-        // Eine direkte Zaehlung ueber alle Stimmen liefert seitdem nur noch
-        // die Stimmen DES GERADE EINGELOGGTEN NUTZERS -- die globale Zahl
-        // variierte je nach Betrachter. Fix: aggregierte RPC (SECURITY
-        // DEFINER, gibt NUR total_votes/unique_voters zurueck, keine
-        // Voter-Identitaet) statt direktem SELECT auf impact_votes.
         const [appRes, vRes] = await Promise.allSettled([
           // SSOT: impact_applications mit submitted_at für korrekte "Eingereicht"-Zählung
           supabase.from("impact_applications")
             .select("id,status,is_completed,funding_goal,current_amount_eur,created_at,submitted_at"),
-          supabase.rpc("rpc_get_global_vote_stats"),
+          supabase.from("impact_votes")
+            .select("id,voter_id", { count:"exact" }),
         ]);
         if (dead) return;
         const apps  = appRes.status === "fulfilled" ? (appRes.value.data || []) : [];
-        const vStats = vRes.status === "fulfilled" ? (vRes.value.data?.[0] || {}) : {};
-        const vdata = { count: Number(vStats.total_votes) || 0 };
-        const unique = Number(vStats.unique_voters) || 0;
+        const vdata = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
+        const unique = new Set((vdata.data || []).map(v => v.voter_id)).size;
 
         // Finanziert = is_completed=true (via SADB gesetzt oder Trigger)
         const funded = apps.filter(p => p.is_completed === true);
@@ -342,16 +334,6 @@ function useImpactActivities() {
     let dead = false;
     const load = async () => {
       try {
-        // FIX (2026-08-15, Migration 119): impact_votes RLS beschraenkt
-        // SELECT auf eigene Stimmen. useLiveActivities bekommt nur noch die
-        // Stimmen des eingeloggten Nutzers. Da wir hier keine voter_id 
-        // exposen wollen (Privacy), zeigen wir "Jemand" fuer alle Votes.
-        // Die Query bleibt ein direkter SELECT (mit voter_id fuer RLS) aber
-        // wir_resolver voter_id nicht mehr im Display — "Jemand" fuer alle.
-        // Da RLS nur eigene Stimmen liefert, ist diese Aktivitaetsliste nun
-        // "deine Stimmen + abgeschlossene Projekte" statt "alle Stimmen".
-        // Das ist akzeptabel — globale Stimmen werden ueberall anders durch
-        // die RPCs korrekt gezaehlt; diese Liste ist persoenlicher Natur.
         const [votesRes, completedRes] = await Promise.allSettled([
           supabase.from("impact_votes")
             .select("id,created_at,voter_id,project_id")
@@ -372,21 +354,29 @@ function useImpactActivities() {
         const completed = completedRes.status === "fulfilled" ? (completedRes.value.data || []) : [];
         if (!votes.length && !completed.length) return;
 
+        const uIds = [...new Set(votes.map(v => v.voter_id).filter(Boolean))];
         const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
-        const [pRes] = await Promise.allSettled([
-          // ROOT-CAUSE-FIX (2026-08-11): SSOT = impact_applications
+        const [uRes, pRes] = await Promise.allSettled([
+          uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
+                      : Promise.resolve({ data:[] }),
+          // ROOT-CAUSE-FIX (2026-08-11): Projektnamen kamen bisher aus der
+          // leeren Legacy-Tabelle "impact_projects" -> immer Fallback
+          // "ein Projekt" statt des echten Namens. SSOT für Projektnamen
+          // ist impact_applications (project_name), identisch zu allen
+          // anderen Impact-Abfragen auf dieser Seite.
           pIds.length ? supabase.from("impact_applications").select("id,project_name").in("id", pIds)
                       : Promise.resolve({ data:[] }),
         ]);
         if (dead) return;
+        const uMap = Object.fromEntries((uRes.value?.data || []).map(u => [u.id, u]));
         const pMap = Object.fromEntries((pRes.value?.data || []).map(p => [p.id, p]));
 
         const voteActs = votes.map(v => ({
           id:     `vote_${v.id}`,
           type:   "vote",
-          user_id: null,
-          user:   "Jemand",
-          avatar: null,
+          user_id: v.voter_id || null,
+          user:   uMap[v.voter_id]?.display_name || "Jemand",
+          avatar: uMap[v.voter_id]?.avatar_url || null,
           proj:   pMap[v.project_id]?.project_name || "ein Projekt",
           ts:     v.created_at,
           ago:    relTime(v.created_at),
@@ -483,15 +473,15 @@ function useAllApprovedByVotes() {
       );
 
       // 2. Vote-Counts für diesen Monat für ALLE Projekte
-      // FIX (2026-08-15, Migration 119): direkter SELECT auf impact_votes
-      // lieferte seit Migration 104 (RLS: nur eigene Stimmen sichtbar) je
-      // nach Betrachter eine andere Zahl. Fix: SECURITY-DEFINER-RPC.
       const appIds = activeRows.map(a => a.id);
-      const { data: voteRows } = await supabase
-        .rpc("rpc_get_vote_counts", { p_project_ids: appIds, p_pool_month: poolMonth });
+      const { data: voteData } = await supabase
+        .from("impact_votes")
+        .select("project_id")
+        .in("project_id", appIds)
+        .eq("pool_month", poolMonth);
       const voteMap = {};
-      (voteRows || []).forEach(v => {
-        voteMap[v.project_id] = Number(v.vote_count) || 0;
+      (voteData || []).forEach(v => {
+        voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
       });
 
       // 3. Normalisieren + sortieren: Votes DESC, dann created_at ASC
@@ -565,11 +555,10 @@ function useApprovedApplications() {
       );
       if (!appList.length) return [];
       const appIds = appList.map(a => a.id);
-      // FIX (2026-08-15, Migration 119): RPC statt direktem SELECT (RLS-Bug)
-      const { data: voteRows } = await supabase
-        .rpc("rpc_get_vote_counts", { p_project_ids: appIds, p_pool_month: currentPoolMonth });
+      const { data: votes } = await supabase
+        .from("impact_votes").select("project_id").in("project_id", appIds).eq("pool_month", currentPoolMonth);
       const vc = {};
-      (voteRows || []).forEach(v => { vc[v.project_id] = Number(v.vote_count) || 0; });
+      (votes || []).forEach(v => { vc[v.project_id] = (vc[v.project_id] || 0) + 1; });
       return appList.map(a => ({ ...a, vote_count: vc[a.id] || 0 }))
         .sort((a, b) => b.vote_count - a.vote_count || new Date(b.created_at) - new Date(a.created_at));
     } catch (e) { console.warn("[APPROVED APPS]", e?.message); return []; }
@@ -722,10 +711,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         }
 
         // 3. Gesamtstimmen für dieses Projekt
-        const { data: voteRows } = await supabase
-          // FIX (2026-08-15, Migration 119): RPC statt direktem SELECT (RLS-Bug)
-          .rpc("rpc_get_vote_counts", { p_project_ids: [app.id], p_pool_month: null });
-        if (!dead) setVoteCount(Number(voteRows?.[0]?.vote_count) || 0);
+        const { count } = await supabase
+          .from("impact_votes")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", app.id);
+        if (!dead) setVoteCount(count || 0);
       } catch { /* silent */ }
       if (!dead) setChecking(false);
     })();

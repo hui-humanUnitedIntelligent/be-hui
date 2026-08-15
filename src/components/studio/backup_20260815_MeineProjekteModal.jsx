@@ -680,10 +680,11 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
     let dead = false;
     (async () => {
       try {
-        // FIX (2026-08-15, Migration 119): RPC statt direktem SELECT (RLS-Bug)
-        const { data: voteRows } = await supabase
-          .rpc("rpc_get_vote_counts", { p_project_ids: [app.id], p_pool_month: null });
-        if (!dead) setVoteCount(Number(voteRows?.[0]?.vote_count) || 0);
+        const { count } = await supabase
+          .from("impact_votes")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", app.id);
+        if (!dead) setVoteCount(count || 0);
       } catch { if (!dead) setVoteCount(0); }
     })();
     return () => { dead = true; };

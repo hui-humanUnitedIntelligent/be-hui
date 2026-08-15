@@ -1956,14 +1956,16 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           .order("created_at", { ascending:true })
           .limit(10);
 
-        // vote_count per Projekt via RPC (FIX 2026-08-15, Migration 119: RLS-Bug)
+        // vote_count per Projekt via impact_votes (für Mitglieder-Anzeige)
         let voteMap = {};
         if (projRaw && projRaw.length > 0) {
           const ids = projRaw.map(p => p.id);
           const { data: voteRows } = await supabase
-            .rpc("rpc_get_vote_counts", { p_project_ids: ids, p_pool_month: null });
+            .from("impact_votes")
+            .select("project_id")
+            .in("project_id", ids);
           if (voteRows) {
-            voteRows.forEach(v => { voteMap[v.project_id] = Number(v.vote_count) || 0; });
+            voteRows.forEach(v => { voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1; });
           }
         }
         // null-rank Projekte ans Ende, nach votes sortieren

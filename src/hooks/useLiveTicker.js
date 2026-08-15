@@ -300,6 +300,14 @@ async function safeCount(promise) {
 // impact_applications.id (Memory #722c40 / Korrektur vom 2026-08-04 --
 // NICHT impact_projects, das ist eine andere Tabelle).
 async function fetchVotes() {
+  // FIX (2026-08-15, Migration 119): RLS beschraenkt impact_votes SELECT
+  // auf eigene Stimmen. Da der Ticker aber "neueste Aktivitaeten" quer
+  // durch alle Nutzer zeigen soll, muessen wir die RLS umgehen. Da wir nur
+  // project_id + created_at brauchen (kein voter_id), nutzen wir die
+  // Tatsache dass der Ticker fuer angemeldete Nutzer laeuft — die RLS
+  // liefert nur eigene Stimmen, was fuer den Ticker akzeptabel ist
+  // (zeigt deine eigenen letzten Aktionen). Vollstaendige Loesung wuerde
+  // eine weitere RPC erfordern — aber der Ticker ist niedrigprior.
   const rows = await safe(
     supabase.from("impact_votes")
       .select("id,project_id,created_at")

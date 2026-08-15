@@ -105,11 +105,12 @@ export default function WirkungPage() {
         .order('created_at', { ascending: false })
         .limit(10),
       // Impact-Stimmen für meine Projekte
-      // FIX (2026-08-15, Migration 119): RPC statt direktem SELECT (RLS-Bug)
-      // Nur eindeutige Waehler-Zahl wird gebraucht, nicht einzelne Stimmen
       projectIds.length > 0
-        ? supabase.rpc("rpc_get_unique_voters_for_projects", { p_project_ids: projectIds })
-            .then(r => ({ data: [{ count: Number(r.data) || 0 }] }))
+        ? supabase.from('impact_votes')
+            .select('id, created_at, project_id, voter_id')
+            .in('project_id', projectIds)
+            .order('created_at', { ascending: false })
+            .limit(10)
         : Promise.resolve({ data: [] }),
       // Buchungen
       supabase.from('bookings')
@@ -147,7 +148,7 @@ export default function WirkungPage() {
       .reduce((sum, s) => sum + (s.amount_eur || 0), 0);
 
     const uniqueSupporters = new Set(supports.map(s => s.user_id)).size;
-    const uniqueVoters = votes.length > 0 && votes[0]?.count != null ? Number(votes[0].count) : 0;
+    const uniqueVoters = new Set(votes.map(v => v.voter_id)).size;
     const completedMilestones = milestones.filter(m => m.status === 'completed').length;
     const totalMilestoneUpdates = milestones.reduce((sum, m) => sum + (m.impact_milestone_updates?.length || 0), 0);
     const publishedWorks = works.filter(w => w.status === 'published').length;
