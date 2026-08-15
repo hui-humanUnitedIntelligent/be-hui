@@ -323,24 +323,24 @@ export function ProfileHeader({
             /* Unterkante Kontakt = Unterkante Follower auf linker Seite */
           }}>
 
-            {/* Oberer Block: Name (oben) + @username (darunter, gestapelt) */}
+            {/* Oberer Block: Name + @username */}
             <div>
               {loading ? <Sk w={130} h={22} r={6}/> : (
                 <div style={{
-                  display:"flex", flexDirection:"column",
-                  gap:2,
+                  display:"flex", alignItems:"center", flexWrap:"wrap",
+                  gap:"0 6px",
                 }}>
                   <span style={{
                     fontSize:19, fontWeight: 600, color:T.ink,
                     letterSpacing:"-0.025em", lineHeight:1.2,
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                    flexShrink:0,
                   }}>
                     {name}
                   </span>
                   {username && (
                     <span style={{
                       fontSize:12.5, color:T.inkFaint, fontWeight:400,
-                      lineHeight:1.2,
+                      flexShrink:0, lineHeight:1,
                     }}>
                       @{username}
                     </span>

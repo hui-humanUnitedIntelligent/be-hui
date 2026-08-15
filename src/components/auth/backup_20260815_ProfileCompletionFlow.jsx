@@ -135,16 +135,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
 export default function ProfileCompletionFlow({ onComplete }) {
   injectCSS();
   const { user, profile, refreshProfile } = useAuth();
-  // FIX (2026-08-15): Username wurde bereits bei der Registrierung
-  // (LoginPage.jsx "Benutzername"-Feld) erfasst und ist seit Migration 118
-  // zuverlaessig in profile.username vorhanden (handle_new_user Trigger
-  // uebernimmt ihn direkt aus den Registrierungsdaten). Ist er schon
-  // gesetzt, wird Step 0 (Username erneut abfragen) UEBERSPRUNGEN — das
-  // verhinderte zuvor, dass Nutzer ihren bei der Registrierung gewaehlten
-  // Username versehentlich mit einem aus ihrem Namen generierten Slug
-  // ueberschreiben (Root Cause des "Username stimmt nicht"-Bugs).
-  const hasUsernameAlready = !!(profile?.username && profile.username.trim());
-  const [step,      setStep]      = useState(hasUsernameAlready ? 1 : 0);
+  const [step,      setStep]      = useState(0);
   const [username,  setUsername]  = useState(profile?.username || "");
   const [bio,       setBio]       = useState(profile?.bio || "");
   const [avatar,    setAvatar]    = useState(profile?.avatar_url || null);
@@ -242,7 +233,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           <div style={{fontSize:13,fontWeight: 600,color:TEAL,letterSpacing:1.5,
             textTransform:"uppercase",marginBottom:6}}>Profil einrichten</div>
           <div style={{fontSize:22,fontWeight: 600,color:INK,letterSpacing:-0.5}}>
-            {["Dein Username","Über dich","Dein Gesicht","Deine Welt"][step]}
+            {["Dein Name","Über dich","Dein Gesicht","Deine Welt"][step]}
           </div>
         </div>
 
