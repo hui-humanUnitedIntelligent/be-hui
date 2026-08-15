@@ -48,3 +48,4 @@ www/index.html
 www/web.html
 yarn-debug.log*
 yarn-error.log*
+.env*

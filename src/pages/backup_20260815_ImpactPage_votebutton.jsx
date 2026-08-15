@@ -1845,7 +1845,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         userVotes={userVotes}
         daysLeft={daysLeft}
         totalVotes={totalVotes}
-        remainVotes={remainVotes}
         onVote={castVote}
         onOpen={setDetailApp}
         loading={loadingProj && approvedApps.loading}
@@ -2084,7 +2083,7 @@ function PoolCard({ pool, userImpact }) {
 // ════════════════════════════════════════════════════════════════
 // 3. AKTUELLE ABSTIMMUNG — das Herzstück
 // ════════════════════════════════════════════════════════════════
-function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes, onVote, loading, onInfoClick, onOpen }) {
+function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, loading, onInfoClick, onOpen }) {
   return (
     <div style={{ marginTop:24 }}>
       {/* Header */}
@@ -2131,7 +2130,6 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
           {projects.map((p, i) => (
             <VotingCard key={p.id} project={p} rank={i}
               voted={userVotes.some(v => v.project_id === p.id)}
-              remainVotes={remainVotes}
               totalVotes={totalVotes} onVote={onVote} onOpen={onOpen} />
           ))}
         </div>
@@ -2140,7 +2138,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
   );
 }
 
-function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen }) {
+function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
   const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
@@ -2261,48 +2259,24 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
           ))}
         </div>
 
-        {/* Vote-Bereich — Button wird nach Stimmabgabe VOLLSTÄNDIG entfernt
-            (nicht nur deaktiviert), damit kein erneuter Klick möglich/verwirrend ist. */}
-        {voted ? (
-          <div style={{
-            width:"100%", borderRadius:18, padding:"14px 0", textAlign:"center",
-            background:`linear-gradient(135deg,${accent}12,${accent}06)`,
-            border:`1.5px solid ${accent}30`,
+        {/* Vote Button — groß + premium */}
+        <button onClick={(e) => { e.stopPropagation(); !voted && onVote(p.id); }} className="ip-p"
+          disabled={voted} style={{
+            width:"100%", borderRadius:18, padding:"14px 0",
+            cursor: voted ? "default" : "pointer",
+            background: voted
+              ? `linear-gradient(135deg,${accent}12,${accent}06)`
+              : `linear-gradient(135deg,${accent},${accent}CC)`,
+            color: voted ? accent : "white",
+            border: voted ? `1.5px solid ${accent}30` : "none",
+            fontSize:14, fontWeight: 600, letterSpacing:"-0.01em",
+            boxShadow: voted ? "none" : S.btn(accent),
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+            transition:"all 0.22s ease",
           }}>
-            <span style={{ fontSize:16 }}>✓</span>
-            <span style={{ fontSize:14, fontWeight:600, letterSpacing:"-0.01em", color:accent }}>
-              Deine Stimme zählt
-            </span>
-          </div>
-        ) : remainVotes <= 0 ? (
-          <div style={{
-            width:"100%", borderRadius:18, padding:"14px 0", textAlign:"center",
-            background:"rgba(0,0,0,0.04)", border:"1.5px solid rgba(0,0,0,0.08)",
-          }}>
-            <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
-              Keine Stimmen mehr diesen Monat
-            </div>
-            <div style={{ fontSize:11, color:T.muted, marginTop:2, opacity:0.8 }}>
-              Erneuert sich am 1. des nächsten Monats
-            </div>
-          </div>
-        ) : (
-          <button onClick={(e) => { e.stopPropagation(); onVote(p.id); }} className="ip-p"
-            style={{
-              width:"100%", borderRadius:18, padding:"14px 0",
-              cursor:"pointer",
-              background:`linear-gradient(135deg,${accent},${accent}CC)`,
-              color:"white", border:"none",
-              fontSize:14, fontWeight: 600, letterSpacing:"-0.01em",
-              boxShadow: S.btn(accent),
-              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-              transition:"all 0.22s ease",
-            }}>
-            <span style={{ fontSize:16 }}>🩷</span>
-            <span>Mit 1 Stimme unterstützen</span>
-          </button>
-        )}
+          <span style={{ fontSize:16 }}>{voted ? "✓" : "🩷"}</span>
+          <span>{voted ? "Deine Stimme zählt" : "Mit 1 Stimme unterstützen"}</span>
+        </button>
       </div>
     </div>
   );
