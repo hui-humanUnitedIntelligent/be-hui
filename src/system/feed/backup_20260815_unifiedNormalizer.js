@@ -152,7 +152,7 @@ export function toFeedItem(raw){
     return{
       id:String(raw.id), type, author, title:title||null, text:text||null, media,
       createdAt:relTime(raw.created_at||raw.createdAt),
-      location:safeStr(raw.location||raw.location_text)||null,
+      location:safeStr(raw.location)||null,
       price:raw.price!=null?safeNum(raw.price):null,
       // Umkreissuche (2026-07-06): additiv, nur gesetzt wenn eine nearby_*-RPC
       // aufgerufen wurde (siehe useFeedStream.fetchSearchResults). null in
@@ -162,11 +162,6 @@ export function toFeedItem(raw){
       isLive:safeBool(raw.isLive||raw.is_live),
       timeStart:safeStr(raw.time_start||raw.timeStart)||null,
       timeEnd:safeStr(raw.time_end||raw.timeEnd)||null,
-      meetingPoint:safeStr(raw.meeting_point||raw.meetingPoint)||null,
-      spotsAvailable:raw.spots_available!=null?safeNum(raw.spots_available):null,
-      maxParticipants:raw.max_participants!=null?safeNum(raw.max_participants):null,
-      currency:safeStr(raw.currency)||null,
-      pricePer:safeStr(raw.price_per||raw.pricePer)||null,
       status:safeStr(raw.status)||null,
       duration:safeStr(raw.duration)||null,
       format:safeStr(raw.format)||null,

@@ -22,19 +22,9 @@ const WORKS_SELECT =
   "id,user_id,title,cover_url,category,status," +
   "approval_status,price,for_sale,visibility,created_at";
 
-// ERLEBNIS-INFO-FIX (2026-08-15, Michael-Report — Screenshot "Versteckis mit
-// Hunden"): "Uhrzeit fehlt, füge alles Informative hinzu". ROOT CAUSE: Diese
-// SELECT-Liste (genutzt vom SSOT useProfileData-Hook für ALLE Profilseiten
-// via ExperiencesSection.jsx → ContentPreviewSheet) hatte weder time_start/
-// time_end noch caption/description/meeting_point/Platz-Infos ausgewählt --
-// die Vorschau konnte diese Felder nicht zeigen, obwohl sie in der DB laengst
-// vorhanden waren (siehe useFeedStream.js EXPERIENCES-Select, das bereits
-// vollstaendiger war). Additiv ergaenzt, keine bestehende Spalte entfernt.
 const EXPERIENCES_SELECT =
   "id,user_id,title,cover_url,category,date,status," +
-  "approval_status,visibility,format,location_text,price,duration,created_at," +
-  "caption,description,time_start,time_end,meeting_point,spots_available," +
-  "max_participants,currency,price_per,registration_required";
+  "approval_status,visibility,format,location_text,price,duration,created_at";
 
 const RECOMMENDATIONS_SELECT =
   "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at";
