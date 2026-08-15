@@ -333,7 +333,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
               <FieldGroup label="Anzeigename (Spitzname)">
                 <Input value={displayName} onChange={setDisplayName}
-                  placeholder="Wie soll dein Name angezeigt werden?" maxLength={60} />
+                  placeholder="Wie soll dein Name angezeigt werden?" maxLength={60}
+                  name="nickname" autoComplete="nickname" autoCorrect="on"
+                  autoCapitalize="words" inputMode="text" />
               </FieldGroup>
 
               <FieldGroup
@@ -347,6 +349,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   prefix="@"
                   hasError={!!usernameErr}
                   hasSuccess={usernameOk}
+                  name="username" autoComplete="username" autoCorrect="off"
+                  autoCapitalize="none" inputMode="text"
                 />
               </FieldGroup>
 
@@ -542,7 +546,10 @@ function FieldGroup({ label, hint, hintColor, children }) {
   );
 }
 
-function Input({ value, onChange, placeholder, maxLength, type="text", icon, prefix, disabled, hasError, hasSuccess }) {
+function Input({
+  value, onChange, placeholder, maxLength, type="text", icon, prefix, disabled,
+  hasError, hasSuccess, name, autoComplete, autoCorrect, autoCapitalize, inputMode,
+}) {
   const borderColor = hasError ? T.coral : hasSuccess ? T.green : "rgba(26,26,24,0.15)";
   return (
     <div style={{
@@ -559,6 +566,11 @@ function Input({ value, onChange, placeholder, maxLength, type="text", icon, pre
       )}
       <input
         type={type}
+        name={name || autoComplete}
+        autoComplete={autoComplete}
+        autoCorrect={autoCorrect}
+        autoCapitalize={autoCapitalize}
+        inputMode={inputMode}
         value={value}
         onChange={e => !disabled && onChange(e.target.value)}
         placeholder={placeholder}

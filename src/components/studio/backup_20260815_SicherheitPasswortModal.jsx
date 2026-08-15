@@ -166,7 +166,6 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
               value={newPw} onChange={setNewPw}
               show={showNew} onToggleShow={() => setShowNew(s=>!s)}
               placeholder="Mindestens 8 Zeichen"
-              name="new-password"
             />
 
             {/* Stärke-Balken */}
@@ -196,7 +195,6 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
               placeholder="Nochmals eingeben"
               hasError={mismatch}
               hasSuccess={match}
-              name="confirm-new-password"
             />
             {mismatch && (
               <div style={{ fontSize:11, color:T.coral, marginTop:4, fontWeight:600 }}>
@@ -357,7 +355,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
 }
 
 // ── Passwort-Input ─────────────────────────────────────────────────
-function PwInput({ value, onChange, show, onToggleShow, placeholder, hasError, hasSuccess, name = "new-password" }) {
+function PwInput({ value, onChange, show, onToggleShow, placeholder, hasError, hasSuccess }) {
   const borderColor = hasError ? T.coral : hasSuccess ? T.green : "rgba(26,26,24,0.15)";
   return (
     <div style={{
@@ -370,11 +368,6 @@ function PwInput({ value, onChange, show, onToggleShow, placeholder, hasError, h
     }}>
       <input
         type={show ? "text" : "password"}
-        name={name}
-        autoComplete="new-password"
-        autoCorrect="off"
-        autoCapitalize="none"
-        inputMode="text"
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}

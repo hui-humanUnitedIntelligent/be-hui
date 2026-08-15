@@ -189,14 +189,12 @@ function AuthModal({ action, onClose, onConfirm }) {
               </div>
             </div>
             <form onSubmit={handleSignIn} style={{display:"flex",flexDirection:"column",gap:12}}>
-              <input type="email" name="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder="E-Mail" autoComplete="email" autoCorrect="off" autoCapitalize="none"
-                inputMode="email" style={inputStyle}
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                placeholder="E-Mail" autoComplete="email" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
-              <input type="password" name="current-password" value={pw} onChange={e=>setPw(e.target.value)}
-                placeholder="Passwort" autoComplete="current-password" autoCorrect="off" autoCapitalize="none"
-                inputMode="text" style={inputStyle}
+              <input type="password" value={pw} onChange={e=>setPw(e.target.value)}
+                placeholder="Passwort" autoComplete="current-password" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               {err && <div style={{fontSize:13,color:"#EF4444",padding:"8px 12px",
@@ -209,11 +207,6 @@ function AuthModal({ action, onClose, onConfirm }) {
                 <div style={{position:"relative"}}>
                   <input
                     type="text"
-                    name="reflink"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    inputMode="text"
                     value={refInput}
                     onChange={async e => {
                       setRefInput(e.target.value);
@@ -267,19 +260,16 @@ function AuthModal({ action, onClose, onConfirm }) {
               </div>
             </div>
             <form onSubmit={handleSignUp} style={{display:"flex",flexDirection:"column",gap:12}}>
-              <input type="text" name="name" value={name} onChange={e=>setName(e.target.value)}
-                placeholder="Dein Name" autoComplete="name" autoCorrect="on" autoCapitalize="words"
-                inputMode="text" style={inputStyle}
+              <input type="text" value={name} onChange={e=>setName(e.target.value)}
+                placeholder="Dein Name" autoComplete="name" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
-              <input type="email" name="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder="E-Mail" autoComplete="email" autoCorrect="off" autoCapitalize="none"
-                inputMode="email" style={inputStyle}
+              <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
+                placeholder="E-Mail" autoComplete="email" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
-              <input type="password" name="new-password" value={pw} onChange={e=>setPw(e.target.value)}
-                placeholder="Passwort (min. 8 Zeichen)" autoComplete="new-password" autoCorrect="off" autoCapitalize="none"
-                inputMode="text" style={inputStyle}
+              <input type="password" value={pw} onChange={e=>setPw(e.target.value)}
+                placeholder="Passwort (min. 8 Zeichen)" autoComplete="new-password" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               {err && <div style={{fontSize:13,color:"#EF4444",padding:"8px 12px",
@@ -292,11 +282,6 @@ function AuthModal({ action, onClose, onConfirm }) {
                 <div style={{position:"relative"}}>
                   <input
                     type="text"
-                    name="reflink"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    inputMode="text"
                     value={refInput}
                     onChange={async e => {
                       setRefInput(e.target.value);

@@ -10,7 +10,7 @@
 	},
 	"android": {
 		"allowMixedContent": false,
-		"captureInput": false,
+		"captureInput": true,
 		"webContentsDebuggingEnabled": false,
 		"path": "android",
 		"buildOptions": {

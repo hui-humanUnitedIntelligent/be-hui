@@ -233,16 +233,13 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
             <div>
               <label style={labelStyle}>Name *</label>
               <input value={form.name} onChange={inp("name")} placeholder="Dein Name"
-                name="name" type="text" autoComplete="name"
-                autoCorrect="on" autoCapitalize="words" inputMode="text"
                 style={{ ...inputStyle, borderColor: errors.name ? C.red : C.border }} />
               {errors.name && <p style={errStyle}>{errors.name}</p>}
             </div>
             <div>
               <label style={labelStyle}>E-Mail *</label>
               <input value={form.email} onChange={inp("email")} placeholder="deine@email.com"
-                type="email" name="email" autoComplete="email"
-                autoCorrect="off" autoCapitalize="none" inputMode="email"
+                type="email"
                 style={{ ...inputStyle, borderColor: errors.email ? C.red : C.border }} />
               {errors.email && <p style={errStyle}>{errors.email}</p>}
             </div>

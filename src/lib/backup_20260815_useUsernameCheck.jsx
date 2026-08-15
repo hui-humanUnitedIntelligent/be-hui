@@ -89,12 +89,8 @@ export function UsernameInput({ value, onChange, dark = false, placeholder = "de
           value={value}
           onChange={e => onChange(e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g,""))}
           placeholder={placeholder}
-          name="username"
-          type="text"
-          autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
-          inputMode="text"
           spellCheck={false}
           style={{
             width: "100%",

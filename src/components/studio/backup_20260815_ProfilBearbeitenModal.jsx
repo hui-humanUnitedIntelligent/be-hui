@@ -44,6 +44,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import DeleteAccountModal from "./DeleteAccountModal.jsx";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -113,6 +114,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [saving,         setSaving]       = useState(false);
   const [saveOk,         setSaveOk]       = useState(false);
   const [saveErr,        setSaveErr]      = useState("");
+  const [showDelete,    setShowDelete]   = useState(false);
   const [usernameErr,    setUsernameErr]  = useState("");
   const [usernameOk,     setUsernameOk]   = useState(false);
   const [checkingUname,  setCheckingUname]= useState(false);
@@ -494,9 +496,26 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
               <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> Wird gespeichert…</>
             ) : saveOk ? "✅ Gespeichert!" : "💾 Änderungen speichern"}
           </button>
+
+          {/* ── Account löschen (nur Basis-Tab) ── */}
+          {tab === "basis" && (
+            <button
+              onClick={() => setShowDelete(true)}
+              style={{
+                width:"100%", padding:"12px", marginTop:10,
+                borderRadius:T.r12, border:`1px solid ${T.coral}30`,
+                background:"transparent", color:T.coral,
+                fontSize:13, fontWeight:600, fontFamily:T.ff,
+                cursor:"pointer", transition:"all .2s",
+              }}
+            >
+              Account endgültig löschen
+            </button>
+          )}
         </div>
 
       </div>
+      {showDelete && <DeleteAccountModal onClose={() => setShowDelete(false)} />}
     </div>
   );
 

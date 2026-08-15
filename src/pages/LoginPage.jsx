@@ -31,14 +31,30 @@ const BG_IMAGES = [
 ];
 
 
-function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete, id, rightSlot }) {
+function GlassInput({
+  type = 'text', value, onChange, placeholder, autoComplete, id, rightSlot,
+  name, autoCorrect, autoCapitalize, inputMode, spellCheck, required,
+}) {
   const [focused, setFocused] = useState(false);
 
+  // System-Tastatur/AutoFill-Konfiguration (KEYBOARD-INPUT-FIX 2026-08-15):
+  // name = autoComplete als Fallback, da Android/iOS AutoFill-Heuristiken
+  // sowohl auf autoComplete als auch auf den name-Attributwert schauen.
+  const resolvedName = name || autoComplete || id;
+  // Sinnvolle Defaults je Feldtyp, sofern nicht explizit übergeben —
+  // E-Mail/Passwort/Username: keine Autokorrektur/Großschreibung (stört beim Tippen
+  // von Adressen/Zugangsdaten). Freitext (Name etc.) behält System-Standardverhalten.
+  const isCredential = type === 'email' || type === 'password'
+    || autoComplete === 'username' || autoComplete === 'off';
+  const resolvedAutoCorrect   = autoCorrect   ?? (isCredential ? 'off' : 'on');
+  const resolvedAutoCapitalize= autoCapitalize?? (isCredential ? 'none' : 'sentences');
+  const resolvedInputMode     = inputMode     ?? (type === 'email' ? 'email' : 'text');
 
   return (
     <div style={{ position: 'relative' }}>
       <input
         id={id}
+        name={resolvedName}
         type={type}
         value={value}
         onChange={onChange}
@@ -46,6 +62,11 @@ function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete,
         onBlur={() => setFocused(false)}
         placeholder={placeholder}
         autoComplete={autoComplete}
+        autoCorrect={resolvedAutoCorrect}
+        autoCapitalize={resolvedAutoCapitalize}
+        inputMode={resolvedInputMode}
+        spellCheck={spellCheck ?? !isCredential}
+        required={required}
         style={{
           width: '100%',
           padding: rightSlot ? '10px 42px 10px 14px' : '10px 14px',
@@ -947,6 +968,8 @@ export default function LoginPage() {
                   onChange={e => setFullName(e.target.value)}
                   placeholder="Vorname *"
                   autoComplete="given-name"
+                  autoCapitalize="words"
+                  autoCorrect="on"
                   required
                 />
                 {/* Nachname */}
@@ -957,6 +980,8 @@ export default function LoginPage() {
                   onChange={e => setLastName(e.target.value)}
                   placeholder="Nachname *"
                   autoComplete="family-name"
+                  autoCapitalize="words"
+                  autoCorrect="on"
                   required
                 />
                 {/* Benutzername */}
@@ -1046,6 +1071,8 @@ export default function LoginPage() {
             {mode === 'register' && (
               <div style={{ marginTop: 2 }}>
                 <GlassInput
+                  id="reflink"
+                  name="reflink"
                   type="text"
                   value={refLink}
                   onChange={e => setRefLink(e.target.value)}

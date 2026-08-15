@@ -144,10 +144,14 @@ function NameBlock({ profile = {}, onProfileUpdate = () => {} }) {
       <div style={{ display:"flex", gap:8, marginBottom:4 }}>
         <input value={first} onChange={e=>setFirst(e.target.value)}
           placeholder="Vorname" style={inp}
+          name="given-name" type="text" autoComplete="given-name"
+          autoCorrect="on" autoCapitalize="words" inputMode="text"
           onFocus={e=>e.target.style.borderColor=T.teal}
           onBlur={e=>e.target.style.borderColor=T.border}/>
         <input value={last} onChange={e=>setLast(e.target.value)}
           placeholder="Nachname" style={inp}
+          name="family-name" type="text" autoComplete="family-name"
+          autoCorrect="on" autoCapitalize="words" inputMode="text"
           onFocus={e=>e.target.style.borderColor=T.teal}
           onBlur={e=>e.target.style.borderColor=T.border}/>
       </div>
@@ -185,6 +189,8 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
     <Row label="E-Mail-Adresse">
       <input value={email} onChange={e=>setEmail(e.target.value)}
         placeholder="neue@email.de" type="email" style={inp}
+        name="email" autoComplete="email" autoCorrect="off" autoCapitalize="none"
+        inputMode="email"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       {saved && <div style={{ fontSize:12, color:T.teal, marginTop:6 }}>
@@ -220,10 +226,14 @@ function PasswordBlock() {
       <input value={next} onChange={e=>setNext(e.target.value)}
         placeholder="Neues Passwort (min. 8 Zeichen)" type="password"
         style={{ ...inp, marginBottom:8 }}
+        name="new-password" autoComplete="new-password" autoCorrect="off"
+        autoCapitalize="none" inputMode="text"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <input value={confirm} onChange={e=>setConfirm(e.target.value)}
         placeholder="Passwort bestätigen" type="password" style={inp}
+        name="confirm-new-password" autoComplete="new-password" autoCorrect="off"
+        autoCapitalize="none" inputMode="text"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
@@ -297,10 +307,14 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
       <input value={oldEmail} onChange={e=>setOldEmail(e.target.value)}
         placeholder="Deine aktuelle E-Mail" type="email"
         style={{ ...inp, marginBottom:8 }}
+        name="email" autoComplete="email" autoCorrect="off" autoCapitalize="none"
+        inputMode="email"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <input value={newEmail} onChange={e=>setNewEmail(e.target.value)}
         placeholder="Neue E-Mail-Adresse" type="email" style={inp}
+        name="new-email" autoComplete="off" autoCorrect="off" autoCapitalize="none"
+        inputMode="email"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>

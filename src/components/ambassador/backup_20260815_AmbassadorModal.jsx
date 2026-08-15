@@ -173,9 +173,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
                 </div>
                 <div>
                   <label className="amb-label">E-Mail<span className="amb-req">*</span></label>
-                  <input className="amb-input" type="email" name="email" autoComplete="email"
-                    autoCorrect="off" autoCapitalize="none" inputMode="email"
-                    placeholder="max@beispiel.de" value={form.email}
+                  <input className="amb-input" type="email" placeholder="max@beispiel.de" value={form.email}
                     onChange={e => set("email", e.target.value)} />
                   {formErrors.email && <div style={{ fontSize: 11, color: "#FF5B5B", marginTop: 4 }}>{formErrors.email}</div>}
                 </div>
