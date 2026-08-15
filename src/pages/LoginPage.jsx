@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
 import { HUILogoWordmark } from '../components/brand/HUILogo.jsx';
+import NutzungsbedingungenModal from '../components/auth/NutzungsbedingungenModal.jsx';
 import { getAuthRedirectUrl } from '../lib/platform.js';
 
 // ── Design Tokens ───────────────────────────────────────────────
@@ -977,8 +978,8 @@ export default function LoginPage() {
             <span
               role="link"
               tabIndex={0}
-              onClick={() => window.open('https://be-hui.com/nutzungsbedingungen', '_blank', 'noopener')}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.open('https://be-hui.com/nutzungsbedingungen', '_blank', 'noopener'); }}
+              onClick={() => setShowTerms(true)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowTerms(true); }}
               style={{
                 textDecoration: 'underline',
                 cursor: 'pointer',
@@ -991,6 +992,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      <NutzungsbedingungenModal open={showTerms} onClose={() => setShowTerms(false)} />
     </div>
   );
 }
