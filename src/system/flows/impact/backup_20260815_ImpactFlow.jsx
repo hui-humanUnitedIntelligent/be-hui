@@ -1144,56 +1144,6 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
 }
 
 // ═══ SUCCESS ═════════════════════════════════════════════════
-// ═══ TALENT-GATE — Basis-Nutzer duerfen kein Projekt einreichen ═══
-// Nutzer-Feedback (Screenshot, 2026-08-15): Basis-Nutzer sollen beim
-// Versuch ein Herzensprojekt einzureichen einen freundlichen Hinweis
-// bekommen statt stillschweigend abgewiesen oder umgeleitet zu werden
-// (anders als TeilenFlow.jsx/StoryComposer.jsx, die isBaseUser silent
-// zu window.__HUI_OPEN_TALENT_FLOW umleiten -- hier bewusst EXPLIZIT
-// mit Erklaerung, wie vom Nutzer gewuenscht).
-function TalentRequiredNotice({ onClose }) {
-  const handleUpgrade = useCallback(() => {
-    onClose?.();
-    if (typeof window.__HUI_OPEN_TALENT_FLOW === "function") {
-      window.__HUI_OPEN_TALENT_FLOW();
-    }
-  }, [onClose]);
-
-  return (
-    <div style={{ flex:1, display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", padding:"40px 28px",
-      textAlign:"center", animation:"ifFadeIn 0.35s ease both",
-      background:`linear-gradient(160deg,${T.teal}12,${T.teal}04,#fff)` }}>
-      <div style={{ fontSize:52, marginBottom:18,
-        filter:`drop-shadow(0 4px 20px ${T.teal}40)` }}>💚</div>
-      <h2 style={{ margin:"0 0 10px", fontSize:21, fontWeight: 600,
-        color:T.ink, letterSpacing:"-0.022em", maxWidth:290 }}>
-        Herzensprojekte sind Talenten vorbehalten
-      </h2>
-      <p style={{ margin:"0 0 6px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300 }}>
-        Nur HUI-Talente können aktuell ein Herzensprojekt einreichen — so
-        stellen wir sicher, dass jedes Projekt von einer verifizierten
-        Person betreut wird.
-      </p>
-      <p style={{ margin:"0 0 26px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300 }}>
-        Du kannst dein Konto jederzeit in deinem Profil zum Talent-Konto
-        hochstufen — danach kannst du dein Projekt einreichen.
-      </p>
-      <button onClick={handleUpgrade} style={{ padding:"14px 32px", borderRadius:18,
-        border:"none", background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
-        color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
-        boxShadow:S.btn(T.teal), marginBottom:12 }}>
-        Jetzt Talent werden
-      </button>
-      <button onClick={onClose} style={{ padding:"10px 20px", borderRadius:14,
-        border:"none", background:"transparent",
-        color:T.ink3, fontSize:13, fontWeight: 600, cursor:"pointer" }}>
-        Schließen
-      </button>
-    </div>
-  );
-}
-
 function SuccessScreen({ onClose }) {
   return (
     <div style={{ flex:1, display:"flex", flexDirection:"column",
@@ -1566,7 +1516,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 // ═══ HAUPT-ORCHESTRATOR ═══════════════════════════════════════
 // Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 7.5(=9) = Persönliche Angaben, 8 = Wirkungsnetzwerk
 export default function ImpactFlow({ onClose }) {
-  const { user, isBaseUser } = useAuth();
+  const { user } = useAuth();
   const [step,    setStep]    = useState(0);
   const [aiRes,   setAiRes]   = useState(null);
   const [saving,  setSaving]  = useState(false);
@@ -1707,32 +1657,30 @@ export default function ImpactFlow({ onClose }) {
         animation:"ifModalIn 0.26s cubic-bezier(0.22,1,0.36,1) both",
       }}>
 
-        {isBaseUser && <TalentRequiredNotice onClose={onClose} />}
+        {done && <SuccessScreen onClose={onClose} />}
 
-        {!isBaseUser && done && <SuccessScreen onClose={onClose} />}
+        {!done && step === 0 && <Step1 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 1 && <Step2 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 2 && <Step3 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 3 && <Step4 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 4 && <Step5 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
+        {!done && step === 5 && <Step5b milestones={milestones} setMilestones={setMilestones} onNext={goNext} onBack={goBack} onClose={onClose} userId={user?.id} />}
+        {!done && step === 6 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
 
-        {!isBaseUser && !done && step === 0 && <Step1 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!isBaseUser && !done && step === 1 && <Step2 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!isBaseUser && !done && step === 2 && <Step3 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!isBaseUser && !done && step === 3 && <Step4 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!isBaseUser && !done && step === 4 && <Step5 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-        {!isBaseUser && !done && step === 5 && <Step5b milestones={milestones} setMilestones={setMilestones} onNext={goNext} onBack={goBack} onClose={onClose} userId={user?.id} />}
-        {!isBaseUser && !done && step === 6 && <Step6 form={form} update={update} onNext={goNext} onBack={goBack} onClose={onClose} />}
-
-        {!isBaseUser && !done && step === 7 && (
+        {!done && step === 7 && (
           <AIPruefung form={form} onResult={res => { setAiRes(res); setStep(8); }} />
         )}
 
-        {!isBaseUser && !done && step === 8 && aiRes?.geeignet && (
+        {!done && step === 8 && aiRes?.geeignet && (
           <ErgebnisGeeignet form={form} aiRes={aiRes}
             onNetworkConfirm={() => setStep(10)} onClose={onClose} />
         )}
-        {!isBaseUser && !done && step === 8 && aiRes && !aiRes.geeignet && (
+        {!done && step === 8 && aiRes && !aiRes.geeignet && (
           <ErgebnisNichtGeeignet form={form} aiRes={aiRes} user={user} onClose={onClose}
             onRetry={() => { setStep(0); setAiRes(null); }} />
         )}
 
-        {!isBaseUser && !done && step === 9 && (
+        {!done && step === 9 && (
           <PersoenlicheAngaben
             kontakt={kontakt}
             setKontakt={setKontakt}
@@ -1742,7 +1690,7 @@ export default function ImpactFlow({ onClose }) {
         )}
 
         {/* Step 10 — Medien & Dateien */}
-        {!isBaseUser && !done && step === 11 && (
+        {!done && step === 11 && (
           <MedienUploadStep
             coverUrl={coverUrl}
             setCoverUrl={setCoverUrl}
@@ -1754,7 +1702,7 @@ export default function ImpactFlow({ onClose }) {
           />
         )}
 
-        {!isBaseUser && !done && step === 10 && (
+        {!done && step === 10 && (
           <WirkungsnetzScreen
             checks={netChecks}
             onToggle={toggleCheck}
