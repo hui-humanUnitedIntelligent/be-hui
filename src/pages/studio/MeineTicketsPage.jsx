@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { toast } from "../../lib/useToast.jsx";
 
 const C = {
   teal:   HUI.COLOR.tealStudio,
@@ -105,7 +106,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
       setTimeout(() => { onSent(); onClose(); }, 1600);
     } catch (err) {
       console.error("ReplySheet send error:", err);
-      alert("Fehler beim Senden: " + (err?.message || String(err)));
+      toast.error("Fehler beim Senden: " + (err?.message || "unbekannt"));
     } finally {
       setSending(false);
     }

@@ -23,6 +23,7 @@ import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 import GemeinsamErmoeglichtAllModal from "../components/discover/GemeinsamErmoeglichtAllModal.jsx";
+import { toast } from "../lib/useToast.jsx";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -1764,11 +1765,11 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         // Sichtbarer Fehler — kein stiller Fail
         const msg = error.message || "";
         if (msg.includes("Maximale Stimmen")) {
-          alert("Du hast bereits alle deine Stimmen diesen Monat vergeben.");
+          toast.warn("Alle Stimmen diesen Monat vergeben");
         } else if (msg.includes("Bereits für")) {
-          alert("Du hast bereits für dieses Projekt gestimmt.");
+          toast.info("Bereits für dieses Projekt gestimmt");
         } else {
-          alert("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut.");
+          toast.error("Abstimmung fehlgeschlagen — Seite neu laden");
         }
       } else {
         // Feed-Activity wird via Datenbankfunktion erzeugt — kein Client-Side-Insert nötig
@@ -1778,7 +1779,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
       setProjects(prev => prev.map(p =>
         p.id === projectId ? { ...p, votes:Math.max(0,(p.votes||1)-1) } : p));
-      alert("Verbindungsfehler. Bitte lade die Seite neu und versuche es erneut.");
+      toast.error("Verbindungsfehler — Seite neu laden");
     } finally { setVoteLoading(false); }
   };
 

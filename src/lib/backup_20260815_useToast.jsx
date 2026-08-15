@@ -66,7 +66,7 @@ function Toast({ t, onDismiss }) {
   }
 
   useEffect(() => {
-    const dur = t.duration || 5000;
+    const dur = t.duration || (t.type === "error" ? 5000 : 3000);
     const timer = setTimeout(dismiss, dur);
     return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -76,29 +76,29 @@ function Toast({ t, onDismiss }) {
     <div
       onClick={dismiss}
       style={{
-        display:"flex", alignItems:"center", gap:8,
-        padding:"9px 14px 9px 12px",
+        display:"flex", alignItems:"center", gap:10,
+        padding:"11px 16px 11px 14px",
         background: cfg.bg,
-        borderRadius:12,
-        boxShadow:"0 2px 12px rgba(0,0,0,0.12)",
+        borderRadius:16,
+        boxShadow:"0 4px 24px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.10)",
         cursor:"pointer",
         maxWidth:"calc(100vw - 32px)",
         animation: exiting
-          ? "toastOut 0.2s ease both"
-          : "toastIn 0.22s cubic-bezier(.22,1,.36,1) both",
+          ? "toastOut 0.22s ease both"
+          : "toastIn 0.25s cubic-bezier(.22,1,.36,1) both",
         userSelect:"none",
         touchAction:"manipulation",
         pointerEvents:"auto",
       }}
     >
       <span style={{
-        width:20, height:20, borderRadius:6,
+        width:22, height:22, borderRadius:8,
         background:"rgba(255,255,255,0.22)",
         display:"flex", alignItems:"center", justifyContent:"center",
-        fontSize:11, fontWeight: 600, color:"#fff", flexShrink:0,
+        fontSize:12, fontWeight: 600, color:"#fff", flexShrink:0,
       }}>{cfg.icon}</span>
       <span style={{
-        fontSize:13, fontWeight:600,
+        fontSize:14, fontWeight:600,
         color: cfg.textColor,
         lineHeight:1.4,
       }}>{t.msg}</span>
@@ -126,10 +126,10 @@ export function ToastContainer() {
   return (
     <div style={{
       position:"fixed",
-      top:`calc(max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px), 0px) + 8px)`,
+      bottom:`calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 84px)`,
       left:"50%", transform:"translateX(-50%)",
       zIndex:29000,
-      display:"flex", flexDirection:"column", gap:6,
+      display:"flex", flexDirection:"column-reverse", gap:8,
       alignItems:"center",
       pointerEvents:"none",
     }}>

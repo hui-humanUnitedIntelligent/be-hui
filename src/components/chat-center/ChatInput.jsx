@@ -5,6 +5,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import { HUI } from "../../design/hui.design.js";
 import { supabase } from "../../lib/supabaseClient.js";
+import { toast } from "../../lib/useToast.jsx";
 
 const C = {
   teal:  HUI.COLOR.teal,
@@ -157,7 +158,7 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
       startAnalyzer(stream);
       timerRef.current = setInterval(() => setRecSecs(s => s+1), 1000);
     } catch(_) {
-      alert("Mikrofon-Zugriff verweigert oder nicht verf\u00fcgbar.");
+      toast.error("Mikrofon-Zugriff verweigert");
     }
   }, []);
 
@@ -183,7 +184,7 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      alert("Nur Bilder und Videos erlaubt."); return;
+      toast.warn("Nur Bilder und Videos erlaubt."); return;
     }
     setMediaFile(file);
     setMediaType(file.type.startsWith("video/") ? "video" : "image");
@@ -215,7 +216,7 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
       requestAnimationFrame(() => textRef.current?.focus());
     } catch(err) {
       console.error("[ChatInput] Send error:", err);
-      alert("Fehler beim Senden. Bitte nochmal versuchen.");
+      toast.error("Fehler beim Senden — bitte nochmal versuchen");
     } finally {
       setUploading(false);
     }

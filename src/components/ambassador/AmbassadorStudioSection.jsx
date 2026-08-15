@@ -16,6 +16,7 @@ import AmbassadorModal from "./AmbassadorModal.jsx";
 import AmbassadorPayoutPanel from "./AmbassadorPayoutPanel.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { toast } from "../../lib/useToast.jsx";
 
 // ── Design Tokens (identisch zu HuiStudio.jsx) ─────────────────────
 const T = {
@@ -622,7 +623,7 @@ function EinladungenModal({ ambassadorId, username, onClose }) {
   }, [ambassadorId]);
 
   const navigateTo = (userId, uname) => {
-    if (!userId && !uname) { alert("Profil nicht mehr verfügbar."); return; }
+    if (!userId && !uname) { toast.error("Profil nicht mehr verfügbar."); return; }
     onClose();
     if (userId) {
       openProfileById(userId);
