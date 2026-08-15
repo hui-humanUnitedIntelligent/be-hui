@@ -76,22 +76,16 @@ export function CreatorRing({ isTalent, children, size = 40, style = {} }) {
  * MembershipLabel — für Feed-Cards: "Talent" oder "Mitglied"
  */
 export function MembershipLabel({ membershipType, size = "xs", style = {} }) {
+  if (!membershipType || membershipType === "base") return null;
   const s = SIZES[size] || SIZES.xs;
-  // FEED-BADGE-FIX (2026-08-15): "base"/leer zeigte bisher GAR KEIN Badge —
-  // dadurch fehlte bei Basis-Nutzern jeder Tag neben dem Namen, während
-  // Talent-Nutzer konsistent "Talent" sahen. Fix: neutrale "Basis-Nutzer"-
-  // Variante statt frühem return null, damit JEDER Nutzer im Feed einen
-  // konsistenten Rollen-Tag neben dem Namen hat.
-  const type = membershipType || "base";
   const config = {
-    base:              { label:"Basis-Nutzer",    color:"#8B93A8", bg:"rgba(139,147,168,0.10)", border:"rgba(139,147,168,0.25)", icon:"○" },
     talent:            { label:"Talent",          color:"#16D7C5", bg:"rgba(22,215,197,0.12)",  border:"rgba(22,215,197,0.30)", icon:"✦" },
     verified_talent:   { label:"Verifiziert",     color:"#16D7C5", bg:"rgba(22,215,197,0.18)",  border:"rgba(22,215,197,0.40)", icon:"✦✦" },
     community_creator: { label:"Creator",         color:"#FF8A6B", bg:"rgba(255,138,107,0.12)", border:"rgba(255,138,107,0.30)", icon:"◎" },
     raumhalter:        { label:"Raumhalter",      color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
     guardian:          { label:"Guardian",        color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
     team:              { label:"Team",            color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"⬡" },
-  }[type] || { label:"Mitglied", color:"#16D7C5", bg:"rgba(22,215,197,0.10)", border:"rgba(22,215,197,0.25)", icon:"·" };
+  }[membershipType] || { label:"Mitglied", color:"#16D7C5", bg:"rgba(22,215,197,0.10)", border:"rgba(22,215,197,0.25)", icon:"·" };
 
   return (
     <span style={{

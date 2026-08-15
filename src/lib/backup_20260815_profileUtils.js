@@ -109,22 +109,15 @@ export function getFullDisplayName(profile, fallback = "Mitglied") {
 
 /**
  * getProfileRoleLabel — Rollen-/Status-Text unter dem Namen (Feed-Header etc.)
- * (NAME-DISPLAY-FIX, 2026-08-07; BASIS-TAG-FIX, 2026-08-15)
+ * (NAME-DISPLAY-FIX, 2026-08-07)
  *
- * Problem (2026-08-07): Das freie Textfeld profile.talent wird manuell gepflegt
- * (z.B. "Superadmin" bei Admins) und ist bei echten Talent-Nutzern oft NULL,
+ * Problem: Das freie Textfeld profile.talent wird manuell gepflegt (z.B.
+ * "Superadmin" bei Admins) und ist bei echten Talent-Nutzern oft NULL,
  * obwohl isProfileTalent(profile) bereits true liefert — die Zeile blieb
  * dann komplett leer statt "Talent" anzuzeigen.
  *
- * Problem (2026-08-15): Basis-Nutzer (isProfileTalent===false, kein
- * gepflegter Freitext) bekamen bisher GAR KEINEN Tag unter dem Namen —
- * die Zeile blieb komplett leer, während Talent-Nutzer konsistent "Talent"
- * sahen. Das wirkte uneinheitlich (Screenshot-Feedback: "Peter Stock" ohne
- * jeden Rollen-Tag, während andere Feed-Karten "Talent" zeigen).
- *
  * Priorität: profile.talent (gepflegter Freitext) → "Talent" (wenn
- * isProfileTalent) → "Basis-Nutzer" (Fallback, konsistent mit dem
- * Profil-Badge-Label in ProfileHeader.jsx) → nie mehr null.
+ * isProfileTalent) → null (keine Zeile)
  *
  * @param {object|null} profile
  * @returns {string|null}
@@ -134,6 +127,6 @@ export function getProfileRoleLabel(profile) {
   const custom = typeof profile.talent === "string" ? profile.talent.trim() : "";
   if (custom) return custom;
   if (isProfileTalent(profile)) return "Talent";
-  return "Basis-Nutzer";
+  return null;
 }
 
