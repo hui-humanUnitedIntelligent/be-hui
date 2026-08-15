@@ -1,37 +1,21 @@
--- Migration 115: Account-Loeschung (DSGVO Art. 17 "Recht auf Loeschung")
+-- Migration 116: Fix rpc_delete_own_account — falsche Spalte "content" statt "text"
 -- Datum: 2026-08-15
 --
--- Zweck: Nutzer kann seinen eigenen Account inkl. ALLER selbst erstellten
--- Inhalte unwiderruflich loeschen. E-Mail wird danach frei fuer eine
--- Neu-Registrierung (auth.users-Zeile wird separat per Edge Function mit
--- Service-Role geloescht, siehe functions/deleteAccount.ts).
+-- BUG: Migration 115 (rpc_delete_own_account) versuchte beim Soft-Delete von
+-- Chat-Nachrichten die Spalte "content" zu setzen. Die messages-Tabelle hat
+-- aber KEINE "content"-Spalte, sondern "text" (siehe Live-Schema-Check
+-- 2026-08-15: ['id','created_at','chat_id','sender_id','sender_name',
+-- 'sender_img','text','read','message_type','is_read','updated_at',
+-- 'media_url','media_type','is_deleted','edited_at']).
 --
--- ARCHITEKTUR-ENTSCHEIDUNG (dokumentiert, nicht nur Vermutung):
--- 1) Eigene Inhalte (Posts/Werke/Momente/Stories/Erlebnisse/Kommentare-Aktionen/
---    Follows/Favoriten/Talente etc.) werden HART GELOESCHT (DELETE).
--- 2) Fremde/Transaktions-Datensaetze, in denen der Nutzer nur als Gegenpartei
---    auftaucht (orders, bookings, stripe_*, payments, order_items, shipments,
---    Audit-Logs wie booking_events/commerce_events/platform_events), werden
---    ANONYMISIERT (UPDATE ... SET spalte = NULL) statt geloescht -- damit
---    Bestellungen/Buchungen der JEWEILS ANDEREN Partei sowie Finanz-/
---    Steuer-Aufzeichnungen (gesetzliche Aufbewahrungspflicht, DSGVO Art. 17(3)(b))
---    nicht kaputt gehen bzw. verloren gehen.
--- 3) Chat-Nachrichten (messages) nutzen den BESTEHENDEN Soft-Delete-Mechanismus
---    (is_deleted, siehe Memory #832) statt Hard-Delete -- sonst wuerde der
---    Chat-Verlauf des jeweils ANDEREN Teilnehmers kaputte/fehlende Nachrichten
---    zeigen. Inhalt wird durch Platzhaltertext ersetzt.
--- 4) NO ACTION FK-Referenzen (wuerden die finale DELETE FROM profiles blockieren)
---    werden VORHER auf NULL gesetzt: ambassadors_applications.reviewed_by,
---    escrow_disputes.admin_id/initiated_by, profiles.referred_by_ambassador_id,
---    stripe_payouts.approved_by/rejected_by, talent_bookings.ambassador_id,
---    talents.reviewed_by.
--- 5) Alle uebrigen mit CASCADE/SET NULL auf profiles(id) verknuepften Tabellen
---    (siehe FK-Scan 2026-08-15) werden automatisch durch das finale
---    "DELETE FROM public.profiles WHERE id = target" erledigt -- kein manueller
---    Eingriff noetig, DB-Constraints sind hier bereits die SSOT.
+-- Symptom: Jede Account-Löschung schlug fehl mit
+-- 'column "content" of relation "messages" does not exist' (500,
+-- DATA_DELETE_FAILED) — reproduziert und verifiziert per Test-User-Aufruf
+-- der delete-account Edge Function.
 --
--- SICHERHEIT: SECURITY DEFINER, aber IMMER nur auf auth.uid() (den aufrufenden
--- Nutzer selbst) -- kein Admin-Override, kein Loeschen fremder Accounts moeglich.
+-- Fix: CREATE OR REPLACE FUNCTION mit korrigierter Spalte "text" statt
+-- "content". Rest der Funktion unveraendert (siehe Migration 115 fuer
+-- vollstaendige Dokumentation/Architektur-Entscheidung).
 
 CREATE OR REPLACE FUNCTION public.rpc_delete_own_account()
 RETURNS void
@@ -77,6 +61,7 @@ BEGIN
   UPDATE public.notifications SET user_id = NULL WHERE user_id = target;
 
   -- ── 3) Chat-Nachrichten: bestehender Soft-Delete-Mechanismus (Memory #832) ──
+  -- FIX (Migration 116): Spalte heisst "text", nicht "content".
   UPDATE public.messages
   SET is_deleted = true, text = '[Nutzer hat seinen Account gelöscht]', media_url = NULL, media_type = NULL, edited_at = NOW()
   WHERE sender_id = target;
@@ -117,20 +102,10 @@ BEGIN
   DELETE FROM public.works WHERE creator_id = target OR user_id = target;
 
   -- ── 6) Finale Loeschung des Profils ──
-  -- Cascaded automatisch (per bestehenden FK-Constraints) alle verbleibenden
-  -- Tabellen: beitraege, talents, ambassadors_applications, ambassador_ref_links,
-  -- comment_hearts, comment_reports, creator_analytics, impact_applications,
-  -- impact_milestone_updates, impact_votes(+archive), interactions,
-  -- notifications(target_user_id), notifications_outbox, post_comments(SET NULL),
-  -- post_reactions, profile_locations, saved_posts, story_reactions,
-  -- stripe_ambassador_commissions, stripe_customers, stripe_impact_pool(+events),
-  -- stripe_payments, stripe_payouts, stripe_pending_checkouts, stripe_refunds,
-  -- stripe_subscriptions, talent_bookings(customer_id/seller_id), user_device_tokens,
-  -- user_notification_settings, user_presence, work_sales.
   DELETE FROM public.profiles WHERE id = target;
 END;
 $function$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_delete_own_account() TO authenticated;
 
-COMMENT ON FUNCTION public.rpc_delete_own_account() IS 'DSGVO Art.17 Account-Loeschung: loescht/anonymisiert saemtliche Daten des aufrufenden Nutzers (auth.uid()) ueber ~50 Tabellen hinweg. SECURITY DEFINER, aber striktes Self-Service (kein Admin-Override). Aufruf NUR ueber DeleteAccountModal.jsx nach expliziter Warnbestaetigung. auth.users-Zeile wird separat per Edge Function (Service-Role) via deleteAccount.ts geloescht, damit die E-Mail sofort fuer eine Neu-Registrierung frei wird.';
+COMMENT ON FUNCTION public.rpc_delete_own_account() IS 'DSGVO Art.17 Account-Loeschung: loescht/anonymisiert saemtliche Daten des aufrufenden Nutzers (auth.uid()) ueber ~50 Tabellen hinweg. SECURITY DEFINER, aber striktes Self-Service (kein Admin-Override). Aufruf NUR ueber DeleteAccountModal.jsx nach expliziter Warnbestaetigung. auth.users-Zeile wird separat per Edge Function (Service-Role) via deleteAccount.ts geloescht. FIX (Migration 116): messages-Soft-Delete nutzt Spalte "text" statt fehlerhaft "content".';

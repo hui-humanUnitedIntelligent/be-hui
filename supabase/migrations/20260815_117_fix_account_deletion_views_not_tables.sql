@@ -1,37 +1,21 @@
--- Migration 115: Account-Loeschung (DSGVO Art. 17 "Recht auf Loeschung")
+-- Migration 117: Fix rpc_delete_own_account — DELETE FROM auf VIEWs statt Tabellen
 -- Datum: 2026-08-15
 --
--- Zweck: Nutzer kann seinen eigenen Account inkl. ALLER selbst erstellten
--- Inhalte unwiderruflich loeschen. E-Mail wird danach frei fuer eine
--- Neu-Registrierung (auth.users-Zeile wird separat per Edge Function mit
--- Service-Role geloescht, siehe functions/deleteAccount.ts).
+-- BUG: Migration 115 enthielt zwei DELETE-Statements auf Objekte, die in
+-- Wirklichkeit VIEWs sind, keine Tabellen — PostgreSQL erlaubt kein DELETE
+-- auf einer einfachen View ohne INSTEAD OF-Trigger:
+--   1) "buyer_order_status" — VIEW über orders + order_items (bereits per
+--      UPDATE orders/order_items in Schritt 2 anonymisiert, siehe Migration 115).
+--   2) "commerce_price_authority" — VIEW über works + experiences (bereits
+--      per DELETE FROM works/experiences in Schritt 5 abgedeckt).
 --
--- ARCHITEKTUR-ENTSCHEIDUNG (dokumentiert, nicht nur Vermutung):
--- 1) Eigene Inhalte (Posts/Werke/Momente/Stories/Erlebnisse/Kommentare-Aktionen/
---    Follows/Favoriten/Talente etc.) werden HART GELOESCHT (DELETE).
--- 2) Fremde/Transaktions-Datensaetze, in denen der Nutzer nur als Gegenpartei
---    auftaucht (orders, bookings, stripe_*, payments, order_items, shipments,
---    Audit-Logs wie booking_events/commerce_events/platform_events), werden
---    ANONYMISIERT (UPDATE ... SET spalte = NULL) statt geloescht -- damit
---    Bestellungen/Buchungen der JEWEILS ANDEREN Partei sowie Finanz-/
---    Steuer-Aufzeichnungen (gesetzliche Aufbewahrungspflicht, DSGVO Art. 17(3)(b))
---    nicht kaputt gehen bzw. verloren gehen.
--- 3) Chat-Nachrichten (messages) nutzen den BESTEHENDEN Soft-Delete-Mechanismus
---    (is_deleted, siehe Memory #832) statt Hard-Delete -- sonst wuerde der
---    Chat-Verlauf des jeweils ANDEREN Teilnehmers kaputte/fehlende Nachrichten
---    zeigen. Inhalt wird durch Platzhaltertext ersetzt.
--- 4) NO ACTION FK-Referenzen (wuerden die finale DELETE FROM profiles blockieren)
---    werden VORHER auf NULL gesetzt: ambassadors_applications.reviewed_by,
---    escrow_disputes.admin_id/initiated_by, profiles.referred_by_ambassador_id,
---    stripe_payouts.approved_by/rejected_by, talent_bookings.ambassador_id,
---    talents.reviewed_by.
--- 5) Alle uebrigen mit CASCADE/SET NULL auf profiles(id) verknuepften Tabellen
---    (siehe FK-Scan 2026-08-15) werden automatisch durch das finale
---    "DELETE FROM public.profiles WHERE id = target" erledigt -- kein manueller
---    Eingriff noetig, DB-Constraints sind hier bereits die SSOT.
+-- Symptom: 'cannot delete from view "buyer_order_status"' (500,
+-- DATA_DELETE_FAILED) — reproduziert per Test-User-Aufruf der
+-- delete-account Edge Function, NACH dem Fix von Migration 116.
 --
--- SICHERHEIT: SECURITY DEFINER, aber IMMER nur auf auth.uid() (den aufrufenden
--- Nutzer selbst) -- kein Admin-Override, kein Loeschen fremder Accounts moeglich.
+-- Fix: Beide DELETE-Zeilen ersatzlos entfernt (redundant, Daten bereits
+-- durch die darunterliegenden Basistabellen abgedeckt). Rest der Funktion
+-- unveraendert.
 
 CREATE OR REPLACE FUNCTION public.rpc_delete_own_account()
 RETURNS void
@@ -91,10 +75,12 @@ BEGIN
   DELETE FROM public.content_shares WHERE sender_id = target OR recipient_id = target;
 
   -- ── 5) Eigene Inhalte/Aktionen ohne FK auf profiles: HART LOESCHEN ──
+  -- FIX (Migration 117): "buyer_order_status" und "commerce_price_authority"
+  -- entfernt — beide sind VIEWs (kein DELETE moeglich), Daten bereits ueber
+  -- die darunterliegenden Basistabellen (orders/order_items, works/experiences)
+  -- abgedeckt.
   DELETE FROM public.availability_slots WHERE user_id = target;
-  DELETE FROM public.buyer_order_status WHERE buyer_id = target OR customer_id = target;
   DELETE FROM public.chat_participants WHERE user_id = target;
-  DELETE FROM public.commerce_price_authority WHERE creator_id = target;
   DELETE FROM public.connections WHERE user_id = target;
   DELETE FROM public.creator_wallets WHERE user_id = target;
   DELETE FROM public.experiences WHERE user_id = target;
@@ -117,20 +103,10 @@ BEGIN
   DELETE FROM public.works WHERE creator_id = target OR user_id = target;
 
   -- ── 6) Finale Loeschung des Profils ──
-  -- Cascaded automatisch (per bestehenden FK-Constraints) alle verbleibenden
-  -- Tabellen: beitraege, talents, ambassadors_applications, ambassador_ref_links,
-  -- comment_hearts, comment_reports, creator_analytics, impact_applications,
-  -- impact_milestone_updates, impact_votes(+archive), interactions,
-  -- notifications(target_user_id), notifications_outbox, post_comments(SET NULL),
-  -- post_reactions, profile_locations, saved_posts, story_reactions,
-  -- stripe_ambassador_commissions, stripe_customers, stripe_impact_pool(+events),
-  -- stripe_payments, stripe_payouts, stripe_pending_checkouts, stripe_refunds,
-  -- stripe_subscriptions, talent_bookings(customer_id/seller_id), user_device_tokens,
-  -- user_notification_settings, user_presence, work_sales.
   DELETE FROM public.profiles WHERE id = target;
 END;
 $function$;
 
 GRANT EXECUTE ON FUNCTION public.rpc_delete_own_account() TO authenticated;
 
-COMMENT ON FUNCTION public.rpc_delete_own_account() IS 'DSGVO Art.17 Account-Loeschung: loescht/anonymisiert saemtliche Daten des aufrufenden Nutzers (auth.uid()) ueber ~50 Tabellen hinweg. SECURITY DEFINER, aber striktes Self-Service (kein Admin-Override). Aufruf NUR ueber DeleteAccountModal.jsx nach expliziter Warnbestaetigung. auth.users-Zeile wird separat per Edge Function (Service-Role) via deleteAccount.ts geloescht, damit die E-Mail sofort fuer eine Neu-Registrierung frei wird.';
+COMMENT ON FUNCTION public.rpc_delete_own_account() IS 'DSGVO Art.17 Account-Loeschung: loescht/anonymisiert saemtliche Daten des aufrufenden Nutzers (auth.uid()) ueber ~50 Tabellen hinweg. SECURITY DEFINER, aber striktes Self-Service (kein Admin-Override). Aufruf NUR ueber DeleteAccountModal.jsx nach expliziter Warnbestaetigung. auth.users-Zeile wird separat per Edge Function (Service-Role) via deleteAccount.ts geloescht. FIX (Migration 116): messages-Soft-Delete nutzt Spalte "text". FIX (Migration 117): DELETE-Statements auf Views (buyer_order_status, commerce_price_authority) entfernt — Daten bereits ueber Basistabellen abgedeckt. Live-verifiziert per End-to-End-Test-User-Loeschung 2026-08-15.';

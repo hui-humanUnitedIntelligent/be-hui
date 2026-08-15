@@ -78,7 +78,7 @@ BEGIN
 
   -- ── 3) Chat-Nachrichten: bestehender Soft-Delete-Mechanismus (Memory #832) ──
   UPDATE public.messages
-  SET is_deleted = true, text = '[Nutzer hat seinen Account gelöscht]', media_url = NULL, media_type = NULL, edited_at = NOW()
+  SET is_deleted = true, content = '[Nutzer hat seinen Account gelöscht]', media_url = NULL, media_type = NULL, edited_at = NOW()
   WHERE sender_id = target;
 
   -- ── 4) Watch-/Relations-/Report-/Invitation-Tabellen ohne FK: HART LOESCHEN ──
