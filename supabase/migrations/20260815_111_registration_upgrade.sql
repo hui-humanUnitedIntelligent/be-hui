@@ -31,7 +31,7 @@ BEGIN
 END $$;
 
 COMMENT ON COLUMN public.profiles.anrede IS 'Anrede bei Registrierung (Herr/Frau/Divers). Sensibel — nicht in anon/authenticated Column-Grants (siehe Migration 104-Pattern).';
-COMMENT ON COLUMN public.profiles.geburtsdatum IS 'Geburtsdatum bei Registrierung. Pflichtfeld ab REGISTRATION-UPGRADE-001. Mindestalter 16 (siehe trg_enforce_min_age). Sensibel — nicht oeffentlich lesbar.';
+COMMENT ON COLUMN public.profiles.geburtsdatum IS 'Geburtsdatum bei Registrierung. Optionales Feld (seit 2026-08-15). Falls angegeben: Mindestalter 16 (siehe trg_enforce_min_age). Sensibel — nicht oeffentlich lesbar.';
 
 -- ─────────────────────────────────────────────────────────────────
 -- 2. Server-seitige Mindestalter-Pruefung (Defense-in-Depth)

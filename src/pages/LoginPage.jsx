@@ -346,6 +346,7 @@ export default function LoginPage() {
   const [showVerification, setShowVerification] = useState(false);
   // Speichere Register-Credentials für Polling im Verifikations-Modal
   const [regCredentials, setRegCredentials] = useState({ email: '', password: '' });
+  const [dobFocused, setDobFocused] = useState(false);
   const [loading,    setLoading]    = useState(false);
   const [err,        setErr]        = useState('');
   const [success,    setSuccess]    = useState('');
@@ -517,13 +518,13 @@ export default function LoginPage() {
     if (pw.length < 6)          { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
     if (!pw2)                   { setErr('Bitte wiederhole dein Passwort.');               return; }
     if (pw !== pw2)             { setErr('Die Passwörter stimmen nicht überein.');          return; }
-    if (!geburtsdatum)          { setErr('Bitte gib dein Geburtsdatum ein.');               return; }
-
-    // Altersprüfung ≥ 16
-    const age = calculateAge(geburtsdatum);
-    if (age < 16) {
-      setErr('Du musst mindestens 16 Jahre alt sein, um ein Konto zu erstellen.');
-      return;
+    // Geburtsdatum ist OPTIONAL — Altersprüfung ≥16 nur wenn Nutzer es angibt
+    if (geburtsdatum) {
+      const age = calculateAge(geburtsdatum);
+      if (age < 16) {
+        setErr('Du musst mindestens 16 Jahre alt sein, um ein Konto zu erstellen.');
+        return;
+      }
     }
 
     // Username-Format prüfen
@@ -595,7 +596,7 @@ export default function LoginPage() {
       return;
     }
 
-    // Profil mit allen Pflichtfeldern befüllen (inkl. anrede + geburtsdatum)
+    // Profil befüllen (anrede Pflicht, geburtsdatum optional)
     if (signUpData?.user?.id) {
       const profileData = {
         id:           signUpData.user.id,
@@ -933,15 +934,16 @@ export default function LoginPage() {
                     {usernameErr}
                   </div>
                 )}
-                {/* Geburtsdatum — REGISTRATION-UPGRADE-001 */}
+                {/* Geburtsdatum — REGISTRATION-UPGRADE-001 (optional) */}
                 <div style={{ position: 'relative' }}>
                   <input
                     id="geburtsdatum"
                     type="date"
                     value={geburtsdatum}
                     onChange={e => setGeburtsdatum(e.target.value)}
+                    onFocus={() => setDobFocused(true)}
+                    onBlur={() => setDobFocused(false)}
                     max={new Date().toISOString().split('T')[0]}
-                    required
                     style={{
                       width: '100%',
                       padding: '10px 14px',
@@ -956,6 +958,17 @@ export default function LoginPage() {
                       caretColor: T.teal,
                     }}
                   />
+                  {!geburtsdatum && !dobFocused && (
+                    <div style={{
+                      position: 'absolute', inset: 0, pointerEvents: 'none',
+                      display: 'flex', alignItems: 'center', paddingLeft: 14,
+                      background: T.glass, borderRadius: 14,
+                      fontSize: 14, color: 'rgba(255,255,255,0.38)',
+                      fontFamily: 'inherit',
+                    }}>
+                      Geburtsdatum optional
+                    </div>
+                  )}
                 </div>
               </>
             )}
