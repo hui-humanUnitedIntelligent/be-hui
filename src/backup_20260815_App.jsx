@@ -59,7 +59,6 @@ import { loadPushSettings, initPushNotifications, invalidateTokensOnLogout } fro
 import { setupPushDeepLinkHandler } from "./lib/pushDeepLinkHandler.js";
 import InAppNotificationBanner from "./components/notifications/InAppNotificationBanner.jsx";
 import ImageLightbox from "./components/shared/ImageLightbox.jsx";
-import VideoFullscreenCloseButton from "./components/shared/VideoFullscreenCloseButton.jsx";
 // HUILogoSplash entfernt — IntroVideoScreen ersetzt Splash
 
 // ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
@@ -913,7 +912,6 @@ export default function App() {
                             </ImageGalleryProvider>
                           </ContentPreviewProvider>
                           <ImageLightbox />
-                          <VideoFullscreenCloseButton />
                         </LiveTickerProvider>
                       </SavedPostsProvider>
                     </RadiusProvider>

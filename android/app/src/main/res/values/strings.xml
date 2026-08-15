@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">HUI v2.1.196</string>
+    <string name="app_name">HUI v2.1.197</string>
     <string name="title_activity_main">HUI</string>
     <string name="package_name">com.hui.app</string>
     <string name="custom_url_scheme">com.hui.app</string>
