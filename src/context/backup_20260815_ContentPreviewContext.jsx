@@ -30,10 +30,6 @@ import ContentPreviewSheet from "../components/shared/ContentPreviewSheet.jsx";
 // Fix: eager (statischer) Import -- Chunk ist Teil des Haupt-Bundles,
 // kein Netzwerk-Ladevorgang beim Oeffnen mehr noetig.
 import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx";
-// ERLEBNIS-BUCHEN.1 (2026-08-15): analog TalentBookingFlow — eager Import,
-// existierende ExperienceBookingFlow.jsx (bereits von DiscoverPage/Home.jsx
-// genutzt) wiederverwendet statt einer neuen Komponente (Charta Prinzip 1+2).
-import ExperienceBookingFlow from "../components/commerce/ExperienceBookingFlow.jsx";
 import PostFullscreenView from "../components/shared/PostFullscreenView.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
@@ -43,7 +39,6 @@ export function ContentPreviewProvider({ children }) {
   const [item, setItem]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [talentBooking, setTalentBooking] = useState(null); // _raw des gebuchten Talents
-  const [experienceBooking, setExperienceBooking] = useState(null); // normalisiertes Item des gebuchten Erlebnisses
 
   // open: item ist bereits vollstaendig normalisiert (Feed/Discover/
   // Empfehlungen haben ihre Datenzeile schon im Speicher).
@@ -69,12 +64,9 @@ export function ContentPreviewProvider({ children }) {
     const close = useCallback(() => setItem(null), []);
   const openTalentBooking = useCallback((raw) => setTalentBooking(raw), []);
   const closeTalentBooking = useCallback(() => setTalentBooking(null), []);
-  const openExperienceBooking = useCallback((item) => setExperienceBooking(item), []);
-  const closeExperienceBooking = useCallback(() => setExperienceBooking(null), []);
   // Back-Button: Content-Preview registrieren
   useModalRegistration(!!item, close, "ContentPreview");
   useModalRegistration(!!talentBooking, closeTalentBooking, "TalentBooking-Flow");
-  useModalRegistration(!!experienceBooking, closeExperienceBooking, "ExperienceBooking-Flow");
 
   // onOpenPost: nur von PostFullscreenView genutzt, um innerhalb der
   // Fullscreen-Ansicht direkt zu "Weitere Beitraege dieses Wirkers" zu
@@ -88,14 +80,11 @@ export function ContentPreviewProvider({ children }) {
   const isPost = item?.type === "moment";
 
   return (
-    <ContentPreviewContext.Provider value={useMemo(() => ({ open, openRef, close, item, loading, openTalentBooking, openExperienceBooking }), [open, openRef, close, item, loading, openTalentBooking, openExperienceBooking])}>
+    <ContentPreviewContext.Provider value={useMemo(() => ({ open, openRef, close, item, loading, openTalentBooking }), [open, openRef, close, item, loading, openTalentBooking])}>
       {children}
-      <ContentPreviewSheet item={isPost ? null : item} loading={loading} onClose={close} onBookTalent={openTalentBooking} onBookExperience={openExperienceBooking} />
+      <ContentPreviewSheet item={isPost ? null : item} loading={loading} onClose={close} onBookTalent={openTalentBooking} />
       {talentBooking && (
         <TalentBookingFlow talent={talentBooking} onClose={closeTalentBooking} />
-      )}
-      {experienceBooking && (
-        <ExperienceBookingFlow experience={experienceBooking} onClose={closeExperienceBooking} />
       )}
       <PostFullscreenView item={isPost ? item : null} onClose={close} onOpenPost={onOpenPost} />
     </ContentPreviewContext.Provider>

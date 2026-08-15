@@ -65,7 +65,7 @@ const CSS = `
   .cps-btn:active { opacity:.6; transform:scale(0.96); }
 `;
 
-export default function ContentPreviewSheet({ item, loading, onClose, onBookTalent = () => {} }) {
+export default function ContentPreviewSheet({ item, loading, onClose, onBookTalent = () => {}, onBookExperience = () => {} }) {
   // FIX: navigate VOR useCallback deklarieren (TDZ-Bug war: navigate nach useCallback)
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -395,6 +395,31 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   </div>
                 );
               })()}
+
+              {/* Erlebnis buchen — primärer CTA, direkt unterhalb der
+                  Termin/Preis-Info. Michael-Request (2026-08-15): "das
+                  Erlebnis buchen mit einem Button unterhalb [des Titelbilds]".
+                  Wiederverwendet die bereits bestehende ExperienceBookingFlow.jsx
+                  (identisches Muster wie der "Talent buchen"-Button weiter
+                  unten) statt eine neue Buchungslogik zu bauen (Charta
+                  Prinzip 1: Evolution statt Rewrite). Nur sichtbar wenn ein
+                  Preis > 0 vorhanden ist — ExperienceBookingFlow selbst lehnt
+                  0€-Erlebnisse mit einer Fehlermeldung ab (kostenlose Events
+                  brauchen keine Zahlung/Buchung). */}
+              {(item.type === "experience" || item.type === "erlebnis") && item.price != null && Number(item.price) > 0 && (
+                <button
+                  className="cps-btn"
+                  onClick={() => { onClose?.(); onBookExperience(item); }}
+                  style={{
+                    width:"100%", marginBottom:16, padding:"14px", borderRadius:14,
+                    background:"rgba(13,196,181,1)", color:"#fff",
+                    fontSize:15, fontWeight: 600, border:"none", cursor:"pointer",
+                    letterSpacing:"-0.01em",
+                  }}
+                >
+                  Erlebnis buchen
+                </button>
+              )}
 
               {/* Werk: Preis + Kategorie — FIX (2026-08-15, Michael-Report):
                   Die Werk-Vorschau zeigte bisher (anders als Talent-Angebote)
