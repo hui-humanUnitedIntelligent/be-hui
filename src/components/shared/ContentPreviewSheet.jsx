@@ -460,19 +460,22 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
             )}
           </div>
         )}
-      </div>
 
-      {/* Bottom-Spacer: Navbar (72px) + safe-area — verhindert Abschneiden
-          auf iOS (Safari ignoriert paddingBottom bei overflowY:auto).
-          FIX (2026-08-15, Michael-Report, GLOBAL für alle Modals ausgerollt):
-          Ein reiner var(--hui-safe-bottom, env(...))-Fallback reichte NICHT,
-          weil die Insets in Einzelfällen (Timing/Geräte-Variante) nicht
-          zuverlässig ankommen. Jetzt exakt dieselbe bewährte 3-Wege-max()-
-          Formel wie navigationGeometry.js (SSOT für die Bottom-Navigation,
-          siehe Memory #716): native --hui-safe-bottom, dann Browser-env(),
-          dann ein hartcodierter 20px-Mindestpuffer — der GRÖSSTE der drei
-          Werte gewinnt immer, kein Fallback kann mehr auf 0 zurückfallen. */}
-      <div style={{ height:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))", flexShrink:0 }}/>
+        {/* Bottom-Spacer: Navbar (72px) + safe-area — verhindert Abschneiden
+            auf iOS (Safari ignoriert paddingBottom bei overflowY:auto).
+            ROOT-CAUSE-FIX (2026-08-15, Michael-Report — 2. Report, Screenshots
+            zeigten Text/Buttons weiterhin hinter der System-Navbar TROTZ
+            korrekter max()-Formel): Der Spacer stand vorher als Flex-SIBLING
+            AUSSERHALB von .cps-sheet, im äußeren Overlay-Div. Das Overlay ist
+            aber display:"flex" OHNE flexDirection (= Default "row") — der
+            Spacer landete dadurch horizontal NEBEN dem Sheet statt darunter
+            und hatte de facto NULL Wirkung auf die scrollbare Fläche, egal wie
+            groß sein height-Wert war. Jetzt: Spacer ist letztes Kind INNERHALB
+            von .cps-sheet (dem overflowY:auto-Container) — wird dadurch Teil
+            der scrollbaren Inhaltshöhe und schafft echten Freiraum am Ende,
+            exakt wie bei jedem anderen Bottom-Sheet im Code. */}
+        <div style={{ height:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))", flexShrink:0 }}/>
+      </div>
 
       {/* KOMMENTAR.1: EIN Kommentar-Sheet fuer ALLE Typen (post_comments,
           generisch ueber post_id+post_type, Migration 073). */}
