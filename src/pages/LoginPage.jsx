@@ -783,7 +783,7 @@ export default function LoginPage() {
           {}
           {/* ── HUI Logo (Markenanker, Constitution-konform) ──── */}
           <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center' }}>
-            <HUILogoWordmark logoSize={44} />
+            <HUILogoWordmark logoSize={44} textColor={T.teal2} subOpacity={0.85} />
           </div>
 
           <div style={{ marginBottom: 14 }}>

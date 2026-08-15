@@ -117,7 +117,11 @@ export function HUILogoSplash({ size = 80, style }) {
  * @param {number} [logoSize=44]  — Logo-Größe
  * @param {object} [style]        — Container-Style
  */
-export function HUILogoWordmark({ logoSize = 44, style }) {
+export function HUILogoWordmark({ logoSize = 44, style, textColor = '#1C4A3E', subOpacity = 0.65 }) {
+  // textColor: Default bleibt dunkelgruen (#1C4A3E) fuer helle Hintergruende
+  // (z.B. SettingsModal). Fuer dunkle Hintergruende (z.B. LoginPage) kann
+  // ueber diesen Prop das helle Markengruen (#0DC4B5, HUI.COLOR.teal)
+  // uebergeben werden — additiv, aendert bestehende Verwendungen nicht.
   return (
     <div
       style={{
@@ -132,7 +136,7 @@ export function HUILogoWordmark({ logoSize = 44, style }) {
         <div style={{
           fontWeight: 600,
           fontSize:      Math.round(logoSize * 0.52),
-          color:         '#1C4A3E',
+          color:         textColor,
           letterSpacing: '-0.02em',
           lineHeight:    1.1,
         }}>
@@ -141,8 +145,8 @@ export function HUILogoWordmark({ logoSize = 44, style }) {
         <div style={{
           fontWeight:    400,
           fontSize:      Math.round(logoSize * 0.26),
-          color:         '#1C4A3E',
-          opacity:       0.65,
+          color:         textColor,
+          opacity:       subOpacity,
           letterSpacing: '0.02em',
           lineHeight:    1.3,
         }}>
