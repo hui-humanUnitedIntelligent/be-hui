@@ -1988,23 +1988,10 @@ function BigHero({ pool }) {
         </div>
       </div>
 
-      {/* LIVE-Ticker unten */}
-      <div style={{
-        position:"relative", zIndex:2,
-        display:"flex", alignItems:"center", gap:8,
-        padding:"10px 22px",
-        background:"rgba(13,196,181,0.08)",
-        borderTop:`1px solid ${T.teal}20`,
-      }}>
-        <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0 }}>
-          <div style={{ width:6, height:6, borderRadius:"50%", background:T.teal,
-            animation:"ipPulse 1.4s ease-in-out infinite" }}/>
-          <span style={{ fontSize:10, fontWeight: 600, color:T.teal, letterSpacing:"0.1em" }}>LIVE</span>
-        </div>
-        <span style={{ fontSize:12, color:T.ink2 }}>
-          Der Impact Pool wächst gerade durch neue Buchungen
-        </span>
-      </div>
+      {/* LIVE-Ticker unten wurde entfernt (2026-08-15, Nutzer-Feedback) —
+          statischer Text ohne echte Live-Daten wirkte wie eine leere
+          Behauptung. Siehe backup_20260815_ImpactPage_liveticker.jsx
+          fuer die vorherige Implementierung. */}
     </div>
   );
 }

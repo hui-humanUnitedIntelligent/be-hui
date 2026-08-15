@@ -174,17 +174,25 @@ function useTransparenz() {
     const fetch = async () => {
       try {
         const now30 = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        // FIX (2026-08-15, Migration 119): impact_votes hat seit der
+        // Security-Hardening (Migration 104, 2026-08-12) eine RLS-Policy,
+        // die SELECTs auf "eigene Stimmen" beschraenkt (voter_id=auth.uid()).
+        // Eine direkte Zaehlung ueber alle Stimmen liefert seitdem nur noch
+        // die Stimmen DES GERADE EINGELOGGTEN NUTZERS -- die globale Zahl
+        // variierte je nach Betrachter. Fix: aggregierte RPC (SECURITY
+        // DEFINER, gibt NUR total_votes/unique_voters zurueck, keine
+        // Voter-Identitaet) statt direktem SELECT auf impact_votes.
         const [appRes, vRes] = await Promise.allSettled([
           // SSOT: impact_applications mit submitted_at für korrekte "Eingereicht"-Zählung
           supabase.from("impact_applications")
             .select("id,status,is_completed,funding_goal,current_amount_eur,created_at,submitted_at"),
-          supabase.from("impact_votes")
-            .select("id,voter_id", { count:"exact" }),
+          supabase.rpc("rpc_get_global_vote_stats"),
         ]);
         if (dead) return;
         const apps  = appRes.status === "fulfilled" ? (appRes.value.data || []) : [];
-        const vdata = vRes.status   === "fulfilled" ? vRes.value : { count:0, data:[] };
-        const unique = new Set((vdata.data || []).map(v => v.voter_id)).size;
+        const vStats = vRes.status === "fulfilled" ? (vRes.value.data?.[0] || {}) : {};
+        const vdata = { count: Number(vStats.total_votes) || 0 };
+        const unique = Number(vStats.unique_voters) || 0;
 
         // Finanziert = is_completed=true (via SADB gesetzt oder Trigger)
         const funded = apps.filter(p => p.is_completed === true);
@@ -334,6 +342,16 @@ function useImpactActivities() {
     let dead = false;
     const load = async () => {
       try {
+        // FIX (2026-08-15, Migration 119): impact_votes RLS beschraenkt
+        // SELECT auf eigene Stimmen. useLiveActivities bekommt nur noch die
+        // Stimmen des eingeloggten Nutzers. Da wir hier keine voter_id 
+        // exposen wollen (Privacy), zeigen wir "Jemand" fuer alle Votes.
+        // Die Query bleibt ein direkter SELECT (mit voter_id fuer RLS) aber
+        // wir_resolver voter_id nicht mehr im Display — "Jemand" fuer alle.
+        // Da RLS nur eigene Stimmen liefert, ist diese Aktivitaetsliste nun
+        // "deine Stimmen + abgeschlossene Projekte" statt "alle Stimmen".
+        // Das ist akzeptabel — globale Stimmen werden ueberall anders durch
+        // die RPCs korrekt gezaehlt; diese Liste ist persoenlicher Natur.
         const [votesRes, completedRes] = await Promise.allSettled([
           supabase.from("impact_votes")
             .select("id,created_at,voter_id,project_id")
@@ -354,29 +372,21 @@ function useImpactActivities() {
         const completed = completedRes.status === "fulfilled" ? (completedRes.value.data || []) : [];
         if (!votes.length && !completed.length) return;
 
-        const uIds = [...new Set(votes.map(v => v.voter_id).filter(Boolean))];
         const pIds = [...new Set(votes.map(v => v.project_id).filter(Boolean))];
-        const [uRes, pRes] = await Promise.allSettled([
-          uIds.length ? ProfileService.getMany(uIds) // ProfileService v1.0
-                      : Promise.resolve({ data:[] }),
-          // ROOT-CAUSE-FIX (2026-08-11): Projektnamen kamen bisher aus der
-          // leeren Legacy-Tabelle "impact_projects" -> immer Fallback
-          // "ein Projekt" statt des echten Namens. SSOT für Projektnamen
-          // ist impact_applications (project_name), identisch zu allen
-          // anderen Impact-Abfragen auf dieser Seite.
+        const [pRes] = await Promise.allSettled([
+          // ROOT-CAUSE-FIX (2026-08-11): SSOT = impact_applications
           pIds.length ? supabase.from("impact_applications").select("id,project_name").in("id", pIds)
                       : Promise.resolve({ data:[] }),
         ]);
         if (dead) return;
-        const uMap = Object.fromEntries((uRes.value?.data || []).map(u => [u.id, u]));
         const pMap = Object.fromEntries((pRes.value?.data || []).map(p => [p.id, p]));
 
         const voteActs = votes.map(v => ({
           id:     `vote_${v.id}`,
           type:   "vote",
-          user_id: v.voter_id || null,
-          user:   uMap[v.voter_id]?.display_name || "Jemand",
-          avatar: uMap[v.voter_id]?.avatar_url || null,
+          user_id: null,
+          user:   "Jemand",
+          avatar: null,
           proj:   pMap[v.project_id]?.project_name || "ein Projekt",
           ts:     v.created_at,
           ago:    relTime(v.created_at),
@@ -473,15 +483,15 @@ function useAllApprovedByVotes() {
       );
 
       // 2. Vote-Counts für diesen Monat für ALLE Projekte
+      // FIX (2026-08-15, Migration 119): direkter SELECT auf impact_votes
+      // lieferte seit Migration 104 (RLS: nur eigene Stimmen sichtbar) je
+      // nach Betrachter eine andere Zahl. Fix: SECURITY-DEFINER-RPC.
       const appIds = activeRows.map(a => a.id);
-      const { data: voteData } = await supabase
-        .from("impact_votes")
-        .select("project_id")
-        .in("project_id", appIds)
-        .eq("pool_month", poolMonth);
+      const { data: voteRows } = await supabase
+        .rpc("rpc_get_vote_counts", { p_project_ids: appIds, p_pool_month: poolMonth });
       const voteMap = {};
-      (voteData || []).forEach(v => {
-        voteMap[v.project_id] = (voteMap[v.project_id] || 0) + 1;
+      (voteRows || []).forEach(v => {
+        voteMap[v.project_id] = Number(v.vote_count) || 0;
       });
 
       // 3. Normalisieren + sortieren: Votes DESC, dann created_at ASC
@@ -555,10 +565,11 @@ function useApprovedApplications() {
       );
       if (!appList.length) return [];
       const appIds = appList.map(a => a.id);
-      const { data: votes } = await supabase
-        .from("impact_votes").select("project_id").in("project_id", appIds).eq("pool_month", currentPoolMonth);
+      // FIX (2026-08-15, Migration 119): RPC statt direktem SELECT (RLS-Bug)
+      const { data: voteRows } = await supabase
+        .rpc("rpc_get_vote_counts", { p_project_ids: appIds, p_pool_month: currentPoolMonth });
       const vc = {};
-      (votes || []).forEach(v => { vc[v.project_id] = (vc[v.project_id] || 0) + 1; });
+      (voteRows || []).forEach(v => { vc[v.project_id] = Number(v.vote_count) || 0; });
       return appList.map(a => ({ ...a, vote_count: vc[a.id] || 0 }))
         .sort((a, b) => b.vote_count - a.vote_count || new Date(b.created_at) - new Date(a.created_at));
     } catch (e) { console.warn("[APPROVED APPS]", e?.message); return []; }
@@ -711,11 +722,10 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
         }
 
         // 3. Gesamtstimmen für dieses Projekt
-        const { count } = await supabase
-          .from("impact_votes")
-          .select("id", { count: "exact", head: true })
-          .eq("project_id", app.id);
-        if (!dead) setVoteCount(count || 0);
+        const { data: voteRows } = await supabase
+          // FIX (2026-08-15, Migration 119): RPC statt direktem SELECT (RLS-Bug)
+          .rpc("rpc_get_vote_counts", { p_project_ids: [app.id], p_pool_month: null });
+        if (!dead) setVoteCount(Number(voteRows?.[0]?.vote_count) || 0);
       } catch { /* silent */ }
       if (!dead) setChecking(false);
     })();
@@ -1835,6 +1845,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         userVotes={userVotes}
         daysLeft={daysLeft}
         totalVotes={totalVotes}
+        remainVotes={remainVotes}
         onVote={castVote}
         onOpen={setDetailApp}
         loading={loadingProj && approvedApps.loading}
@@ -2073,7 +2084,7 @@ function PoolCard({ pool, userImpact }) {
 // ════════════════════════════════════════════════════════════════
 // 3. AKTUELLE ABSTIMMUNG — das Herzstück
 // ════════════════════════════════════════════════════════════════
-function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, loading, onInfoClick, onOpen }) {
+function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes, onVote, loading, onInfoClick, onOpen }) {
   return (
     <div style={{ marginTop:24 }}>
       {/* Header */}
@@ -2120,6 +2131,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
           {projects.map((p, i) => (
             <VotingCard key={p.id} project={p} rank={i}
               voted={userVotes.some(v => v.project_id === p.id)}
+              remainVotes={remainVotes}
               totalVotes={totalVotes} onVote={onVote} onOpen={onOpen} />
           ))}
         </div>
@@ -2128,7 +2140,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, onVote, load
   );
 }
 
-function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
+function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen }) {
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
   const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
@@ -2249,24 +2261,48 @@ function VotingCard({ project:p, rank, voted, totalVotes, onVote, onOpen }) {
           ))}
         </div>
 
-        {/* Vote Button — groß + premium */}
-        <button onClick={(e) => { e.stopPropagation(); !voted && onVote(p.id); }} className="ip-p"
-          disabled={voted} style={{
-            width:"100%", borderRadius:18, padding:"14px 0",
-            cursor: voted ? "default" : "pointer",
-            background: voted
-              ? `linear-gradient(135deg,${accent}12,${accent}06)`
-              : `linear-gradient(135deg,${accent},${accent}CC)`,
-            color: voted ? accent : "white",
-            border: voted ? `1.5px solid ${accent}30` : "none",
-            fontSize:14, fontWeight: 600, letterSpacing:"-0.01em",
-            boxShadow: voted ? "none" : S.btn(accent),
+        {/* Vote-Bereich — Button wird nach Stimmabgabe VOLLSTÄNDIG entfernt
+            (nicht nur deaktiviert), damit kein erneuter Klick möglich/verwirrend ist. */}
+        {voted ? (
+          <div style={{
+            width:"100%", borderRadius:18, padding:"14px 0", textAlign:"center",
+            background:`linear-gradient(135deg,${accent}12,${accent}06)`,
+            border:`1.5px solid ${accent}30`,
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
-            transition:"all 0.22s ease",
           }}>
-          <span style={{ fontSize:16 }}>{voted ? "✓" : "🩷"}</span>
-          <span>{voted ? "Deine Stimme zählt" : "Mit 1 Stimme unterstützen"}</span>
-        </button>
+            <span style={{ fontSize:16 }}>✓</span>
+            <span style={{ fontSize:14, fontWeight:600, letterSpacing:"-0.01em", color:accent }}>
+              Deine Stimme zählt
+            </span>
+          </div>
+        ) : remainVotes <= 0 ? (
+          <div style={{
+            width:"100%", borderRadius:18, padding:"14px 0", textAlign:"center",
+            background:"rgba(0,0,0,0.04)", border:"1.5px solid rgba(0,0,0,0.08)",
+          }}>
+            <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
+              Keine Stimmen mehr diesen Monat
+            </div>
+            <div style={{ fontSize:11, color:T.muted, marginTop:2, opacity:0.8 }}>
+              Erneuert sich am 1. des nächsten Monats
+            </div>
+          </div>
+        ) : (
+          <button onClick={(e) => { e.stopPropagation(); onVote(p.id); }} className="ip-p"
+            style={{
+              width:"100%", borderRadius:18, padding:"14px 0",
+              cursor:"pointer",
+              background:`linear-gradient(135deg,${accent},${accent}CC)`,
+              color:"white", border:"none",
+              fontSize:14, fontWeight: 600, letterSpacing:"-0.01em",
+              boxShadow: S.btn(accent),
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              transition:"all 0.22s ease",
+            }}>
+            <span style={{ fontSize:16 }}>🩷</span>
+            <span>Mit 1 Stimme unterstützen</span>
+          </button>
+        )}
       </div>
     </div>
   );
