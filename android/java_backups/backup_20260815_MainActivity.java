@@ -22,7 +22,6 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.BridgeWebChromeClient;
 
 public class MainActivity extends BridgeActivity {
 
@@ -144,34 +143,11 @@ public class MainActivity extends BridgeActivity {
             // Runtime Permission wurde bereits via MicPermissionInterface
             // angefordert. Ohne diesen Override würde die WebView den
             // Zugriff still ablehnen.
-            // FILE-CHOOSER-FIX (2026-08-15): Vorher wurde hier ein nackter
-            // "new WebChromeClient()" gesetzt -- das ÜBERSCHRIEB Capacitors
-            // eigenen BridgeWebChromeClient (den die Bridge in super.onCreate()
-            // bereits auf die WebView gesetzt hatte). BridgeWebChromeClient
-            // implementiert onShowFileChooser() (Foto/Video/Galerie-Upload
-            // über <input type="file">), Kamera-Permission-Handling für
-            // Video-Aufnahme, Standort-Permission-Prompts UND die JS-Dialoge
-            // (alert/confirm/prompt). Der nackte Ersatz-Client hatte NUR
-            // onPermissionRequest überschrieben -- alles andere fiel auf die
-            // Default-No-Op-Implementierung von WebChromeClient zurück, d.h.
-            // JEDER Datei-Upload (Foto/Video/Galerie in HuiMomentSheet,
-            // Profilbild, Cover, Chat-Medien, Talent-Angebote etc.) tat
-            // still NICHTS mehr -- Root Cause für "Momente/Galerie lässt sich
-            // nicht öffnen" (Nutzer-Report, Talent-Profil, 2026-08-15).
-            // FIX: BridgeWebChromeClient SELBST erweitern statt komplett zu
-            // ersetzen -- nur onPermissionRequest wird für den Audio-Spezial-
-            // fall überschrieben, alles andere (inkl. onShowFileChooser) läuft
-            // unverändert durch Capacitors eigene, vollständige Implementierung.
-            webView.setWebChromeClient(new BridgeWebChromeClient(this.bridge) {
+            webView.setWebChromeClient(new WebChromeClient() {
                 @Override
                 public void onPermissionRequest(final PermissionRequest request) {
                     runOnUiThread(() -> {
-                        // Nur Audio-Ressourcen selbst gewähren (unser Spezialfall
-                        // für die Mikrofon-Runtime-Permission, siehe oben).
-                        // ALLE anderen Ressourcen (z.B. Kamera-Video-Capture)
-                        // an Capacitors eigene Implementierung delegieren --
-                        // die kümmert sich bereits korrekt um CAMERA-Permission-
-                        // Requests inkl. Runtime-Permission-Dialog.
+                        // Nur Audio-Ressourcen gewähren (keine Kamera)
                         String[] resources = request.getResources();
                         boolean hasAudio = false;
                         for (String r : resources) {
@@ -183,7 +159,8 @@ public class MainActivity extends BridgeActivity {
                         if (hasAudio) {
                             request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
                         } else {
-                            super.onPermissionRequest(request);
+                            // Für andere Ressourcen: Default-Verhalten
+                            // (nicht gewähren, nicht ablehnen)
                         }
                     });
                 }
