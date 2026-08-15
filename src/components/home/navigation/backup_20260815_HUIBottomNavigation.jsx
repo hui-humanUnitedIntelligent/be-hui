@@ -243,7 +243,7 @@ export default function HUIBottomNavigation({
           data-hui-nav-orb=""
           style={{
             position: "absolute",
-            top: 20 - ORB_OVERHANG,  // = -31 (2026-08-15: +8px tiefer, Michael-Feedback)
+            top: 12 - ORB_OVERHANG,  // = -39, Logo-Position unveraendert
             left: "50%",
             transform: "translateX(-50%)",
             width: ORB_D,
