@@ -168,16 +168,10 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
     if (!profile?.id) return;
     setSaving(true); setError(null); setSaved(false);
     if (!email.includes("@")) { setError("Ungültige E-Mail"); setSaving(false); return; }
-    // BUGFIX 2026-08-15 (gleiche Klasse wie EmailChangeBlock/LoginPage.jsx signUp()):
-    // emailRedirectTo ergänzt — ohne diese Option faellt Supabase auf den
-    // site_url-Fallback (Marketing-Landingpage) zurueck statt auf /auth/callback.
-    const { error:authErr } = await supabase.auth.updateUser(
-      { email:email.trim() },
-      { emailRedirectTo: getAuthRedirectUrl() }
-    );
+    const { error:authErr } = await supabase.auth.updateUser({ email:email.trim() });
     if (authErr) { setError(authErr.message); setSaving(false); return; }
-    await supabase.from("profiles").update({ email:email.trim(), updated_at: new Date().toISOString() }).eq("id", profile.id);
-    setSaving(false); setSaved(true); setTimeout(()=>setSaved(false),5000);
+    await supabase.from("profiles").update({ email:email.trim() }).eq("id", profile.id);
+    setSaving(false); setSaved(true); setTimeout(()=>setSaved(false),3000);
     onProfileUpdate?.({ ...profile, email:email.trim() });
   };
 
@@ -247,26 +241,17 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
 
   const save = async () => {
     setError(null); setSaved(false);
+    const currentEmail = profile?.email || "";
     if (!oldEmail.trim()) { setError("Bitte aktuelle E-Mail eingeben"); return; }
+    if (oldEmail.trim().toLowerCase() !== currentEmail.toLowerCase()) {
+      setError("Aktuelle E-Mail stimmt nicht überein"); return;
+    }
     if (!newEmail.includes("@")) { setError("Ungültige neue E-Mail-Adresse"); return; }
+    if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
+      setError("Neue E-Mail ist identisch mit der aktuellen"); return;
+    }
     setSaving(true);
     try {
-      // BUGFIX 2026-08-15: Root Cause war profiles.email — diese DB-Spalte war für
-      // 176/204 Nutzer NULL (handle_new_user() Trigger setzte sie nie, siehe Migration
-      // 114). Validierung gegen profile.email schlug daher fehl, obwohl der Nutzer die
-      // korrekte, tatsächliche Login-E-Mail eingab ("Aktuelle E-Mail stimmt nicht
-      // überein" trotz korrekter Eingabe). Fix: Live-Session (auth.users via
-      // getUser()) ist SSOT für die aktuelle Login-E-Mail — NIE die denormalisierte
-      // profiles.email-Kopie zur Validierung heranziehen, die veralten/NULL sein kann.
-      const { data: liveUser, error: liveErr } = await supabase.auth.getUser();
-      if (liveErr || !liveUser?.user?.email) throw new Error("Aktuelle Sitzung konnte nicht geprüft werden. Bitte neu einloggen.");
-      const currentEmail = liveUser.user.email;
-      if (oldEmail.trim().toLowerCase() !== currentEmail.toLowerCase()) {
-        throw new Error("Aktuelle E-Mail stimmt nicht überein");
-      }
-      if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
-        throw new Error("Neue E-Mail ist identisch mit der aktuellen");
-      }
       // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail an neue Adresse).
       // BUGFIX 2026-08-15 (gleiche Klasse wie LoginPage.jsx signUp()): OHNE
       // emailRedirectTo faellt Supabase auf den site_url-Fallback zurueck
