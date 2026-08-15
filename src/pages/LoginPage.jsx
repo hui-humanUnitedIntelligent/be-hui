@@ -48,7 +48,7 @@ function GlassInput({ type = 'text', value, onChange, placeholder, autoComplete,
         autoComplete={autoComplete}
         style={{
           width: '100%',
-          padding: rightSlot ? '12px 44px 12px 16px' : '12px 16px',
+          padding: rightSlot ? '10px 42px 10px 14px' : '10px 14px',
           background: focused ? 'rgba(255,255,255,0.12)' : T.glass,
           border: `1.5px solid ${focused ? T.glassFocus : T.glassBorder}`,
           borderRadius: 14,
@@ -97,7 +97,7 @@ function PrimaryBtn({ children, onClick, type = 'button', disabled, loading }) {
       disabled={disabled || loading}
       style={{
         width: '100%',
-        padding: '13px',
+        padding: '11px',
         background: disabled
           ? 'rgba(22,215,197,0.35)'
           : 'linear-gradient(135deg, #16D7C5 0%, #0FC4B2 100%)',
@@ -676,7 +676,7 @@ export default function LoginPage() {
     position: 'relative', zIndex: 1,
     width: '100%', maxWidth: 420,
     margin: '0 auto',
-    padding: '32px 28px',
+    padding: '24px 22px',
     background: 'rgba(10,10,10,0.55)',
     backdropFilter: 'blur(28px)',
     WebkitBackdropFilter: 'blur(28px)',
@@ -685,7 +685,7 @@ export default function LoginPage() {
     boxShadow: '0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
     // Register hat mehr Felder — scrollbar wenn nötig
     ...(mode === 'register' ? {
-      maxHeight: '92dvh',
+      maxHeight: '94dvh',
       overflowY: 'auto',
       overflowX: 'hidden',
     } : {}),
@@ -793,7 +793,7 @@ export default function LoginPage() {
         {}
         <button type="button" onClick={() => { clearMessages(); setMode('splash'); }}
           style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer',
-            color: T.muted, fontSize: 14, fontFamily: 'inherit', padding: '4px 0', marginBottom: 12,
+            color: T.muted, fontSize: 14, fontFamily: 'inherit', padding: '4px 0', marginBottom: 8,
             display: 'flex', alignItems: 'center', gap: 6 }}>
           ← Zurück
         </button>
@@ -802,16 +802,16 @@ export default function LoginPage() {
         <div style={{ ...cardStyle, ...fadeStyle }}>
           {}
           {/* ── HUI Logo (Markenanker, Constitution-konform) ──── */}
-          <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'center' }}>
-            <HUILogoWordmark logoSize={44} textColor={T.teal2} subOpacity={0.85} />
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+            <HUILogoWordmark logoSize={36} textColor={T.teal2} subOpacity={0.85} />
           </div>
 
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 600, fontSize: 20, color: T.white, letterSpacing: -0.5,
-              lineHeight: 1.2, marginBottom: 6, whiteSpace: 'pre-line' }}>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 600, fontSize: 18, color: T.white, letterSpacing: -0.4,
+              lineHeight: 1.2, marginBottom: 4, whiteSpace: 'pre-line' }}>
               {copy.headline}
             </div>
-            <div style={{ fontSize: 14, color: T.muted, lineHeight: 1.6 }}>
+            <div style={{ fontSize: 13, color: T.muted, lineHeight: 1.5 }}>
               {copy.sub}
             </div>
           </div>
@@ -846,7 +846,7 @@ export default function LoginPage() {
           } */}
 
           {}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {}
             {mode === 'register' && (
               <>
@@ -859,7 +859,7 @@ export default function LoginPage() {
                     required
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '10px 14px',
                       background: T.glass,
                       border: '1.5px solid rgba(255,255,255,0.13)',
                       borderRadius: 14,
@@ -944,7 +944,7 @@ export default function LoginPage() {
                     required
                     style={{
                       width: '100%',
-                      padding: '12px 16px',
+                      padding: '10px 14px',
                       background: T.glass,
                       border: '1.5px solid rgba(255,255,255,0.13)',
                       borderRadius: 14,
@@ -1012,7 +1012,7 @@ export default function LoginPage() {
 
             {/* REF-LINK — nur bei Registrierung sichtbar */}
             {mode === 'register' && (
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 2 }}>
                 <GlassInput
                   type="text"
                   value={refLink}
@@ -1039,7 +1039,7 @@ export default function LoginPage() {
             {success && <SuccessMessage msg={success} />}
 
             {}
-            <div style={{ marginTop: 4 }}>
+            <div style={{ marginTop: 2 }}>
               <PrimaryBtn type="submit" loading={loading} disabled={loading}>
                 {loading ? 'Bitte warten…' : copy.cta}
               </PrimaryBtn>
