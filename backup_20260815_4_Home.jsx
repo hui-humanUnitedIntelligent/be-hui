@@ -494,6 +494,7 @@ function HomeInner() {
                   categoryFilters={searchState.categories}
                   radiusKm={searchState.radiusKm}
                   geo={searchState.geo}
+                  kiMode={searchState.kiMode}
                   locationQuery={searchState.locationQuery}
                   sort={searchState.sort}
                   onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */

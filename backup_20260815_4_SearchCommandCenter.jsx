@@ -57,6 +57,14 @@ const T = {
 //   action: "help"       -> typeFilter="experience" (Erlebnisse wo Hilfe nötig)
 //   action: "events"     -> typeFilter="experience" (Veranstaltungen)
 //   action: "discover"   -> typeFilter=null, query="" (Top Menschen, breit)
+const KI_SUGGESTIONS = [
+  { text:"Ich suche kreative Menschen",        emoji:"👥", action:"people"   },
+  { text:"Projekte in meiner Nähe",            emoji:"📍", action:"nearby"   },
+  { text:"Wer passt zu meinem Profil?",        emoji:"🔮", action:"match"    },
+  { text:"Wo kann ich heute helfen?",          emoji:"🤝", action:"help"     },
+  { text:"Veranstaltungen die zu mir passen",  emoji:"📅", action:"events"   },
+  { text:"Welche Menschen sollte ich kennen?", emoji:"✨", action:"discover" },
+];
 
 // ─────────────────────────────────────────────────────────────
 // UTILS
@@ -269,6 +277,46 @@ function RadiusRow({ radius }) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// KI PANEL
+// ─────────────────────────────────────────────────────────────
+function KiPanel({ onSelect, onClose }) {
+  return (
+    <div style={{
+      position:"absolute", top:"calc(100% + 8px)", right:0,
+      width:264, zIndex:10,
+      background:T.bg, backdropFilter:"blur(24px) saturate(1.5)", WebkitBackdropFilter:"blur(24px) saturate(1.5)",
+      borderRadius:18, boxShadow:"0 12px 36px rgba(26,53,48,0.14), 0 2px 8px rgba(26,53,48,0.05)",
+      border:"1px solid rgba(26,53,48,0.05)", overflow:"hidden",
+      animation:"dc-in .2s cubic-bezier(.22,1,.36,1) both",
+    }}>
+      <div style={{
+        padding:"13px 15px 10px",
+        background:"linear-gradient(135deg,rgba(14,196,184,0.07),rgba(14,196,184,0.015))",
+        borderBottom:"1px solid rgba(14,196,184,0.08)",
+      }}>
+        <div style={{ fontSize:12.5,fontWeight: 600,color:T.teal,marginBottom:2,letterSpacing:"-0.01em" }}>
+          ✨ HUI KI kann dir helfen…
+        </div>
+        <div style={{ fontSize:10.5,color:T.inkF }}>Wähle einen Vorschlag</div>
+      </div>
+      <div style={{ padding:"8px 8px 10px" }}>
+        {KI_SUGGESTIONS.map((s,i) => (
+          <button key={i} className="dc-tag" onClick={()=>{onSelect(s);onClose();}} style={{
+            display:"flex",alignItems:"center",gap:9,width:"100%",
+            textAlign:"left",padding:"9px 11px",background:"none",border:"none",
+            borderRadius:12,cursor:"pointer",WebkitTapHighlightColor:"transparent",
+          }}
+            onMouseEnter={e=>e.currentTarget.style.background="rgba(14,196,184,0.07)"}
+            onMouseLeave={e=>e.currentTarget.style.background="none"}
+          >
+            <span style={{fontSize:14,flexShrink:0}}>{s.emoji}</span>
+            <span style={{fontSize:12.5,fontWeight:500,color:T.ink,letterSpacing:"-0.01em"}}>{s.text}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────
 // ALLE-KATEGORIEN BOTTOM SHEET
@@ -535,6 +583,7 @@ export default function SearchCommandCenter({
   const [open,       setOpen]       = useState(false);   // Suche fokussiert/aktiv
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "moment" | "experience" | "talent"
+  const [showKi,     setShowKi]     = useState(false);
   // Ort + Sortierung (2026-08-12, Michael-Auftrag) -- ersetzt die vormals im
   // Feed sitzende FeedFilterBar (verschwand beim Scrollen). Jetzt Teil des
   // ueber die fixe Suchleiste jederzeit erreichbaren Discovery-Panels.
@@ -543,6 +592,10 @@ export default function SearchCommandCenter({
   const [locationQuery,     setLocationQuery]     = useState("");
   const [locationInputOpen, setLocationInputOpen] = useState(false);
   const [sort,              setSort]              = useState("newest"); // "newest" | "oldest"
+  // kiMode: Spezial-Modus der durch KI-Suggestions gesetzt wird (people,
+  // match, discover). Wird an onSearchStateChange übergeben, damit der
+  // Feed/UnifiedFeed entsprechend reagieren kann. null = kein KI-Modus.
+  const [kiMode,     setKiMode]     = useState(null);
   const radius = useRadiusFilter(); // Umkreissuche 2026-07-06 -- geteilter Radius-Zustand
 
   // "Alle Kategorien"-Feature (2026-07-06): ausgewaehlte Kategorie (Objekt aus
@@ -562,6 +615,7 @@ export default function SearchCommandCenter({
   // sonst TDZ-Verletzung (Cannot access 'x' before initialization)
   useModalRegistration(open, () => setOpen(false), "SearchCommandCenter-Search");
   useModalRegistration(showAllCategories, () => setShowAllCategories(false), "SearchCommandCenter-Categories");
+  useModalRegistration(showKi, () => setShowKi(false), "SearchCommandCenter-Ki");
 
   // Visual Polish Pass -- Panel-Phase fuer weiches Ein-/Ausblenden statt
   // hartem Mount/Unmount-Sprung (Vorgabe Punkt 8: 180ms Fade beim Verschwinden,
@@ -572,6 +626,7 @@ export default function SearchCommandCenter({
 
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
+  const kiRef    = useRef(null);
   const filterRowRef = useRef(null);
   const recognitionRef = useRef(null);
   const [listening, setListening] = useState(false);
@@ -637,11 +692,11 @@ export default function SearchCommandCenter({
     onSearchStateChange?.({
       query: debouncedQuery, typeFilter, categories: activeCategories, active: open,
       radiusKm: radius.radiusKm, geo: radius.geo, isWorldwide: radius.isWorldwide,
-      locationQuery, sort,
+      kiMode, locationQuery, sort,
     });
     // categoryKey statt Array-Referenz -- verhindert unnoetige Re-Emits bei jedem Render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide, locationQuery, sort]);
+  }, [debouncedQuery, typeFilter, activeCategories.map(c=>c.id).join(","), open, radius.radiusKm, radius.geo, radius.isWorldwide, kiMode, locationQuery, sort]);
 
   // Verlauf speichern, sobald ein Suchbegriff kurz stabil war (kein Spam pro Tastendruck)
   useEffect(() => {
@@ -710,7 +765,7 @@ export default function SearchCommandCenter({
     if(!open)return;
     function h(e){
       if(sheetRef.current?.contains(e.target)) return;
-      if(!wrapRef.current?.contains(e.target)) close_();
+      if(!wrapRef.current?.contains(e.target)&&!kiRef.current?.contains(e.target)) close_();
     }
     document.addEventListener("mousedown",h);
     document.addEventListener("touchstart",h,{passive:true});
@@ -722,11 +777,12 @@ export default function SearchCommandCenter({
     function h(e){
       if(e.key!=="Escape")return;
       if(showAllCategories){setShowAllCategories(false);return;}
+      if(showKi){setShowKi(false);return;}
       close_();
     }
     document.addEventListener("keydown",h);
     return()=>document.removeEventListener("keydown",h);
-  },[showAllCategories]);
+  },[showKi,showAllCategories]);
 
   const mc  = activeMood?.color || "#0EC4B8";
   const has = !!activeMood;
@@ -738,10 +794,12 @@ export default function SearchCommandCenter({
     // duerfen NIEMALS gleichzeitig sichtbar sein -- sie ueberlappten sich
     // visuell (siehe Screenshot). Oeffnen des allgemeinen Dropdowns
     // schliesst daher immer das KI-Panel.
+    setShowKi(false);
     setTimeout(()=>inputRef.current?.focus(), 60);
   }
   function close_(){
     setOpen(false);
+    setShowKi(false);
     setShowAllCategories(false);
     inputRef.current?.blur();
     // Bewusst: Suchtext + aktive Kategorie bleiben erhalten -- erneutes
@@ -824,6 +882,99 @@ export default function SearchCommandCenter({
   // Ergebnisliste -- der Feed filterte nach "Ich suche kreative Menschen"
   // als ob das ein Suchbegriff wäre (fand natürlich nichts). Jetzt steuert
   // jeder Satz gezielt typeFilter, categories, radius und query.
+  function handleKiSelect(item) {
+    const text = typeof item === "string" ? item : item.text;
+    const action = typeof item === "string" ? null : item.action;
+    setShowKi(false);
+
+    switch (action) {
+      case "people":
+        // Kreative Menschen: kein Text-Filter (Feed kann keine Personen als
+        // Karten anzeigen), dafuer Live-Suggestions auf Personen fokussiert.
+        // Setzt query auf kurzen Text damit die Suggestion-Engine anspringt,
+        // aber Feed bleibt ungefiltert (typeFilter=null, categories=[]).
+        setQuery("");
+        setTypeFilter(null);
+        setActiveCategories([]);
+        // Profil-Suche triggern: wir setzen query auf leeren String und
+        // öffnen stattdessen die Suggestions direkt mit einem breiten
+        // Personen-Fetch. Einfachster Weg: query leer lassen, Feed zeigt
+        // alles. Nutzer kann dann in den Vorschlägen Personen finden.
+        // Besser: Wir setzen einen speziellen query-Modus.
+        setKiMode("people");
+        setOpen(true);
+        break;
+
+      case "nearby":
+        // Projekte in meiner Nähe: Standort aktivieren + kleiner Radius +
+        // Werke als Primärfilter (Werke sind der Content-Typ der am ehesten
+        // "Projekte" repräsentiert -- Erlebnisse wären "Veranstaltungen").
+        setQuery("");
+        setTypeFilter("work");
+        setActiveCategories([]);
+        setKiMode(null);
+        if (!radius.geo) {
+          radius.requestBrowserLocation();
+        }
+        if (radius.isWorldwide) {
+          radius.setRadiusKm(25);
+        }
+        setOpen(true);
+        break;
+
+      case "match":
+        // Wer passt zu meinem Profil: Künftige Matching-Logik. Vorläufig:
+        // breit filtern (kein typeFilter, kein Text), Feed zeigt alles.
+        // TODO: Matching-RPC mit Interessen/Tags des currentUser.
+        setQuery("");
+        setTypeFilter(null);
+        setActiveCategories([]);
+        setKiMode("match");
+        setOpen(true);
+        break;
+
+      case "help":
+        // Wo kann ich heute helfen: Erlebnisse zeigen (dort braucht man
+        // Hilfe/Teilnahme), kein Text-Filter.
+        setQuery("");
+        setTypeFilter("experience");
+        setActiveCategories([]);
+        setKiMode(null);
+        setOpen(true);
+        break;
+
+      case "events":
+        // Veranstaltungen die zu mir passen: Erlebnisse + Standort-Radius.
+        setQuery("");
+        setTypeFilter("experience");
+        setActiveCategories([]);
+        setKiMode(null);
+        if (!radius.geo) {
+          radius.requestBrowserLocation();
+        }
+        if (radius.isWorldwide) {
+          radius.setRadiusKm(50);
+        }
+        setOpen(true);
+        break;
+
+      case "discover":
+        // Welche Menschen sollte ich kennen: aehnlich "people", aber mit
+        // Fokus auf Entdeckung. Setzt kiMode fuer künftige Empfehlungs-Logik.
+        setQuery("");
+        setTypeFilter(null);
+        setActiveCategories([]);
+        setKiMode("discover");
+        setOpen(true);
+        break;
+
+      default:
+        // Fallback: altes Verhalten (nur Text setzen)
+        setQuery(text);
+        setKiMode(null);
+        setOpen(true);
+    }
+  }
   function toggleFilter(f){
     setTypeFilter(prev => prev===f ? null : f);
   }
@@ -839,8 +990,9 @@ export default function SearchCommandCenter({
     if (typeFilter) n += 1;
     n += activeCategories.length;
     if (locationQuery && locationQuery.trim()) n += 1;
+    if (kiMode) n += 1;
     return n;
-  }, [typeFilter, activeCategories, locationQuery]);
+  }, [typeFilter, activeCategories, locationQuery, kiMode]);
   // Kategorie-Auswahl (Schnellauswahl-Zeile UND "Alle Kategorien"-Grid nutzen
   // denselben Handler -- ein Auswahlverhalten, keine Doppellogik). Mehrfach-
   // auswahl (2026-07-07, Ticket "Kategorie-Chips global"): ein Tap schaltet
@@ -865,7 +1017,7 @@ export default function SearchCommandCenter({
   // ersten Tap also nicht verschwinden). Aktive Chips heben sich direkt in
   // derselben Zeile per Tuerkis-Highlighting ab (siehe unten) -- keine
   // separate zweite Leiste noetig.
-  const showCategoriesAndHistory = open && !query.trim() && activeCategories.length === 0;
+  const showCategoriesAndHistory = open && !query.trim() && activeCategories.length === 0 && !kiMode && !typeFilter;
   const showFilters              = open; // Filter bleiben sichtbar, auch waehrend Live-Search
 
   // ── SEARCH-BAR — Visual Polish Pass: mehr Hoehe, weichere Rundung, kein
@@ -906,6 +1058,26 @@ export default function SearchCommandCenter({
       {query && (
         <button className="dc-tag" onClick={e=>{e.stopPropagation();clearQuery();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.07)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight: 600}}>✕</button>
       )}
+      <div ref={kiRef} style={{position:"relative",flexShrink:0}}>
+        <button className="dc-tag" onClick={e=>{
+          e.stopPropagation();
+          // BUGFIX (2026-08-15): Vorher rief dieser Button IMMER open_() auf,
+          // was zusaetzlich zum KI-Panel auch das allgemeine Kategorien-/
+          // Filter-Dropdown oeffnete -- beide waren dann gleichzeitig sichtbar
+          // und ueberlappten sich (Michael-Report per Screenshot). Jetzt
+          // exklusiv: KI-Panel oeffnen schliesst das allgemeine Dropdown
+          // (und umgekehrt schliesst open_() das KI-Panel, siehe oben).
+          setShowKi(prev=>{
+            const next=!prev;
+            if(next){ setOpen(false); setShowAllCategories(false); }
+            return next;
+          });
+        }} style={{display:"flex",alignItems:"center",gap:3,background:showKi?T.teal:"rgba(14,196,184,0.07)",border:"none",borderRadius:99,padding:"4px 9px",cursor:"pointer",transition:"background .18s ease",WebkitTapHighlightColor:"transparent"}}>
+          <span style={{width:6,height:6,borderRadius:"50%",background:"rgba(14,196,184,0.4)",flexShrink:0,display:"inline-block"}} />
+          <span style={{fontSize:8.5,fontWeight: 600,color:showKi?"white":`${T.teal}CC`,letterSpacing:".01em"}}>KI</span>
+        </button>
+        {showKi && <KiPanel onSelect={handleKiSelect} onClose={()=>setShowKi(false)}/>}
+      </div>
       <button
         type="button"
         onClick={e=>{e.stopPropagation();toggleVoiceInput();}}
@@ -1166,6 +1338,7 @@ export default function SearchCommandCenter({
               NICHT mehr Teil der Discovery-/Distanz-Kachel (discoveryPanel),
               sondern ein eigenstaendiges, absolut positioniertes Dropdown, das
               direkt UNTER dem Suchfeld schwebt -- exakt gleiches Muster wie
+              KiPanel (position:absolute, top:calc(100% + 8px)), nur volle
               Breite der Suchleiste statt der schmalen 264px. zIndex 400 liegt
               ueber der Radius-Zeile (298) und dem discoveryPanel (siehe unten),
               schwebt also frei darueber -- klassisches Autocomplete-Verhalten. */}

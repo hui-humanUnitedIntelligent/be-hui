@@ -803,6 +803,7 @@ export default function UnifiedFeed({
   searchQuery    = "",
   typeFilter     = null,     // null | "work" | "moment" | "experience" | "talent"
   categoryFilters = [],      // Array von { id, label, ... }
+  kiMode         = null,     // null | "people" | "match" | "discover" (KI-Suggestions)
   locationQuery  = "",       // Freitext-Ort-Filter (Substring auf item.location)
   sort           = "newest", // "newest" | "oldest"
 }) {
@@ -880,6 +881,49 @@ export default function UnifiedFeed({
   // typeFilter "profile" → nur Momente (Menschen-Posts), "work" → Werke,
   // "experience" → Erlebnisse. Text+Kategorie via filterDiscoveryItems.
   const searchFilteredItems = useMemo(() => {
+    // KI-Modus: Kein normaler Text-Filter, sondern eine spezielle
+    // Vorfilterung. Die KI-Suggestions ("Ich suche kreative Menschen" etc.)
+    // setzen kiMode statt query/typeFilter. Hier steuern wir, was der Feed
+    // in jedem Modus zeigt.
+    if (kiMode && !searchQuery && !typeFilter) {
+      let result = resolvedItems;
+      switch (kiMode) {
+        case "people":
+          // Kreative Menschen: Zeige Momente (Menschen-Posts) und Werke
+          // (kreative Outputs), aber keine Erlebnisse. Sortiert nach
+          // Autoren-Vielfalt (verschiedene Autoren zuerst).
+          result = result.filter(i => i.type === "moment" || i.type === "work");
+          break;
+        case "match":
+          // Wer passt zu meinem Profil: breit, alle Typen, aber sortiert
+          // nach Relevanz (Tag-Overlap mit currentUser-Interessen wäre
+          // ideal — vorläufig: alle, Reihenfolge wie Feed).
+          // Keine Filterung, nur kennzeichnen dass KI-Modus aktiv.
+          break;
+        case "discover":
+          // Welche Menschen sollte ich kennen: Momente + Werke, sortiert
+          // nach Autor (gleiche Autoren gebündelt, damit man verschiedene
+          // Menschen entdeckt statt denselben Autor 5x).
+          result = result.filter(i => i.type === "moment" || i.type === "work");
+          // Nach Autor gruppieren: jeden Autor nur 1x in den ersten 10 Items
+          const seenAuthors = new Set();
+          const grouped = [];
+          const overflow = [];
+          for (const item of result) {
+            const authorId = item.author?.id || item.author?.name || "";
+            if (!seenAuthors.has(authorId)) {
+              seenAuthors.add(authorId);
+              grouped.push(item);
+            } else {
+              overflow.push(item);
+            }
+          }
+          result = [...grouped, ...overflow];
+          break;
+      }
+      return result;
+    }
+
     if (!hasActiveSearchFilter({ query: searchQuery, categoryFilters }) && !typeFilter) {
       return resolvedItems;
     }
@@ -901,7 +945,7 @@ export default function UnifiedFeed({
       item._raw?.category || "",
     ]);
     return result;
-  }, [resolvedItems, searchQuery, typeFilter, categoryFilters]);
+  }, [resolvedItems, searchQuery, typeFilter, categoryFilters, kiMode]);
 
   // ── ORT + SORTIERUNG — zweite Filterstufe (2026-08-12) ────────────
   // Wendet Ort-Filter + Datum-Sortierung (aus dem Discovery-Panel in
@@ -1014,7 +1058,7 @@ export default function UnifiedFeed({
       </SectionBoundary>
 
       {/* ── No-Results bei aktiver Suche ── */}
-      {((searchActive && (searchQuery || typeFilter || (categoryFilters && categoryFilters.length > 0))) ||
+      {((searchActive && (searchQuery || typeFilter || (categoryFilters && categoryFilters.length > 0) || kiMode)) ||
         typeFilter || (locationQuery && locationQuery.trim())) &&
        !streamLoading && displayItems.length === 0 && (
         <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
