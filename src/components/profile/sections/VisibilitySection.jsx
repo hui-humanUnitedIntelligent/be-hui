@@ -94,7 +94,7 @@ export function VisibilitySection({
           <div onClick={e => e.stopPropagation()} style={{
             width:"100%", background:T.bgSheet,
             borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-            padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
+            padding:"20px 20px max(36px,calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
             boxShadow:T.sheet,
           }}>
             <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99,

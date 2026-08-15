@@ -465,7 +465,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           width:"100%",
           background:"#FFFBF8",
           borderRadius:"22px 22px 0 0",
-          padding:"24px 20px max(28px,calc(16px + env(safe-area-inset-bottom,0px)))",
+          padding:"24px 20px max(28px,calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
           boxShadow:"0 -8px 40px rgba(26,26,24,0.18)",
           fontFamily:"Inter,sans-serif",
         }}
@@ -1372,7 +1372,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       {/* ── Scrollable Content ───────────────────────────────── */}
       <div className="tpp-scroll" style={{
         flex:1, overflowY:"auto", touchAction:"pan-y", willChange:"transform", overscrollBehavior:"contain",
-        paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))",
+        paddingBottom:"max(40px,calc(28px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
       }}>
 
         {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}

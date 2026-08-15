@@ -371,7 +371,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     maxHeight:"calc(92dvh - 64px - var(--hui-keyboard-inset, 0px))",
     overflowY: "auto",
     boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-    paddingBottom: "env(safe-area-inset-bottom, 16px)",
+    paddingBottom: "max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px)",
   };
   const header = {
     display: view === "support" ? "none" : "flex",
@@ -581,7 +581,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             <div style={{
               flex: 1,
               overflowY: "auto",
-              paddingBottom: "env(safe-area-inset-bottom, 16px)",
+              paddingBottom: "max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px)",
             }}>
               <MeineTicketsPage
                 onBack={() => setView("main")}

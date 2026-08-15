@@ -383,7 +383,7 @@ export default function ImageLightbox() {
       // Dot indicators
       images.length > 1 && React.createElement("div", {
         style: {
-          position:"absolute", bottom:"max(24px, env(safe-area-inset-bottom, 24px))",
+          position:"absolute", bottom:"max(24px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 24px), 24px))",
           left:"50%", transform:"translateX(-50%)",
           display:"flex", gap:7, zIndex:10,
         }

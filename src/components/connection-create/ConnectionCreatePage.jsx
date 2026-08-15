@@ -110,7 +110,7 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false
   return (
     <div style={{
       position:"sticky", bottom:0, zIndex:10, flexShrink:0,
-      padding:"14px 20px max(20px,env(safe-area-inset-bottom,20px))",
+      padding:"14px 20px max(20px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))",
       background:"rgba(240,238,245,0.88)",
       backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
       borderTop:"1px solid rgba(139,92,246,0.08)",

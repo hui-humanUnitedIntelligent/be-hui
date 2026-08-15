@@ -293,7 +293,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
           alignItems: "center", justifyContent: "center",
           padding: `max(52px,calc(44px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px))))
                     0
-                    max(36px,calc(28px + env(safe-area-inset-bottom,0px)))`,
+                    max(36px,calc(28px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))`,
         }}
       >
 

@@ -286,7 +286,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
           />
         ))}
 
-        <div style={{ height: "max(40px,env(safe-area-inset-bottom,40px))" }}/>
+        <div style={{ height: "max(40px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 40px), 40px))" }}/>
       </div>
     </div>
   );

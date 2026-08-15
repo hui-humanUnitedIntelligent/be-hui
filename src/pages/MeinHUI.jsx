@@ -1090,7 +1090,7 @@ function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) 
       <div style={{
         flex: 1, overflowY: "auto", overflowX: "hidden",
         WebkitOverflowScrolling: "touch",
-        paddingBottom: "calc(88px + env(safe-area-inset-bottom, 0px))",
+        paddingBottom: "calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
       }}>
         {children}
       </div>
@@ -1098,7 +1098,7 @@ function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) 
       {/* Footer: "Mehr anzeigen" */}
       {onMore && (
         <div style={{
-          padding: "14px 20px calc(14px + env(safe-area-inset-bottom, 0px))",
+          padding: "14px 20px calc(14px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           borderTop: `1px solid ${T.inkFaint}`,
           flexShrink: 0,
         }}>
@@ -1715,7 +1715,7 @@ export default function MeinHUI({
       <div ref={scrollRef} style={screenStyle}>
         <div style={{
           paddingTop: "max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px))",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 120px)",
+          paddingBottom: "calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 120px)",
           ...contentGroupStyle,
         }}>
           {/* Begrüßung */}

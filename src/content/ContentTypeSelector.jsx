@@ -220,7 +220,7 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
           zIndex:       9101,
           background:   T.bg,
           borderRadius: "28px 28px 0 0",
-          padding:      "0 0 env(safe-area-inset-bottom,24px)",
+          padding:      "0 0 max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 24px), 24px)",
           maxHeight:    "88vh",
           overflowY:    "auto",
           boxShadow:    "0 -8px 48px rgba(0,0,0,0.18)",

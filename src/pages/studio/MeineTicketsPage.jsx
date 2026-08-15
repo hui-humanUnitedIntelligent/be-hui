@@ -120,7 +120,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
         position:"fixed", bottom:0, left:0, right:0, zIndex:10500, /* >BottomNav(10000) */
         background:"white", borderRadius:"20px 20px 0 0",
         boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
-        paddingBottom:"max(100px,calc(80px + env(safe-area-inset-bottom,0px)))",
+        paddingBottom:"max(100px,calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
         animation:"slideUp 0.28s cubic-bezier(.32,1,.5,1) both",
       }}>
         <style>{`@keyframes slideUp { from { transform:translateY(100%) } to { transform:translateY(0) } }`}</style>
@@ -411,7 +411,7 @@ function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
       {/* Antworten-Button */}
       {!isClosed && (
         <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:15,
-          padding:"12px 16px max(96px,calc(80px + env(safe-area-inset-bottom,0px)))",
+          padding:"12px 16px max(96px,calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
           background:"linear-gradient(to top, white 80%, transparent)" }}>
           <button onClick={() => setShowReply(true)} style={{
             width:"100%", padding:"14px", borderRadius:13, border:"none",

@@ -125,7 +125,7 @@ function Sheet({ onClose, children }) {
       <div className="bpp-sheet" onClick={e=>e.stopPropagation()} style={{
         width:"100%", background:T.bgSheet,
         borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-        padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
+        padding:"20px 20px max(36px,calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
         boxShadow:T.sheet, maxHeight:"78vh", overflowY:"auto",
       }}>
         <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
@@ -523,7 +523,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
 
       {/* Scrollable body */}
       <div className="bpp-scroll" style={{ flex:1, overflowY:"auto", willChange:"transform", overscrollBehavior:"contain",
-        paddingBottom:"max(40px,calc(28px + env(safe-area-inset-bottom,0px)))" }}>
+        paddingBottom:"max(40px,calc(28px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))" }}>
 
         {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
         <CanonicalProfileHeader

@@ -931,7 +931,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
         <div style={{
           flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain", scrollbarWidth: "none",
-          padding: "14px 16px calc(88px + env(safe-area-inset-bottom, 0px))",
+          padding: "14px 16px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         }}>
           {tab === "kaeufe"    && <MeineKaeufe userId={userId} />}
           {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} />}

@@ -143,7 +143,7 @@ export default function IntroVideoScreen() {
       {/* Versions-Anzeige — nur während des Intro-Videos */}
       <div style={{
         position: "absolute",
-        bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+        bottom: "calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         left: 0, right: 0,
         textAlign: "center",
         color: "rgba(0,0,0,0.45)",

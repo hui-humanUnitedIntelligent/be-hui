@@ -739,7 +739,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         background:"#fff",
         borderTop:`1px solid ${C.border}`,
         padding:`12px 20px`,
-        paddingBottom:`max(20px, env(safe-area-inset-bottom, 20px))`,
+        paddingBottom:`max(20px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))`,
         display:"flex", gap:10,
         boxShadow:"0 -4px 20px rgba(0,0,0,0.06)",
       }}>
@@ -797,7 +797,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       {isLast && (
         <div style={{
           textAlign:"center",
-          paddingBottom:"max(12px, env(safe-area-inset-bottom, 12px))",
+          paddingBottom:"max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))",
           background:"#fff",
         }}>
           <button onClick={()=>save("draft")} disabled={saving} style={{

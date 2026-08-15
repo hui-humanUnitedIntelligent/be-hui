@@ -442,7 +442,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
       <style>{CSS}</style>
       <div className="ppp-scroll" style={{
         position:"absolute", inset:0,
-        paddingBottom: isOwnProfile ? NAV_CLEARANCE_CSS : "calc(88px + env(safe-area-inset-bottom, 0px))",
+        paddingBottom: isOwnProfile ? NAV_CLEARANCE_CSS : "calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         overflowY:"auto",
       }}>
         <NavBar onBack={handleBack} title="Öffentliches Profil" />

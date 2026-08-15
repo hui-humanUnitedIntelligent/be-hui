@@ -80,7 +80,7 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
         style={{
           width: "100%", maxWidth: 420, maxHeight: "88vh", overflowY: "auto",
           background: "#fff", borderRadius: 20,
-          padding: "24px 20px calc(24px + env(safe-area-inset-bottom, 0px))",
+          padding: "24px 20px calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
         }}
       >

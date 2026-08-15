@@ -49,7 +49,7 @@ export default function OTAUpdateBanner() {
       style={{
         position: "fixed",
         left: 12, right: 12,
-        bottom: "calc(96px + env(safe-area-inset-bottom, 0px))",
+        bottom: "calc(96px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         zIndex: 10500,
         background: "#1A1D23",
         color: "#fff",

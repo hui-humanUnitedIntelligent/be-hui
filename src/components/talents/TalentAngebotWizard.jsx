@@ -534,7 +534,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
       {/* ── FOOTER-AKTIONEN ───────────────────────────────────── */}
       {!locked && (
-        <div style={{ padding: "12px 20px max(12px, env(safe-area-inset-bottom, 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
+        <div style={{ padding: "12px 20px max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
           {isLast ? (
             <PBtn label={isEdit ? "Änderungen speichern" : "Zur Prüfung einreichen"} onClick={handleSave} loading={saving} disabled={uploading}/>
           ) : (
@@ -544,7 +544,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         </div>
       )}
       {locked && (
-        <div style={{ padding: "12px 20px max(12px, env(safe-area-inset-bottom, 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
+        <div style={{ padding: "12px 20px max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
           <SBtn label="Schließen" onClick={onClose}/>
         </div>
       )}

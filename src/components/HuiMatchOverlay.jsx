@@ -468,7 +468,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
             maxHeight:"92vh",
             display:"flex", flexDirection:"column",
             animation:"sheetUp 0.38s cubic-bezier(0.22,1,0.36,1) both",
-            paddingBottom:"env(safe-area-inset-bottom,0)",
+            paddingBottom:"max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0), 0)",
             boxShadow:`0 -4px 52px ${moodGlow}, 0 -1px 0 rgba(0,0,0,0.05)`,
             transition:"box-shadow 0.7s ease" }}>
 
@@ -539,7 +539,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
           {/* Scrollable Body */}
           <div className="hmo-scroll"
             style={{ flex:1, overflowY:"auto",
-              padding:"20px 16px max(28px,env(safe-area-inset-bottom,28px))" }}>
+              padding:"20px 16px max(28px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 28px), 28px))" }}>
 
             {/* ══ STEP: MOOD ════════════════════════════════════ */}
             {step === "mood" && (

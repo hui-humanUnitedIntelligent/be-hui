@@ -146,7 +146,7 @@ function TalentDetailModal({ talent, onClose }) {
           width:"100%",
           background:T.bgCard,
           borderRadius:"22px 22px 0 0",
-          padding:"0 0 max(32px, env(safe-area-inset-bottom, 32px))",
+          padding:"0 0 max(32px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 32px), 32px))",
           boxShadow:"0 -8px 40px rgba(26,26,24,0.16)",
           maxHeight:"85vh", overflowY:"auto",
           pointerEvents:"all",

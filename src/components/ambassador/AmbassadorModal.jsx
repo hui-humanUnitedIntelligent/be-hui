@@ -17,7 +17,7 @@ const CSS = `
   .amb-overlay {
     position:fixed;inset:0;background:rgba(10,10,10,0.55);
     z-index:10300;display:flex;align-items:flex-end;justify-content:center;
-    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));
+    padding-bottom:calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px));
   }
   .amb-sheet {
     background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:520px;

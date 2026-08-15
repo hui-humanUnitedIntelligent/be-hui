@@ -180,7 +180,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
       {/* ── SCROLL-INHALT ─────────────────────────────────────── */}
       <div className="studio-scroll" style={{
         flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
-        paddingBottom:"max(88px,calc(80px + env(safe-area-inset-bottom,0px)))",
+        paddingBottom:"max(88px,calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
       }}>
         <Gap h={20}/>
 

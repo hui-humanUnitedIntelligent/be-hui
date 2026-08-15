@@ -374,7 +374,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       <div onClick={e => e.stopPropagation()} style={{
         position:"fixed",bottom:"var(--hui-keyboard-inset, 0px)",left:0,right:0,zIndex:11100,
         background:D.sheet,borderRadius:"28px 28px 0 0",
-        padding:`0 0 max(32px,calc(24px + env(safe-area-inset-bottom,0px)))`,
+        padding:`0 0 max(32px,calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))`,
         boxShadow:"0 -8px 48px rgba(15,30,26,0.18),0 -2px 12px rgba(15,30,26,0.08)",
         backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",
         maxHeight:"calc(92dvh - var(--hui-keyboard-inset, 0px))",overflowY:"auto", WebkitOverflowScrolling:"touch",

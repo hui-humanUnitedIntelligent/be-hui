@@ -229,7 +229,7 @@ function Sheet({ onClose = () => {}, children = null, zIndex=9800 }) {
       <div className="mbp-sheet" onClick={e=>e.stopPropagation()} style={{
         width:"100%", background:T.bgSheet,
         borderRadius:`${T.r24}px ${T.r24}px 0 0`,
-        padding:"20px 20px max(36px,calc(24px + env(safe-area-inset-bottom,0px)))",
+        padding:"20px 20px max(36px,calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
         boxShadow:T.sheet, maxHeight:"80vh", overflowY:"auto",
       }}>
         <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
@@ -1264,7 +1264,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             position:"relative", zIndex:1,
             background:"#F7F5F0", borderRadius:"20px 20px 0 0",
             maxHeight:"88dvh", overflowY:"auto",
-            paddingBottom:"calc(16px + env(safe-area-inset-bottom,0px))",
+            paddingBottom:"calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           }}>
             {/* Handle */}
             <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:4 }}>
@@ -2131,13 +2131,13 @@ function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = 
             Abstand zur System-UI-Navigationsleiste (Android Gesten-/Softkeys) */}
         <div style={{
           flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", willChange:"transform", overscrollBehavior:"contain",
-          scrollbarWidth:"none", padding: footer ? undefined : "0 0 calc(50px + env(safe-area-inset-bottom, 0px))",
+          scrollbarWidth:"none", padding: footer ? undefined : "0 0 calc(50px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         }}>
           {children}
         </div>
         {/* Footer */}
         {footer && (
-          <div style={{ padding:"12px 20px calc(50px + env(safe-area-inset-bottom, 0px))", borderTop:"1px solid rgba(26,26,24,0.08)", flexShrink:0 }}>
+          <div style={{ padding:"12px 20px calc(50px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))", borderTop:"1px solid rgba(26,26,24,0.08)", flexShrink:0 }}>
             <button onClick={onClose} style={{
               width:"100%", padding:"13px", borderRadius:14, border:"none",
               cursor:"pointer", background:"rgba(26,26,24,0.08)",

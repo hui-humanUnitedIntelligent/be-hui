@@ -1678,7 +1678,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       background:C.cream,
       display:"flex", flexDirection:"column",
       paddingTop:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))",
-      paddingBottom:"max(0px, env(safe-area-inset-bottom, 0px))",
+      paddingBottom:"max(0px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
     }}
       // Kein Click-außen-close — bewusstes Öffnen
     >

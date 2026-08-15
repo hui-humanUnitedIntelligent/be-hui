@@ -361,7 +361,7 @@ export default function ImageGalleryModal({ images, startIndex = 0, onClose = ()
 
       {total > 1 && total <= 12 && (
         <div style={{
-          position: "absolute", bottom: "calc(20px + env(safe-area-inset-bottom, 0px))", left: "50%",
+          position: "absolute", bottom: "calc(20px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))", left: "50%",
           transform: "translateX(-50%)", display: "flex", gap: 5, zIndex: GALLERY_Z + 10,
         }}>
           {images.map((_, i) => (

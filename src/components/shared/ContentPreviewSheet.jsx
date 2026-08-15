@@ -464,14 +464,15 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
 
       {/* Bottom-Spacer: Navbar (72px) + safe-area — verhindert Abschneiden
           auf iOS (Safari ignoriert paddingBottom bei overflowY:auto).
-          FIX (2026-08-15, Michael-Report): env(safe-area-inset-bottom) lieferte
-          auf diesem Android-Geraet 0px zurueck (bekanntes WebView-Verhalten,
-          siehe Memory #716 -- windowFullscreen/env()-Inkonsistenzen), wodurch
-          der "Profil ansehen"-Button hinter der System-Navigationsleiste
-          verschwand. Jetzt: native --hui-safe-bottom (von MainActivity.java via
-          WindowInsetsCompat injiziert, SSOT fuer echte Insets) zuerst, env()
-          nur als Fallback fuer Browser/Vorschau ohne native Bridge. */}
-      <div style={{ height:"calc(88px + var(--hui-safe-bottom, env(safe-area-inset-bottom, 0px)))", flexShrink:0 }}/>
+          FIX (2026-08-15, Michael-Report, GLOBAL für alle Modals ausgerollt):
+          Ein reiner var(--hui-safe-bottom, env(...))-Fallback reichte NICHT,
+          weil die Insets in Einzelfällen (Timing/Geräte-Variante) nicht
+          zuverlässig ankommen. Jetzt exakt dieselbe bewährte 3-Wege-max()-
+          Formel wie navigationGeometry.js (SSOT für die Bottom-Navigation,
+          siehe Memory #716): native --hui-safe-bottom, dann Browser-env(),
+          dann ein hartcodierter 20px-Mindestpuffer — der GRÖSSTE der drei
+          Werte gewinnt immer, kein Fallback kann mehr auf 0 zurückfallen. */}
+      <div style={{ height:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))", flexShrink:0 }}/>
 
       {/* KOMMENTAR.1: EIN Kommentar-Sheet fuer ALLE Typen (post_comments,
           generisch ueber post_id+post_type, Migration 073). */}

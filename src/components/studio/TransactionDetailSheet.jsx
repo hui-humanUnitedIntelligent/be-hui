@@ -321,7 +321,7 @@ export default function TransactionDetailSheet({ tx, onClose }) {
         {/* Pflicht: 'Profil ansehen' als dunkler Balken am unteren Rand (globale Regel) */}
         {a.onViewProfile && (
           <div style={{
-            flexShrink: 0, padding: "12px 20px calc(16px + env(safe-area-inset-bottom, 0px))",
+            flexShrink: 0, padding: "12px 20px calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
             borderTop: `1px solid ${T.border}`, background: T.bg,
           }}>
             <button
@@ -337,7 +337,7 @@ export default function TransactionDetailSheet({ tx, onClose }) {
           </div>
         )}
         {!a.onViewProfile && (
-          <div style={{ flexShrink: 0, height: "calc(12px + env(safe-area-inset-bottom, 0px))" }} />
+          <div style={{ flexShrink: 0, height: "calc(12px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))" }} />
         )}
       </div>
     </div>

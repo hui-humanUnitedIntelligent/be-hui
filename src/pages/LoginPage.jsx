@@ -690,7 +690,7 @@ export default function LoginPage() {
       <div style={{ flex: 1 }}/>
 
       {}
-      <div style={{ position: 'relative', zIndex: 1, padding: '0 28px max(48px,env(safe-area-inset-bottom,48px))' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '0 28px max(48px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 48px), 48px))' }}>
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontWeight: 600, fontSize: 42, color: T.white, letterSpacing: -1.8,
             lineHeight: 1.1, marginBottom: 16 }}>
@@ -767,7 +767,7 @@ export default function LoginPage() {
       <div style={{
         position: 'relative', zIndex: 1, flex: 1,
         display: 'flex', flexDirection: 'column',
-        padding: 'max(var(--hui-safe-top, 0px),24px,env(safe-area-inset-top,24px)) 20px max(24px,env(safe-area-inset-bottom,24px))',
+        padding: 'max(var(--hui-safe-top, 0px),24px,env(safe-area-inset-top,24px)) 20px max(24px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 24px), 24px))',
         overflowY: 'auto',
       }}>
         {}

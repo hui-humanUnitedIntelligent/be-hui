@@ -53,9 +53,9 @@ const CSS = `
     border-radius:28px 28px 0 0;
     overflow:hidden;
     animation: gf-scale-in .32s cubic-bezier(.22,1,.36,1) both;
-    max-height:calc(92dvh - env(safe-area-inset-bottom, 0px));
+    max-height:calc(92dvh - max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px));
     display:flex; flex-direction:column;
-    margin-bottom:env(safe-area-inset-bottom, 0px);
+    margin-bottom:max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px);
     padding-bottom: 72px;
   }
   .gf-scroll {

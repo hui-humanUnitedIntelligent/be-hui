@@ -1019,7 +1019,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         flexShrink: 0, background: C.white,
         borderTop: `1px solid ${C.border}`,
         padding: "14px 20px",
-        paddingBottom: "max(20px, env(safe-area-inset-bottom, 20px))",
+        paddingBottom: "max(20px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))",
         display: "flex", gap: 10,
         boxShadow: "0 -4px 20px rgba(0,0,0,0.07)",
       }}>

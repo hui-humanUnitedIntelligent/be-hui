@@ -72,7 +72,7 @@ export default function ReportReasonModal({
           maxWidth: 480,
           background: "#FFFFFF",
           borderRadius: "20px 20px 0 0", transform: sheetTransform, transition: sheetTransition,
-          padding: "24px 20px calc(24px + env(safe-area-inset-bottom, 0px))",
+          padding: "24px 20px calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           boxShadow: "0 -8px 32px rgba(20,20,34,0.18)",
           maxHeight: "80vh",
           overflowY: "auto",

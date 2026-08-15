@@ -392,7 +392,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
         {/* ── Footer ── */}
         <div style={{
-          padding: "12px 20px calc(12px + env(safe-area-inset-bottom, 0px))",
+          padding: "12px 20px calc(12px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           background: T.bg,
           borderTop: `1px solid ${T.border}`,
           flexShrink: 0,

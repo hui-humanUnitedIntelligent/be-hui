@@ -135,7 +135,7 @@ function UserListModal({ title, users, onClose }) {
       <div onClick={e=>e.stopPropagation()} style={{
         width:"100%", maxWidth:480,
         background:T.bgCard, borderRadius:"20px 20px 0 0",
-        paddingBottom:"max(88px,calc(80px + env(safe-area-inset-bottom,0px)))",
+        paddingBottom:"max(88px,calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
         maxHeight:"80vh", display:"flex", flexDirection:"column",
       }}>
         <div style={{

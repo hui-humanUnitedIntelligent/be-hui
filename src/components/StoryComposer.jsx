@@ -330,7 +330,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
       {/* ── Bottom Panel ── */}
       <div style={{background:"#111",
         padding:"16px 16px",
-        paddingBottom:"max(20px,env(safe-area-inset-bottom,20px))"}}>
+        paddingBottom:"max(20px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))"}}>
 
         {panel==="settings" ? (
           <div style={{animation:"scUp .2s both"}}>

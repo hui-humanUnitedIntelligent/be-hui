@@ -319,7 +319,7 @@ function DankeScreen({ items = [], impact = 0, total = 0, huiTotal = 0, onDiscov
       {/* Footer — nur "Weiter entdecken", kein "Zum Resonanz Center" mehr */}
       <div style={{
         padding: "12px 24px",
-        paddingBottom: `calc(12px + max(0px, env(safe-area-inset-bottom, 0px)))`,
+        paddingBottom: `calc(12px + max(0px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))`,
         flexShrink: 0, ...fade("500ms"),
       }}>
         <PrimaryButton label="Weiter entdecken" onClick={wrapClose(onDiscover)} />
@@ -672,7 +672,7 @@ export default function UnterstutzenFlow({
         overflowY:       "auto",
         WebkitOverflowScrolling: "touch",
         // TabBar (~66px) + Margin + Puffer — Bezahlen-Button bleibt erreichbar
-        paddingBottom:   `calc(120px + env(safe-area-inset-bottom, 0px))`,
+        paddingBottom:   `calc(120px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))`,
         boxSizing:       "border-box",
       }}>
         {/* Header */}

@@ -348,7 +348,7 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       </div>
 
       {/* Scroll-Content */}
-      <div className="sbp-scroll" style={{ flex: 1, paddingBottom: "calc(88px + env(safe-area-inset-bottom, 0px))" }}>
+      <div className="sbp-scroll" style={{ flex: 1, paddingBottom: "calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))" }}>
         {loading ? (
           <div style={{ padding: 40, textAlign: "center", color: T.inkSoft, fontSize: 14 }}>Lädt…</div>
         ) : (
@@ -389,7 +389,7 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
               )}
             </div>
 
-            <div style={{ height: "calc(88px + env(safe-area-inset-bottom, 0px))" }} />
+            <div style={{ height: "calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))" }} />
           </>
         )}
       </div>

@@ -126,7 +126,7 @@ export function ToastContainer() {
   return (
     <div style={{
       position:"fixed",
-      bottom:`calc(env(safe-area-inset-bottom, 0px) + 84px)`,
+      bottom:`calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 84px)`,
       left:"50%", transform:"translateX(-50%)",
       zIndex:29000,
       display:"flex", flexDirection:"column-reverse", gap:8,

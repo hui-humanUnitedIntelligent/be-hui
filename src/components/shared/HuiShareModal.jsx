@@ -303,7 +303,7 @@ export function HuiShareModal({ item, onClose }) {
         WebkitBackdropFilter: "blur(4px)",
         zIndex: 16000,
         display: "flex", alignItems: "flex-end", justifyContent: "center",
-        padding: "0 0 env(safe-area-inset-bottom, 0px)",
+        padding: "0 0 max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)",
       }}
     >
       <div
@@ -631,7 +631,7 @@ export function HuiShareModal({ item, onClose }) {
         )}
 
         {/* ── Safe-Area Spacer ──────────────────────────────────── */}
-        <div style={{ height: "env(safe-area-inset-bottom, 0px)", background: T.card }} />
+        <div style={{ height: "max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)", background: T.card }} />
       </div>
     </div>,
     document.body

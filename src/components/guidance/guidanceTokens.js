@@ -39,7 +39,7 @@ export const G_SHAPE = {
 
   // Margin from screen edges
   footerSideGap:   18,    // px
-  footerBottomGap: "max(env(safe-area-inset-bottom, 18px) + 18px, 28px)",
+  footerBottomGap: "max(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 18px), 18px) + 18px, 28px)",
 };
 
 // ── Typography ─────────────────────────────────────────────────

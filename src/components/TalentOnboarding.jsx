@@ -431,7 +431,7 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
         width:"100%", maxWidth:520, margin:"0 auto",
         background:T.warm, borderRadius:"28px 28px 0 0",
         padding:"20px 20px 0",
-        paddingBottom:"max(28px,calc(env(safe-area-inset-bottom,0px) + 20px))",
+        paddingBottom:"max(28px,calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 20px))",
         maxHeight:"93vh", overflowY:"auto",
         animation:"toUp .38s cubic-bezier(.34,1.3,.64,1) both"
       }} className="t-scroll">

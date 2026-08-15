@@ -288,7 +288,7 @@ export function RecommendationsSection({
           <div style={{
             width: "100%", background: T.bg,
             borderRadius: "16px 16px 0 0", transform: sheetTransform, transition: sheetTransition,
-            padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
+            padding: "20px 20px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
             display: "flex", flexDirection: "column", gap: 14, fontFamily: T.ff,
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

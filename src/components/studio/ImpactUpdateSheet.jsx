@@ -254,7 +254,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
         <div
           style={{
             padding: "12px 20px",
-            paddingBottom: "max(12px,env(safe-area-inset-bottom))",
+            paddingBottom: "max(12px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))",
             borderTop: "1px solid rgba(0,0,0,0.08)",
             flexShrink: 0,
           }}

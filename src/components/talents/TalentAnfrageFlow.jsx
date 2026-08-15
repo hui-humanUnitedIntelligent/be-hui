@@ -91,7 +91,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
       <div style={{
         position: "relative", background: "#FDFCFA", borderRadius: "24px 24px 0 0",
         width: "100%", maxWidth: 480,
-        padding: "28px 24px calc(env(safe-area-inset-bottom,16px) + 40px)",
+        padding: "28px 24px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 40px)",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "tafSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both",
         boxSizing: "border-box",

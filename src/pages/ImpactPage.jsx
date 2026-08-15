@@ -861,7 +861,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           flex:1, overflowY:"auto",
           overscrollBehavior:"contain",
           WebkitOverflowScrolling:"touch",
-          paddingBottom:"calc(88px + env(safe-area-inset-bottom, 0px))",
+          paddingBottom:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         }}>
         {/* Bild */}
         <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
@@ -1410,7 +1410,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
         <div style={{
           flex: 1, overflowY: "auto", overscrollBehavior: "contain",
           WebkitOverflowScrolling: "touch",
-          padding: "0 20px calc(88px + env(safe-area-inset-bottom, 0px))",
+          padding: "0 20px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         }}>
           {/* Meta */}
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
@@ -3286,7 +3286,7 @@ function InfoSheet({ modal, onClose }) {
         overflowY:"auto",
         WebkitOverflowScrolling:"touch",
         padding:"20px 22px",
-        paddingBottom:"calc(96px + env(safe-area-inset-bottom, 0px))",
+        paddingBottom:"calc(96px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
       }}>
         {c.body}
       </div>
@@ -3294,7 +3294,7 @@ function InfoSheet({ modal, onClose }) {
       {/* Sticky Footer — "Verstanden" zentriert über der Navbar */}
       <div style={{
         position:"sticky", bottom:0,
-        padding:"12px 32px calc(80px + env(safe-area-inset-bottom, 0px))",
+        padding:"12px 32px calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         borderTop:`1px solid ${T.line}`,
         background:T.surfaceHi,
         flexShrink:0,

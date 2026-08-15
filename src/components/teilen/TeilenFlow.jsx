@@ -1058,7 +1058,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       {step === 2 && (
         <div style={{
           flexShrink:0,
-          padding:"12px 20px max(20px,env(safe-area-inset-bottom,20px))",
+          padding:"12px 20px max(20px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))",
           background:"rgba(248,247,252,.88)",
           backdropFilter:"blur(24px)", WebkitBackdropFilter:"blur(24px)",
           borderTop:"1px solid rgba(139,92,246,.07)",

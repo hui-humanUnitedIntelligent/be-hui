@@ -314,7 +314,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         {step === "success" && (
           <div style={{
             flex: 1, overflowY: "auto",
-            padding: "20px 24px calc(env(safe-area-inset-bottom,16px) + 24px)",
+            padding: "20px 24px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 24px)",
             textAlign: "center",
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
@@ -775,7 +775,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
             {/* ── STICKY BUTTON-BEREICH — immer sichtbar, außerhalb des Scroll-Bereichs ── */}
             <div style={{
               flexShrink: 0,
-              padding: `12px 24px calc(env(safe-area-inset-bottom, 16px) + 12px)`,
+              padding: `12px 24px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 12px)`,
               background: "#FDFCFA",
               borderTop: "1px solid rgba(26,26,46,0.07)",
               display: "flex",

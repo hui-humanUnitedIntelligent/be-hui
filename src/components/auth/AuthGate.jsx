@@ -135,7 +135,7 @@ function AuthModal({ action, onClose, onConfirm }) {
         position:"relative",width:"100%",maxWidth:480,
         background:"#fff",
         borderRadius:"28px 28px 0 0",
-        padding:"28px 24px calc(env(safe-area-inset-bottom,16px) + 28px)",
+        padding:"28px 24px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 28px)",
         animation:"agIn 0.3s cubic-bezier(.22,1,.36,1) both",
         fontFamily:"Inter,sans-serif",
       }}>

@@ -457,7 +457,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
         zIndex:       10500,
         background:   V.bg,
         borderRadius: "28px 28px 0 0",
-        padding:      "0 0 env(safe-area-inset-bottom,24px)",
+        padding:      "0 0 max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 24px), 24px)",
         maxHeight:    "92vh",
         overflowY:    "auto",
         boxShadow:    "0 -8px 48px rgba(139,92,246,0.18)",

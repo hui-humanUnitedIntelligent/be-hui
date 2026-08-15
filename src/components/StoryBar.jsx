@@ -491,7 +491,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
       {!replyOpen && (caption || location || mood) && (
         <div style={{
           position:'absolute',
-          bottom:'max(120px,calc(env(safe-area-inset-bottom,0px)+120px))',
+          bottom:'max(120px,calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)+120px))',
           left:18, right:80, zIndex:10,
           animation:'huiUp .35s ease-out' }}>
           {/* Caption */}
@@ -556,7 +556,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
       {!replyOpen && (
         <div style={{
           position:'absolute',
-          bottom:'max(20px,env(safe-area-inset-bottom,20px))',
+          bottom:'max(20px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px))',
           left:14, right:14, zIndex:10,
           display:'flex', flexDirection:'column', gap:10 }}>
 
@@ -632,7 +632,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
           WebkitBackdropFilter:'blur(28px)',
           borderRadius:'22px 22px 0 0',
           padding:'20px 16px',
-          paddingBottom:'max(28px,env(safe-area-inset-bottom,28px))',
+          paddingBottom:'max(28px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 28px), 28px))',
           animation:'huiUp .22s ease-out',
           borderTop:'1px solid rgba(255,255,255,.08)' }}>
           {sentReply ? (

@@ -370,7 +370,7 @@ function Card1({ onNext, dir }) {
       <div style={{
         position:"absolute", inset:0,
         display:"flex", flexDirection:"column", justifyContent:"flex-end",
-        padding:"0 28px calc(env(safe-area-inset-bottom, 0px) + 32px)",
+        padding:"0 28px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 32px)",
         overflowY:"auto", WebkitOverflowScrolling:"touch",
       }}>
         {/* Orb + Badge */}
@@ -733,7 +733,7 @@ function Card2({ onNext, onBack, dir }) {
         position:"relative", zIndex:10, width:"100%", flexShrink:0,
         display:"flex", flexDirection:"column", alignItems:"center",
         textAlign:"center",
-        padding:`0 32px calc(env(safe-area-inset-bottom, 0px) + 32px)`,
+        padding:`0 32px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 32px)`,
         opacity: ready ? 1 : 0,
         transform: ready ? "translateY(0)" : "translateY(18px)",
         transition:"opacity 0.8s 0.35s ease, transform 0.8s 0.35s cubic-bezier(0.22,1,0.36,1)",
@@ -836,7 +836,7 @@ function Card3({ onNext, onBack, dir }) {
       <div style={{
         position:"relative", zIndex:2,
         padding:`max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 56px), 56px) 24px
-                 calc(env(safe-area-inset-bottom, 0px) + 32px)`,
+                 calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 32px)`,
         display:"flex", flexDirection:"column", minHeight:"100%",
       }}>
         <div style={{ flex:1 }}/>
@@ -922,7 +922,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
       <div style={{
         position:"relative", zIndex:2,
         padding:`max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 56px), 56px) 24px
-                 calc(env(safe-area-inset-bottom, 0px) + 32px)`,
+                 calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 32px)`,
         minHeight:"100%", display:"flex", flexDirection:"column",
       }}>
 

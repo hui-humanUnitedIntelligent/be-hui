@@ -144,7 +144,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
           <div onClick={e => e.stopPropagation()} style={{
             width:"100%", background:"#FDFCFB",
             borderRadius:"24px 24px 0 0",
-            padding:"20px 20px max(36px,calc(20px + env(safe-area-inset-bottom,0px)))",
+            padding:"20px 20px max(36px,calc(20px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
             maxHeight:"80vh", overflowY:"auto",
           }}>
             <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99,

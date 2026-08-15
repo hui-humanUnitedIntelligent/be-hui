@@ -767,7 +767,7 @@ function FloatingBookCTA({ onBook, profileName }) {
   return (
     <div style={{
       position:"fixed",
-      bottom:"max(80px, calc(72px + env(safe-area-inset-bottom,0px)))",
+      bottom:"max(80px, calc(72px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
       left:18,right:18,zIndex:9100,
       display:"flex",gap:10,alignItems:"center",
     }}>
@@ -905,7 +905,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       /* animation removed for Safari stability */
       fontFamily:"Inter,sans-serif",
       WebkitOverflowScrolling:"touch",
-      paddingBottom:"max(120px, calc(100px + env(safe-area-inset-bottom,0px)))",
+      paddingBottom:"max(120px, calc(100px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
     }}>
       <style>{HUI.KEYFRAMES}</style>
       {/* @keyframes removed for Safari GPU stability */}

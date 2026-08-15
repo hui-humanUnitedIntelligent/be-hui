@@ -171,7 +171,7 @@ export default function RecommendModal({
           maxHeight: "85vh",
           background: T.bg,
           borderRadius: `${T.r16}px ${T.r16}px 0 0`,
-          padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
+          padding: "20px 20px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           display: "flex",
           flexDirection: "column",
           gap: 16,

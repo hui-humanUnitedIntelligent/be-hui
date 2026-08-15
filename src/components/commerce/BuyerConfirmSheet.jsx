@@ -99,7 +99,7 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
 
         {/* Sticky Buttons */}
         {!done && (
-          <div style={{ flexShrink: 0, padding: `12px 24px calc(env(safe-area-inset-bottom, 16px) + 12px)`,
+          <div style={{ flexShrink: 0, padding: `12px 24px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 12px)`,
             background: '#FDFCFA', borderTop: '1px solid rgba(26,26,46,0.07)', display: 'flex', gap: 10 }}>
             <button onClick={() => onClose?.()} disabled={loading}
               style={{ flex: 1, background: 'transparent', border: '1.5px solid rgba(26,26,46,0.15)',

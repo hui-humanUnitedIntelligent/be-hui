@@ -210,7 +210,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
       {/* Bezahlen-Button — scrollt mit, Clearance via Parent paddingBottom */}
       <div style={{
         padding: "16px 24px",
-        paddingBottom: `calc(16px + env(safe-area-inset-bottom, 0px))`,
+        paddingBottom: `calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))`,
         flexShrink: 0,
       }}>
         <button

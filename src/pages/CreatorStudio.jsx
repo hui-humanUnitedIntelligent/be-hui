@@ -270,7 +270,7 @@ export default function CreatorStudio() {
       </div>
 
       {/* ── Tool-Gruppen ─────────────────────────────────────── */}
-      <div style={{ padding:"20px 16px max(32px,env(safe-area-inset-bottom,32px))" }}>
+      <div style={{ padding:"20px 16px max(32px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 32px), 32px))" }}>
         {TOOL_GROUPS.map((group, gi) => (
           <div key={group.label}
             style={{ marginBottom:24,

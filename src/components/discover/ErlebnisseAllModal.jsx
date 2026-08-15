@@ -267,7 +267,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}
-          <div style={{ height:"calc(88px + env(safe-area-inset-bottom, 0px))", flexShrink:0 }}/>
+          <div style={{ height:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))", flexShrink:0 }}/>
         </div>
       </div>
     </div>,

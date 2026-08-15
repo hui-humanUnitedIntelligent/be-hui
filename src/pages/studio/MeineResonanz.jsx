@@ -553,7 +553,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
       <div className="mr-scroll" style={{ flex:1 }}>
         <div style={{
           padding:"16px " + T.px + "px",
-          paddingBottom:"max(100px, calc(80px + env(safe-area-inset-bottom, 20px)))",
+          paddingBottom:"max(100px, calc(80px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 20px), 20px)))",
         }}>
 
           {/* Summary */}
