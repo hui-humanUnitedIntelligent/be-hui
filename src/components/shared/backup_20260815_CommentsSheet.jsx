@@ -666,7 +666,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         position:"absolute", inset:0, background:T.overlay,
       }} role="button" tabIndex={0} />
       <div className="cs-sheet" style={{
-        position:"absolute", left:0, right:0, bottom:"var(--hui-keyboard-inset, 0px)", maxHeight:"min(86dvh, calc(100dvh - var(--hui-keyboard-inset, 0px) - 40px))",
+        position:"absolute", left:0, right:0, bottom:"var(--hui-keyboard-inset, 0px)", maxHeight:"calc(86dvh - var(--hui-keyboard-inset, 0px))",
         background:"rgba(252,253,252,0.96)",
         borderTopLeftRadius:28, borderTopRightRadius:28,
         boxShadow:"0 -12px 48px rgba(26,26,46,0.22)",
@@ -787,7 +787,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
           )}
           <div style={{
             display:"flex", gap:8, alignItems:"flex-end", padding:"10px 16px",
-            paddingBottom:"max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
+            paddingBottom:"max(12px, calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + var(--hui-keyboard-inset, 0px)))",
             borderTop:`1px solid ${T.border}`, background:"rgba(252,253,252,0.98)",
           }}>
             <Avatar url={profile?.avatar_url} name={profile?.full_name || profile?.display_name || profile?.username} size={32} />
