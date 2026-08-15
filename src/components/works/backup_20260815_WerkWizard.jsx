@@ -693,7 +693,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       </div>
 
       {/* ── SCROLLBARER CONTENT ───────────────────────────── */}
-      <div className="hui-scroll" style={{
+      <div style={{
         flex:1,
         overflowY:"auto",
         WebkitOverflowScrolling:"touch",

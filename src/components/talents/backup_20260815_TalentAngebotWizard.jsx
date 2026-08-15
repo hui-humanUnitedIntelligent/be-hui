@@ -308,7 +308,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     }}>
       <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={isEdit}/>
 
-      <div className="hui-scroll" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "18px 20px" }}>
+      <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "18px 20px" }}>
         {isApproved && (
           <div style={{ background: "rgba(14,196,184,0.10)", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 14 }}>
             ✅ Dieses Angebot ist bereits freigegeben und live. Änderungen sind erst nach Rückzug/Ablehnung wieder möglich.

@@ -378,6 +378,70 @@ function S1({ data, onChange, userId }) {
 
   const firstImg = imgs[0]?.url;
 
+  // ── GALERIE (2026-08-15, Michael-Request): "füge unterhalb des
+  // Titelbild einfügemöglichkeit noch die Möglichkeit 10 Bilder und
+  // Videos zusätzlich hochzuladen die dann auch im Home-Feed angezeigt
+  // werden". Titelbild bleibt fix imgs[0] (unveraendert, s.o.) --
+  // Galerie = imgs[1..], bis zu MAX_GALLERY zusaetzliche Bilder/Videos.
+  // Anzeige im Feed ist bereits SSOT-faehig: unifiedNormalizer.js
+  // extractMedia() liest raw.images komplett (nicht nur [0]) und
+  // BaseFeedCard/ImageSlider rendern jedes Element mit type==="video"
+  // bereits nativ als <video> in derselben Slider-Karte -- keine
+  // Aenderung auf der Anzeige-Seite noetig, nur die fehlende Upload-UI
+  // hier in Schritt 1 wird ergaenzt.
+  const [uplGallery, setUplGallery] = useState(false);
+  const galleryRef = useRef(null);
+  const MAX_GALLERY = 10;
+  const galleryImgs = imgs.slice(1);
+
+  async function uploadGallery(e) {
+    const files = Array.from(e.target.files || []);
+    if (!userId || !files.length) return;
+    const freeSlots = MAX_GALLERY - galleryImgs.length;
+    if (freeSlots <= 0) { if (galleryRef.current) galleryRef.current.value = ""; return; }
+    const next = [...imgs];
+    const previews = [];
+    for (const file of files.slice(0, freeSlots)) {
+      const isVideo = file.type.startsWith("video");
+      const previewUrl = URL.createObjectURL(file);
+      next.push({ url: previewUrl, path: null, type: isVideo ? "video" : "image", _preview: true });
+      previews.push({ file, previewUrl, isVideo, idx: next.length - 1 });
+    }
+    onChange({ images: next });
+    setUplGallery(true);
+    for (const { file, previewUrl, isVideo, idx } of previews) {
+      try {
+        let blob = file, contentType = file.type, ext = file.name.split(".").pop().toLowerCase();
+        if (!isVideo) {
+          // Bilder: gleiche Kompression wie beim Titelbild.
+          blob = await compressImageForUpload(file, COVER_MAX_DIM, JPEG_QUALITY);
+          const wasCompressed = blob !== file;
+          contentType = wasCompressed ? "image/jpeg" : file.type;
+          ext = wasCompressed ? "jpg" : ext;
+        }
+        // Videos: unkomprimiert direkt hochladen (gleiches Muster wie
+        // WorkMediaStep.jsx -- kein Kompressions-Helper fuer Video vorhanden).
+        const path = `experiences/${userId}/gallery_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
+        const { error } = await supabase.storage.from("media").upload(path, blob, { upsert: true, contentType });
+        if (!error) {
+          const { data: u } = supabase.storage.from("media").getPublicUrl(path);
+          next[idx] = { url: u.publicUrl, path, type: isVideo ? "video" : "image" };
+          onChange({ images: [...next] });
+        }
+        URL.revokeObjectURL(previewUrl);
+      } catch (err) {
+        console.error("[ExperienceWizard] Galerie-Upload-Fehler:", err?.message);
+      }
+    }
+    setUplGallery(false);
+    if (galleryRef.current) galleryRef.current.value = "";
+  }
+
+  function removeGalleryImg(displayIdx) {
+    const realIdx = displayIdx + 1; // Index 0 ist immer das Titelbild
+    onChange({ images: imgs.filter((_, i) => i !== realIdx) });
+  }
+
   return (
     <div>
       <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Basis</div>
@@ -461,6 +525,72 @@ function S1({ data, onChange, userId }) {
           </div>
         )}
         <input ref={ref} type="file" accept="image/*" style={{ display: "none" }} onChange={upload}/>
+      </Field>
+
+      {/* Weitere Bilder & Videos (optional, bis zu 10) — GALERIE 2026-08-15 */}
+      <Field label={`Weitere Bilder & Videos (optional) · ${galleryImgs.length}/${MAX_GALLERY}`}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+          {galleryImgs.map((img, i) => (
+            <div key={img.path || img.url || i} style={{
+              position: "relative", borderRadius: 12, overflow: "hidden",
+              aspectRatio: "1", background: "#1A1A18",
+            }}>
+              {img.type === "video" ? (
+                <video src={img.url} muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+              ) : (
+                <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+              )}
+              {img.type === "video" && (
+                <div style={{
+                  position: "absolute", top: 6, left: 6,
+                  width: 20, height: 20, borderRadius: "50%",
+                  background: "rgba(0,0,0,0.55)", display: "flex",
+                  alignItems: "center", justifyContent: "center",
+                  fontSize: 9, color: "#fff",
+                }}>▶</div>
+              )}
+              <button
+                onClick={() => removeGalleryImg(i)}
+                style={{
+                  position: "absolute", top: 6, right: 6,
+                  width: 24, height: 24, borderRadius: "50%",
+                  background: "rgba(0,0,0,0.60)", border: "none",
+                  color: "#fff", fontSize: 14, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  touchAction: "manipulation",
+                }}
+              >×</button>
+            </div>
+          ))}
+
+          {galleryImgs.length < MAX_GALLERY && (
+            <div
+              onClick={() => !uplGallery && galleryRef.current?.click()}
+              style={{
+                aspectRatio: "1", borderRadius: 12,
+                border: `2px dashed ${C.tealBdr}`,
+                background: C.tealSoft,
+                display: "flex", flexDirection: "column",
+                alignItems: "center", justifyContent: "center",
+                gap: 4, cursor: uplGallery ? "not-allowed" : "pointer",
+                touchAction: "manipulation",
+              }}
+            >
+              {uplGallery ? (
+                <div style={{ fontSize: 10.5, color: C.teal, fontWeight: 600, textAlign: "center" }}>Lädt…</div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 22, color: C.teal, lineHeight: 1 }}>+</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: C.teal, textAlign: "center" }}>Foto/Video</div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize: 11.5, color: C.inkFade, marginTop: 8, lineHeight: 1.4 }}>
+          Werden zusätzlich zum Titelbild in einer Galerie im Home-Feed angezeigt.
+        </div>
+        <input ref={galleryRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={uploadGallery}/>
       </Field>
     </div>
   );

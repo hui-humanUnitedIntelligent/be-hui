@@ -1117,7 +1117,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       )}
 
       {/* Scrollbarer Content */}
-      <div style={{
+      <div className="hui-scroll" style={{
         flex: 1,
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
