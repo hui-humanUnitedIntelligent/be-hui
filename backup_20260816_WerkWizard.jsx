@@ -275,15 +275,7 @@ function S2({ data, onChange, onNext }) {
 }
 
 // Screen 3 – Werktyp
-// STOCK-WIZARD-002 (2026-08-16, Michael-Request): Stückanzahl fehlte im
-// Erstellungsprozess -- Originalwerk = automatisch 1 Stück (Unikat),
-// Druck/Reproduktion = Nutzer gibt Anzahl Stück an, Digitales Werk =
-// unbegrenzt (Download). Speist is_unique/stock_total/stock_available
-// in public.works (bereits vorhanden, bislang nur mit DB-Defaults belegt).
 function S3({ data, onChange, onNext }) {
-  const isDruck = data.werktyp === "druck";
-  const stockNum = parseInt(data.stockCount, 10);
-  const stockValid = Number.isInteger(stockNum) && stockNum >= 1;
   return (
     <div>
       <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Werktyp</div>
@@ -291,56 +283,7 @@ function S3({ data, onChange, onNext }) {
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
         {WERK_TYPEN.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
       </div>
-
-      {/* ── Stückanzahl (STOCK-WIZARD-002) ── */}
-      {data.werktyp === "original" && (
-        <div style={{
-          display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
-          borderRadius:12, background:"rgba(14,196,184,0.07)",
-          border:`1.5px solid ${C.border}`, marginBottom:20,
-          animation:"wfFadeStep 0.2s ease both",
-        }}>
-          <span style={{ fontSize:18, flexShrink:0 }}>1️⃣</span>
-          <div style={{ fontSize:12.5, color:C.inkMid }}>
-            <strong style={{ color:C.ink, fontWeight:600 }}>Unikat</strong> — genau 1 Stück verfügbar.
-          </div>
-        </div>
-      )}
-
-      {isDruck && (
-        <div style={{ marginBottom:20, animation:"wfFadeStep 0.2s ease both" }}>
-          <Lbl text="Anzahl Stück" req/>
-          <input
-            type="number" min="1" step="1" inputMode="numeric"
-            value={data.stockCount||""}
-            onChange={e=>onChange({stockCount:e.target.value})}
-            placeholder="z.B. 10"
-            style={{
-              ...INP,
-              borderColor: data.stockCount ? C.teal : "rgba(26,26,24,0.10)",
-            }}
-          />
-          <div style={{ fontSize:11.5, color:C.inkFade, marginTop:6 }}>
-            Der Bestand wird im Feed angezeigt und bei jedem Kauf automatisch reduziert.
-          </div>
-        </div>
-      )}
-
-      {data.werktyp === "digital" && (
-        <div style={{
-          display:"flex", alignItems:"center", gap:10, padding:"12px 14px",
-          borderRadius:12, background:"rgba(14,196,184,0.07)",
-          border:`1.5px solid ${C.border}`, marginBottom:20,
-          animation:"wfFadeStep 0.2s ease both",
-        }}>
-          <span style={{ fontSize:18, flexShrink:0 }}>♾️</span>
-          <div style={{ fontSize:12.5, color:C.inkMid }}>
-            <strong style={{ color:C.ink, fontWeight:600 }}>Unbegrenzt</strong> — als Download beliebig oft verfügbar.
-          </div>
-        </div>
-      )}
-
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp || (isDruck && !stockValid)}/>}
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp}/>}
     </div>
   );
 }
@@ -519,10 +462,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       return {
         images:imgs, title:existingWork.title||"", shortDesc:existingWork.caption||"",
         description:existingWork.description||"", category:existingWork.category||"",
-        tags:existingWork.tags||[], werktyp:existingWork.file_format||existingWork.medium||"",
-        // STOCK-WIZARD-002: bestehende Stückzahl nur bei "Druck" (mehrfach) vorbelegen
-        stockCount: (!existingWork.is_unique && existingWork.stock_total)
-          ? String(existingWork.stock_total) : "",
+        tags:existingWork.tags||[], werktyp:existingWork.medium||"",
         price:existingWork.price||"", currency:"EUR",
         availability:existingWork.for_sale?"available":"sold",
         breite:"", hoehe:"", tiefe:"", gewicht:"",
@@ -537,7 +477,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
     }
     return {
       images:[], title:"", shortDesc:"", description:"", category:"", tags:[],
-      werktyp:"", stockCount:"", price:"", currency:"EUR", availability:"available",
+      werktyp:"", price:"", currency:"EUR", availability:"available",
       breite:"", hoehe:"", tiefe:"", gewicht:"", material:"",
       versand:false, versandNational:"", versandInternational:"",
       versandkosten:"", versandFrei:"", abholung:false, abholort:"",
@@ -608,40 +548,9 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
     // Bestätigt vorhanden: category, caption, cover_url, creator_id,
     //   description, file_format, for_sale, images, location_text, materials,
     //   price, sale_mode, shipping, shipping_cost, shipping_countries,
-    //   shipping_time, status, tags, visibility, is_unique, stock_total,
-    //   stock_available (COMMERCE-STOCK-001, verifiziert per REST-API 2026-08-16)
+    //   shipping_time, status, tags, visibility
     // NICHT in DB: medium → gemappt auf file_format
     // NICHT in DB: media_url, size, condition → entfernt
-
-    // ── Stückanzahl (STOCK-WIZARD-002) ──────────────────────────
-    // original  → Unikat, exakt 1 Stück
-    // druck     → Nutzer-Eingabe (Mehrfachproduktion)
-    // digital   → unbegrenzt (kein Bestandslimit, Download)
-    let is_unique, stock_total;
-    if (form.werktyp === "druck") {
-      is_unique = false;
-      stock_total = Math.max(1, parseInt(form.stockCount, 10) || 1);
-    } else if (form.werktyp === "digital") {
-      is_unique = false;
-      stock_total = null; // unbegrenzt
-    } else {
-      is_unique = true;
-      stock_total = 1;
-    }
-    // stock_available: bei Neuanlage = kompletter Bestand. Bei Bearbeitung
-    // wird nur die DIFFERENZ zum bisherigen stock_total angewendet, damit
-    // bereits verkaufte Stückzahlen nicht zurückgesetzt werden.
-    let stock_available;
-    if (existingWork?.id) {
-      const oldTotal = existingWork.stock_total ?? 1;
-      const oldAvail = existingWork.stock_available ?? oldTotal;
-      stock_available = (stock_total === null)
-        ? null
-        : Math.max(0, Math.min(stock_total, oldAvail + (stock_total - oldTotal)));
-    } else {
-      stock_available = stock_total;
-    }
-
     const payload = {
       user_id:      userId,
       // WERK-CREATOR-ID-FIX (2026-08-07): DB-Spalte "creator_id" ist NOT NULL
@@ -658,9 +567,6 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       category:     form.category     || null,
       tags:         form.tags         || [],
       file_format:  form.werktyp      || null,
-      is_unique,
-      stock_total,
-      stock_available,
       price:        parseFloat(form.price) || null,
       for_sale:     form.availability === "available",
       sale_mode:    "fixed",
@@ -753,7 +659,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
     switch (step) {
       case 1: return (form.images||[]).length > 0;
       case 2: return !!(form.title?.trim()) && !!form.category;
-      case 3: return !!form.werktyp && (form.werktyp !== "druck" || (Number.isInteger(parseInt(form.stockCount,10)) && parseInt(form.stockCount,10) >= 1));
+      case 3: return !!form.werktyp;
       case 4: return !!(form.price) && !!form.availability;
       case 5: return !!(form.versand || form.abholung);
       case 6: return true;
