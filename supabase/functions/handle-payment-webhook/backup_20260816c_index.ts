@@ -141,15 +141,8 @@ serve(async (req) => {
             return new Response('ok', { headers: corsHeaders })
           }
 
-          // FIX (2026-08-16, ESCROW-COMMERCE-Bug): escrow_status wurde nie auf
-          // 'holding' gesetzt (blieb beim Spalten-Default 'none') — dadurch
-          // scheiterte rpc_seller_mark_shipped (WHERE escrow_status='holding')
-          // lautlos für JEDE Buchung. auto_confirm_at (14 Tage) ergänzt.
           await supabase.from('talent_bookings').update({
             status: 'confirmed', confirmed_at: new Date().toISOString(),
-            escrow_status: 'holding',
-            delivery_status: 'pending',
-            auto_confirm_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
           }).eq('id', tBooking.id).eq('status', 'pending_payment') // Guard gegen Doppel-Verarbeitung
 
           const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_talent_booking_fees', {
@@ -330,18 +323,10 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
       // Adresse (die beim Order-Insert gespeichert wurde) mit null gelöscht.
       const stripeShipping = (pi as any).shipping?.address ?? null;
       const stripeName     = (pi as any).shipping?.name ?? null;
-      // FIX (2026-08-16, ESCROW-COMMERCE-Bug): escrow_status wurde nie auf
-      // 'holding' gesetzt (blieb beim Spalten-Default 'none') — dadurch
-      // scheiterte rpc_seller_mark_shipped (WHERE escrow_status='holding')
-      // lautlos für JEDEN Verkauf seit Einführung des Escrow-Systems.
-      // auto_confirm_at (14 Tage Auto-Bestätigung) ergänzt.
       const orderUpdate: Record<string, any> = {
         state:                'paid',
         payment_confirmed_at: new Date().toISOString(),
         contact_email:        pi.receipt_email ?? null,
-        escrow_status:        'holding',
-        delivery_status:      'pending',
-        auto_confirm_at:      new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       };
       if (stripeShipping) orderUpdate.shipping_address = stripeShipping;
       if (stripeName)     orderUpdate.contact_name     = stripeName;

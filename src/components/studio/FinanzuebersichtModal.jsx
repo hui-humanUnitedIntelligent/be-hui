@@ -454,13 +454,9 @@ function MeineVerkaeufe({ userId }) {
     // escrow_status kann "none" sein (ältere Orders) — dann als "holding" behandeln
     // solange die Order paid ist und noch nicht versendet wurde.
     const escrowHolding = s.orders?.escrow_status === "holding" || (!s.orders?.shipped_at && (s.orders?.escrow_status === "none" || !s.orders?.escrow_status));
-    // Adresse: shipping_address aus Order, oder buyer info als Fallback
+    // FIX (2026-08-16): Lieferadresse wird als prominente grüne Section angezeigt
+    // (tx.shippingAddress → TransactionDetailSheet) — nicht mehr als MetaRow verstecken.
     const addrParts = [];
-    if (s.orders?.shipping_address) {
-      const a = s.orders.shipping_address;
-      const parts = [a.full || [a.line1, a.line2, a.postal_code, a.city, a.country].filter(Boolean).join(", ")];
-      addrParts.push({ label: "Lieferadresse", value: parts[0].replace(/\n/g, ", ") });
-    }
     return {
       id: s.id, kindLabel: "Verkauf", title: (s.snapshot?.title || s.snapshot?.name || "Werk") + (s.variant_name ? " · " + s.variant_name : ""), image,
       amount: s.payout_eur, amountLabel: "Verdient",

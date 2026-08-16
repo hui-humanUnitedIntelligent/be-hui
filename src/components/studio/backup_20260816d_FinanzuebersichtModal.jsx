@@ -478,6 +478,7 @@ function MeineVerkaeufe({ userId }) {
         ...(s.orders?.tracking_number ? [{ label: "Tracking", value: s.orders.tracking_number }] : []),
       ],
       person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: "Käufer" } : null,
+      shippingAddress: s.orders?.shipping_address || null,
       actions: {
         onChat: (buyerId && bInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }) : null,
         onViewProfile: buyerId ? () => window.__HUI_OPEN_PROFILE__?.(buyerId) : null,
@@ -494,7 +495,7 @@ function MeineVerkaeufe({ userId }) {
 
   const totalVerdient   = items.reduce((s, i) => s + (i.payout_eur || 0), 0);
   const totalUmsatz     = items.reduce((s, i) => s + (i.unit_price_eur || 0), 0);
-  // FIX (2026-08-16): Echter Impact-Anteil (2.25%), nicht gesamte Gebühr (15%)
+  // Impact-Anteil = 6% des Verkaufspreises (30% der 20%-Gebühr)
   const totalImpact     = items.reduce((s, i) => s + (i.snapshot?.impact_eur ?? i.impact_eur ?? 0), 0);
 
   return (
