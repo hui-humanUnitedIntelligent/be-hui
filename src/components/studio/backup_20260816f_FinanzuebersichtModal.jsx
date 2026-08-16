@@ -157,14 +157,24 @@ function MeineKaeufe({ userId }) {
   useEffect(() => { load(); }, [load]);
 
   // ── HANDLE CONFIRM: Edge Function confirm-and-transfer (Stripe + DB) ──
+  // FIX (2026-08-16, DUPLICATE-NOTIF-BUG + BROKEN-TRANSFER-BUG):
+  // 1) Reentry-Guard: Ein zweiter Klick waehrend ein Request noch laeuft wird
+  //    sofort ignoriert (vorher konnte ein sehr schneller Doppelklick VOR dem
+  //    naechsten React-Render den Handler zweimal ausloesen).
+  // 2) Die Notification an den Verkaeufer wird jetzt AUSSCHLIESSLICH serverseitig
+  //    in der Edge Function confirm-and-transfer erzeugt (exakt einmal, durch die
+  //    jetzt idempotente RPC + DB-Unique-Index abgesichert) -- der fruehere
+  //    Client-seitige Insert hier ist entfernt, das war die zweite Notification-
+  //    Quelle und lief zudem mit falschem Spalten-Schema (text/entity_type ohne
+  //    title/body/is_read) komplett ins Leere.
   const handleConfirm = async (orderId) => {
+    if (confirmingId) return; // Reentry-Guard — verhindert Doppelklick
     setConfirmingId(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      // 1. Edge Function aufrufen (macht RPC + Stripe Transfer)
       const res = await fetch(`${supabaseUrl}/functions/v1/confirm-and-transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -172,36 +182,42 @@ function MeineKaeufe({ userId }) {
       });
       const result = await res.json();
 
-      // 2. Push an Verkäufer: "Käufer hat Erhalt bestätigt"
-      try {
-        const { data: order } = await supabase
-          .from("orders")
-          .select("order_items(seller_id)")
-          .eq("id", orderId)
-          .maybeSingle();
-        const sellerId = order?.order_items?.[0]?.seller_id;
-        if (sellerId) {
-          await supabase.from("notifications").insert({
-            user_id: sellerId,
-            type: "buyer_confirmed",
-            text: "Der Käufer hat den Erhalt bestätigt. Auszahlung wird freigegeben.",
-            entity_id: orderId,
-            entity_type: "order",
-          });
-        }
-      } catch (e) { console.warn("[PUSH] seller notify:", e); }
-
-      // 3. Auch bei Fehlern lokalen State updaten
-      setConfirmDone(p => ({ ...p, [orderId]: true }));
-      setDetail(null);
-      load();
+      // FIX (2026-08-16, FAKE-SUCCESS-BUG): Vorher wurde bei jedem Fehler
+      // (sowohl HTTP-Error als auch Catch) trotzdem confirmDone[orderId]=true
+      // gesetzt — die UI zeigte "Erhalten ✓ / Zahlung freigegeben", aber in der
+      // DB blieb buyer_confirmed=false und escrow_status='holding'. Der Käufer
+      // glaubte er hätte bestätigt, aber nichts war passiert.
+      // Jetzt: Nur bei echtem Erfolg (res.ok && result.ok) oder idempotentem
+      // "skipped" (bereits vorher bestätigt) wird confirmDone gesetzt.
+      // Bei Fehler: Fehler anzeigen, NICHT als bestätigt markieren.
+      if (res.ok && result?.ok) {
+        // Erfolg oder skipped (idempotent — bereits bestätigt)
+        setConfirmDone(p => ({ ...p, [orderId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        // Echter Fehler — KEIN Fake-Erfolg
+        console.warn("[ESCROW] confirm-and-transfer error:", result?.error);
+        // Nur die reine DB-Bestätigung versuchen (ohne Transfer) als Notfall-Fallback,
+        // aber nur wenn die Edge Function komplett unerreichbar war (Netzwerkfehler).
+        // Wenn die Edge Function reachable war aber einen Fehler gemeldet hat
+        // (z.B. order_not_found), darf kein Fallback erfolgen.
+        // In beiden Fällen: NICHT als "done" markieren.
+        alert("Bestätigung fehlgeschlagen: " + (result?.error || "Unbekannter Fehler") + ". Bitte versuche es erneut.");
+      }
     } catch (e) {
-      console.warn("[ESCROW] confirm-and-transfer error:", e);
-      // Fallback: nur RPC aufrufen
-      const { data } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
-      setConfirmDone(p => ({ ...p, [orderId]: true }));
-      setDetail(null);
-      load();
+      // Netzwerkfehler — Edge Function nicht erreichbar
+      console.warn("[ESCROW] confirm-and-transfer network error:", e);
+      // Fallback: direkte RPC (nur DB-Bestätigung, kein Stripe-Transfer)
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
+      if (rpcResult?.success) {
+        // RPC hat funktioniert — Bestätigung ok, aber Stripe-Transfer fehlt
+        setConfirmDone(p => ({ ...p, [orderId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        alert("Bestätigung fehlgeschlagen: " + (rpcErr?.message || "Netzwerkfehler") + ". Bitte versuche es erneut.");
+      }
     } finally {
       setConfirmingId(null);
     }
@@ -352,8 +368,14 @@ function MeineVerkaeufe({ userId }) {
   const [shippingId, setShippingId] = useState(null);
   const actions = useHuiActions();
 
+  // FIX (2026-08-16, DUPLICATE-NOTIF-BUG): Reentry-Guard ergaenzt + Notification
+  // wird jetzt NUR bei result.ok && !result.skipped ausgeloest. Die RPC selbst
+  // ist jetzt idempotent (delivery_status/shipped_at-Guard, siehe Migration) --
+  // ein zweiter Aufruf liefert result.skipped=true zurueck statt erneut ok:true,
+  // wodurch vorher bei jedem Doppelklick eine zusaetzliche Notification entstand
+  // (belegt: 3 identische "order_shipped"-Einträge fuer dieselbe Bestellung).
   const handleShip = async (orderId) => {
-    if (!orderId) return;
+    if (!orderId || shippingId) return; // Reentry-Guard
     setShippingId(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -370,16 +392,12 @@ function MeineVerkaeufe({ userId }) {
         }
       );
       const result = await res.json();
-      if (result.ok) {
-        // FIX (2026-08-16): Notification-Schema war falsch (text/read statt
-        // title/body/is_read) — useNotifications.jsx select() liest title,body,
-        // is_read. Ohne diese Felder blieb die Benachrichtigung im
-        // Resonanzzentrum + 'Mein Bereich' unsichtbar (leer/fehlend).
+      if (result.ok && !result.skipped) {
         const { data: order } = await supabase
           .from("orders").select("customer_id").eq("id", orderId).maybeSingle();
         if (order?.customer_id) {
           const { data: { user: authUser } } = await supabase.auth.getUser();
-          await supabase.from("notifications").insert({
+          const { error: notifErr } = await supabase.from("notifications").insert({
             user_id:     order.customer_id,
             type:        "order_shipped",
             title:       "Dein Kauf wurde versendet",
@@ -390,10 +408,11 @@ function MeineVerkaeufe({ userId }) {
             entity_id:   orderId,
             entity_type: "order",
           });
+          // 23505 = unique_violation (DB-Sicherheitsnetz griff) -- unkritisch
+          if (notifErr && notifErr.code !== "23505") console.warn("[SHIP] notify:", notifErr.message);
         }
-        load();
-        setDetail(null);
       }
+      if (result.ok) { load(); setDetail(null); }
     } catch (e) {
       console.warn("[SHIP] error:", e);
     } finally {
@@ -406,7 +425,7 @@ function MeineVerkaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, payout_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
@@ -440,7 +459,13 @@ function MeineVerkaeufe({ userId }) {
     const statusChips = [];
     if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
     if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-    if (escrow === "released") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+    // FIX (2026-08-16): Bei escrow='released' unterscheiden ob der
+    // Stripe-Transfer wirklich stattfand (payout_status='transferred')
+    // oder ob der Verkäufer keine Bankdaten hat (payout_status='manual_required').
+    const payoutStatus = s.payout_status;
+    if (escrow === "released" && payoutStatus === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+    else if (escrow === "released" && payoutStatus === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
+    else if (escrow === "released") statusChips.push({ label: "Freigegeben", color: T.teal, bg: T.tealSoft });
     if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
     if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
 
@@ -454,13 +479,9 @@ function MeineVerkaeufe({ userId }) {
     // escrow_status kann "none" sein (ältere Orders) — dann als "holding" behandeln
     // solange die Order paid ist und noch nicht versendet wurde.
     const escrowHolding = s.orders?.escrow_status === "holding" || (!s.orders?.shipped_at && (s.orders?.escrow_status === "none" || !s.orders?.escrow_status));
-    // Adresse: shipping_address aus Order, oder buyer info als Fallback
+    // FIX (2026-08-16): Lieferadresse wird als prominente grüne Section angezeigt
+    // (tx.shippingAddress → TransactionDetailSheet) — nicht mehr als MetaRow verstecken.
     const addrParts = [];
-    if (s.orders?.shipping_address) {
-      const a = s.orders.shipping_address;
-      const parts = [a.full || [a.line1, a.line2, a.postal_code, a.city, a.country].filter(Boolean).join(", ")];
-      addrParts.push({ label: "Lieferadresse", value: parts[0].replace(/\n/g, ", ") });
-    }
     return {
       id: s.id, kindLabel: "Verkauf", title: (s.snapshot?.title || s.snapshot?.name || "Werk") + (s.variant_name ? " · " + s.variant_name : ""), image,
       amount: s.payout_eur, amountLabel: "Verdient",
@@ -516,7 +537,9 @@ function MeineVerkaeufe({ userId }) {
         const statusChips = [];
         if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
         if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-        if (escrow === "released") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+        if (escrow === "released" && s.payout_status === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+        else if (escrow === "released" && s.payout_status === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
+        else if (escrow === "released") statusChips.push({ label: "Freigegeben", color: T.teal, bg: T.tealSoft });
         if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
         return (
           <TxCard
@@ -576,6 +599,7 @@ function MeineBuchungen({ userId }) {
   const [disputingBooking, setDisputingBooking] = useState(null);
 
   const handleConfirmBooking = async (bookingId) => {
+    if (confirmingBooking) return; // FIX (2026-08-16): Reentry-Guard, analog handleConfirm
     setConfirmingBooking(bookingId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -586,15 +610,29 @@ function MeineBuchungen({ userId }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ booking_id: bookingId }),
       });
-      setConfirmDone(p => ({ ...p, [bookingId]: true }));
-      setDetail(null);
-      load();
+      const result = await res.json();
+      // FIX (2026-08-16, FAKE-SUCCESS-BUG): Analog handleConfirm — kein
+      // Fake-Erfolg bei Fehler. Nur bei echtem Erfolg oder idempotentem
+      // "skipped" als bestätigt markieren.
+      if (res.ok && result?.ok) {
+        setConfirmDone(p => ({ ...p, [bookingId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        console.warn("[ESCROW] booking confirm error:", result?.error);
+        alert("Bestätigung fehlgeschlagen: " + (result?.error || "Unbekannter Fehler") + ". Bitte versuche es erneut.");
+      }
     } catch (e) {
-      console.warn("[ESCROW] booking confirm error:", e);
-      const { data } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_booking_id: bookingId });
-      setConfirmDone(p => ({ ...p, [bookingId]: true }));
-      setDetail(null);
-      load();
+      console.warn("[ESCROW] booking confirm network error:", e);
+      // Fallback: direkte RPC (nur DB-Bestätigung, kein Stripe-Transfer)
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_booking_id: bookingId });
+      if (rpcResult?.success) {
+        setConfirmDone(p => ({ ...p, [bookingId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        alert("Bestätigung fehlgeschlagen: " + (rpcErr?.message || "Netzwerkfehler") + ". Bitte versuche es erneut.");
+      }
     } finally {
       setConfirmingBooking(null);
     }

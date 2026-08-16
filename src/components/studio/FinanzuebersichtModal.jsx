@@ -465,7 +465,7 @@ function MeineVerkaeufe({ userId }) {
     const payoutStatus = s.payout_status;
     if (escrow === "released" && payoutStatus === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
     else if (escrow === "released" && payoutStatus === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
-    else if (escrow === "released") statusChips.push({ label: "Freigegeben", color: T.teal, bg: T.tealSoft });
+    else if (escrow === "released") statusChips.push({ label: "Zahlung genehmigt", color: T.teal, bg: T.tealSoft });
     if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
     if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
 
@@ -539,7 +539,7 @@ function MeineVerkaeufe({ userId }) {
         if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
         if (escrow === "released" && s.payout_status === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
         else if (escrow === "released" && s.payout_status === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
-        else if (escrow === "released") statusChips.push({ label: "Freigegeben", color: T.teal, bg: T.tealSoft });
+        else if (escrow === "released") statusChips.push({ label: "Zahlung genehmigt", color: T.teal, bg: T.tealSoft });
         if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
         return (
           <TxCard
