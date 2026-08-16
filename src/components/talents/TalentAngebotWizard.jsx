@@ -265,6 +265,19 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       stock_available:  bookingType === "einzel" ? 1 : Math.max(1, num(maxParticipants) || 1),
     };
 
+    // BANKDATEN-002 (2026-08-16): Vor dem Veröffentlichen eines Talent-Angebots
+    // pruefen, ob Bankdaten hinterlegt sind (siehe WerkWizard fuer Begründung).
+    try {
+      const { data: bankCheck } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
+      if (!bankCheck?.has_bank_details) {
+        setSaving(false);
+        setError("Bitte hinterlege zuerst deine Bankdaten (Einstellungen → Bankdaten), damit wir dir Auszahlungen überweisen können.");
+        return;
+      }
+    } catch (e) {
+      console.warn("[TalentAngebotWizard] bank-check failed:", e?.message);
+    }
+
     // ── Pre-Save: Session prüfen, ggf. refreshen ──
     const { data: { session: curSession } } = await supabase.auth.getSession();
     if (!curSession?.access_token) {

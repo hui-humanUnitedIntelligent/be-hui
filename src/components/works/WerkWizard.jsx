@@ -552,6 +552,24 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   async function save(status) {
     if (!userId) return;
     setSaving(true);
+
+    // BANKDATEN-002 (2026-08-16): Vor dem Verkaufen/Veröffentlichen pruefen,
+    // ob der Nutzer Bankdaten hinterlegt hat. Ohne stripe_account_id wuerde
+    // confirm-and-transfer bei einer Kaeufer-Bestaetigung keinen Stripe-
+    // Transfer ausloesen koennen -- das Geld bliebe im Escrow stecken.
+    if (status === "published" || status === "available") {
+      try {
+        const { data: bankCheck } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
+        if (!bankCheck?.has_bank_details) {
+          setSaving(false);
+          setSaveError("Bitte hinterlege zuerst deine Bankdaten in den Einstellungen (Account & Sicherheit → Bankdaten), damit wir dir Auszahlungen überweisen können.");
+          return;
+        }
+      } catch (e) {
+        // Wenn der Check fehlschlaegt, nicht blockieren -- save laeuft weiter
+        console.warn("[WerkWizard] bank-check failed:", e?.message);
+      }
+    }
     const cover_url=form.images?.[0]?.url||null;
 
     // Geokoordinaten fuer Abholort ermitteln (Standort-Feature 2026-07-06,

@@ -1,5 +1,6 @@
 import { platformPath, getAuthRedirectUrl } from '../../lib/platform.js';
-import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon, HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import BankdatenModal from './BankdatenModal.jsx';
 // src/components/settings/SettingsModal.jsx
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
@@ -89,10 +90,10 @@ function SaveRow({ onSave, saving, saved, error }) {
 }
 
 // ── Navigation: Profil bearbeiten + Buchungen ─────────────────
-function NavItem({ icon, label, onClick, danger, last }) {
+function NavItem({ icon, label, onClick = () => {}, danger = false, last = false, right = null }) {
   const [hover, setHover] = useState(false);
   return (
-    <button onClick={onClick}
+    <button onClick={() => onClick?.()}
       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{ width:"100%", display:"flex", alignItems:"center", gap:13,
         padding:"14px 16px", background:hover?(danger?T.dangerBg:T.tealSoft):"none",
@@ -109,6 +110,7 @@ function NavItem({ icon, label, onClick, danger, last }) {
         color:danger?T.danger:T.ink, flex:1, textAlign:"left" }}>
         {label}
       </span>
+      {right}
       <span style={{ fontSize:16, color:T.inkFaint }}>›</span>
     </button>
   );
@@ -392,6 +394,14 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
+  const [showBankdaten, setShowBankdaten] = useState(false);
+  const [bankStatus, setBankStatus] = useState(null); // { has_bank_details, bank_iban_last4 }
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: profile.id })
+      .then(({ data }) => setBankStatus(data))
+      .catch(() => {});
+  }, [profile?.id]);
   const kbdInset = useKeyboardInset();
   if (!profile) return null;
 
@@ -472,6 +482,20 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             <Section title="Account & Sicherheit" icon={<HUIProfilIcon size={16}/>}>
               <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
                 onClick={() => onEditProfile?.()}/>
+              <NavItem
+                icon={<HUIFinanzIcon size={16}/>}
+                label="Bankdaten"
+                onClick={() => setShowBankdaten(true)}
+                right={bankStatus?.has_bank_details ? (
+                  <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                    •••• {bankStatus.bank_iban_last4 || "????"}
+                  </span>
+                ) : (
+                  <span style={{ fontSize:11, fontWeight:600, color:"#B8860B", background:"rgba(184,134,11,0.10)", padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                    fehlt
+                  </span>
+                )}
+              />
               <NavItem icon={<HUISicherheitIcon size={16}/>} label="Email & Passwort"
                 onClick={() => setView("security")}/>
               <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
@@ -483,6 +507,19 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
                 onClick={logout} danger last/>
             </Section>
+
+            {showBankdaten && (
+              <BankdatenModal
+                userId={profile.id}
+                onClose={() => setShowBankdaten(false)}
+                onSaved={() => {
+                  // Bank-Status neu laden nach Speichern
+                  supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: profile.id })
+                    .then(({ data }) => setBankStatus(data))
+                    .catch(() => {});
+                }}
+              />
+            )}
 
             {/* OTA Update-Check (2026-08-08) */}
             <OTAUpdateSection/>
