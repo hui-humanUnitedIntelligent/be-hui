@@ -25,6 +25,7 @@ import {
 } from "./commerceUtils.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { resolveShippingStrategy, orderService } from "../../services/commerceEngine.js";
+import ShippingAddressModal from "./ShippingAddressModal.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
@@ -405,6 +406,11 @@ export default function UnterstutzenFlow({
   const [stripeError,  setStripeError]  = useState(null);
   const [piLoading,    setPiLoading]    = useState(false);
 
+  // BUGFIX (2026-08-16): Adressabfrage fehlte in diesem Flow komplett —
+  // ShippingAddressModal existierte, war aber weder importiert noch verdrahtet.
+  const [shippingAddress, setShippingAddress] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+
   // eslint-disable-next-line no-unused-vars
   const dbg = import.meta.env.DEV
     ? (msg, data) => {
@@ -482,15 +488,27 @@ export default function UnterstutzenFlow({
     }
   }, [user]);
 
-  // Payment Intent erstellen (direkt beim Öffnen des Flows)
+  // BUGFIX (2026-08-16): Lieferadresse VOR der Zahlung abfragen, wenn mindestens
+  // ein physisches Item im Warenkorb ist (digitale/Service-/Erlebnis-Items brauchen
+  // laut resolveShippingStrategy() keine Adresse — kein Zwang für Spenden/Digitalkäufe).
+  const shippingStrategy = resolveShippingStrategy(items);
+  const needsAddress = shippingStrategy.needsShippingAddress;
+
+  // Payment Intent erstellen (direkt beim Öffnen des Flows — außer Adresse fehlt noch)
   useEffect(() => {
     const _skip = clientSecret ? 'clientSecret set' : piLoading ? 'piLoading' : !user ? 'no user (uid='+String(user?.id)+')' : !items.length ? 'items empty' : null;
     if (_skip) { dbg('⏭ PI SKIP', _skip); return; }
+    if (needsAddress && !shippingAddress) {
+      dbg('⏸ PI SKIP — Adresse fehlt, zeige ShippingAddressModal');
+      setShowAddressModal(true);
+      return;
+    }
     dbg('🔄 PI TRIGGER', { items: items.length, uid: user?.id });
-    createPaymentIntent();
-  }, [user]);
+    createPaymentIntent(shippingAddress);
+  }, [user, shippingAddress]);
 
-  async function createPaymentIntent() {
+  async function createPaymentIntent(addressOverride = null) {
+    const address = addressOverride || shippingAddress;
     dbg('S00 PI START', { items: items.length, uid: user?.id });
 
     // Punkt 5: Selbstkauf-Schutz — eigene Werke/Dienstleistungen können nicht gekauft werden
@@ -553,9 +571,11 @@ export default function UnterstutzenFlow({
       dbg('S06 ✓ Headers', { hasAuth: !!headers.Authorization, hasApiKey: !!headers.apikey, ct: headers['Content-Type'] });
 
       // S07 — RequestBody
+      // BUGFIX (2026-08-16): shipping_address wurde erfasst, aber nie mitgesendet
+      // — orders.shipping_address blieb im Werkekorb-Flow immer leer.
       _step = 'S07';
-      const body = JSON.stringify(payload);
-      dbg('S07 ✓ RequestBody', { byteLen: body.length, preview: body.slice(0, 80) });
+      const body = JSON.stringify({ ...payload, shipping_address: address || null });
+      dbg('S07 ✓ RequestBody', { byteLen: body.length, preview: body.slice(0, 80), hasAddress: !!address });
 
       // S08 — fetch() aufrufen
       _step = 'S08';
@@ -647,6 +667,17 @@ export default function UnterstutzenFlow({
   };
 
   return (
+    <>
+    {showAddressModal && (
+      <ShippingAddressModal
+        onConfirm={(address) => {
+          setShippingAddress(address);
+          setShowAddressModal(false);
+          createPaymentIntent(address);
+        }}
+        onCancel={() => { setShowAddressModal(false); onClose?.(); }}
+      />
+    )}
     <div style={{
       position:        "fixed",
       inset:           0,
@@ -745,7 +776,7 @@ export default function UnterstutzenFlow({
                           {stripeError}
                         </div>
                         <button
-                          onClick={createPaymentIntent}
+                          onClick={() => createPaymentIntent(shippingAddress)}
                           disabled={piLoading}
                           style={{
                             padding: "12px 28px", borderRadius: 14,
@@ -794,5 +825,6 @@ export default function UnterstutzenFlow({
         </div>
       </div>
     </div>
+    </>
   );
 }

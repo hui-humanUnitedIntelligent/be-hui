@@ -32,6 +32,7 @@ import { toast } from "../../lib/useToast.jsx";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { optimizeCard } from "../../lib/perfUtils.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { resolveShippingStrategy } from "../../services/commerceEngine.js";
 
 let _resonanceHelpers = null;
 async function getResonanceHelpers() {
@@ -88,9 +89,15 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const displayPrice = variantPrice != null ? variantPrice : amount;
   const displayPriceStr = displayPrice > 0 ? `${displayPrice.toFixed(2).replace(".", ",")} €` : priceStr;
 
-  async function handleKauf() {
-    // Adressabfrage: Ohne Adresse -> erst AdressModal anzeigen
-    if (!shippingAddress) {
+  // BUGFIX (2026-08-16): resolveShippingStrategy statt hartem Adress-Zwang —
+  // digitale Werke/Services brauchen keine Lieferadresse.
+  const shippingStrategy = resolveShippingStrategy([{ id: workId, type: "work", _raw: werk?._raw || werk }]);
+  const needsAddress = shippingStrategy.needsShippingAddress;
+
+  async function handleKauf(addressOverride = null) {
+    const address = addressOverride || shippingAddress;
+    // Adressabfrage: Physisches Werk ohne Adresse -> erst AdressModal anzeigen
+    if (needsAddress && !address) {
       setShowAddressModal(true);
       return;
     }
@@ -141,6 +148,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             variant_id: activeVariant?.id || null,
             variant_name: activeVariant?.name || null,
           }],
+          // BUGFIX (2026-08-16): Lieferadresse wurde erfasst, aber nie an die
+          // Edge Function gesendet — orders.shipping_address blieb immer leer.
+          shipping_address: address || null,
         }),
       });
 
@@ -200,7 +210,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   }
 
   // ── Render ──────────────────────────────────────────────────────
-  return createPortal(
+  return (
+    <>
+    {createPortal(
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
@@ -569,5 +581,19 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       </div>
     </div>,
     document.body
+    )}
+    {/* BUGFIX (2026-08-16): ShippingAddressModal war importiert + State vorhanden,
+        wurde aber nie gerendert — Adressabfrage vor Kauf fehlte komplett im UI. */}
+    {showAddressModal && (
+      <ShippingAddressModal
+        onConfirm={(address) => {
+          setShippingAddress(address);
+          setShowAddressModal(false);
+          handleKauf(address);
+        }}
+        onCancel={() => setShowAddressModal(false)}
+      />
+    )}
+    </>
   );
 }
