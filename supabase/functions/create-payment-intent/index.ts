@@ -23,9 +23,12 @@ const corsHeaders = {
 
 // Serverseitige Konstanten — nie vom Client übernehmen
 // COM-MIGRATION-015.3: Gebuehr 10%->15%, Impact 7%->2.25% (=15% der Gebuehr), Creator 90%->85%
-const PLATFORM_FEE_RATE = 0.15
-const IMPACT_RATE       = 0.0225
-const CREATOR_SHARE     = 0.85
+// FIX (2026-08-16): Balanced-Growth-v1 (SSOT: rpc_process_order_fees, seit 10.07.2026)
+// HUI-Gebühr = 20% (nicht mehr 15%). Talent-Anteil = 80% (nicht mehr 85%).
+// Impact-Fonds = 30% von 20% Gebühr = 6% des Verkaufspreises (nicht mehr 2,25%).
+const PLATFORM_FEE_RATE = 0.20
+const IMPACT_RATE       = 0.06
+const CREATOR_SHARE     = 0.80
 const MAX_QTY           = 99
 const MIN_AMOUNT_CENTS  = 50   // Stripe Minimum EUR
 

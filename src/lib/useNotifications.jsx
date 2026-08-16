@@ -48,6 +48,8 @@ const TYPE_META = {
   order:          { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Bestellung" },
   new_order:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Neue Bestellung" },
   order_confirmed:{ tab:"kauf_verkauf", icon:"✓",  color:T.teal,   label:"Bestellung bestätigt" },
+  order_shipped:  { tab:"kauf_verkauf", icon:"📦", color:T.teal,   label:"Versendet" },
+  work_sold:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Werk verkauft" },
   support_received:{ tab:"kauf_verkauf", icon:"✦", color:T.teal,   label:"Unterstützung erhalten" },
   support_succeeded:{ tab:"kauf_verkauf", icon:"✓", color:T.teal,   label:"Unterstützung gesendet" },
   // ── INFORMATIV (alles Sonstige: Interaktionen, Freigaben, System) ──────

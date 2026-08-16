@@ -183,10 +183,14 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
 
   async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
     // Notification an Creator
+    // FIX (2026-08-16): text/read → title/body/is_read (gleicher Bug wie
+    // order_shipped) — useNotifications.jsx select() liest title,body,is_read.
     await supabase.from("notifications").insert({
       user_id:    creatorId,
       type:       "work_sold",
-      text:       `Dein Werk "${title}" wurde gekauft.`,
+      title:      "Dein Werk wurde verkauft",
+      body:       `Dein Werk "${title}" wurde gekauft.`,
+      is_read:    false,
       read:       false,
       actor_id:   user.id,
       created_at: new Date().toISOString(),

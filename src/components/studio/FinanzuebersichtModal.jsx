@@ -250,8 +250,8 @@ function MeineKaeufe({ userId }) {
     const breakdown = [];
     if (item?.snapshot?.price_eur != null) breakdown.push({ label: "Werk-Preis", value: eur(item.snapshot.price_eur) });
     const itemFee = (item?.unit_price_eur || 0) - (item?.payout_eur || 0);
-    if (itemFee > 0) breakdown.push({ label: "Plattformgebühr (15%)", value: eur(itemFee) });
-    if (item?.snapshot?.impact_eur != null) breakdown.push({ label: "Davon Impact-Pool (2,25%)", value: eur(item.snapshot.impact_eur) });
+    if (itemFee > 0) breakdown.push({ label: "Plattformgebühr (20%)", value: eur(itemFee) });
+    if (item?.snapshot?.impact_eur != null) breakdown.push({ label: "Davon Impact-Pool (6%)", value: eur(item.snapshot.impact_eur) });
     breakdown.push({ label: "Gesamt bezahlt", value: eur(o.total_eur) });
 
     return {
@@ -371,15 +371,23 @@ function MeineVerkaeufe({ userId }) {
       );
       const result = await res.json();
       if (result.ok) {
-        // Push an Käufer
+        // FIX (2026-08-16): Notification-Schema war falsch (text/read statt
+        // title/body/is_read) — useNotifications.jsx select() liest title,body,
+        // is_read. Ohne diese Felder blieb die Benachrichtigung im
+        // Resonanzzentrum + 'Mein Bereich' unsichtbar (leer/fehlend).
         const { data: order } = await supabase
           .from("orders").select("customer_id").eq("id", orderId).maybeSingle();
         if (order?.customer_id) {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
           await supabase.from("notifications").insert({
-            user_id: order.customer_id,
-            type: "order_shipped",
-            text: "Dein Werk/Talent/Erlebnis wurde versendet und ist unterwegs.",
-            entity_id: orderId,
+            user_id:     order.customer_id,
+            type:        "order_shipped",
+            title:       "Dein Kauf wurde versendet",
+            body:        "Dein Werk/Talent/Erlebnis wurde versendet und ist unterwegs.",
+            is_read:     false,
+            read:        false,
+            actor_id:    authUser?.id || null,
+            entity_id:   orderId,
             entity_type: "order",
           });
         }
@@ -436,10 +444,11 @@ function MeineVerkaeufe({ userId }) {
     if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
     if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
 
-    // FIX (2026-08-16): Impact = echter Impact-Anteil aus snapshot (2.25%),
-    // nicht die gesamte Plattformgebühr (15%). payout_eur = 85% = Creator-Anteil.
-    // platformFee = unit_price - payout = 15% Gesamtgebühr.
-    // impact_eur = snapshot.impact_eur oder order_items.impact_eur (2.25%).
+    // FIX (2026-08-16): Balanced-Growth-v1 — Impact = echter Impact-Anteil
+    // aus snapshot (6% des Verkaufspreises = 30% der 20%-Gebühr), nicht die
+    // gesamte Plattformgebühr (20%). payout_eur = 80% = Talent-Anteil.
+    // platformFee = unit_price - payout = 20% Gesamtgebühr.
+    // impact_eur = snapshot.impact_eur oder order_items.impact_eur (6%).
     const platformFee = (s.unit_price_eur || 0) - (s.payout_eur || 0);
     const impactEur   = s.snapshot?.impact_eur ?? s.impact_eur ?? 0;
     // escrow_status kann "none" sein (ältere Orders) — dann als "holding" behandeln
@@ -458,9 +467,9 @@ function MeineVerkaeufe({ userId }) {
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [
         { label: "Verkaufspreis", value: eur(s.unit_price_eur) },
-        { label: "Plattformgebühr (15%)", value: eur(platformFee) },
-        { label: "Davon Impact-Pool (2,25%)", value: eur(impactEur) },
-        { label: "Deine Auszahlung (85%)", value: eur(s.payout_eur) },
+        { label: "Plattformgebühr (20%)", value: eur(platformFee) },
+        { label: "Davon Impact-Pool (6%)", value: eur(impactEur) },
+        { label: "Deine Auszahlung (80%)", value: eur(s.payout_eur) },
       ],
       meta: [
         ...(s.orders?.shipped_at ? [{ label: "Versendet am", value: dt(s.orders.shipped_at) }] : []),
