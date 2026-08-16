@@ -132,7 +132,7 @@ function MeineKaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id)")
+      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
       .eq("customer_id", userId)
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
@@ -211,6 +211,8 @@ function MeineKaeufe({ userId }) {
   const buildTx = (o) => {
     const item = o.order_items?.[0];
     const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+    const variantName = item?.variant_name || null;
+    const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
     const image = item?.snapshot?.cover_url || null;
     const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at || !!o.buyer_confirmed;
     const isDisputed = disputeDone[o.id] || !!o.dispute_open || o.escrow_status === "disputed";
@@ -230,7 +232,7 @@ function MeineKaeufe({ userId }) {
     breakdown.push({ label: "Gesamt bezahlt", value: eur(o.total_eur) });
 
     return {
-      id: o.id, kindLabel: "Kauf", title, image,
+      id: o.id, kindLabel: "Kauf", title: titleWithVariant, image,
       amount: o.total_eur, amountLabel: "Bezahlt",
       dateLabel: dt(o.created_at), statusChips, breakdown, needsConfirm,
       person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, email: sInfo.email, website: sInfo.website, roleLabel: "Verkäufer" } : null,
@@ -324,7 +326,7 @@ function MeineVerkaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
@@ -364,7 +366,7 @@ function MeineVerkaeufe({ userId }) {
 
     const impact = (s.unit_price_eur || 0) - (s.payout_eur || 0);
     return {
-      id: s.id, kindLabel: "Verkauf", title: titleWithVariant, image,
+      id: s.id, kindLabel: "Verkauf", title: (s.snapshot?.title || s.snapshot?.name || "Werk") + (s.variant_name ? " · " + s.variant_name : ""), image,
       amount: s.payout_eur, amountLabel: "Verdient",
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [

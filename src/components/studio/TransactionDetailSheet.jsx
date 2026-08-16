@@ -270,7 +270,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                 {tx.breakdown.map((row, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < tx.breakdown.length - 1 ? `1px solid ${T.border}` : "none" }}>
                     <span style={{ fontSize: 13, color: T.inkSoft }}>{row.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{eur(row.value)}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{row.value}</span>
                   </div>
                 ))}
               </div>
