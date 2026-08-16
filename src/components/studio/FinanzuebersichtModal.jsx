@@ -168,7 +168,7 @@ function MeineKaeufe({ userId }) {
   //    Quelle und lief zudem mit falschem Spalten-Schema (text/entity_type ohne
   //    title/body/is_read) komplett ins Leere.
   const handleConfirm = async (orderId) => {
-    if (confirmingId) return; // Reentry-Guard
+    if (confirmingId) return; // Reentry-Guard — verhindert Doppelklick
     setConfirmingId(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -181,20 +181,43 @@ function MeineKaeufe({ userId }) {
         body: JSON.stringify({ order_id: orderId }),
       });
       const result = await res.json();
-      if (!res.ok && !result?.ok) {
+
+      // FIX (2026-08-16, FAKE-SUCCESS-BUG): Vorher wurde bei jedem Fehler
+      // (sowohl HTTP-Error als auch Catch) trotzdem confirmDone[orderId]=true
+      // gesetzt — die UI zeigte "Erhalten ✓ / Zahlung freigegeben", aber in der
+      // DB blieb buyer_confirmed=false und escrow_status='holding'. Der Käufer
+      // glaubte er hätte bestätigt, aber nichts war passiert.
+      // Jetzt: Nur bei echtem Erfolg (res.ok && result.ok) oder idempotentem
+      // "skipped" (bereits vorher bestätigt) wird confirmDone gesetzt.
+      // Bei Fehler: Fehler anzeigen, NICHT als bestätigt markieren.
+      if (res.ok && result?.ok) {
+        // Erfolg oder skipped (idempotent — bereits bestätigt)
+        setConfirmDone(p => ({ ...p, [orderId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        // Echter Fehler — KEIN Fake-Erfolg
         console.warn("[ESCROW] confirm-and-transfer error:", result?.error);
-        // Fallback: wenigstens die reine Bestaetigung durchsetzen (idempotent)
-        await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
+        // Nur die reine DB-Bestätigung versuchen (ohne Transfer) als Notfall-Fallback,
+        // aber nur wenn die Edge Function komplett unerreichbar war (Netzwerkfehler).
+        // Wenn die Edge Function reachable war aber einen Fehler gemeldet hat
+        // (z.B. order_not_found), darf kein Fallback erfolgen.
+        // In beiden Fällen: NICHT als "done" markieren.
+        alert("Bestätigung fehlgeschlagen: " + (result?.error || "Unbekannter Fehler") + ". Bitte versuche es erneut.");
       }
-      setConfirmDone(p => ({ ...p, [orderId]: true }));
-      setDetail(null);
-      load();
     } catch (e) {
-      console.warn("[ESCROW] confirm-and-transfer error:", e);
-      await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
-      setConfirmDone(p => ({ ...p, [orderId]: true }));
-      setDetail(null);
-      load();
+      // Netzwerkfehler — Edge Function nicht erreichbar
+      console.warn("[ESCROW] confirm-and-transfer network error:", e);
+      // Fallback: direkte RPC (nur DB-Bestätigung, kein Stripe-Transfer)
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
+      if (rpcResult?.success) {
+        // RPC hat funktioniert — Bestätigung ok, aber Stripe-Transfer fehlt
+        setConfirmDone(p => ({ ...p, [orderId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        alert("Bestätigung fehlgeschlagen: " + (rpcErr?.message || "Netzwerkfehler") + ". Bitte versuche es erneut.");
+      }
     } finally {
       setConfirmingId(null);
     }
@@ -402,7 +425,7 @@ function MeineVerkaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, payout_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
@@ -436,7 +459,13 @@ function MeineVerkaeufe({ userId }) {
     const statusChips = [];
     if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
     if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-    if (escrow === "released") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+    // FIX (2026-08-16): Bei escrow='released' unterscheiden ob der
+    // Stripe-Transfer wirklich stattfand (payout_status='transferred')
+    // oder ob der Verkäufer keine Bankdaten hat (payout_status='manual_required').
+    const payoutStatus = s.payout_status;
+    if (escrow === "released" && payoutStatus === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+    else if (escrow === "released" && payoutStatus === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
+    else if (escrow === "released") statusChips.push({ label: "Freigegeben", color: T.teal, bg: T.tealSoft });
     if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
     if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
 
@@ -508,7 +537,9 @@ function MeineVerkaeufe({ userId }) {
         const statusChips = [];
         if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
         if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-        if (escrow === "released") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+        if (escrow === "released" && s.payout_status === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
+        else if (escrow === "released" && s.payout_status === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
+        else if (escrow === "released") statusChips.push({ label: "Freigegeben", color: T.teal, bg: T.tealSoft });
         if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
         return (
           <TxCard
@@ -579,15 +610,29 @@ function MeineBuchungen({ userId }) {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ booking_id: bookingId }),
       });
-      setConfirmDone(p => ({ ...p, [bookingId]: true }));
-      setDetail(null);
-      load();
+      const result = await res.json();
+      // FIX (2026-08-16, FAKE-SUCCESS-BUG): Analog handleConfirm — kein
+      // Fake-Erfolg bei Fehler. Nur bei echtem Erfolg oder idempotentem
+      // "skipped" als bestätigt markieren.
+      if (res.ok && result?.ok) {
+        setConfirmDone(p => ({ ...p, [bookingId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        console.warn("[ESCROW] booking confirm error:", result?.error);
+        alert("Bestätigung fehlgeschlagen: " + (result?.error || "Unbekannter Fehler") + ". Bitte versuche es erneut.");
+      }
     } catch (e) {
-      console.warn("[ESCROW] booking confirm error:", e);
-      const { data } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_booking_id: bookingId });
-      setConfirmDone(p => ({ ...p, [bookingId]: true }));
-      setDetail(null);
-      load();
+      console.warn("[ESCROW] booking confirm network error:", e);
+      // Fallback: direkte RPC (nur DB-Bestätigung, kein Stripe-Transfer)
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_booking_id: bookingId });
+      if (rpcResult?.success) {
+        setConfirmDone(p => ({ ...p, [bookingId]: true }));
+        setDetail(null);
+        load();
+      } else {
+        alert("Bestätigung fehlgeschlagen: " + (rpcErr?.message || "Netzwerkfehler") + ". Bitte versuche es erneut.");
+      }
     } finally {
       setConfirmingBooking(null);
     }

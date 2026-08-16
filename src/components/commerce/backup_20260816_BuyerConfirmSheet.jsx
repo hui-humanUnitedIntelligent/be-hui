@@ -24,7 +24,6 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
   const title = isOrder ? (item.work_title || item.title || 'Bestellung') : (item.talent_title || item.title || 'Buchung')
 
   const handleConfirm = async () => {
-    if (loading) return // FIX (2026-08-16): Reentry-Guard — kein Doppelklick
     setLoading(true)
     setError('')
     try {
@@ -42,9 +41,7 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
         })
       })
       const result = await res.json()
-      // FIX (2026-08-16): Nur bei echtem Erfolg (res.ok && result.ok) als
-      // "done" markieren. Bei Fehler: Error anzeigen, Button bleibt klickbar.
-      if (!res.ok || !result?.ok) throw new Error(result?.error || 'Fehler bei Best\u00e4tigung')
+      if (!res.ok || !result.ok) throw new Error(result.error || 'Fehler bei Best\u00e4tigung')
       setDone(true)
       setTimeout(() => { onSuccess?.(); onClose?.() }, 2000)
     } catch (e) {

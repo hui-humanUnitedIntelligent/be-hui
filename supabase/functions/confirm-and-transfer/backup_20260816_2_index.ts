@@ -117,46 +117,25 @@ serve(async (req) => {
     const SELLER_RATE = 0.80
     const transferAmountCents = Math.round(amountEur * SELLER_RATE * 100)
     let transferId: string | null = null
-    let transferFailed = false
     const idempotencyKey = `hui-transfer-${order_id ?? booking_id}`
 
     if (sellerStripeAccountId && transferAmountCents > 0) {
-      try {
-        const transfer = await stripe.transfers.create({
-          amount: transferAmountCents,
-          currency: 'eur',
-          destination: sellerStripeAccountId,
-          source_transaction: stripeChargeId ?? undefined,
-          metadata: {
-            order_id: order_id ?? '',
-            booking_id: booking_id ?? '',
-            hui_release: 'buyer_confirmed',
-            buyer_id: user.id,
-          }
-        }, { idempotencyKey })
-        transferId = transfer.id
-      } catch (transferErr) {
-        // BANKDATEN-002-FOLLOWUP (2026-08-16): Ein fehlschlagender Stripe-Transfer
-        // (z.B. Connect-Account noch nicht vollstaendig verifiziert) darf die
-        // Buyer-Bestaetigung NICHT rueckgaengig machen -- die ist bereits in der
-        // DB persistiert (Schritt 1). Stattdessen wird der Fall als
-        // 'manual_required' markiert, damit nichts verloren geht und Admin/Seller
-        // informiert werden.
-        console.error('[ESCROW] Stripe-Transfer fehlgeschlagen:', String(transferErr))
-        transferFailed = true
-      }
+      const transfer = await stripe.transfers.create({
+        amount: transferAmountCents,
+        currency: 'eur',
+        destination: sellerStripeAccountId,
+        source_transaction: stripeChargeId ?? undefined,
+        metadata: {
+          order_id: order_id ?? '',
+          booking_id: booking_id ?? '',
+          hui_release: 'buyer_confirmed',
+          buyer_id: user.id,
+        }
+      }, { idempotencyKey })
+      transferId = transfer.id
     } else {
       console.log('[ESCROW] Kein Stripe-Connect-Account für Seller — Transfer übersprungen, manuell nötig')
     }
-
-    // BANKDATEN-002-FOLLOWUP (2026-08-16): payout_status auf order_items granular
-    // festhalten -- 'transferred' nur wenn der Stripe-Transfer wirklich ausgeloest
-    // wurde, sonst 'manual_required'. Vorher setzte die RPC bereits pauschal
-    // 'released', ohne zwischen "wirklich ausgezahlt" und "haengt fest, weil
-    // Verkaeufer keine Bankdaten hat" zu unterscheiden. Das fuehrte dazu, dass
-    // Verkaeufer "Ausgezahlt ✓" sahen, obwohl nie Geld transferiert wurde.
-    const payoutOk = !!transferId
-    const payoutStatus = payoutOk ? 'transferred' : 'manual_required'
 
     // 5. Transfer-ID in DB speichern + Fee-Processing (Impact-Pool/Ambassador) auslösen
     // ESCROW-FEE-TIMING-FIX (2026-08-16): rpc_process_order_fees / rpc_process_talent_booking_fees
@@ -170,14 +149,6 @@ serve(async (req) => {
         state: 'completed',
         updated_at: new Date().toISOString()
       }).eq('id', order_id)
-
-      // order_items granular auf den tatsaechlichen Auszahlungsstatus setzen
-      const itemUpdate: Record<string, unknown> = { payout_status: payoutStatus, updated_at: new Date().toISOString() }
-      if (transferId) {
-        itemUpdate.stripe_transfer_id = transferId
-        itemUpdate.payout_paid_at = new Date().toISOString()
-      }
-      await sb.from('order_items').update(itemUpdate).eq('order_id', order_id)
 
       const { data: existingPool } = await sb.from('stripe_impact_pool').select('id').eq('order_id', order_id).maybeSingle()
       if (!existingPool) {
@@ -197,7 +168,6 @@ serve(async (req) => {
       await sb.from('talent_bookings').update({
         seller_transfer_id: transferId,
         status: 'completed',
-        payout_status: payoutStatus,
         updated_at: new Date().toISOString()
       }).eq('id', booking_id)
 
@@ -227,24 +197,18 @@ serve(async (req) => {
       }
     }
 
-    // 6. Notification an den Verkäufer — nicht mehr client-seitig
+    // 6. EXAKT EINE Notification an den Verkäufer — nicht mehr client-seitig
     // (siehe FinanzuebersichtModal.jsx), damit sie garantiert nur einmal
     // ausgeloest wird, egal was das Frontend danach tut (Reload, Netzwerkfehler etc.).
     // Der partial-unique-index auf notifications(user_id,type,entity_id) ist das
     // letzte Sicherheitsnetz, falls dieser Codepfad doch doppelt erreicht wird.
-    // BANKDATEN-002-FOLLOWUP: Zwei unterschiedliche Nachrichten je nach payoutStatus,
-    // damit der Verkaeufer bei 'manual_required' sofort weiss dass er Bankdaten
-    // hinterlegen muss, statt faelschlich zu denken das Geld sei schon da.
     if (sellerId) {
       const entityId = order_id ?? booking_id
-      const notifBody = payoutOk
-        ? 'Der Käufer hat den Erhalt bestätigt. Die Auszahlung wurde freigegeben und überwiesen.'
-        : 'Der Käufer hat den Erhalt bestätigt. Die Zahlung ist freigegeben — bitte hinterlege deine Bankdaten in den Einstellungen, damit wir dir dein Geld überweisen können.'
       const { error: notifErr } = await sb.from('notifications').insert({
         user_id: sellerId,
-        type: payoutOk ? 'buyer_confirmed' : 'payout_bank_details_needed',
-        title: payoutOk ? 'Zahlung freigegeben ✓' : 'Zahlung freigegeben — Bankdaten fehlen',
-        body: notifBody,
+        type: 'buyer_confirmed',
+        title: 'Zahlung freigegeben ✓',
+        body: 'Der Käufer hat den Erhalt bestätigt. Die Auszahlung wurde freigegeben.',
         is_read: false, read: false,
         actor_id: user.id,
         entity_id: entityId,
@@ -260,12 +224,10 @@ serve(async (req) => {
       transfer_id: transferId,
       transfer_amount_eur: transferAmountCents / 100,
       seller_has_stripe: !!sellerStripeAccountId,
-      transfer_failed: transferFailed,
-      payout_status: payoutStatus,
       fee_processed: !!feeResult?.ok,
-      message: payoutOk
+      message: sellerStripeAccountId
         ? 'Bestätigt & Transfer ausgelöst'
-        : 'Bestätigt — Auszahlung an Verkäufer ausstehend (Bankdaten fehlen oder Transfer fehlgeschlagen)'
+        : 'Bestätigt — Seller hat kein Stripe Connect, Transfer manuell nötig'
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   } catch (err) {
