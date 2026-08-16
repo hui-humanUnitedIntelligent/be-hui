@@ -266,9 +266,9 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
 // dort). Jede Kachel ist klickbar und scrollt per onStatClick(key) zur
 // jeweiligen Section weiter unten auf der Seite (kein Modal, kein
 // Seitenwechsel — bleibt im selben Fenster).
-function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {} }) {
+function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {}, isTalent = false }) {
   const stats = [
-    { key:"talent",     icon:"🌟", val: talents?.length ?? 0,     label:"Talent"     },
+    ...(isTalent ? [{ key:"talent",     icon:"🌟", val: talents?.length ?? 0,     label:"Talent"     }] : []),
     { key:"werke",      icon:"🎨", val: works?.length ?? 0,       label:"Werke"      },
     { key:"momente",    icon:"💬", val: moments?.length ?? 0,     label:"Momente"    },
     { key:"erlebnisse", icon:"⭐", val: experiences?.length ?? 0, label:"Erlebnisse" },
@@ -549,7 +549,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── QUICK STATS ── */}
         {profile && (
-          <QuickStats talents={{ length: talentsCount }} works={works} experiences={experiences} moments={moments} onStatClick={handleStatClick} />
+          <QuickStats talents={{ length: talentsCount }} works={works} experiences={experiences} moments={moments} onStatClick={handleStatClick} isTalent={profile?.has_talent_profile || profile?.is_talent} />
         )}
         <Gap h={16}/>
 

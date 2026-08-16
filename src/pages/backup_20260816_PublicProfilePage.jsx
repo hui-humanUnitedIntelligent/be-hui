@@ -260,12 +260,18 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
 }
 
 // ── QuickStats ─────────────────────────────────────────────────────
-function QuickStats({ followCounts = {}, works = [], experiences = [], moments = [] }) {
+// STATS-DEEPLINK-001 (2026-08-16, Michael-Request): Zeile zeigt jetzt
+// Talent/Werke/Momente/Erlebnisse (statt Follower — die Follower-Zahl
+// bleibt bereits sichtbar im ProfileHeader darüber, siehe followCounts-Block
+// dort). Jede Kachel ist klickbar und scrollt per onStatClick(key) zur
+// jeweiligen Section weiter unten auf der Seite (kein Modal, kein
+// Seitenwechsel — bleibt im selben Fenster).
+function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {} }) {
   const stats = [
-    { icon:"👥", val: followCounts?.followers ?? 0,   label:"Follower"  },
-    { icon:"🌟", val: works?.length ?? 0,              label:"Werke"     },
-    { icon:"💬", val: moments?.length ?? 0,            label:"Momente"   },
-    { icon:"⭐", val: experiences?.length ?? 0,        label:"Erlebnisse"},
+    { key:"talent",     icon:"🌟", val: talents?.length ?? 0,     label:"Talent"     },
+    { key:"werke",      icon:"🎨", val: works?.length ?? 0,       label:"Werke"      },
+    { key:"momente",    icon:"💬", val: moments?.length ?? 0,     label:"Momente"    },
+    { key:"erlebnisse", icon:"⭐", val: experiences?.length ?? 0, label:"Erlebnisse" },
   ];
   return (
     <div style={{
@@ -275,11 +281,20 @@ function QuickStats({ followCounts = {}, works = [], experiences = [], moments =
       boxShadow:T.card, border:`1px solid ${T.border}`,
     }}>
       {stats.map((s, i) => (
-        <div key={i} className="ppp-stat">
+        <button
+          key={i}
+          onClick={() => onStatClick?.(s.key)}
+          aria-label={`Zu ${s.label} springen`}
+          className="ppp-stat ppp-press"
+          style={{
+            background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
+            padding:0, WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
+          }}
+        >
           <span style={{ fontSize:18 }}>{s.icon}</span>
           <span style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{s.val}</span>
           <span style={{ fontSize:10.5, color:T.inkFaint, fontWeight:500 }}>{s.label}</span>
-        </div>
+        </button>
       ))}
     </div>
   );
@@ -406,6 +421,42 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
     followCounts, loading, loadingLazy, error, loadLazy, reload,
   } = useProfileData(profileId, false);
 
+  // STATS-DEEPLINK-001 (2026-08-16): Talent-Anzahl fürs QuickStats-Widget.
+  // Bewusst NUR ein leichtgewichtiger Count-Query (head:true, keine Zeilen-
+  // daten) -- die vollen Talent-Angebote (Bilder/Preise) lädt weiterhin
+  // ausschließlich PublicTalentOffersSection selbst (kein Duplikat der
+  // bestehenden Fetch-Logik, nur eine zusätzliche Zahl für die Kopfzeile).
+  const [talentsCount, setTalentsCount] = useState(0);
+  useEffect(() => {
+    if (!profileId) { setTalentsCount(0); return; }
+    let cancelled = false;
+    supabase
+      .from("talents")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", profileId)
+      .eq("status", "approved")
+      .then(({ count, error }) => {
+        if (!cancelled && !error) setTalentsCount(count || 0);
+      });
+    return () => { cancelled = true; };
+  }, [profileId]);
+
+  // STATS-DEEPLINK-001 (2026-08-16, Michael-Request): Klick auf eine der 4
+  // QuickStats-Kacheln (Talent/Werke/Momente/Erlebnisse) scrollt IM SELBEN
+  // Fenster automatisch zur jeweiligen Section weiter unten -- kein Modal,
+  // kein Seitenwechsel. Refs zeigen auf die Section-Wrapper unten im JSX.
+  const talentSectionRef     = useRef(null);
+  const werkeSectionRef      = useRef(null);
+  const momenteSectionRef    = useRef(null);
+  const erlebnisseSectionRef = useRef(null);
+  const handleStatClick = useCallback((key) => {
+    const refMap = {
+      talent: talentSectionRef, werke: werkeSectionRef,
+      momente: momenteSectionRef, erlebnisse: erlebnisseSectionRef,
+    };
+    refMap[key]?.current?.scrollIntoView({ behavior:"smooth", block:"start" });
+  }, []);
+
   // Live-Follower-Delta für sofortige UI-Reaktion
   const [followerDelta, setFollowerDelta] = useState(0);
   const [showSupport,   setShowSupport]   = useState(false);
@@ -498,7 +549,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── QUICK STATS ── */}
         {profile && (
-          <QuickStats followCounts={{ ...followCounts, followers: (followCounts?.followers ?? 0) + followerDelta }} works={works} experiences={experiences} moments={moments} />
+          <QuickStats talents={{ length: talentsCount }} works={works} experiences={experiences} moments={moments} onStatClick={handleStatClick} />
         )}
         <Gap h={16}/>
 
@@ -528,17 +579,17 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── TALENT-ANGEBOTE (aus talents-Tabelle, nur approved) ── */}
         {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
-          <>
+          <div ref={talentSectionRef}>
             <SectionCard icon={<HUITalentIcon size={16}/>} title="Talent-Angebote" delay={90}>
               <PublicTalentOffersSection profileId={profileId}/>
             </SectionCard>
             <Gap h={12}/>
-          </>
+          </div>
         )}
 
         {/* ── WERKE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
-          <>
+          <div ref={werkeSectionRef}>
             <SectionCard icon={<HUIWerkeIcon size={16}/>} title="Werke" delay={100}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>
@@ -551,12 +602,12 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               )}
             </SectionCard>
             <Gap h={12}/>
-          </>
+          </div>
         )}
 
         {/* ── MOMENTE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
-          <>
+          <div ref={momenteSectionRef}>
             <SectionCard icon={<span style={{ fontSize:16 }}>💬</span>} title="Momente" delay={120}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>
@@ -569,12 +620,12 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               )}
             </SectionCard>
             <Gap h={12}/>
-          </>
+          </div>
         )}
 
         {/* ── ERLEBNISSE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
-          <>
+          <div ref={erlebnisseSectionRef}>
             <SectionCard icon={<HUIErlebnisIcon size={16}/>} title="Erlebnisse" delay={140}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>
@@ -587,7 +638,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               )}
             </SectionCard>
             <Gap h={12}/>
-          </>
+          </div>
         )}
 
         {/* ── STANDORT ── */}
