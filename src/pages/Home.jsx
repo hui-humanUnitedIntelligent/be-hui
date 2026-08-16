@@ -200,7 +200,7 @@ function HomeInner() {
     showInvitationFlow,     setShowInvitationFlow,
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
-    showCreatorDashboard,
+    showCreatorDashboard, setShowCreatorDashboard,
     showWerkCheckout,  setShowWerkCheckout,  // COMMERCE-01 W-1
     showBookingFlow,   setShowBookingFlow,   // COMMERCE-01 W-1
     showWerkeKorb,     setShowWerkeKorb,     // KORB-01
@@ -307,7 +307,14 @@ function HomeInner() {
     // BANKDATEN-LINK (2026-08-16): Öffnet Profil → Settings → Bankdaten-Modal.
     // Wird von der "Bankdaten fehlen"-Notification im Resonanzzentrum aufgerufen.
     window.__HUI_OPEN_BANKDATEN__    = () => {
-      setShowCreatorDash(true);
+      // BUGFIX (2026-08-16): setShowCreatorDash(true) oeffnete die FALSCHE,
+      // unabhaengige CreatorDashboard.jsx-Komponente (Phase 4D "Creator
+      // Dashboard"), die KEINEN Listener fuer 'hui:open-bankdaten' hat ->
+      // Suspense-Fallback haengt endlos (Weiterleitung haengt-Bug, Michael-
+      // Report 2026-08-16). Der Listener existiert nur in MyBasisProfile.jsx,
+      // welche ueber showCreatorDashboard (MIT "board" -- HomeShell.jsx,
+      // via ProfileLauncher) gerendert wird. Fix: richtige State-Variable.
+      setShowCreatorDashboard(true);
       setTimeout(() => window.dispatchEvent(new CustomEvent("hui:open-bankdaten")), 300);
     };
     return () => {
@@ -316,7 +323,7 @@ function HomeInner() {
       delete window.__HUI_OPEN_PROFILE__;
       delete window.__HUI_OPEN_BANKDATEN__;
     };
-    }, [setShowMembership, setShowCreatorDash, openProfileById]);  // ─────────────────────────────────────────────────────────────
+    }, [setShowMembership, setShowCreatorDash, setShowCreatorDashboard, openProfileById]);  // ─────────────────────────────────────────────────────────────
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
