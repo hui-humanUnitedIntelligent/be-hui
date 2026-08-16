@@ -10,7 +10,6 @@ import { WT } from "./WorkTokens.js";
 // src/lib/categories.js, FLOW_ORDER.work) -- keine sichtbare Aenderung fuer
 // Nutzer, kein Datenformat-Wechsel fuer works.category.
 import { getFlowCategoryOptions } from "../../../lib/categories.js";
-import VariantEditor from "../../../components/commerce/VariantEditor.jsx";
 
 const CATEGORIES = getFlowCategoryOptions("work");
 const FORMATS   = ["JPG, PNG","PDF","MP3, WAV","PSD, AI","Figma","ZIP","Sonstiges"];
@@ -217,12 +216,6 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
             </p>
           </div>
         )}
-
-        {/* VARIANTS-001: Varianten-Editor (optional, additiv) */}
-        <VariantEditor
-          variants={form.variants || []}
-          onChange={(variants) => onFormChange({ variants })}
-        />
       </div>
 
       {/* ── Separator ── */}

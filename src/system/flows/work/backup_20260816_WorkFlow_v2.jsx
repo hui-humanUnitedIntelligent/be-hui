@@ -121,8 +121,6 @@ export default function WorkFlow({ onClose }) {
     // Verfügbarkeit (COMMERCE-STOCK-001)
     availabilityMode: "unique",  // "unique" | "copies"
     stockCount:      "",         // Integer > 0 (nur bei copies)
-    // VARIANTS-001: Varianten (optional, additive)
-    variants:        [],         // [{id, name, stock_total, stock_available, price, description}]
     // Veröffentlichung
     visibility:   "public",     // "public" | "community" | "private"
   });

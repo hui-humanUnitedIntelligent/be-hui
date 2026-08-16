@@ -84,44 +84,8 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         ) : null}
       </div>
 
-      {/* Verfügbarkeits-Badge (COMMERCE-STOCK-001) + VARIANTS-001 */}
+      {/* Verfügbarkeits-Badge (COMMERCE-STOCK-001) */}
       {(() => {
-        // VARIANTS-001: Wenn Varianten existieren, zeige Bestand pro Variante
-        const variants = item._raw?.variants;
-        const hasVariants = item._raw?.has_variants && Array.isArray(variants) && variants.length > 0;
-        if (hasVariants) {
-          return (
-            <div style={{ marginBottom:8 }}>
-              <div style={{
-                fontSize:11, fontWeight: 600, color: TEAL,
-                background: "rgba(13,196,181,0.08)",
-                border: "1px solid rgba(13,196,181,0.18)",
-                borderRadius: 99, padding: "3px 9px",
-                whiteSpace: "nowrap", display: "inline-block", marginBottom: 6,
-              }}>{variants.length} Varianten verfügbar</div>
-              {variants.map((v, i) => (
-                <div key={v.id || i} style={{
-                  fontSize: 11.5, color: "rgba(26,26,46,0.55)",
-                  lineHeight: 1.6, display: "flex", alignItems: "center", gap: 4,
-                }}>
-                  <span style={{ fontWeight: 600, color: INK }}>{v.name}</span>
-                  <span style={{ color: "rgba(26,26,46,0.35)" }}>·</span>
-                  <span style={{
-                    color: v.stock_available > 0 ? TEAL : "rgba(26,26,46,0.35)",
-                    fontWeight: 600,
-                  }}>{v.stock_available} von {v.stock_total} verfügbar</span>
-                  {v.price != null && v.price > 0 && (
-                    <>
-                      <span style={{ color: "rgba(26,26,46,0.35)" }}>·</span>
-                      <span style={{ fontWeight: 600, color: CORAL }}>{formatPrice(v.price)}</span>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          );
-        }
-        // Normaler Modus (keine Varianten)
         const isUnique = item._raw?.is_unique !== false;
         const stockTotal = item._raw?.stock_total ?? 1;
         const stockAvail = item._raw?.stock_available ?? 1;

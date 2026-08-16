@@ -274,6 +274,8 @@ function MeineKaeufe({ userId }) {
       {orders.map(o => {
         const item = o.order_items?.[0];
         const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+        const variantName = item?.variant_name || null;
+        const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
         const image = item?.snapshot?.cover_url || null;
         const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at || !!o.buyer_confirmed;
         const isDisputed = disputeDone[o.id] || !!o.dispute_open || o.escrow_status === "disputed";
@@ -286,7 +288,7 @@ function MeineKaeufe({ userId }) {
           <TxCard
             key={o.id}
             image={image}
-            title={title}
+            title={titleWithVariant}
             dateLabel={dt(o.created_at)}
             amount={o.total_eur}
             statusChips={statusChips}
@@ -362,7 +364,7 @@ function MeineVerkaeufe({ userId }) {
 
     const impact = (s.unit_price_eur || 0) - (s.payout_eur || 0);
     return {
-      id: s.id, kindLabel: "Verkauf", title, image,
+      id: s.id, kindLabel: "Verkauf", title: titleWithVariant, image,
       amount: s.payout_eur, amountLabel: "Verdient",
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [
@@ -395,6 +397,8 @@ function MeineVerkaeufe({ userId }) {
       </div>
       {items.map(s => {
         const title = s.snapshot?.title || s.snapshot?.name || "Werk";
+        const variantName = s.variant_name || null;
+        const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
         const image = s.snapshot?.cover_url || null;
         const escrow = s.orders?.escrow_status;
         const payoutReq = !!s.orders?.payout_requested_at;
@@ -407,7 +411,7 @@ function MeineVerkaeufe({ userId }) {
           <TxCard
             key={s.id}
             image={image}
-            title={title}
+            title={titleWithVariant}
             dateLabel={dt(s.created_at)}
             amount={s.payout_eur}
             amountColor={T.green}

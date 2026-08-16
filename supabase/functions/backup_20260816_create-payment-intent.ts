@@ -236,54 +236,22 @@ serve(async (req) => {
       })
     }
 
-    // ── 5b. Stock-Prüfung (COMMERCE-STOCK-001 + VARIANTS-001) ─────
+    // ── 5b. Stock-Prüfung (COMMERCE-STOCK-001) ──────────────────
     // Für jedes Item prüfen ob stock_available >= quantity
-    // VARIANTS-001: Wenn Varianten existieren, prüfe Bestand der spezifischen Variante
     for (const vItem of validatedItems) {
-      const tableName = vItem.item_type === 'work' ? 'works' : 'experiences'
       const { data: stockRow } = await supabase
-        .from(tableName)
-        .select('stock_available, stock_total, is_unique, variants, has_variants')
+        .from(vItem.item_type === 'work' ? 'works' : 'experiences')
+        .select('stock_available, stock_total, is_unique')
         .eq('id', vItem.item_id)
         .single()
       if (stockRow) {
-        if (stockRow.has_variants && stockRow.variants && Array.isArray(stockRow.variants)) {
-          // VARIANTS-001: Varianten-Modus — prüfe spezifische Variante
-          if (!vItem.variant_id) {
-            return new Response(JSON.stringify({
-              error: 'Bitte eine Variante auswählen',
-              code:   'VARIANT_REQUIRED',
-            }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
-          }
-          const variant = stockRow.variants.find((v: any) => v.id === vItem.variant_id)
-          if (!variant) {
-            return new Response(JSON.stringify({
-              error: 'Variante nicht mehr verfügbar',
-              code:   'VARIANT_NOT_FOUND',
-            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
-          }
-          if ((variant.stock_available || 0) < vItem.quantity) {
-            return new Response(JSON.stringify({
-              error: `Variante "${variant.name}" nicht mehr ausreichend verfügbar`,
-              detail: `Available: ${variant.stock_available}, Requested: ${vItem.quantity}`,
-              code:   'INSUFFICIENT_VARIANT_STOCK',
-            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
-          }
-          // Setze variant-spezifischen Preis wenn vorhanden
-          if (variant.price != null && variant.price > 0) {
-            vItem.unit_price_eur = Number(variant.price)
-            vItem.variant_name = variant.name || ''
-          }
-        } else {
-          // Normaler Modus (keine Varianten) — bestehende Logik
-          if (stockRow.stock_available < vItem.quantity) {
-            console.warn(`[PI] Insufficient stock for ${vItem.item_id}: available=${stockRow.stock_available}, requested=${vItem.quantity}`)
-            return new Response(JSON.stringify({
-              error: 'Nicht mehr ausreichend verfügbar',
-              detail: `Available: ${stockRow.stock_available}, Requested: ${vItem.quantity}`,
-              code:   'INSUFFICIENT_STOCK',
-            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
-          }
+        if (stockRow.stock_available < vItem.quantity) {
+          console.warn(`[PI] Insufficient stock for ${vItem.item_id}: available=${stockRow.stock_available}, requested=${vItem.quantity}`)
+          return new Response(JSON.stringify({
+            error: 'Nicht mehr ausreichend verfügbar',
+            detail: `Available: ${stockRow.stock_available}, Requested: ${vItem.quantity}`,
+            code:   'INSUFFICIENT_STOCK',
+          }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
         }
       }
     }
@@ -342,9 +310,6 @@ serve(async (req) => {
       impact_eur:         Number(item.impact_eur)     ?? 0,
       fulfillment_status: 'new',
       payout_status:      'held',
-      // VARIANTS-001: Varianten-Referenz (additiv, nullable)
-      variant_id:         item.variant_id   ?? null,
-      variant_name:       item.variant_name ?? null,
     }))
     console.log('[PI] order_items payload:', JSON.stringify(itemsPayload[0] || {}).slice(0, 200))
 
@@ -415,42 +380,21 @@ serve(async (req) => {
       })
     }
 
-    // ── 8b. Stock-Decrement (COMMERCE-STOCK-001 + VARIANTS-001) ────
+    // ── 8b. Stock-Decrement (COMMERCE-STOCK-001) ─────────────────
     // Nach erfolgreicher PI-Erstellung: atomare Bestandsreduzierung
     for (const vItem of validatedItems) {
       const tableName = vItem.item_type === 'work' ? 'works' : 'experiences'
-      if (vItem.variant_id) {
-        // VARIANTS-001: Varianten-spezifische Bestandsreduzierung
-        const { data: vResult, error: vErr } = await supabase
-          .rpc('rpc_decrement_variant_stock', {
-            p_table: tableName,
-            p_item_id: vItem.item_id,
-            p_variant_id: vItem.variant_id,
-            p_quantity: vItem.quantity,
-          })
-        if (vErr || !vResult?.success) {
-          console.error('[PI] Variant stock decrement failed for', vItem.item_id, 'variant', vItem.variant_id, ':', vErr?.message || vResult?.error)
-        } else {
-          console.log('[PI] Variant stock decremented:', vItem.item_id, 'variant', vItem.variant_id, 'new available:', vResult.new_stock_available)
-          // Wenn alle Varianten ausverkauft sind, markiere Werk als verkauft
-          if (vResult.all_sold_out && vItem.item_type === 'work') {
-            await supabase.from('works').update({ is_sold: true }).eq('id', vItem.item_id)
-          }
-        }
+      const { data: stockResult, error: stockErr } = await supabase
+        .rpc('rpc_decrement_stock', {
+          p_table: tableName,
+          p_item_id: vItem.item_id,
+          p_quantity: vItem.quantity,
+        })
+      if (stockErr || !stockResult?.success) {
+        console.error('[PI] Stock decrement failed for', vItem.item_id, ':', stockErr?.message || stockResult?.error)
+        // Nicht blockierend — PI bereits erstellt, Bestand wird manuell korrigiert
       } else {
-        // Normaler Modus (keine Varianten)
-        const { data: stockResult, error: stockErr } = await supabase
-          .rpc('rpc_decrement_stock', {
-            p_table: tableName,
-            p_item_id: vItem.item_id,
-            p_quantity: vItem.quantity,
-          })
-        if (stockErr || !stockResult?.success) {
-          console.error('[PI] Stock decrement failed for', vItem.item_id, ':', stockErr?.message || stockResult?.error)
-          // Nicht blockierend — PI bereits erstellt, Bestand wird manuell korrigiert
-        } else {
-          console.log('[PI] Stock decremented:', vItem.item_id, 'new available:', stockResult.new_stock_available)
-        }
+        console.log('[PI] Stock decremented:', vItem.item_id, 'new available:', stockResult.new_stock_available)
       }
     }
 

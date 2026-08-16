@@ -56,7 +56,6 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const [orderId, setOrderId] = useState(null);
   const [hasChatted, setHasChatted] = useState(false);
   const [showChatConfirm, setShowChatConfirm] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState(null); // VARIANTS-001
   const actions = useHuiActions();
 
   if (!werk) return null;
@@ -70,19 +69,6 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
     ? parseFloat(rawPrice.replace(/[^0-9.,]/g, "").replace(",", "."))
     : typeof rawPrice === "number" ? rawPrice : 0;
   const priceStr  = amount > 0 ? `${amount.toFixed(2).replace(".", ",")} €` : null;
-
-  // VARIANTS-001: Varianten aus dem Werk extrahieren
-  const variants = werk?._raw?.variants || werk?.variants || null;
-  const hasVariants = werk?._raw?.has_variants || werk?.has_variants || false;
-  const availableVariants = (hasVariants && Array.isArray(variants))
-    ? variants.filter(v => (v.stock_available || 0) > 0)
-    : [];
-  const activeVariant = availableVariants.find(v => v.id === selectedVariant) || null;
-  const variantPrice = activeVariant?.price != null && activeVariant.price > 0
-    ? activeVariant.price
-    : null;
-  const displayPrice = variantPrice != null ? variantPrice : amount;
-  const displayPriceStr = displayPrice > 0 ? `${displayPrice.toFixed(2).replace(".", ",")} €` : priceStr;
 
   async function handleKauf() {
     if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
@@ -128,9 +114,6 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             item_id: workId,
             item_type: "work",
             quantity: 1,
-            // VARIANTS-001: Varianten-Auswahl mitsenden
-            variant_id: activeVariant?.id || null,
-            variant_name: activeVariant?.name || null,
           }],
         }),
       });
@@ -224,59 +207,8 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               </div>
             )}
             <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 6 }}>{title}</div>
-            {displayPriceStr && !hasVariants && (
-              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{displayPriceStr}</div>
-            )}
-
-            {/* VARIANTS-001: Varianten-Auswahl */}
-            {hasVariants && availableVariants.length > 0 && (
-              <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 10 }}>
-                  Variante auswählen
-                </div>
-                {availableVariants.map((v, i) => {
-                  const isSelected = selectedVariant === v.id;
-                  return (
-                    <button
-                      key={v.id}
-                      onClick={() => setSelectedVariant(v.id)}
-                      style={{
-                        width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: "12px 14px", borderRadius: 12,
-                        border: isSelected ? `1.5px solid ${TEAL}` : "1px solid rgba(26,26,46,0.08)",
-                        background: isSelected ? "rgba(22,215,197,0.06)" : "#fff",
-                        marginBottom: 8, cursor: "pointer", fontFamily: "inherit",
-                        textAlign: "left", transition: "all 0.15s",
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E" }}>{v.name}</div>
-                        {v.description && (
-                          <div style={{ fontSize: 12, color: "rgba(26,26,46,0.45)", marginTop: 2 }}>{v.description}</div>
-                        )}
-                        <div style={{ fontSize: 11.5, color: TEAL, fontWeight: 600, marginTop: 3 }}>
-                          {v.stock_available} von {v.stock_total} verfügbar
-                        </div>
-                      </div>
-                      <div style={{ fontSize: 16, fontWeight: 600, color: TEAL }}>
-                        {v.price != null && v.price > 0 ? `${parseFloat(v.price).toFixed(2).replace(".", ",")} €` : priceStr || ""}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {hasVariants && availableVariants.length === 0 && (
-              <div style={{ fontSize: 14, color: "rgba(26,26,46,0.45)", marginBottom: 20, textAlign: "center" }}>
-                Alle Varianten sind ausverkauft.
-              </div>
-            )}
-
-            {/* Preisanzeige bei Varianten-Auswahl */}
-            {hasVariants && activeVariant && (
-              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>
-                {displayPriceStr}
-              </div>
+            {priceStr && (
+              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
             )}
 
             <div style={{
@@ -289,18 +221,13 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
 
             <button
               onClick={handleKauf}
-              disabled={hasVariants && !activeVariant}
               style={{
                 width: "100%", padding: "16px", borderRadius: 14, border: "none",
-                background: (hasVariants && !activeVariant) ? "rgba(22,215,197,0.3)" : TEAL,
-                color: "#fff", fontSize: 16, fontWeight: 600,
-                cursor: (hasVariants && !activeVariant) ? "not-allowed" : "pointer",
-                transition: "opacity 0.2s", opacity: (hasVariants && !activeVariant) ? 0.6 : 1,
+                background: TEAL, color: "#fff", fontSize: 16, fontWeight: 600,
+                cursor: "pointer", transition: "opacity 0.2s",
               }}
             >
-              {hasVariants && !activeVariant
-                ? "Bitte Variante wählen"
-                : displayPriceStr ? `Kaufen für ${displayPriceStr}` : "Kaufen"}
+              {priceStr ? `Kaufen für ${priceStr}` : "Kaufen"}
             </button>
           </>
         )}

@@ -1603,16 +1603,6 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
           is_unique:        w.availabilityMode !== "copies",
           stock_total:      w.availabilityMode === "copies" ? Math.max(1, parseInt(w.stockCount, 10) || 1) : 1,
           stock_available:  w.availabilityMode === "copies" ? Math.max(1, parseInt(w.stockCount, 10) || 1) : 1,
-          // VARIANTS-001: Varianten speichern (additiv)
-          variants:         (w.variants && w.variants.length > 0) ? w.variants.map(v => ({
-                              id: v.id,
-                              name: v.name || "Variante",
-                              stock_total: Math.max(1, parseInt(v.stock_total, 10) || 1),
-                              stock_available: Math.max(1, parseInt(v.stock_total, 10) || 1),
-                              price: v.price != null ? parseFloat(v.price) : null,
-                              description: v.description || "",
-                            })) : null,
-          has_variants:     !!(w.variants && w.variants.length > 0),
         });
         if (e) throw e;
       } else if (payload.type === "erlebnis") {
