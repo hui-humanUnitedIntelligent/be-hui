@@ -1542,6 +1542,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
 // Rechte: alle Nutzer können Momente veröffentlichen
 // ══════════════════════════════════════════════════════════════
 function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
+  const { openRef } = useContentPreview();
   const [moments, setMoments]       = React.useState([]);
   const [loading, setLoading]       = React.useState(true);
   const [confirmMoment, setConfirmMoment] = React.useState(null);
@@ -1664,11 +1665,13 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
               const label    = m.caption || (isVideo ? "Video" : "Foto");
               return (
               <div key={m.id || i}
+                onClick={() => openRef({ type:"moment", id:m.id })}
                 style={{
                   width:"100%", aspectRatio:"1/1",
                   borderRadius:T.r12, overflow:"hidden",
                   background:"#e8e4de", position:"relative",
                   boxShadow:"0 0 0 2px #0EC4B8",
+                  cursor:"pointer",
                 }}>
                 {/* Bild / Video-Vorschau */}
                 {mediaSrc
