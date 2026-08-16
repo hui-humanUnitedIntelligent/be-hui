@@ -93,7 +93,7 @@ function ActionButton({ children, onClick, variant = "outline", disabled, loadin
       disabled={disabled || loading}
       style={{
         width: "100%", padding: "13px 0", borderRadius: T.r99,
-        fontSize: 14, fontWeight: 600, cursor: disabled ? "default" : "pointer", touchAction:"manipulation",
+        fontSize: 14, fontWeight: 600, cursor: disabled ? "default" : "pointer",
         fontFamily: T.ff, marginBottom: 10, opacity: disabled || loading ? 0.55 : 1,
         transition: "opacity .15s ease",
         ...styles[variant],
@@ -217,7 +217,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             </div>
           </div>
           <button onClick={onClose} style={{
-            background: "rgba(26,26,24,0.07)", border: "none", cursor: "pointer", touchAction:"manipulation",
+            background: "rgba(26,26,24,0.07)", border: "none", cursor: "pointer",
             borderRadius: "50%", width: 32, height: 32, flexShrink: 0, marginLeft: 12,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 16, color: T.inkSoft,
@@ -361,7 +361,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         flex: 1, padding: "13px 0", borderRadius: T.r99,
                         background: T.bgCard, color: T.inkSoft,
                         border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
-                        cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                        cursor: "pointer", fontFamily: T.ff,
                       }}
                     >
                       Abbrechen
@@ -373,7 +373,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         flex: 1, padding: "13px 0", borderRadius: T.r99,
                         background: a.shipping ? "rgba(14,196,184,0.35)" : T.teal,
                         color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                        cursor: a.shipping ? "not-allowed" : "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                        cursor: a.shipping ? "not-allowed" : "pointer", fontFamily: T.ff,
                         opacity: a.shipping ? 0.6 : 1,
                       }}
                     >
@@ -386,7 +386,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                     style={{
                       width: "100%", padding: "13px 0", borderRadius: T.r99,
                       background: T.teal, color: "#fff", border: "none",
-                      fontSize: 14, fontWeight: 600, cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                      fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
                     }}
                   >
                     Als versendet markieren
@@ -447,7 +447,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                           flex: 1, padding: "13px 0", borderRadius: T.r99,
                           background: T.bgCard, color: T.inkSoft,
                           border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
-                          cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                          cursor: "pointer", fontFamily: T.ff,
                         }}
                       >
                         Abbrechen
@@ -459,7 +459,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                           flex: 1, padding: "13px 0", borderRadius: T.r99,
                           background: a.confirmingReceipt ? "rgba(16,185,129,0.35)" : `linear-gradient(135deg, ${T.green}, #059669)`,
                           color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                          cursor: a.confirmingReceipt ? "not-allowed" : "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                          cursor: a.confirmingReceipt ? "not-allowed" : "pointer", fontFamily: T.ff,
                           opacity: a.confirmingReceipt ? 0.6 : 1,
                         }}
                       >
@@ -475,7 +475,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         flex: 1, padding: "13px 0", borderRadius: T.r99,
                         background: `linear-gradient(135deg, ${T.green}, #059669)`,
                         color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                        cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                        cursor: "pointer", fontFamily: T.ff,
                       }}
                     >
                       ✓ Ware erhalten
@@ -486,7 +486,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         flex: 1, padding: "13px 0", borderRadius: T.r99,
                         background: T.bgCard, color: T.red,
                         border: `1.5px solid ${T.redMid}`,
-                        fontSize: 14, fontWeight: 600, cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                        fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
                       }}
                     >
                       ✕ Nicht erhalten
@@ -529,7 +529,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                       flex: 1, padding: "12px 0", borderRadius: T.r99,
                       background: T.bgCard, color: T.inkSoft,
                       border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
-                      cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                      cursor: "pointer", fontFamily: T.ff,
                     }}
                   >
                     Abbrechen
@@ -541,7 +541,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                       flex: 1, padding: "12px 0", borderRadius: T.r99,
                       background: a.disputing ? "rgba(220,38,38,0.35)" : T.red,
                       color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                      cursor: a.disputing ? "not-allowed" : "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                      cursor: a.disputing ? "not-allowed" : "pointer", fontFamily: T.ff,
                     }}
                   >
                     {a.disputing ? "…" : "Fall melden"}
@@ -617,7 +617,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                 style={{
                   width: "100%", padding: "14px 0", borderRadius: T.r99,
                   background: T.ink, color: "#fff", border: "none",
-                  fontSize: 14, fontWeight: 600, cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
+                  fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
                 }}
               >
                 Profil ansehen
