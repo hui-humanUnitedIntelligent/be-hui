@@ -157,48 +157,41 @@ function MeineKaeufe({ userId }) {
   useEffect(() => { load(); }, [load]);
 
   // ── HANDLE CONFIRM: Edge Function confirm-and-transfer (Stripe + DB) ──
+  // FIX (2026-08-16, DUPLICATE-NOTIF-BUG + BROKEN-TRANSFER-BUG):
+  // 1) Reentry-Guard: Ein zweiter Klick waehrend ein Request noch laeuft wird
+  //    sofort ignoriert (vorher konnte ein sehr schneller Doppelklick VOR dem
+  //    naechsten React-Render den Handler zweimal ausloesen).
+  // 2) Die Notification an den Verkaeufer wird jetzt AUSSCHLIESSLICH serverseitig
+  //    in der Edge Function confirm-and-transfer erzeugt (exakt einmal, durch die
+  //    jetzt idempotente RPC + DB-Unique-Index abgesichert) -- der fruehere
+  //    Client-seitige Insert hier ist entfernt, das war die zweite Notification-
+  //    Quelle und lief zudem mit falschem Spalten-Schema (text/entity_type ohne
+  //    title/body/is_read) komplett ins Leere.
   const handleConfirm = async (orderId) => {
+    if (confirmingId) return; // Reentry-Guard
     setConfirmingId(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      // 1. Edge Function aufrufen (macht RPC + Stripe Transfer)
       const res = await fetch(`${supabaseUrl}/functions/v1/confirm-and-transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ order_id: orderId }),
       });
       const result = await res.json();
-
-      // 2. Push an Verkäufer: "Käufer hat Erhalt bestätigt"
-      try {
-        const { data: order } = await supabase
-          .from("orders")
-          .select("order_items(seller_id)")
-          .eq("id", orderId)
-          .maybeSingle();
-        const sellerId = order?.order_items?.[0]?.seller_id;
-        if (sellerId) {
-          await supabase.from("notifications").insert({
-            user_id: sellerId,
-            type: "buyer_confirmed",
-            text: "Der Käufer hat den Erhalt bestätigt. Auszahlung wird freigegeben.",
-            entity_id: orderId,
-            entity_type: "order",
-          });
-        }
-      } catch (e) { console.warn("[PUSH] seller notify:", e); }
-
-      // 3. Auch bei Fehlern lokalen State updaten
+      if (!res.ok && !result?.ok) {
+        console.warn("[ESCROW] confirm-and-transfer error:", result?.error);
+        // Fallback: wenigstens die reine Bestaetigung durchsetzen (idempotent)
+        await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
+      }
       setConfirmDone(p => ({ ...p, [orderId]: true }));
       setDetail(null);
       load();
     } catch (e) {
       console.warn("[ESCROW] confirm-and-transfer error:", e);
-      // Fallback: nur RPC aufrufen
-      const { data } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
+      await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
       setConfirmDone(p => ({ ...p, [orderId]: true }));
       setDetail(null);
       load();
@@ -352,8 +345,14 @@ function MeineVerkaeufe({ userId }) {
   const [shippingId, setShippingId] = useState(null);
   const actions = useHuiActions();
 
+  // FIX (2026-08-16, DUPLICATE-NOTIF-BUG): Reentry-Guard ergaenzt + Notification
+  // wird jetzt NUR bei result.ok && !result.skipped ausgeloest. Die RPC selbst
+  // ist jetzt idempotent (delivery_status/shipped_at-Guard, siehe Migration) --
+  // ein zweiter Aufruf liefert result.skipped=true zurueck statt erneut ok:true,
+  // wodurch vorher bei jedem Doppelklick eine zusaetzliche Notification entstand
+  // (belegt: 3 identische "order_shipped"-Einträge fuer dieselbe Bestellung).
   const handleShip = async (orderId) => {
-    if (!orderId) return;
+    if (!orderId || shippingId) return; // Reentry-Guard
     setShippingId(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -370,16 +369,12 @@ function MeineVerkaeufe({ userId }) {
         }
       );
       const result = await res.json();
-      if (result.ok) {
-        // FIX (2026-08-16): Notification-Schema war falsch (text/read statt
-        // title/body/is_read) — useNotifications.jsx select() liest title,body,
-        // is_read. Ohne diese Felder blieb die Benachrichtigung im
-        // Resonanzzentrum + 'Mein Bereich' unsichtbar (leer/fehlend).
+      if (result.ok && !result.skipped) {
         const { data: order } = await supabase
           .from("orders").select("customer_id").eq("id", orderId).maybeSingle();
         if (order?.customer_id) {
           const { data: { user: authUser } } = await supabase.auth.getUser();
-          await supabase.from("notifications").insert({
+          const { error: notifErr } = await supabase.from("notifications").insert({
             user_id:     order.customer_id,
             type:        "order_shipped",
             title:       "Dein Kauf wurde versendet",
@@ -390,10 +385,11 @@ function MeineVerkaeufe({ userId }) {
             entity_id:   orderId,
             entity_type: "order",
           });
+          // 23505 = unique_violation (DB-Sicherheitsnetz griff) -- unkritisch
+          if (notifErr && notifErr.code !== "23505") console.warn("[SHIP] notify:", notifErr.message);
         }
-        load();
-        setDetail(null);
       }
+      if (result.ok) { load(); setDetail(null); }
     } catch (e) {
       console.warn("[SHIP] error:", e);
     } finally {
@@ -572,6 +568,7 @@ function MeineBuchungen({ userId }) {
   const [disputingBooking, setDisputingBooking] = useState(null);
 
   const handleConfirmBooking = async (bookingId) => {
+    if (confirmingBooking) return; // FIX (2026-08-16): Reentry-Guard, analog handleConfirm
     setConfirmingBooking(bookingId);
     try {
       const { data: { session } } = await supabase.auth.getSession();

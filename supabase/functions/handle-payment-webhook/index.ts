@@ -152,10 +152,10 @@ serve(async (req) => {
             auto_confirm_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
           }).eq('id', tBooking.id).eq('status', 'pending_payment') // Guard gegen Doppel-Verarbeitung
 
-          const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_talent_booking_fees', {
-            p_booking_id: tBooking.id
-          })
-          if (feeErr) console.error('[WEBHOOK] rpc_process_talent_booking_fees failed:', feeErr.message)
+          // ESCROW-FEE-TIMING-FIX (2026-08-16): rpc_process_talent_booking_fees
+          // laeuft nicht mehr hier (bei Zahlungseingang/Escrow-Start), sondern erst
+          // in confirm-and-transfer wenn der Kaeufer den Erhalt/die Leistung bestaetigt.
+          // Siehe Order-Pendant weiter unten fuer die vollstaendige Begruendung.
 
           // ── RESONANZ-BUCHUNG-001: Buchungsdetails anreichern (wer/was/wann/wo) ──
           const { data: tOffer } = await supabase
@@ -446,46 +446,18 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
         }
       }
 
-      // ── COM-MIGRATION-015.3: 15%-Gebuehrenmodell + Ambassador-Provision ──
-      // rpc_process_order_fees ist die alleinige, deterministische Quelle fuer:
-      //   Gebuehr 15% -> Impact 15%/Unternehmen 85% -> Ambassador-Provision (5/10/15/20% je Level,
-      //   nur falls referred_by + < 365 Tage seit Registrierung) -> 40/30/20/10-Verteilung des Rests.
-      // Idempotent (prueft stripe_impact_pool.order_id), schreibt impact_rounds NICHT mehr direkt --
-      // stripe_impact_pool/stripe_ambassador_commissions sind ab jetzt die Single Source of Truth.
-      const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_order_fees', {
-        p_order_id: order.id
-      })
-      if (feeErr) {
-        console.error('[WEBHOOK] rpc_process_order_fees failed:', feeErr.message)
-      } else {
-        const { error: feeEventErr } = await supabase.from('commerce_events').insert({
-          event_type: 'impact_credited',
-          order_id:   order.id,
-          actor_type: 'system',
-          payload:    { ...feeResult, via_webhook: event.id }
-        })
-        if (feeEventErr) console.warn('[WEBHOOK] fee event insert failed:', feeEventErr.message)
-      }
-
-      // impact_rounds bleibt fuer die bestehende ImpactPage/Voting-UI bestehen, wird additiv
-      // aus dem neuen Impact-Anteil gespeist (2.25% statt vormals 7%), damit Abstimmungs-UI
-      // ohne separate Migration weiterlaeuft.
-      const impactEur = feeResult?.ok ? Number(feeResult.impact_eur) : 0
-      if (impactEur > 0) {
-        const { data: roundRows } = await supabase
-          .from('impact_rounds')
-          .select('id, pool_eur')
-          .eq('status', 'active')
-          .order('created_at', { ascending: false })
-          .limit(1)
-
-        const currentRound = roundRows?.[0]
-        if (currentRound) {
-          await supabase.from('impact_rounds').update({
-            pool_eur: Number(currentRound.pool_eur) + impactEur
-          }).eq('id', currentRound.id)
-        }
-      }
+      // ── ESCROW-FEE-TIMING-FIX (2026-08-16) ──
+      // rpc_process_order_fees (Impact-Pool-Gutschrift, Ambassador-Provision, etc.)
+      // wurde bisher HIER ausgeloest -- direkt bei Zahlungseingang, WAEHREND das
+      // Geld noch in Escrow ('holding') ist und der Kaeufer den Erhalt noch nicht
+      // bestaetigt hat. Das ist fachlich falsch: Impact-Pool + Ambassador-Provision
+      // duerfen erst gutgeschrieben werden, NACHDEM die Transaktion durch die
+      // Kaeufer-Bestaetigung ('Ware erhalten') abgeschlossen ist -- sonst wuerde
+      // bei einer spaeteren Reklamation/Nicht-Bestaetigung bereits verteiltes Geld
+      // wieder zurueckgebucht werden muessen (nicht vorgesehen).
+      // NEU: rpc_process_order_fees laeuft ab jetzt ausschliesslich in der Edge
+      // Function confirm-and-transfer (ausgeloest durch 'Ware erhalten'-Klick des
+      // Kaeufers), analog zum Seller-Stripe-Transfer. Siehe dort fuer Details.
 
       // Buyer-Bestätigung — getrennt nach Werk-Kauf vs. Erlebnis-Buchung (RESONANZ-BUCHUNG-001)
       const workTitles = (orderItems || []).filter((i: any) => i.item_type !== 'experience').map((i: any) => i.snapshot?.title || 'ein Werk')
