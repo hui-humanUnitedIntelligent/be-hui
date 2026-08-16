@@ -405,6 +405,11 @@ export default function UnterstutzenFlow({
   const [orderId,      setOrderId]      = useState(null);
   const [stripeError,  setStripeError]  = useState(null);
   const [piLoading,    setPiLoading]    = useState(false);
+  // FIX (2026-08-16): Session-Expired getrennt vom generischen Fehler -- Retry
+  // mit derselben toten Session brachte den User in eine 401-Loop ("Erneut
+  // versuchen" rief createPaymentIntent() erneut mit demselben Token auf).
+  // Jetzt: expliziter Re-Login-Pfad statt sinnlosem Retry.
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   // BUGFIX (2026-08-16): Adressabfrage fehlte in diesem Flow komplett —
   // ShippingAddressModal existierte, war aber weder importiert noch verdrahtet.
@@ -521,6 +526,7 @@ export default function UnterstutzenFlow({
 
     setPiLoading(true);
     setStripeError(null);
+    setSessionExpired(false);
     let _step = 'S00';
     try {
 
@@ -532,11 +538,25 @@ export default function UnterstutzenFlow({
       // S02 — access_token: ggf. refreshen damit er nicht abgelaufen ist
       _step = 'S02';
       let accessToken = session?.access_token ?? null;
+      let refreshFailed = false;
       // Wenn Token abgelaufen oder nicht vorhanden → refreshen
       if (!accessToken || (session?.expires_at && Date.now() / 1000 > session.expires_at - 60)) {
         dbg('S02 Token abgelaufen oder fehlend — refreshe Session…');
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        accessToken = refreshed?.session?.access_token ?? accessToken;
+        const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+        if (refreshErr || !refreshed?.session?.access_token) {
+          // FIX (2026-08-16): Refresh fehlgeschlagen (z.B. refresh_token invalide
+          // nach langer Inaktivität im Hintergrund) — NICHT mit dem alten toten
+          // Token weitermachen, das führt nur zu 401 in einer Endlos-Loop.
+          refreshFailed = true;
+          dbg('S02 ✗ Refresh fehlgeschlagen', { err: refreshErr?.message });
+        } else {
+          accessToken = refreshed.session.access_token;
+        }
+      }
+      if (refreshFailed || !accessToken) {
+        setSessionExpired(true);
+        setPiLoading(false);
+        return;
       }
       dbg('S02 ✓ access_token', { present: !!accessToken, len: accessToken?.length ?? 0 });
 
@@ -607,6 +627,15 @@ export default function UnterstutzenFlow({
 
       // S10b — HTTP-Fehler oder API-Fehler
       if (!res.ok || result.error) {
+        // FIX (2026-08-16): 401 = Session am Server abgelehnt, obwohl der
+        // Client sie für gültig hielt — typischerweise ein Token der im
+        // Hintergrund (App pausiert) nicht automatisch erneuert wurde.
+        // Klarer Re-Login-Pfad statt kryptischem "[HTTP 401] Unauthorized".
+        if (res.status === 401) {
+          dbg('S10b ✗ 401 vom Server — Session ist ungültig');
+          setSessionExpired(true);
+          return;
+        }
         const errDetail = result.detail ? ' (' + result.detail + (result.code ? ' [' + result.code + ']' : '') + ')' : '';
         throw new Error('[HTTP ' + res.status + '] ' + (result.error || result.message || rawText.slice(0, 200)) + errDetail);
       }
@@ -755,7 +784,7 @@ export default function UnterstutzenFlow({
 
                 {/* Stripe Payment Step */}
                 <div style={{ flex: 1, minHeight: 0 }}>
-                  {stripeError ? (
+                  {(stripeError || sessionExpired) ? (
                     /* Fehler-Zustand */
                     <div style={{
                       display: "flex", flexDirection: "column", height: "100%",
@@ -773,21 +802,38 @@ export default function UnterstutzenFlow({
                           fontSize: 14, color: C.coral, lineHeight: 1.6,
                           textAlign: "center", maxWidth: 280,
                         }}>
-                          {stripeError}
+                          {sessionExpired
+                            ? "Deine Sitzung ist abgelaufen. Bitte melde dich einmal neu an, dann kannst du direkt weiter bezahlen."
+                            : stripeError}
                         </div>
-                        <button
-                          onClick={() => createPaymentIntent(shippingAddress)}
-                          disabled={piLoading}
-                          style={{
-                            padding: "12px 28px", borderRadius: 14,
-                            border: `1.5px solid ${C.teal}`,
-                            background: "transparent", color: C.teal,
-                            fontSize: 14, fontWeight: 600, cursor: "pointer",
-                            outline: "none",
-                          }}
-                        >
-                          {piLoading ? "Moment …" : "Erneut versuchen"}
-                        </button>
+                        {sessionExpired ? (
+                          <button
+                            onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }}
+                            style={{
+                              padding: "12px 28px", borderRadius: 14,
+                              border: `1.5px solid ${C.teal}`,
+                              background: C.teal, color: "#fff",
+                              fontSize: 14, fontWeight: 600, cursor: "pointer",
+                              outline: "none",
+                            }}
+                          >
+                            Neu anmelden
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => createPaymentIntent(shippingAddress)}
+                            disabled={piLoading}
+                            style={{
+                              padding: "12px 28px", borderRadius: 14,
+                              border: `1.5px solid ${C.teal}`,
+                              background: "transparent", color: C.teal,
+                              fontSize: 14, fontWeight: 600, cursor: "pointer",
+                              outline: "none",
+                            }}
+                          >
+                            {piLoading ? "Moment …" : "Erneut versuchen"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (
