@@ -52,6 +52,35 @@ function dt(iso) {
   return formatDateDE(new Date(iso), { day: "2-digit", month: "short", year: "2-digit" });
 }
 
+// ── FIX (2026-08-16, RAW-NETWORK-ERROR-BUG): Bei DNS-/Netzwerkfehlern (z.B.
+// "Unable to resolve host ...: No address associated with hostname" auf
+// Android, oder "Failed to fetch" im Browser) zeigte der Alert bisher die
+// rohe Java-/Fetch-Exception. Für den Nutzer sah das aus wie "Button
+// reagiert nicht" bzw. ein kaputtes Feature — tatsächlich war es eine
+// temporäre Verbindungsstörung auf dem Gerät (kein Supabase-Ausfall).
+// Diese Funktion erkennt bekannte Netzwerkfehler-Muster und ersetzt sie
+// durch eine verständliche, beruhigende deutsche Meldung (Geld ist sicher
+// in Treuhand, bitte Verbindung prüfen + erneut versuchen).
+function friendlyErrorMessage(rawMessage) {
+  const msg = String(rawMessage || "");
+  const networkPatterns = [
+    /unable to resolve host/i,
+    /no address associated with hostname/i,
+    /failed to fetch/i,
+    /networkerror/i,
+    /net::err_/i,
+    /timeout/i,
+    /timed out/i,
+    /connection.*(refused|reset|closed)/i,
+    /unreachable/i,
+    /offline/i,
+  ];
+  if (networkPatterns.some((re) => re.test(msg))) {
+    return "Keine Internetverbindung. Deine Zahlung bleibt sicher in Treuhand — bitte prüfe dein WLAN/Mobilfunk und tippe erneut auf \"Ja, erhalten\".";
+  }
+  return msg || "Unbekannter Fehler";
+}
+
 function StatusChip({ label, color = T.inkFaint, bg = T.border }) {
   return (
     <span style={{
@@ -203,7 +232,11 @@ function MeineKaeufe({ userId }) {
         // Wenn die Edge Function reachable war aber einen Fehler gemeldet hat
         // (z.B. order_not_found), darf kein Fallback erfolgen.
         // In beiden Fällen: NICHT als "done" markieren.
-        alert("Bestätigung fehlgeschlagen: " + (result?.error || "Unbekannter Fehler") + ". Bitte versuche es erneut.");
+        {
+        const friendly = friendlyErrorMessage(result?.error);
+        const isNetwork = friendly !== (result?.error || "Unbekannter Fehler");
+        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+      }
       }
     } catch (e) {
       // Netzwerkfehler — Edge Function nicht erreichbar
@@ -216,7 +249,11 @@ function MeineKaeufe({ userId }) {
         setDetail(null);
         load();
       } else {
-        alert("Bestätigung fehlgeschlagen: " + (rpcErr?.message || "Netzwerkfehler") + ". Bitte versuche es erneut.");
+        {
+        const friendly = friendlyErrorMessage(rpcErr?.message);
+        const isNetwork = friendly !== (rpcErr?.message || "Unbekannter Fehler");
+        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+      }
       }
     } finally {
       setConfirmingId(null);
@@ -620,7 +657,11 @@ function MeineBuchungen({ userId }) {
         load();
       } else {
         console.warn("[ESCROW] booking confirm error:", result?.error);
-        alert("Bestätigung fehlgeschlagen: " + (result?.error || "Unbekannter Fehler") + ". Bitte versuche es erneut.");
+        {
+        const friendly = friendlyErrorMessage(result?.error);
+        const isNetwork = friendly !== (result?.error || "Unbekannter Fehler");
+        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+      }
       }
     } catch (e) {
       console.warn("[ESCROW] booking confirm network error:", e);
@@ -631,7 +672,11 @@ function MeineBuchungen({ userId }) {
         setDetail(null);
         load();
       } else {
-        alert("Bestätigung fehlgeschlagen: " + (rpcErr?.message || "Netzwerkfehler") + ". Bitte versuche es erneut.");
+        {
+        const friendly = friendlyErrorMessage(rpcErr?.message);
+        const isNetwork = friendly !== (rpcErr?.message || "Unbekannter Fehler");
+        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+      }
       }
     } finally {
       setConfirmingBooking(null);
