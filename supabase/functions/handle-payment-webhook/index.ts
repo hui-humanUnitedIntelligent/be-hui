@@ -318,13 +318,19 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
       }
 
       // ── Order → paid ─────────────────────────────────────────
-      await supabase.from('orders').update({
+      // FIX (2026-08-16): shipping_address nur überschreiben wenn Stripe
+      // auch wirklich eine liefert — sonst wird die vom Käufer eingegebene
+      // Adresse (die beim Order-Insert gespeichert wurde) mit null gelöscht.
+      const stripeShipping = (pi as any).shipping?.address ?? null;
+      const stripeName     = (pi as any).shipping?.name ?? null;
+      const orderUpdate: Record<string, any> = {
         state:                'paid',
         payment_confirmed_at: new Date().toISOString(),
-        shipping_address:     (pi as any).shipping?.address ?? null,
-        contact_name:         (pi as any).shipping?.name ?? null,
         contact_email:        pi.receipt_email ?? null,
-      }).eq('id', order.id).eq('state', 'pending') // doppelter Guard
+      };
+      if (stripeShipping) orderUpdate.shipping_address = stripeShipping;
+      if (stripeName)     orderUpdate.contact_name     = stripeName;
+      await supabase.from('orders').update(orderUpdate).eq('id', order.id).eq('state', 'pending'); // doppelter Guard
 
       // ── Commerce Event ────────────────────────────────────────
       const { error: confirmEventErr } = await supabase.from('commerce_events').insert({
