@@ -2252,14 +2252,7 @@ function MeinBereichMenu({
     werke:        ["work_approved", "work_rejected"],
     talente:      ["talent_approved", "talent_rejected"],
     erlebnisse:   ["experience_approved", "experience_rejected", "project_approved", "project_rejected", "impact_project_approved", "impact_project_rejected", "impact_project_submitted"],
-    // FINANZ-DOT-FIX (2026-08-16): "experience_booking_paid" (Verkäufer, Neue
-    // Buchung) + "experience_booking_confirmed" (Käufer, Buchung bestätigt)
-    // fehlten hier -- Erlebnis-Buchungen loesten dadurch NIE den roten Punkt
-    // aus, obwohl exakt dieselben Typen bereits im NotificationPanel/
-    // NotificationButton/useNotifications.jsx bekannt sind (siehe dort).
-    // Werk-Kauf (new_order/order_confirmed) und Talent-Buchung
-    // (talent_booking_paid/talent_booking_confirmed) waren bereits korrekt.
-    finanzen:     ["order_confirmed", "new_order", "order", "talent_booking_paid", "talent_booking_confirmed", "experience_booking_paid", "experience_booking_confirmed", "support_received", "support_succeeded"],
+    finanzen:     ["order_confirmed", "new_order", "order", "talent_booking_paid", "talent_booking_confirmed", "support_received", "support_succeeded"],
   };
   const unreadNotifTypes = new Set((notifItems || []).filter(n => !n.is_read).map(n => n.type));
   const hasTileDot = (tileKey) => (TILE_NOTIF_TYPES[tileKey] || []).some(t => unreadNotifTypes.has(t));
