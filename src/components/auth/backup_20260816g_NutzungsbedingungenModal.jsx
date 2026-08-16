@@ -83,11 +83,11 @@ const SECTIONS = [
         "HUI erhebt eine Plattformgebühr von 20 % des Kaufpreises (Balanced-Growth-Modell) — der Talent/Wirker erhält 80 %.",
         "Die Plattformgebühr wird aufgeteilt: 50 % Unternehmen, 30 % Impact-Fonds, 20 % Innovationsfonds.",
       ]},
-      { h: "4.2 Treuhand-System (Sicherungs-System)", items: [
+      { h: "4.2 Escrow-System (Sicherungs-System)", items: [
         "Bei kostenpflichtigen Käufen wird die Zahlung zunächst sichergestellt.",
         "Der Betrag wird erst ausgezahlt, wenn der Käufer den Erhalt bestätigt.",
         "Automatische Bestätigung nach 14 Tagen, sofern kein Einspruch erhoben wurde.",
-        "Bei Streitfällen kann ein Treuhand-Streitfall eröffnet werden.",
+        "Bei Streitfällen kann ein Escrow-Dispute eröffnet werden.",
       ]},
       { h: "4.3 Buchungen", items: [
         "Talente und Erlebnisse können gebucht werden.",
@@ -147,7 +147,7 @@ const SECTIONS = [
       "Keine Inhalte teilen, die gegen geltendes Recht verstoßen.",
       "Keine automatisierten Systeme (Bots, Scraper) einsetzen.",
       "Keine Inhalte anderer Nutzer ohne deren Zustimmung kopieren.",
-      "Das Treuhand-System nicht missbrauchen.",
+      "Das Escrow-System nicht missbrauchen.",
       "Keine Telefonnummern oder sensible Daten im öffentlichen Profil veröffentlichen (DSGVO).",
     ],
   },

@@ -155,19 +155,12 @@ export async function checkForUpdate() {
 
 // ── 4. Versions-Vergleich (semver) ──
 // Gibt zurück: 1 wenn a > b, -1 wenn a < b, 0 wenn gleich
-// FIX (2026-08-16, OTA-INFINITE-UPDATE-LOOP): Defense-in-Depth — strippt ein
-// eventuelles "v"-Präfix VOR dem Parsen. Root Cause war eigentlich, dass
-// src/version.ts nie mit "v2.1.230" synchron gehalten wurde (siehe
-// scripts/version.sh), aber falls dieser Wert je wieder ein "v"-Präfix
-// bekommt, darf Number("v2") NICHT mehr zu NaN und damit zu einer
-// Endlos-Update-Schleife führen.
 function compareVersions(a, b) {
-  const clean = (v) => String(v).replace(/^v/i, "");
-  const pa = clean(a).split(".").map(Number);
-  const pb = clean(b).split(".").map(Number);
+  const pa = String(a).split(".").map(Number);
+  const pb = String(b).split(".").map(Number);
   for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const va = Number.isFinite(pa[i]) ? pa[i] : 0;
-    const vb = Number.isFinite(pb[i]) ? pb[i] : 0;
+    const va = pa[i] || 0;
+    const vb = pb[i] || 0;
     if (va > vb) return 1;
     if (va < vb) return -1;
   }

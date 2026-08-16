@@ -1,7 +1,7 @@
 // EscrowStatusBadge — zeigt Escrow-Status visuell
 export default function EscrowStatusBadge({ escrowStatus = 'none', deliveryStatus = 'pending', size = 'sm' }) {
   const configs = {
-    none:     { label: 'Keine Treuhand',         color: '#8B8FA8', bg: 'rgba(139,143,168,0.1)' },
+    none:     { label: 'Keine Escrow',         color: '#8B8FA8', bg: 'rgba(139,143,168,0.1)' },
     holding:  { label: 'Bezahlt – blockiert',  color: '#FF8A6B', bg: 'rgba(255,138,107,0.12)' },
     released: { label: 'Freigegeben',          color: '#16D7C5', bg: 'rgba(22,215,197,0.12)' },
     disputed: { label: 'In Prüfung',           color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },

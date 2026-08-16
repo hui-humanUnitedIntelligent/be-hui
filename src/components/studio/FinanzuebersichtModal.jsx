@@ -257,7 +257,7 @@ function MeineKaeufe({ userId }) {
 
     const statusChips = [];
     if (o.escrow_status === "released" || confirmed) statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
-    if (o.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+    if (o.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
     if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
     if (confirmed) statusChips.push({ label: "Erhalten ✓", color: T.teal, bg: T.tealSoft });
 
@@ -330,7 +330,7 @@ function MeineKaeufe({ userId }) {
         const needsConfirm = (o.escrow_status === "holding" || !o.escrow_status) && !confirmed && !isDisputed;
         const statusChips = [];
         if (o.escrow_status === "released" || confirmed) statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
-        if (o.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+        if (o.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
         if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
         return (
           <TxCard
@@ -671,7 +671,7 @@ function MeineBuchungen({ userId }) {
     if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
     if (b.status === "confirmed" && !bConfirmed && !bDisputed) statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
     if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed)) statusChips.push({ label: "Erhalten ✓", color: T.green, bg: T.greenSoft });
-    if (b.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+    if (b.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
     if (b.escrow_status === "disputed" || bDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
     if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
 
@@ -738,7 +738,7 @@ function MeineBuchungen({ userId }) {
         if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
         if (b.status === "confirmed" && !bConfirmed2 && !bDisputed2) statusChips.push({ label: "Bestätigt", color: T.green, bg: T.greenSoft });
         if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed2)) statusChips.push({ label: "Erhalten ✓", color: T.green, bg: T.greenSoft });
-        if (b.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+        if (b.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
         if (bDisputed2) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
         if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
         return (
