@@ -71,7 +71,7 @@ serve(async (req) => {
     }
 
     // ── 2. Client-Payload — NUR item_id + quantity akzeptiert ────
-    const { orderItems: rawClientItems } = await req.json()
+    const { orderItems: rawClientItems, shipping_address: clientShippingAddress } = await req.json()
 
     if (!rawClientItems?.length) {
       return new Response(JSON.stringify({ error: 'orderItems erforderlich' }), {
@@ -300,6 +300,7 @@ serve(async (req) => {
       .from('orders')
       .insert({
         customer_id:      user.id,
+        shipping_address: clientShippingAddress || null,
         subtotal_eur:     serverSubtotal,
         shipping_eur:     serverShippingRounded,
         total_eur:        serverTotal,

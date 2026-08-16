@@ -153,6 +153,8 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
   const [downloading, setDownloading] = useState(false);
   const [showDisputeForm, setShowDisputeForm] = useState(false);
   const [disputeNote, setDisputeNote] = useState("");
+  const [showShipConfirm, setShowShipConfirm] = useState(false);
+  const [showReceiveConfirm, setShowReceiveConfirm] = useState(false);
 
   if (!tx) return null;
   const a = tx.actions || {};
@@ -308,7 +310,84 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             </Section>
           )}
 
-          {/* ── KÄUFER-BESTÄTIGUNG: "Bestätigung erforderlich" ── */}
+          {/* ── VERKÄUFER: "Versendet" Button ── */}
+          {a.onMarkShipped && !a.shipped && (
+            <Section>
+              <div style={{
+                background: T.tealSoft, borderRadius: T.r12, padding: "16px 16px 12px",
+                border: `1.5px solid ${T.teal}`,
+              }}>
+                <div style={{
+                  fontSize: 13, fontWeight: 700, color: T.teal, marginBottom: 6,
+                }}>
+                  Versand
+                </div>
+                <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 14 }}>
+                  Markiere diesen Verkauf als versendet, sobald du das Werk verschickt hast.
+                  Der Käufer erhält eine Benachrichtigung.
+                </div>
+                {showShipConfirm ? (
+                  <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
+                    <button
+                      onClick={() => setShowShipConfirm(false)}
+                      style={{
+                        flex: 1, padding: "13px 0", borderRadius: T.r99,
+                        background: T.bgCard, color: T.inkSoft,
+                        border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
+                        cursor: "pointer", fontFamily: T.ff,
+                      }}
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      onClick={() => { a.onMarkShipConfirm?.() || a.onMarkShipped?.(); }}
+                      disabled={a.shipping}
+                      style={{
+                        flex: 1, padding: "13px 0", borderRadius: T.r99,
+                        background: a.shipping ? "rgba(14,196,184,0.35)" : T.teal,
+                        color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
+                        cursor: a.shipping ? "not-allowed" : "pointer", fontFamily: T.ff,
+                        opacity: a.shipping ? 0.6 : 1,
+                      }}
+                    >
+                      {a.shipping ? "Wird markiert…" : "✓ Ja, versendet"}
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowShipConfirm(true)}
+                    style={{
+                      width: "100%", padding: "13px 0", borderRadius: T.r99,
+                      background: T.teal, color: "#fff", border: "none",
+                      fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+                    }}
+                  >
+                    Als versendet markieren
+                  </button>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {/* ── VERKÄUFER: Versand bestätigt ── */}
+          {a.shipped && a.shippedAt && (
+            <Section>
+              <div style={{
+                background: T.greenSoft, borderRadius: T.r12, padding: "14px 16px",
+                border: `1.5px solid ${T.greenMid}`,
+                fontSize: 13, color: T.inkSoft, lineHeight: 1.5,
+                display: "flex", alignItems: "center", gap: 8,
+              }}>
+                <span style={{ fontSize: 18 }}>✅</span>
+                <div>
+                  <div style={{ fontWeight: 600, color: T.green }}>Versendet</div>
+                  Versendet am {a.shippedAt}
+                </div>
+              </div>
+            </Section>
+          )}
+
+                    {/* ── KÄUFER-BESTÄTIGUNG: "Bestätigung erforderlich" ── */}
           {a.onConfirmReceipt && !a.receiptConfirmed && !a.disputeOpen && !showDisputeForm && (
             <Section>
               <div style={{
@@ -325,32 +404,68 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   Bitte bestätige, dass du dein {tx.kindLabel === "Buchung" ? "Talent/Erlebnis erhalten hast" : "Werk erhalten hast"}.
                   Erst dann wird die Zahlung an den Anbieter freigegeben.
                 </div>
-                <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
-                  <button
-                    onClick={a.onConfirmReceipt}
-                    disabled={a.confirmingReceipt}
-                    style={{
-                      flex: 1, padding: "13px 0", borderRadius: T.r99,
-                      background: a.confirmingReceipt ? "rgba(16,185,129,0.35)" : `linear-gradient(135deg, ${T.green}, #059669)`,
-                      color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                      cursor: a.confirmingReceipt ? "not-allowed" : "pointer", fontFamily: T.ff,
-                      opacity: a.confirmingReceipt ? 0.6 : 1,
-                    }}
-                  >
-                    {a.confirmingReceipt ? "…" : "✓ Erhalten"}
-                  </button>
-                  <button
-                    onClick={() => setShowDisputeForm(true)}
-                    style={{
-                      flex: 1, padding: "13px 0", borderRadius: T.r99,
-                      background: T.bgCard, color: T.red,
-                      border: `1.5px solid ${T.redMid}`,
-                      fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
-                    }}
-                  >
-                    ✕ Nicht erhalten
-                  </button>
-                </div>
+                {showReceiveConfirm ? (
+                  <div style={{ marginBottom: 4 }}>
+                    <div style={{
+                      fontSize: 12.5, color: T.red, fontWeight: 600,
+                      marginBottom: 10, lineHeight: 1.5,
+                    }}>
+                      ⚠ Achtung: Wenn du bestätigst, dass du die Ware erhalten hast,
+                      wird die Zahlung an den Verkäufer freigegeben.
+                    </div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button
+                        onClick={() => setShowReceiveConfirm(false)}
+                        style={{
+                          flex: 1, padding: "13px 0", borderRadius: T.r99,
+                          background: T.bgCard, color: T.inkSoft,
+                          border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
+                          cursor: "pointer", fontFamily: T.ff,
+                        }}
+                      >
+                        Abbrechen
+                      </button>
+                      <button
+                        onClick={a.onConfirmReceipt}
+                        disabled={a.confirmingReceipt}
+                        style={{
+                          flex: 1, padding: "13px 0", borderRadius: T.r99,
+                          background: a.confirmingReceipt ? "rgba(16,185,129,0.35)" : `linear-gradient(135deg, ${T.green}, #059669)`,
+                          color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
+                          cursor: a.confirmingReceipt ? "not-allowed" : "pointer", fontFamily: T.ff,
+                          opacity: a.confirmingReceipt ? 0.6 : 1,
+                        }}
+                      >
+                        {a.confirmingReceipt ? "…" : "✓ Ja, erhalten"}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
+                    <button
+                      onClick={() => setShowReceiveConfirm(true)}
+                      style={{
+                        flex: 1, padding: "13px 0", borderRadius: T.r99,
+                        background: `linear-gradient(135deg, ${T.green}, #059669)`,
+                        color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
+                        cursor: "pointer", fontFamily: T.ff,
+                      }}
+                    >
+                      ✓ Ware erhalten
+                    </button>
+                    <button
+                      onClick={() => setShowDisputeForm(true)}
+                      style={{
+                        flex: 1, padding: "13px 0", borderRadius: T.r99,
+                        background: T.bgCard, color: T.red,
+                        border: `1.5px solid ${T.redMid}`,
+                        fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+                      }}
+                    >
+                      ✕ Nicht erhalten
+                    </button>
+                  </div>
+                )}
               </div>
             </Section>
           )}
