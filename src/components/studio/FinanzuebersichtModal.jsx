@@ -204,11 +204,17 @@ function MeineKaeufe({ userId }) {
       const token = session?.access_token;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
+      // SAFETY (2026-08-16): 30s Timeout — falls Edge Function hangt,
+      // fällt der catch-Block auf direkte RPC zurück statt 150s zu warten.
+      const _ac1 = new AbortController();
+      const _to1 = setTimeout(() => _ac1.abort(), 30000);
       const res = await fetch(`${supabaseUrl}/functions/v1/confirm-and-transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ order_id: orderId }),
+        signal: _ac1.signal,
       });
+      clearTimeout(_to1);
       const result = await res.json();
 
       // FIX (2026-08-16, FAKE-SUCCESS-BUG): Vorher wurde bei jedem Fehler
@@ -642,11 +648,15 @@ function MeineBuchungen({ userId }) {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const _ac2 = new AbortController();
+      const _to2 = setTimeout(() => _ac2.abort(), 30000);
       const res = await fetch(`${supabaseUrl}/functions/v1/confirm-and-transfer`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ booking_id: bookingId }),
+        signal: _ac2.signal,
       });
+      clearTimeout(_to2);
       const result = await res.json();
       // FIX (2026-08-16, FAKE-SUCCESS-BUG): Analog handleConfirm — kein
       // Fake-Erfolg bei Fehler. Nur bei echtem Erfolg oder idempotentem
