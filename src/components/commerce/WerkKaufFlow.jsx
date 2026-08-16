@@ -62,6 +62,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const [selectedVariant, setSelectedVariant] = useState(null); // VARIANTS-001
   const [shippingAddress, setShippingAddress] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [quantity, setQuantity] = useState(1);
   const actions = useHuiActions();
 
   if (!werk) return null;
@@ -94,6 +95,17 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const shippingStrategy = resolveShippingStrategy([{ id: workId, type: "work", _raw: werk?._raw || werk }]);
   const needsAddress = shippingStrategy.needsShippingAddress;
 
+  const isUnique    = werk?._raw?.is_unique !== false;
+  const stockTotal   = werk?._raw?.stock_total ?? 1;
+  const stockAvail   = werk?._raw?.stock_available ?? 1;
+  const canSelectQty = !isUnique && !hasVariants && stockAvail > 1;
+  const maxQty       = Math.min(stockAvail, 99);
+  const shippingCost = werk?._raw?.shipping_cost ?? 0;
+  const hasShipping  = (werk?._raw?.shipping_available || werk?._raw?.shipping) && shippingCost > 0;
+  const totalPrice   = displayPrice * quantity;
+  const totalShipping = hasShipping ? shippingCost * quantity : 0;
+  const grandTotal   = totalPrice + totalShipping;
+
   async function handleKauf(addressOverride = null) {
     const address = addressOverride || shippingAddress;
     // Adressabfrage: Physisches Werk ohne Adresse -> erst AdressModal anzeigen
@@ -111,17 +123,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
     setErrMsg("");
 
     try {
-      // ── Sichtbarkeit-Gate: Verbindungen/Privat-Profile sind nicht kaufbar
-      // (server-seitig ohnehin über commerce_price_authority-View geblockt,
-      // hier nur für eine klare, verständliche Fehlermeldung statt generischem
-      // "Item nicht verfügbar") ──
-      const { data: sellerProfile } = await supabase
-        .from("profiles").select("focus_type").eq("id", creatorId).maybeSingle();
-      if (sellerProfile && sellerProfile.focus_type && sellerProfile.focus_type !== "public") {
-        setErrMsg("Dieses Profil ist nicht öffentlich — Käufe sind aktuell deaktiviert.");
-        setPhase("error");
-        return;
-      }
+      // COMMERCE-VIEW-FIX (2026-08-16): focus_type-Gate entfernt.
+      // commerce_price_authority View filtert bereits korrekt.
+      // Das focus_type='public'-Filter blockierte legitime Verkaeufer mit hybrid.
 
       // ── Stripe PaymentIntent über Edge Function erstellen ──
       const { data: { session } } = await supabase.auth.getSession();
@@ -143,7 +147,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
           orderItems: [{
             item_id: workId,
             item_type: "work",
-            quantity: 1,
+            quantity: Math.min(quantity, maxQty),
             // VARIANTS-001: Varianten-Auswahl mitsenden
             variant_id: activeVariant?.id || null,
             variant_name: activeVariant?.name || null,
@@ -250,7 +254,90 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             )}
             <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 6 }}>{title}</div>
             {displayPriceStr && !hasVariants && (
-              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{displayPriceStr}</div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 8 }}>{displayPriceStr}</div>
+            )}
+
+            {/* COMMERCE-QTY-001 (2026-08-16): Stock-Anzeige + Mengenauswahl */}
+            {!hasVariants && (
+              <div style={{ marginBottom: 20 }}>
+                {/* Stock-Badge */}
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  fontSize: 12, fontWeight: 600,
+                  color: stockAvail > 0 ? TEAL : "rgba(26,26,46,0.35)",
+                  background: stockAvail > 0 ? "rgba(22,215,197,0.08)" : "rgba(26,26,46,0.05)",
+                  border: "1px solid rgba(22,215,197,0.18)",
+                  borderRadius: 99, padding: "4px 10px", marginBottom: 12,
+                }}>
+                  {stockAvail} von {stockTotal} verfugbar
+                </div>
+
+                {/* Mengenauswahl — nur bei Massenware */}
+                {canSelectQty && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 12, marginBottom: 12,
+                  }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>Menge:</span>
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      style={{
+                        width: 36, height: 36, borderRadius: 10, border: "1px solid rgba(26,26,46,0.10)",
+                        background: quantity <= 1 ? "rgba(26,26,46,0.03)" : "#fff",
+                        fontSize: 18, fontWeight: 600, color: "#1A1A2E",
+                        cursor: quantity <= 1 ? "not-allowed" : "pointer",
+                        opacity: quantity <= 1 ? 0.4 : 1, fontFamily: "inherit",
+                      }}
+                    >-</button>
+                    <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", minWidth: 30, textAlign: "center" }}>{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(Math.min(maxQty, quantity + 1))}
+                      disabled={quantity >= maxQty}
+                      style={{
+                        width: 36, height: 36, borderRadius: 10, border: "1px solid rgba(26,26,46,0.10)",
+                        background: quantity >= maxQty ? "rgba(26,26,46,0.03)" : "#fff",
+                        fontSize: 18, fontWeight: 600, color: "#1A1A2E",
+                        cursor: quantity >= maxQty ? "not-allowed" : "pointer",
+                        opacity: quantity >= maxQty ? 0.4 : 1, fontFamily: "inherit",
+                      }}
+                    >+</button>
+                    <span style={{ fontSize: 11, color: "rgba(26,26,46,0.40)" }}>max. {maxQty}</span>
+                  </div>
+                )}
+
+                {/* Versandkosten-Anzeige */}
+                {hasShipping && (
+                  <div style={{
+                    fontSize: 12, color: "rgba(26,26,46,0.55)", marginBottom: 4,
+                  }}>
+                    Versand: {shippingCost.toFixed(2).replace(".", ",")} EUR
+                    {quantity > 1 && ` x ${quantity} = ${totalShipping.toFixed(2).replace(".", ",")} EUR`}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Preis-Zusammenfassung bei Mengenauswahl > 1 */}
+            {canSelectQty && quantity > 1 && !hasVariants && (
+              <div style={{
+                background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "10px 14px",
+                marginBottom: 16, fontSize: 13, color: "rgba(26,26,46,0.65)",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span>Zwischensumme</span>
+                  <span style={{ fontWeight: 600 }}>{totalPrice.toFixed(2).replace(".", ",")} EUR</span>
+                </div>
+                {totalShipping > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span>Versand</span>
+                    <span style={{ fontWeight: 600 }}>{totalShipping.toFixed(2).replace(".", ",")} EUR</span>
+                  </div>
+                )}
+                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 6, borderTop: "1px solid rgba(22,215,197,0.15)" }}>
+                  <span style={{ fontWeight: 600 }}>Gesamt</span>
+                  <span style={{ fontWeight: 600, color: TEAL, fontSize: 15 }}>{grandTotal.toFixed(2).replace(".", ",")} EUR</span>
+                </div>
+              </div>
             )}
 
             {/* VARIANTS-001: Varianten-Auswahl */}
@@ -350,7 +437,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               {hasVariants && !activeVariant
                 ? "Bitte Variante wählen"
                 : shippingAddress
-                  ? (displayPriceStr ? `Kaufen für ${displayPriceStr}` : "Kaufen")
+                  ? (grandTotalStr ? `Kaufen für ${grandTotalStr}` : "Kaufen")
                   : (displayPriceStr ? `Weiter — ${displayPriceStr}` : "Weiter zur Lieferung")}
             </button>
           </>
@@ -373,8 +460,8 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             Stripe-Kontext und einen Hook-Order-Crash (React #310). */}
         {phase === "payment" && clientSecret && (
           <StripePaymentStep
-            total={amount}
-            impact={+(amount * IMPACT_RATE).toFixed(2)}
+            total={grandTotal}
+            impact={+(grandTotal * IMPACT_RATE).toFixed(2)}
             clientSecret={clientSecret}
             publishableKey={publishableKey}
             orderId={orderId}
@@ -404,9 +491,19 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
                 <span style={{ fontWeight: 600 }}>Verkäufer:</span> {werk.author?.name || werk.author?.displayName || "Creator"}
               </div>
-              {amount > 0 && (
+              {quantity > 1 && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Betrag:</span> {amount.toFixed(2).replace(".", ",")} €
+                  <span style={{ fontWeight: 600 }}>Menge:</span> {quantity} x {displayPrice.toFixed(2).replace(".", ",")} EUR
+                </div>
+              )}
+              {totalShipping > 0 && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Versand:</span> {totalShipping.toFixed(2).replace(".", ",")} EUR
+                </div>
+              )}
+              {grandTotal > 0 && (
+                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Gesamt:</span> {grandTotal.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
               <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>

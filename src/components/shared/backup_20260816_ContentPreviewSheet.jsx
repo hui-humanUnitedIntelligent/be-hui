@@ -500,7 +500,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       padding:"7px 16px",
                     }}>
                       <span style={{ fontSize:16, fontWeight: 600, color:"rgba(0,150,136,1)" }}>
-                        {formatNumberDE(Number(item.price))} EUR
+                        {formatNumberDE(Number(item.price))} €
                       </span>
                     </div>
                   )}
@@ -515,33 +515,6 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       </span>
                     </div>
                   )}
-                  {/* COMMERCE-QTY-001 (2026-08-16): Stock-Badge + Versandkosten */}
-                  {(() => {
-                    const sTotal = item._raw?.stock_total ?? 1;
-                    const sAvail = item._raw?.stock_available ?? 1;
-                    const sCost  = item._raw?.shipping_cost ?? 0;
-                    const sHas   = (item._raw?.shipping_available || item._raw?.shipping) && sCost > 0;
-                    return (
-                      <>
-                        <div style={{
-                          display:"inline-flex", alignItems:"center", gap:4,
-                          fontSize:12, fontWeight:600,
-                          color: sAvail > 0 ? T.teal : "rgba(26,26,46,0.35)",
-                          background: sAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
-                          border:"1px solid rgba(13,196,181,0.18)",
-                          borderRadius:99, padding:"4px 10px",
-                        }}>{sAvail} von {sTotal} verfugbar</div>
-                        {sHas && (
-                          <div style={{
-                            display:"inline-flex", alignItems:"center",
-                            fontSize:12, fontWeight:600, color:T.inkSoft,
-                            background:"rgba(26,26,46,0.05)", borderRadius:99,
-                            padding:"4px 10px",
-                          }}>Versand: {sCost.toFixed(2).replace(".", ",")} EUR</div>
-                        )}
-                      </>
-                    );
-                  })()}
                 </div>
               )}
 

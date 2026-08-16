@@ -1,0 +1,500 @@
+// supabase/functions/create-payment-intent/index.ts
+// deploy-trigger: 2026-06-27T18-43-40-owner-fallback-v2
+// ═══════════════════════════════════════════════════════════════════
+// HUI Commerce 2.0 — Create Payment Intent (Production Final)
+// ═══════════════════════════════════════════════════════════════════
+// Fixes (Production Sign-Off):
+//   P0: creator_id kommt ausschließlich aus DB (commerce_price_authority)
+//       Client-Wert für creator_id wird vollständig ignoriert
+//   P1: Order-Cleanup bei Stripe-Fehler (keine orphaned pending Orders)
+//   P1: Session-Idempotenz via Cart-Hash (eine offene Order pro Checkout)
+//   P0: price, payout, impact, commission_eur — alles server-berechnet
+//   P0: qty >= 1, qty <= 99, nur positive Integers
+// ═══════════════════════════════════════════════════════════════════
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+// Serverseitige Konstanten — nie vom Client übernehmen
+// COM-MIGRATION-015.3: Gebuehr 10%->15%, Impact 7%->2.25% (=15% der Gebuehr), Creator 90%->85%
+// FIX (2026-08-16): Balanced-Growth-v1 (SSOT: rpc_process_order_fees, seit 10.07.2026)
+// HUI-Gebühr = 20% (nicht mehr 15%). Talent-Anteil = 80% (nicht mehr 85%).
+// Impact-Fonds = 30% von 20% Gebühr = 6% des Verkaufspreises (nicht mehr 2,25%).
+const PLATFORM_FEE_RATE = 0.20
+const IMPACT_RATE       = 0.06
+const CREATOR_SHARE     = 0.80
+const MAX_QTY           = 99
+const MIN_AMOUNT_CENTS  = 50   // Stripe Minimum EUR
+
+// ── Cart-Hash für Idempotenz ──────────────────────────────────────
+// Deterministisch: gleicher Cart + gleicher User = gleicher Hash
+function buildCartHash(userId: string, items: any[]): string {
+  const sorted = [...items]
+    .sort((a, b) => (a.item_id || '').localeCompare(b.item_id || ''))
+    .map(i => `${i.item_id}:${Math.max(1, Math.min(MAX_QTY, Number(i.quantity) || 1))}`)
+    .join('|')
+  return `hui_cart_${userId}_${btoa(sorted).replace(/[^a-zA-Z0-9]/g, '').slice(0, 32)}`
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+
+  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+  if (!stripeKey) {
+    return new Response(JSON.stringify({
+      error: 'Stripe nicht konfiguriert',
+      code:  'STRIPE_NOT_CONFIGURED',
+    }), { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+  }
+
+  // Order-ID für Cleanup im Fehlerfall
+  let createdOrderId: string | null = null
+
+  try {
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+
+    // ── 1. Auth ──────────────────────────────────────────────────
+    const authHeader = req.headers.get('Authorization')
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(
+      authHeader?.replace('Bearer ', '') ?? ''
+    )
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ── 2. Client-Payload — NUR item_id + quantity akzeptiert ────
+    const { orderItems: rawClientItems, shipping_address: clientShippingAddress } = await req.json()
+
+    if (!rawClientItems?.length) {
+      return new Response(JSON.stringify({ error: 'orderItems erforderlich' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Nur item_id und quantity vom Client übernehmen — alles andere ignorieren
+    const clientItems = rawClientItems.map((i: any) => ({
+      item_id:   (i.item_id || i.snapshot?.item_id || null) as string | null,
+      item_type: (i.item_type || 'work') as string,
+      quantity:  Math.max(1, Math.min(MAX_QTY, Math.round(Number(i.quantity) || 1))),
+    }))
+
+    // ── 3. Session-Idempotenz: bestehende offene Order prüfen ────
+    const cartHash = buildCartHash(user.id, clientItems)
+
+    const { data: existingOrder } = await supabase
+      .from('orders')
+      .select('id, stripe_payment_intent, total_eur, state')
+      .eq('customer_id', user.id)
+      .eq('state', 'pending')
+      .eq('cart_hash', cartHash)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (existingOrder?.stripe_payment_intent) {
+      // Bestehenden PI reaktivieren statt neuen erstellen
+      const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+      try {
+        const pi = await stripe.paymentIntents.retrieve(existingOrder.stripe_payment_intent)
+        if (pi.status === 'requires_payment_method' || pi.status === 'requires_confirmation') {
+          console.log('[PI] Bestehenden PI wiederverwendet:', pi.id)
+          return new Response(JSON.stringify({
+            clientSecret: pi.client_secret,
+            orderId:      existingOrder.id,
+            reused:       true,
+          }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+        }
+      } catch {}
+      // PI nicht mehr nutzbar → alte Order auf aborted setzen, neu erstellen
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', existingOrder.id)
+    }
+
+    // ── 4. Serverseitiger Preis-Lookup — EINZIGE Quelle für Preise ──
+    const itemIds = clientItems.filter((i: any) => i.item_id).map((i: any) => i.item_id)
+
+    // Primär: nur published Items (commerce_price_authority View)
+    const { data: authorityRows, error: priceErr } = await supabase
+      .from('commerce_price_authority')
+      .select('item_id, item_type, price_eur, shipping_eur, creator_id, title, cover_url')
+      .in('item_id', itemIds)
+
+    if (priceErr) {
+      console.error('[PI] Price lookup error:', priceErr.message)
+      return new Response(JSON.stringify({ error: 'Preisvalidierung fehlgeschlagen' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ── 4b. Selbstkauf-Schutz (server-side) ──────────────────────
+    // Ein Nutzer darf nicht seine eigenen Werke/Dienstleistungen kaufen
+    const selfPurchaseItems = (authorityRows || []).filter((r: any) => r.creator_id === user.id)
+    if (selfPurchaseItems.length > 0) {
+      const titles = selfPurchaseItems.map((r: any) => r.title || 'unbekannt').join(', ')
+      console.warn('[PI] Self-purchase blocked for user:', user.id, 'items:', titles)
+      return new Response(JSON.stringify({
+        error: 'Du kannst dich nicht selbst unterst\u00fctzen.',
+        detail: `Eigene Werke k\u00f6nnen nicht gekauft werden: ${titles}`,
+        code:   'SELF_PURCHASE_BLOCKED',
+      }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Fallback: Items die published-Filter nicht bestanden haben —
+    // Creator kann eigene nicht-published Werke kaufen (z.B. pending_review beim Testen)
+    const foundIds = new Set((authorityRows || []).map((r: any) => r.item_id))
+    const missingIds = itemIds.filter(id => !foundIds.has(id))
+    let fallbackRows: any[] = []
+    if (missingIds.length > 0) {
+      const { data: fb } = await supabase
+        .from('works')
+        .select('id as item_id, user_id as creator_id, price as price_eur, shipping_cost, title, cover_url, status')
+        .in('id', missingIds)
+        .eq('user_id', user.id)   // NUR eigene Werke
+        .in('status', ['pending_review', 'draft', 'approved'])
+        .not('price', 'is', null)
+        .gt('price', 0)
+      if (fb?.length) {
+        fallbackRows = fb.map((r: any) => ({ ...r, item_type: 'work', shipping_eur: r.shipping_cost ?? 0 }))
+        console.log('[PI] Fallback: Owner-Werke (nicht published):', fallbackRows.map((r:any) => r.item_id))
+      }
+    }
+    const allAuthorityRows = [...(authorityRows || []), ...fallbackRows]
+
+    // Price Map: item_id → { price_eur, creator_id, title, cover_url }
+    const priceMap = new Map<string, any>()
+    for (const row of allAuthorityRows) {
+      priceMap.set(row.item_id, row)
+    }
+
+    // ── 5. Berechnung — alles server-side ────────────────────────
+    let serverSubtotal = 0
+    let serverShipping = 0
+    const validatedItems: any[] = []
+
+    for (const clientItem of clientItems) {
+      if (!clientItem.item_id) continue  // support/custom items überspringen
+
+      const dbRow = priceMap.get(clientItem.item_id)
+      if (!dbRow) {
+        console.warn(`[PI] Item ${clientItem.item_id} nicht in commerce_price_authority — nicht published?`)
+        continue  // Item nicht verfügbar → überspringen statt Fehler
+      }
+
+      const qty        = clientItem.quantity
+      const unitPrice  = Number(dbRow.price_eur)
+      const lineTotal  = +(unitPrice * qty).toFixed(2)
+      const lineShipping = +(Number(dbRow.shipping_eur || 0) * qty).toFixed(2)
+      const payoutEur  = +(lineTotal * CREATOR_SHARE).toFixed(2)
+      const impactEur  = +(lineTotal * IMPACT_RATE).toFixed(2)
+      const commissionEur = +(lineTotal * PLATFORM_FEE_RATE).toFixed(2)
+
+      serverSubtotal += lineTotal
+      serverShipping += lineShipping
+
+      validatedItems.push({
+        seller_id:      dbRow.creator_id,  // commerce_price_authority.creator_id → order_items.seller_id
+        item_type:      dbRow.item_type || clientItem.item_type,
+        item_id:        clientItem.item_id,
+        quantity:       qty,
+        unit_price_eur: unitPrice,
+        shipping_eur:   lineShipping,
+        payout_eur:     payoutEur,
+        impact_eur:     impactEur,
+        shipping_type:  lineShipping > 0 ? 'physical' : 'none',
+        snapshot: {
+          item_id:          clientItem.item_id,
+          item_type:        dbRow.item_type,
+          title:            dbRow.title,
+          cover_url:        dbRow.cover_url,
+          seller_id:        dbRow.creator_id,
+          price_eur:        unitPrice,
+          quantity:         qty,
+          payout_eur:       payoutEur,
+          impact_eur:       impactEur,
+          commission_eur:   commissionEur,
+          server_validated: true,
+          validated_at:     new Date().toISOString(),
+        },
+      })
+    }
+
+    const serverTotal = +((serverSubtotal + serverShipping).toFixed(2))
+    const serverShippingRounded = +(serverShipping.toFixed(2))
+
+    if (validatedItems.length === 0) {
+      return new Response(JSON.stringify({ error: 'Keine verfügbaren Items — möglicherweise nicht mehr published' }), {
+        status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ── 5b. Stock-Prüfung (COMMERCE-STOCK-001 + VARIANTS-001) ─────
+    // Für jedes Item prüfen ob stock_available >= quantity
+    // VARIANTS-001: Wenn Varianten existieren, prüfe Bestand der spezifischen Variante
+    for (const vItem of validatedItems) {
+      const tableName = vItem.item_type === 'work' ? 'works' : 'experiences'
+      const { data: stockRow } = await supabase
+        .from(tableName)
+        .select('stock_available, stock_total, is_unique, variants, has_variants')
+        .eq('id', vItem.item_id)
+        .single()
+      if (stockRow) {
+        if (stockRow.has_variants && stockRow.variants && Array.isArray(stockRow.variants)) {
+          // VARIANTS-001: Varianten-Modus — prüfe spezifische Variante
+          if (!vItem.variant_id) {
+            return new Response(JSON.stringify({
+              error: 'Bitte eine Variante auswählen',
+              code:   'VARIANT_REQUIRED',
+            }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+          }
+          const variant = stockRow.variants.find((v: any) => v.id === vItem.variant_id)
+          if (!variant) {
+            return new Response(JSON.stringify({
+              error: 'Variante nicht mehr verfügbar',
+              code:   'VARIANT_NOT_FOUND',
+            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+          }
+          if ((variant.stock_available || 0) < vItem.quantity) {
+            return new Response(JSON.stringify({
+              error: `Variante "${variant.name}" nicht mehr ausreichend verfügbar`,
+              detail: `Available: ${variant.stock_available}, Requested: ${vItem.quantity}`,
+              code:   'INSUFFICIENT_VARIANT_STOCK',
+            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+          }
+          // Setze variant-spezifischen Preis wenn vorhanden
+          if (variant.price != null && variant.price > 0) {
+            vItem.unit_price_eur = Number(variant.price)
+            vItem.variant_name = variant.name || ''
+          }
+        } else {
+          // Normaler Modus (keine Varianten) — bestehende Logik
+          if (stockRow.stock_available < vItem.quantity) {
+            console.warn(`[PI] Insufficient stock for ${vItem.item_id}: available=${stockRow.stock_available}, requested=${vItem.quantity}`)
+            return new Response(JSON.stringify({
+              error: 'Nicht mehr ausreichend verfügbar',
+              detail: `Available: ${stockRow.stock_available}, Requested: ${vItem.quantity}`,
+              code:   'INSUFFICIENT_STOCK',
+            }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+          }
+        }
+      }
+    }
+
+    const amountCents = Math.round(serverTotal * 100)
+    if (amountCents < MIN_AMOUNT_CENTS) {
+      return new Response(JSON.stringify({ error: 'Mindestbetrag 0.50 €' }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ── 6. Order anlegen ─────────────────────────────────────────
+    const { data: dbOrder, error: orderErr } = await supabase
+      .from('orders')
+      .insert({
+        customer_id:      user.id,
+        shipping_address: clientShippingAddress || null,
+        subtotal_eur:     serverSubtotal,
+        shipping_eur:     serverShippingRounded,
+        total_eur:        serverTotal,
+        commission_eur:   +(serverSubtotal * PLATFORM_FEE_RATE).toFixed(2),
+        impact_eur:       +(serverSubtotal * IMPACT_RATE).toFixed(2),
+        state:            'pending',
+        currency:         'eur',
+        cart_hash:        cartHash,    // für Idempotenz-Lookup
+      })
+      .select('id')
+      .single()
+
+    if (orderErr || !dbOrder) {
+      console.error('[PI] Order insert failed:', orderErr?.code, orderErr?.message, orderErr?.details)
+      return new Response(JSON.stringify({
+        error:  'Order-Erstellung fehlgeschlagen',
+        detail: orderErr?.message ?? null,
+        code:   orderErr?.code   ?? null,
+      }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    createdOrderId = dbOrder.id  // für Cleanup
+
+    // ── 7. Order Items ────────────────────────────────────────────
+    const itemsPayload = validatedItems.map(item => ({
+      order_id:           dbOrder.id,
+      // seller_id (Commerce 2.0 Kanonisch) — 'creator_id'/'platform_fee_eur' entfernt, Spalten existieren nicht in order_items
+      seller_id:          item.seller_id   ?? null,
+      item_type:          item.item_type   || 'work',
+      item_id:            item.item_id     ?? null,
+      work_id:            item.item_type === 'work' ? item.item_id : null, // Legacy work_id
+      snapshot:           item.snapshot    ?? {},
+      shipping_type:      item.shipping_type || 'none',
+      quantity:           Number(item.quantity) || 1,
+      unit_price_eur:     Number(item.unit_price_eur) || 0,
+      shipping_eur:       Number(item.shipping_eur)   ?? 0,
+      payout_eur:         Number(item.payout_eur)     ?? 0,
+      impact_eur:         Number(item.impact_eur)     ?? 0,
+      fulfillment_status: 'new',
+      payout_status:      'held',
+      // VARIANTS-001: Varianten-Referenz (additiv, nullable)
+      variant_id:         item.variant_id   ?? null,
+      variant_name:       item.variant_name ?? null,
+    }))
+    console.log('[PI] order_items payload:', JSON.stringify(itemsPayload[0] || {}).slice(0, 200))
+
+    const { error: itemsErr } = await supabase.from('order_items').insert(itemsPayload)
+    if (itemsErr) {
+      console.error('[PI] Order items insert failed:', itemsErr.code, itemsErr.message, itemsErr.details)
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+      return new Response(JSON.stringify({
+        error:  'Order-Items fehlgeschlagen',
+        detail: itemsErr.message,
+        code:   itemsErr.code,
+        hint:   itemsErr.hint ?? null,
+      }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ── 8. Stripe Payment Intent ──────────────────────────────────
+    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
+    const idempotencyKey = `pi_hui_${dbOrder.id}`
+
+    let paymentIntent: Stripe.PaymentIntent
+    try {
+      paymentIntent = await stripe.paymentIntents.create({
+        amount:   amountCents,
+        currency: 'eur',
+        automatic_payment_methods: { enabled: true },
+        receipt_email: user.email || undefined,
+        metadata: {
+          hui_order_id:   dbOrder.id,
+          customer_id:    user.id,
+          item_count:     validatedItems.length.toString(),
+          creator_count:  [...new Set(validatedItems.map(i => i.seller_id))].filter(Boolean).length.toString(),
+          impact_eur:     (+(serverSubtotal * IMPACT_RATE).toFixed(2)).toFixed(2),
+          shipping_eur:   serverShippingRounded.toFixed(2),
+          cart_hash:      cartHash,
+          source:         'hui_commerce_v2',
+        },
+      }, { idempotencyKey })
+    } catch (stripeErr: any) {
+      // P1: Stripe-Fehler → Order cleanup (kein orphaned pending)
+      console.error('[PI] Stripe Error:', stripeErr.message)
+      await supabase.from('orders')
+        .update({ state: 'aborted' })
+        .eq('id', dbOrder.id)
+      const { error: failEventErr } = await supabase.from('commerce_events').insert({
+        event_type: 'payment_failed',
+        order_id:   dbOrder.id,
+        actor_type: 'system',
+        payload:    { error: stripeErr.message, stage: 'pi_creation' }
+      })
+      if (failEventErr) console.warn('[PI] commerce_events insert failed:', failEventErr.message)
+      return new Response(JSON.stringify({
+        error: 'Stripe-Verbindung fehlgeschlagen. Bitte erneut versuchen.',
+        code:  'STRIPE_ERROR',
+      }), { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+    }
+
+    // PI-ID in Order speichern
+    const { error: piLinkErr } = await supabase.from('orders')
+      .update({ stripe_payment_intent: paymentIntent.id })
+      .eq('id', dbOrder.id)
+    if (piLinkErr) {
+      console.error('[PI] stripe_payment_intent update failed:', piLinkErr.message)
+      await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+      return new Response(JSON.stringify({ error: 'Order-Verknüpfung fehlgeschlagen' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // ── 8b. Stock-Decrement (COMMERCE-STOCK-001 + VARIANTS-001) ────
+    // Nach erfolgreicher PI-Erstellung: atomare Bestandsreduzierung
+    for (const vItem of validatedItems) {
+      const tableName = vItem.item_type === 'work' ? 'works' : 'experiences'
+      if (vItem.variant_id) {
+        // VARIANTS-001: Varianten-spezifische Bestandsreduzierung
+        const { data: vResult, error: vErr } = await supabase
+          .rpc('rpc_decrement_variant_stock', {
+            p_table: tableName,
+            p_item_id: vItem.item_id,
+            p_variant_id: vItem.variant_id,
+            p_quantity: vItem.quantity,
+          })
+        if (vErr || !vResult?.success) {
+          console.error('[PI] Variant stock decrement failed for', vItem.item_id, 'variant', vItem.variant_id, ':', vErr?.message || vResult?.error)
+        } else {
+          console.log('[PI] Variant stock decremented:', vItem.item_id, 'variant', vItem.variant_id, 'new available:', vResult.new_stock_available)
+          // Wenn alle Varianten ausverkauft sind, markiere Werk als verkauft
+          if (vResult.all_sold_out && vItem.item_type === 'work') {
+            await supabase.from('works').update({ is_sold: true }).eq('id', vItem.item_id)
+          }
+        }
+      } else {
+        // Normaler Modus (keine Varianten)
+        const { data: stockResult, error: stockErr } = await supabase
+          .rpc('rpc_decrement_stock', {
+            p_table: tableName,
+            p_item_id: vItem.item_id,
+            p_quantity: vItem.quantity,
+          })
+        if (stockErr || !stockResult?.success) {
+          console.error('[PI] Stock decrement failed for', vItem.item_id, ':', stockErr?.message || stockResult?.error)
+          // Nicht blockierend — PI bereits erstellt, Bestand wird manuell korrigiert
+        } else {
+          console.log('[PI] Stock decremented:', vItem.item_id, 'new available:', stockResult.new_stock_available)
+        }
+      }
+    }
+
+    // Commerce Event
+    const { error: orderEventErr } = await supabase.from('commerce_events').insert({
+      event_type: 'order_created',
+      order_id:   dbOrder.id,
+      actor_id:   user.id,
+      actor_type: 'buyer',
+      payload:    {
+        amount_eur:    serverTotal,
+        item_count:    validatedItems.length,
+        db_validated:  true,
+        creator_count: [...new Set(validatedItems.map(i => i.seller_id))].length,
+      }
+    })
+    if (orderEventErr) console.warn('[PI] commerce_events insert failed:', orderEventErr.message)
+
+    return new Response(JSON.stringify({
+      clientSecret: paymentIntent.client_secret,
+      orderId:      dbOrder.id,
+      serverTotal,
+      publishableKey: Deno.env.get('STRIPE_PUBLISHABLE_KEY') || null,
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
+
+  } catch (e: any) {
+    // P1: unerwarteter Fehler → Order cleanup
+    if (createdOrderId) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      )
+      const { error: cleanupErr } = await supabase.from('orders')
+        .update({ state: 'aborted' })
+        .eq('id', createdOrderId)
+      if (cleanupErr) console.warn('[PI] Order cleanup failed:', cleanupErr.message)
+    }
+    console.error('[CREATE_PAYMENT_INTENT] Unhandled:', e?.message)
+    return new Response(JSON.stringify({ error: e?.message || 'Unbekannter Fehler' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    })
+  }
+})
