@@ -125,22 +125,15 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         const isUnique = item._raw?.is_unique !== false;
         const stockTotal = item._raw?.stock_total ?? 1;
         const stockAvail = item._raw?.stock_available ?? 1;
-        // FIX (2026-08-16, Michael-Report "Langer Mast"): Bei Unikaten wurde
-        // dieser Badge IMMER hartcodiert "1 von 1 verfuegbar" angezeigt --
-        // auch wenn das Stueck bereits verkauft war (stock_available=0).
-        // Das widersprach direkt dem "Verkauft"-Badge weiter unten (der
-        // korrekt auf for_sale reagiert). Jetzt: echten Bestand anzeigen,
-        // exakt wie im Nicht-Unikat-Zweig darunter.
         if (isUnique) {
           return (
             <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
               <span style={{
-                fontSize:11.5, fontWeight:600,
-                color: stockAvail > 0 ? TEAL : "rgba(26,26,46,0.35)",
-                background: stockAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
+                fontSize:11.5, fontWeight:600, color:TEAL,
+                background:"rgba(13,196,181,0.08)",
                 border:"1px solid rgba(13,196,181,0.18)",
                 borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-              }}>{stockAvail} von {stockTotal} verfügbar</span>
+              }}>1 von 1 verfügbar</span>
             </div>
           );
         }

@@ -577,29 +577,27 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
               </ActionButton>
             )}
           </Section>
-        </div>
 
-        {/* Pflicht: 'Profil ansehen' als dunkler Balken am unteren Rand (globale Regel) */}
-        {a.onViewProfile && (
-          <div style={{
-            flexShrink: 0, padding: "12px 20px calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
-            borderTop: `1px solid ${T.border}`, background: T.bg,
-          }}>
-            <button
-              onClick={a.onViewProfile}
-              style={{
-                width: "100%", padding: "14px 0", borderRadius: T.r99,
-                background: T.ink, color: "#fff", border: "none",
-                fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
-              }}
-            >
-              Profil ansehen
-            </button>
-          </div>
-        )}
-        {!a.onViewProfile && (
-          <div style={{ flexShrink: 0, height: "calc(12px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))" }} />
-        )}
+          {/* FIX (2026-08-16): 'Profil ansehen' scrollt jetzt MIT dem Inhalt
+              statt als starrer Balken außerhalb der Scroll-Area zu kleben —
+              Michael-Feedback: "starr, bitte mit der Seite mitscrollen".
+              Liegt jetzt als letztes Element INNERHALB des scrollbaren
+              Bereichs, direkt nach den Standard-Aktionen. */}
+          {a.onViewProfile && (
+            <div style={{ paddingTop: 4, paddingBottom: "max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 8px)" }}>
+              <button
+                onClick={a.onViewProfile}
+                style={{
+                  width: "100%", padding: "14px 0", borderRadius: T.r99,
+                  background: T.ink, color: "#fff", border: "none",
+                  fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
+                }}
+              >
+                Profil ansehen
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

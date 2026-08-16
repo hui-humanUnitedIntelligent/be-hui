@@ -310,6 +310,33 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             </Section>
           )}
 
+          {/* ── PROMINENTE LIEFERADRESSE (2026-08-16, Michael-Report):
+              Michael konnte die Käufer-Adresse nicht sehen — sie war als
+              MetaRow versteckt. Jetzt als eigener hervorgehobener Block
+              direkt vor dem Versendet-Button. ── */}
+          {tx.shippingAddress && (() => {
+            const a = tx.shippingAddress;
+            const addrStr = a.full || [
+              [a.firstName, a.lastName].filter(Boolean).join(" "),
+              a.street,
+              [a.zip, a.city].filter(Boolean).join(" ").trim(),
+              a.country
+            ].filter(Boolean).join("\n");
+            return (
+              <Section title="Lieferadresse">
+                <div style={{
+                  background: T.tealSoft, borderRadius: T.r12, padding: "14px 16px",
+                  border: `1.5px solid ${T.teal}`,
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, lineHeight: 1.6,
+                    whiteSpace: "pre-line" }}>
+                    {addrStr}
+                  </div>
+                </div>
+              </Section>
+            );
+          })()}
+
           {/* ── VERKÄUFER: "Versendet" Button ── */}
           {a.onMarkShipped && !a.shipped && (
             <Section>
