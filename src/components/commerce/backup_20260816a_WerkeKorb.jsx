@@ -279,23 +279,8 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
 
   const canQty     = allowsQuantity(item);
   const origHint   = getOriginalHint(item);
-  // FIX (2026-08-16, STOCK-OVERSELL-BUG): Es gab keine Obergrenze für den
-  // Mengenwähler im Warenkorb — man konnte beliebig hochklicken, auch über
-  // das tatsächlich verfügbare Lager hinaus (z.B. 15 bestellt bei 11
-  // verfügbaren Stück). Server-seitig (create-payment-intent Edge Function)
-  // wird das zwar bereits korrekt abgelehnt ("Insufficient stock"), aber der
-  // Käufer sah im Warenkorb selbst keine Grenze — verwirrend und schlechte
-  // UX. Gleiches Muster wie in WerkKaufFlow.jsx: maxQty = min(stock_available, 99).
-  // stock_available fehlt bei Items ohne Lagerverwaltung (Events, Erlebnisse,
-  // digitale Werke) → dann kein Cap (Infinity).
-  const rawStockAvail = item._raw?.stock_available;
-  const maxQty = (typeof rawStockAvail === "number" && rawStockAvail >= 0)
-    ? Math.max(1, Math.min(rawStockAvail, 99))
-    : 99;
   const [qty, setQty] = useState(
-    (canQty && typeof item.quantity === "number" && item.quantity > 0)
-      ? Math.min(item.quantity, maxQty)
-      : 1
+    (canQty && typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1
   );
   // BUGFIX (2026-08-16): Falls ein Unikat aus einem älteren Korb-Stand
   // noch quantity>1 im State hat (vor dem is_unique-Fix), auf 1 zurücksetzen
@@ -310,16 +295,14 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
   const changeQty = useCallback((delta) => {
     if (!canQty) return;
     setQty(prev => {
-      // FIX (2026-08-16, STOCK-OVERSELL-BUG): nach oben bei maxQty kappen —
-      // niemals mehr auswählbar als tatsächlich verfügbar (stock_available).
-      const next = Math.max(1, Math.min(maxQty, prev + delta));
+      const next = Math.max(1, prev + delta);
       if (next !== prev) {
         haptic("light");
         onQtyChange?.(item, next);
       }
       return next;
     });
-  }, [item, onQtyChange, canQty, maxQty]);
+  }, [item, onQtyChange, canQty]);
 
   return (
     <div
@@ -482,20 +465,19 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
                 onPointerDown={e => e.stopPropagation()}
                 onClick={() => changeQty(+1)}
                 aria-label="Mehr"
-                disabled={qty >= maxQty}
                 style={{
                   width:       32,
                   height:      32,
                   borderRadius:"50%",
                   border:      `1px solid rgba(13,196,181,0.22)`,
                   background:  "rgba(13,196,181,0.06)",
-                  color:       qty >= maxQty ? C.faint : C.teal,
+                  color:       C.teal,
                   fontSize:    17,
                   fontWeight:  300,
                   display:     "flex",
                   alignItems:  "center",
                   justifyContent:"center",
-                  cursor:      qty >= maxQty ? "default" : "pointer",
+                  cursor:      "pointer",
                   outline:     "none",
                   padding:     0,
                   flexShrink:  0,
@@ -505,20 +487,6 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
               >
                 +
               </button>
-
-              {/* FIX (2026-08-16, STOCK-OVERSELL-BUG): zeigt an wenn die
-                  Obergrenze durch verfügbares Lager erreicht ist. */}
-              {typeof rawStockAvail === "number" && qty >= maxQty && maxQty < 99 && (
-                <span style={{
-                  fontSize:      11,
-                  fontWeight:    500,
-                  color:         C.faint,
-                  letterSpacing: 0.1,
-                  marginLeft:    2,
-                }}>
-                  max. {maxQty}
-                </span>
-              )}
             </div>
           )}
 
