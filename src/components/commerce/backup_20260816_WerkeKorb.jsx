@@ -108,7 +108,6 @@ function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
 // ══════════════════════════════════════════════════════════════════
 export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false }) {
   const [glow,    setGlow]    = useState(false);
-  const [pulse,   setPulse]   = useState(false); // KORB-PULSE-001: Skalier-Animation beim Hinzufügen
   const [mounted, setMounted] = useState(count > 0); // nur rendern wenn nötig
   const [visible, setVisible] = useState(count > 0); // CSS opacity/transform
   const prevCount = useRef(count);
@@ -129,14 +128,12 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
     return () => clearTimeout(hideTimer.current);
   }, [count > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Glow + Pulse + Toast beim Hinzufügen
+  // Glow + Toast beim Hinzufügen
   useEffect(() => {
     if (count > prevCount.current) {
       setGlow(true);
-      setPulse(true); // KORB-PULSE-001: kurzer 40%-Scale-Puls signalisiert "im Korb"
       haptic("light");
-      const tGlow  = setTimeout(() => setGlow(false), 600);
-      const tPulse = setTimeout(() => setPulse(false), 420);
+      const t = setTimeout(() => setGlow(false), 600);
       prevCount.current = count;
       // Toast: "Zum Werkekorb hinzugefügt." — nur beim ERSTEN Item
       if (prevCount.current === 1) {
@@ -144,7 +141,7 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
           m?.toast?.success?.("Zum Werkekorb hinzugefügt.", { duration: 2500 });
         }).catch(() => {});
       }
-      return () => { clearTimeout(tGlow); clearTimeout(tPulse); };
+      return () => clearTimeout(t);
     }
     prevCount.current = count;
   }, [count]);
@@ -189,9 +186,6 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
         // Einfahren: von unten rechts + opacity 0 → sichtbar
         opacity:      visible ? 1 : 0,
         transform:    visible ? "translateY(0) scale(1)" : "translateY(14px) scale(0.88)",
-        // KORB-PULSE-001: animation läuft ÜBER der transition, endet exakt bei scale(1)
-        // → kein Konflikt mit der Ein-/Ausfahr-Transform oben.
-        animation:    pulse ? `wkfKorbPulse 420ms ${EASE.outSoft}` : "none",
         transition:   [
           `opacity 300ms ${EASE.outSoft}`,
           `transform 300ms ${EASE.outSoft}`,
@@ -205,13 +199,6 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      <style>{`
-        @keyframes wkfKorbPulse {
-          0%   { transform: translateY(0) scale(1); }
-          40%  { transform: translateY(0) scale(1.4); }
-          100% { transform: translateY(0) scale(1); }
-        }
-      `}</style>
       <SchalenIcon size={26} opacity={count > 0 ? 1 : 0.42} filled={count > 0} />
 
       {/* Kein Badge — nur Teal-Punkt bei 1 Item */}
