@@ -2014,6 +2014,62 @@ const TALENT_KATEGORIEN = [
 ];
 
 
+// ITEM-ACTION-CHOICE (2026-08-16, Michael-Feedback Screenshot "Meine Werke"):
+// Klick auf ein Werk/Talent/Erlebnis in "Mein Bereich" oeffnete bisher IMMER
+// direkt den Bearbeiten-Wizard. Michael will zusaetzlich die Moeglichkeit,
+// den Beitrag GENAUSO anzusehen wie er im Home-Feed erscheint -- ueber den
+// bereits bestehenden, app-weiten Oeffnen-Mechanismus openRef({type,id})
+// (ContentPreviewContext.jsx -> PostFullscreenView/ContentPreviewSheet,
+// exakt dieselbe Ansicht wie im Feed). Fix: kleine Auswahl-Sheet zwischen
+// Karten-Klick und Wizard/Ansicht -- additiv, kein bestehendes Verhalten
+// entfernt (Wizard bleibt via "bearbeiten" weiterhin 1 Klick entfernt).
+// createPortal(document.body) + zIndex 10500 Pflicht fuer neue Modals
+// (siehe footer-navbar-zindex.md).
+function ItemActionChoiceSheet({ label, onEdit, onView, onCancel }) {
+  return createPortal(
+    <div style={{
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
+      background:"rgba(0,0,0,0.55)", display:"flex",
+      alignItems:"center", justifyContent:"center", padding:"24px",
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#fff", borderRadius:16, padding:"22px 20px 20px",
+        maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        fontFamily:"Inter, sans-serif",
+      }}>
+        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:18, color:"#1a1a18" }}>
+          Was möchtest du tun?
+        </div>
+        <button onClick={onEdit} style={{
+          width:"100%", padding:"13px", borderRadius:99,
+          background:"#0EC4B8", border:"none", color:"#fff",
+          fontSize:14, fontWeight: 600, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:10,
+        }}>
+          {label} bearbeiten
+        </button>
+        <button onClick={onView} style={{
+          width:"100%", padding:"13px", borderRadius:99,
+          background:"rgba(14,196,184,0.08)", border:"1.5px solid rgba(14,196,184,0.35)",
+          color:"#0EC4B8", fontSize:14, fontWeight: 600, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:10,
+        }}>
+          {label} ansehen
+        </button>
+        <button onClick={onCancel} style={{
+          width:"100%", padding:"12px", borderRadius:99,
+          background:"#f0f0ee", border:"none", color:"#444",
+          fontSize:14, fontWeight: 600, cursor:"pointer",
+          fontFamily:"inherit",
+        }}>
+          Abbrechen
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
   return (
     <div style={{
@@ -2536,6 +2592,8 @@ function MeinBereichMenu({
 
 function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = () => {} }) {
   const [confirmTalent, setConfirmTalent] = React.useState(null);
+  const [choiceTalent, setChoiceTalent] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
+  const { openRef } = useContentPreview();
 
   const handleDeleteClick = (e, t) => {
     e.stopPropagation();
@@ -2561,6 +2619,14 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
         onCancel={() => setConfirmTalent(null)}
       />
     )}
+    {choiceTalent && (
+      <ItemActionChoiceSheet
+        label="Talent"
+        onEdit={() => { const t = choiceTalent; setChoiceTalent(null); onTalentWizard?.(t); }}
+        onView={() => { const t = choiceTalent; setChoiceTalent(null); openRef({ type:"talent", id:t.id }); }}
+        onCancel={() => setChoiceTalent(null)}
+      />
+    )}
     <div style={{ padding:`0 ${T.px}px` }}>
       {talents.length > 0 && (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
@@ -2573,7 +2639,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
             const cover = Array.isArray(t.images) && t.images[0]?.url;
             return (
               <div key={t.id || i}
-                onClick={() => onTalentWizard?.(t)}
+                onClick={() => setChoiceTalent(t)}
                 style={{
                   width:"100%", aspectRatio:"1/1",
                   borderRadius:12, overflow:"hidden",
@@ -2654,6 +2720,8 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
 
 function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
   const [confirmWork, setConfirmWork] = React.useState(null);
+  const [choiceWork, setChoiceWork] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
+  const { openRef } = useContentPreview();
 
   const handleDeleteClick = (e, w) => {
     e.stopPropagation();
@@ -2679,6 +2747,14 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
         onCancel={() => setConfirmWork(null)}
       />
     )}
+    {choiceWork && (
+      <ItemActionChoiceSheet
+        label="Werk"
+        onEdit={() => { const w = choiceWork; setChoiceWork(null); onWerkWizard?.(w); }}
+        onView={() => { const w = choiceWork; setChoiceWork(null); openRef({ type:"work", id:w.id }); }}
+        onCancel={() => setChoiceWork(null)}
+      />
+    )}
     <div style={{ padding:`0 ${T.px}px` }}>
       {works.length > 0 && (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
@@ -2690,7 +2766,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
             const badgeText  = isApproved ? "✅ Live" : isPending ? "⏳ Prüfung" : "❌ Abgelehnt";
             return (
               <div key={w.id || i}
-                onClick={() => onWerkWizard?.(w)}
+                onClick={() => setChoiceWork(w)}
                 style={{
                   width:"100%", aspectRatio:"1/1",
                   borderRadius:T.r12, overflow:"hidden",
@@ -2761,6 +2837,8 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
 
 function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = () => {} }) {
   const [confirmExp, setConfirmExp] = React.useState(null);
+  const [choiceExp, setChoiceExp] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
+  const { openRef } = useContentPreview();
 
   const handleDeleteClick = (e, exp) => {
     e.stopPropagation();
@@ -2831,6 +2909,18 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         </div>
       </div>
     )}
+    {choiceExp && (
+      <ItemActionChoiceSheet
+        label="Erlebnis"
+        onEdit={() => { const exp = choiceExp; setChoiceExp(null); onErlebnisWizard?.(exp); }}
+        onView={() => {
+          const exp = choiceExp; setChoiceExp(null);
+          // Projekte (Impact) und Erlebnisse liegen in unterschiedlichen Tabellen/Loadern
+          openRef({ type: exp._source === "projects" ? "project" : "experience", id: exp.id });
+        }}
+        onCancel={() => setChoiceExp(null)}
+      />
+    )}
     <div style={{ padding:`0 ${T.px}px` }}>
       <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Momente, die mein Wirken zeigen.</div>
 
@@ -2858,7 +2948,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
           const borderCol  = isApproved ? "#0EC4B8" : isPending ? "#D4A800" : isRejected ? "#ff5050" : "#0EC4B8";
           return (
             <div key={exp.id || i}
-              onClick={() => onErlebnisWizard?.(exp)}
+              onClick={() => setChoiceExp(exp)}
               style={{
                 width:"100%", aspectRatio:"1/1",
                 borderRadius:T.r12, overflow:"hidden",
