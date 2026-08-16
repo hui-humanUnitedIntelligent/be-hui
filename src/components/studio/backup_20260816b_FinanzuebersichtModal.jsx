@@ -120,6 +120,8 @@ function MeineKaeufe({ userId }) {
   const [loading, setLoading] = useState(true);
   const [confirmingId, setConfirmingId] = useState(null);
   const [confirmDone, setConfirmDone] = useState({});
+  const [disputingId, setDisputingId] = useState(null);
+  const [disputeDone, setDisputeDone] = useState({});
   const [recModal, setRecModal] = useState(null); // { sellerId, sellerName, orderId }
   const [sellerMap, setSellerMap] = useState({});
   const [detail, setDetail] = useState(null);
@@ -130,7 +132,7 @@ function MeineKaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id)")
+      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
       .eq("customer_id", userId)
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
@@ -154,48 +156,123 @@ function MeineKaeufe({ userId }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // ── HANDLE CONFIRM: Edge Function confirm-and-transfer (Stripe + DB) ──
   const handleConfirm = async (orderId) => {
     setConfirmingId(orderId);
-    const { data, error } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
-    if (data?.ok) {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+      // 1. Edge Function aufrufen (macht RPC + Stripe Transfer)
+      const res = await fetch(`${supabaseUrl}/functions/v1/confirm-and-transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ order_id: orderId }),
+      });
+      const result = await res.json();
+
+      // 2. Push an Verkäufer: "Käufer hat Erhalt bestätigt"
+      try {
+        const { data: order } = await supabase
+          .from("orders")
+          .select("order_items(seller_id)")
+          .eq("id", orderId)
+          .maybeSingle();
+        const sellerId = order?.order_items?.[0]?.seller_id;
+        if (sellerId) {
+          await supabase.from("notifications").insert({
+            user_id: sellerId,
+            type: "buyer_confirmed",
+            text: "Der Käufer hat den Erhalt bestätigt. Auszahlung wird freigegeben.",
+            entity_id: orderId,
+            entity_type: "order",
+          });
+        }
+      } catch (e) { console.warn("[PUSH] seller notify:", e); }
+
+      // 3. Auch bei Fehlern lokalen State updaten
       setConfirmDone(p => ({ ...p, [orderId]: true }));
-    } else {
-      // Auch bei "nicht in korrektem Status" → erlauben (Escrow kann schon released sein)
+      setDetail(null);
+      load();
+    } catch (e) {
+      console.warn("[ESCROW] confirm-and-transfer error:", e);
+      // Fallback: nur RPC aufrufen
+      const { data } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_order_id: orderId });
       setConfirmDone(p => ({ ...p, [orderId]: true }));
+      setDetail(null);
+      load();
+    } finally {
+      setConfirmingId(null);
     }
-    setConfirmingId(null);
-    setDetail(null);
-    load();
+  };
+
+  // ── HANDLE DISPUTE: Käufer meldet "Nicht erhalten" ──
+  const handleDispute = async (orderId, note) => {
+    setDisputingId(orderId);
+    try {
+      const { data, error } = await supabase.rpc("rpc_buyer_open_dispute", {
+        p_order_id: orderId,
+        p_note: note || null,
+      });
+      if (data?.ok || error) {
+        setDisputeDone(p => ({ ...p, [orderId]: true }));
+        setDetail(null);
+        load();
+      }
+    } catch (e) {
+      console.warn("[ESCROW] dispute error:", e);
+    } finally {
+      setDisputingId(null);
+    }
   };
 
   const buildTx = (o) => {
     const item = o.order_items?.[0];
     const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+    const variantName = item?.variant_name || null;
+    const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
     const image = item?.snapshot?.cover_url || null;
-    const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at;
-    const needsConfirm = o.escrow_status === "holding" && !confirmed;
+    const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at || !!o.buyer_confirmed;
+    const isDisputed = disputeDone[o.id] || !!o.dispute_open || o.escrow_status === "disputed";
+    const needsConfirm = (o.escrow_status === "holding" || !o.escrow_status) && !confirmed && !isDisputed;
     const sellerId = item?.seller_id;
     const sInfo = sellerId ? sellerMap[sellerId] : null;
 
     const statusChips = [];
-    if (o.escrow_status === "released") statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
+    if (o.escrow_status === "released" || confirmed) statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
     if (o.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
-    if (confirmed) statusChips.push({ label: "Ware bestätigt ✓", color: T.teal, bg: T.tealSoft });
+    if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
+    if (confirmed) statusChips.push({ label: "Erhalten ✓", color: T.teal, bg: T.tealSoft });
 
+    // FIX (2026-08-16): Vollständige Preisaufschlüsselung für Käufer
+    // — Plattformgebühr + Impact-Anteil transparent darstellen.
     const breakdown = [];
     if (item?.snapshot?.price_eur != null) breakdown.push({ label: "Werk-Preis", value: eur(item.snapshot.price_eur) });
-    if (item?.snapshot?.impact_eur != null) breakdown.push({ label: "Impact-Anteil", value: eur(item.snapshot.impact_eur) });
+    const itemFee = (item?.unit_price_eur || 0) - (item?.payout_eur || 0);
+    if (itemFee > 0) breakdown.push({ label: "Plattformgebühr (15%)", value: eur(itemFee) });
+    if (item?.snapshot?.impact_eur != null) breakdown.push({ label: "Davon Impact-Pool (2,25%)", value: eur(item.snapshot.impact_eur) });
     breakdown.push({ label: "Gesamt bezahlt", value: eur(o.total_eur) });
 
     return {
-      id: o.id, kindLabel: "Kauf", title, image,
+      id: o.id, kindLabel: "Kauf", title: titleWithVariant, image,
       amount: o.total_eur, amountLabel: "Bezahlt",
       dateLabel: dt(o.created_at), statusChips, breakdown, needsConfirm,
+      meta: [
+        ...(o.shipped_at ? [{ label: "Versendet am", value: dt(o.shipped_at) }] : []),
+        ...(o.delivered_at ? [{ label: "Zugestellt am", value: dt(o.delivered_at) }] : []),
+        ...((o.delivery_status === "shipped" && !o.delivered_at) ? [{ label: "Status", value: "Unterwegs zu dir" }] : []),
+        ...(o.shipping_address ? [{ label: "Lieferadresse", value: (o.shipping_address.full || "").replace(/\n/g, ", ") }] : []),
+        ...(o.tracking_number ? [{ label: "Tracking", value: o.tracking_number }] : []),
+      ],
       person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, email: sInfo.email, website: sInfo.website, roleLabel: "Verkäufer" } : null,
       actions: {
         onConfirmReceipt: needsConfirm ? () => handleConfirm(o.id) : null,
         confirmingReceipt: confirmingId === o.id,
         receiptConfirmed: confirmed,
+        onDispute: needsConfirm ? (note) => handleDispute(o.id, note) : null,
+        disputing: disputingId === o.id,
+        disputeOpen: isDisputed,
         onChat: (sellerId && sInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar }, source: S.SYSTEM }) : null,
         canRecommend: !!(confirmed && sellerId),
         onRecommend: (confirmed && sellerId) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id }); } : null,
@@ -229,17 +306,21 @@ function MeineKaeufe({ userId }) {
       {orders.map(o => {
         const item = o.order_items?.[0];
         const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+        const variantName = item?.variant_name || null;
+        const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
         const image = item?.snapshot?.cover_url || null;
-        const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at;
-        const needsConfirm = o.escrow_status === "holding" && !confirmed;
+        const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at || !!o.buyer_confirmed;
+        const isDisputed = disputeDone[o.id] || !!o.dispute_open || o.escrow_status === "disputed";
+        const needsConfirm = (o.escrow_status === "holding" || !o.escrow_status) && !confirmed && !isDisputed;
         const statusChips = [];
-        if (o.escrow_status === "released") statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
+        if (o.escrow_status === "released" || confirmed) statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
         if (o.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+        if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
         return (
           <TxCard
             key={o.id}
             image={image}
-            title={title}
+            title={titleWithVariant}
             dateLabel={dt(o.created_at)}
             amount={o.total_eur}
             statusChips={statusChips}
@@ -263,23 +344,61 @@ function MeineKaeufe({ userId }) {
     </div>
   );
 }
-
-// ──────────────────────────────────────────────────────────────────────
-// TAB 2: Meine Verkäufe
-// ──────────────────────────────────────────────────────────────────────
 function MeineVerkaeufe({ userId }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [buyerMap, setBuyerMap] = useState({});
   const [detail, setDetail] = useState(null);
+  const [shippingId, setShippingId] = useState(null);
   const actions = useHuiActions();
+
+  const handleShip = async (orderId) => {
+    if (!orderId) return;
+    setShippingId(orderId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/rpc_seller_mark_shipped`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ p_order_id: orderId }),
+        }
+      );
+      const result = await res.json();
+      if (result.ok) {
+        // Push an Käufer
+        const { data: order } = await supabase
+          .from("orders").select("customer_id").eq("id", orderId).maybeSingle();
+        if (order?.customer_id) {
+          await supabase.from("notifications").insert({
+            user_id: order.customer_id,
+            type: "order_shipped",
+            text: "Dein Werk/Talent/Erlebnis wurde versendet und ist unterwegs.",
+            entity_id: orderId,
+            entity_type: "order",
+          });
+        }
+        load();
+        setDetail(null);
+      }
+    } catch (e) {
+      console.warn("[SHIP] error:", e);
+    } finally {
+      setShippingId(null);
+    }
+  };
 
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, payout_requested_at, auto_confirm_at)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
@@ -313,24 +432,50 @@ function MeineVerkaeufe({ userId }) {
     const statusChips = [];
     if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
     if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-    if (escrow === "released") statusChips.push({ label: "Zahlung erhalten ✓", color: T.green, bg: T.greenSoft });
+    if (escrow === "released") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
     if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
     if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
 
-    const impact = (s.unit_price_eur || 0) - (s.payout_eur || 0);
+    // FIX (2026-08-16): Impact = echter Impact-Anteil aus snapshot (2.25%),
+    // nicht die gesamte Plattformgebühr (15%). payout_eur = 85% = Creator-Anteil.
+    // platformFee = unit_price - payout = 15% Gesamtgebühr.
+    // impact_eur = snapshot.impact_eur oder order_items.impact_eur (2.25%).
+    const platformFee = (s.unit_price_eur || 0) - (s.payout_eur || 0);
+    const impactEur   = s.snapshot?.impact_eur ?? s.impact_eur ?? 0;
+    // escrow_status kann "none" sein (ältere Orders) — dann als "holding" behandeln
+    // solange die Order paid ist und noch nicht versendet wurde.
+    const escrowHolding = s.orders?.escrow_status === "holding" || (!s.orders?.shipped_at && (s.orders?.escrow_status === "none" || !s.orders?.escrow_status));
+    // Adresse: shipping_address aus Order, oder buyer info als Fallback
+    const addrParts = [];
+    if (s.orders?.shipping_address) {
+      const a = s.orders.shipping_address;
+      const parts = [a.full || [a.line1, a.line2, a.postal_code, a.city, a.country].filter(Boolean).join(", ")];
+      addrParts.push({ label: "Lieferadresse", value: parts[0].replace(/\n/g, ", ") });
+    }
     return {
-      id: s.id, kindLabel: "Verkauf", title, image,
+      id: s.id, kindLabel: "Verkauf", title: (s.snapshot?.title || s.snapshot?.name || "Werk") + (s.variant_name ? " · " + s.variant_name : ""), image,
       amount: s.payout_eur, amountLabel: "Verdient",
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [
         { label: "Verkaufspreis", value: eur(s.unit_price_eur) },
-        { label: "Impact-Pool-Anteil", value: eur(impact) },
-        { label: "Deine Auszahlung", value: eur(s.payout_eur) },
+        { label: "Plattformgebühr (15%)", value: eur(platformFee) },
+        { label: "Davon Impact-Pool (2,25%)", value: eur(impactEur) },
+        { label: "Deine Auszahlung (85%)", value: eur(s.payout_eur) },
+      ],
+      meta: [
+        ...(s.orders?.shipped_at ? [{ label: "Versendet am", value: dt(s.orders.shipped_at) }] : []),
+        ...(s.orders?.delivered_at ? [{ label: "Zugestellt am", value: dt(s.orders.delivered_at) }] : []),
+        ...addrParts,
+        ...(s.orders?.tracking_number ? [{ label: "Tracking", value: s.orders.tracking_number }] : []),
       ],
       person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: "Käufer" } : null,
       actions: {
         onChat: (buyerId && bInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }) : null,
         onViewProfile: buyerId ? () => window.__HUI_OPEN_PROFILE__?.(buyerId) : null,
+        onMarkShipped: (!s.orders?.shipped_at && escrowHolding) ? () => handleShip(s.orders?.id) : null,
+        shipping: shippingId === s.orders?.id,
+        shipped: !!s.orders?.shipped_at,
+        shippedAt: s.orders?.shipped_at ? dt(s.orders.shipped_at) : null,
       },
     };
   };
@@ -340,7 +485,8 @@ function MeineVerkaeufe({ userId }) {
 
   const totalVerdient   = items.reduce((s, i) => s + (i.payout_eur || 0), 0);
   const totalUmsatz     = items.reduce((s, i) => s + (i.unit_price_eur || 0), 0);
-  const totalImpact     = items.reduce((s, i) => s + ((i.unit_price_eur || 0) - (i.payout_eur || 0)), 0);
+  // FIX (2026-08-16): Echter Impact-Anteil (2.25%), nicht gesamte Gebühr (15%)
+  const totalImpact     = items.reduce((s, i) => s + (i.snapshot?.impact_eur ?? i.impact_eur ?? 0), 0);
 
   return (
     <div>
@@ -352,19 +498,21 @@ function MeineVerkaeufe({ userId }) {
       </div>
       {items.map(s => {
         const title = s.snapshot?.title || s.snapshot?.name || "Werk";
+        const variantName = s.variant_name || null;
+        const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
         const image = s.snapshot?.cover_url || null;
         const escrow = s.orders?.escrow_status;
         const payoutReq = !!s.orders?.payout_requested_at;
         const statusChips = [];
         if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
         if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-        if (escrow === "released") statusChips.push({ label: "Zahlung erhalten ✓", color: T.green, bg: T.greenSoft });
+        if (escrow === "released") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
         if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
         return (
           <TxCard
             key={s.id}
             image={image}
-            title={title}
+            title={titleWithVariant}
             dateLabel={dt(s.created_at)}
             amount={s.payout_eur}
             amountColor={T.green}
@@ -396,7 +544,7 @@ function MeineBuchungen({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("talent_bookings")
-      .select("id, talent_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, talents(title, images, category, location_type, location_address)")
+      .select("id, talent_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, talents(title, images, category, location_type, location_address)")
       .eq("customer_id", userId)
       .order("selected_date", { ascending: false });
 
@@ -413,6 +561,52 @@ function MeineBuchungen({ userId }) {
 
   useEffect(() => { load(); }, [load]);
 
+  // ── ESCROW: Buchungs-Bestätigung via Edge Function ──
+  const [confirmingBooking, setConfirmingBooking] = useState(null);
+  const [disputingBooking, setDisputingBooking] = useState(null);
+
+  const handleConfirmBooking = async (bookingId) => {
+    setConfirmingBooking(bookingId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const res = await fetch(`${supabaseUrl}/functions/v1/confirm-and-transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ booking_id: bookingId }),
+      });
+      setConfirmDone(p => ({ ...p, [bookingId]: true }));
+      setDetail(null);
+      load();
+    } catch (e) {
+      console.warn("[ESCROW] booking confirm error:", e);
+      const { data } = await supabase.rpc("rpc_buyer_confirm_receipt", { p_booking_id: bookingId });
+      setConfirmDone(p => ({ ...p, [bookingId]: true }));
+      setDetail(null);
+      load();
+    } finally {
+      setConfirmingBooking(null);
+    }
+  };
+
+  const handleDisputeBooking = async (bookingId, note) => {
+    setDisputingBooking(bookingId);
+    try {
+      const { data } = await supabase.rpc("rpc_buyer_open_dispute", {
+        p_booking_id: bookingId,
+        p_note: note || null,
+      });
+      setConfirmDone(p => ({ ...p, [bookingId]: true }));
+      setDetail(null);
+      load();
+    } catch (e) {
+      console.warn("[ESCROW] booking dispute error:", e);
+    } finally {
+      setDisputingBooking(null);
+    }
+  };
+
   const buildTx = (b) => {
     const title = b.talents?.title || "Talent-Angebot";
     const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
@@ -421,10 +615,16 @@ function MeineBuchungen({ userId }) {
     const location = b.talents?.location_type === "online" ? "Online" : (b.talents?.location_address || null);
     const timeStr = b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null;
 
+    const bConfirmed = confirmDone[b.id] || !!b.buyer_confirmed_at || !!b.buyer_confirmed;
+    const bDisputed = !!b.dispute_open || b.escrow_status === "disputed";
+    const bNeedsConfirm = (b.escrow_status === "holding" || (b.status === "confirmed" && !b.escrow_status)) && !bConfirmed && !bDisputed;
+
     const statusChips = [];
     if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
-    if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
-    if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
+    if (b.status === "confirmed" && !bConfirmed && !bDisputed) statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
+    if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed)) statusChips.push({ label: "Erhalten ✓", color: T.green, bg: T.greenSoft });
+    if (b.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+    if (b.escrow_status === "disputed" || bDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
     if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
 
     return {
@@ -440,6 +640,12 @@ function MeineBuchungen({ userId }) {
       ],
       person: { name: b.seller_name, email: b.seller_email, website: b.seller_website, roleLabel: "Anbieter" },
       actions: {
+        onConfirmReceipt: bNeedsConfirm ? () => handleConfirmBooking(b.id) : null,
+        confirmingReceipt: confirmingBooking === b.id,
+        receiptConfirmed: bConfirmed,
+        onDispute: bNeedsConfirm ? (note) => handleDisputeBooking(b.id, note) : null,
+        disputing: disputingBooking === b.id,
+        disputeOpen: bDisputed,
         onChat: (b.seller_id && b.status !== "cancelled") ? () => setShowChatConfirm(b.id) : null,
         canRecommend: !!(canRec && !confirmDone[b.id]),
         onRecommend: (canRec && !confirmDone[b.id]) ? () => { setConfirmDone(p => ({ ...p, [b.id]: true })); setDetail(null); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); } : null,
@@ -478,9 +684,14 @@ function MeineBuchungen({ userId }) {
         const title = b.talents?.title || "Talent-Angebot";
         const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
         const statusChips = [];
+        const bConfirmed2 = !!b.buyer_confirmed_at || !!b.buyer_confirmed;
+        const bDisputed2 = !!b.dispute_open || b.escrow_status === "disputed";
+        const bNeedsConfirm2 = (b.escrow_status === "holding" || (b.status === "confirmed" && !b.escrow_status)) && !bConfirmed2 && !bDisputed2;
         if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
-        if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
-        if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
+        if (b.status === "confirmed" && !bConfirmed2 && !bDisputed2) statusChips.push({ label: "Bestätigt", color: T.green, bg: T.greenSoft });
+        if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed2)) statusChips.push({ label: "Erhalten ✓", color: T.green, bg: T.greenSoft });
+        if (b.escrow_status === "holding") statusChips.push({ label: "In Escrow", color: T.amber, bg: T.amberSoft });
+        if (bDisputed2) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
         if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
         return (
           <TxCard
@@ -491,6 +702,7 @@ function MeineBuchungen({ userId }) {
             dateLabel={dt(b.selected_date)}
             amount={b.amount_eur}
             statusChips={statusChips}
+            needsAction={bNeedsConfirm2}
             onClick={() => setDetail(buildTx(b))}
           />
         );
@@ -715,7 +927,9 @@ const TABS = [
   { id: "verkaeufe",label: "Verkäufe" },
   { id: "buchungen",label: "Buchungen" },
   { id: "gebucht",  label: "Gebucht" },
-  { id: "support",  label: "Support" },
+  // "Support"-Tab entfernt (2026-08-15, auf Wunsch von Michael) — in Käufe/Verkäufe
+  // nicht benötigt. MeineSupports-Komponente bleibt im Code erhalten
+  // (No-Regression-Protection), ist aber hier nicht mehr erreichbar.
 ];
 
 
@@ -889,7 +1103,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
               Käufe/Verkäufe
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
-              Käufe, Verkäufe, Buchungen & Support
+              Käufe, Verkäufe, Buchungen
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -937,7 +1151,6 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} />}
           {tab === "buchungen" && <MeineBuchungen userId={userId} />}
           {tab === "gebucht"   && <WerHatMichGebucht userId={userId} />}
-          {tab === "support"   && <MeineSupports userId={userId} />}
         </div>
       </div>
     </div>

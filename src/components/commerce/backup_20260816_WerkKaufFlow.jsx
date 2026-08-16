@@ -32,6 +32,7 @@ import { toast } from "../../lib/useToast.jsx";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { optimizeCard } from "../../lib/perfUtils.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { resolveShippingStrategy } from "../../services/commerceEngine.js";
 
 let _resonanceHelpers = null;
 async function getResonanceHelpers() {
@@ -39,6 +40,8 @@ async function getResonanceHelpers() {
   try { const m = await import("../../hooks/useCoreEngine.js"); _resonanceHelpers = m.resonanceHelpers; return _resonanceHelpers; }
   catch { return null; }
 }
+
+import ShippingAddressModal from "./ShippingAddressModal.jsx";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -57,6 +60,8 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const [hasChatted, setHasChatted] = useState(false);
   const [showChatConfirm, setShowChatConfirm] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null); // VARIANTS-001
+  const [shippingAddress, setShippingAddress] = useState(null);
+  const [showAddressModal, setShowAddressModal] = useState(false);
   const actions = useHuiActions();
 
   if (!werk) return null;
@@ -84,7 +89,18 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const displayPrice = variantPrice != null ? variantPrice : amount;
   const displayPriceStr = displayPrice > 0 ? `${displayPrice.toFixed(2).replace(".", ",")} €` : priceStr;
 
-  async function handleKauf() {
+  // BUGFIX (2026-08-16): resolveShippingStrategy statt hartem Adress-Zwang —
+  // digitale Werke/Services brauchen keine Lieferadresse.
+  const shippingStrategy = resolveShippingStrategy([{ id: workId, type: "work", _raw: werk?._raw || werk }]);
+  const needsAddress = shippingStrategy.needsShippingAddress;
+
+  async function handleKauf(addressOverride = null) {
+    const address = addressOverride || shippingAddress;
+    // Adressabfrage: Physisches Werk ohne Adresse -> erst AdressModal anzeigen
+    if (needsAddress && !address) {
+      setShowAddressModal(true);
+      return;
+    }
     if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
     if (!workId)      { setErrMsg("Werk-ID fehlt."); setPhase("error"); return; }
     if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
@@ -132,6 +148,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             variant_id: activeVariant?.id || null,
             variant_name: activeVariant?.name || null,
           }],
+          // BUGFIX (2026-08-16): Lieferadresse wurde erfasst, aber nie an die
+          // Edge Function gesendet — orders.shipping_address blieb immer leer.
+          shipping_address: address || null,
         }),
       });
 
@@ -191,7 +210,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   }
 
   // ── Render ──────────────────────────────────────────────────────
-  return createPortal(
+  return (
+    <>
+    {createPortal(
     <div
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
@@ -283,7 +304,31 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "14px 16px",
               marginBottom: 24, fontSize: 13, color: "rgba(26,26,46,0.65)", lineHeight: 1.6,
             }}>
-              Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhältst,
+            {shippingAddress && (
+              <div style={{
+                background: "rgba(22,215,197,0.04)", borderRadius: 12, padding: "12px 14px",
+                marginBottom: 14, fontSize: 13, color: "rgba(26,26,46,0.65)", lineHeight: 1.5,
+                border: "1px solid rgba(22,215,197,0.12)",
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: TEAL, marginBottom: 4 }}>
+                  LIEFERADRESSE
+                </div>
+                {shippingAddress.full.split("\n").map((line, i) => (
+                  <div key={i} style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>{line}</div>
+                ))}
+                <button
+                  onClick={() => setShowAddressModal(true)}
+                  style={{
+                    marginTop: 6, fontSize: 12, color: TEAL, fontWeight: 600,
+                    background: "none", border: "none", cursor: "pointer", padding: 0,
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Adresse ändern
+                </button>
+              </div>
+            )}
+                          Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhältst,
               bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
             </div>
 
@@ -300,7 +345,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             >
               {hasVariants && !activeVariant
                 ? "Bitte Variante wählen"
-                : displayPriceStr ? `Kaufen für ${displayPriceStr}` : "Kaufen"}
+                : shippingAddress
+                  ? (displayPriceStr ? `Kaufen für ${displayPriceStr}` : "Kaufen")
+                  : (displayPriceStr ? `Weiter — ${displayPriceStr}` : "Weiter zur Lieferung")}
             </button>
           </>
         )}
@@ -534,5 +581,19 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       </div>
     </div>,
     document.body
+    )}
+    {/* BUGFIX (2026-08-16): ShippingAddressModal war importiert + State vorhanden,
+        wurde aber nie gerendert — Adressabfrage vor Kauf fehlte komplett im UI. */}
+    {showAddressModal && (
+      <ShippingAddressModal
+        onConfirm={(address) => {
+          setShippingAddress(address);
+          setShowAddressModal(false);
+          handleKauf(address);
+        }}
+        onCancel={() => setShowAddressModal(false)}
+      />
+    )}
+    </>
   );
 }
