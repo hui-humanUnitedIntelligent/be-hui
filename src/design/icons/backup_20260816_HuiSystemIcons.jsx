@@ -640,12 +640,3 @@ export function HUIFortschrittIcon({ size = 24, className, style }) {
     </Icon>
   );
 }
-
-/* 57. Momente — Sprechblase (echtes SVG statt Emoji, Michael-Request 2026-08-16) */
-export function HUIMomenteIcon({ size = 24, className, style }) {
-  return (
-    <Icon size={size} className={className} style={style} title="Momente">
-      <path d="M4 5.5C4 4.12 5.12 3 6.5 3h11C18.88 3 20 4.12 20 5.5v8c0 1.38-1.12 2.5-2.5 2.5H9l-4.3 3.3c-.4.3-.98.03-1-.5V5.5z" />
-    </Icon>
-  );
-}
