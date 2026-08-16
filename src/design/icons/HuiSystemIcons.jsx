@@ -649,3 +649,17 @@ export function HUIMomenteIcon({ size = 24, className, style }) {
     </Icon>
   );
 }
+
+/* 58. Talent — gefüllter Stern (Michael-Request 2026-08-16: "türkis Stern",
+   Talent-Kachel in QuickStats. Gefüllt statt Outline, damit es wie ein
+   echter Stern statt einem Emoji-Ersatz wirkt.) */
+export function HUITalentStarIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Talent">
+      <polygon
+        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+        fill="currentColor" stroke="none"
+      />
+    </Icon>
+  );
+}

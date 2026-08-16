@@ -22,7 +22,7 @@ import { useHome }  from "../components/home/HomeShell.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import {
-  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIMomenteIcon,
+  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIMomenteIcon, HUITalentStarIcon,
   HUIKalenderIcon, HUISettingsIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { HUIChatIcon, HUIBookmarkIcon } from '../design/icons/HuiInteractionIcons.jsx';
@@ -266,9 +266,9 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
 // dort). Jede Kachel ist klickbar und scrollt per onStatClick(key) zur
 // jeweiligen Section weiter unten auf der Seite (kein Modal, kein
 // Seitenwechsel — bleibt im selben Fenster).
-function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {}, isTalent = false }) {
+function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {} }) {
   const stats = [
-    ...(isTalent ? [{ key:"talent",     icon:<HUITalentIcon size={20}/>,     val: talents?.length ?? 0,     label:"Talent"     }] : []),
+    { key:"talent",     icon:<HUITalentStarIcon size={20}/>,  val: talents?.length ?? 0,     label:"Talent"     },
     { key:"werke",      icon:<HUIWerkeIcon size={20}/>,      val: works?.length ?? 0,       label:"Werke"      },
     { key:"momente",    icon:<HUIMomenteIcon size={20}/>,    val: moments?.length ?? 0,     label:"Momente"    },
     { key:"erlebnisse", icon:<HUIErlebnisIcon size={20}/>,   val: experiences?.length ?? 0, label:"Erlebnisse" },
@@ -549,7 +549,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── QUICK STATS ── */}
         {profile && (
-          <QuickStats talents={{ length: talentsCount }} works={works} experiences={experiences} moments={moments} onStatClick={handleStatClick} isTalent={profile?.has_talent_profile || profile?.is_talent} />
+          <QuickStats talents={{ length: talentsCount }} works={works} experiences={experiences} moments={moments} onStatClick={handleStatClick} />
         )}
         <Gap h={16}/>
 

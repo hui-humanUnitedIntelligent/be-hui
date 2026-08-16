@@ -22,7 +22,7 @@ import { useHome }  from "../components/home/HomeShell.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import {
-  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon,
+  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIMomenteIcon,
   HUIKalenderIcon, HUISettingsIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { HUIChatIcon, HUIBookmarkIcon } from '../design/icons/HuiInteractionIcons.jsx';
@@ -268,10 +268,10 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
 // Seitenwechsel — bleibt im selben Fenster).
 function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {}, isTalent = false }) {
   const stats = [
-    ...(isTalent ? [{ key:"talent",     icon:"🌟", val: talents?.length ?? 0,     label:"Talent"     }] : []),
-    { key:"werke",      icon:"🎨", val: works?.length ?? 0,       label:"Werke"      },
-    { key:"momente",    icon:"💬", val: moments?.length ?? 0,     label:"Momente"    },
-    { key:"erlebnisse", icon:"⭐", val: experiences?.length ?? 0, label:"Erlebnisse" },
+    ...(isTalent ? [{ key:"talent",     icon:<HUITalentIcon size={20}/>,     val: talents?.length ?? 0,     label:"Talent"     }] : []),
+    { key:"werke",      icon:<HUIWerkeIcon size={20}/>,      val: works?.length ?? 0,       label:"Werke"      },
+    { key:"momente",    icon:<HUIMomenteIcon size={20}/>,    val: moments?.length ?? 0,     label:"Momente"    },
+    { key:"erlebnisse", icon:<HUIErlebnisIcon size={20}/>,   val: experiences?.length ?? 0, label:"Erlebnisse" },
   ];
   return (
     <div style={{
@@ -291,7 +291,7 @@ function QuickStats({ talents = [], works = [], experiences = [], moments = [], 
             padding:0, WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
           }}
         >
-          <span style={{ fontSize:18 }}>{s.icon}</span>
+          <span style={{ display:"flex", color:T.teal }}>{s.icon}</span>
           <span style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{s.val}</span>
           <span style={{ fontSize:10.5, color:T.inkFaint, fontWeight:500 }}>{s.label}</span>
         </button>
