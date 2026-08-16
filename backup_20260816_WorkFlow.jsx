@@ -118,9 +118,6 @@ export default function WorkFlow({ onClose }) {
     size:         "",
     materials:    "",
     condition:    "Neu",
-    // Verfügbarkeit (COMMERCE-STOCK-001)
-    availabilityMode: "unique",  // "unique" | "copies"
-    stockCount:      "",         // Integer > 0 (nur bei copies)
     // Veröffentlichung
     visibility:   "public",     // "public" | "community" | "private"
   });

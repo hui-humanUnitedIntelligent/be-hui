@@ -1,5 +1,5 @@
 // src/system/flows/work/WorkDetailsStep.jsx
-// Step 2 — Werk Informationen: Preis, Verfügbarkeit, Versand, Details
+// Step 2 — Werk Informationen: Preis, Versand, Details
 
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
@@ -103,38 +103,6 @@ function Toggle({ value, onChange }) {
   );
 }
 
-/* ── Verfügbarkeits-Pills (COMMERCE-STOCK-001) ───────────────── */
-function AvailabilityPills({ value, onChange }) {
-  const opts = [
-    { key:"unique",  icon:"1",  label:"Einzelstück" },
-    { key:"copies",  icon:"≡",  label:"Mehrere Kopien" },
-  ];
-  return (
-    <div style={{ display:"flex", gap:8 }}>
-      {(opts||[]).filter(o=>o&&o.key).map(o => {
-        const active = value === o.key;
-        return (
-          <button key={o.key} onClick={() => onChange(o.key)} style={{
-            flex:1, padding:"10px 6px",
-            borderRadius:13, border:"none",
-            background: active ? WT.teal : "rgba(26,26,46,0.05)",
-            color:       active ? "#fff"   : WT.ink2,
-            fontSize:12.5, fontWeight: 600,
-            cursor:"pointer",
-            display:"flex", flexDirection:"column",
-            alignItems:"center", gap:4,
-            transition:"all 0.18s ease",
-            boxShadow: active ? `0 4px 14px rgba(10,191,184,0.28)` : "none",
-          }}>
-            <span style={{ fontSize:16, fontWeight:700 }}>{o.icon}</span>
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 /* ── Step 2 ──────────────────────────────────────────────────── */
 export function WorkDetailsStep({ form, onFormChange, onNext }) {
   const isDigital = !form.shipping;
@@ -186,44 +154,9 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
       {/* ── Separator ── */}
       <div style={{ height:1, background:"rgba(26,26,46,0.06)", marginBottom:22 }}/>
 
-      {/* ══ 2. VERFÜGBARKEIT (COMMERCE-STOCK-001) ══ */}
+      {/* ══ 2. VERSAND ══ */}
       <div style={{ marginBottom:24 }}>
-        <SectionLabel number="2" title="Verfügbarkeit" />
-        <p style={{ fontSize:13, color:WT.ink3, margin:"0 0 12px" }}>
-          Ist dein Werk ein Unikat oder in mehreren Kopien verfügbar?
-        </p>
-        <AvailabilityPills
-          value={form.availabilityMode || "unique"}
-          onChange={v => onFormChange({ availabilityMode: v })}
-        />
-
-        {/* Anzahl verfügbar — nur bei "Mehrere Kopien" */}
-        {form.availabilityMode === "copies" && (
-          <div style={{ marginTop:12, animation:"wfFadeStep 0.25s ease both" }}>
-            <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Anzahl verfügbar</label>
-            <input
-              style={input}
-              placeholder="25"
-              type="number"
-              min="1"
-              step="1"
-              value={form.stockCount || ""}
-              onChange={e => onFormChange({ stockCount: e.target.value })}
-            />
-            <p style={{ fontSize:11.5, color:WT.ink3, margin:"6px 0 0" }}>
-              Der Bestand wird im Feed angezeigt und bei jedem Kauf automatisch reduziert.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* ── Separator ── */}
-      <div style={{ height:1, background:"rgba(26,26,46,0.06)", marginBottom:22 }}/>
-
-      {/* ══ 3. VERSAND ══ */}
-      <div style={{ marginBottom:24 }}>
-        <SectionLabel number="3" title="Versand" />
+        <SectionLabel number="2" title="Versand" />
         <div style={{ display:"flex", alignItems:"center",
           justifyContent:"space-between", marginBottom:12 }}>
           <span style={{ fontSize:13.5, color:WT.ink2 }}>
@@ -288,9 +221,9 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
       {/* ── Separator ── */}
       <div style={{ height:1, background:"rgba(26,26,46,0.06)", marginBottom:22 }}/>
 
-      {/* ══ 4. WERK DETAILS ══ */}
+      {/* ══ 3. WERK DETAILS ══ */}
       <div style={{ marginBottom:24 }}>
-        <SectionLabel number="4" title="Werk Details" optional />
+        <SectionLabel number="3" title="Werk Details" optional />
 
         {/* Kategorie + Dateiformat */}
         <div style={{ display:"flex", gap:10, marginBottom:10 }}>

@@ -121,6 +121,9 @@ export default function ExperienceFlow({ onClose }) {
     availTimes:  "flexibel", // "morgens"|"mittags"|"abends"|"flexibel"
     maxParticipants: "",
     bookingMode: "direct",   // "direct"|"request"
+    // Verfügbarkeit (COMMERCE-STOCK-001)
+    availabilityMode: "unique",  // "unique" | "copies"
+    stockCount:      "",         // Integer > 0 (nur bei copies/multi-booking)
     // Sichtbarkeit
     visibility:  "public",
     category:    "",

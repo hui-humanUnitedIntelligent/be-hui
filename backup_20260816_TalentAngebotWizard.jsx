@@ -259,10 +259,6 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       min_participants: num(minParticipants),
       booking_window_start: windowStart || null,
       booking_window_end: windowEnd || null,
-      // COMMERCE-STOCK-001: Bestandslogik
-      is_unique:        bookingType === "einzel",
-      stock_total:      bookingType === "einzel" ? 1 : Math.max(1, num(maxParticipants) || 1),
-      stock_available:  bookingType === "einzel" ? 1 : Math.max(1, num(maxParticipants) || 1),
     };
 
     // ── Pre-Save: Session prüfen, ggf. refreshen ──

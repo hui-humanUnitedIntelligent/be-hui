@@ -151,25 +151,6 @@ serve(async (req) => {
       .update({ stripe_payment_intent: pi.id })
       .eq('id', createdBookingId)
 
-    // ── Stock-Decrement (COMMERCE-STOCK-001) ─────────────────────
-    // Atomare Bestandsreduzierung für Talent-Bookings
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    )
-    const { data: stockResult, error: stockErr } = await supabaseAdmin
-      .rpc('rpc_decrement_stock', {
-        p_table: 'talents',
-        p_item_id: talentId,
-        p_quantity: 1,
-      })
-    if (stockErr || !stockResult?.success) {
-      console.warn('[TALENT-BOOKING] Stock decrement failed:', stockErr?.message || stockResult?.error)
-      // Nicht blockierend — PI bereits erstellt
-    } else {
-      console.log('[TALENT-BOOKING] Stock decremented for talent', talentId, 'remaining:', stockResult.new_stock_available)
-    }
-
     return new Response(JSON.stringify({
       clientSecret: pi.client_secret,
       bookingId: createdBookingId,

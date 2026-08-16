@@ -84,36 +84,6 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
         ) : null}
       </div>
 
-      {/* Verfügbarkeits-Badge (COMMERCE-STOCK-001) */}
-      {(() => {
-        const isUnique = item._raw?.is_unique !== false;
-        const stockTotal = item._raw?.stock_total ?? 1;
-        const stockAvail = item._raw?.stock_available ?? 1;
-        if (isUnique) {
-          return (
-            <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
-              <span style={{
-                fontSize:11.5, fontWeight:600, color:TEAL,
-                background:"rgba(13,196,181,0.08)",
-                border:"1px solid rgba(13,196,181,0.18)",
-                borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-              }}>1 von 1 verfügbar</span>
-            </div>
-          );
-        }
-        return (
-          <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
-            <span style={{
-              fontSize:11.5, fontWeight:600,
-              color: stockAvail > 0 ? TEAL : "rgba(26,26,46,0.35)",
-              background: stockAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
-              border:"1px solid rgba(13,196,181,0.18)",
-              borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-            }}>{stockAvail} von {stockTotal} verfügbar</span>
-          </div>
-        );
-      })()}
-
       {/* CTA-Zeile — rechtsbündig, eigene Zeile */}
       {((onBuyWerk && isBuyable) || (onBuyWerk && !isBuyable && priceStr)) && (
         <div style={{ display:"flex", justifyContent:"center", marginBottom: category || priceStr ? 6 : 0 }}>

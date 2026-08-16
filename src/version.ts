@@ -28,7 +28,7 @@ export function getAppVersion(): string {
 }
 
 /**
- * Formatierte Version für UI-Anzeige, z.B. "v1.0.1"
+ * Formatierte Version für UI-Anzeige, z.B. "v1.0.2"
  */
 export function getFormattedVersion(): string {
   return `v${APP_VERSION}`;

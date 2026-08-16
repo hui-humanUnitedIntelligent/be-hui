@@ -236,26 +236,6 @@ serve(async (req) => {
       })
     }
 
-    // ── 5b. Stock-Prüfung (COMMERCE-STOCK-001) ──────────────────
-    // Für jedes Item prüfen ob stock_available >= quantity
-    for (const vItem of validatedItems) {
-      const { data: stockRow } = await supabase
-        .from(vItem.item_type === 'work' ? 'works' : 'experiences')
-        .select('stock_available, stock_total, is_unique')
-        .eq('id', vItem.item_id)
-        .single()
-      if (stockRow) {
-        if (stockRow.stock_available < vItem.quantity) {
-          console.warn(`[PI] Insufficient stock for ${vItem.item_id}: available=${stockRow.stock_available}, requested=${vItem.quantity}`)
-          return new Response(JSON.stringify({
-            error: 'Nicht mehr ausreichend verfügbar',
-            detail: `Available: ${stockRow.stock_available}, Requested: ${vItem.quantity}`,
-            code:   'INSUFFICIENT_STOCK',
-          }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
-        }
-      }
-    }
-
     const amountCents = Math.round(serverTotal * 100)
     if (amountCents < MIN_AMOUNT_CENTS) {
       return new Response(JSON.stringify({ error: 'Mindestbetrag 0.50 €' }), {
@@ -378,24 +358,6 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Order-Verknüpfung fehlgeschlagen' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
-    }
-
-    // ── 8b. Stock-Decrement (COMMERCE-STOCK-001) ─────────────────
-    // Nach erfolgreicher PI-Erstellung: atomare Bestandsreduzierung
-    for (const vItem of validatedItems) {
-      const tableName = vItem.item_type === 'work' ? 'works' : 'experiences'
-      const { data: stockResult, error: stockErr } = await supabase
-        .rpc('rpc_decrement_stock', {
-          p_table: tableName,
-          p_item_id: vItem.item_id,
-          p_quantity: vItem.quantity,
-        })
-      if (stockErr || !stockResult?.success) {
-        console.error('[PI] Stock decrement failed for', vItem.item_id, ':', stockErr?.message || stockResult?.error)
-        // Nicht blockierend — PI bereits erstellt, Bestand wird manuell korrigiert
-      } else {
-        console.log('[PI] Stock decremented:', vItem.item_id, 'new available:', stockResult.new_stock_available)
-      }
     }
 
     // Commerce Event

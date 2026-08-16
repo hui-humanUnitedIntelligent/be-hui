@@ -229,14 +229,6 @@ export function normalizeExperiencePayload(raw, userId, uploadedUrls = []) {
     images,           // JSONB: [{ url, type, alt }]
     visibility,
     status:           "published",
-    // COMMERCE-STOCK-001: Verfügbarkeit & Bestand
-    is_unique:        (f.availabilityMode || "unique") !== "copies",
-    stock_total:      (f.availabilityMode || "unique") === "copies"
-                        ? Math.max(1, parseInt(f.stockCount, 10) || 1)
-                        : (f.booking_type === "once" ? 1 : Math.max(1, parseInt(f.maxParticipants || f.participant_limit, 10) || 1)),
-    stock_available:  (f.availabilityMode || "unique") === "copies"
-                        ? Math.max(1, parseInt(f.stockCount, 10) || 1)
-                        : (f.booking_type === "once" ? 1 : Math.max(1, parseInt(f.maxParticipants || f.participant_limit, 10) || 1)),
     // created_at + updated_at: auto-filled by DB
   };
 }

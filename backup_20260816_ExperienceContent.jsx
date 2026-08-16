@@ -66,26 +66,6 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
         ) : null}
       </div>
 
-      {/* Verfügbarkeits-Badge (COMMERCE-STOCK-001) */}
-      {(() => {
-        const raw = item._raw || {};
-        const isUnique = raw.is_unique !== false;
-        const stockTotal = raw.stock_total ?? 1;
-        const stockAvail = raw.stock_available ?? 1;
-        if (isUnique) return null; // Nur bei Mehrfach-Teilnahme anzeigen
-        return (
-          <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
-            <span style={{
-              fontSize:11.5, fontWeight:600,
-              color: stockAvail > 0 ? "#F5A623" : "rgba(26,26,46,0.35)",
-              background: stockAvail > 0 ? "rgba(245,166,35,0.08)" : "rgba(26,26,46,0.05)",
-              border:"1px solid rgba(245,166,35,0.18)",
-              borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-            }}>{stockAvail} von {stockTotal} Plätzen</span>
-          </div>
-        );
-      })()}
-
       {/* Teilnehmen-Button — eigene Zeile, rechtsbündig */}
       {onBook && (
         <div style={{ display:"flex", justifyContent:"center", marginBottom: metaParts.length > 0 ? 6 : 0 }}>

@@ -1599,10 +1599,6 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
           category:           w.category     || null,
           for_sale:           !w.onlyShow,
           location_text:      _loc,
-          // COMMERCE-STOCK-001: Verfügbarkeit & Bestand
-          is_unique:        w.availabilityMode !== "copies",
-          stock_total:      w.availabilityMode === "copies" ? Math.max(1, parseInt(w.stockCount, 10) || 1) : 1,
-          stock_available:  w.availabilityMode === "copies" ? Math.max(1, parseInt(w.stockCount, 10) || 1) : 1,
         });
         if (e) throw e;
       } else if (payload.type === "erlebnis") {
