@@ -63,6 +63,16 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       actions?.[A.OPEN_CHAT]?.({ recipientId: chatId, name: typeof n._openChat === "object" ? n._openChat.display_name : null, source: S.HOME });
       return;
     }
+    // BANKDATEN-LINK (2026-08-16): "Bankdaten hinterlegen" aus
+    // payout_bank_details_needed Notification → Settings → Bankdaten
+    if (n._openBankdaten) {
+      setOpen(false);
+      if (typeof window !== "undefined" && typeof window.__HUI_OPEN_BANKDATEN__ === "function") {
+        window.__HUI_OPEN_BANKDATEN__();
+      }
+      return;
+    }
+
     // BELEG-002: Angebot-Link aus DetailModal — Vorschau bleibt im Panel-Kontext
     if (n._openRef && n._refType && n._refId) {
       openRef({ type: n._refType, id: n._refId });

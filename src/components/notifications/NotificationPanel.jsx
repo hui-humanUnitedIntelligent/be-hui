@@ -748,6 +748,35 @@ function DetailModal({ n, onClose, onAction }) {
       };
     }
 
+    // ── BANKDATEN-LINK (2026-08-16): "Bankdaten fehlen" — Zahlung
+    //    freigegeben aber Verkäufer hat keine Bankdaten hinterlegt.
+    //    Button öffnet direkt Settings → Bankdaten-Modal. ──
+    if (t === "payout_bank_details_needed") {
+      return {
+        accentColor: "#F59E0B",
+        headerIcon: "🏦",
+        headerTitle: n.title || "Zahlung freigegeben — Bankdaten fehlen",
+        headerSubtitle: null,
+        blocks: [
+          { type:"label-text", label:"Nachricht", text: n.body || "Bitte hinterlege deine Bankdaten in den Einstellungen, damit wir dir dein Geld überweisen können.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+        ],
+        bankdatenLink: true,
+      };
+    }
+
+    // ── buyer_confirmed (Zahlung erfolgreich überwiesen) — Info nur ──
+    if (t === "buyer_confirmed") {
+      return {
+        accentColor: "#22C55E",
+        headerIcon: "✓",
+        headerTitle: n.title || "Zahlung freigegeben ✓",
+        headerSubtitle: null,
+        blocks: [
+          { type:"label-text", label:"Details", text: n.body || "Der Käufer hat den Erhalt bestätigt. Die Auszahlung wurde freigegeben und überwiesen.", color:"#22C55E", bg:"rgba(34,197,94,0.06)", border:"rgba(34,197,94,0.22)" },
+        ],
+      };
+    }
+
         // System / Info / Default
     return {
       accentColor: "#0EC4B8",
@@ -921,6 +950,26 @@ function DetailModal({ n, onClose, onAction }) {
             }}
           >
             Angebot ansehen →
+          </button>
+        )}
+
+        {/* ── BANKDATEN-LINK (2026-08-16): "Bankdaten hinterlegen" Button ── */}
+        {cfg.bankdatenLink && (
+          <button
+            onClick={() => {
+              onClose();
+              onAction({ ...n, _openBankdaten: true });
+            }}
+            style={{
+              width:"100%", padding:"13px", borderRadius:99,
+              background:"rgba(245,158,11,0.10)",
+              border:"1.5px solid rgba(245,158,11,0.40)",
+              color:"#B8860B", fontSize:14, fontWeight: 600,
+              cursor:"pointer", fontFamily:"inherit",
+              marginBottom:10,
+            }}
+          >
+            🏦 Bankdaten hinterlegen →
           </button>
         )}
 

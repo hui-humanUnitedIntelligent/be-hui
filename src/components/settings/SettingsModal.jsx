@@ -382,7 +382,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Haupt-Komponente ─────────────────────────────────────────
-export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate, onOpenBookings, onEditProfile }) {
+export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate, onOpenBookings, onEditProfile, autoOpenBankdaten = false }) {
   useModalRegistration(true, onClose, "SettingsModal");
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};
@@ -395,6 +395,11 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
   const [showBankdaten, setShowBankdaten] = useState(false);
+  // BANKDATEN-LINK (2026-08-16): Wenn von Notification-Deep-Link geöffnet,
+  // automatisch Bankdaten-Sub-Modal öffnen.
+  useEffect(() => {
+    if (autoOpenBankdaten) setShowBankdaten(true);
+  }, [autoOpenBankdaten]);
   const [bankStatus, setBankStatus] = useState(null); // { has_bank_details, bank_iban_last4 }
   useEffect(() => {
     if (!profile?.id) return;

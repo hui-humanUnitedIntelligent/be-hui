@@ -304,10 +304,17 @@ function HomeInner() {
     window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
     window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
     window.__HUI_OPEN_PROFILE__       = (id) => { if(id) openProfileById(id); };
+    // BANKDATEN-LINK (2026-08-16): Öffnet Profil → Settings → Bankdaten-Modal.
+    // Wird von der "Bankdaten fehlen"-Notification im Resonanzzentrum aufgerufen.
+    window.__HUI_OPEN_BANKDATEN__    = () => {
+      setShowCreatorDash(true);
+      setTimeout(() => window.dispatchEvent(new CustomEvent("hui:open-bankdaten")), 300);
+    };
     return () => {
       delete window.__HUI_OPEN_TALENT_FLOW;
       delete window.__HUI_OPEN_CREATOR_DASH;
       delete window.__HUI_OPEN_PROFILE__;
+      delete window.__HUI_OPEN_BANKDATEN__;
     };
     }, [setShowMembership, setShowCreatorDash, openProfileById]);  // ─────────────────────────────────────────────────────────────
 

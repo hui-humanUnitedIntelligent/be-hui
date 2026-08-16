@@ -469,6 +469,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // keine zweite Berechnung/Query.
   // savedCount entfernt (2026-07-30): keine rote Zahl am Bookmark-Icon
   const [showSettings,    setShowSettings]    = useState(false);
+  // BANKDATEN-LINK (2026-08-16): Für Deep-Link aus Notification → Settings → Bankdaten
+  const [settingsAutoBankdaten, setSettingsAutoBankdaten] = useState(false);
   const [showProfilEditPage, setShowProfilEditPage] = useState(false);
   const [showStudio,        setShowStudio]        = useState(false);
   const [showResonanz,      setShowResonanz]      = useState(false);
@@ -488,6 +490,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
   
   // ── Back-Button: Sub-Modals registrieren ─────────────────────────
   useModalRegistration(showSettings, () => setShowSettings(false), "MyBasisProfile-Settings");
+
+  // BANKDATEN-LINK (2026-08-16): Globaler Event-Listener — von Home.jsx
+  // window.__HUI_OPEN_BANKDATEN__ dispatched 'hui:open-bankdaten' CustomEvent.
+  // Öffnet Settings-Modal + setzt autoOpenBankdaten-Flag für BankdatenModal.
+  useEffect(() => {
+    const handler = () => {
+      setSettingsAutoBankdaten(true);
+      setShowSettings(true);
+    };
+    window.addEventListener("hui:open-bankdaten", handler);
+    return () => window.removeEventListener("hui:open-bankdaten", handler);
+  }, []);
   // ── Back-Button: Weitere Modals/Overlays registrieren ────────────
   // NOTE: activeDrawer/empfehlungDetail/showFinanzModal werden in MeinBereichMenu
   // registriert (separate Komponente) — hier entfernt da TDZ-Crash im Bundle.
@@ -521,6 +535,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
       setShowChat(true);
       return;
     }
+    // BANKDATEN-LINK (2026-08-16): "Bankdaten hinterlegen" aus
+    // payout_bank_details_needed Notification → Settings → Bankdaten
+    if (n._openBankdaten) {
+      setShowNotifications(false);
+      setSettingsAutoBankdaten(true);
+      setShowSettings(true);
+      return;
+    }
+
     // BELEG-002: Angebot-Link aus DetailModal (_refType/_refId) — Vorschau
     // bleibt im Panel-Kontext, kein Schliessen.
     if (n._openRef && n._refType && n._refId) {
@@ -1312,7 +1335,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
       {showSettings && (
           <SettingsModal
             profile={profile}
-            onClose={() => setShowSettings(false)}
+            onClose={() => { setShowSettings(false); setSettingsAutoBankdaten(false); }}
+            onProfileUpdate={onProfileUpdate}
+            autoOpenBankdaten={settingsAutoBankdaten}
             onProfileUpdate={(updated) => {
               refreshProfile?.().catch(() => {});
             }}
