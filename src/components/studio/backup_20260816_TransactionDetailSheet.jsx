@@ -5,7 +5,7 @@
 // Duplikate, ein Component-Modus mit normalisierten Props je Herkunft).
 // Wird über FinanzuebersichtModal geöffnet: Klick auf eine Zeile/Karte
 // zeigt hier ALLE Details + alle Aktionen (Chat, Beleg, Empfehlung,
-// Ware bestätigen, Nicht erhalten, Profil ansehen).
+// Ware bestätigen, Profil ansehen).
 // Pflicht: createPortal → document.body, zIndex >= 10500 (hier 10550,
 // oberhalb des FinanzuebersichtModal-Sheets bei 10500).
 // ══════════════════════════════════════════════════════════════════════
@@ -29,12 +29,10 @@ const T = {
   border:   "rgba(26,26,24,0.08)",
   green:    "#10B981",
   greenSoft:"rgba(16,185,129,0.10)",
-  greenMid: "rgba(16,185,129,0.20)",
   amber:    "#F59E0B",
   amberSoft:"rgba(245,158,11,0.10)",
   red:      "#DC2626",
   redSoft:  "rgba(220,38,38,0.08)",
-  redMid:   "rgba(220,38,38,0.20)",
   r16: 16, r12: 12, r8: 8, r99: 99,
   ff: "Inter,sans-serif",
 };
@@ -83,9 +81,9 @@ function ActionButton({ children, onClick, variant = "outline", disabled, loadin
   const styles = {
     solid:   { background: `linear-gradient(135deg, ${T.teal}, #0DBBAF)`, color: "#fff", border: "none" },
     outline: { background: T.bgCard, color: T.teal, border: `1.5px solid ${T.teal}` },
-    receipt: { background: T.bgCard, color: "#22C55E", border: `1.5px solid rgba(34,197,94,0.35)` },
+    receipt: { background: T.bgCard, color: "#22C55E", border: "1.5px solid rgba(34,197,94,0.35)" },
     ghost:   { background: T.bgCard, color: T.inkSoft, border: `1px solid ${T.border}` },
-    danger:  { background: T.bgCard, color: T.red, border: `1.5px solid rgba(220,38,38,0.30)` },
+    danger:  { background: T.bgCard, color: T.red, border: "1.5px solid rgba(220,38,38,0.30)" },
   };
   return (
     <button
@@ -123,36 +121,32 @@ function Cover({ src, imgErr, onErr }) {
 
 /**
  * TransactionDetailSheet
- * @param {object} tx — normalisiertes Transaktions-Objekt:
+ * @param {object} tx — normalisiertes Transaktions-Objekt (siehe Aufrufstellen in FinanzuebersichtModal.jsx):
  *   {
  *     kindLabel: string,           // "Kauf" | "Verkauf" | "Buchung" | "Gebucht" | "Support"
  *     title: string,
  *     image: string|null,
  *     amount: number,
- *     amountLabel: string,
- *     dateLabel: string,
+ *     amountLabel: string,         // "Bezahlt" | "Verdient" | "Betrag"
+ *     dateLabel: string,           // formatiertes Datum
  *     statusChips: [{label,color,bg}],
- *     breakdown: [{label, value}],
- *     meta: [{label, value}],
- *     description: string|null,
+ *     breakdown: [{label, value}], // Preis-Aufschlüsselung
+ *     meta: [{label, value}],      // Ort/Zeit/Teilnehmer/Kategorie etc.
+ *     description: string|null,    // Beschreibung/Support-Nachricht
  *     person: { name, avatar, email, website, roleLabel, id } | null,
  *     actions: {
  *       onChat, onViewProfile,
  *       onConfirmReceipt, confirmingReceipt, receiptConfirmed,
- *       onDispute, disputing,                    // NEU: Nicht erhalten
- *       disputeOpen,                              // NEU: Dispute bereits offen
  *       onDownloadReceipt,
  *       onRecommend, canRecommend,
  *     }
  *   }
  */
-export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
+export default function TransactionDetailSheet({ tx, onClose }) {
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(!!tx, onClose, "TransactionDetailSheet");
   const [imgErr, setImgErr] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [showDisputeForm, setShowDisputeForm] = useState(false);
-  const [disputeNote, setDisputeNote] = useState("");
 
   if (!tx) return null;
   const a = tx.actions || {};
@@ -161,13 +155,6 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
     if (!a.onDownloadReceipt) return;
     setDownloading(true);
     try { await a.onDownloadReceipt(); } finally { setDownloading(false); }
-  };
-
-  const handleDispute = async () => {
-    if (!a.onDispute) return;
-    await a.onDispute(disputeNote.trim() || undefined);
-    setShowDisputeForm(false);
-    setDisputeNote("");
   };
 
   const content = (
@@ -267,12 +254,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
           {Array.isArray(tx.breakdown) && tx.breakdown.length > 0 && (
             <Section title="Preis-Aufschlüsselung">
               <div style={{ background: T.bgCard, borderRadius: T.r12, padding: "4px 14px", border: `1px solid ${T.border}` }}>
-                {tx.breakdown.map((row, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < tx.breakdown.length - 1 ? `1px solid ${T.border}` : "none" }}>
-                    <span style={{ fontSize: 13, color: T.inkSoft }}>{row.label}</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{eur(row.value)}</span>
-                  </div>
-                ))}
+                {tx.breakdown.map((row, i) => <MetaRow key={i} {...row} />)}
               </div>
             </Section>
           )}
@@ -292,7 +274,10 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                 background: T.bgCard, borderRadius: T.r12, padding: "12px 14px",
                 border: `1px solid ${T.border}`,
               }}>
-                <div style={{ width: 40, height: 40, borderRadius: "50%", overflow: "hidden", background: T.tealSoft, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                  background: T.tealSoft, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
                   {tx.person.avatar
                     ? <img src={tx.person.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : <span style={{ fontSize: 16, fontWeight: 600, color: T.teal }}>{(tx.person.name || "?").slice(0, 1).toUpperCase()}</span>}
@@ -308,144 +293,13 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             </Section>
           )}
 
-          {/* ── KÄUFER-BESTÄTIGUNG: "Bestätigung erforderlich" ── */}
-          {a.onConfirmReceipt && !a.receiptConfirmed && !a.disputeOpen && !showDisputeForm && (
-            <Section>
-              <div style={{
-                background: T.amberSoft, borderRadius: T.r12, padding: "16px 16px 12px",
-                border: `1.5px solid ${T.amber}`,
-              }}>
-                <div style={{
-                  fontSize: 13, fontWeight: 700, color: T.amber, marginBottom: 6,
-                  display: "flex", alignItems: "center", gap: 6,
-                }}>
-                  ⚠ Bestätigung erforderlich
-                </div>
-                <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 14 }}>
-                  Bitte bestätige, dass du dein {tx.kindLabel === "Buchung" ? "Talent/Erlebnis erhalten hast" : "Werk erhalten hast"}.
-                  Erst dann wird die Zahlung an den Anbieter freigegeben.
-                </div>
-                <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
-                  <button
-                    onClick={a.onConfirmReceipt}
-                    disabled={a.confirmingReceipt}
-                    style={{
-                      flex: 1, padding: "13px 0", borderRadius: T.r99,
-                      background: a.confirmingReceipt ? "rgba(16,185,129,0.35)" : `linear-gradient(135deg, ${T.green}, #059669)`,
-                      color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                      cursor: a.confirmingReceipt ? "not-allowed" : "pointer", fontFamily: T.ff,
-                      opacity: a.confirmingReceipt ? 0.6 : 1,
-                    }}
-                  >
-                    {a.confirmingReceipt ? "…" : "✓ Erhalten"}
-                  </button>
-                  <button
-                    onClick={() => setShowDisputeForm(true)}
-                    style={{
-                      flex: 1, padding: "13px 0", borderRadius: T.r99,
-                      background: T.bgCard, color: T.red,
-                      border: `1.5px solid ${T.redMid}`,
-                      fontSize: 14, fontWeight: 600, cursor: "pointer", fontFamily: T.ff,
-                    }}
-                  >
-                    ✕ Nicht erhalten
-                  </button>
-                </div>
-              </div>
-            </Section>
-          )}
-
-          {/* ── DISPUTE-FORM: "Nicht erhalten" → Begründung eingeben ── */}
-          {showDisputeForm && (
-            <Section>
-              <div style={{
-                background: T.redSoft, borderRadius: T.r12, padding: "16px 16px 12px",
-                border: `1.5px solid ${T.redMid}`,
-              }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.red, marginBottom: 6 }}>
-                  Nicht erhalten melden
-                </div>
-                <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 12 }}>
-                  Beschreibe kurz was passiert ist. Der Verkäufer wird benachrichtigt und kann Beweise vorlegen. Ein Admin prüft den Fall.
-                </div>
-                <textarea
-                  value={disputeNote}
-                  onChange={(e) => setDisputeNote(e.target.value)}
-                  placeholder="Was ist passiert?"
-                  rows={3}
-                  style={{
-                    width: "100%", resize: "none", border: `1px solid ${T.border}`,
-                    borderRadius: T.r8, padding: "10px 12px", fontSize: 14, color: T.ink,
-                    background: "#fff", outline: "none", marginBottom: 10,
-                    fontFamily: T.ff, lineHeight: 1.5, boxSizing: "border-box",
-                  }}
-                />
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    onClick={() => { setShowDisputeForm(false); setDisputeNote(""); }}
-                    style={{
-                      flex: 1, padding: "12px 0", borderRadius: T.r99,
-                      background: T.bgCard, color: T.inkSoft,
-                      border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
-                      cursor: "pointer", fontFamily: T.ff,
-                    }}
-                  >
-                    Abbrechen
-                  </button>
-                  <button
-                    onClick={handleDispute}
-                    disabled={a.disputing}
-                    style={{
-                      flex: 1, padding: "12px 0", borderRadius: T.r99,
-                      background: a.disputing ? "rgba(220,38,38,0.35)" : T.red,
-                      color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                      cursor: a.disputing ? "not-allowed" : "pointer", fontFamily: T.ff,
-                    }}
-                  >
-                    {a.disputing ? "…" : "Fall melden"}
-                  </button>
-                </div>
-              </div>
-            </Section>
-          )}
-
-          {/* ── DISPUTE BEREITS OFFEN ── */}
-          {a.disputeOpen && !a.receiptConfirmed && (
-            <Section>
-              <div style={{
-                background: T.amberSoft, borderRadius: T.r12, padding: "14px 16px",
-                border: `1.5px solid ${T.amber}`,
-                fontSize: 13, color: T.inkSoft, lineHeight: 1.5,
-              }}>
-                <div style={{ fontWeight: 700, color: T.amber, marginBottom: 4 }}>
-                  ⚖ Fall in Prüfung
-                </div>
-                Du hast den Erhalt nicht bestätigt. Ein Admin prüft den Fall und entscheidet über die Auszahlung.
-                Du wirst benachrichtigt sobald es ein Update gibt.
-              </div>
-            </Section>
-          )}
-
-          {/* ── BESTÄTIGT — Erfolgs-Anzeige ── */}
-          {a.receiptConfirmed && (
-            <Section>
-              <div style={{
-                background: T.greenSoft, borderRadius: T.r12, padding: "14px 16px",
-                border: `1.5px solid ${T.greenMid}`,
-                fontSize: 13, color: T.inkSoft, lineHeight: 1.5,
-                display: "flex", alignItems: "center", gap: 8,
-              }}>
-                <span style={{ fontSize: 18 }}>✅</span>
-                <div>
-                  <div style={{ fontWeight: 600, color: T.green }}>Erhalten</div>
-                  Du hast den Erhalt bestätigt. Die Zahlung wurde freigegeben.
-                </div>
-              </div>
-            </Section>
-          )}
-
-          {/* Standard-Aktionen */}
+          {/* Aktionen */}
           <Section>
+            {a.onConfirmReceipt && !a.receiptConfirmed && (
+              <ActionButton variant="solid" onClick={a.onConfirmReceipt} loading={a.confirmingReceipt}>
+                ✓ Ware erhalten
+              </ActionButton>
+            )}
             {a.onChat && (
               <ActionButton variant="outline" onClick={a.onChat}>
                 {tx.person?.roleLabel ? `${tx.person.roleLabel} kontaktieren` : "Kontaktieren"}
