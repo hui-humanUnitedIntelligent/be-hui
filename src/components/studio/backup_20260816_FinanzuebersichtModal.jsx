@@ -132,7 +132,7 @@ function MeineKaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
+      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
       .eq("customer_id", userId)
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
@@ -172,7 +172,26 @@ function MeineKaeufe({ userId }) {
       });
       const result = await res.json();
 
-      // 2. Auch bei Fehlern lokalen State updaten (Escrow kann schon released sein)
+      // 2. Push an Verkäufer: "Käufer hat Erhalt bestätigt"
+      try {
+        const { data: order } = await supabase
+          .from("orders")
+          .select("order_items(seller_id)")
+          .eq("id", orderId)
+          .maybeSingle();
+        const sellerId = order?.order_items?.[0]?.seller_id;
+        if (sellerId) {
+          await supabase.from("notifications").insert({
+            user_id: sellerId,
+            type: "buyer_confirmed",
+            text: "Der Käufer hat den Erhalt bestätigt. Auszahlung wird freigegeben.",
+            entity_id: orderId,
+            entity_type: "order",
+          });
+        }
+      } catch (e) { console.warn("[PUSH] seller notify:", e); }
+
+      // 3. Auch bei Fehlern lokalen State updaten
       setConfirmDone(p => ({ ...p, [orderId]: true }));
       setDetail(null);
       load();
@@ -235,6 +254,13 @@ function MeineKaeufe({ userId }) {
       id: o.id, kindLabel: "Kauf", title: titleWithVariant, image,
       amount: o.total_eur, amountLabel: "Bezahlt",
       dateLabel: dt(o.created_at), statusChips, breakdown, needsConfirm,
+      meta: [
+        ...(o.shipped_at ? [{ label: "Versendet am", value: dt(o.shipped_at) }] : []),
+        ...(o.delivered_at ? [{ label: "Zugestellt am", value: dt(o.delivered_at) }] : []),
+        ...((o.delivery_status === "shipped" && !o.delivered_at) ? [{ label: "Status", value: "Unterwegs zu dir" }] : []),
+        ...(o.shipping_address ? [{ label: "Lieferadresse", value: (o.shipping_address.full || "").replace(/\n/g, ", ") }] : []),
+        ...(o.tracking_number ? [{ label: "Tracking", value: o.tracking_number }] : []),
+      ],
       person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, email: sInfo.email, website: sInfo.website, roleLabel: "Verkäufer" } : null,
       actions: {
         onConfirmReceipt: needsConfirm ? () => handleConfirm(o.id) : null,
@@ -319,14 +345,56 @@ function MeineVerkaeufe({ userId }) {
   const [loading, setLoading] = useState(true);
   const [buyerMap, setBuyerMap] = useState({});
   const [detail, setDetail] = useState(null);
+  const [shippingId, setShippingId] = useState(null);
   const actions = useHuiActions();
+
+  const handleShip = async (orderId) => {
+    if (!orderId) return;
+    setShippingId(orderId);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/rpc_seller_mark_shipped`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`,
+            "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ p_order_id: orderId }),
+        }
+      );
+      const result = await res.json();
+      if (result.ok) {
+        // Push an Käufer
+        const { data: order } = await supabase
+          .from("orders").select("customer_id").eq("id", orderId).maybeSingle();
+        if (order?.customer_id) {
+          await supabase.from("notifications").insert({
+            user_id: order.customer_id,
+            type: "order_shipped",
+            text: "Dein Werk/Talent/Erlebnis wurde versendet und ist unterwegs.",
+            entity_id: orderId,
+            entity_type: "order",
+          });
+        }
+        load();
+        setDetail(null);
+      }
+    } catch (e) {
+      console.warn("[SHIP] error:", e);
+    } finally {
+      setShippingId(null);
+    }
+  };
 
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
@@ -374,10 +442,20 @@ function MeineVerkaeufe({ userId }) {
         { label: "Impact-Pool-Anteil", value: eur(impact) },
         { label: "Deine Auszahlung", value: eur(s.payout_eur) },
       ],
+      meta: [
+        ...(s.orders?.shipped_at ? [{ label: "Versendet am", value: dt(s.orders.shipped_at) }] : []),
+        ...(s.orders?.delivered_at ? [{ label: "Zugestellt am", value: dt(s.orders.delivered_at) }] : []),
+        ...(s.orders?.shipping_address ? [{ label: "Lieferadresse", value: (s.orders.shipping_address.full || "").replace(/\n/g, ", ") }] : []),
+        ...(s.orders?.tracking_number ? [{ label: "Tracking", value: s.orders.tracking_number }] : []),
+      ],
       person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: "Käufer" } : null,
       actions: {
         onChat: (buyerId && bInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }) : null,
         onViewProfile: buyerId ? () => window.__HUI_OPEN_PROFILE__?.(buyerId) : null,
+        onMarkShipped: (!s.orders?.shipped_at && s.orders?.escrow_status === "holding") ? () => handleShip(s.orders?.id) : null,
+        shipping: shippingId === s.orders?.id,
+        shipped: !!s.orders?.shipped_at,
+        shippedAt: s.orders?.shipped_at ? dt(s.orders.shipped_at) : null,
       },
     };
   };
