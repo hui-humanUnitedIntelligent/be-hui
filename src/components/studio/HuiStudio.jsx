@@ -103,7 +103,7 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
   );
 }
 
-export default function HuiStudio({ profile, onClose, onProfileUpdate }) {
+export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "HuiStudio");
   const { signOut } = useAuth() || {};
   const [mounted,      setMounted]      = useState(false);

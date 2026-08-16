@@ -78,7 +78,7 @@ const TABS = [
 // die sie befüllten, wurden aus diesem Modal entfernt, siehe Kommentar oben.)
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
-export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate }) {
+export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate = () => {} }) {
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ProfilBearbeitenModal");
   const { saveProfile, refreshProfile, user } = useAuth() || {};

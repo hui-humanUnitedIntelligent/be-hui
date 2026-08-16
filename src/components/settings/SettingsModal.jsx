@@ -382,7 +382,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Haupt-Komponente ─────────────────────────────────────────
-export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate, onOpenBookings, onEditProfile, autoOpenBankdaten = false }) {
+export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false }) {
   useModalRegistration(true, onClose, "SettingsModal");
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};

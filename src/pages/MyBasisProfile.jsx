@@ -1336,7 +1336,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <SettingsModal
             profile={profile}
             onClose={() => { setShowSettings(false); setSettingsAutoBankdaten(false); }}
-            onProfileUpdate={onProfileUpdate}
             autoOpenBankdaten={settingsAutoBankdaten}
             onProfileUpdate={(updated) => {
               refreshProfile?.().catch(() => {});
