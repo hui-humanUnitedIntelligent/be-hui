@@ -194,10 +194,20 @@ export function allowsQuantity(item) {
   if (raw.allows_multiple === true)  return true;
   if (raw.allows_multiple === false) return false;
 
-  // Original / Einzelstück → kein Mengenwähler
+  // Unikat / Einzelstück → NIEMALS Mengenwähler.
+  // BUGFIX (2026-08-16): DB-Spalte heißt systemweit `is_unique`
+  // (siehe WerkWizard.jsx, HuiCreateFlow.jsx, TalentAngebotWizard.jsx,
+  // WorkContent.jsx, useFeedStream.js) — nicht `is_original`. Die alte
+  // Prüfung auf `is_original` griff nie, weil diese Spalte nirgendwo
+  // existiert → Unikate zeigten fälschlich einen Mengenwähler.
+  if (raw.is_unique === true) return false;
+  // Legacy-Fallback (falls irgendwo doch is_original gesetzt wird)
   if (raw.is_original === true) return false;
 
-  // Inventar = 1 → Einzelstück-Behandlung
+  // Inventar = 1 → Einzelstück-Behandlung.
+  // DB-Spalten: stock_total / stock_quantity (Werke), nicht `inventory`.
+  if (typeof raw.stock_total === "number" && raw.stock_total === 1) return false;
+  if (typeof raw.stock_quantity === "number" && raw.stock_quantity === 1) return false;
   if (typeof raw.inventory === "number" && raw.inventory === 1) return false;
 
   // Events → immer Mengenwähler (Tickets)
@@ -249,7 +259,12 @@ export function allowsQuantity(item) {
  */
 export function getOriginalHint(item) {
   const raw = item._raw || {};
+  // BUGFIX (2026-08-16): is_unique statt is_original, stock_total/
+  // stock_quantity statt inventory — siehe allowsQuantity() oben.
+  if (raw.is_unique === true) return "Original \u00b7 Einzelst\u00fcck";
   if (raw.is_original === true) return "Original \u00b7 Einzelst\u00fcck";
+  if (typeof raw.stock_total === "number" && raw.stock_total === 1) return "Original \u00b7 1 verf\u00fcgbar";
+  if (typeof raw.stock_quantity === "number" && raw.stock_quantity === 1) return "Original \u00b7 1 verf\u00fcgbar";
   if (typeof raw.inventory === "number" && raw.inventory === 1) return "Original \u00b7 1 verf\u00fcgbar";
   return null;
 }

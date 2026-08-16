@@ -280,10 +280,20 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
   const canQty     = allowsQuantity(item);
   const origHint   = getOriginalHint(item);
   const [qty, setQty] = useState(
-    (typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1
+    (canQty && typeof item.quantity === "number" && item.quantity > 0) ? item.quantity : 1
   );
+  // BUGFIX (2026-08-16): Falls ein Unikat aus einem älteren Korb-Stand
+  // noch quantity>1 im State hat (vor dem is_unique-Fix), auf 1 zurücksetzen
+  // und Parent informieren — verhindert einen versteckten Mengen-Fehler beim Checkout.
+  useEffect(() => {
+    if (!canQty && qty !== 1) {
+      setQty(1);
+      onQtyChange?.(item, 1);
+    }
+  }, [canQty]); // eslint-disable-line react-hooks/exhaustive-deps
   // Qty-Änderung nach außen melden (parent kann item.quantity updaten)
   const changeQty = useCallback((delta) => {
+    if (!canQty) return;
     setQty(prev => {
       const next = Math.max(1, prev + delta);
       if (next !== prev) {
@@ -292,7 +302,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
       }
       return next;
     });
-  }, [item, onQtyChange]);
+  }, [item, onQtyChange, canQty]);
 
   return (
     <div
