@@ -1,7 +1,10 @@
-// AppointmentViewer.jsx v1 (2026-08-17)
+// AppointmentViewer.jsx v2 (2026-08-17)
 // Zeigt vorhandene Talent-Buchungen + Erlebnis-Käufe mit dem Chat-Partner.
 // "Aktuell": Termine mit Datum >= heute
 // "Vergangen": Termine mit Datum < heute (archiviert)
+// KAL-001 (2026-08-17): Klick auf einen Termin → Ja/Nein-Bestätigung →
+// Export in Google Kalender / Apple Kalender (via .ics + Share-Sheet, siehe
+// src/lib/calendarExport.js).
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -9,6 +12,7 @@ import { HUI } from "../../design/hui.design.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
+import { exportAppointmentToCalendar } from "../../lib/calendarExport.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
@@ -36,6 +40,9 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  // KAL-001: Termin, für den gerade die Ja/Nein-Kalender-Bestätigung angezeigt wird
+  const [confirmingApp, setConfirmingApp] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!user?.id || !otherUserId) { setLoading(false); return; }
@@ -56,30 +63,35 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
         .eq("seller_id", otherUserId)
         .order("selected_date", { ascending: false });
 
-      // Talent-Titel laden
+      // Talent-Titel + Standort laden
       const talentIds = (talentBookings || []).map(b => b.talent_id).filter(Boolean);
       let talentMap = {};
       if (talentIds.length > 0) {
         const { data: talents } = await supabase
           .from("talents")
-          .select("id, title")
+          .select("id, title, duration_minutes, location_type, location_address")
           .in("id", talentIds);
-        (talents || []).forEach(t => { talentMap[t.id] = t.title; });
+        (talents || []).forEach(t => { talentMap[t.id] = t; });
       }
 
-      const talentApps = (talentBookings || []).map(b => ({
-        id:           b.id,
-        type:         "Talent",
-        title:        talentMap[b.talent_id] || "Talent-Buchung",
-        date:         b.selected_date,
-        timeSlot:     b.selected_time_slot,
-        participants: b.participants,
-        status:       b.status,
-        amount:       b.amount_eur,
-        currency:     b.currency || "EUR",
-        confirmedAt:  b.confirmed_at,
-        createdAt:    b.created_at,
-      }));
+      const talentApps = (talentBookings || []).map(b => {
+        const t = talentMap[b.talent_id] || {};
+        return {
+          id:              b.id,
+          type:            "Talent",
+          title:           t.title || "Talent-Buchung",
+          date:            b.selected_date,
+          timeSlot:        b.selected_time_slot,
+          durationMinutes: t.duration_minutes || 60,
+          location:        t.location_type === "online" ? "Online" : (t.location_address || ""),
+          participants:    b.participants,
+          status:          b.status,
+          amount:          b.amount_eur,
+          currency:        b.currency || "EUR",
+          confirmedAt:     b.confirmed_at,
+          createdAt:       b.created_at,
+        };
+      });
 
       // 2. Erlebnis-Käufe: order_items mit item_type='experience', seller = otherUserId
       const { data: orders } = await supabase
@@ -102,17 +114,19 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
           .eq("seller_id", otherUserId);
 
         experienceApps = (expItems || []).map(oi => ({
-          id:           oi.id,
-          type:         "Erlebnis",
-          title:        oi.snapshot?.title || oi.snapshot?.name || "Erlebnis",
-          date:         oi.snapshot?.date || oi.created_at?.slice(0, 10),
-          timeSlot:     oi.snapshot?.time_slot || null,
-          participants: oi.quantity || 1,
-          status:       oi.fulfillment_status || oi.escrow_status || "pending",
-          amount:       oi.unit_price_eur * (oi.quantity || 1),
-          currency:     "EUR",
-          confirmedAt:  null,
-          createdAt:    oi.created_at,
+          id:              oi.id,
+          type:            "Erlebnis",
+          title:           oi.snapshot?.title || oi.snapshot?.name || "Erlebnis",
+          date:            oi.snapshot?.date || oi.created_at?.slice(0, 10),
+          timeSlot:        oi.snapshot?.time_slot || null,
+          durationMinutes: oi.snapshot?.duration_minutes || 90,
+          location:        oi.snapshot?.location_address || oi.snapshot?.location || "",
+          participants:    oi.quantity || 1,
+          status:          oi.fulfillment_status || oi.escrow_status || "pending",
+          amount:          oi.unit_price_eur * (oi.quantity || 1),
+          currency:        "EUR",
+          confirmedAt:     null,
+          createdAt:       oi.created_at,
         }));
       }
 
@@ -124,6 +138,17 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
       console.warn("[AppointmentViewer] load error:", e?.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleConfirmExport() {
+    if (!confirmingApp) return;
+    setExporting(true);
+    try {
+      await exportAppointmentToCalendar({ ...confirmingApp, otherName });
+    } finally {
+      setExporting(false);
+      setConfirmingApp(null);
     }
   }
 
@@ -228,7 +253,7 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
                     marginBottom:10,
                   }}>Aktuell</div>
                   {upcoming.map(app => (
-                    <AppointmentCard key={app.id} app={app} />
+                    <AppointmentCard key={app.id} app={app} onTap={() => setConfirmingApp(app)} />
                   ))}
                 </div>
               )}
@@ -242,7 +267,7 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
                     marginBottom:10,
                   }}>Vergangen</div>
                   {past.map(app => (
-                    <AppointmentCard key={app.id} app={app} archived />
+                    <AppointmentCard key={app.id} app={app} archived onTap={() => setConfirmingApp(app)} />
                   ))}
                 </div>
               )}
@@ -250,25 +275,105 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
           )}
         </div>
       </div>
+
+      {/* KAL-001: Ja/Nein-Bestätigung — Termin in Kalender einfügen? */}
+      {confirmingApp && (
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            position:"fixed", inset:0, zIndex:10600,
+            background:"rgba(0,0,0,0.45)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            padding:"0 24px",
+          }}
+        >
+          <div style={{
+            background:"#fff", borderRadius:18, padding:"22px 20px",
+            maxWidth:340, width:"100%",
+            boxShadow:"0 12px 40px rgba(0,0,0,0.25)",
+          }}>
+            <div style={{
+              fontSize:15.5, fontWeight:600, color:C.ink,
+              marginBottom:6, lineHeight:1.4,
+            }}>Termin zum Kalender hinzufügen?</div>
+            <div style={{
+              fontSize:13, color:C.muted, lineHeight:1.55,
+              marginBottom:6,
+            }}>{confirmingApp.title}</div>
+            <div style={{
+              fontSize:12.5, color:C.muted, lineHeight:1.6,
+              marginBottom:18,
+            }}>
+              {formatDateDE(confirmingApp.date)}
+              {confirmingApp.timeSlot ? " · " + (typeof confirmingApp.timeSlot === "string" ? confirmingApp.timeSlot : (confirmingApp.timeSlot?.start || confirmingApp.timeSlot?.label || "")) : ""}
+              <br/>
+              Wird an Google Kalender, Apple Kalender oder eine andere Kalender-App auf deinem Gerät übergeben.
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button
+                onClick={() => setConfirmingApp(null)}
+                disabled={exporting}
+                style={{
+                  flex:1, padding:"12px 14px", borderRadius:12,
+                  background:"rgba(0,0,0,0.05)", border:"none",
+                  fontSize:14, fontWeight:500, color:C.ink,
+                  cursor: exporting ? "default" : "pointer",
+                  opacity: exporting ? 0.5 : 1,
+                  WebkitTapHighlightColor:"transparent",
+                }}
+              >Nein</button>
+              <button
+                onClick={handleConfirmExport}
+                disabled={exporting}
+                style={{
+                  flex:1, padding:"12px 14px", borderRadius:12,
+                  background:C.teal, border:"none",
+                  fontSize:14, fontWeight:600, color:"#fff",
+                  cursor: exporting ? "default" : "pointer",
+                  opacity: exporting ? 0.7 : 1,
+                  WebkitTapHighlightColor:"transparent",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                }}
+              >
+                {exporting ? (
+                  <span style={{
+                    width:14, height:14, borderRadius:"50%",
+                    border:"2px solid rgba(255,255,255,0.4)",
+                    borderTopColor:"#fff",
+                    animation:"hui-spin 0.7s linear infinite",
+                    display:"inline-block",
+                  }}/>
+                ) : "Ja"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>,
     document.body
   );
 }
 
-function AppointmentCard({ app, archived = false }) {
+function AppointmentCard({ app, archived = false, onTap = () => {} }) {
   const statusLabel = STATUS_LABELS[app.status] || app.status || "";
   const timeStr = app.timeSlot
     ? (typeof app.timeSlot === "string" ? app.timeSlot : (app.timeSlot?.start || app.timeSlot?.label || ""))
     : "";
 
   return (
-    <div style={{
-      background: archived ? "rgba(255,255,255,0.50)" : "rgba(255,255,255,0.90)",
-      borderRadius:14, padding:"16px",
-      marginBottom:10,
-      border: archived ? "1px solid rgba(0,0,0,0.04)" : "1px solid rgba(22,215,197,0.10)",
-      opacity: archived ? 0.72 : 1,
-    }}>
+    <div
+      onClick={onTap}
+      style={{
+        background: archived ? "rgba(255,255,255,0.50)" : "rgba(255,255,255,0.90)",
+        borderRadius:14, padding:"16px",
+        marginBottom:10,
+        border: archived ? "1px solid rgba(0,0,0,0.04)" : "1px solid rgba(22,215,197,0.10)",
+        opacity: archived ? 0.72 : 1,
+        cursor:"pointer",
+        WebkitTapHighlightColor:"transparent",
+        transition:"transform 0.12s ease",
+      }}
+    >
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{
