@@ -45,7 +45,7 @@ function parseAmount(val) {
 // ── Gruppen nach Person ──────────────────────────────────────────
 // groupByPerson: aus commerceUtils importiert
 
-function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
+export function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
   return (
     <svg
       width={size} height={size} viewBox="0 0 32 32"

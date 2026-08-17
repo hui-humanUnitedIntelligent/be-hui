@@ -10,6 +10,7 @@ import SearchCommandCenter from "./SearchCommandCenter.jsx";
 import MoodOrbButton      from "./MoodOrbButton.jsx";
 import NotificationButton from "./NotificationButton.jsx";
 import MessageButton      from "./MessageButton.jsx";
+import WerkeKorbHeaderButton from "./WerkeKorbHeaderButton.jsx"; // KORB-HEADER-MOVE 2026-08-18
 import MoodSheet          from "../mood/MoodSheet.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
@@ -19,8 +20,10 @@ export default function HomeHeader({
   onMoodSelect,
   notifCount  = 0,
   msgCount    = 0,
+  korbCount   = 0,
   onNotif,
   onChat,
+  onOpenKorb  = () => {},
   currentUser,
   // Search Experience 2.0 (2026-07-06, Lars) -- Suchstatus wird durchgereicht
   // an den Elternkontext (Home.jsx), der ihn an UnifiedFeed weitergibt.
@@ -98,6 +101,10 @@ export default function HomeHeader({
                       onToggle={() => setShowMood(p => !p)}
                     />
                 */}
+                {/* KORB-HEADER-MOVE (2026-08-18): Werke-Korb jetzt permanent im
+                    Header neben Resonanzzentrum + Chat — drei Symbole nebeneinander,
+                    ersetzt den bisherigen Floating-Button unten rechts. */}
+                <WerkeKorbHeaderButton count={korbCount} onOpen={onOpenKorb}/>
                 <NotificationButton count={notifCount} userId={currentUser?.id || ""}/>
                 <MessageButton count={msgCount} onPress={handleChat}/>
               </>

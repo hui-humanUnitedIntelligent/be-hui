@@ -430,10 +430,12 @@ function HomeInner() {
           onMoodSelect={setActiveMood}
           notifCount={liveNotifCount}
           msgCount={unreadTotal}
+          korbCount={SAFE_MODE.werkFlow ? cart.length : 0}
           currentUser={currentUser}
           onNotif={() => {
             setShowNotifs(true);
           }}
+          onOpenKorb={() => setShowWerkeKorb(true)}
           onSearchStateChange={setSearchState}
         />
 
@@ -671,13 +673,13 @@ function HomeInner() {
 
       </div>
 
-      {/* KORB-01: Floating Korb-Button — oberhalb TabBar */}
+      {/* KORB-HEADER-MOVE (2026-08-18): Floating-Button entfernt — Werke-Korb
+          ist jetzt permanent im HomeHeader neben Resonanzzentrum + Chat.
+          WerkeKorbButton-Komponente bleibt im Repo (auskommentiert unten als
+          Referenz, no-regression-protection.md), wird aber nicht mehr gerendert.
       {SAFE_MODE.werkFlow && (
-        <WerkeKorbButton
-          count={cart.length}
-          onOpen={() => setShowWerkeKorb(true)}
-        />
-      )}
+        <WerkeKorbButton count={cart.length} onOpen={() => setShowWerkeKorb(true)} />
+      )} */}
 
       {/* KORB-01: Werkekorb Bottom Sheet */}
       {showWerkeKorb && SAFE_MODE.werkFlow && (
