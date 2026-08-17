@@ -62,50 +62,66 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const showEmpty = !loading && messages.length === 0 && !!realChatId;
 
   return (
+    // ── ANZEIGEFEHLER-FIX (2026-08-17): Äußerer Layer ist IMMER 100% bildschirmfüllend
+    // mit undurchsichtigem Hintergrund (position:fixed, inset:0 — kein "bottom" hier!).
+    // Root Cause des Bugs: Der schrumpfende Content lag früher DIREKT im äußeren
+    // fixed-Container mit bottom:clamp(...,var(--hui-keyboard-inset),...). Beim
+    // Schließen der Systemtastatur kommt das native IME-Inset-Event manchmal mit
+    // 1-2 Frames Verzögerung an (WebView-Timing) — in diesem kurzen Fenster hatte
+    // der äußere Container KEINEN vollen Bildschirm-Hintergrund mehr, und die
+    // dahinterliegende Home-Feed-Seite (im echten DOM darunter, kein Portal-BG)
+    // blitzte am unteren Rand durch ("Hauptmenü als Anzeigefehler").
+    // Fix: Hintergrund-Layer und schrumpfender Inhalts-Layer getrennt — der
+    // Hintergrund deckt JEDERZEIT 100%, unabhängig vom Inset-Timing.
     <div data-hui-kbd-self-managed style={{
-      position:"fixed", top:0, left:0, right:0, bottom:"clamp(0px, var(--hui-keyboard-inset, 0px), 65vh)", zIndex:10002,
-      display:"flex", flexDirection:"column",
-      fontFamily:"Inter,sans-serif",
+      position:"fixed", inset:0, zIndex:10002,
       background:"#F2F4F8",
-      transition:"bottom 0.25s ease-out",
     }}>
       <style>{CSS}</style>
-      <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}
-        onCloseChat={onCloseChat} onRequestBooking={onRequestBooking}/>
+      <div style={{
+        position:"absolute", top:0, left:0, right:0,
+        bottom:"clamp(0px, var(--hui-keyboard-inset, 0px), 65vh)",
+        display:"flex", flexDirection:"column",
+        fontFamily:"Inter,sans-serif",
+        transition:"bottom 0.25s ease-out",
+      }}>
+        <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}
+          onCloseChat={onCloseChat} onRequestBooking={onRequestBooking}/>
 
-      {showEmpty ? (
-        <div style={{
-          flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-          flexDirection:"column", gap:14, padding:"40px 32px",
-        }}>
+        {showEmpty ? (
           <div style={{
-            width:56, height:56, borderRadius:"50%",
-            background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
-            display:"flex", alignItems:"center", justifyContent:"center", fontSize:24,
-          }}>✦</div>
-          <div style={{
-            fontSize:14, textAlign:"center", lineHeight:1.7,
-            color:"rgba(80,80,80,0.42)", maxWidth:220,
+            flex:1, display:"flex", alignItems:"center", justifyContent:"center",
+            flexDirection:"column", gap:14, padding:"40px 32px",
           }}>
-            Erste Worte.<br/>
-            <span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>
-              Schreib etwas Echtes.
-            </span>
+            <div style={{
+              width:56, height:56, borderRadius:"50%",
+              background:"linear-gradient(135deg,rgba(22,215,197,0.12),rgba(255,138,107,0.08))",
+              display:"flex", alignItems:"center", justifyContent:"center", fontSize:24,
+            }}>✦</div>
+            <div style={{
+              fontSize:14, textAlign:"center", lineHeight:1.7,
+              color:"rgba(80,80,80,0.42)", maxWidth:220,
+            }}>
+              Erste Worte.<br/>
+              <span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>
+                Schreib etwas Echtes.
+              </span>
+            </div>
           </div>
-        </div>
-      ) : (
-        <ChatMessages
-          messages={messages}
-          typing={false}
-          event={null}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
-          onReact={handleReact}
-        />
-      )}
+        ) : (
+          <ChatMessages
+            messages={messages}
+            typing={false}
+            event={null}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+            onReact={handleReact}
+          />
+        )}
 
-      <div style={{ flexShrink:0 }}>
-        <ChatInput onSend={handleSend} sending={sending}/>
+        <div style={{ flexShrink:0 }}>
+          <ChatInput onSend={handleSend} sending={sending}/>
+        </div>
       </div>
     </div>
   );

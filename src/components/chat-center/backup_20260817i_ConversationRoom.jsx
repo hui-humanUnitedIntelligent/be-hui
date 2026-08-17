@@ -8,6 +8,7 @@ import ChatInput      from "./ChatInput.jsx";
 import { useChatThread } from "../../lib/chatContext.js";
 import { useAuth }       from "../../lib/AuthContext.jsx";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { getFullDisplayName } from "../../lib/profileUtils.js";
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
@@ -22,7 +23,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
   const realChatId = (rawId && !isFakeId) ? rawId : null;
 
-  const { messages: liveMessages, sendMessage, deleteMessage, editMessage, sending, loading } =
+  const { messages: liveMessages, sendMessage, deleteMessage, editMessage, reactToMessage, sending, loading } =
     useChatThread(realChatId);
 
   const messages = useMemo(
@@ -30,7 +31,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
       ...m,
       own:         m.sender_id === user?.id,
       avatar:      conv?.avatar_url,
-      sender_name: conv?.name,
+      sender_name: getFullDisplayName(conv?.other_profile) || conv?.name,
     })),
     [liveMessages, user?.id, conv?.avatar_url, conv?.name]
   );
@@ -53,6 +54,10 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const handleEdit = useCallback(async (msgId, newText) => {
     await editMessage?.(msgId, newText);
   }, [editMessage]);
+
+  const handleReact = useCallback(async (msgId, emoji) => {
+    await reactToMessage?.(msgId, emoji);
+  }, [reactToMessage]);
 
   const showEmpty = !loading && messages.length === 0 && !!realChatId;
 
@@ -95,6 +100,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
           event={null}
           onDelete={handleDelete}
           onEdit={handleEdit}
+          onReact={handleReact}
         />
       )}
 
