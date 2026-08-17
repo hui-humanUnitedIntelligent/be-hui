@@ -28,6 +28,7 @@ import { useNotifications } from "../lib/useNotifications.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { usePullToRefresh } from "../hooks/usePullToRefresh.js";
 import { PullToRefreshIndicator } from "../components/ui/PullToRefreshIndicator.jsx";
+import { toast } from "../lib/useToast.jsx";
 // HuiStudio direkt importiert (kein lazy/Suspense)
 import MeineResonanz from "./studio/MeineResonanz.jsx";
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
@@ -2664,8 +2665,10 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
       if (!countErr && count > 0) {
         console.warn(`Talent Hard-Delete blockiert — ${count} bestehende Buchung(en) gefunden. Fallback Soft-Delete.`);
         await supabase.from("talents").update({ status: "deleted" }).eq("id", t.id);
+        toast.success("Talent wurde gelöscht (Buchungsdaten geschützt).", { duration: 3000 });
       } else {
         await deleteTalent(t.id);
+        toast.success("Talent wurde unwiderruflich gelöscht.", { duration: 3000 });
       }
       onDeleteTalent(t.id);
     } catch(e) { console.error("Talent-Angebot löschen:", e); }
@@ -2808,6 +2811,9 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
       if (error) {
         console.warn("Werk Hard-Delete blockiert (vermutlich bestehende Bestellung/Buchung) — Fallback Soft-Delete:", error);
         await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
+        toast.success("Werk wurde gelöscht (Bestelldaten geschützt).", { duration: 3000 });
+      } else {
+        toast.success("Werk wurde unwiderruflich gelöscht.", { duration: 3000 });
       }
       onDeleteWerk(w.id);
     } catch(e) { console.error("Werk löschen:", e); }
@@ -2931,11 +2937,13 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
       // → Realtime triggert Admin-Dashboard, Zeile verschwindet dort sofort
       const { error } = await supabase.from(table).delete().eq("id", exp.id);
       if (!error) {
+        toast.success("Erlebnis wurde unwiderruflich gelöscht.", { duration: 3000 });
         onDeleteErlebnis(exp.id);
       } else {
         console.error("Erlebnis löschen:", error);
         // Fallback: soft-delete wenn Hard-Delete nicht erlaubt (RLS)
         await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
+        toast.success("Erlebnis wurde gelöscht.", { duration: 3000 });
         onDeleteErlebnis(exp.id);
       }
     } catch(e) { console.error("Erlebnis löschen:", e); }
