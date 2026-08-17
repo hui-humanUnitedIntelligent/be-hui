@@ -2028,7 +2028,7 @@ const TALENT_KATEGORIEN = [
 // entfernt (Wizard bleibt via "bearbeiten" weiterhin 1 Klick entfernt).
 // createPortal(document.body) + zIndex 10500 Pflicht fuer neue Modals
 // (siehe footer-navbar-zindex.md).
-function ItemActionChoiceSheet({ label, onEdit, onView, onCancel }) {
+function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, onCancel }) {
   return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
@@ -2059,6 +2059,21 @@ function ItemActionChoiceSheet({ label, onEdit, onView, onCancel }) {
         }}>
           {label} ansehen
         </button>
+        {/* ITEM-ACTION-CHOICE-DELETE (2026-08-17, Michael-Feedback): Loeschen
+            zusaetzlich direkt im Popup, nicht nur ueber die kleine X-Ecke auf
+            der Karte -- bessere Auffindbarkeit. Oeffnet dieselbe bestehende
+            Delete*Confirm-Bestaetigung wie der X-Button (kein Duplikat,
+            Wiederverwendung der schon vorhandenen Loesch-Logik). */}
+        {onDelete && (
+          <button onClick={onDelete} style={{
+            width:"100%", padding:"13px", borderRadius:99,
+            background:"rgba(255,59,59,0.08)", border:"1.5px solid rgba(255,59,59,0.30)",
+            color:"#ff3b3b", fontSize:14, fontWeight: 600, cursor:"pointer",
+            fontFamily:"inherit", marginBottom:10,
+          }}>
+            {label} löschen
+          </button>
+        )}
         <button onClick={onCancel} style={{
           width:"100%", padding:"12px", borderRadius:99,
           background:"#f0f0ee", border:"none", color:"#444",
@@ -2627,6 +2642,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
         label="Talent"
         onEdit={() => { const t = choiceTalent; setChoiceTalent(null); onTalentWizard?.(t); }}
         onView={() => { const t = choiceTalent; setChoiceTalent(null); openRef({ type:"talent", id:t.id }); }}
+        onDelete={() => { const t = choiceTalent; setChoiceTalent(null); setConfirmTalent(t); }}
         onCancel={() => setChoiceTalent(null)}
       />
     )}
@@ -2755,6 +2771,7 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
         label="Werk"
         onEdit={() => { const w = choiceWork; setChoiceWork(null); onWerkWizard?.(w); }}
         onView={() => { const w = choiceWork; setChoiceWork(null); openRef({ type:"work", id:w.id }); }}
+        onDelete={() => { const w = choiceWork; setChoiceWork(null); setConfirmWork(w); }}
         onCancel={() => setChoiceWork(null)}
       />
     )}
@@ -2921,6 +2938,7 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
           // Projekte (Impact) und Erlebnisse liegen in unterschiedlichen Tabellen/Loadern
           openRef({ type: exp._source === "projects" ? "project" : "experience", id: exp.id });
         }}
+        onDelete={() => { const exp = choiceExp; setChoiceExp(null); setConfirmExp(exp); }}
         onCancel={() => setChoiceExp(null)}
       />
     )}
