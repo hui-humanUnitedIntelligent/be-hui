@@ -40,6 +40,11 @@ import { HUILogo } from "../../brand/HUILogo.jsx";
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
+// NAV-VERTICAL-OFFSET (2026-08-18, Michael-Request): Bar 25px nach unten in den
+// Safe-Area-Puffer verschoben. Siehe unten am Backdrop-Div für den Gegenpart,
+// der den dadurch entstandenen Lücken-Spalt wieder nahtlos auffuellt.
+const NAV_VERTICAL_OFFSET = 25;
+
 /* ── SVG Tabbar Background ─────────────────────────────────────
    Vollständig deckende Füllung (HUI-Design-System Off-White) — KEIN
    Glassmorphism, KEIN Blur, KEIN Durchscheinen des Hintergrunds. Sieht
@@ -225,7 +230,7 @@ export default function HUIBottomNavigation({
           // navigationGeometry.js). Reine Transform-Verschiebung — reservierte Layout-
           // Höhe (NAV_RESERVED_HEIGHT_CSS) und Klick-Koordinaten bleiben synchron, da
           // overflow:visible auf beiden Ebenen kein Clipping verursacht.
-          transform: "translateY(25px)",
+          transform: `translateY(${NAV_VERTICAL_OFFSET}px)`,
         }}
       >
         {/* NAV-BACKDROP (2026-07-05): Garantiert auf ALLEN vier Tabs
@@ -234,7 +239,16 @@ export default function HUIBottomNavigation({
           aria-hidden="true"
           style={{
             position: "absolute",
-            inset: 0,
+            // GAP-FIX (2026-08-18): top statt inset:0 — reicht um NAV_VERTICAL_OFFSET
+            // weiter nach oben als die Pille selbst, damit die durch die 25px-
+            // Verschiebung freigelegte Lücke (zeigte vorher die rohe Cream-
+            // Seitenfarbe als "grauer Balken") weiterhin nahtlos mit demselben
+            // TABBAR_FILL übermalt wird. Rein additiv/kosmetisch, keine Hitbox-
+            // Änderung (pointerEvents:none).
+            top: -NAV_VERTICAL_OFFSET,
+            left: 0,
+            right: 0,
+            bottom: 0,
             background: TABBAR_FILL,
             zIndex: 0,
             pointerEvents: "none",
