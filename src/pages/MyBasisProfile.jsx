@@ -26,6 +26,8 @@ import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useNotifications } from "../lib/useNotifications.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
+import { usePullToRefresh } from "../hooks/usePullToRefresh.js";
+import { PullToRefreshIndicator } from "../components/ui/PullToRefreshIndicator.jsx";
 // HuiStudio direkt importiert (kein lazy/Suspense)
 import MeineResonanz from "./studio/MeineResonanz.jsx";
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
@@ -798,6 +800,23 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [editingTalent,    setEditingTalent]    = useState(null);
   const { talents, reload: reloadTalents } = useTalents(profile?.id);
 
+  // ── PULL-TO-REFRESH (2026-08-17): eigenes Profil hat eigenen
+  // Scroll-Container (.mbp-scroll), unabhaengig vom Home.jsx-Feed-Scroll ──
+  const profileScrollRef = React.useRef(null);
+  const handleProfilePullRefresh = React.useCallback(async () => {
+    reload?.();
+    loadLazy?.();
+    reloadTalents?.();
+    await new Promise(r => setTimeout(r, 400));
+  }, [reload, loadLazy, reloadTalents]);
+  const { pullDistance: profilePullDistance, isRefreshing: profileIsRefreshing, isTriggered: profileIsTriggered } = usePullToRefresh({
+    onRefresh:  handleProfilePullRefresh,
+    scrollRef:  profileScrollRef,
+    threshold:  72,
+    maxPull:    110,
+    enabled:    true,
+  });
+
 
   // Sprint F.7D: Profil-Loader entfernt — useProfileData(user?.id) übernimmt
   // Alte lokale States (profile, loading) werden durch Hook-Werte ersetzt (Phase 2)
@@ -1067,8 +1086,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
         </div>
       </div>
 
-      <div className="mbp-scroll" style={{ flex:1, overflowY:"auto",
-        paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
+      <div className="mbp-scroll" ref={profileScrollRef} style={{ flex:1, overflowY:"auto",
+        position:"relative", paddingBottom: NAV_RESERVED_HEIGHT_CSS }}>
+
+        {/* ── Pull-to-Refresh Indikator — oben im Scroll-Container ── */}
+        <PullToRefreshIndicator
+          pullDistance={profilePullDistance}
+          isRefreshing={profileIsRefreshing}
+          isTriggered={profileIsTriggered}
+        />
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader
@@ -2623,7 +2649,24 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
     setConfirmTalent(null);
     if (!t?.id) return;
     try {
-      await deleteTalent(t.id);
+      // UNWIDERRUFLICH LOESCHEN (2026-08-17): HARD DELETE nur wenn keine
+      // Buchungen existieren. talent_bookings_talent_id_fkey ist ON DELETE
+      // CASCADE (DB-Check 2026-08-17) — ein ungeprueftes Hard-Delete wuerde
+      // bestehende (auch bezahlte) Buchungen samt Zahlungshistorie mitloeschen.
+      // Schutz: vorher zaehlen, bei Treffern Soft-Delete (status='deleted')
+      // statt Hard-Delete — Talent verschwindet trotzdem sofort aus
+      // Feed/Entdecken (beide filtern strikt auf status='approved'), die
+      // Buchungs-/Zahlungshistorie bleibt aber vollstaendig erhalten.
+      const { count, error: countErr } = await supabase
+        .from("talent_bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("talent_id", t.id);
+      if (!countErr && count > 0) {
+        console.warn(`Talent Hard-Delete blockiert — ${count} bestehende Buchung(en) gefunden. Fallback Soft-Delete.`);
+        await supabase.from("talents").update({ status: "deleted" }).eq("id", t.id);
+      } else {
+        await deleteTalent(t.id);
+      }
       onDeleteTalent(t.id);
     } catch(e) { console.error("Talent-Angebot löschen:", e); }
   };
@@ -2752,7 +2795,20 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
     setConfirmWork(null);
     if (!w?.id) return;
     try {
-      await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
+      // UNWIDERRUFLICH LOESCHEN (2026-08-17): primaer HARD DELETE — die Zeile
+      // verschwindet komplett aus der DB, damit garantiert nichts mehr in
+      // Feed/Entdecken/Profil auftaucht. FK-Schutz (order_items_work_id_fkey,
+      // bookings_work_id_fkey, work_sales_work_id_fkey — alle NO ACTION/RESTRICT,
+      // DB-Check 2026-08-17) verhindert das Hard-Delete automatisch wenn das
+      // Werk bereits bestellt/gebucht/verkauft wurde (schuetzt Bestell- und
+      // Zahlungshistorie vor Datenverlust). In diesem Fall Fallback auf
+      // Soft-Delete (status='deleted') — verschwindet trotzdem sofort aus
+      // Feed/Entdecken, die beide strikt auf status='published' filtern.
+      const { error } = await supabase.from("works").delete().eq("id", w.id);
+      if (error) {
+        console.warn("Werk Hard-Delete blockiert (vermutlich bestehende Bestellung/Buchung) — Fallback Soft-Delete:", error);
+        await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
+      }
       onDeleteWerk(w.id);
     } catch(e) { console.error("Werk löschen:", e); }
   };
