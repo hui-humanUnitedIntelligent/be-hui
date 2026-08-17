@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { APP_VERSION } from "../../version.js";
+import { supabase } from "../../lib/supabaseClient";
 
 const VIDEO_PATH = "/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
@@ -19,6 +20,10 @@ export default function IntroVideoScreen() {
   const [versionLabel, setVersionLabel] = useState(`v${APP_VERSION}`);
   const finishedRef = useRef(false);
   const videoStartedRef = useRef(false);
+  // NAV-SKIP-LOGIN-FLASH (2026-08-18): Session wird PARALLEL zum Video geprüft,
+  // damit bereits eingeloggte Nutzer direkt zu /Home springen und der
+  // LoginPage-Screen ("Verbinde dich mit Menschen...") nicht mehr kurz aufblitzt.
+  const targetRouteRef = useRef("/login");
 
   // OTA-Check: Aktuelle Version oder "Update auf x.x.x" anzeigen
   useEffect(() => {
@@ -45,6 +50,17 @@ export default function IntroVideoScreen() {
       } catch (e) { /* offline — zeige aktuelle Version */ }
     };
     checkUpdate();
+
+    // Session parallel zum Video prüfen (siehe targetRouteRef oben)
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        targetRouteRef.current = session ? "/Home" : "/login";
+      } catch (e) {
+        targetRouteRef.current = "/login"; // Fallback: sicherer Weg über Login
+      }
+    };
+    checkSession();
   }, []);
 
   const finish = useCallback((reason) => {
@@ -53,7 +69,7 @@ export default function IntroVideoScreen() {
     setFading(true);
     setTimeout(() => {
       setDone(true);
-      navigate("/login", { replace: true });
+      navigate(targetRouteRef.current, { replace: true });
     }, FADE_DURATION);
   }, [navigate]);
 
