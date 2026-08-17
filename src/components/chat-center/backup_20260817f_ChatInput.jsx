@@ -17,7 +17,11 @@ const CSS = `
   @keyframes ci-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
   @keyframes ci-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.12);opacity:0.75} }
   @keyframes ci-ripple { 0%{transform:scale(0.9);opacity:0.7} 100%{transform:scale(1.9);opacity:0} }
-  
+  @keyframes ci-emoji-in { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .ci-emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:2px; }
+  .ci-emoji-btn { font-size:22px; padding:5px 3px; border:none; background:none; cursor:pointer; border-radius:8px; text-align:center; transition:background .12s; line-height:1; WebkitTapHighlightColor:transparent; }
+  .ci-emoji-btn:hover { background:rgba(22,215,197,0.12); }
+  .ci-emoji-picker { position:absolute; bottom:100%; left:0; right:0; background:#fff; border-top:1px solid rgba(0,0,0,0.07); padding:10px 12px 8px; box-shadow:0 -4px 20px rgba(0,0,0,0.10); max-height:190px; overflow-y:auto; animation:ci-emoji-in 150ms ease; }
 `;
 
 async function uploadChatMedia(file, type) {
@@ -97,8 +101,12 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
   const [recording, setRecording] = useState(false);
   const [recSecs,   setRecSecs]   = useState(0);
   const [waveLvls,  setWaveLvls]  = useState([]);
-  // EMOJI-PICKER REMOVED (2026-08-17): Systemtastatur hat eigene Emoji-
-  // Eingabe — der zusaetzliche Picker-Button war redundant.
+  // EMOJI-PARITAET (2026-08-10): Chat bekommt denselben Schnellzugriff-Emoji-
+  // Picker wie die Kommentare (CommentsSheet.jsx) -- zusaetzlich zur ganz
+  // normal ueber die Systemtastatur verfuegbaren Emoji-Eingabe (die bereits
+  // ohne jede Code-Aenderung funktioniert, da das <textarea> unten kein
+  // inputMode/pattern/maxLength besitzt, das Unicode-Zeichen einschraenkt).
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const textRef     = useRef(null);
   const fileRef     = useRef(null);
@@ -186,6 +194,7 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
   async function send() {
     if (sending || uploading || recording) return;
     if (!text.trim() && !mediaFile) return;
+    setShowEmojiPicker(false);
     setUploading(true);
     try {
       let mediaUrl  = null;
@@ -229,6 +238,26 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
       flexShrink:0, position:"relative", zIndex:10, width:"100%",
     }}>
       <style>{CSS}</style>
+
+      {showEmojiPicker && (
+        <div className="ci-emoji-picker">
+          <div style={{ fontSize:11, fontWeight: 600, color:"rgba(80,80,80,0.55)", marginBottom:6, letterSpacing:.5 }}>EMOJIS</div>
+          <div className="ci-emoji-grid">
+            {["😊","😂","🥰","😍","🤩","😎","🥳","🙌","👍","❤️","🔥","✨","💫","🌟","💡","🎉","🎊","🙏","💬","💭","🌿","🌱","💚","💙","💜","🤝","👏","🫶","😅","😇","🤔","💪","🦋","🌸","🌺","🍀","☀️","🌙","⭐","🎯","🎨","📚","💎","🚀","🌈","🎵","🎶","✅","🔑","🌍"].map(e => (
+              <button key={e} className="ci-emoji-btn" onClick={() => {
+                const ta = textRef.current;
+                if (ta) {
+                  const start = ta.selectionStart ?? text.length;
+                  const end = ta.selectionEnd ?? text.length;
+                  const newVal = text.slice(0, start) + e + text.slice(end);
+                  setText(newVal);
+                  setTimeout(() => { ta.focus(); ta.selectionStart = ta.selectionEnd = start + e.length; }, 0);
+                } else { setText(v => v + e); }
+              }}>{e}</button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {mediaFile && !recording && (
         <MediaPreview
@@ -281,11 +310,27 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
             </>
           ) : (
             <>
+              {/* Emoji-Picker-Button — Schnellzugriff-Parität zu den Kommentaren.
+                  Unabhängig davon funktioniert die normale Emoji-Eingabe über
+                  die Systemtastatur des Smartphones bereits ohne diesen Button
+                  (das <textarea> schränkt keine Unicode-Zeichen ein). */}
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(v => !v)}
+                style={{
+                  fontSize:19, lineHeight:1, padding:"4px 2px", flexShrink:0,
+                  border:"none", background:"none", cursor:"pointer",
+                  opacity: showEmojiPicker ? 1 : 0.55,
+                  WebkitTapHighlightColor:"transparent",
+                  marginBottom:2,
+                }}
+                title="Emoji hinzufügen"
+              >😊</button>
               <textarea
                 ref={textRef} value={text}
                 onChange={e => setText(e.target.value)}
                 onKeyDown={onKey}
-                onFocus={() => setFocused(true)}
+                onFocus={() => { setFocused(true); setShowEmojiPicker(false); }}
                 onBlur={() => setFocused(false)}
                 placeholder={placeholder} rows={1}
                 style={{

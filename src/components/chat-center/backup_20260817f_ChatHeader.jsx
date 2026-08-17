@@ -5,12 +5,11 @@
 import React, { useState } from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatPresence } from "../../lib/usePresence.js";
-import { getFullDisplayName } from "../../lib/profileUtils.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
-  const name           = getFullDisplayName(conv?.other_profile) || conv?.name || "Gespräch";
+  const name           = conv?.name   || "Gespräch";
   const talent         = conv?.talent || conv?.type || "Kreative:r";
   const mood           = conv?.mood   || "Gerade kreativ im Studio";
   const avatar         = conv?.avatar_url;
@@ -75,7 +74,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
         <div style={{
           fontSize:15.5, fontWeight: 600, color:C.ink,
           letterSpacing:-0.3, lineHeight:1.2,
-          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:"100%",
+          whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis",
         }}>{name}</div>
         <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:2, flexWrap:"wrap" }}>
           {presence ? (

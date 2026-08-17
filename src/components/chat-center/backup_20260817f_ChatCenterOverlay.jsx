@@ -16,7 +16,6 @@ const TalentBookingFlow = lazy(() => import("../talents/TalentBookingFlow.jsx"))
 import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
-import { getFullDisplayName } from "../../lib/profileUtils.js";
 
 const C = { teal: HUI.COLOR.teal, teal2: HUI.COLOR.tealDeep, ink: HUI.COLOR.ink, muted: "rgba(80,80,80,0.50)" };
 
@@ -206,7 +205,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
       seen.add(other.id);
       list.push({
         id:         other.id,
-        name:       getFullDisplayName(other) || "?",
+        name:       other.display_name || "?",
         avatar_url: other.avatar_url    || null,
       });
     }
@@ -235,7 +234,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
       setActiveConv({
         id:           chatRecord.id,
         user_id:      initialRecipient.id           || null,
-        name:         getFullDisplayName(initialRecipient) || "Creator",
+        name:         initialRecipient.display_name || "Creator",
         avatar_url:   initialRecipient.avatar_url   || null,
         talent:       initialRecipient.talent        || null,
         has_talent_profile: initialRecipient.has_talent_profile || false,
@@ -261,7 +260,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
       setActiveConv({
         id:           chatRecord.id,
         user_id:      pendingRecipient.id           || null,
-        name:         getFullDisplayName(pendingRecipient) || "Creator",
+        name:         pendingRecipient.display_name || "Creator",
         avatar_url:   pendingRecipient.avatar_url   || null,
         talent:       pendingRecipient.talent        || null,
         has_talent_profile: pendingRecipient.has_talent_profile || false,
@@ -281,7 +280,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
     setActiveConv({
       id:                 realId,
       user_id:            other.id || rawConv.user_id || null,
-      name:               getFullDisplayName(rawConv.other_profile) || rawConv.name || "Gespräch",
+      name:               rawConv.name || other.display_name || "Gespräch",
       avatar_url:         rawConv.avatar_url || other.avatar_url || null,
       talent:             rawConv.talent || other.focus_type || null,
       has_talent_profile: other.has_talent_profile || rawConv.has_talent_profile || false,
@@ -415,7 +414,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
               setActiveConv({
                 id:                 chatRecord.id,
                 user_id:            profile.id                   || null,
-                name:               getFullDisplayName(profile)         || "Creator",
+                name:               profile.display_name         || "Creator",
                 avatar_url:         profile.avatar_url           || null,
                 talent:             profile.talent               || null,
                 has_talent_profile: profile.has_talent_profile   || false,
