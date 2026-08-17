@@ -48,8 +48,18 @@ export default function WerkeKorbHeaderButton({ count = 0, onOpen = () => {} }) 
           count>0. size 16→22: SchalenIcon nutzt ein 32×32 viewBox in dem die
           Schale nur ca. die untere Hälfte füllt (vs. Glocke/Chat, die ihr
           18×18 viewBox zu ~65% ausfüllen) — bei identischer size wirkte der
-          Korb dadurch kleiner, 22px gleicht das optisch an. */}
-      <SchalenIcon size={22} opacity={1} filled={true} />
+          Korb dadurch kleiner, 22px gleicht das optisch an.
+          VERTIKAL-ALIGN-FIX (2026-08-18, Michael-Request): Die Schale sitzt
+          innerhalb ihres eigenen 32×32 viewBox weiter unten (Rand+Deckel oben
+          nehmen Leerraum, die Schüssel selbst liegt in der unteren Hälfte) —
+          dadurch wirkte sie beim reinen Zentrieren (alignItems/justifyContent
+          center) tiefer als Glocke/Chat auf derselben horizontalen Ebene.
+          Fix: nur hier (lokaler Wrapper, NICHT die geteilte SchalenIcon-
+          Komponente selbst) 3px nach oben versetzt, damit alle drei
+          Header-Icons optisch auf einer Linie liegen. */}
+      <div style={{ transform: "translateY(-3px)" }}>
+        <SchalenIcon size={22} opacity={1} filled={true} />
+      </div>
 
       {/* MEIN-BEREICH-UPDATE-DOT-Stil (siehe MyBasisProfile.jsx MeinBereichTile) —
           derselbe rote Punkt, keine Zahl, rein binäres "hat neues Item" Signal. */}
