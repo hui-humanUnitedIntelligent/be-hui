@@ -233,23 +233,23 @@ export default function HUIBottomNavigation({
           transform: `translateY(${NAV_VERTICAL_OFFSET}px)`,
         }}
       >
-        {/* NAV-BACKDROP (2026-07-05): Garantiert auf ALLEN vier Tabs
-            denselben soliden Cream-Ruhebereich hinter der Tabbar-Pille. */}
+        {/* NAV-BACKDROP (2026-07-05, DEAKTIVIERT 2026-08-18): Ursprünglich ein
+            solider Cream-Rechteck-Hintergrund hinter der Tabbar-Pille. Michael
+            hat den Bereich per Screenshot markiert ("dieser Creme Balken muss
+            weg") — das Rechteck war breiter (left:0/right:0 = volle Nav-Breite)
+            UND (seit dem vorherigen GAP-FIX) höher als die eigentliche
+            Pille+Kerbe-Silhouette, dadurch als sichtbarer rechteckiger Balken
+            über/neben der abgerundeten Pille erkennbar. Fix: background auf
+            "transparent" — DOM-Node bleibt erhalten (keine Löschung, siehe
+            no-regression-protection.md), ist aber unsichtbar. Sichtbarer
+            Hintergrund kommt jetzt ausschließlich von der NavigationSVG-Pille
+            selbst (folgt exakt der Rund+Kerbe-Form, kein Rechteck-Überstand). */}
         <div
           aria-hidden="true"
           style={{
             position: "absolute",
-            // GAP-FIX (2026-08-18): top statt inset:0 — reicht um NAV_VERTICAL_OFFSET
-            // weiter nach oben als die Pille selbst, damit die durch die 25px-
-            // Verschiebung freigelegte Lücke (zeigte vorher die rohe Cream-
-            // Seitenfarbe als "grauer Balken") weiterhin nahtlos mit demselben
-            // TABBAR_FILL übermalt wird. Rein additiv/kosmetisch, keine Hitbox-
-            // Änderung (pointerEvents:none).
-            top: -NAV_VERTICAL_OFFSET,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: TABBAR_FILL,
+            inset: 0,
+            background: "transparent",
             zIndex: 0,
             pointerEvents: "none",
           }}
