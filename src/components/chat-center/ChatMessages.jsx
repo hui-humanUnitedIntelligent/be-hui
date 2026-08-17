@@ -200,6 +200,28 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
   });
 
   return (
+    <>
+    {/* DIAGNOSE-FIX (2026-08-17): Debug-Overlay als GESCHWISTER-Element
+        ausserhalb des scrollbaren Containers gerendert -- vorher war es
+        ein Kind von rootRef (overflowY:auto), wodurch es trotz
+        position:fixed beim Scrollen mitwanderte (siehe SCROLL-DRAG-FIX
+        in globalKeyboardHandler.js -- dieselbe WebView-Eigenart). */}
+    {dbg && (
+      <div style={{
+        position:"fixed", top:110, left:6, zIndex:99999,
+        background:"rgba(0,0,0,0.85)", color:"#0f0",
+        fontFamily:"monospace", fontSize:9.5, lineHeight:1.45,
+        padding:"6px 8px", borderRadius:6, pointerEvents:"none",
+        whiteSpace:"pre",
+      }}>
+{`kbd:${kbdInset} vv:${dbg.kbd.vvInset} nat:${dbg.kbd.nativeInset}
+winH:${dbg.kbd.windowInnerHeight}
+room top:${Math.round(dbg.roomRectTop)} bot:${Math.round(dbg.roomRectBottom)}
+msgs top:${Math.round(dbg.rectTop)} bot:${Math.round(dbg.rectBottom)}
+scrollTop:${dbg.scrollTop} scrollH:${dbg.scrollHeight}
+clientH:${dbg.clientHeight}`}
+      </div>
+    )}
     <div ref={rootRef} className="hui-scroll" onScroll={handleScroll} style={{
       // SCROLL-FIX (2026-08-08): "flex:1, minHeight:0, overflowY:auto" +
       // "justifyContent:flex-end" ist ein bekannter WebKit-Bug (iOS Safari /
@@ -222,24 +244,6 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
     }}>
       <style>{CSS}</style>
 
-      {/* DIAGNOSE-FIX (2026-08-17): temporäres Debug-Overlay, TODO entfernen */}
-      {dbg && (
-        <div style={{
-          position:"fixed", top:110, left:6, zIndex:99999,
-          background:"rgba(0,0,0,0.85)", color:"#0f0",
-          fontFamily:"monospace", fontSize:9.5, lineHeight:1.45,
-          padding:"6px 8px", borderRadius:6, pointerEvents:"none",
-          whiteSpace:"pre",
-        }}>
-{`kbd:${kbdInset} vv:${dbg.kbd.vvInset} nat:${dbg.kbd.nativeInset}
-winH:${dbg.kbd.windowInnerHeight}
-room top:${Math.round(dbg.roomRectTop)} bot:${Math.round(dbg.roomRectBottom)}
-msgs top:${Math.round(dbg.rectTop)} bot:${Math.round(dbg.rectBottom)}
-scrollTop:${dbg.scrollTop} scrollH:${dbg.scrollHeight}
-clientH:${dbg.clientHeight}`}
-        </div>
-      )}
-
       {/* Wachsender Spacer statt justifyContent:flex-end -- siehe Kommentar
           oben. flex:"1 0 auto" nimmt den kompletten Leerraum auf, wenn die
           Nachrichten kuerzer als der sichtbare Bereich sind (Chat wirkt am
@@ -260,5 +264,6 @@ clientH:${dbg.clientHeight}`}
         {typing && <TypingBubble/>}
       </div>
     </div>
+    </>
   );
 }

@@ -57,7 +57,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const showEmpty = !loading && messages.length === 0 && !!realChatId;
 
   return (
-    <div data-hui-conv-room style={{
+    <div data-hui-conv-room data-hui-kbd-self-managed style={{
       position:"fixed", top:0, left:0, right:0, bottom:"clamp(0px, var(--hui-keyboard-inset, 0px), 65vh)", zIndex:10002,
       display:"flex", flexDirection:"column",
       fontFamily:"Inter,sans-serif",

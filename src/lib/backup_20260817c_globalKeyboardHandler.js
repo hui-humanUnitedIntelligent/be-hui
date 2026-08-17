@@ -60,26 +60,6 @@ function isTextField(el) {
 
 function scrollFieldIntoView(el) {
   if (!el || typeof el.scrollIntoView !== "function") return;
-
-  // SCROLL-DRAG-FIX (2026-08-17): Nutzer-Report + Debug-Overlay-Beweis —
-  // auf diesem Android-WebView (Xiaomi HyperOS) werden position:fixed-
-  // Elemente FÄLSCHLICHERWEISE mitgescrollt, wenn ein Vorfahre (inkl.
-  // document/body) scrollt -- eigentlich WebView-Spec-Verstoss (fixed
-  // sollte IMMER relativ zum Viewport bleiben), aber empirisch bestätigt
-  // (Debug-Overlay wanderte beim Scrollen mit, obwohl position:fixed).
-  // Da zwischen einem <textarea> in ConversationRoom (ChatInput) und
-  // document.body KEIN scrollbarer Container liegt, scrollt
-  // scrollIntoView() hier den GESAMTEN body/html -- und zieht dabei den
-  // kompletten (position:fixed, per Portal auf body) ConversationRoom
-  // mit nach oben, obwohl der bereits über --hui-keyboard-inset korrekt
-  // ueber die Tastatur gehoben wird. Zwei konkurrierende Mechanismen =
-  // Layout kollabiert (Nachricht komplett aus dem Bild gescrollt).
-  // FIX: Elemente, die bereits selbst innerhalb eines
-  // [data-hui-kbd-self-managed]-Containers liegen (eigene
-  // --hui-keyboard-inset Logik), werden hier NICHT zusätzlich per
-  // scrollIntoView bewegt -- vermeidet den Konflikt komplett.
-  if (el.closest && el.closest("[data-hui-kbd-self-managed]")) return;
-
   try {
     el.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
   } catch {
@@ -120,22 +100,6 @@ function adjustFixedElements(inset) {
     // in onKeyboardChange() korrekt setzt). Nur ECHTE schmale Leisten (z.B. ein
     // schwebender Speichern-Button-Balken < 70% Bildschirmhoehe) werden weiterhin
     // wie bisher per "bottom: insetPx" ueber die Tastatur geschoben.
-    // SCROLL-DRAG-FIX (2026-08-17): Container mit eigener Keyboard-Logik
-    // (z.B. ConversationRoom, bottom: clamp(0px, var(--hui-keyboard-inset)))
-    // werden hier NIE zusätzlich per JS-Inline-Style angefasst -- sie
-    // regeln ihre Tastatur-Sicherheit bereits vollständig selbst. Ohne
-    // diesen Check kaempften React-Style und dieser globale Handler um
-    // dieselbe "bottom"-Property (siehe KEYBOARD-DOUBLESHIFT-FIX unten).
-    if (child.hasAttribute && child.hasAttribute("data-hui-kbd-self-managed")) {
-      const saved = savedStyles.get(child);
-      if (saved) {
-        child.style.bottom = saved.bottom;
-        child.style.transition = saved.transition;
-        savedStyles.delete(child);
-      }
-      continue;
-    }
-
     let rectHeight = 0;
     try { rectHeight = child.getBoundingClientRect().height; } catch { rectHeight = 0; }
     const isFullscreenOverlay = rectHeight >= window.innerHeight * 0.7;
