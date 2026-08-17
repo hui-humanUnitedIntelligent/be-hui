@@ -138,11 +138,10 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
       mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: mr.mimeType });
-        const file = new File([blob], "voice_" + Date.now() + ".webm", { type: mr.mimeType });
+        setMediaFile(new File([blob], "voice_" + Date.now() + ".webm", { type: mr.mimeType }));
+        setMediaType("voice");
         stopAnalyzer();
         stream.getTracks().forEach(t => t.stop());
-        // AUTO-SEND: Sprachnachricht direkt versenden, keine Preview
-        autoSendVoice(file);
       };
       mr.start(100);
       mrRef.current = mr;
@@ -216,33 +215,6 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
 
   function onKey(e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
-  }
-
-  // AUTO-SEND VOICE (2026-08-17): Sprachnachricht wird direkt nach Stop
-  // gesendet — kein extra Senden-Button nötig. Empfängt das File direkt
-  // vom MediaRecorder.onstop (nicht über State, da setState async ist).
-  async function autoSendVoice(file) {
-    if (sending || uploading) return;
-    setUploading(true);
-    try {
-      const { url } = await uploadChatMedia(file, "voice");
-      await onSend?.({
-        text: "\uD83C\uDFA4 Sprachnachricht",
-        msgType: "voice",
-        mediaUrl: url,
-        mediaType: "voice",
-      });
-      setMediaFile(null);
-      setMediaType(null);
-      setRecSecs(0);
-    } catch(err) {
-      console.error("[ChatInput] Voice auto-send error:", err);
-      toast.error("Sprachnachricht konnte nicht gesendet werden");
-      setMediaFile(null);
-      setMediaType(null);
-    } finally {
-      setUploading(false);
-    }
   }
 
   const canSend = (!!text.trim() || !!mediaFile) && !sending && !uploading && !recording;

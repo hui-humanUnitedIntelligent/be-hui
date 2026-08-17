@@ -11,9 +11,7 @@ const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, mu
 
 export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
   const name           = getFullDisplayName(conv?.other_profile) || conv?.name || "Gespräch";
-  // "public" ist ein focus_type-Wert (Sichtbarkeit), kein Talent-Text — filtern
-  const rawTalent      = conv?.talent || conv?.type || null;
-  const talent         = (rawTalent && rawTalent !== "public") ? rawTalent : null;
+  const talent         = conv?.talent || conv?.type || "Kreative:r";
   const mood           = conv?.mood   || "Gerade kreativ im Studio";
   const avatar         = conv?.avatar_url;
   const initials       = name[0]?.toUpperCase() || "?";

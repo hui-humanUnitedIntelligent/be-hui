@@ -17,7 +17,6 @@ import { supabase } from "../../lib/supabaseClient.js";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
-import { registerModal } from "../../lib/backButtonRegistry.js";
 
 const C = { teal: HUI.COLOR.teal, teal2: HUI.COLOR.tealDeep, ink: HUI.COLOR.ink, muted: "rgba(80,80,80,0.50)" };
 
@@ -284,7 +283,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
       user_id:            other.id || rawConv.user_id || null,
       name:               getFullDisplayName(rawConv.other_profile) || rawConv.name || "Gespräch",
       avatar_url:         rawConv.avatar_url || other.avatar_url || null,
-      talent:             rawConv.talent || (other.focus_type && other.focus_type !== "public" ? other.focus_type : null) || null,
+      talent:             rawConv.talent || other.focus_type || null,
       has_talent_profile: other.has_talent_profile || rawConv.has_talent_profile || false,
       online:             rawConv.online ?? true,
       last_message:       rawConv.last_message,
@@ -295,20 +294,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
   }
 
   // ── Ladescreen ──
-  
-  // ── Android Back-Button: Chat bei Back-Taste zur Übersicht (nicht Main-Menu) ──
-  // Wenn ein ConversationRoom offen ist → Back geht zur Chat-Liste (nicht Exit).
-  // Wenn nur das Chat-Overlay offen ist → Back schließt das Overlay.
-  useEffect(() => {
-    if (activeConv) {
-      // ConversationRoom offen → Back geht zur Chat-Übersicht
-      return registerModal(() => setActiveConv(null), "chat-conversation");
-    }
-    // Nur Chat-Overlay (Liste) offen → Back schließt das ganze Overlay
-    return registerModal(() => onClose(), "chat-overlay");
-  }, [activeConv]); // eslint-disable-line react-hooks/exhaustive-deps
-
-if (loadingConv && !activeConv) {
+  if (loadingConv && !activeConv) {
     return (
       <div style={{
         position: "fixed", inset: 0, zIndex: 10500,
