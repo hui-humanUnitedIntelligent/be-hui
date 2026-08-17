@@ -543,26 +543,6 @@ body.hui-keyboard-open .hui-scroll {
   transition: padding-bottom 0.2s ease-out;
 }
 
-/* SCROLL-PADDING-DRAG-FIX (2026-08-17): Container mit eigener Keyboard-
-   Logik (z.B. ConversationRoom/ChatMessages, siehe data-hui-kbd-self-managed
-   in globalKeyboardHandler.js) bekommen die obige globale Regel NICHT --
-   sie schrumpfen bereits vollständig selbst über
-   bottom: clamp(0px, var(--hui-keyboard-inset), 65vh) am äusseren Container.
-   Ohne diesen Override addierte die globale Regel ZUSAETZLICH
-   keyboardInset+16px Bottom-Padding INNERHALB des bereits verkleinerten
-   Chat-Scroll-Containers -- das erhöhte scrollHeight um genau diesen
-   Betrag (Beweis per Debug-Overlay: clientH:394 = kbdInset(378)+16,
-   exakt die per !important injizierte Padding-Größe). Der bestehende
-   "scrollTop = scrollHeight"-Autoscroll (ChatMessages.jsx) landete dadurch
-   NICHT bei der letzten echten Nachricht, sondern mitten in dieser rein
-   visuellen Padding-Zone -- Nachricht komplett unsichtbar, riesige leere
-   Fläche. Hoehere Spezifitaet (zusaetzlicher Attribut-Selektor) gewinnt
-   gegenüber der allgemeinen Regel, auch bei beidseitigem !important. */
-body.hui-keyboard-open [data-hui-kbd-self-managed] .hui-scroll {
-  padding-bottom: 8px !important;
-  transition: none !important;
-}
-
 /* 2) Bottom Navigation: ausblenden wenn Tastatur offen */
 body.hui-keyboard-open [data-hui-bottom-navigation] {
   transform: translateY(150%) !important;

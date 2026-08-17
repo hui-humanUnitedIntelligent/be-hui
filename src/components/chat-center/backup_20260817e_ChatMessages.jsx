@@ -1,7 +1,7 @@
 // chat-center/ChatMessages.jsx
 
-import React, { useRef, useEffect, useCallback } from "react";
-import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import React, { useRef, useEffect, useCallback, useState } from "react";
+import { useKeyboardInset, getKeyboardDebugInfo } from "../../hooks/useKeyboardInset.js";
 import MessageBubble, { TypingBubble } from "./MessageBubble.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { formatDateDE } from "../../lib/formatters.js";
@@ -73,6 +73,30 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
   // ans Ende zurückgerissen wird.
   const stickRef = useRef(true);
   const kbdInset  = useKeyboardInset();
+
+  // DIAGNOSE-FIX (2026-08-17): temporäres Debug-Overlay direkt am
+  // Scroll-Container (rootRef) — zeigt scrollTop/scrollHeight/clientHeight
+  // + die BoundingClientRect von ConversationRoom (via rootRef.parentElement)
+  // damit wir sehen, WO genau das Layout kollabiert, statt zu raten.
+  // TODO nach Diagnose wieder entfernen.
+  const [dbg, setDbg] = useState(null);
+  useEffect(() => {
+    const id = setInterval(() => {
+      const el = rootRef.current;
+      const room = el?.closest('[data-hui-conv-room]');
+      setDbg({
+        kbd: getKeyboardDebugInfo(),
+        scrollTop: el?.scrollTop ?? null,
+        scrollHeight: el?.scrollHeight ?? null,
+        clientHeight: el?.clientHeight ?? null,
+        rectTop: el?.getBoundingClientRect()?.top ?? null,
+        rectBottom: el?.getBoundingClientRect()?.bottom ?? null,
+        roomRectTop: room?.getBoundingClientRect()?.top ?? null,
+        roomRectBottom: room?.getBoundingClientRect()?.bottom ?? null,
+      });
+    }, 300);
+    return () => clearInterval(id);
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     const el = rootRef.current;
@@ -176,6 +200,28 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
   });
 
   return (
+    <>
+    {/* DIAGNOSE-FIX (2026-08-17): Debug-Overlay als GESCHWISTER-Element
+        ausserhalb des scrollbaren Containers gerendert -- vorher war es
+        ein Kind von rootRef (overflowY:auto), wodurch es trotz
+        position:fixed beim Scrollen mitwanderte (siehe SCROLL-DRAG-FIX
+        in globalKeyboardHandler.js -- dieselbe WebView-Eigenart). */}
+    {dbg && (
+      <div style={{
+        position:"fixed", top:110, left:6, zIndex:99999,
+        background:"rgba(0,0,0,0.85)", color:"#0f0",
+        fontFamily:"monospace", fontSize:9.5, lineHeight:1.45,
+        padding:"6px 8px", borderRadius:6, pointerEvents:"none",
+        whiteSpace:"pre",
+      }}>
+{`kbd:${kbdInset} vv:${dbg.kbd.vvInset} nat:${dbg.kbd.nativeInset}
+winH:${dbg.kbd.windowInnerHeight}
+room top:${Math.round(dbg.roomRectTop)} bot:${Math.round(dbg.roomRectBottom)}
+msgs top:${Math.round(dbg.rectTop)} bot:${Math.round(dbg.rectBottom)}
+scrollTop:${dbg.scrollTop} scrollH:${dbg.scrollHeight}
+clientH:${dbg.clientHeight}`}
+      </div>
+    )}
     <div ref={rootRef} className="hui-scroll" onScroll={handleScroll} style={{
       // SCROLL-FIX (2026-08-08): "flex:1, minHeight:0, overflowY:auto" +
       // "justifyContent:flex-end" ist ein bekannter WebKit-Bug (iOS Safari /
@@ -218,5 +264,6 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
         {typing && <TypingBubble/>}
       </div>
     </div>
+    </>
   );
 }

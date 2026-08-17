@@ -102,19 +102,3 @@ export function getKeyboardInset() {
   return globalInset;
 }
 
-// DIAGNOSE-FIX (2026-08-17): temporäre Debug-Funktion — gibt alle rohen
-// Zwischenwerte zurück, damit wir bei einem Geräte-spezifischen Bug (z.B.
-// Xiaomi HyperOS) sehen können, WELCHE Quelle (visualViewport vs. natives
-// Android ime()-Signal) den fehlerhaften Wert liefert, statt zu raten.
-// Wird von einem temporären Debug-Overlay in ConversationRoom genutzt —
-// nach Diagnose wieder entfernen.
-export function getKeyboardDebugInfo() {
-  return {
-    vvInset,
-    nativeInset,
-    globalInset,
-    windowInnerHeight: typeof window !== "undefined" ? window.innerHeight : null,
-    vvHeight: typeof window !== "undefined" && window.visualViewport ? window.visualViewport.height : null,
-    screenHeight: typeof window !== "undefined" && window.screen ? window.screen.height : null,
-  };
-}
