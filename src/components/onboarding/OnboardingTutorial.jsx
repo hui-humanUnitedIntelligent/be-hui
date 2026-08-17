@@ -35,6 +35,15 @@ const STEPS = [
   { selector: 'button[aria-label="Profil"]',          text: "Hier kannst du dein eigenes Profil gestalten und personalisieren.",                 placement: "top" },
   { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.",     placement: "bottom" },
   { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
+  // WERKEKORB-TUTORIAL-STEP (2026-08-18, Michael-Request): letzter Schritt des
+  // Basis-Tutorials, direkt vor der "Erweitertes Tutorial?"-Frage. Selector
+  // nutzt ^= (startsWith) statt exaktem Match, weil WerkeKorbHeaderButton.jsx
+  // das aria-label je nach Korb-Status dynamisch wechselt ("Werkekorb öffnen"
+  // vs. "Werkekorb öffnen — neues Item") — beide Varianten werden erfasst.
+  // Text bewusst NICHT als "Warenkorb" formuliert (siehe WerkeKorb.jsx Header-
+  // Kommentar: "Persönlicher Sammelraum. Kein Warenkorb. Ruhiger menschlicher
+  // Raum.") — Ton bleibt konsistent mit dem Rest von HUI.
+  { selector: 'button[aria-label^="Werkekorb"]',      text: "Hier sammelst du Werke, die dich ber\u00fchren \u2013 dein pers\u00f6nlicher Raum, um sie in Ruhe zu betrachten und zu erwerben, wenn du bereit bist.", placement: "bottom" },
 ];
 
 // ── Erweitertes Tutorial (2026-08-11, TUTORIAL-PROFIL-SWITCH) ──────────
