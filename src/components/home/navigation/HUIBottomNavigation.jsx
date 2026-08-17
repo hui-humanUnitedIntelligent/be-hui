@@ -219,6 +219,13 @@ export default function HUIBottomNavigation({
           width: "100%",
           height: "100%",
           overflow: "visible",
+          // NAV-VERTICAL-OFFSET (2026-08-18): Michael empfand die Bar als zu hoch —
+          // verschiebt die GESAMTE Bar (Backdrop+Logo+Tabbar) visuell 25px nach unten
+          // in den bereits reservierten Safe-Area-Puffer (siehe SAFE-AREA-GUARD oben in
+          // navigationGeometry.js). Reine Transform-Verschiebung — reservierte Layout-
+          // Höhe (NAV_RESERVED_HEIGHT_CSS) und Klick-Koordinaten bleiben synchron, da
+          // overflow:visible auf beiden Ebenen kein Clipping verursacht.
+          transform: "translateY(25px)",
         }}
       >
         {/* NAV-BACKDROP (2026-07-05): Garantiert auf ALLEN vier Tabs
