@@ -5,7 +5,6 @@
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatTimeDE } from "../../lib/formatters.js";
-import { getFullDisplayName } from "../../lib/profileUtils.js";
 
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)" };
 
@@ -19,14 +18,7 @@ function timeAgo(iso) {
 }
 
 export default function ConversationCard({ conv, onPress, isActive }) {
-  // NAME-DISPLAY-FIX (2026-08-17): ConversationCard griff bisher direkt auf
-  // other_profile?.display_name zu (frei wählbarer Spitzname, z.B. "Linda",
-  // "Michèle", "Meyer") statt auf die SSOT-Funktion getFullDisplayName()
-  // (full_name → display_name → username → fallback), die in ChatHeader.jsx
-  // und den "Neueste Verbindungen"-Bubbles bereits korrekt genutzt wird.
-  // Ergebnis: In der Chatliste fehlten Nachnamen komplett bei Nutzern mit
-  // gepflegtem full_name. Fix: gleiche SSOT-Funktion wie überall sonst im Chat.
-  const name       = conv.name || getFullDisplayName(conv.other_profile, "?");
+  const name       = conv.name || conv.other_profile?.display_name || "?";
   const avatar     = conv.avatar_url || conv.other_profile?.avatar_url;
   const lastMsg    = conv.last_message || "Eine Verbindung ist entstanden";
   const unread     = conv.unread || 0;
