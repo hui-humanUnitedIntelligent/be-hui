@@ -41,7 +41,15 @@ export default function WerkeKorbHeaderButton({ count = 0, onOpen = () => {} }) 
         userSelect:"none", WebkitUserSelect:"none",
       }}
     >
-      <SchalenIcon size={16} opacity={count > 0 ? 1 : 0.62} filled={count > 0} />
+      {/* GRÖSSE+FARBE-FIX (2026-08-18, Michael-Request): "auch im grün" +
+          "Symbol etwas größer, damit es symbolisch gleich groß ist wie die
+          anderen beiden" — filled=true permanent (immer Teal-Stroke, wie
+          Glocke/Chat, unabhängig vom Korb-Status) statt vorher nur bei
+          count>0. size 16→22: SchalenIcon nutzt ein 32×32 viewBox in dem die
+          Schale nur ca. die untere Hälfte füllt (vs. Glocke/Chat, die ihr
+          18×18 viewBox zu ~65% ausfüllen) — bei identischer size wirkte der
+          Korb dadurch kleiner, 22px gleicht das optisch an. */}
+      <SchalenIcon size={22} opacity={1} filled={true} />
 
       {/* MEIN-BEREICH-UPDATE-DOT-Stil (siehe MyBasisProfile.jsx MeinBereichTile) —
           derselbe rote Punkt, keine Zahl, rein binäres "hat neues Item" Signal. */}
