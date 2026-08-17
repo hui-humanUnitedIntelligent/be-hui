@@ -1,7 +1,6 @@
 // chat-center/ChatMessages.jsx
 
 import React, { useRef, useEffect, useCallback } from "react";
-import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import MessageBubble, { TypingBubble } from "./MessageBubble.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { formatDateDE } from "../../lib/formatters.js";
@@ -72,24 +71,11 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
   // aktiv nach oben scrollt (Verlauf lesen), damit er dabei nicht ständig
   // ans Ende zurückgerissen wird.
   const stickRef = useRef(true);
-  const kbdInset  = useKeyboardInset();
 
   const scrollToBottom = useCallback(() => {
     const el = rootRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
-
-  // KEYBOARD-SCROLL-FIX (2026-08-17): Wenn die Tastatur aufgeht, schrumpft
-  // der Container (bottom: var(--hui-keyboard-inset) in ConversationRoom).
-  // Ohne diesen Effekt bleibt die Scroll-Position stehen → die letzte
-  // Nachricht rutscht weit nach oben, große Lücke zum Eingabefeld.
-  useEffect(() => {
-    if (kbdInset === 0) return;
-    if (!stickRef.current) return;
-    const raf = requestAnimationFrame(scrollToBottom);
-    const t = setTimeout(scrollToBottom, 300);
-    return () => { cancelAnimationFrame(raf); clearTimeout(t); };
-  }, [kbdInset, scrollToBottom]);
 
   // SCROLL-FIX (2026-08-10): Beim Öffnen eines Chats landete der Verlauf oft
   // "irgendwo in der Mitte" statt am Ende (Nutzer-Feedback, Screenshot).
@@ -204,7 +190,7 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
           unteren Rand "angedockt"), verschwindet aber vollstaendig sobald
           der Inhalt ueberlaeuft -- dann verhaelt sich overflowY:auto exakt
           wie ein normaler, ungebrochener Scroll-Container. */}
-      <div style={{ flex:"1 1 0px" }} aria-hidden="true" />
+      <div style={{ flex:"1 0 auto" }} aria-hidden="true" />
 
       <div ref={contentRef}>
         <EventPreviewCard event={event}/>

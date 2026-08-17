@@ -62,7 +62,6 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
       display:"flex", flexDirection:"column",
       fontFamily:"Inter,sans-serif",
       background:"#F2F4F8",
-      transition:"bottom 0.25s ease-out",
     }}>
       <style>{CSS}</style>
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}
