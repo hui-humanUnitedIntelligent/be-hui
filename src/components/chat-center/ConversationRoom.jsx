@@ -23,7 +23,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
   const realChatId = (rawId && !isFakeId) ? rawId : null;
 
-  const { messages: liveMessages, sendMessage, deleteMessage, editMessage, sending, loading } =
+  const { messages: liveMessages, sendMessage, deleteMessage, editMessage, reactToMessage, sending, loading } =
     useChatThread(realChatId);
 
   const messages = useMemo(
@@ -54,6 +54,10 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const handleEdit = useCallback(async (msgId, newText) => {
     await editMessage?.(msgId, newText);
   }, [editMessage]);
+
+  const handleReact = useCallback(async (msgId, emoji) => {
+    await reactToMessage?.(msgId, emoji);
+  }, [reactToMessage]);
 
   const showEmpty = !loading && messages.length === 0 && !!realChatId;
 
@@ -96,6 +100,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
           event={null}
           onDelete={handleDelete}
           onEdit={handleEdit}
+          onReact={handleReact}
         />
       )}
 

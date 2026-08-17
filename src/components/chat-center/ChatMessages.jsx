@@ -63,7 +63,7 @@ function EventPreviewCard({ event = {} }) {
   );
 }
 
-export default function ChatMessages({ messages = [], typing = false, event = null, onDelete = () => {}, onEdit = () => {} }) {
+export default function ChatMessages({ messages = [], typing = false, event = null, onDelete = () => {}, onEdit = () => {}, onReact = () => {} }) {
   const rootRef    = useRef(null);
   const contentRef = useRef(null); // Wrapper um alle Bubbles -- fuer ResizeObserver
   // "Angedockt"-Zustand: solange true, wird der Chat automatisch am unteren
@@ -212,7 +212,7 @@ export default function ChatMessages({ messages = [], typing = false, event = nu
         {groups.map((g, i) =>
           g.type === "date"
             ? <DateDivider key={`d-${i}`} label={g.label}/>
-            : <MessageBubble key={g.msg.id || i} msg={g.msg} onDelete={onDelete} onEdit={onEdit}/>
+            : <MessageBubble key={g.msg.id || i} msg={g.msg} onDelete={onDelete} onEdit={onEdit} onReact={onReact}/>
         )}
 
         {typing && <TypingBubble/>}

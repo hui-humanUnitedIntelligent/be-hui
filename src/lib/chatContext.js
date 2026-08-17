@@ -310,7 +310,30 @@ export function useChatThread(chatId) {
         .eq("chat_id", chatId)
         .order("created_at", { ascending: false })
         .limit(100);
-      if (data) setMessages([...data].reverse());
+      if (data) {
+        // Reaktionen für alle geladenen Nachrichten abrufen (post_reactions, polymorph)
+        const msgIds = data.map(m => m.id);
+        let reactionsMap = {};
+        if (msgIds.length > 0) {
+          try {
+            const { data: reactions } = await supabase
+              .from("post_reactions")
+              .select("id, post_id, user_id, type, created_at")
+              .in("post_id", msgIds)
+              .eq("post_type", "chat_message");
+            if (reactions) {
+              for (const r of reactions) {
+                if (!reactionsMap[r.post_id]) reactionsMap[r.post_id] = [];
+                reactionsMap[r.post_id].push({ emoji: r.type, user_id: r.user_id, id: r.id });
+              }
+            }
+          } catch(re) { /* Reaktionen sind optional */ }
+        }
+        setMessages(data.map(m => ({
+          ...m,
+          reactions: reactionsMap[m.id] || [],
+        })).reverse());
+      }
     } catch(e) {
     }
     finally { setLoading(false); }
@@ -517,9 +540,71 @@ export function useChatThread(chatId) {
       .eq("id", messageId);
   }, []);
 
+  // ── Reaktion auf Nachricht (Emoji) ──
+  // Nutzt post_reactions Tabelle (polymorph): post_type='chat_message'
+  const reactToMessage = useCallback(async (messageId, emoji) => {
+    if (!messageId) return;
+    const userId = user?.id;
+    if (!userId) return;
+    try {
+      // Upsert: Wenn Nutzer schon reagiert hat → Toggle/Update
+      const { data: existing } = await supabase
+        .from("post_reactions")
+        .select("id, type")
+        .eq("post_id", messageId)
+        .eq("post_type", "chat_message")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (existing) {
+        if (existing.type === emoji) {
+          // Gleiche Reaktion → entfernen (Toggle off)
+          await supabase.from("post_reactions").delete().eq("id", existing.id);
+          setMessages(prev => prev.map(m => m.id === messageId
+            ? { ...m, reactions: (m.reactions || []).filter(r => r.id !== existing.id) }
+            : m));
+        } else {
+          // Andere Reaktion → aktualisieren
+          const { data: updated } = await supabase
+            .from("post_reactions")
+            .update({ type: emoji })
+            .eq("id", existing.id)
+            .select("id, type")
+            .single();
+          if (updated) {
+            setMessages(prev => prev.map(m => m.id === messageId
+              ? { ...m, reactions: (m.reactions || []).map(r =>
+                  r.id === existing.id ? { ...r, emoji: updated.type } : r) }
+              : m));
+          }
+        }
+      } else {
+        // Neue Reaktion
+        const { data: inserted } = await supabase
+          .from("post_reactions")
+          .insert({
+            post_id: messageId,
+            post_type: "chat_message",
+            user_id: userId,
+            type: emoji,
+          })
+          .select("id, type")
+          .single();
+        if (inserted) {
+          setMessages(prev => prev.map(m => m.id === messageId
+            ? { ...m, reactions: [...(m.reactions || []), { id: inserted.id, emoji: inserted.type, user_id: userId }] }
+            : m));
+        }
+      }
+    } catch(err) {
+      console.error("[chatContext] reactToMessage error:", err?.message);
+    }
+  }, [user?.id]);
+
   return {
     messages, loading, sending,
     sendMessage, sendSystemMessage, sendBookingUpdate, shareWork, deleteMessage, editMessage,
+    reactToMessage,
     reload: load,
   };
 }

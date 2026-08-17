@@ -2,12 +2,15 @@
 // Media (Image/Video/Voice) + Bearbeiten/Löschen Modal
 // Click auf Nachricht → Mini-Modal (Bearbeiten / Löschen)
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { HUI } from "../../design/hui.design.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatTimeDE } from "../../lib/formatters.js";
+
+// ── Emoji-Reaktionsleiste (Long-Press) ──
+const QUICK_EMOJIS = ["❤️", "😂", "👍", "🔥", "😮", "🙏", "👏", "💪"];
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink };
 
@@ -237,11 +240,110 @@ function MediaContent({ msg = {}, own = false }) {
   return null;
 }
 
+// ── Emoji Reaktion Bar (Long-Press → Emoji auswählen) ──
+function EmojiReactionBar({ msg = {}, position = {}, onReact = () => {}, onClose = () => {} }) {
+  useModalRegistration(true, () => onClose?.(), "EmojiReactionBar");
+  const [animateIn, setAnimateIn] = useState(false);
+  useEffect(() => { requestAnimationFrame(() => setAnimateIn(true)); }, []);
+
+  const isOwn = msg.own === true;
+
+  return createPortal(
+    <>
+      {/* Transparenter Backdrop — schließt bei Tap außerhalb */}
+      <div onClick={onClose} style={{
+        position:"fixed", inset:0, zIndex:10490,
+        background:"rgba(0,0,0,0.06)",
+        opacity: animateIn ? 1 : 0,
+        transition:"opacity 0.15s ease-out",
+      }}/>
+      {/* Emoji-Leiste */}
+      <div style={{
+        position:"fixed", zIndex:10500,
+        bottom: Math.min(Math.max(position.y - 60, 80), window.innerHeight - 120),
+        left: "50%",
+        transform: `translateX(-50%) scale(${animateIn ? 1 : 0.85})`,
+        opacity: animateIn ? 1 : 0,
+        transition:"all 0.20s cubic-bezier(0.22,1,0.36,1)",
+        background:"rgba(255,255,255,0.97)",
+        backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
+        borderRadius:28, padding:"8px 10px",
+        boxShadow:"0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
+        border:"1px solid rgba(0,0,0,0.07)",
+        display:"flex", gap:2, alignItems:"center",
+      }}>
+        <style>{CSS}</style>
+        {QUICK_EMOJIS.map((emoji, i) => {
+          // Highlight wenn Nutzer schon mit diesem Emoji reagiert hat
+          const userReacted = (msg.reactions || []).some(r => r.emoji === emoji && r.user_id === msg._currentUserId);
+          return (
+            <button
+              key={i}
+              onClick={() => { onReact(msg.id, emoji); onClose(); }}
+              style={{
+                width:42, height:42, borderRadius:"50%",
+                border:"none", background: userReacted ? "rgba(22,215,197,0.12)" : "transparent",
+                cursor:"pointer", fontSize:22, lineHeight:1,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                WebkitTapHighlightColor:"transparent",
+                transition:"transform 0.12s ease-out",
+                transform: animateIn ? "scale(1)" : "scale(0.7)",
+                animationDelay: `${i * 0.02}s`,
+              }}
+              onTouchStart={e => { e.currentTarget.style.transform = "scale(1.3)"; }}
+              onTouchEnd={e => { e.currentTarget.style.transform = "scale(1)"; }}
+            >{emoji}</button>
+          );
+        })}
+      </div>
+    </>,
+    document.body
+  );
+}
+
+// ── Reaktions-Anzeige unter der Bubble ──
+function ReactionBadges({ msg = {}, own = false }) {
+  const reactions = msg.reactions;
+  if (!reactions || reactions.length === 0) return null;
+
+  // Emoji → Count gruppieren
+  const counts = {};
+  for (const r of reactions) {
+    counts[r.emoji] = (counts[r.emoji] || 0) + 1;
+  }
+
+  return (
+    <div style={{
+      display:"flex", gap:4, flexWrap:"wrap",
+      marginTop:4,
+      justifyContent: own ? "flex-end" : "flex-start",
+    }}>
+      {Object.entries(counts).map(([emoji, count]) => (
+        <div key={emoji} style={{
+          display:"flex", alignItems:"center", gap:3,
+          padding:"2px 8px",
+          background:"rgba(255,255,255,0.78)",
+          backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
+          borderRadius:99, border:"1px solid rgba(0,0,0,0.06)",
+          boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
+          fontSize:13, lineHeight:1,
+        }}>
+          <span style={{ fontSize:14 }}>{emoji}</span>
+          {count > 1 && <span style={{ fontSize:11, color:"rgba(80,80,80,0.5)", fontWeight: 500 }}>{count}</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Haupt-Bubble ──
-export default function MessageBubble({ msg, onDelete, onEdit }) {
+export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
   const own = msg.own === true;
   const [modal, setModal] = useState(null); // { x, y } | null
+  const [showReactions, setShowReactions] = useState(false);
   const bubbleRef = useRef(null);
+  const longPressTimer = useRef(null);
+  const touchStartPos = useRef({ x:0, y:0 });
 
   const handlePress = useCallback((e) => {
     // Nicht auf Audio/Video-Controls triggern
@@ -252,6 +354,39 @@ export default function MessageBubble({ msg, onDelete, onEdit }) {
     const y = rect.bottom + 6;
     setModal({ x, y });
   }, [own]);
+
+  // ── Long-Press für Emoji-Reaktion ──
+  // 500ms gedrückt halten → Emoji-Leiste öffnet sich
+  const startLongPress = useCallback((e) => {
+    if (e.target.closest("audio,video,button,a")) return;
+    if (isDeleted) return;
+    const touch = e.touches?.[0] || e;
+    const x = touch.clientX || 0;
+    const y = touch.clientY || 0;
+    touchStartPos.current = { x, y };
+    clearTimeout(longPressTimer.current);
+    longPressTimer.current = setTimeout(() => {
+      setShowReactions(true);
+      // Haptic Feedback (falls unterstützt)
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 500);
+  }, [isDeleted]);
+
+  const cancelLongPress = useCallback((e) => {
+    clearTimeout(longPressTimer.current);
+    // Abbrechen wenn Finger zu weit bewegt wurde (>15px)
+    if (e.touches || e.changedTouches) {
+      const touch = e.changedTouches?.[0] || e.touches?.[0];
+      if (touch) {
+        const dx = Math.abs((touch.clientX || 0) - touchStartPos.current.x);
+        const dy = Math.abs((touch.clientY || 0) - touchStartPos.current.y);
+        if (dx > 15 || dy > 15) clearTimeout(longPressTimer.current);
+      }
+    }
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => () => clearTimeout(longPressTimer.current), []);
 
   const isDeleted    = msg.is_deleted;
   const hasMedia     = !!(msg.media_url);
@@ -298,8 +433,13 @@ export default function MessageBubble({ msg, onDelete, onEdit }) {
           cursor: own && !isDeleted ? "pointer" : "default",
           userSelect:"none",
           WebkitUserSelect:"none",
+          touchAction:"auto",
         }}
         onClick={handlePress}
+        onTouchStart={startLongPress}
+        onTouchEnd={cancelLongPress}
+        onTouchMove={cancelLongPress}
+        onContextMenu={e => { e.preventDefault(); if(!isDeleted) setShowReactions(true); }}
       >
         {/* Bubble */}
         {own ? (
@@ -352,6 +492,9 @@ export default function MessageBubble({ msg, onDelete, onEdit }) {
           </div>
         )}
 
+        {/* Reaktionen (Emoji-Badges) */}
+        <ReactionBadges msg={msg} own={own}/>
+
         {/* Meta */}
         <div style={{
           display:"flex", alignItems:"center", gap:6,
@@ -365,18 +508,10 @@ export default function MessageBubble({ msg, onDelete, onEdit }) {
               bearbeitet
             </span>
           )}
-          {msg.reaction && (
-            <div style={{
-              fontSize:13, padding:"1px 7px",
-              background:"rgba(255,255,255,0.72)", backdropFilter:"blur(8px)",
-              borderRadius:99, border:"1px solid rgba(0,0,0,0.06)",
-              boxShadow:"0 1px 4px rgba(0,0,0,0.06)",
-            }}>{msg.reaction}</div>
-          )}
         </div>
       </div>
 
-      {/* Action Modal */}
+      {/* Action Modal (Bearbeiten/Löschen — nur eigene) */}
       {modal && (
         <MessageActionModal
           msg={msg}
@@ -384,6 +519,16 @@ export default function MessageBubble({ msg, onDelete, onEdit }) {
           onEdit={onEdit}
           onDelete={onDelete}
           onClose={() => setModal(null)}
+        />
+      )}
+
+      {/* Emoji Reaktion Bar (Long-Press — alle Nachrichten) */}
+      {showReactions && (
+        <EmojiReactionBar
+          msg={{ ...msg, _currentUserId: msg._currentUserId }}
+          position={{ y: bubbleRef.current?.getBoundingClientRect()?.bottom || 200 }}
+          onReact={onReact}
+          onClose={() => setShowReactions(false)}
         />
       )}
     </div>
