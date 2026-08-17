@@ -113,7 +113,8 @@ export function useChatList(instanceId = "default") {
         `)
         // participant_ids ist uuid[] → cs. (contains) prüft ob user.id enthalten
         .contains("participant_ids", [user.id])
-        // state-Filter bewusst entfernt — akzeptiere alle states
+        // state-Filter: "deleted" Chats ausblenden
+        .neq("state", "deleted")
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
@@ -788,3 +789,34 @@ export async function closeChat(chatId, userId) {
   }
 }
 
+
+// ────────────────────────────────────────────────────────────────
+// deleteChat — Chat unwiderruflich löschen (soft-delete via UPDATE)
+// Da keine DELETE-RLS-Policy existiert, wird der Chat über UPDATE
+// auf state="deleted" gesetzt + alle Nachrichten als gelöscht markiert.
+// Für den Nutzer ist das unwiderruflich — Chat + Nachrichten verschwinden.
+// ────────────────────────────────────────────────────────────────
+export async function deleteChat(chatId, userId) {
+  if (!chatId || !userId) return { error: "missing_args" };
+  try {
+    // 1. Alle Nachrichten als gelöscht markieren
+    await supabase
+      .from("messages")
+      .update({ is_deleted: true, text: null })
+      .eq("chat_id", chatId);
+
+    // 2. Chat auf state="deleted" setzen
+    const { error } = await supabase
+      .from("chats")
+      .update({
+        state:     "deleted",
+        closed_at: new Date().toISOString(),
+      })
+      .eq("id", chatId)
+      .contains("participant_ids", [userId]);
+
+    return { error: error?.message ?? null };
+  } catch (e) {
+    return { error: e?.message ?? "unknown" };
+  }
+}

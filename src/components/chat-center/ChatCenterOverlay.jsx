@@ -3,7 +3,7 @@
 // Wenn activeConv: zeige ConversationRoom. Sonst: zeige Liste.
 // Keine opacity-Tricks, keine doppelten Layer, keine Animation-Gates.
 
-import React, { useState, useEffect, lazy, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { createPortal } from "react-dom";
 import ChatAtmosphere  from "./ChatAtmosphere.jsx";
@@ -11,9 +11,8 @@ import ConversationList from "./ConversationList.jsx";
 import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
-import { useChatList, findOrCreateChat, closeChat } from "../../lib/chatContext.js";
-const TalentBookingFlow = lazy(() => import("../talents/TalentBookingFlow.jsx"));
-import { supabase } from "../../lib/supabaseClient.js";
+import { useChatList, findOrCreateChat, deleteChat } from "../../lib/chatContext.js";
+import AppointmentViewer from "./AppointmentViewer.jsx";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
@@ -175,8 +174,8 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
   }
   const [activeConv,       setActiveConv]       = useState(null);
   const [showPeopleSearch,  setShowPeopleSearch]  = useState(false);
-  const [showTalentBooking, setShowTalentBooking] = useState(false);
-  const [talentForBooking,  setTalentForBooking]  = useState(null);
+  const [showAppointments, setShowAppointments] = useState(false);
+  const [appointmentsUserId, setAppointmentsUserId]  = useState(null);
   const [loadingConv,      setLoadingConv]      = useState(false);
 
   const { openCreatorProfile } = useProfileLauncher();
@@ -350,51 +349,33 @@ if (loadingConv && !activeConv) {
               talent:       conv?.talent,
             });
           }}
-          onRequestBooking={async (conv) => {
-            // Talent-Objekt aus DB laden (braucht talents.id, nicht user_id)
+          onRequestBooking={(conv) => {
             const userId = conv?.user_id || conv?.other_profile?.id;
             if (!userId) return;
-            try {
-              const { data } = await supabase
-                .from("talents")
-                .select("id,title,description,price_per_hour,price_per_session,location_type,location_address,location_notes,user_id,status,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,category,images")
-                .eq("user_id", userId)
-                .eq("status", "approved")
-                .limit(1)
-                .maybeSingle();
-              if (data?.id) {
-                setTalentForBooking(data);
-                setShowTalentBooking(true);
-              } else {
-                // Kein genehmigtes Talent → visuelles Feedback
-                console.info("[CHAT] Kein aktives Talent-Angebot gefunden für:", userId);
-              }
-            } catch (e) {
-              console.warn("[CHAT] talent lookup failed:", e?.message);
-            }
+            setAppointmentsUserId(userId);
+            setShowAppointments(true);
           }}
           onCloseChat={async () => {
             if (!activeConv?.id || !user?.id) {
               setActiveConv(null);
               return;
             }
-            await closeChat(activeConv.id, user.id);
+            await deleteChat(activeConv.id, user.id);
             setClosedChatIds(prev => new Set([...prev, activeConv.id]));
             setActiveConv(null);
           }}
         />
 
-        {/* ── TalentBookingFlow als Portal-Overlay ÜBER dem Chat (lazy) ── */}
-        {showTalentBooking && talentForBooking && (
-          <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
-            <TalentBookingFlow
-              talent={talentForBooking}
-              onClose={() => {
-                setShowTalentBooking(false);
-                setTalentForBooking(null);
-              }}
-            />
-          </Suspense>
+        {/* ── AppointmentViewer — zeigt vorhandene Termine mit dem Chat-Partner ── */}
+        {showAppointments && appointmentsUserId && (
+          <AppointmentViewer
+            otherUserId={appointmentsUserId}
+            otherName={getFullDisplayName(activeConv?.other_profile) || activeConv?.name || ""}
+            onClose={() => {
+              setShowAppointments(false);
+              setAppointmentsUserId(null);
+            }}
+          />
         )}
       </>,
       document.body

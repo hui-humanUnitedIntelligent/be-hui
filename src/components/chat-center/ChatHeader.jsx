@@ -1,6 +1,7 @@
-// chat-center/ChatHeader.jsx v2
+// chat-center/ChatHeader.jsx v3
 // Avatar tap → Profil öffnen | ··· → Kontext-Menu
 // Phase 23: echte Verbindungen — kein dekorativer Header mehr
+// v3 (2026-08-17): "Schließen" → "Löschen" mit Bestätigungsdialog, "Termin anfragen" → "Termin ansehen"
 
 import React, { useState } from "react";
 import { HUI } from "../../design/hui.design.js";
@@ -11,15 +12,14 @@ const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, mu
 
 export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
   const name           = getFullDisplayName(conv?.other_profile) || conv?.name || "Gespräch";
-  // "public" ist ein focus_type-Wert (Sichtbarkeit), kein Talent-Text — filtern
   const rawTalent      = conv?.talent || conv?.type || null;
   const talent         = (rawTalent && rawTalent !== "public") ? rawTalent : null;
   const mood           = conv?.mood   || "Gerade kreativ im Studio";
   const avatar         = conv?.avatar_url;
   const initials       = name[0]?.toUpperCase() || "?";
   const presence       = formatPresence(conv?.other_profile?.last_seen_at || conv?.last_seen_at);
-  const hasTalent      = !!(conv?.has_talent_profile);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleAvatarTap = () => {
     if (onOpenProfile) onOpenProfile(conv);
@@ -122,7 +122,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
           }}>···</button>
 
         {/* Dropdown */}
-        {menuOpen && (
+        {menuOpen && !confirmDelete && (
           <div style={{
             position:"absolute", top:"110%", right:0, zIndex:10,
             background:"rgba(255,255,255,0.96)", backdropFilter:"blur(20px)",
@@ -143,29 +143,62 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
             )}
             <button
               onClick={() => {
-                if (!hasTalent) return; // deaktiviert wenn kein Talent
                 setMenuOpen(false);
                 onRequestBooking?.(conv);
               }}
-              disabled={!hasTalent}
               style={{
                 width:"100%", padding:"13px 16px", background:"none", border:"none",
-                textAlign:"left", fontSize:14,
-                color:    hasTalent ? C.ink  : "rgba(150,150,150,0.55)",
-                cursor:   hasTalent ? "pointer" : "not-allowed",
-                opacity:  hasTalent ? 1 : 0.55,
+                textAlign:"left", fontSize:14, color:C.ink, cursor:"pointer",
                 WebkitTapHighlightColor:"transparent",
               }}
-              title={hasTalent ? "Termin beim Talent anfragen" : "Dieser Nutzer bietet keine Talente an"}
-            >🗓 Termin anfragen{!hasTalent && <span style={{ fontSize:11, marginLeft:6, color:"rgba(150,150,150,0.6)" }}>(nicht verfügbar)</span>}</button>
+            >🗓 Termin ansehen</button>
             <button
-              onClick={() => { setMenuOpen(false); onCloseChat?.(); }}
+              onClick={() => { setConfirmDelete(true); }}
               style={{
                 width:"100%", padding:"13px 16px", background:"none", border:"none",
                 textAlign:"left", fontSize:14, color:"rgba(220,60,60,0.8)", cursor:"pointer",
                 WebkitTapHighlightColor:"transparent",
               }}
-            >✕ Schließen</button>
+            >✕ Löschen</button>
+          </div>
+        )}
+
+        {/* Lösch-Bestätigung */}
+        {confirmDelete && (
+          <div style={{
+            position:"absolute", top:"110%", right:0, zIndex:10,
+            background:"rgba(255,255,255,0.98)", backdropFilter:"blur(20px)",
+            borderRadius:14, boxShadow:"0 8px 32px rgba(0,0,0,0.18)",
+            border:"1px solid rgba(220,60,60,0.20)",
+            minWidth:200, overflow:"hidden",
+            padding:"16px",
+          }}>
+            <div style={{
+              fontSize:13.5, color:C.ink, fontWeight:600,
+              marginBottom:6, lineHeight:1.4,
+            }}>Chat unwiderruflich löschen?</div>
+            <div style={{
+              fontSize:12, color:C.muted, lineHeight:1.5,
+              marginBottom:14,
+            }}>Alle Nachrichten werden entfernt und können nicht wiederhergestellt werden.</div>
+            <div style={{ display:"flex", gap:8 }}>
+              <button
+                onClick={() => { setConfirmDelete(false); setMenuOpen(false); }}
+                style={{
+                  flex:1, padding:"10px 14px", borderRadius:10,
+                  background:"rgba(0,0,0,0.05)", border:"none",
+                  fontSize:13, color:C.ink, cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",
+                }}>Abbrechen</button>
+              <button
+                onClick={() => { setConfirmDelete(false); setMenuOpen(false); onCloseChat?.(); }}
+                style={{
+                  flex:1, padding:"10px 14px", borderRadius:10,
+                  background:"rgba(220,60,60,0.9)", border:"none",
+                  fontSize:13, color:"#fff", fontWeight:600, cursor:"pointer",
+                  WebkitTapHighlightColor:"transparent",
+                }}>Löschen</button>
+            </div>
           </div>
         )}
       </div>
