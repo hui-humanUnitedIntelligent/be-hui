@@ -7,7 +7,7 @@ import ChatMessages   from "./ChatMessages.jsx";
 import ChatInput      from "./ChatInput.jsx";
 import { useChatThread } from "../../lib/chatContext.js";
 import { useAuth }       from "../../lib/AuthContext.jsx";
-import { useKeyboardInset, getKeyboardDebugInfo } from "../../hooks/useKeyboardInset.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
@@ -17,16 +17,6 @@ const CSS = `
 export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
   const { user } = useAuth();
   const kbdInset = useKeyboardInset(); // Keyboard-Inset aktivieren — Container schrumpft bei Tastatur
-
-  // DIAGNOSE-FIX (2026-08-17): temporäres Debug-Overlay — TODO nach Diagnose
-  // wieder entfernen. Re-rendert alle 300ms mit den rohen Inset-Quellen,
-  // damit Michael per Screenshot die tatsächlichen Werte liefern kann statt
-  // dass wir weiter raten (siehe arbeitsregeln.md Punkt 4 "Kein Raten").
-  const [dbg, setDbg] = React.useState(null);
-  React.useEffect(() => {
-    const id = setInterval(() => setDbg(getKeyboardDebugInfo()), 300);
-    return () => clearInterval(id);
-  }, []);
 
   const rawId      = conv?.id ?? null;
   const isFakeId   = typeof rawId === "string" && rawId.startsWith("direct_");
@@ -67,7 +57,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
   const showEmpty = !loading && messages.length === 0 && !!realChatId;
 
   return (
-    <div style={{
+    <div data-hui-conv-room style={{
       position:"fixed", top:0, left:0, right:0, bottom:"clamp(0px, var(--hui-keyboard-inset, 0px), 65vh)", zIndex:10002,
       display:"flex", flexDirection:"column",
       fontFamily:"Inter,sans-serif",
@@ -75,25 +65,6 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
       transition:"bottom 0.25s ease-out",
     }}>
       <style>{CSS}</style>
-
-      {/* DIAGNOSE-FIX (2026-08-17): temporäres Debug-Overlay, TODO entfernen */}
-      {dbg && (
-        <div style={{
-          position:"fixed", top:8, right:8, zIndex:99999,
-          background:"rgba(0,0,0,0.82)", color:"#0f0",
-          fontFamily:"monospace", fontSize:10, lineHeight:1.5,
-          padding:"6px 8px", borderRadius:6, pointerEvents:"none",
-          whiteSpace:"pre",
-        }}>
-{`kbd(final):  ${kbdInset}px
-vv:          ${dbg.vvInset}px
-native:      ${dbg.nativeInset}px
-win.innerH:  ${dbg.windowInnerHeight}px
-vv.height:   ${dbg.vvHeight}px
-screen.h:    ${dbg.screenHeight}px`}
-        </div>
-      )}
-
       <ChatHeader conv={conv} onBack={onBack} onOpenProfile={onOpenProfile}
         onCloseChat={onCloseChat} onRequestBooking={onRequestBooking}/>
 
