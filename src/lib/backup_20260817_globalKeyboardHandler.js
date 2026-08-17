@@ -137,11 +137,7 @@ function adjustFixedElements(inset) {
 
 // ─── Keyboard-Inset-Änderung verarbeiten ─────────────────────────
 
-function onKeyboardChange(rawInset) {
-  // DEFENSIVE-CLAMP-FIX (2026-08-17): siehe useKeyboardInset.js — gleiche
-  // Kappung hier, damit beide parallelen Quellen konsistent bleiben.
-  const cap = typeof window !== "undefined" ? window.innerHeight * 0.6 : 9999;
-  const inset = Math.min(Math.max(0, rawInset), cap);
+function onKeyboardChange(inset) {
   if (inset === currentInset) return;
   currentInset = inset;
 

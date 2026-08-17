@@ -33,19 +33,7 @@ let listeners = new Set();
 let initialized = false;
 
 function applyInset() {
-  // DEFENSIVE-CLAMP-FIX (2026-08-17): Nutzer-Report (Xiaomi HyperOS,
-  // Screenshot) — Chat-Layout brach komplett zusammen (Nachricht fast
-  // vollständig aus dem Bild gescrollt), obwohl der Spacer-Fix + Scroll-
-  // Fix bereits live waren. Root Cause vermutet: auf diesem Geraet
-  // liefert entweder visualViewport ODER der native ime()-Inset einen
-  // fehlerhaft zu grossen Wert (z.B. durch OEM-spezifische Density-
-  // Berechnung), wodurch `bottom: var(--hui-keyboard-inset)` Container
-  // weit ueber die tatsaechliche Tastaturhoehe hinaus schrumpft. Fix:
-  // harte Obergrenze von 60% der Fensterhoehe — echte Tastaturen liegen
-  // praktisch immer bei 30-45%, alles darueber ist mit Sicherheit ein
-  // fehlerhafter Messwert und wird gekappt statt das Layout zu brechen.
-  const cap = typeof window !== "undefined" ? window.innerHeight * 0.6 : 9999;
-  const next = Math.min(Math.max(0, Math.max(vvInset, nativeInset)), cap);
+  const next = Math.max(vvInset, nativeInset);
   if (next !== globalInset) {
     globalInset = next;
     document.documentElement.style.setProperty("--hui-keyboard-inset", `${globalInset}px`);

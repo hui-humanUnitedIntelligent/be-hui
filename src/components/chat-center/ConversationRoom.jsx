@@ -58,7 +58,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
 
   return (
     <div style={{
-      position:"fixed", top:0, left:0, right:0, bottom:"var(--hui-keyboard-inset, 0px)", zIndex:10002,
+      position:"fixed", top:0, left:0, right:0, bottom:"clamp(0px, var(--hui-keyboard-inset, 0px), 65vh)", zIndex:10002,
       display:"flex", flexDirection:"column",
       fontFamily:"Inter,sans-serif",
       background:"#F2F4F8",
