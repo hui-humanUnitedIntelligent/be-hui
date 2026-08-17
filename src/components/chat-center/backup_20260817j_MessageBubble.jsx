@@ -345,9 +345,6 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
   const longPressTimer = useRef(null);
   const touchStartPos = useRef({ x:0, y:0 });
 
-  const isDeleted    = msg.is_deleted;
-  const hasMedia     = !!(msg.media_url);
-
   const handlePress = useCallback((e) => {
     // Nicht auf Audio/Video-Controls triggern
     if (e.target.closest("audio,video,button,a")) return;
@@ -390,6 +387,9 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
 
   // Cleanup timer on unmount
   useEffect(() => () => clearTimeout(longPressTimer.current), []);
+
+  const isDeleted    = msg.is_deleted;
+  const hasMedia     = !!(msg.media_url);
   const isVoiceOnly  = hasMedia && (msg.media_type === "voice" || msg.message_type === "voice");
   // Text anzeigen wenn: kein Media-only oder expliziter Text neben Media
   const showText     = !isDeleted && (
