@@ -129,15 +129,23 @@ export function getFullDisplayName(profile, fallback = "Mitglied") {
  * @param {object|null} profile
  * @returns {string|null}
  */
+// SYSTEM-BOT-TAG-FIX (2026-08-18): myHUI clientseitig per fester ID
+// erkennen statt ueber profile.is_system_account (DB-Spalte hat kein
+// Column-Level-GRANT fuer 'authenticated' -> jede Query, die sie
+// SELECTed, bekam ein Request-weites 403 Forbidden von PostgREST).
+// ID identisch zu SYSTEM_USER_ID in BaseFeedCard.jsx / ProfileLauncher.jsx
+// (bewusst dupliziert, kein Cross-Import um Bundle-Kopplung zu vermeiden).
+const SYSTEM_ACCOUNT_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2";
+
 export function getProfileRoleLabel(profile) {
   if (!profile) return null;
-  // SYSTEM-BOT-TAG-FIX (2026-08-18): myHUI (is_system_account===true) ist
-  // kein normaler Nutzer und bekommt bereits ein eigenes "Bot"-Badge
-  // (HumanHeader in BaseFeedCard.jsx / ProfileHeader.jsx). Der generische
-  // Rollen-Fallback "Basis-Nutzer" darunter ist fuer den System-Account
-  // fachlich falsch (myHUI hat keine "Basis"-Mitgliedschaft) und wirkt
-  // neben dem Bot-Badge redundant/verwirrend — daher hier bewusst kein Tag.
-  if (profile.is_system_account === true) return null;
+  // myHUI ist kein normaler Nutzer und bekommt bereits ein eigenes
+  // "Bot"-Badge (HumanHeader in BaseFeedCard.jsx / ProfileHeader.jsx).
+  // Der generische Rollen-Fallback "Basis-Nutzer" darunter ist fuer den
+  // System-Account fachlich falsch (myHUI hat keine "Basis"-Mitgliedschaft)
+  // und wirkt neben dem Bot-Badge redundant/verwirrend — daher hier
+  // bewusst kein Tag.
+  if (profile.id === SYSTEM_ACCOUNT_ID) return null;
   const custom = typeof profile.talent === "string" ? profile.talent.trim() : "";
   if (custom) return custom;
   if (isProfileTalent(profile)) return "Talent";

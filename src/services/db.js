@@ -23,11 +23,15 @@ import { safeQuery, cachedQuery, clearQueryCache, warmQueryCache, readCache, FIE
 //   follower_count, location, is_talent, header_img, skills, dna_tags
 // Hinzugefügt: location_label, member_since, profile_views
 export const IDENTITY_CONTRACT =
-  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate,is_system_account';
-  // SYSTEM-BOT-TAG-FIX (2026-08-18): is_system_account ergaenzt -- ohne dieses
-  // Feld im Fieldset konnte getProfileRoleLabel() den System-Account (myHUI)
-  // nie erkennen und zeigte faelschlich den 'Basis-Nutzer'-Fallback-Tag an,
-  // obwohl der Code-Check dafuer bereits existierte.
+  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
+  // SYSTEM-BOT-TAG-FIX (2026-08-18): is_system_account NICHT mehr im
+  // Fieldset -- die Spalte hat keine Column-Level-GRANT SELECT fuer die
+  // Rolle 'authenticated' (Sicherheits-Policy analog zu 'phone' oben),
+  // wodurch PostgREST die GESAMTE profiles-Query mit 403 Forbidden
+  // ablehnte (Column-Level-Grants sind alles-oder-nichts pro Request).
+  // Folge: Name/Avatar fielen komplett auf 'Mitglied'/Buchstaben-Avatar
+  // zurueck. Erkennung des System-Accounts laeuft daher rein clientseitig
+  // ueber die feste SYSTEM_USER_ID (siehe profileUtils.js), ohne DB-Feld.
   // SICHERHEIT: phone aus öffentlichem Fieldset entfernt (2026-07-29)
   // phone wird nur im privaten MyBasisProfile via separate Query geladen
 
