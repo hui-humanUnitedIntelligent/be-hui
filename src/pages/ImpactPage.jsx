@@ -524,6 +524,11 @@ function useAllApprovedByVotes() {
     load().then(rows => {
       if (!dead) { setAllProjects(rows); setLoading(false); }
     });
+    // PULL-TO-REFRESH (2026-08-18): Bei "feed-refresh"-Event (ausgelöst durch
+    // Pull-to-Refresh in Home.jsx) Daten neu laden — gleicher Mechanismus wie
+    // DiscoverPage's reloadKey.
+    const refreshHandler = () => { load().then(rows => { if (!dead) setAllProjects(rows); }); };
+    window.addEventListener("feed-refresh", refreshHandler);
     // Realtime: bei neuen Votes sofort neu sortieren
     const topic = "imp_all_rt_" + Date.now();
     const sub = supabase.channel(topic)
@@ -531,7 +536,7 @@ function useAllApprovedByVotes() {
         load().then(rows => { if (!dead) setAllProjects(rows); });
       })
       .subscribe();
-    return () => { dead = true; supabase.removeChannel(sub); };
+    return () => { dead = true; supabase.removeChannel(sub); window.removeEventListener("feed-refresh", refreshHandler); };
   }, [load]);
 
   const top3   = allProjects.slice(0, 3);
@@ -1597,6 +1602,15 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const [infoModal,     setInfoModal]     = React.useState(null);
   const [userImpact,    setUserImpact]    = React.useState({ eur:0, projekte:0, loading:true });
 
+  // ── Pull-to-Refresh: feed-refresh listener für user-spezifische Daten ──
+  // (2026-08-18) ReloadKey triggert user-votes + user-impact reload.
+  const [impactReloadKey, setImpactReloadKey] = React.useState(0);
+  React.useEffect(() => {
+    const handler = () => setImpactReloadKey(k => k + 1);
+    window.addEventListener("feed-refresh", handler);
+    return () => window.removeEventListener("feed-refresh", handler);
+  }, []);
+
   // ── Hooks ──
   const pool       = usePoolBudgets();
   const transp     = useTransparenz();
@@ -1679,7 +1693,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       } catch { /* silent */ }
     })();
     return () => { dead = true; };
-  }, [currentUser?.id]);
+  }, [currentUser?.id, impactReloadKey]);
 
   // ── Realtime: impact_votes → Stimmen sofort aktualisieren ──
   React.useEffect(() => {

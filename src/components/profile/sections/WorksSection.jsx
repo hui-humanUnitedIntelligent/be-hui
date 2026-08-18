@@ -9,6 +9,7 @@ import { HUIWerkeIcon, HUIWarnIcon } from '../../../design/icons/HuiSystemIcons.
 import { HUILogo } from '../../brand/HUILogo.jsx';
 import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
+import { toast } from "../../../lib/useToast.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
@@ -78,7 +79,27 @@ export function WorksSection({
     setConfirmWork(null);
     if (!w?.id) return;
     try {
-      await supabase.from("works").update({ status:"deleted", visibility:"private" }).eq("id", w.id);
+      // UNWIDERRUFLICH LOESCHEN (2026-08-18): HARD DELETE nur wenn keine
+      // Käufe existieren. order_items referenziert item_id=work.id — ein
+      // ungeprueftes Hard-Delete wuerde die Kaufshistorie (auch bezahlte
+      // Werke) verwaisten lassen. Schutz: vorher zaehlen, bei Treffern
+      // Soft-Delete (status='deleted', visibility='private') — Werk
+      // verschwindet trotzdem sofort aus Feed/Entdecken (beide filtern
+      // auf status != 'deleted'), die Kaufshistorie bleibt erhalten.
+      const { count, error: countErr } = await supabase
+        .from("order_items")
+        .select("id", { count: "exact", head: true })
+        .eq("item_id", w.id)
+        .eq("item_type", "work");
+      if (!countErr && count > 0) {
+        console.warn(`Werk Hard-Delete blockiert — ${count} bestehende Kauf/Käufe gefunden. Fallback Soft-Delete.`);
+        await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
+        toast.success("Werk wurde gelöscht (Kaufdaten geschützt).", { duration: 3000 });
+      } else {
+        // Hard-Delete: Zeile vollständig aus DB entfernen
+        await supabase.from("works").delete().eq("id", w.id);
+        toast.success("Werk wurde unwiderruflich gelöscht.", { duration: 3000 });
+      }
       onDeleteWork?.(w.id);
     } catch(e) { console.error("[WorksSection] delete:", e); }
   };

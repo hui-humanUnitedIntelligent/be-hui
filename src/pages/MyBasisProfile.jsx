@@ -1594,12 +1594,16 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
     loadMoments();
   }, [loadMoments]);
 
-  // ── Nach Upload sofort neu laden (HuiMomentSheet dispatcht "feed-refresh") ──
+  // ── Nach Upload + Pull-to-Refresh: "feed-refresh" → Moments + Profil reload ──
+  // (2026-08-18: erweitert — jetzt auch refreshProfile bei Pull-to-Refresh)
   React.useEffect(() => {
-    const handler = () => { loadMoments(); };
+    const handler = () => {
+      loadMoments();
+      refreshProfile?.().catch(() => {});
+    };
     window.addEventListener("feed-refresh", handler);
     return () => window.removeEventListener("feed-refresh", handler);
-  }, [loadMoments]);
+  }, [loadMoments, refreshProfile]);
 
   // ── Löschen ──────────────────────────────────────────────────────────
   const handleDeleteClick = (e, m) => {
