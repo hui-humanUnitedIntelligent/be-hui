@@ -21,7 +21,11 @@ const T = {
   teal:     "#0EC4B8",
   ink:      "#1A3530",
   inkFaint: "rgba(26,53,48,0.42)",
-  bg:       "rgba(250,250,248,0.92)",
+  // CREME-BALKEN-FIX (2026-08-18): war rgba(250,250,248,0.92) — leicht kühlerer/
+  // hellerer Ton als der App-Hintergrund #F9F7F4, trug zum sichtbaren Balken-
+  // Effekt zwischen Header und weißer Feed-Karte bei. Jetzt exakt auf den
+  // Canvas-Ton abgestimmt.
+  bg:       "rgba(249,247,244,0.92)",
   border:   "rgba(14,196,184,0.10)",
 };
 

@@ -45,7 +45,14 @@ export default function HomeHeader({
       <div style={{
         position:"sticky", top:0, zIndex:60,
         WebkitTransform:"translateZ(0)", transform:"translateZ(0)",
-        background:"rgba(255,251,248,0.93)",
+        // CREME-BALKEN-FIX (2026-08-18): background war rgba(255,251,248,0.93) —
+        // sichtbar HELLER/WEISSER als der App-Hintergrund C.cream (#F9F7F4, Home.jsx).
+        // Dieser Ton-Unterschied erzeugte einen sichtbaren "Balken" oben (Header
+        // sitzt optisch als eigenes helleres Rechteck über dem Cream-Canvas), von
+        // Michael per Screenshot markiert. Fix: exakt auf #F9F7F4 (denselben Wert
+        // wie der Seiten-Hintergrund) umgestellt — Header verschmilzt jetzt nahtlos
+        // mit dem Canvas, kein Zweiton-Effekt mehr.
+        background:"rgba(249,247,244,0.93)",
         backdropFilter:"blur(32px) saturate(1.7)",
         WebkitBackdropFilter:"blur(32px) saturate(1.7)",
         // Visual Polish Pass Punkt 7: keine harte Kante mehr zwischen Header
