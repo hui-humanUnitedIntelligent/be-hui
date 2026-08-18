@@ -40,17 +40,13 @@ import { HUILogo } from "../../brand/HUILogo.jsx";
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
-// NAV-VERTICAL-OFFSET (2026-08-18): bewusst bei 25px GELASSEN (nicht auf 50
-// erhöht, trotz Michaels Bitte) — siehe Arbeitsregeln.md Punkt 3 ("Warnen
-// wenn etwas unlogisch ist"). ROOT CAUSE des "grau-wäsche"-Balkens war NICHT
-// die Offset-Höhe, sondern der "Jetzt kaufen"-Commerce-Bar in WorkDetailPage
-// (zIndex 10500, ueberlappte die Navbar-Icons mit halbtransparentem Blur) —
-// dort jetzt behoben (Bar sitzt oberhalb via NAV_CLEARANCE_CSS, siehe GRAU-
-// WASCH-FIX Kommentar dort). Ein zusätzlicher Offset auf 50px hätte die
-// Tab-Labels auf Geräten mit kleinem Safe-Area-Puffer (SAFE_B-Fallback nur
-// 20px) real Richtung Bildschirmkante geschoben — genau das Risiko, das
-// Michael selbst ausschließen wollte ("keine andere Elemente verdeckt").
-const NAV_VERTICAL_OFFSET = 25;
+// NAV-VERTICAL-OFFSET (2026-08-18, FINAL): 0 — kein Vertical-Offset mehr.
+// Der 25px-Offset erzeugte einen 25px hohen cremefarbenen Spalt (App-
+// Hintergrund #F9F7F4) zwischen Feed-Ende und Navbar-Pill — von Michael per
+// Screenshot als "cremefarbener Balken oberhalb der Navbar" markiert.
+// Offset entfernt: Pill sitzt jetzt bündig am oberen Rand ihres reservierten
+// Containers, keine Cream-Lücke mehr.
+const NAV_VERTICAL_OFFSET = 0;
 
 /* ── SVG Tabbar Background ─────────────────────────────────────
    Vollständig deckende Füllung (HUI-Design-System Off-White) — KEIN
@@ -216,7 +212,12 @@ export default function HUIBottomNavigation({
         overflow: "visible",
         width: "100%",
         height: NAV_RESERVED_HEIGHT_CSS,
-        marginTop: "8px",
+        // CREME-BALKEN-FIX (2026-08-18): marginTop war "8px" — erzeugte 8px
+        // Cream-Lücke (#F9F7F4) zwischen Feed-Ende und Navbar-Container.
+        // Zusammen mit dem ehemaligen 25px Vertical-Offset = 33px sichtbarer
+        // cremefarbener Balken. Entfernt: Navbar sitzt jetzt bündig unter dem
+        // Feed, keine Lücke, kein Balken.
+        marginTop: "0",
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
         // .agents/rules/footer-navbar-zindex.md — Bugfund 2026-07-04/05, 16 betroffene Stellen gefixt).
