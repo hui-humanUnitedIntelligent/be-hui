@@ -1398,7 +1398,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
             position:"sticky", top:0, zIndex:10510, /* >BottomNav(10000) */
             background:"rgba(249,247,244,0.95)",
             borderBottom:"1px solid rgba(26,26,46,0.07)",
-            padding:"12px 16px",
+            // HEADER-ZU-WEIT-OBEN-FIX (2026-08-18, Michael-Screenshot): Header lag
+            // unter Statusleiste (Uhrzeit/Akku), da kein Safe-Area-Top-Padding gesetzt
+            // war. Fix: SSOT-Pattern wie in MeinHUI.jsx/PostFullscreenView.jsx —
+            // max(CSS-Var, Fallback-px, env()) statt reinem "12px 16px".
+            paddingTop:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px))",
+            paddingBottom:"12px",
+            paddingLeft:"16px",
+            paddingRight:"16px",
             display:"flex", alignItems:"center", justifyContent:"space-between",
             backdropFilter:"blur(2px)",
           }}>
