@@ -215,15 +215,20 @@ export default function HUIBottomNavigation({
         overflow: "visible",
         width: "100%",
         height: NAV_RESERVED_HEIGHT_CSS,
-        // CREME-BALKEN-FIX (2026-08-18, FINAL): Der 20px-Versatz (translateY
-        // weiter unten) erzeugt einen Spalt am oberen Rand des Nav-Containers.
-        // Durch diesen Spalt schimmerte der Parent-Hintergrund (#F9F7F4
-        // creamStudio) durch — sichtbar als "cremegrauer Balken" über der Pill
-        // (#FDFBF8 creamSoft). Fix: Nav-Container bekommt denselben Hintergrund
-        // wie die Pill (TABBAR_FILL = creamSoft). Der Spalt ist jetzt
-        // farbidentisch mit der Pill → unsichtbar. Keine Pill-Füllung verändert,
-        // keine Layout-Verschiebung, kein Offset entfernt.
-        background: TABBAR_FILL,
+        // CREME-BALKEN-FIX v2 (2026-08-18, ECHTER ROOT CAUSE): Pixelanalyse von
+        // Michaels Screenshots (Home/Entdecken/Impact/Profil) bewies: an EXAKT
+        // derselben Höhe über der Pille (unabhängig von Seite/Scroll — daher
+        // "bewegt sich mit der Navbar mit") gab es einen minimalen, aber
+        // durchgängig sichtbaren Farbsprung. Ursache: Home.jsx Root-Container
+        // nutzt background:C.cream (#FAF7F2), dieser Nav-Container hatte
+        // TABBAR_FILL = HUI.COLOR.creamSoft (#FDFBF8) — zwei verschiedene
+        // Creme-Werte, Differenz ~5-8 RGB-Einheiten, als harte Kante ohne
+        // Verlauf/Schatten sichtbar. Fix: Nav-Container-Hintergrund auf
+        // HUI.COLOR.cream (identisch zur Page-Root) — keinen eigenen
+        // Creme-Wert mehr, verschmilzt nahtlos mit der Seite. Die Pille selbst
+        // bleibt bei TABBAR_FILL/creamSoft (unverändert, wirkt weiterhin als
+        // dezent hellere "Karte" auf der Seite — Design-Intention).
+        background: HUI.COLOR.cream,
         marginTop: "0",
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
