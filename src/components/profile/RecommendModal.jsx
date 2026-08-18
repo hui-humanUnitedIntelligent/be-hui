@@ -166,9 +166,16 @@ export default function RecommendModal({
       }}
     >
       <div
+        data-hui-kbd-self-managed
         style={{
           width: "100%",
-          maxHeight: "85vh",
+          // KEYBOARD-SCROLL-FIX (2026-08-18): Sheet schrumpft jetzt mit der Tastatur
+          // (analog ProfilBearbeitenModal.jsx) UND ist selbst scrollbar — vorher
+          // fixes maxHeight:85vh ohne overflowY:auto → Textarea+Button landeten
+          // hinter der Tastatur, ohne Möglichkeit hinzuscrollen (Nutzer-Report).
+          maxHeight: "calc(85vh - var(--hui-keyboard-inset, 0px))",
+          overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
           background: T.bg,
           borderRadius: `${T.r16}px ${T.r16}px 0 0`,
           padding: "20px 20px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
