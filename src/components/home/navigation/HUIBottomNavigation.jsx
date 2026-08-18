@@ -215,10 +215,15 @@ export default function HUIBottomNavigation({
         overflow: "visible",
         width: "100%",
         height: NAV_RESERVED_HEIGHT_CSS,
-        // CREME-BALKEN-FIX (2026-08-18): marginTop bleibt bei "0" (war "8px").
-        // Der 20px-Vertikal-Versatz (Michael-Request #3) läuft AUSSCHLIESSLICH
-        // über NAV_VERTICAL_OFFSET/transform weiter unten — bewusst KEINE
-        // Kombination aus marginTop + Offset, wie von Michael verlangt.
+        // CREME-BALKEN-FIX (2026-08-18, FINAL): Der 20px-Versatz (translateY
+        // weiter unten) erzeugt einen Spalt am oberen Rand des Nav-Containers.
+        // Durch diesen Spalt schimmerte der Parent-Hintergrund (#F9F7F4
+        // creamStudio) durch — sichtbar als "cremegrauer Balken" über der Pill
+        // (#FDFBF8 creamSoft). Fix: Nav-Container bekommt denselben Hintergrund
+        // wie die Pill (TABBAR_FILL = creamSoft). Der Spalt ist jetzt
+        // farbidentisch mit der Pill → unsichtbar. Keine Pill-Füllung verändert,
+        // keine Layout-Verschiebung, kein Offset entfernt.
+        background: TABBAR_FILL,
         marginTop: "0",
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
