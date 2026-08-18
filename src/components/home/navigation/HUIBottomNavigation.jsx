@@ -40,13 +40,16 @@ import { HUILogo } from "../../brand/HUILogo.jsx";
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
-// NAV-VERTICAL-OFFSET (2026-08-18, FINAL): 0 — kein Vertical-Offset mehr.
-// Der 25px-Offset erzeugte einen 25px hohen cremefarbenen Spalt (App-
-// Hintergrund #F9F7F4) zwischen Feed-Ende und Navbar-Pill — von Michael per
-// Screenshot als "cremefarbener Balken oberhalb der Navbar" markiert.
-// Offset entfernt: Pill sitzt jetzt bündig am oberen Rand ihres reservierten
-// Containers, keine Cream-Lücke mehr.
-const NAV_VERTICAL_OFFSET = 0;
+// NAV-VERTICAL-OFFSET (2026-08-18, Michael-Request #3): 20px — GENAU EIN
+// Offset, keine Kombination mit marginTop (das bleibt bei "0", siehe unten).
+// Nach dem Cream-Balken-Fix (marginTop 8→0, Offset 25→0) saß die Pill zu
+// hoch/zu nah am Feed-Ende. Dieser alleinige Transform-Offset schiebt NUR
+// die Pill selbst 20px tiefer in den bereits reservierten Container
+// (NAV_RESERVED_HEIGHT_CSS ändert sich nicht → keine neue Cream-Fläche kann
+// dadurch entstehen, da overflow:visible auf beiden Ebenen). Der reservierte
+// Container bleibt exakt so groß wie vorher — er wird nicht größer, nur der
+// Pill-Inhalt verschiebt sich per Transform innerhalb davon.
+const NAV_VERTICAL_OFFSET = 20;
 
 /* ── SVG Tabbar Background ─────────────────────────────────────
    Vollständig deckende Füllung (HUI-Design-System Off-White) — KEIN
@@ -212,11 +215,10 @@ export default function HUIBottomNavigation({
         overflow: "visible",
         width: "100%",
         height: NAV_RESERVED_HEIGHT_CSS,
-        // CREME-BALKEN-FIX (2026-08-18): marginTop war "8px" — erzeugte 8px
-        // Cream-Lücke (#F9F7F4) zwischen Feed-Ende und Navbar-Container.
-        // Zusammen mit dem ehemaligen 25px Vertical-Offset = 33px sichtbarer
-        // cremefarbener Balken. Entfernt: Navbar sitzt jetzt bündig unter dem
-        // Feed, keine Lücke, kein Balken.
+        // CREME-BALKEN-FIX (2026-08-18): marginTop bleibt bei "0" (war "8px").
+        // Der 20px-Vertikal-Versatz (Michael-Request #3) läuft AUSSCHLIESSLICH
+        // über NAV_VERTICAL_OFFSET/transform weiter unten — bewusst KEINE
+        // Kombination aus marginTop + Offset, wie von Michael verlangt.
         marginTop: "0",
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
