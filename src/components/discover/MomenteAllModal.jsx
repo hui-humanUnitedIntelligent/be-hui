@@ -13,6 +13,8 @@ const T = {
   px:16, inkSoft:"rgba(26,26,46,0.55)", inkFaint:"rgba(26,26,46,0.35)",
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
+// System-Bot nicht im Entdecken (Regel: nur Home-Feed)
+const SYSTEM_USER_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2";
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
   { key:"newest",  label:"Neueste",  icon:"🕐" },
@@ -116,6 +118,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
       let q = supabase.from("beitraege")
         .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id")
         .order(sort === "alpha" ? "caption" : "created_at", { ascending: sort === "alpha" })
+        .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
       if (debouncedSearch) q = q.ilike("caption", `%${debouncedSearch}%`);
@@ -128,10 +131,11 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
       let pMap = {};
       if (ids.length > 0) {
         const { data: provs } = await supabase.from("profiles")
-          .select("id,display_name,username").in("id", ids);
+          .select("id,display_name,full_name,username,avatar_url").in("id", ids);
         pMap = Object.fromEntries((provs||[]).map(p => [p.id, {
-          name: p.display_name || p.username || "HUI Mitglied",
-          initials: (p.display_name || p.username || "H")[0]?.toUpperCase()
+          name: p.full_name || p.display_name || p.username || "HUI Mitglied",
+          avatar: p.avatar_url || null,
+          initials: (p.full_name || p.display_name || p.username || "H")[0]?.toUpperCase()
         }]));
       }
 
@@ -149,7 +153,8 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
         likes: engMap[m.id]?.likes ?? 0,
         comments: engMap[m.id]?.comments ?? 0,
         _name: pMap[m.user_id]?.name || "HUI Mitglied",
-        _initials: pMap[m.user_id]?.initials || "H"
+        _initials: pMap[m.user_id]?.initials || "H",
+        _avatar: pMap[m.user_id]?.avatar || null
       }));
       setItems(prev => pageNum === 0 ? enriched : [...prev, ...enriched]);
       if (data.length < PAGE_SIZE) setHasMore(false);
@@ -249,7 +254,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
                       id:   moment.user_id || "",
                       name: moment._name   || "HUI Mitglied",
                       displayName: moment._name || "HUI Mitglied",
-                      avatar: null,
+                      avatar: moment._avatar || null,
                     },
                     createdAt: moment.created_at || "",
                     _reactions: {},

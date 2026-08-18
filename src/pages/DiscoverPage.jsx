@@ -40,6 +40,9 @@ import { normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerFor
 import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 
 // ── Design Tokens ────────────────────────────────────────────────
+// SYSTEM-BOT: darf nicht im Entdecken-Bereich auftauchen (nur Home-Feed)
+const SYSTEM_USER_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2"; // identisch zu SystemBotProfile.jsx / BaseFeedCard.jsx
+
 const T = {
   bg:       "#F9F7F4",
   white:    "#FFFFFF",
@@ -1729,6 +1732,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           .from("beitraege")
           .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count")
           .order("created_at", { ascending:false })
+          .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken (Regel: nur Home-Feed)
           .limit(getOptimalPageSize(8));
 
         if (!cancelled && beitr?.length > 0) {
@@ -2223,7 +2227,20 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   const handleMomentPress = useCallback((moment) => {
     const isRealId = moment?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(moment.id));
     if (isRealId) { try { supabase.rpc("increment_moment_views", { moment_id: moment.id }); } catch {} }
-    const item = normalizePostForPreview({ ...moment, title: moment.caption }, "moment");
+    // NAME-FIX: normalizePostForPreview → extractAuthor() sucht raw.profile/creator/author/user
+    // — Moment-Objekt aus DiscoverPage hat aber nur flaches `name` Feld, kein profile-Objekt.
+    // Ohne Injection fällt extractAuthor auf "Mitglied" zurück. Profil-Daten werden hier
+    // aus den bereits geladenen Feldern (name, avatar_url, user_id) strukturiert.
+    const item = normalizePostForPreview({
+      ...moment,
+      title: moment.caption,
+      profile: {
+        id: moment.user_id || "",
+        full_name: moment.name || "",
+        display_name: moment.name || "",
+        avatar_url: moment.avatar_url || null,
+      },
+    }, "moment");
     if (item) openPreview(item);
   }, [openPreview]);
 
