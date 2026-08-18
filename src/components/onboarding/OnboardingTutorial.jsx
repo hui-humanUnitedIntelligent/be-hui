@@ -33,7 +33,7 @@ const STEPS = [
   { selector: 'button[aria-label="Entdecken"]',      text: "Hier findest du alles \u00fcber HUI: Menschen, Werke, Erlebnisse und neue Ideen.",    placement: "top" },
   { selector: 'button[aria-label="Impact"]',         text: "Hier findest du alle Projekte, die wir gemeinsam unterst\u00fctzen. Erstelle doch selbst eins!", placement: "top" },
   { selector: 'button[aria-label="Profil"]',          text: "Hier kannst du dein eigenes Profil gestalten und personalisieren.",                 placement: "top" },
-  { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt und bleibe in Kontakt.",     placement: "bottom" },
+  { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt an und bleibe in Kontakt.",     placement: "bottom" },
   { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
   // WERKEKORB-TUTORIAL-STEP (2026-08-18, Michael-Request): letzter Schritt des
   // Basis-Tutorials, direkt vor der "Erweitertes Tutorial?"-Frage. Selector
