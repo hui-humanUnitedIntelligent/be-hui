@@ -424,33 +424,64 @@ function printReport() {
   }
 }
 
-async function main() {
-  console.log('HUI Commerce 2.0 — Go-Live Validation');
-  console.log(`Projekt: gxztrhvhcxhmunhhkfjd`);
+// ── Cleanup Funktion ────────────────────────────────────────────
+async function cleanup() {
+  console.log('\n── Cleanup: Test-Daten entfernen ──');
+  if (!TEST_EMAIL || !SERVICE_KEY) { warn('Kein Cleanup möglich — Credentials fehlen'); return; }
 
-  await phase1();
-  await phase2();
-  const piData = await phase3();
+  try {
+    // Find user by email
+    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(TEST_EMAIL)}`, {
+      headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` }
+    });
+    const userData = await userRes.json();
+    const userId = userData.users?.[0]?.id;
+    if (!userId) { pass('Test-User bereits entfernt'); return; }
 
-  let jwt = null;
-  if (SUPABASE_ANON && TEST_EMAIL && TEST_PASS) {
-    const auth = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { apikey: SUPABASE_ANON, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: TEST_EMAIL, password: TEST_PASS }),
-    }).then(r => r.json());
-    jwt = auth.access_token;
+    // Delete orders, payments, profile, auth user
+    await fetch(`${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
+    await fetch(`${SUPABASE_URL}/rest/v1/stripe_payments?user_id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
+    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
+    pass(`Test-User entfernt: ${TEST_EMAIL} (${userId})`);
+  } catch (err) {
+    warn(`Fehler beim Cleanup: ${err.message}`);
   }
+}
 
-  await phase4to6(piData, jwt);
-  await phase7();
-  await phase8();
-  printReport();
+async function main() {
+  let exitCode = 1;
+  try {
+    console.log('HUI Commerce 2.0 — Go-Live Validation');
+    console.log(`Projekt: gxztrhvhcxhmunhhkfjd`);
 
-  const allPass = Object.entries(report)
-    .filter(([k]) => k !== 'blockers')
-    .every(([, v]) => v === true);
-  process.exit(allPass && report.blockers.length === 0 ? 0 : 1);
+    await phase1();
+    await phase2();
+    const piData = await phase3();
+
+    let jwt = null;
+    if (SUPABASE_ANON && TEST_EMAIL && TEST_PASS) {
+      const auth = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { apikey: SUPABASE_ANON, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: TEST_EMAIL, password: TEST_PASS }),
+      }).then(r => r.json());
+      jwt = auth.access_token;
+    }
+
+    await phase4to6(piData, jwt);
+    await phase7();
+    await phase8();
+    printReport();
+
+    const allPass = Object.entries(report)
+      .filter(([k]) => k !== 'blockers')
+      .every(([, v]) => v === true);
+    exitCode = (allPass && report.blockers.length === 0) ? 0 : 1;
+  } finally {
+    await cleanup();
+  }
+  process.exit(exitCode);
 }
 
 main().catch(e => {

@@ -112,3 +112,31 @@ jobs:
           TEST_USER_PASS: ${{ steps.testuser.outputs.pass }}
           TEST_WORK_ID: ${{ steps.testdata.outputs.work_id }}
         run: node go-live-validation.js
+
+      - name: Cleanup test data
+        if: always()
+        env:
+          SERVICE_KEY: ${{ steps.keys.outputs.service_key }}
+          TEST_USER_EMAIL: ${{ steps.testuser.outputs.email }}
+        run: |
+          set -euo pipefail
+          if [ -z "${TEST_USER_EMAIL:-}" ]; then echo 'No test user to clean up'; exit 0; fi
+          # Find the user ID by email
+          USER_ID=$(curl -sfS "https://gxztrhvhcxhmunhhkfjd.supabase.co/auth/v1/admin/users?email=${TEST_USER_EMAIL}" \
+            -H "apikey: $SERVICE_KEY" \
+            -H "Authorization: Bearer $SERVICE_KEY" \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d["users"][0]["id"] if d.get("users") else "")')
+          if [ -z "$USER_ID" ]; then echo 'Test user already gone'; exit 0; fi
+          # Delete orders
+          curl -sfS -X DELETE "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/orders?customer_id=eq.$USER_ID" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" || true
+          # Delete stripe_payments
+          curl -sfS -X DELETE "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/stripe_payments?user_id=eq.$USER_ID" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" || true
+          # Delete profile
+          curl -sfS -X DELETE "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/profiles?id=eq.$USER_ID" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" || true
+          # Delete auth user
+          curl -sfS -X DELETE "https://gxztrhvhcxhmunhhkfjd.supabase.co/auth/v1/admin/users/$USER_ID" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" || true
+          echo "✅ Cleaned up test user: $TEST_USER_EMAIL ($USER_ID)"
