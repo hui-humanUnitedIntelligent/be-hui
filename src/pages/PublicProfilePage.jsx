@@ -40,6 +40,11 @@ import { PublicTalentOffersSection } from "../components/profile/sections/Public
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
 
+// UNTERSTÜTZEN-BUTTON TEMPORÄR VERSTECKT (2026-08-18, Michael-Request):
+// Code/State/SupportFlow bleiben vollständig erhalten (no-regression-protection.md) —
+// nur der Render wird unterdrückt. Zum Reaktivieren: SHOW_SUPPORT_BUTTON = true.
+const SHOW_SUPPORT_BUTTON = false;
+
 // ── Design Tokens (HUI-Standard) ─────────────────────────────────
 const T = {
   bg:        "#F7F5F0",
@@ -518,7 +523,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {profile && !isOwnProfile && (
           <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} onOpenChat={handleOpenChat} />
         )}
-        {profile && !isOwnProfile && (
+        {SHOW_SUPPORT_BUTTON && profile && !isOwnProfile && (
           <button onClick={() => setShowSupport(true)} className="ppp-press" style={{
             width:"100%", height:36, borderRadius:T.r99,
             background:"rgba(255,138,107,0.08)",
@@ -534,7 +539,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
             Unterstützen
           </button>
         )}
-        {profile && !isOwnProfile && <Gap h={14}/>}
+        {SHOW_SUPPORT_BUTTON && profile && !isOwnProfile && <Gap h={14}/>}
 
         {/* ── SUPPORT FLOW ── */}
         {showSupport && profile?.id && (
