@@ -1594,16 +1594,18 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
     loadMoments();
   }, [loadMoments]);
 
-  // ── Nach Upload + Pull-to-Refresh: "feed-refresh" → Moments + Profil reload ──
-  // (2026-08-18: erweitert — jetzt auch refreshProfile bei Pull-to-Refresh)
+  // ── Nach Upload sofort neu laden (HuiMomentSheet dispatcht "feed-refresh") ──
+  // BUGFIX (2026-08-18): Vorherige Version rief hier faelschlich refreshProfile()
+  // auf — diese Variable existiert in MeinMomenteDrawerContent NICHT (nur in der
+  // MyBasisProfile-Hauptkomponente, siehe deren eigenes dediziertes Pull-to-Refresh
+  // via profileScrollRef/usePullToRefresh, Zeile ~805). Das verursachte
+  // "refreshProfile is not defined" ReferenceError + kompletten Profil-Crash.
+  // Zurueck auf Original: nur loadMoments().
   React.useEffect(() => {
-    const handler = () => {
-      loadMoments();
-      refreshProfile?.().catch(() => {});
-    };
+    const handler = () => { loadMoments(); };
     window.addEventListener("feed-refresh", handler);
     return () => window.removeEventListener("feed-refresh", handler);
-  }, [loadMoments, refreshProfile]);
+  }, [loadMoments]);
 
   // ── Löschen ──────────────────────────────────────────────────────────
   const handleDeleteClick = (e, m) => {
