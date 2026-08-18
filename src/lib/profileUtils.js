@@ -131,6 +131,13 @@ export function getFullDisplayName(profile, fallback = "Mitglied") {
  */
 export function getProfileRoleLabel(profile) {
   if (!profile) return null;
+  // SYSTEM-BOT-TAG-FIX (2026-08-18): myHUI (is_system_account===true) ist
+  // kein normaler Nutzer und bekommt bereits ein eigenes "Bot"-Badge
+  // (HumanHeader in BaseFeedCard.jsx / ProfileHeader.jsx). Der generische
+  // Rollen-Fallback "Basis-Nutzer" darunter ist fuer den System-Account
+  // fachlich falsch (myHUI hat keine "Basis"-Mitgliedschaft) und wirkt
+  // neben dem Bot-Badge redundant/verwirrend — daher hier bewusst kein Tag.
+  if (profile.is_system_account === true) return null;
   const custom = typeof profile.talent === "string" ? profile.talent.trim() : "";
   if (custom) return custom;
   if (isProfileTalent(profile)) return "Talent";
