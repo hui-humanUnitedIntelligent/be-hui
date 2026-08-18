@@ -121,6 +121,19 @@ public class MainActivity extends BridgeActivity {
         if (this.bridge != null && this.bridge.getWebView() != null) {
             WebView webView = this.bridge.getWebView();
 
+            // CREME-BALKEN-DEFENSIVE-FIX (2026-08-18): Native Layout-Analyse
+            // (activity_main.xml, styles.xml, colors.xml, capacitor.config.json)
+            // ergab KEINEN nativen Container/View mit Creme-Hintergrund, fester
+            // Höhe oder Padding oberhalb der WebView — activity_main.xml ist der
+            // reine Capacitor-Standard-Scaffold (CoordinatorLayout + 1x WebView,
+            // match_parent, keine Styles). Der WebView-Default-Hintergrund ist
+            // undefiniert (i.d.R. System-Weiß), was bei Resize/Insets-Änderungen
+            // (Tastatur, Rotation, Splash-Übergang) kurz durchscheinen könnte.
+            // Defensiv: WebView-Hintergrund explizit auf dieselbe Creme-Farbe wie
+            // die Tabbar-Pille (TABBAR_FILL = #FDFBF8, siehe HUIBottomNavigation.jsx)
+            // setzen — rein additiv, ändert keine bestehende Logik.
+            webView.setBackgroundColor(android.graphics.Color.parseColor("#FDFBF8"));
+
             // WebView-Cache leeren bei jedem Start
             webView.clearCache(true);
 
