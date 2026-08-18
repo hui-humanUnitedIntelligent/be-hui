@@ -25,6 +25,7 @@ import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./shared/CommentsSheet.jsx";
 import { formatDateDE } from "../lib/formatters.js";
 import { HUILogo } from "./brand/HUILogo.jsx";
+import { NAV_CLEARANCE_CSS } from "./home/navigation/navigationGeometry.js"; // GRAU-WASCH-FIX (2026-08-18)
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -853,11 +854,23 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       </div>
 
       {/* ── Sticky Commerce Bar ── */}
-      <div style={{ position:"fixed", bottom:"max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)", left:"50%",
+      {/* GRAU-WASCH-FIX (2026-08-18, Michael-Screenshot): bottom war bisher nur
+          safe-area-inset — ignorierte die volle Höhe der HUIBottomNavigation
+          (Orb-Überhang + Tabbar + Safe-Area, siehe NAV_CLEARANCE_CSS). Dadurch
+          überlappte dieser halbtransparente, geblurrte Commerce-Bar (zIndex
+          10500, höher als die Navbar mit 10000) sichtbar die oberen Icons/
+          Labels der Navbar — der halbtransparente Cream-Blur über den
+          Icons wirkte wie ein "grauer Wasch-Balken". Fix: bottom nutzt jetzt
+          NAV_CLEARANCE_CSS — der Bar sitzt jetzt vollständig OBERHALB der
+          Navbar, ohne jede Überlappung, exakt wie in
+          .agents/rules/no-crash-props.md / Pflicht-Abstand-Regel gefordert. */}
+      <div style={{ position:"fixed", bottom:`calc(${NAV_CLEARANCE_CSS} + 8px)`, left:"50%",
         transform:"translateX(-50%)", width:"100%", maxWidth:680,
         padding:"12px 20px", paddingBottom:12,
         background:"rgba(249,247,244,0.96)", backdropFilter:"blur(16px)",
         borderTop:`1px solid ${C.border}`,
+        borderRadius:"18px 18px 0 0",
+        boxShadow:"0 -4px 20px rgba(0,0,0,0.06)",
         display:"flex", gap:10, zIndex:10500 }}>
         <button
           onClick={handleSave}

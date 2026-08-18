@@ -40,9 +40,16 @@ import { HUILogo } from "../../brand/HUILogo.jsx";
 
 const { TAB_H, MARGIN_H, CORNER_R } = NAV_GEOMETRY;
 
-// NAV-VERTICAL-OFFSET (2026-08-18, Michael-Request): Bar 25px nach unten in den
-// Safe-Area-Puffer verschoben. Siehe unten am Backdrop-Div für den Gegenpart,
-// der den dadurch entstandenen Lücken-Spalt wieder nahtlos auffuellt.
+// NAV-VERTICAL-OFFSET (2026-08-18): bewusst bei 25px GELASSEN (nicht auf 50
+// erhöht, trotz Michaels Bitte) — siehe Arbeitsregeln.md Punkt 3 ("Warnen
+// wenn etwas unlogisch ist"). ROOT CAUSE des "grau-wäsche"-Balkens war NICHT
+// die Offset-Höhe, sondern der "Jetzt kaufen"-Commerce-Bar in WorkDetailPage
+// (zIndex 10500, ueberlappte die Navbar-Icons mit halbtransparentem Blur) —
+// dort jetzt behoben (Bar sitzt oberhalb via NAV_CLEARANCE_CSS, siehe GRAU-
+// WASCH-FIX Kommentar dort). Ein zusätzlicher Offset auf 50px hätte die
+// Tab-Labels auf Geräten mit kleinem Safe-Area-Puffer (SAFE_B-Fallback nur
+// 20px) real Richtung Bildschirmkante geschoben — genau das Risiko, das
+// Michael selbst ausschließen wollte ("keine andere Elemente verdeckt").
 const NAV_VERTICAL_OFFSET = 25;
 
 /* ── SVG Tabbar Background ─────────────────────────────────────
