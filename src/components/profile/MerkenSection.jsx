@@ -19,6 +19,7 @@ import React from "react";
 import { useAuth }       from "../../lib/AuthContext.jsx";
 import { supabase }      from "../../lib/supabaseClient.js";
 import { HUIBookmarkIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { HUILogo } from "../brand/HUILogo.jsx";
 import { toast }         from "../../lib/useToast.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08 -- Merkliste oeffnet jetzt dieselbe Vorschau wie ueberall sonst, keine Direktnavigation mehr
 import { formatDateDE } from "../../lib/formatters.js";
@@ -43,10 +44,19 @@ const T = {
 // content_type -> Anzeige. wirker/project bewusst schon vorbereitet
 // (Auftrag: "optional vorbereiten"), auch wenn noch keine UI diese Typen
 // aktiv speichert -- MerkenSection muss sie nur sauber darstellen koennen.
+// MERKLISTE-BOT-FIX (2026-08-18, Michael-Request): Vorschaubild-Fallback-Kette.
+// Identisch mit SystemBotProfile.jsx (SSOT für die HUI-Bot User-ID) — NICHT
+// unabhaengig neu definieren, falls sich die ID je aendern sollte.
+const SYSTEM_USER_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2";
+
 const TYPE_LABEL = {
   work: "Werk", experience: "Erlebnis", post: "Beitrag", beitrag: "Beitrag",
   event: "Veranstaltung", wirker: "Wirker", project: "Projekt", talent: "Talent-Angebot",
 };
+// MERKLISTE-BOT-FIX (2026-08-18): nicht mehr als Cover-Fallback aufgerufen
+// (siehe MerkenCard) -- ersetzt durch Fuchs/HUI-Logo-Kette. Funktion bleibt
+// erhalten (no-regression-protection.md: kein Code loeschen ohne Freigabe).
+// eslint-disable-next-line no-unused-vars
 const TYPE_ICON_COMPONENT = (type) => {
   if (type === "work")       return <HUIWerkeIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
   if (type === "experience") return <HUIErlebnisIcon size={32} style={{opacity:0.7, color:"rgba(14,196,184,0.7)"}} />;
@@ -345,6 +355,12 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
 function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove }) {
   const [imgErr, setImgErr] = React.useState(false);
   const showImg = cover && !imgErr;
+  // MERKLISTE-BOT-FIX (2026-08-18): Fallback-Kette wenn kein Original-Cover
+  // geladen werden konnte -- (1) echtes Bild falls vorhanden [showImg oben],
+  // (2) Fuchs-Mascot falls der gespeicherte Inhalt vom HUI-System-Bot stammt,
+  // (3) HUI-Logo als letzter Fallback (ersetzt den bisherigen generischen
+  // Typ-Icon-Platzhalter, der bei fehlendem Cover immer gleich/nichtssagend war).
+  const isSystemBot = item?.post_data?.user_id === SYSTEM_USER_ID;
 
   return (
     <div
@@ -374,7 +390,10 @@ function MerkenCard({ item, cover, title, creator, label, date, onOpen, onRemove
         {showImg
           ? <img loading="lazy" decoding="async" src={cover} alt="" onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          : <span style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"100%", height:"100%" }}>{TYPE_ICON_COMPONENT(item.post_type)}</span>
+          : isSystemBot
+            ? <img src="/assets/fox-avatar.png" alt="HUI Fuchs" loading="lazy" decoding="async"
+                style={{ width:"70%", height:"70%", objectFit:"contain" }} />
+            : <span style={{ display:"flex", alignItems:"center", justifyContent:"center", width:"100%", height:"100%" }}><HUILogo size={40} /></span>
         }
       </div>
 
