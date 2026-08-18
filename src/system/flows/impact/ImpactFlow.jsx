@@ -1696,7 +1696,7 @@ export default function ImpactFlow({ onClose }) {
       backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems:"center", justifyContent:"center",
       padding:"16px", animation:"ifFadeIn 0.2s ease both",
-    }} onClick={e => e.target === e.currentTarget && onClose?.()}>
+    }} data-hui-kbd-self-managed onClick={e => e.target === e.currentTarget && onClose?.()}>
       <style>{CSS}</style>
       <div style={{
         width:"100%", maxWidth:500,

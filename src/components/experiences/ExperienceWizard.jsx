@@ -1084,7 +1084,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   const isRejectedUpdate = existingExp?.approval_status === "rejected" || existingExp?.status === "rejected";
 
   return createPortal(
-    <div style={{
+    <div data-hui-kbd-self-managed style={{
       position: "fixed", inset: 0,
       zIndex: 10500,
       background: C.cream,

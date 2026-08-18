@@ -783,7 +783,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
 
   return createPortal(
     /* Fullscreen — zIndex 10500 überschreibt BottomNav (9999) + ProfileLauncher (9500) */
-    <div style={{
+    <div data-hui-kbd-self-managed style={{
       position:"fixed", inset:0,
       zIndex:10500,
       background:C.cream,

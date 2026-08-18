@@ -318,7 +318,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   const isLast = step === TOTAL;
 
   return createPortal(
-    <div style={{
+    <div data-hui-kbd-self-managed style={{
       // zIndex 10500 wie WerkWizard/ExperienceWizard — ueberschreibt BottomNav(10000) + ProfileLauncher(9500).
       position: "fixed", inset: 0, zIndex: 10500, background: C.cream,
       display: "flex", flexDirection: "column",
