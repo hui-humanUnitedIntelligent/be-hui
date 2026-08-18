@@ -1,4 +1,22 @@
-// HUI Push Notification Edge Function v3 (auto-deactivates stale tokens)
+// HUI Push Notification Edge Function v4
+// FIX (2026-08-18): Doppelte Push-Benachrichtigungen behoben.
+//
+// ROOT CAUSE: v3 holte sich per SELECT alle status='pending' Zeilen und
+// markierte sie ERST NACH dem FCM-Versand als 'sent'. Das ist ein klassisches
+// TOCTOU-Race: der DB-Webhook-Trigger (trg_push_outbox_to_edge) ruft diese
+// Function per pg_net "fire-and-forget" auf -- pg_net kann bei Timeouts/
+// Netzwerk-Hakeln denselben Request erneut ausloesen, und weil zwei parallele
+// Aufrufe beide dieselbe(n) "pending"-Zeile(n) lesen koennen BEVOR die erste
+// sie auf 'sent' setzt, wird an dieselben Geraete-Tokens zweimal per FCM
+// gesendet -> Nutzer sieht die Nachricht doppelt.
+//
+// FIX: Atomarer Claim per bedingtem UPDATE (status='pending' -> 'sending')
+// VOR dem Versand. Ein UPDATE mit WHERE status='pending' ist atomar -- nur
+// EIN gleichzeitiger Aufruf kann die Zeile erfolgreich auf 'sending' claimen;
+// der andere bekommt 0 betroffene Zeilen zurueck und bricht fuer diese Zeile
+// ab, statt nochmal zu senden. Zusaetzlich wird der bereits vom DB-Trigger
+// mitgeschickte `outbox_id` jetzt tatsaechlich genutzt (v3 ignorierte ihn
+// komplett und scannte immer bis zu 50 Zeilen).
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const FCM_PROJECT_ID   = Deno.env.get("FCM_PROJECT_ID") || "";
@@ -40,6 +58,23 @@ async function dbUpdate(table: string, data: Record<string, unknown>, filter: Re
     body: JSON.stringify(data),
   });
   if (!resp.ok) throw new Error(`dbUpdate ${table}: ${resp.status} ${await resp.text()}`);
+}
+
+// Atomarer Claim: gibt die geclaimte(n) Zeile(n) zurueck, oder [] wenn eine
+// andere (parallele) Invocation die Zeile bereits geclaimt hat.
+async function dbClaim(table: string, data: Record<string, unknown>, filter: Record<string, unknown>) {
+  const params = new URLSearchParams();
+  for (const [k, v] of Object.entries(filter)) {
+    params.set(k, `eq.${v}`);
+  }
+  const url = `${SUPABASE_URL}/rest/v1/${table}?${params}`;
+  const resp = await fetch(url, {
+    method: "PATCH",
+    headers: { "apikey": SERVICE_KEY, "Authorization": `Bearer ${SERVICE_KEY}`, "Content-Type": "application/json", "Prefer": "return=representation" },
+    body: JSON.stringify(data),
+  });
+  if (!resp.ok) throw new Error(`dbClaim ${table}: ${resp.status} ${await resp.text()}`);
+  return await resp.json();
 }
 
 async function dbMaybeSingle(table: string, columns: string, filter: Record<string, unknown>) {
@@ -105,68 +140,110 @@ async function sendFCM(token: string, title: string, body: string, data: Record<
   }
 }
 
+// Verarbeitet EINE bereits geclaimte (status='sending') outbox-Zeile.
+async function processClaimedEntry(entry: { id: string; user_id: string; type: string; title?: string; body?: string; data?: Record<string, unknown>; retry_count?: number; category?: string }) {
+  const staleTokens: string[] = [];
+
+  const settings = await dbMaybeSingle("user_notification_settings", "push_enabled,push_buchungen,push_kauf_verkauf,push_informativ", { user_id: entry.user_id });
+  if (!settings) {
+    await dbUpdate("notifications_outbox", { status: "skipped", error_message: "No settings found", sent_at: new Date().toISOString() }, { id: entry.id });
+    return { outcome: "skipped" as const, staleTokens };
+  }
+  const categoryFlag = entry.category === "buchungen" ? settings.push_buchungen : entry.category === "kauf_verkauf" ? settings.push_kauf_verkauf : settings.push_informativ;
+  if (!settings.push_enabled || categoryFlag === false) {
+    await dbUpdate("notifications_outbox", { status: "skipped", sent_at: new Date().toISOString() }, { id: entry.id });
+    return { outcome: "skipped" as const, staleTokens };
+  }
+
+  const tokens = await dbSelect("user_device_tokens", "token", { user_id: entry.user_id, is_active: "true" }, 20);
+  if (!tokens || tokens.length === 0) {
+    await dbUpdate("notifications_outbox", { status: "skipped", error_message: "No active device tokens", sent_at: new Date().toISOString() }, { id: entry.id });
+    return { outcome: "skipped" as const, staleTokens };
+  }
+
+  let allOk = true;
+  const fcmErrors: string[] = [];
+  for (const { token } of tokens) {
+    const result = await sendFCM(token, entry.title || "HUI", entry.body || "", entry.data || {});
+    if (!result.ok) {
+      allOk = false;
+      fcmErrors.push(result.error || "unknown");
+      if (result.unregistered) staleTokens.push(token);
+    }
+  }
+
+  if (allOk) {
+    await dbUpdate("notifications_outbox", { status: "sent", sent_at: new Date().toISOString() }, { id: entry.id });
+    return { outcome: "sent" as const, staleTokens };
+  }
+
+  const nextRetry = (entry.retry_count || 0) + 1;
+  if (nextRetry >= 3) {
+    await dbUpdate("notifications_outbox", { status: "failed", retry_count: nextRetry, error_message: fcmErrors.join("; "), sent_at: new Date().toISOString() }, { id: entry.id });
+  } else {
+    // Zurueck auf 'pending' fuer einen spaeteren Retry-Sweep -- die naechste
+    // Invocation muss die Zeile erneut ueber dbClaim() atomar claimen.
+    await dbUpdate("notifications_outbox", { status: "pending", retry_count: nextRetry, error_message: fcmErrors.join("; ") }, { id: entry.id });
+  }
+  return { outcome: "failed" as const, staleTokens, errors: fcmErrors };
+}
+
 Deno.serve(async (req) => {
   try {
     if (req.method === "GET") {
-      return jsonResp({ status: "ok", fcm_configured: !!FCM_PROJECT_ID, supabase_url: SUPABASE_URL.substring(0, 30) });
+      return jsonResp({ status: "ok", fcm_configured: !!FCM_PROJECT_ID, supabase_url: SUPABASE_URL.substring(0, 30), version: "v4-atomic-claim" });
     }
 
-    const url = new URL(req.url);
-    const debug = url.searchParams.get("debug") === "1";
+    let outboxId: string | undefined;
+    try {
+      const body = await req.json();
+      outboxId = body?.outbox_id;
+    } catch {
+      // kein/leerer Body ist ok (z.B. manueller Cron-Sweep ohne outbox_id)
+    }
 
-    const pending = await dbSelect("notifications_outbox", "id,user_id,type,title,body,data,retry_count,category", { status: "pending" }, 50, "created_at.asc");
-    if (!pending || pending.length === 0) return jsonResp({ sent: 0, message: "No pending notifications" });
+    // Kandidaten ermitteln: entweder gezielt die vom Webhook-Trigger
+    // uebergebene Zeile, oder (Fallback-Sweep, z.B. Retry-Cron) bis zu 50
+    // aeltere pending-Zeilen.
+    const candidateIds: string[] = [];
+    if (outboxId) {
+      candidateIds.push(outboxId);
+    } else {
+      const pending = await dbSelect("notifications_outbox", "id", { status: "pending" }, 50, "created_at.asc");
+      for (const p of pending) candidateIds.push(p.id);
+    }
 
-    let sent = 0, skipped = 0, failed = 0;
-    const staleTokens: string[] = [];
+    if (candidateIds.length === 0) return jsonResp({ sent: 0, message: "No pending notifications" });
+
+    let sent = 0, skipped = 0, failed = 0, alreadyClaimed = 0;
+    const staleTokensAll: string[] = [];
     const debugInfo: unknown[] = [];
 
-    for (const entry of pending) {
-      const settings = await dbMaybeSingle("user_notification_settings", "push_enabled,push_buchungen,push_kauf_verkauf,push_informativ", { user_id: entry.user_id });
-      if (!settings) {
-        await dbUpdate("notifications_outbox", { status: "skipped", error_message: "No settings found", sent_at: new Date().toISOString() }, { id: entry.id });
-        skipped++; continue;
-      }
-      const categoryFlag = entry.category === "buchungen" ? settings.push_buchungen : entry.category === "kauf_verkauf" ? settings.push_kauf_verkauf : settings.push_informativ;
-      if (!settings.push_enabled || categoryFlag === false) {
-        await dbUpdate("notifications_outbox", { status: "skipped", sent_at: new Date().toISOString() }, { id: entry.id });
-        skipped++; continue;
-      }
-
-      const tokens = await dbSelect("user_device_tokens", "token", { user_id: entry.user_id, is_active: "true" }, 20);
-      if (!tokens || tokens.length === 0) {
-        await dbUpdate("notifications_outbox", { status: "skipped", error_message: "No active device tokens", sent_at: new Date().toISOString() }, { id: entry.id });
-        skipped++; continue;
+    for (const id of candidateIds) {
+      // ATOMARER CLAIM: nur wenn status noch 'pending' ist, wird auf
+      // 'sending' gesetzt UND die Zeile zurueckgegeben. Eine parallele
+      // Invocation, die dieselbe Zeile schon geclaimt hat, bekommt hier [].
+      const claimed = await dbClaim(
+        "notifications_outbox",
+        { status: "sending" },
+        { id, status: "pending" }
+      );
+      if (!claimed || claimed.length === 0) {
+        alreadyClaimed++;
+        continue;
       }
 
-      let allOk = true;
-      const fcmErrors: string[] = [];
-      for (const { token } of tokens) {
-        const result = await sendFCM(token, entry.title || "HUI", entry.body || "", entry.data || {});
-        if (!result.ok) {
-          allOk = false;
-          fcmErrors.push(result.error || "unknown");
-          if (result.unregistered) staleTokens.push(token);
-        }
-      }
-
-      if (allOk) {
-        await dbUpdate("notifications_outbox", { status: "sent", sent_at: new Date().toISOString() }, { id: entry.id });
-        sent++;
-      } else {
-        const nextRetry = (entry.retry_count || 0) + 1;
-        if (nextRetry >= 3) {
-          await dbUpdate("notifications_outbox", { status: "failed", retry_count: nextRetry, error_message: fcmErrors.join("; "), sent_at: new Date().toISOString() }, { id: entry.id });
-        } else {
-          await dbUpdate("notifications_outbox", { status: "pending", retry_count: nextRetry, error_message: fcmErrors.join("; ") }, { id: entry.id });
-        }
-        failed++;
-        if (debug) debugInfo.push({ id: entry.id, result: "fcm_failed", errors: fcmErrors, token_count: tokens.length });
-      }
+      const entry = claimed[0];
+      const result = await processClaimedEntry(entry);
+      if (result.outcome === "sent") sent++;
+      else if (result.outcome === "skipped") skipped++;
+      else failed++;
+      staleTokensAll.push(...result.staleTokens);
+      if ("errors" in result) debugInfo.push({ id: entry.id, errors: result.errors });
     }
 
     // Deactivate stale tokens (FCM returned UNREGISTERED)
-    for (const token of staleTokens) {
+    for (const token of staleTokensAll) {
       try {
         await dbUpdate("user_device_tokens", { is_active: false }, { token, is_active: "true" });
         console.log(`Deactivated stale token: ${token.substring(0, 15)}...`);
@@ -175,7 +252,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    return jsonResp({ sent, skipped, failed, total: pending.length, stale_tokens_deactivated: staleTokens.length, debug: debug ? debugInfo : undefined });
+    return jsonResp({
+      sent, skipped, failed, already_claimed_by_other_invocation: alreadyClaimed,
+      total_candidates: candidateIds.length,
+      stale_tokens_deactivated: staleTokensAll.length,
+      debug: debugInfo.length ? debugInfo : undefined,
+    });
   } catch (e) {
     console.error("send-push-notifications error:", e);
     return jsonResp({ error: e?.message || "Unknown error" }, 500);
