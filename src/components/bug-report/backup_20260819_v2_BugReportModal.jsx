@@ -22,7 +22,6 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
-  const [attachmentWarning, setAttachmentWarning] = useState(null);
   const fileInputRef = useRef(null);
 
   const getDeviceInfo = useCallback(async () => {
@@ -102,7 +101,6 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
 
     setUploading(true);
     setError(null);
-    setAttachmentWarning(null);
 
     try {
       const { deviceModel, deviceOS } = await getDeviceInfo();
@@ -136,24 +134,12 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       }
 
       // 3. Update report with attachments
-      // BUGFIX (2026-08-19): RLS hatte keine UPDATE-Policy für bug_reports →
-      // Update wurde lautlos verworfen (0 Zeilen, kein Fehler), Bilder landeten
-      // nur in Storage, nie in der DB-Spalte → "Bilder nicht sichtbar" im SADB.
-      // Policy bug_reports_update_own jetzt vorhanden. Trotzdem defensiv prüfen:
-      // .select().maybeSingle() macht ein RLS-Silent-Fail sichtbar (data===null).
       if (attachments.length > 0) {
-        const { data: updData, error: updErr } = await supabase
+        const { error: updErr } = await supabase
           .from("bug_reports")
           .update({ attachments })
-          .eq("id", report.id)
-          .select("id")
-          .maybeSingle();
-        if (updErr || !updData) {
-          console.error("[BugReport] attachments update failed:", updErr || "kein Zeilen-Match (RLS?)");
-          setAttachmentWarning(
-            `Deine Beschreibung wurde gespeichert, aber ${attachments.length === 1 ? "das Bild/Video" : `${attachments.length} Bilder/Videos`} konnte${attachments.length === 1 ? "" : "n"} nicht angehängt werden. Bitte melde den Fehler kurz nochmal — am besten ohne Anhang oder mit Support kontaktieren.`
-          );
-        }
+          .eq("id", report.id);
+        if (updErr) console.error("[BugReport] attachments update failed:", updErr);
       }
 
       // 4. Log event
@@ -178,7 +164,6 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     setDescription("");
     setFiles([]);
     setError(null);
-    setAttachmentWarning(null);
     setSubmitted(false);
     setUploading(false);
     onClose();
@@ -263,16 +248,6 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
             <p style={{ fontSize: 15, fontWeight: 600, color: "#1a1a2e", fontFamily: "Inter, sans-serif", margin: "0 0 4px" }}>
               Danke! Ein HUI-Programmierer schaut sich deinen Fehler an.
             </p>
-            {attachmentWarning && (
-              <div style={{
-                marginTop: 14, padding: "10px 14px", borderRadius: 10,
-                background: "rgba(245,166,35,0.1)", border: "1px solid rgba(245,166,35,0.25)",
-                fontSize: 12.5, color: "#8a5a10", fontFamily: "Inter, sans-serif",
-                lineHeight: 1.5, textAlign: "left",
-              }}>
-                {attachmentWarning}
-              </div>
-            )}
             <button
               onClick={handleClose}
               style={{
