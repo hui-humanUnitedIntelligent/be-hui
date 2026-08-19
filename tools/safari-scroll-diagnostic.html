@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>HUI Safari Scroll Diagnostic</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body, #root {
+      width: 100%; max-width: 100%; overflow-x: hidden;
+      margin: 0; padding: 0;
+    }
+    body { background: #F9F7F4; overscroll-behavior: none; }
+    #root { background: #F9F7F4; }
+
+    .home-shell {
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      background: #F9F7F4;
+    }
+
+    .home-header {
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      transform: translateZ(0);
+      background: rgba(255,251,248,0.93);
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(26,53,48,0.028);
+      flex-shrink: 0;
+    }
+
+    /* Mirrors src/index.css .hui-scroll */
+    .hui-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: relative;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      will-change: transform;
+      scrollbar-width: none;
+    }
+
+    .tab-feed { position: relative; opacity: 1; }
+
+    .unified-feed {
+      width: 100%;
+      overflow-x: hidden;
+      background: #FAFAF8;
+      min-height: 100vh;
+    }
+
+    .feed-list-wrap { padding-top: 8px; }
+
+    /* Virtualized mode (arr.length > 6) */
+    .virt-container {
+      position: relative;
+    }
+
+    .virt-row {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      transform: translateY(var(--y, 0px));
+      padding-bottom: 18px;
+    }
+
+    .feed-card {
+      margin: 0 12px;
+      height: 620px;
+      border-radius: 28px;
+      background: #fff;
+      border: 1px solid rgba(26,26,46,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1A1A2E;
+    }
+
+    /* Fallback mode content-visibility boundary (idx > 4) */
+    .cv-auto {
+      content-visibility: auto;
+      contain-intrinsic-size: 0 620px;
+    }
+
+    .bottom-nav {
+      flex-shrink: 0;
+      height: 64px;
+      background: #fff;
+      border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #metrics {
+      position: fixed;
+      bottom: 72px;
+      left: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.82);
+      color: #0f0;
+      font: 11px/1.4 monospace;
+      padding: 8px;
+      border-radius: 8px;
+      z-index: 9999;
+      max-height: 40vh;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="root">
+    <div class="home-shell" data-component="Home">
+      <div class="home-header" data-component="HomeHeader">HUI Header (sticky)</div>
+
+      <div class="hui-scroll" data-component="hui-scroll" data-scroll-container="primary">
+        <div class="tab-feed" data-component="tab-feed">
+          <div class="unified-feed" data-component="UnifiedFeed">
+            <div class="feed-list-wrap" data-component="FeedList" id="feed-list">
+              <!-- populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-nav" data-component="HUIBottomNavigation">Bottom Nav</div>
+    </div>
+  </div>
+
+  <div id="metrics"></div>
+
+  <script>
+    const ITEM_COUNT = 20;
+    const ESTIMATE = 640;
+    const USE_VIRTUAL = true; // mirrors arr.length > 6
+
+    const feedList = document.getElementById('feed-list');
+    const scrollEl = document.querySelector('.hui-scroll');
+    const metricsEl = document.getElementById('metrics');
+
+    function renderVirtual() {
+      const totalHeight = ITEM_COUNT * ESTIMATE;
+      const container = document.createElement('div');
+      container.className = 'virt-container';
+      container.style.height = totalHeight + 'px';
+      container.dataset.component = 'FeedList-virtual-container';
+
+      for (let i = 0; i < ITEM_COUNT; i++) {
+        const row = document.createElement('div');
+        row.className = 'virt-row';
+        row.style.setProperty('--y', (i * ESTIMATE) + 'px');
+        row.dataset.index = i;
+        row.innerHTML = `<div class="feed-card">Beitrag ${i + 1}</div>`;
+        container.appendChild(row);
+      }
+      feedList.appendChild(container);
+    }
+
+    function renderFallback() {
+      for (let i = 0; i < ITEM_COUNT; i++) {
+        const wrap = document.createElement('div');
+        wrap.className = 'hui-feed-card' + (i > 4 ? ' cv-auto' : '');
+        wrap.style.marginBottom = '18px';
+        wrap.dataset.index = i;
+        wrap.innerHTML = `<div class="feed-card">Beitrag ${i + 1}</div>`;
+        feedList.appendChild(wrap);
+      }
+    }
+
+    if (USE_VIRTUAL) renderVirtual();
+    else renderFallback();
+
+    const SCROLL_CANDIDATES = [
+      document.documentElement,
+      document.body,
+      document.getElementById('root'),
+      document.querySelector('.home-shell'),
+      scrollEl,
+      document.querySelector('.unified-feed'),
+      document.getElementById('feed-list'),
+    ];
+
+    function getComputedScrollProps(el) {
+      if (!el) return null;
+      const cs = getComputedStyle(el);
+      return {
+        tag: el.tagName.toLowerCase() + (el.className ? '.' + el.className.split(' ')[0] : '') + (el.dataset.component ? ` [${el.dataset.component}]` : ''),
+        scrollTop: el.scrollTop,
+        scrollHeight: el.scrollHeight,
+        clientHeight: el.clientHeight,
+        scrollable: el.scrollHeight > el.clientHeight + 1,
+        height: cs.height,
+        minHeight: cs.minHeight,
+        maxHeight: cs.maxHeight,
+        overflow: cs.overflow,
+        overflowY: cs.overflowY,
+        contain: cs.contain,
+        contentVisibility: cs.contentVisibility,
+        position: cs.position,
+        transform: cs.transform,
+        willChange: cs.willChange,
+        offsetHeight: el.offsetHeight,
+      };
+    }
+
+    function measureCardHeights() {
+      const cards = document.querySelectorAll('[data-index]');
+      const heights = [];
+      cards.forEach((card, idx) => {
+        const rect = card.getBoundingClientRect();
+        heights.push({ index: idx, offsetHeight: card.offsetHeight, rectHeight: rect.height });
+      });
+      return heights;
+    }
+
+    function findScrollingElement() {
+      for (const el of SCROLL_CANDIDATES) {
+        if (!el) continue;
+        const before = el.scrollTop;
+        el.scrollTop = before + 1;
+        const changed = el.scrollTop !== before;
+        el.scrollTop = before;
+        if (changed) return el;
+      }
+      return null;
+    }
+
+    function updateMetrics() {
+      const scroller = findScrollingElement();
+      const lines = [];
+      lines.push('=== SCROLL AUTHORITY (runtime probe) ===');
+      lines.push('Actual scroller: ' + (scroller ? scroller.dataset.component || scroller.className : 'NONE'));
+      lines.push('window.scrollY: ' + window.scrollY);
+      lines.push('');
+
+      lines.push('=== SCROLL METRICS (all candidates) ===');
+      for (const el of SCROLL_CANDIDATES) {
+        const p = getComputedScrollProps(el);
+        if (!p) continue;
+        lines.push(JSON.stringify(p, null, 0));
+      }
+
+      lines.push('');
+      lines.push('=== CARD HEIGHTS AFTER SCROLL (idx 0-9) ===');
+      const heights = measureCardHeights().slice(0, 10);
+      heights.forEach(h => {
+        lines.push(`idx ${h.index}: offsetHeight=${h.offsetHeight}, rect=${h.rectHeight.toFixed(1)}`);
+      });
+
+      const collapsed = heights.filter(h => h.index >= 5 && h.offsetHeight < 10);
+      if (collapsed.length) {
+        lines.push('COLLAPSE DETECTED at indices: ' + collapsed.map(c => c.index).join(', '));
+      }
+
+      metricsEl.textContent = lines.join('\n');
+      window.__HUI_SCROLL_DIAG__ = {
+        scroller: scroller?.dataset?.component || scroller?.className,
+        candidates: SCROLL_CANDIDATES.map(getComputedScrollProps),
+        cardHeights: measureCardHeights(),
+        scrollTop: scrollEl.scrollTop,
+      };
+    }
+
+    scrollEl.addEventListener('scroll', () => requestAnimationFrame(updateMetrics), { passive: true });
+    window.addEventListener('load', () => {
+      updateMetrics();
+      // Simulate user scroll past 5th card
+      setTimeout(() => {
+        scrollEl.scrollTop = 5 * ESTIMATE;
+        requestAnimationFrame(updateMetrics);
+      }, 300);
+      setTimeout(() => {
+        scrollEl.scrollTop = 10 * ESTIMATE;
+        requestAnimationFrame(updateMetrics);
+      }, 600);
+    });
+  </script>
+</body>
+</html>
