@@ -11,6 +11,7 @@ import { HUIVerkaufIcon } from '../../design/icons/HuiSystemIcons.jsx';
 
 import { createPortal } from "react-dom";
 import { useMySales } from "../../hooks/useMySales.js";
+import { supabase } from "../../lib/supabaseClient.js";
 import { useState } from "react";
 import EscrowStatusBadge from "../commerce/EscrowStatusBadge.jsx";
 import SellerPayoutRequestSheet from "../commerce/SellerPayoutRequestSheet.jsx";
@@ -44,6 +45,41 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
   useModalRegistration(true, onClose, "MeineVerkaeufeModal");
   const { sales, totalEarned, loading } = useMySales(profile?.id);
   const [payoutItem, setPayoutItem] = useState(null);
+  const [shippingId, setShippingId] = useState(null);
+  const [shipTracking, setShipTracking] = useState("");
+  const [shipCarrier, setShipCarrier] = useState("");
+  const [shipError, setShipError] = useState("");
+
+  const handleShip = async (orderId) => {
+    setShipError("");
+    try {
+      const { data, error } = await supabase.rpc("rpc_seller_mark_shipped_v2", {
+        p_order_id: orderId,
+        p_tracking_number: shipTracking.trim() || null,
+        p_carrier: shipCarrier.trim() || null,
+      });
+      if (error) throw error;
+      if (data && !data.ok && !data.skipped) throw new Error(data.error || "Fehler");
+      setShippingId(null);
+      setShipTracking("");
+      setShipCarrier("");
+      // Reload via hook
+      window.dispatchEvent(new CustomEvent("hui:sales:reload"));
+    } catch (e) {
+      setShipError(e?.message || "Fehler beim Versenden");
+    }
+  };
+
+  const formatAddr = (addr) => {
+    if (!addr || typeof addr !== "object") return "";
+    const parts = [
+      [addr.first_name, addr.last_name].filter(Boolean).join(" "),
+      addr.street,
+      [addr.zip, addr.city].filter(Boolean).join(" "),
+      addr.country,
+    ].filter(Boolean);
+    return parts.join(", ");
+  };
 
   const modal = (
     <div
@@ -154,7 +190,16 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                               size="sm"
                             />
                           )}
-                          {s.orders?.escrow_status === 'holding' && !s.orders?.payout_requested_at && (
+                          {s.orders?.escrow_status === 'holding' && !s.orders?.shipped_at && (
+                            <button
+                              onClick={() => setShippingId(s.orders.id)}
+                              style={{ fontSize:10, fontWeight: 600, color:'#0EC4B8', background:'rgba(14,196,184,0.1)',
+                                border:'1px solid rgba(14,196,184,0.25)', borderRadius:8, padding:'3px 8px',
+                                cursor:'pointer', whiteSpace:'nowrap', touchAction:'manipulation' }}>
+                              Versendet
+                            </button>
+                          )}
+                          {s.orders?.escrow_status === 'holding' && !s.orders?.payout_requested_at && s.orders?.shipped_at && (
                             <button
                               onClick={() => setPayoutItem({ id: s.orders.id, type: 'order', title: s.snapshot?.title })}
                               style={{ fontSize:10, fontWeight: 600, color:'#FF8A6B', background:'rgba(255,138,107,0.1)',
@@ -199,6 +244,91 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
           onClose={() => setPayoutItem(null)}
           onSuccess={() => setPayoutItem(null)}
         />
+      )}
+      {shippingId && (
+        createPortal(
+          <div
+            onClick={(e) => { if (e.target === e.currentTarget) setShippingId(null); }}
+            style={{ position:"fixed", inset:0, zIndex:10500, background:"rgba(26,26,24,0.52)",
+              display:"flex", alignItems:"flex-end", justifyContent:"center" }}>
+            <div style={{ width:"100%", maxWidth:420, background:T.bg, borderRadius:"24px 24px 0 0",
+              maxHeight:"80dvh", display:"flex", flexDirection:"column", fontFamily:T.ff,
+              boxShadow:"0 -4px 32px rgba(26,26,24,0.18)",
+              animation:"shipSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both" }}>
+              <style>{`@keyframes shipSlideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }`}</style>
+              <div style={{ touchAction:"none", cursor:"grab", width:40, height:4, borderRadius:2,
+                background:"rgba(26,26,24,0.12)", margin:"12px auto 0", flexShrink:0 }} />
+              <div style={{ padding:"10px 20px 8px", flexShrink:0 }}>
+                <div style={{ fontSize:18, fontWeight:600, color:T.ink, letterSpacing:"-0.02em" }}>
+                  Ware versenden
+                </div>
+              </div>
+              <div style={{ flex:1, overflowY:"auto", padding:"0 20px 16px" }}>
+                {(() => {
+                  const sale = sales.find(s => s.orders?.id === shippingId);
+                  const addr = sale?.orders?.shipping_address;
+                  return addr ? (
+                    <div style={{ background:T.bgCard, borderRadius:T.r12, border:`1px solid ${T.border}`,
+                      padding:"12px 14px", marginBottom:12 }}>
+                      <div style={{ fontSize:11, fontWeight:600, color:T.inkSoft, textTransform:"uppercase",
+                        letterSpacing:"0.04em", marginBottom:6 }}>Lieferadresse</div>
+                      <div style={{ fontSize:14, color:T.ink, lineHeight:1.6 }}>
+                        {formatAddr(addr)}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+                <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:6 }}>
+                  Tracking-Nummer (optional)
+                </div>
+                <input
+                  value={shipTracking}
+                  onChange={(e) => setShipTracking(e.target.value)}
+                  placeholder="z.B. DHL 123456789"
+                  data-hui-kbd-self-managed
+                  style={{ width:"100%", border:`1.5px solid ${T.border}`, borderRadius:T.r12,
+                    padding:"12px 14px", fontSize:14, color:T.ink, background:T.bgCard,
+                    outline:"none", marginBottom:10, fontFamily:T.ff, boxSizing:"border-box" }}
+                />
+                <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:6 }}>
+                  Versanddienst (optional)
+                </div>
+                <input
+                  value={shipCarrier}
+                  onChange={(e) => setShipCarrier(e.target.value)}
+                  placeholder="z.B. DHL, Hermes, UPS"
+                  data-hui-kbd-self-managed
+                  style={{ width:"100%", border:`1.5px solid ${T.border}`, borderRadius:T.r12,
+                    padding:"12px 14px", fontSize:14, color:T.ink, background:T.bgCard,
+                    outline:"none", marginBottom:10, fontFamily:T.ff, boxSizing:"border-box" }}
+                />
+                {shipError && (
+                  <div style={{ fontSize:13, color:T.red || "#E83A3A", padding:"10px 12px", borderRadius:T.r8,
+                    background:"rgba(232,58,58,0.07)", marginBottom:10 }}>{shipError}</div>
+                )}
+              </div>
+              <div style={{ flexShrink:0, padding:`12px 20px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 12px)`,
+                background:T.bg, borderTop:`1px solid ${T.border}`, display:"flex", gap:10 }}>
+                <button
+                  onClick={() => { setShippingId(null); setShipTracking(""); setShipCarrier(""); setShipError(""); }}
+                  style={{ flex:1, padding:"13px 0", borderRadius:T.r99,
+                    background:T.bgCard, color:T.inkSoft, border:`1px solid ${T.border}`,
+                    fontSize:14, fontWeight:600, cursor:"pointer", touchAction:"manipulation", fontFamily:T.ff }}>
+                  Abbrechen
+                </button>
+                <button
+                  onClick={() => handleShip(shippingId)}
+                  style={{ flex:2, padding:"13px 0", borderRadius:T.r99,
+                    background:`linear-gradient(135deg, ${T.teal}, #0EC4B8)`, color:"#fff",
+                    border:"none", fontSize:14, fontWeight:600, cursor:"pointer",
+                    touchAction:"manipulation", fontFamily:T.ff }}>
+                  Als versendet markieren
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
       )}
     </>
   );

@@ -21,7 +21,7 @@ const STATUS_LABELS = {
   confirmed:        "Bestätigt",
   completed:        "Abgeschlossen",
   cancelled:        "Storniert",
-  holding:          "In Escrow",
+  holding:          "In Treuhand",
   released:         "Ausgezahlt",
   new:              "Neu",
   pending:          "Ausstehend",

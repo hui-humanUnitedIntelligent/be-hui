@@ -161,7 +161,7 @@ function MeineKaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
+      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
       .eq("customer_id", userId)
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
@@ -468,7 +468,7 @@ function MeineVerkaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, payout_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number)")
+      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, payout_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status)")
       .eq("seller_id", userId)
       .eq("orders.state", "paid")
       .order("created_at", { ascending: false });
@@ -509,7 +509,7 @@ function MeineVerkaeufe({ userId }) {
     if (escrow === "released" && payoutStatus === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
     else if (escrow === "released" && payoutStatus === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
     else if (escrow === "released") statusChips.push({ label: "Zahlung genehmigt", color: T.teal, bg: T.tealSoft });
-    if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
+    if (escrow === "disputed") statusChips.push({ label: "In Prüfung", color: T.red, bg: T.redSoft });
     if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
 
     // FIX (2026-08-16): Balanced-Growth-v1 — Impact = echter Impact-Anteil
@@ -583,7 +583,7 @@ function MeineVerkaeufe({ userId }) {
         if (escrow === "released" && s.payout_status === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
         else if (escrow === "released" && s.payout_status === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
         else if (escrow === "released") statusChips.push({ label: "Zahlung genehmigt", color: T.teal, bg: T.tealSoft });
-        if (escrow === "disputed") statusChips.push({ label: "Dispute offen", color: T.red, bg: T.redSoft });
+        if (escrow === "disputed") statusChips.push({ label: "In Prüfung", color: T.red, bg: T.redSoft });
         return (
           <TxCard
             key={s.id}
@@ -620,7 +620,7 @@ function MeineBuchungen({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("talent_bookings")
-      .select("id, talent_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, talents(title, images, category, location_type, location_address)")
+      .select("id, talent_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, purchase_status, talents(title, images, category, location_type, location_address)")
       .eq("customer_id", userId)
       .order("selected_date", { ascending: false });
 

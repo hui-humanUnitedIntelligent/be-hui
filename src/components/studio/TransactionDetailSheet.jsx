@@ -16,6 +16,7 @@ import { HUILogo } from "../brand/HUILogo.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatEUR } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import EmpfehlenModal from "../commerce/EmpfehlenModal.jsx";
 
 const T = {
   bg:       "#F7F5F0",
@@ -155,6 +156,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
   const [disputeNote, setDisputeNote] = useState("");
   const [showShipConfirm, setShowShipConfirm] = useState(false);
   const [showReceiveConfirm, setShowReceiveConfirm] = useState(false);
+  const [showEmpfehlen, setShowEmpfehlen] = useState(false);
 
   if (!tx) return null;
   const a = tx.actions || {};
@@ -431,46 +433,9 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   Bitte bestätige, dass du dein {tx.kindLabel === "Buchung" ? "Talent/Erlebnis erhalten hast" : "Werk erhalten hast"}.
                   Erst dann wird die Zahlung an den Anbieter freigegeben.
                 </div>
-                {showReceiveConfirm ? (
-                  <div style={{ marginBottom: 4 }}>
-                    <div style={{
-                      fontSize: 12.5, color: T.red, fontWeight: 600,
-                      marginBottom: 10, lineHeight: 1.5,
-                    }}>
-                      ⚠ Achtung: Wenn du bestätigst, dass du die Ware erhalten hast,
-                      wird die Zahlung an den Verkäufer freigegeben.
-                    </div>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button
-                        onClick={() => setShowReceiveConfirm(false)}
-                        style={{
-                          flex: 1, padding: "13px 0", borderRadius: T.r99,
-                          background: T.bgCard, color: T.inkSoft,
-                          border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
-                          cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
-                        }}
-                      >
-                        Abbrechen
-                      </button>
-                      <button
-                        onClick={a.onConfirmReceipt}
-                        disabled={a.confirmingReceipt}
-                        style={{
-                          flex: 1, padding: "13px 0", borderRadius: T.r99,
-                          background: a.confirmingReceipt ? "rgba(16,185,129,0.35)" : `linear-gradient(135deg, ${T.green}, #059669)`,
-                          color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                          cursor: a.confirmingReceipt ? "not-allowed" : "pointer", touchAction:"manipulation", fontFamily: T.ff,
-                          opacity: a.confirmingReceipt ? 0.6 : 1,
-                        }}
-                      >
-                        {a.confirmingReceipt ? "…" : "✓ Ja, erhalten"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
+                <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
                     <button
-                      onClick={() => setShowReceiveConfirm(true)}
+                      onClick={() => setShowEmpfehlen(true)}
                       style={{
                         flex: 1, padding: "13px 0", borderRadius: T.r99,
                         background: `linear-gradient(135deg, ${T.green}, #059669)`,
@@ -480,76 +445,12 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                     >
                       ✓ Ware erhalten
                     </button>
-                    <button
-                      onClick={() => setShowDisputeForm(true)}
-                      style={{
-                        flex: 1, padding: "13px 0", borderRadius: T.r99,
-                        background: T.bgCard, color: T.red,
-                        border: `1.5px solid ${T.redMid}`,
-                        fontSize: 14, fontWeight: 600, cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
-                      }}
-                    >
-                      ✕ Nicht erhalten
-                    </button>
                   </div>
-                )}
               </div>
             </Section>
           )}
 
-          {/* ── DISPUTE-FORM: "Nicht erhalten" → Begründung eingeben ── */}
-          {showDisputeForm && (
-            <Section>
-              <div style={{
-                background: T.redSoft, borderRadius: T.r12, padding: "16px 16px 12px",
-                border: `1.5px solid ${T.redMid}`,
-              }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: T.red, marginBottom: 6 }}>
-                  Nicht erhalten melden
-                </div>
-                <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 12 }}>
-                  Beschreibe kurz was passiert ist. Der Verkäufer wird benachrichtigt und kann Beweise vorlegen. Ein Admin prüft den Fall.
-                </div>
-                <textarea
-                  value={disputeNote}
-                  onChange={(e) => setDisputeNote(e.target.value)}
-                  placeholder="Was ist passiert?"
-                  rows={3}
-                  style={{
-                    width: "100%", resize: "none", border: `1px solid ${T.border}`,
-                    borderRadius: T.r8, padding: "10px 12px", fontSize: 14, color: T.ink,
-                    background: "#fff", outline: "none", marginBottom: 10,
-                    fontFamily: T.ff, lineHeight: 1.5, boxSizing: "border-box",
-                  }}
-                />
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    onClick={() => { setShowDisputeForm(false); setDisputeNote(""); }}
-                    style={{
-                      flex: 1, padding: "12px 0", borderRadius: T.r99,
-                      background: T.bgCard, color: T.inkSoft,
-                      border: `1px solid ${T.border}`, fontSize: 14, fontWeight: 600,
-                      cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
-                    }}
-                  >
-                    Abbrechen
-                  </button>
-                  <button
-                    onClick={handleDispute}
-                    disabled={a.disputing}
-                    style={{
-                      flex: 1, padding: "12px 0", borderRadius: T.r99,
-                      background: a.disputing ? "rgba(220,38,38,0.35)" : T.red,
-                      color: "#fff", border: "none", fontSize: 14, fontWeight: 600,
-                      cursor: a.disputing ? "not-allowed" : "pointer", touchAction:"manipulation", fontFamily: T.ff,
-                    }}
-                  >
-                    {a.disputing ? "…" : "Fall melden"}
-                  </button>
-                </div>
-              </div>
-            </Section>
-          )}
+          {/* Dispute-Form wurde durch EmpfehlenModal ersetzt (2026-08-19) */}
 
           {/* ── DISPUTE BEREITS OFFEN ── */}
           {a.disputeOpen && !a.receiptConfirmed && (
@@ -629,5 +530,21 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
     </div>
   );
 
-  return createPortal(content, document.body);
+  return (
+    <>
+      {createPortal(content, document.body)}
+      {showEmpfehlen && (
+        <EmpfehlenModal
+          orderId={tx.id && tx.kindLabel !== "Buchung" ? tx.id : null}
+          bookingId={tx.id && tx.kindLabel === "Buchung" ? tx.id : null}
+          itemTitle={tx.title || ""}
+          onClose={() => setShowEmpfehlen(false)}
+          onSuccess={() => {
+            setShowEmpfehlen(false);
+            onClose?.();
+          }}
+        />
+      )}
+    </>
+  );
 }
