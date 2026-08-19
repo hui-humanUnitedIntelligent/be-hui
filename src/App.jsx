@@ -376,6 +376,29 @@ function ProtectedRoute({ children }) {
 // ── DEEPLINK.1 (2026-07-09): Freundlicher Fallback fuer geloeschte/nicht
 // mehr verfuegbare Inhalte hinter einem Deep Link -- niemals eine weisse
 // Seite oder ein Fehlerbild, siehe Debug-Protokoll/Definition-of-Done. ──
+// ── IMPACT-SCROLL-FIX (2026-08-19, Michael-Report): Direktnavigation zu
+// /impact (aus ContentPreviewSheet, SystemBotProfile, DiscoverPage,
+// MomentContent — z.B. Klick auf ein eingereichtes Projekt oder auf eine
+// Resonanzzentrum-Mitteilung "Projekt abgelehnt") landete auf der
+// eigenstaendigen /impact-Route in App.jsx. ImpactPage.jsx selbst hat KEINEN
+// eigenen Scroll-Container (nur width/background/overflowX) -- sie verlaesst
+// sich normalerweise auf den .hui-scroll-Wrapper aus Home.jsx (Tab-Ansicht).
+// Bei der Direkt-Route fehlte dieser Wrapper komplett -> Seite liess sich
+// nicht scrollen. FIX additiv: eigener Scroll-Container NUR fuer die
+// Standalone-Route (analog WorkDetailPage.jsx-Pattern), ImpactPage.jsx bleibt
+// unveraendert -- die Tab-eingebettete Nutzung in Home.jsx ist nicht betroffen. ──
+function ImpactPageStandalone(props) {
+  return (
+    <div style={{
+      height: "100dvh", overflowY: "auto", overflowX: "hidden",
+      WebkitOverflowScrolling: "touch",
+      background: "#F9F7F4",
+    }}>
+      <ImpactPage {...props} />
+    </div>
+  );
+}
+
 function ContentUnavailablePage() {
   const navigate = useNavigate();
   return (
@@ -773,7 +796,7 @@ function AppRoutes() {
 
         {/* Impact — EAGER */}
         <Route path="/impact" element={
-          <ProtectedRoute><ImpactPage /></ProtectedRoute>
+          <ProtectedRoute><ImpactPageStandalone /></ProtectedRoute>
         }/>
 
         {/* Legacy redirect */}
