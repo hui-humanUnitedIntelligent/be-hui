@@ -110,7 +110,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
         .from("bug_reports")
         .insert({
           user_id: user.id,
-          username: user.display_name || user.username || user.email?.split("@")[0] || "Unbekannt",
+          username: user.user_metadata?.full_name || user.email?.split("@")[0] || "Unbekannt",
           email: user.email || null,
           device_model: deviceModel,
           device_os: deviceOS,
