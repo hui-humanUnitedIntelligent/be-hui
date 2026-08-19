@@ -26,6 +26,8 @@ import ProfileLauncher           from "../components/home/profile/ProfileLaunche
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.2 2026-07-22
 import { HuiShareModal } from "../components/shared/HuiShareModal.jsx";
+import BugReportButton from "../components/bug-report/BugReportButton.jsx";
+import BugReportModal from "../components/bug-report/BugReportModal.jsx";
 import { usePresence }             from "../lib/usePresence.js";
 import { StoryViewer }           from "../components/StoryBar.jsx";
 import { useProfileLauncher }    from "../components/home/profile/ProfileLauncher.jsx";
@@ -145,6 +147,7 @@ function HomeInner() {
   // "idle" | "tap" | "focus" | "exiting" | "hidden" | "entering"
   const [orbTransition, setOrbTransition] = useState("idle");
   const [shareItem, setShareItem] = useState(null); // SHARE.2: HUI Share Modal
+  const [showBugReport, setShowBugReport] = useState(false); // Bug-Report System (2026-08-19)
   // Steuert MeinHUI's eigene Exit-Choreografie: Content fadet zuerst, dann schrumpft der Orb
   const [meinHuiClosing, setMeinHuiClosing] = useState(false);
   // Deep-Link-Signal: "Menschen entdecken"-Button im Chat → öffnet MenschenAllModal
@@ -1009,6 +1012,16 @@ function HomeInner() {
         <HuiShareModal
           item={shareItem}
           onClose={() => setShareItem(null)}
+        />
+      )}
+
+      {/* ── Bug-Report System (2026-08-19) — Floating Bug-Käfer + Modal ── */}
+      <BugReportButton onPress={() => setShowBugReport(true)} />
+      {showBugReport && (
+        <BugReportModal
+          open={showBugReport}
+          onClose={() => setShowBugReport(false)}
+          user={user}
         />
       )}
 
