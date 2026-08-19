@@ -1,4 +1,5 @@
-import { HUIAwardIcon, HUIFinanzIcon, HUIImpactIcon, HUIKategorieIcon, HUISchreibenIcon, HUIStimmeIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIAwardIcon, HUIFinanzIcon, HUIImpactIcon, HUIKategorieIcon, HUISchreibenIcon, HUIStimmeIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { toast } from '../../lib/useToast.jsx';
 // MeineProjekteModal.jsx — "Meine unterstützten Projekte"
 // ══════════════════════════════════════════════════════
 // Zeigt finanzielle Unterstützungen aus project_support
@@ -398,6 +399,10 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
                       app={app}
                       onAddUpdate={(pid) => { setUpdateProject(pid); setShowUpdateSheet(true); }}
                       onMilestoneUpdate={(ms, pid) => { setMilestoneUpdate({ milestone: ms, projectId: pid }); }}
+                      onDelete={(deletedId) => {
+                        // Projekt aus der Liste entfernen
+                        setImpactApps(prev => prev.filter(a => a.id !== deletedId));
+                      }}
                     />
                   ))}
                 </>
@@ -696,10 +701,12 @@ function VoteCard({ vote: v, project: p, onGoToProject }) {
 }
 
 // ── Impact-Projekt-Karte ──────────────────────────────────────────
-function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
+function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate, onDelete }) {
   const [voteCount, setVoteCount] = useState(null);
   const [milestones, setMilestones] = useState([]);
   const [milestonesLoading, setMilestonesLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const fundingGoal = app.funding_goal || 0;
   const progressPct = fundingGoal > 0 ? Math.min(100, Math.round((app.current_amount_eur || 0) / fundingGoal * 100)) : 0;
 
@@ -736,6 +743,43 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
     return () => { dead2 = true; };
   }, [app.id]);
 
+  // ── Löschen-Handler (2026-08-19) ───────────────────────────────
+  // Soft-Delete: status='deleted' — schützt Voting-Historie (impact_votes)
+  // und Meilensteine (impact_milestones). Projekt verschwindet sofort aus
+  // Discover/Impact/Feed (alle filtern status != 'deleted').
+  // Hard-Delete nur wenn KEINE Stimmen und KEINE Meilensteine existieren.
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      // Prüfe: gibt es Stimmen oder Meilensteine?
+      const { count: voteCnt } = await supabase
+        .from("impact_votes")
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", app.id);
+      const { count: msCnt } = await supabase
+        .from("impact_milestones")
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", app.id);
+
+      if ((voteCnt || 0) > 0 || (msCnt || 0) > 0) {
+        // Soft-Delete — schützt Historie
+        await supabase.from("impact_applications").update({ status: "deleted" }).eq("id", app.id);
+        toast.success("Projekt wurde gelöscht (Daten geschützt).", { duration: 3000 });
+      } else {
+        // Hard-Delete — sicher, keine Abhängigkeiten
+        await supabase.from("impact_applications").delete().eq("id", app.id);
+        toast.success("Projekt wurde unwiderruflich gelöscht.", { duration: 3000 });
+      }
+      onDelete?.(app.id);
+    } catch(e) {
+      console.error("[MeineProjekte] delete:", e);
+      toast.error("Löschen fehlgeschlagen.", { duration: 3000 });
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  };
+
   const statusInfo = (() => {
     switch (app.status) {
       case "approved":  return { label: "Bewilligt",   color: T.green,  bg: T.greenSoft,  icon: "✅" };
@@ -749,6 +793,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
   const coverImg = app.cover_url || (app.media_urls && app.media_urls[0]) || null;
 
   return (
+    <>
     <div style={{
       background: T.bgCard, borderRadius: T.r16,
       border: `1px solid ${T.border}`, marginBottom: 10,
@@ -892,8 +937,91 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate }) {
             })
           )}
         </div>
+
+        {/* ── Aktionen: Bearbeiten / Löschen (nur Owner, 2026-08-19) ── */}
+        <div style={{ display:"flex", gap:8, marginTop:4 }}>
+          <button
+            onClick={() => onAddUpdate?.(app.id)}
+            style={{
+              flex:1, padding:"10px", borderRadius:T.r10,
+              background:T.tealSoft, border:`1px solid ${T.tealMid}`,
+              cursor:"pointer", fontFamily:"inherit",
+              fontSize:12, fontWeight:600, color:T.teal,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+              WebkitTapHighlightColor:"transparent",
+            }}
+          >
+            <HUISchreibenIcon size={14}/> Bearbeiten
+          </button>
+          <button
+            onClick={() => setConfirmDelete(true)}
+            style={{
+              flex:1, padding:"10px", borderRadius:T.r10,
+              background:"rgba(239,68,68,0.06)", border:"1px solid rgba(239,68,68,0.22)",
+              cursor:"pointer", fontFamily:"inherit",
+              fontSize:12, fontWeight:600, color:"#DC2626",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+              WebkitTapHighlightColor:"transparent",
+            }}
+          >
+            <HUIWarnIcon size={14}/> Löschen
+          </button>
+        </div>
       </div>
     </div>
+
+    {/* ── Lösch-Bestätigung (Portal, 2026-08-19) ── */}
+    {confirmDelete && createPortal(
+      <div onClick={() => !deleting && setConfirmDelete(false)} style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"rgba(0,0,0,0.55)", display:"flex",
+        alignItems:"center", justifyContent:"center", padding:24,
+      }}>
+        <div onClick={e=>e.stopPropagation()} style={{
+          background:"#fff", borderRadius:16,
+          padding:"24px 20px 20px", maxWidth:320, width:"100%",
+          boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        }}>
+          <div style={{ textAlign:"center", marginBottom:8, display:"flex",
+            justifyContent:"center", color:"#F59E0B" }}>
+            <HUIWarnIcon size={36}/>
+          </div>
+          <div style={{ fontSize:16, fontWeight:600, textAlign:"center", marginBottom:6, color:T.ink }}>
+            Projekt unwiderruflich löschen?
+          </div>
+          <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
+            <strong>„{app.project_name || "Dieses Projekt"}"</strong> wird dauerhaft gelöscht.
+            {voteCount > 0 && " Abgegebene Stimmen bleiben archiviert."}
+          </div>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            style={{
+              width:"100%", padding:"12px", borderRadius:99,
+              background: deleting ? "#ccc" : "#ff3b3b", border:"none",
+              color:"#fff", fontSize:14, fontWeight:600,
+              cursor: deleting ? "wait" : "pointer", fontFamily:"inherit",
+              marginBottom:8,
+            }}
+          >
+            {deleting ? "Wird gelöscht…" : "Ja, endgültig löschen"}
+          </button>
+          <button
+            onClick={() => setConfirmDelete(false)}
+            disabled={deleting}
+            style={{
+              width:"100%", padding:"12px", borderRadius:99,
+              background:"#f0f0ee", border:"none", color:"#444",
+              fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
+            }}
+          >
+            Abbrechen
+          </button>
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }
 
