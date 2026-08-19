@@ -107,13 +107,24 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     try {
       const { deviceModel, deviceOS } = await getDeviceInfo();
 
+      // Fallback (2026-08-19 v2): falls authProfile beim Öffnen des Modals noch
+      // nicht vollständig geladen war (user.email fehlt) — Auth-Session als
+      // zweite Quelle nachziehen, damit E-Mail nie leer bleibt wenn vermeidbar.
+      let fallbackEmail = null;
+      if (!user.email) {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          fallbackEmail = authUser?.email || null;
+        } catch (_) { /* nicht kritisch — bleibt null */ }
+      }
+
       // 1. Insert bug report
       const { data: report, error: dbErr } = await supabase
         .from("bug_reports")
         .insert({
           user_id: user.id,
-          username: user.display_name || user.username || user.email?.split("@")[0] || "Unbekannt",
-          email: user.email || null,
+          username: user.display_name || user.username || user.email?.split("@")[0] || fallbackEmail?.split("@")[0] || "Unbekannt",
+          email: user.email || fallbackEmail || null,
           device_model: deviceModel,
           device_os: deviceOS,
           app_version: APP_VERSION,
