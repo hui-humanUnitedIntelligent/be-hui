@@ -360,7 +360,11 @@ if (loadingConv && !activeConv) {
               setActiveConv(null);
               return;
             }
-            await deleteChat(activeConv.id, user.id);
+            const result = await deleteChat(activeConv.id, user.id);
+            if (result?.error) {
+              console.error("[deleteChat] Fehler:", result.error);
+              // Trotz Fehler lokal entfernen, damit der Nutzer nicht stecken bleibt
+            }
             setClosedChatIds(prev => new Set([...prev, activeConv.id]));
             setActiveConv(null);
           }}

@@ -219,6 +219,10 @@ export function useChatList(instanceId = "default") {
           event: "INSERT", schema: "public", table: "chats",
         }, () => load())
         .on("postgres_changes", {
+          // Chat gelöscht (Hard-DELETE 2026-08-19) → Liste neu laden
+          event: "DELETE", schema: "public", table: "chats",
+        }, () => load())
+        .on("postgres_changes", {
           // Neue Nachricht → unread_count neu berechnen
           event: "INSERT", schema: "public", table: "messages",
         }, (payload) => {
@@ -791,31 +795,35 @@ export async function closeChat(chatId, userId) {
 
 
 // ────────────────────────────────────────────────────────────────
-// deleteChat — Chat unwiderruflich löschen (soft-delete via UPDATE)
-// Da keine DELETE-RLS-Policy existiert, wird der Chat über UPDATE
-// auf state="deleted" gesetzt + alle Nachrichten als gelöscht markiert.
-// Für den Nutzer ist das unwiderruflich — Chat + Nachrichten verschwinden.
+// deleteChat — Chat unwiderruflich löschen (HARD DELETE, 2026-08-19 FIX)
+//
+// ROOT CAUSE (Bug-Report Michael 2026-08-19): Chat blieb nach "Löschen"
+// in der Liste. Ursache: chats_state_check CHECK-Constraint in der DB
+// erlaubt nur ('opened','archived','muted','blocked','closed') — NICHT
+// 'deleted'. Das alte Soft-Delete (UPDATE state='deleted') scheiterte
+// bei JEDEM Versuch an diesem Constraint (Postgres-Fehler), wurde aber
+// vom Aufrufer (ChatCenterOverlay) nie geprüft → der Chat verschwand
+// nur lokal (closedChatIds-Set) und kam nach Remount/Neuladen zurück.
+//
+// FIX: Echtes DELETE FROM chats (RLS-Policy chats_delete_own, angelegt
+// via Migration 118, 2026-08-19 in Produktion aktiviert). messages.chat_id
+// und chat_participants.chat_id haben beide ON DELETE CASCADE (Migration
+// 103) — beim Löschen des Chats werden alle Nachrichten und Teilnehmer-
+// Einträge automatisch von Postgres mitgelöscht. Kein manuelles
+// Vor-Update der messages-Tabelle mehr nötig.
 // ────────────────────────────────────────────────────────────────
 export async function deleteChat(chatId, userId) {
   if (!chatId || !userId) return { error: "missing_args" };
   try {
-    // 1. Alle Nachrichten als gelöscht markieren
-    await supabase
-      .from("messages")
-      .update({ is_deleted: true, text: null })
-      .eq("chat_id", chatId);
-
-    // 2. Chat auf state="deleted" setzen
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("chats")
-      .update({
-        state:     "deleted",
-        closed_at: new Date().toISOString(),
-      })
+      .delete({ count: "exact" })
       .eq("id", chatId)
-      .contains("participant_ids", [userId]);
+      .contains("participant_ids", [userId]); // Sicherheitscheck: nur eigene Chats
 
-    return { error: error?.message ?? null };
+    if (error) return { error: error.message };
+    if (!count) return { error: "not_found_or_forbidden" };
+    return { error: null };
   } catch (e) {
     return { error: e?.message ?? "unknown" };
   }
