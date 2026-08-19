@@ -1021,7 +1021,7 @@ function HomeInner() {
         <BugReportModal
           open={showBugReport}
           onClose={() => setShowBugReport(false)}
-          user={user}
+          user={currentUser}
         />
       )}
 
