@@ -292,12 +292,50 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   }, [user, talent, canSubmit, selectedDate, selectedSlot, participants, note, isHomeVisit, homeVisitAddressMissing, homeVisitOutOfRange, homeVisitDistanceKm, customerAddress, customerGeo]);
 
   const handleStripeSuccess = useCallback(async () => {
+    // FREIE-BUCHUNG-001 / TALENT-BOOKING-NOTIFY (2026-08-20):
+    // Buchungs-Bestätigung an den Talent-Inhaber (Initiator) senden.
+    // Format: "Buchung für [Talent-Titel] am [Datum] von [Kundenname]"
+    try {
+      // Kunden-Display-Namen laden
+      let customerName = user?.email?.split("@")[0] || "Ein Nutzer";
+      const { data: custProf } = await supabase
+        .from("profiles")
+        .select("display_name, username")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (custProf?.display_name) customerName = custProf.display_name;
+      else if (custProf?.username) customerName = custProf.username;
+
+      // Datum formatieren (z.B. "13. September")
+      let dateStr = selectedDate || "";
+      try {
+        const dt = new Date(selectedDate + "T00:00:00");
+        dateStr = formatDateDE(dt, { day: "numeric", month: "long" });
+      } catch {}
+
+      const talentTitle = talent?.title || "Talent-Angebot";
+      const timeStr = selectedSlot ? ` um ${selectedSlot.start}` : "";
+
+      await supabase.from("notifications").insert({
+        user_id:     talent.user_id,
+        type:       "talent_booking",
+        title:      "Neue Buchung",
+        body:       `Buchung für "${talentTitle}" am ${dateStr}${timeStr} von ${customerName}.`,
+        is_read:    false,
+        read:       false,
+        actor_id:   user.id,
+        created_at: new Date().toISOString(),
+        entity_id:  String(talent.id),
+        entity_type: "talent_booking",
+      });
+    } catch { /* non-blocking */ }
+
     // FIX (2026-08-13): Buchung zaehlt in rpc_get_orb_growth_stage als
     // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
     // 5 Min. auf altem Wert.
     invalidateOrbStageCache(user?.id);
     setStep("success");
-  }, [user?.id]);
+  }, [user?.id, user?.email, talent, selectedDate, selectedSlot]);
 
   const handleStripeError = useCallback(() => {
     // Fehler wird bereits innerhalb von StripePaymentStep angezeigt

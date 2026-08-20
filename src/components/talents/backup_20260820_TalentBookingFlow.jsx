@@ -25,6 +25,8 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import { IMPACT_RATE } from "../commerce/commerceUtils.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
+import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
+import { distanceKm } from "../../lib/geocoding.js";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
@@ -72,6 +74,13 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [participants, setParticipants] = useState(talent?.min_participants || 1);
   const [note,         setNote]         = useState("");
+  // AKTIONSRADIUS-ENFORCE-001 (2026-08-20, Michael-Vorgabe: "Der Aktionsradius
+  // muss zwingend eingehalten werden."): Adresse des Kunden bei Hausbesuchs-
+  // Angeboten -- Client-seitige Live-Anzeige der Distanz, harte Durchsetzung
+  // erfolgt zusaetzlich UND unabhaengig server-seitig in rpc_create_talent_booking.
+  const isHomeVisit = talent?.offers_home_visits === true;
+  const [customerAddress, setCustomerAddress] = useState("");
+  const [customerGeo, setCustomerGeo] = useState(null); // {lat, lng}
   const [availability, setAvailability] = useState(null);
   const [availLoading, setAvailLoading] = useState(false);
   const [errMsg,        setErrMsg]      = useState("");
@@ -202,6 +211,18 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     : false;
   const selectedDateFullNoSlots = !hasSlots && selectedDate ? (monthAvail[selectedDate]?.is_full === true) : false;
 
+  // AKTIONSRADIUS-ENFORCE-001: Distanz zwischen Anbieter-Standort und
+  // Kunden-Adresse. null solange keine Adresse gewaehlt oder Anbieter keinen
+  // Standort hinterlegt hat ("kein Raten, nur Fakten" -- ohne Koordinaten
+  // KEINE Distanz vortaeuschen).
+  const homeVisitDistanceKm = useMemo(() => {
+    if (!isHomeVisit || !customerGeo || talent?.lat == null || talent?.lng == null) return null;
+    return distanceKm(talent.lat, talent.lng, customerGeo.lat, customerGeo.lng);
+  }, [isHomeVisit, customerGeo, talent?.lat, talent?.lng]);
+  const homeVisitOutOfRange = isHomeVisit && homeVisitDistanceKm != null
+    && talent?.home_visit_radius_km != null && homeVisitDistanceKm > talent.home_visit_radius_km;
+  const homeVisitAddressMissing = isHomeVisit && !customerGeo;
+
   const canSubmit = !!selectedDate
     && (!hasSlots || !!selectedSlot)
     && !(selectedSlot && isSlotPastToday(selectedSlot, selectedDate)) // TIME-LOCK-001
@@ -209,13 +230,22 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     && (!isGruppe || remaining === null || remaining === Infinity || participants <= remaining)
     && !isFull
     && !selectedSlotFull
-    && !selectedDateFullNoSlots;
+    && !selectedDateFullNoSlots
+    && !homeVisitAddressMissing
+    && !homeVisitOutOfRange;
 
   const handleBuchen = useCallback(async () => {
     if (!talent) return;
     if (!user?.id) return setErrMsg("Bitte melde dich an.");
     if (user.id === talent.user_id) return setErrMsg("Du kannst dein eigenes Angebot nicht buchen.");
     if (!canSubmit) return;
+    // AKTIONSRADIUS-ENFORCE-001: Client-seitige Vorab-Pruefung fuer sofortiges
+    // Feedback -- die eigentliche, nicht umgehbare Durchsetzung passiert
+    // serverseitig in rpc_create_talent_booking (Client kann manipuliert werden).
+    if (isHomeVisit && homeVisitAddressMissing) return setErrMsg("Bitte gib deine Adresse an.");
+    if (isHomeVisit && homeVisitOutOfRange) {
+      return setErrMsg(`Deine Adresse liegt ${homeVisitDistanceKm?.toFixed(1)} km entfernt — außerhalb des Aktionsradius von ${talent.home_visit_radius_km} km.`);
+    }
 
     setSubmitting(true);
     setErrMsg("");
@@ -234,10 +264,19 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
           time_slot: selectedSlot,
           participants,
           customer_note: note.trim() || null,
+          customer_address: isHomeVisit ? (customerAddress.trim() || null) : null,
+          customer_lat: isHomeVisit ? (customerGeo?.lat ?? null) : null,
+          customer_lng: isHomeVisit ? (customerGeo?.lng ?? null) : null,
         }),
       });
       const result = await res.json();
       if (!res.ok || result.error) {
+        // AKTIONSRADIUS-ENFORCE-001: outside_radius-Fehler vom Server mit
+        // konkreten km-Angaben anreichern (server ist die Wahrheit, auch falls
+        // die Client-Vorab-Pruefung aus irgendeinem Grund nicht griff).
+        if (result?.code === "outside_radius" && result?.distance_km != null) {
+          throw new Error(`Deine Adresse liegt ${result.distance_km} km entfernt — außerhalb des Aktionsradius von ${result.radius_km} km.`);
+        }
         throw new Error(result.error || "Buchung fehlgeschlagen.");
       }
       setClientSecret(result.clientSecret);
@@ -250,7 +289,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     } finally {
       setSubmitting(false);
     }
-  }, [user, talent, canSubmit, selectedDate, selectedSlot, participants, note]);
+  }, [user, talent, canSubmit, selectedDate, selectedSlot, participants, note, isHomeVisit, homeVisitAddressMissing, homeVisitOutOfRange, homeVisitDistanceKm, customerAddress, customerGeo]);
 
   const handleStripeSuccess = useCallback(async () => {
     // FIX (2026-08-13): Buchung zaehlt in rpc_get_orb_growth_stage als
@@ -606,6 +645,49 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   </div>
                 )}
               </div>
+
+              {/* AKTIONSRADIUS-ENFORCE-001 (2026-08-20): Adresse des Kunden bei
+                  Hausbesuchs-Angeboten -- PFLICHT, sonst keine Buchung moeglich
+                  (siehe canSubmit + rpc_create_talent_booking serverseitig). */}
+              {isHomeVisit && (
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
+                    Deine Adresse — der Anbieter kommt zu dir
+                  </div>
+                  <LocationAutocompleteInput
+                    value={customerAddress}
+                    onChange={(v) => { setCustomerAddress(v); setCustomerGeo(null); }}
+                    onPick={(place) => { setCustomerAddress(place.label); setCustomerGeo({ lat: place.lat, lng: place.lng }); }}
+                    placeholder="Straße, Ort"
+                    style={{
+                      width: "100%", padding: "12px 14px", borderRadius: 14, fontSize: 14,
+                      border: `1.5px solid ${homeVisitOutOfRange ? "rgba(232,58,58,0.4)" : "rgba(26,26,46,0.12)"}`,
+                      background: "#fff", color: "#1A1A2E", outline: "none", boxSizing: "border-box",
+                    }}
+                  />
+                  {talent.home_visit_radius_km != null && (
+                    <div style={{ fontSize: 11.5, color: "rgba(26,26,46,0.45)", marginTop: 6 }}>
+                      Aktionsradius des Anbieters: {talent.home_visit_radius_km} km
+                    </div>
+                  )}
+                  {homeVisitDistanceKm != null && !homeVisitOutOfRange && (
+                    <div style={{
+                      marginTop: 8, fontSize: 12.5, color: "rgba(0,150,136,1)",
+                      background: "rgba(13,196,181,0.08)", borderRadius: 10, padding: "8px 12px",
+                    }}>
+                      ✓ {homeVisitDistanceKm.toFixed(1)} km entfernt — innerhalb des Aktionsradius.
+                    </div>
+                  )}
+                  {homeVisitOutOfRange && (
+                    <div style={{
+                      marginTop: 8, fontSize: 12.5, color: "#E83A3A",
+                      background: "rgba(232,58,58,0.07)", borderRadius: 10, padding: "8px 12px",
+                    }}>
+                      ✗ {homeVisitDistanceKm.toFixed(1)} km entfernt — außerhalb des Aktionsradius von {talent.home_visit_radius_km} km. Diese Buchung ist nicht möglich.
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Termin / Kalender — immer als Monatskalender, niemals nur input[type=date] */}
               <div style={{ marginBottom: 18 }}>
