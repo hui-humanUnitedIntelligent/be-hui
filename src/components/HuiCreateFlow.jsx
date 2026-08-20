@@ -23,6 +23,7 @@ import { supabase }  from "../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../lib/uploadUtils.js";
 import { useAuth }   from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
+import StoryComposer from "./StoryComposer.jsx";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
 } from "../lib/moodUtils";
@@ -1721,16 +1722,14 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
         />
       )}
 
-      {/* ── Screen 1b: Story (identisch zu Moment, aber story-type) ── */}
+      {/* ── Screen 1b: Story ── */}
       {screen === "story" && (
-        <ScreenMoment
+        <StoryComposer
           onClose={() => setScreen("select")}
-          onPublishDirect={() => {
+          onSuccess={() => {
+            setPostType("story");
             onSuccess?.();
-          }}
-          onDeepen={(mediaObj, type) => {
-            setMediaData(mediaObj);
-            setScreen("suggestion");
+            onClose?.();
           }}
         />
       )}

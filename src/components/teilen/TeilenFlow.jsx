@@ -11,6 +11,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { HUI } from "../../design/hui.design.js";
+import StoryComposer from "../StoryComposer.jsx";
 
 /* ── Tokens ── */
 const C = {
@@ -925,6 +926,15 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   
   };
 
+
+  if (step === 2 && form.mode === "story") {
+    return (
+      <StoryComposer
+        onClose={onClose}
+        onSuccess={() => onPublished?.({ mode: "story" })}
+      />
+    );
+  }
 
   const STEP_META = {
     1: { emoji:"🌿", hint:"W\u00e4hle aus" },
