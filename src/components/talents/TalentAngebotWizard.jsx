@@ -152,6 +152,13 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   );
   const [locationNotes, setLocationNotes] = useState(existingTalent?.location_notes || "");
   const [mapLink, setMapLink] = useState(existingTalent?.map_link || "");
+  // HAUSBESUCHE + AKTIONSRADIUS (2026-08-20, Michael-Feedback): "wenn das
+  // Talent zu jemanden geht (z.B. ein Saenger), soll 'Hausbesuche' + ein
+  // Radius erscheinen." Additiv zu location_type -- unabhaengig davon, ob
+  // "Vor Ort" oder "Hybrid" gewaehlt ist, kann das Talent zusaetzlich
+  // markieren, dass es zum Kunden kommt statt eine feste Adresse zu haben.
+  const [offersHomeVisits, setOffersHomeVisits] = useState(existingTalent?.offers_home_visits || false);
+  const [homeVisitRadiusKm, setHomeVisitRadiusKm] = useState(existingTalent?.home_visit_radius_km ?? "");
 
   // 4) Datum & Zeiten
   const [availableDates, setAvailableDates] = useState(existingTalent?.available_dates || []);
@@ -254,6 +261,8 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       lng: geoLng,
       location_notes: locationNotes.trim() || null,
       map_link: mapLink.trim() || null,
+      offers_home_visits: offersHomeVisits,
+      home_visit_radius_km: offersHomeVisits ? num(homeVisitRadiusKm) : null,
       available_dates: availableDates,
       available_time_slots: timeSlots,
       recurring: recurring || null,
@@ -396,7 +405,27 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
             {locationType !== "online" && (
               <>
-                <Lbl text="Adresse / Ort" hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ."/>
+                {/* HAUSBESUCHE + AKTIONSRADIUS (2026-08-20) -- z.B. ein Saenger,
+                    der zu Feiern/Events kommt, statt an einem festen Ort
+                    aufzutreten. Bestimmt, wie die Adresse darunter zu
+                    verstehen ist: fester Auftrittsort vs. Ausgangsort fuer
+                    den Radius. */}
+                <Lbl text="Hausbesuche" hint="Kommst du zum Kunden, statt dass er zu einem festen Ort kommt? (z.B. Saenger bei Feiern, Handwerker beim Kunden)"/>
+                <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+                  <Chip active={offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(true)}>Ja, ich komme zum Kunden</Chip>
+                  <Chip active={!offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(false)}>Nein, fester Ort</Chip>
+                </div>
+
+                {offersHomeVisits && (
+                  <>
+                    <Lbl text="Aktionsradius (km)" hint="Wie weit reist du von deinem Standort aus zum Kunden?"/>
+                    <input type="number" min="0" step="1" value={homeVisitRadiusKm} disabled={locked}
+                      onChange={e => setHomeVisitRadiusKm(e.target.value)} placeholder="z.B. 30"
+                      style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                  </>
+                )}
+
+                <Lbl text="Adresse / Ort" hint={offersHomeVisits ? "Dein Ausgangsort — von hier aus berechnet sich dein Aktionsradius." : "Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ."}/>
                 <LocationAutocompleteInput
                   value={locationAddress}
                   onChange={v => { setLocationAddress(v); setPickedGeo(null); }}
@@ -406,9 +435,13 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                   style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}
                 />
 
-                <Lbl text="Karten-Link (optional)"/>
-                <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}
-                  placeholder="https://maps.google.com/..." style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                {!offersHomeVisits && (
+                  <>
+                    <Lbl text="Karten-Link (optional)"/>
+                    <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}
+                      placeholder="https://maps.google.com/..." style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                  </>
+                )}
               </>
             )}
 

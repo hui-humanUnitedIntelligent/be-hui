@@ -123,6 +123,10 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   const locked = isApproved;
 
   const [step, setStep] = useState(1);
+  // KBD-INSET-FIX (2026-08-20, gleicher Root Cause wie WerkWizard/ExperienceWizard):
+  // Hook war importiert, aber nie aufgerufen — Wizard passte sich nie an offene
+  // Tastatur an. Fix am Root-Container unten (bottom: var(--hui-keyboard-inset)).
+  useKeyboardInset();
 
   // 1) Basisdaten
   const [title, setTitle] = useState(existingTalent?.title || "");
@@ -320,8 +324,11 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   return createPortal(
     <div data-hui-kbd-self-managed style={{
       // zIndex 10500 wie WerkWizard/ExperienceWizard — ueberschreibt BottomNav(10000) + ProfileLauncher(9500).
-      position: "fixed", inset: 0, zIndex: 10500, background: C.cream,
+      position: "fixed", top: 0, left: 0, right: 0,
+      bottom: "var(--hui-keyboard-inset, 0px)", // KBD-INSET-FIX (2026-08-20)
+      zIndex: 10500, background: C.cream,
       display: "flex", flexDirection: "column",
+      transition: "bottom .15s ease-out",
     }}>
       <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={isEdit}/>
 
