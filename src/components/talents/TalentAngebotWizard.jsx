@@ -16,6 +16,7 @@ import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { useScrollTopOnChange } from "../../hooks/useScrollTopOnChange.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -124,6 +125,8 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   const locked = isApproved;
 
   const [step, setStep] = useState(1);
+  const scrollRef = useRef(null);
+  useScrollTopOnChange(scrollRef, [step]);
   // KBD-INSET-FIX (2026-08-20, gleicher Root Cause wie WerkWizard/ExperienceWizard):
   // Hook war importiert, aber nie aufgerufen — Wizard passte sich nie an offene
   // Tastatur an. Fix am Root-Container unten (bottom: var(--hui-keyboard-inset)).
@@ -347,7 +350,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     }}>
       <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={isEdit}/>
 
-      <div className="hui-scroll" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "18px 20px" }}>
+      <div ref={scrollRef} className="hui-scroll" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "18px 20px" }}>
         {isApproved && (
           <div style={{ background: "rgba(14,196,184,0.10)", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 14 }}>
             ✅ Dieses Angebot ist bereits freigegeben und live. Änderungen sind erst nach Rückzug/Ablehnung wieder möglich.

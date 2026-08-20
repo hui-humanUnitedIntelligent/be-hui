@@ -2,6 +2,7 @@
 // HUI – Werk-Editor als 6-Schritte-Wizard
 import { HUIPrivatIcon, HUIVersandIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useScrollTopOnChange } from "../../hooks/useScrollTopOnChange.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -550,6 +551,8 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
 export default function WerkWizard({ userId, existingWork=null, onClose = () => {}, onSaved = () => {} }) {
   const TOTAL=6;
   const [step,setSt]=useState(1);
+  const scrollRef=useRef(null);
+  useScrollTopOnChange(scrollRef,[step]);
   const [saving,setSaving]=useState(false);
   const [saveError,setSaveError]=useState(null);
   // KBD-INSET-FIX (2026-08-20, Michael-Report): Hook war importiert, aber nie
@@ -891,7 +894,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       </div>
 
       {/* ── SCROLLBARER CONTENT ───────────────────────────── */}
-      <div className="hui-scroll" style={{
+      <div ref={scrollRef} className="hui-scroll" style={{
         flex:1,
         overflowY:"auto",
         WebkitOverflowScrolling:"touch",
