@@ -316,15 +316,10 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       });
     }
 
-    // 1c. MODERATION-HARD-BLOCK-001: Verstoss → nicht posten, Media löschen
+    // 1c. MODERATION-HARD-BLOCK-001: Verstoss → nicht posten, Media BEHALTEN als Beweis für Admin
     if (modResult.is_flagged) {
-      if (storagePath) {
-        try {
-          await supabase.storage.from("media").remove([storagePath]);
-        } catch (cleanupErr) {
-          console.warn("[HuiMoment] Storage-Cleanup fehlgeschlagen:", cleanupErr?.message);
-        }
-      }
+      // WICHTIG: Storage-Datei wird NICHT gelöscht — der Admin braucht das Bild/Video
+      // als Beweis im SADB "Inhaltsprüfung"-Dashboard (content_moderation.media_url).
       const blockErr = new Error(
         "Dieses Bild verstößt gegen unsere Richtlinien. Dein Account wurde bei einem Super-Admin gemeldet. Das Bild wurde nicht gepostet."
       );
