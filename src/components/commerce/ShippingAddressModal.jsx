@@ -311,7 +311,21 @@ export default function ShippingAddressModal({ onConfirm = () => {}, onCancel = 
         style={{
           width: "100%", maxWidth: 520,
           background: T.bg, borderRadius: "24px 24px 0 0",
-          maxHeight: "94vh", display: "flex", flexDirection: "column",
+          // KBD-INSET-FIX (2026-08-20, Michael-Report "zu hoch, nicht
+          // scrollbar"): Nur der AEUSSERE Backdrop schrumpfte bisher um
+          // den Keyboard-Inset (bottom:var(--hui-keyboard-inset)) -- das
+          // Sheet selbst blieb bei starrem maxHeight:94vh (94% der VOLLEN
+          // Bildschirmhoehe, die Tastatur schrumpft vh in dieser WebView
+          // NICHT). Bei flex+alignItems:"flex-end" ragte das zu hohe
+          // Sheet dadurch oben ueber den jetzt kleineren Backdrop hinaus --
+          // ohne Scroll-Moeglichkeit dorthin, da ausserhalb des Backdrops
+          // nichts liegt. Fix: Sheet-Maximalhoehe schrumpft jetzt IM
+          // GLEICHEN MASS wie der Backdrop, passt dadurch immer
+          // vollstaendig in den sichtbaren Bereich -- Ueberlauf wird
+          // stattdessen vom internen Body (overflowY:"auto") abgefangen.
+          maxHeight: "calc(94vh - var(--hui-keyboard-inset, 0px))",
+          display: "flex", flexDirection: "column",
+          transition: "max-height .15s ease-out",
           boxShadow: "0 -4px 32px rgba(26,26,24,0.20)",
         }}
       >
