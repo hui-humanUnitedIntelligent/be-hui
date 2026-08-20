@@ -881,10 +881,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   const [step, setSt]             = useState(1);
   const [saving, setSaving]       = useState(false);
   const [saveError, setSaveError] = useState(null);
-  // KBD-INSET-FIX (2026-08-20, gleicher Root Cause wie WerkWizard): Hook war
-  // importiert, aber nie aufgerufen — Wizard passte sich nie an offene
-  // Tastatur an. Fix am Root-Container unten (bottom: var(--hui-keyboard-inset)).
-  useKeyboardInset();
   // Praezise Koordinaten aus einem angetippten Autocomplete-Vorschlag (Ort),
   // siehe LocationAutocompleteInput.jsx -- direkt uebernommen statt erneut
   // zu geocodieren. Zurueckgesetzt sobald der Ort danach manuell bearbeitet wird.
@@ -1089,12 +1085,10 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
   return createPortal(
     <div data-hui-kbd-self-managed style={{
-      position: "fixed", top: 0, left: 0, right: 0,
-      bottom: "var(--hui-keyboard-inset, 0px)", // KBD-INSET-FIX (2026-08-20)
+      position: "fixed", inset: 0,
       zIndex: 10500,
       background: C.cream,
       display: "flex", flexDirection: "column",
-      transition: "bottom .15s ease-out",
     }}>
       {/* Header */}
       <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={!!existingExp}/>
