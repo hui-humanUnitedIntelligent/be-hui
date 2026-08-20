@@ -607,8 +607,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       height:"100dvh", overflowY:"auto", overflowX:"hidden",
       WebkitOverflowScrolling:"touch",
       background:C.warm,
-      fontFamily:"Inter,sans-serif",
-      paddingBottom:"calc(90px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px)))" }}>
+      fontFamily:"Inter,sans-serif" }}>
       <style>{CSS}</style>
       <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>
 
@@ -629,7 +628,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       <ImageGallery images={images} title={werk.title || "Werk"}/>
 
       {/* ── Content ── */}
-      <div style={{ padding:"0 0 120px", animation:"wdFadeUp 0.4s 0.1s both" }}>
+      <div style={{ padding:"0 0 24px", animation:"wdFadeUp 0.4s 0.1s both" }}>
 
         {/* Category + Price header */}
         <div style={{ padding:"20px 20px 0",
@@ -857,57 +856,60 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             </div>
           </div>
         )}
-      </div>
 
-      {/* ── Sticky Commerce Bar ── */}
-      {/* GRAU-WASCH-FIX (2026-08-18, Michael-Screenshot): bottom war bisher nur
-          safe-area-inset — ignorierte die volle Höhe der HUIBottomNavigation
-          (Orb-Überhang + Tabbar + Safe-Area, siehe NAV_CLEARANCE_CSS). Dadurch
-          überlappte dieser halbtransparente, geblurrte Commerce-Bar (zIndex
-          10500, höher als die Navbar mit 10000) sichtbar die oberen Icons/
-          Labels der Navbar — der halbtransparente Cream-Blur über den
-          Icons wirkte wie ein "grauer Wasch-Balken". Fix: bottom nutzt jetzt
-          NAV_CLEARANCE_CSS — der Bar sitzt jetzt vollständig OBERHALB der
-          Navbar, ohne jede Überlappung, exakt wie in
-          .agents/rules/no-crash-props.md / Pflicht-Abstand-Regel gefordert. */}
-      <div style={{ position:"fixed", bottom:`calc(${NAV_CLEARANCE_CSS} + 8px)`, left:"50%",
-        transform:"translateX(-50%)", width:"100%", maxWidth:680,
-        padding:"12px 20px", paddingBottom:12,
-        background:"rgba(249,247,244,0.96)", backdropFilter:"blur(16px)",
-        borderTop:`1px solid ${C.border}`,
-        borderRadius:"18px 18px 0 0",
-        boxShadow:"0 -4px 20px rgba(0,0,0,0.06)",
-        display:"flex", gap:10, zIndex:10500 }}>
-        <button
-          onClick={handleSave}
-          className="wd-tap"
-          style={{ flex:1, padding:"14px",
-            background:"none", border:`1.5px solid ${C.coral}55`,
-            borderRadius:16, color:C.coral, fontSize:14,
-            fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
-          {saved ? "Gemerkt ✓" : "Merken"}
-        </button>
-        <button
-          onClick={() => {
-            const authorInfo = creator ? {
-              id: creator.id || werk.user_id || werk.creator_id,
-              name: creator.full_name || creator.display_name || creator.username || null,
-              avatar: creator.avatar_url || null,
-            } : null;
-            const buyPayload = {...werk, img: images[0], price: priceStr, author: authorInfo};
-            onBuyWerk ? onBuyWerk(buyPayload) : onBuyWerk?.(buyPayload);
-          }}
-          className="wd-tap"
-          style={{ flex:2, padding:"14px",
-            background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
-            border:"none", borderRadius:16, color:"white",
-            fontSize:14, fontWeight: 600, cursor:"pointer",
-            fontFamily:"inherit",
-            boxShadow:`0 4px 18px ${C.coralGlow}` }}>
-          Jetzt kaufen ✦
-        </button>
-      </div>
+        {/* ── Commerce Bar (scrollt mit der Seite) ── */}
+        {/* SCROLL-FIX (2026-08-20, Michael-Feedback "bleibt fest verankert,
+            soll mit der Seite mitgehen"): War bisher position:"fixed" relativ
+            zum Viewport -- blieb dadurch beim Scrollen an einer festen
+            Bildschirmposition kleben und überdeckte darunterliegenden
+            Beschreibungstext (siehe Screenshot: Bar lag mitten über
+            "...ausdrucksstarke Holzmaserung..."). Fix: Bar ist jetzt ein
+            normales Element im Content-Fluss -- letztes Kind im
+            maxWidth:680-Wrapper, kein position:fixed/left/transform mehr
+            nötig (Breite ergibt sich automatisch aus dem Elternelement).
+            Sie erscheint dadurch nur noch EINMAL am Ende der Seite und
+            scrollt exakt wie der Rest des Inhalts mit. */}
+        <div style={{ margin:"24px 20px 0",
+          padding:"14px 16px",
+          background:C.card,
+          border:`1px solid ${C.border}`,
+          borderRadius:16,
+          display:"flex", gap:10 }}>
+          <button
+            onClick={handleSave}
+            className="wd-tap"
+            style={{ flex:1, padding:"14px",
+              background:"none", border:`1.5px solid ${C.coral}55`,
+              borderRadius:16, color:C.coral, fontSize:14,
+              fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
+            {saved ? "Gemerkt ✓" : "Merken"}
+          </button>
+          <button
+            onClick={() => {
+              const authorInfo = creator ? {
+                id: creator.id || werk.user_id || werk.creator_id,
+                name: creator.full_name || creator.display_name || creator.username || null,
+                avatar: creator.avatar_url || null,
+              } : null;
+              const buyPayload = {...werk, img: images[0], price: priceStr, author: authorInfo};
+              onBuyWerk ? onBuyWerk(buyPayload) : onBuyWerk?.(buyPayload);
+            }}
+            className="wd-tap"
+            style={{ flex:2, padding:"14px",
+              background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
+              border:"none", borderRadius:16, color:"white",
+              fontSize:14, fontWeight: 600, cursor:"pointer",
+              fontFamily:"inherit",
+              boxShadow:`0 4px 18px ${C.coralGlow}` }}>
+            Jetzt kaufen ✦
+          </button>
+        </div>
 
+        {/* Bottom-Spacer -- haelt die Commerce-Bar (jetzt im Content-Fluss)
+            frei von der fixen HUIBottomNavigation am Seitenende, analog zur
+            Pflicht-Abstand-Regel (.agents/rules/footer-navbar-zindex.md). */}
+        <div style={{ height:`calc(${NAV_CLEARANCE_CSS} + 16px)` }} />
+      </div>
       </div>
     </div>
   );
