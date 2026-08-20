@@ -419,7 +419,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                     Beispiel mit korrektem Umlaut "Sänger" behalten). */}
                 <Lbl text="Hausbesuche" hint="(z.B. Sänger bei Feiern, Handwerker beim Kunden)"/>
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-                  <Chip active={offersHomeVisits} disabled={locked} onClick={() => { setOffersHomeVisits(true); setLocationNotes(""); }}>Ja, ich komme zum Kunden</Chip>
+                  <Chip active={offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(true)}>Ja, ich komme zum Kunden</Chip>
                   <Chip active={!offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(false)}>Nein, fester Ort</Chip>
                 </div>
 
@@ -447,21 +447,15 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                     <Lbl text="Karten-Link (optional)"/>
                     <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}
                       placeholder="https://maps.google.com/..." style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
-
-                    {/* HINWEISE-ORT-SCOPE (2026-08-20, Michael-Korrektur): "Hinweise zum
-                        Ort" (z.B. Parkplatz, Stockwerk ohne Aufzug) ergeben nur bei einem
-                        FESTEN Ort Sinn -- bei Hausbesuchen (offersHomeVisits) kommt das
-                        Talent zum Kunden, der seine eigene Adresse kennt, daher hier
-                        entfernt. Deshalb innerhalb desselben !offersHomeVisits-Blocks wie
-                        der Karten-Link. */}
-                    <Lbl text="Hinweise zum Ort (optional)"/>
-                    <textarea value={locationNotes} onChange={e => setLocationNotes(e.target.value)} disabled={locked}
-                      placeholder="z.B. Parkplatz vorhanden, 2. Stock ohne Aufzug..." rows={3}
-                      style={{ ...INP, marginBottom: 14, resize: "vertical", background: locked ? "#f5f5f3" : "#fff" }}/>
                   </>
                 )}
               </>
             )}
+
+            <Lbl text="Hinweise zum Ort (optional)"/>
+            <textarea value={locationNotes} onChange={e => setLocationNotes(e.target.value)} disabled={locked}
+              placeholder="z.B. Parkplatz vorhanden, 2. Stock ohne Aufzug..." rows={3}
+              style={{ ...INP, marginBottom: 14, resize: "vertical", background: locked ? "#f5f5f3" : "#fff" }}/>
           </>
         )}
 
