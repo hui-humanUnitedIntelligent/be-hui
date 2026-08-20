@@ -347,10 +347,16 @@ function S3({ data, onChange, onNext }) {
 
 // Screen 4 – Preis & Verkauf
 function S4({ data, onChange, onNext }) {
+  // VERFUEGBARKEIT-VEREINFACHT (2026-08-20, Michael-Report): "Reserviert"/
+  // "Verkauft" ergaben in diesem Erstellungs-Schritt keinen Sinn -- beide
+  // Werte mappten ohnehin schon vorher 1:1 auf dasselbe for_sale=false
+  // (siehe Speicher-Logik unten), es gab also nie eine echte fachliche
+  // Unterscheidung dahinter. Auf Michaels Wunsch ersetzt durch eine
+  // Option, die tatsaechlich zum Erstellungs-Kontext passt: individuell
+  // gefertigte Werke (z.B. Moebel), die erst NACH einer Anfrage entstehen.
   const VERF=[
-    { id:"available", label:"Verfügbar zum Kauf",  sub:"Interessenten können direkt anfragen." },
-    { id:"reserved",  label:"Reserviert", sub:"Bereits für jemanden zurückgelegt." },
-    { id:"sold",      label:"Verkauft",   sub:"Das Werk wurde bereits verkauft." },
+    { id:"available",  label:"Verfügbar zum Kauf",       sub:"Interessenten können direkt anfragen." },
+    { id:"on_request",  label:"Auf Anfrage hergestellt",  sub:"Wird erst nach Bestellung individuell gefertigt." },
   ];
   return (
     <div>
@@ -487,6 +493,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
             <div style={{ fontSize:14, fontWeight: 600, color:C.teal, marginBottom:6 }}>{ps}</div>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
               {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>Verfügbar</span>}
+              {data.availability==="on_request"&&<span style={{ fontSize:11, fontWeight:600, color:C.teal, display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:C.teal, display:"inline-block" }}/>Auf Anfrage</span>}
               {data.versand&&<span style={{display:"flex",alignItems:"center",gap:3, fontSize:11, fontWeight:600, color:C.inkMid}}><HUIVersandIcon size={11}/>Versand möglich</span>}
               {data.abholung&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>🤝 Abholung möglich</span>}
             </div>
@@ -530,7 +537,10 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         stockCount: (!existingWork.is_unique && existingWork.stock_total)
           ? String(existingWork.stock_total) : "",
         price:existingWork.price||"", currency:"EUR",
-        availability:existingWork.for_sale?"available":"sold",
+        // "sold" existiert als Option nicht mehr (siehe VERFUEGBARKEIT-VEREINFACHT
+        // oben) -- Werke mit for_sale=false laden jetzt auf "on_request" statt
+        // auf einen inzwischen entfernten Options-Wert.
+        availability:existingWork.for_sale?"available":"on_request",
         breite:"", hoehe:"", tiefe:"", gewicht:"",
         material:existingWork.material||"",
         versand:existingWork.versand||false,
@@ -686,7 +696,10 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       stock_total,
       stock_available,
       price:        parseFloat(form.price) || null,
-      for_sale:     form.availability === "available",
+      // Beide Verfuegbarkeits-Optionen ("available" + "on_request") sind
+      // fuer Interessenten anfragbar/kaufbar -- der Unterschied ist rein
+      // informativ (fertig vorhanden vs. wird erst gefertigt), keine Sperre.
+      for_sale:     form.availability === "available" || form.availability === "on_request",
       sale_mode:    "fixed",
       materials:    form.material     || null,
       shipping:     !!form.versand,

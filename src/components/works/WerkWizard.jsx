@@ -684,6 +684,14 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       // JEDEM Speichern (Entwurf + Einreichen). Fix: creator_id = userId,
       // exakt wie in allen bisherigen DB-Zeilen (user_id === creator_id).
       creator_id:   userId,
+      // POST-TYPE-FIX (2026-08-20, Michael-Feedback): post_type wurde hier
+      // nie gesetzt -- die DB-Spalte fiel dadurch auf ihren Default zurueck
+      // (faelschlich 'moment' statt 'work'). WorkFlow.jsx (separater
+      // Creation-Flow) setzte es bereits korrekt -- hier additiv ergaenzt,
+      // analog zu useLiveTicker.js/WorkDetailPage.jsx, die post_type='work'
+      // als literalen Kontext-Wert erwarten (polymorphe Kommentare/
+      // Reaktionen/Live-Ticker-Filter).
+      post_type:    "work",
       title:        form.title        || "",
       description:  form.description  || null,
       caption:      form.shortDesc    || null,
