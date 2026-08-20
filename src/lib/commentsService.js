@@ -13,6 +13,40 @@
 // ══════════════════════════════════════════════════════════════════
 import { supabase } from "./supabaseClient.js";
 
+// ── CONTENT-MODERATION-004 (2026-08-21): Text-Moderation für Kommentare ──
+// Ruft dieselbe Edge Function 'moderate-content' auf wie HuiMomentSheet,
+// aber NUR mit Text (kein Media). Bei is_flagged=true: Kommentar wird
+// NICHT gepostet. Nutzer bekommt Fehlermeldung. Logging in content_moderation.
+async function moderateCommentText({ userId, text }) {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const resp = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/moderate-content`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          content_type: "comment",
+          user_id: userId,
+          text: text || null,
+          device_info: { platform: navigator.userAgent, source: "commentsService" },
+        }),
+      }
+    );
+    if (!resp.ok) { console.warn("[Comment-Moderation] Non-OK:", resp.status); return { is_flagged: false }; }
+    const json = await resp.json();
+    return json;
+  } catch (e) {
+    console.warn("[Comment-Moderation] fehlgeschlagen (nicht blockierend):", e?.message);
+    return { is_flagged: false };
+  }
+}
+
 const TABLE  = "post_comments";
 const MAX_DEPTH_FETCHES = 6; // Sicherheitsdeckel gegen endlose Nachlade-Schleifen
 
@@ -142,6 +176,17 @@ export async function countComments(postId, postType) {
 
 // ── Kommentar/Antwort erstellen ───────────────────────────────────────
 export async function createComment({ postId, postType, userId, text, parentCommentId = null, parentAuthorId = null, postAuthorId = null, senderName = null, postTitle = null }) {
+  // CONTENT-MODERATION-004: Text-Prüfung VOR Insert
+  const modResult = await moderateCommentText({ userId, text });
+  if (modResult.is_flagged) {
+    return {
+      data: null,
+      error: { message: "Dein Kommentar enthält Sprache, die gegen unsere Richtlinien verstößt und wurde nicht veröffentlicht." },
+      moderation_blocked: true,
+      moderation_flags: modResult.flag_categories || [],
+    };
+  }
+
   const { data, error } = await supabase.from(TABLE).insert({
     post_id: postId, post_type: postType, user_id: userId, text, parent_comment_id: parentCommentId,
   }).select().single();

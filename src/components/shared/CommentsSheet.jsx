@@ -561,7 +561,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     if (error || !data) {
       setItems(prev => prev.filter(c => c.id !== optimistic.id));
       setTotal(t => Math.max(0, t - 1));
-      toast.error("Kommentar konnte nicht gesendet werden.");
+      toast.error(error?.message || "Kommentar konnte nicht gesendet werden.");
       return;
     }
     setItems(prev => prev.map(c => c.id === optimistic.id ? { ...optimistic, id: data.id, created_at: data.created_at } : c));
@@ -602,7 +602,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     if (error || !data) {
       const removeOptim = (list) => list.map(c => ({ ...c, replies: (c.replies||[]).filter(r => r.id !== optimistic.id).map(r => r) })).map(c => ({ ...c, replies: removeOptim(c.replies||[]) }));
       setItems(prev => removeOptim(prev));
-      toast.error("Antwort konnte nicht gesendet werden.");
+      toast.error(error?.message || "Antwort konnte nicht gesendet werden.");
       return;
     }
     const patchId = (list) => list.map(c => c.id === optimistic.id ? { ...optimistic, id: data.id, created_at: data.created_at } : { ...c, replies: patchId(c.replies||[]) });
