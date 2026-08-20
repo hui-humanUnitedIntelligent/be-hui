@@ -468,6 +468,21 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 4: Datum & Zeiten ─────────────────────────── */}
         {step === 4 && (
           <>
+            {/* WIEDERHOLUNG-VOR-KALENDER (2026-08-20, Michael-Korrektur): Die
+                Wiederholungsauswahl steuert, ob der Kalender ueberhaupt
+                angezeigt wird (bei "frei" entfaellt er) -- deshalb logisch
+                zuerst getroffen werden, bevor der Kalender/Hinweis-Block
+                folgt. */}
+            <Lbl text="Wiederholung"/>
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
+              {TALENT_RECURRING_OPTIONS.map(o => (
+                <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => {
+                  setRecurring(o.value);
+                  if (o.value === "frei" && availableDates.length > 0) setAvailableDates([]);
+                }}>{o.label}</Chip>
+              ))}
+            </div>
+
             {/* FREIE-BUCHUNG-001 (2026-08-20): Bei "Freie Buchung" waehlt der
                 Kunde sein Wunschdatum selbst -- der Kalender hier waere
                 irrefuehrend (Termine, die dann ignoriert werden), deshalb
@@ -527,16 +542,6 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                 ))}
               </div>
             )}
-
-            <Lbl text="Wiederholung"/>
-            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
-              {TALENT_RECURRING_OPTIONS.map(o => (
-                <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => {
-                  setRecurring(o.value);
-                  if (o.value === "frei" && availableDates.length > 0) setAvailableDates([]);
-                }}>{o.label}</Chip>
-              ))}
-            </div>
 
             <Lbl text="Dauer (Minuten, optional)"/>
             <input type="number" min="0" step="5" value={durationMinutes} disabled={locked}
