@@ -633,10 +633,19 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       snapshotPayload = { admin_comment: null };
     }
     // ── Payload: nur Spalten die in public.works existieren (045) ──
-    // images als JSONB Array (kein JSON.stringify → kein 22P02)
+    // WERK-BILDER-SLIDE-FIX (2026-08-20, Michael-Feedback "Bilder lassen
+    // sich nicht sliden"): works.images ist eine text[]-Spalte (KEIN
+    // jsonb, anders als experiences.images/talents.images) -- Objekte
+    // {url,path} wurden hier bisher hineingeschrieben, PostgREST musste
+    // sie dafür pro Element zu einem JSON-STRING serialisieren
+    // ('{"url":"...","path":"..."}' als Text). Jeder Consumer, der
+    // images[] direkt als URL erwartete (Feed, WorkDetailPage), bekam
+    // dadurch keine gültige Bild-URL mehr -> nur cover_url zeigte an,
+    // kein Sliden möglich. Fix: nur noch Klartext-URL-Strings schreiben,
+    // exakt wie experiences/talents es der Leseseite liefern.
     const imagesArr = (form.images||[]).map(img =>
-      typeof img === "object" ? img : { url: img }
-    );
+      typeof img === "object" ? (img.url || "") : img
+    ).filter(Boolean);
 
     // ── Payload: exakt die Spalten die in public.works existieren ──
     // Bestätigt vorhanden: category, caption, cover_url, creator_id,

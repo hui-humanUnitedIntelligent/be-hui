@@ -2949,9 +2949,17 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
           gap:10, marginBottom:12 }}>
           {works.map((w, i) => {
             const isApproved = w.approval_status === "approved";
-            const isPending  = w.approval_status === "pending" || w.status === "pending_review";
             const isDraft    = w.status === "draft";
-            const isRejected = w.approval_status === "rejected" || w.status === "rejected";
+            // ENTWURF-BADGE-FIX (2026-08-20, Michael-Report "wird NICHT als
+            // Entwurf gekennzeichnet"): works.approval_status ist NOT NULL +
+            // CHECK IN ('pending','approved','rejected') -- kann bei einem
+            // Entwurf (status='draft') NIE leer/eigenständig sein, sondern
+            // steht durch den DB-Spalten-Default technisch immer auf
+            // 'pending', auch wenn der Entwurf nie eingereicht wurde. isDraft
+            // (status, die einzig verlässliche Quelle) muss deshalb VOR
+            // isPending geprüft werden -- sonst gewinnt fälschlich "⏳ Prüfung".
+            const isPending  = !isDraft && (w.approval_status === "pending" || w.status === "pending_review");
+            const isRejected = !isDraft && (w.approval_status === "rejected" || w.status === "rejected");
             const badgeBg    = isApproved ? "rgba(14,196,184,0.92)"
               : isPending  ? "rgba(234,179,8,0.92)"
               : isDraft    ? "rgba(120,120,128,0.85)"

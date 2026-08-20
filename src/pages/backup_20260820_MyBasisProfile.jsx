@@ -2068,6 +2068,67 @@ const TALENT_KATEGORIEN = [
 // entfernt (Wizard bleibt via "bearbeiten" weiterhin 1 Klick entfernt).
 // createPortal(document.body) + zIndex 10500 Pflicht fuer neue Modals
 // (siehe footer-navbar-zindex.md).
+function DraftActionSheet({ label, onPublish, onEdit, onDelete = null, onCancel }) {
+  // DRAFT-ACTION (2026-08-20, Michael-Request): Beim Klick auf einen Entwurf
+  // im Mein-Bereich erscheint dieses Sheet statt des normalen Aktions-Menüs.
+  // Optionen: Veröffentlichen (→ Einreichen zur Prüfung) oder Bearbeiten.
+  return createPortal(
+    <div style={{
+      position:"fixed", inset:0, zIndex:10500,
+      background:"rgba(0,0,0,0.55)", display:"flex",
+      alignItems:"center", justifyContent:"center", padding:"24px",
+    }} onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:"#fff", borderRadius:16, padding:"22px 20px 20px",
+        maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        fontFamily:"Inter, sans-serif",
+      }}>
+        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
+          {label} als Entwurf
+        </div>
+        <div style={{ fontSize:13, color:"#888", textAlign:"center", marginBottom:18, lineHeight:1.4 }}>
+          Was möchtest du mit diesem Entwurf tun?
+        </div>
+        <button onClick={onPublish} style={{
+          width:"100%", padding:"13px", borderRadius:99,
+          background:"#0EC4B8", border:"none", color:"#fff",
+          fontSize:14, fontWeight: 600, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:10,
+        }}>
+          Veröffentlichen
+        </button>
+        <button onClick={onEdit} style={{
+          width:"100%", padding:"13px", borderRadius:99,
+          background:"rgba(14,196,184,0.08)", border:"1.5px solid rgba(14,196,184,0.35)",
+          color:"#0EC4B8", fontSize:14, fontWeight: 600, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:10,
+        }}>
+          Bearbeiten
+        </button>
+        {onDelete && (
+          <button onClick={onDelete} style={{
+            width:"100%", padding:"13px", borderRadius:99,
+            background:"rgba(255,59,59,0.08)", border:"1.5px solid rgba(255,59,59,0.30)",
+            color:"#ff3b3b", fontSize:14, fontWeight: 600, cursor:"pointer",
+            fontFamily:"inherit", marginBottom:10,
+          }}>
+            Entwurf löschen
+          </button>
+        )}
+        <button onClick={onCancel} style={{
+          width:"100%", padding:"12px", borderRadius:99,
+          background:"#f0f0ee", border:"none", color:"#444",
+          fontSize:14, fontWeight: 600, cursor:"pointer",
+          fontFamily:"inherit",
+        }}>
+          Abbrechen
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, onCancel }) {
   return createPortal(
     <div style={{
@@ -2799,6 +2860,7 @@ function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = 
 function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
   const [confirmWork, setConfirmWork] = React.useState(null);
   const [choiceWork, setChoiceWork] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
+  const [draftWork, setDraftWork] = React.useState(null); // DRAFT-ACTION (2026-08-20)
   const { openRef } = useContentPreview();
 
   const handleDeleteClick = (e, w) => {
@@ -2832,6 +2894,28 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
     } catch(e) { console.error("Werk löschen:", e); }
   };
 
+  // DRAFT-PUBLISH (2026-08-20): Entwurf zur Prüfung einreichen — setzt
+  // status auf pending_review und schickt es an den SADB.
+  const publishDraft = async (w) => {
+    if (!w?.id) return;
+    try {
+      const { error } = await supabase.from("works").update({
+        status: "pending_review",
+        approval_status: "pending",
+        last_submitted_at: new Date().toISOString(),
+        is_update: false,
+        rejection_reason: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", w.id);
+      if (error) throw error;
+      toast.success("Werk wurde zur Veröffentlichung eingereicht.", { duration: 3000 });
+      onDeleteWerk(); // triggert reload im Parent
+    } catch(e) {
+      console.error("Draft publish:", e);
+      toast.error("Konnte nicht eingereicht werden.", { duration: 3000 });
+    }
+  };
+
   return (
     <>
     {confirmWork && (
@@ -2839,6 +2923,15 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
         werk={confirmWork}
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmWork(null)}
+      />
+    )}
+    {draftWork && (
+      <DraftActionSheet
+        label="Werk"
+        onPublish={() => { const w = draftWork; setDraftWork(null); publishDraft(w); }}
+        onEdit={() => { const w = draftWork; setDraftWork(null); onWerkWizard?.(w); }}
+        onDelete={() => { const w = draftWork; setDraftWork(null); setConfirmWork(w); }}
+        onCancel={() => setDraftWork(null)}
       />
     )}
     {choiceWork && (
@@ -2857,16 +2950,24 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
           {works.map((w, i) => {
             const isApproved = w.approval_status === "approved";
             const isPending  = w.approval_status === "pending" || w.status === "pending_review";
-            const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
-            const badgeText  = isApproved ? "✅ Live" : isPending ? "⏳ Prüfung" : "❌ Abgelehnt";
+            const isDraft    = w.status === "draft";
+            const isRejected = w.approval_status === "rejected" || w.status === "rejected";
+            const badgeBg    = isApproved ? "rgba(14,196,184,0.92)"
+              : isPending  ? "rgba(234,179,8,0.92)"
+              : isDraft    ? "rgba(120,120,128,0.85)"
+              : "rgba(255,80,80,0.92)";
+            const badgeText  = isApproved ? "✅ Live"
+              : isPending  ? "⏳ Prüfung"
+              : isDraft    ? "📝 Entwurf"
+              : "❌ Abgelehnt";
             return (
               <div key={w.id || i}
-                onClick={() => setChoiceWork(w)}
+                onClick={() => isDraft ? setDraftWork(w) : setChoiceWork(w)}
                 style={{
                   width:"100%", aspectRatio:"1/1",
                   borderRadius:T.r12, overflow:"hidden",
                   background:"#e8e4de", position:"relative", cursor:"pointer",
-                  boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
+                  boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : isDraft ? "0 0 0 2px rgba(120,120,128,0.5)" : "0 0 0 2px #ff5050",
                 }}>
                 {w.cover_url
                   ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
