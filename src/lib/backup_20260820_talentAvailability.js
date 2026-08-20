@@ -63,18 +63,10 @@ function parseIsoLocal(iso) {
  * einen falschen Tag zu raten — "keine Ausführung ohne Validierung").
  */
 export function expandTalentAvailableDates(talent, { windowStart, windowEnd } = {}) {
-  const recurring = talent?.recurring || "";
-  // FREIE-BUCHUNG-001 (2026-08-20): Bei "frei" ist available_dates IMMER
-  // irrelevant -- der Kunde waehlt sein Wunschdatum selbst (siehe
-  // TalentBookingFlow.jsx: hasDates=false -> AvailabilityCalendar mode="free").
-  // Bewusst VOR dem anchors-Check, damit auch versehentlich uebernommene/
-  // veraltete Anker-Termine (z.B. vom Wechsel eines anderen Wiederholungs-Musters
-  // auf "frei") niemals faelschlich den Buchungs-Kalender einschraenken.
-  if (recurring === "frei") return [];
-
   const anchors = Array.isArray(talent?.available_dates) ? talent.available_dates.filter(Boolean) : [];
   if (!anchors.length) return [];
 
+  const recurring = talent?.recurring || "";
   if (!recurring) return [...new Set(anchors)].sort();
 
   const today = todayIsoLocal();
@@ -123,12 +115,8 @@ export function expandTalentAvailableDates(talent, { windowStart, windowEnd } = 
 
 /** Menschenlesbare Kurzbeschreibung des Wiederholungsmusters für die Buchungsansicht. */
 export function describeRecurring(talent) {
-  const recurring = talent?.recurring || "";
-  // FREIE-BUCHUNG-001 (2026-08-20): eigener Text, unabhaengig von anchors
-  // (die bei "frei" ohnehin ignoriert werden, siehe expandTalentAvailableDates).
-  if (recurring === "frei") return "Flexible Terminwahl — du wählst dein Wunschdatum";
-
   const anchors = Array.isArray(talent?.available_dates) ? talent.available_dates.filter(Boolean) : [];
+  const recurring = talent?.recurring || "";
   if (!recurring || !anchors.length) return null;
 
   if (recurring === "weekly") {

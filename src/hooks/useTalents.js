@@ -172,6 +172,12 @@ export const TALENT_RECURRING_OPTIONS = [
   { value: "",        label: "Einmalig" },
   { value: "weekly",  label: "Wöchentlich" },
   { value: "monthly", label: "Monatlich" },
+  // FREIE-BUCHUNG-001 (2026-08-20, Michael-Feedback): Kunde waehlt sein
+  // Wunschdatum frei bei der Buchung, statt aus einem vom Anbieter
+  // vorgegebenen Kalender. Siehe talentAvailability.js (expandTalentAvailableDates
+  // + describeRecurring) fuer die Auswertungslogik, TalentBookingFlow.jsx nutzt
+  // dafuer den bereits existierenden AvailabilityCalendar mode="free".
+  { value: "frei",    label: "Freie Buchung" },
 ];
 
 export const TALENT_BOOKING_TYPES = [

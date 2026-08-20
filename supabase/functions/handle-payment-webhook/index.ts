@@ -20,6 +20,25 @@ const corsHeaders = {
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider()
 
+// FREIE-BUCHUNG-001 (2026-08-20, Michael-Feedback): Die Seller-Benachrichtigung
+// bei einer Talent-Buchung soll das Datum explizit im Text nennen
+// ("Buchung für X am 13. September von Y"), nicht nur in data/metadata
+// versteckt. Eigene, von Intl/Locale unabhaengige Formatierung (Deno-Runtime
+// garantiert kein de-DE-Locale-Datenset) -- analog zu AvailabilityCalendar.jsx
+// MONTH_NAMES, damit beide Stellen garantiert denselben Text erzeugen.
+const GERMAN_MONTH_NAMES = [
+  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+]
+function formatGermanDate(isoDate: string | null | undefined): string {
+  if (!isoDate) return 'einem noch offenen Termin'
+  const parts = String(isoDate).split('-').map(Number)
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return isoDate
+  const [, month, day] = parts
+  const monthName = GERMAN_MONTH_NAMES[month - 1]
+  return monthName ? `${day}. ${monthName}` : isoDate
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -205,10 +224,15 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
             other_user_id: null, // wird pro Notification unten gesetzt
           }
 
+          const tDateFormatted = formatGermanDate(tBooking.selected_date)
+
           await supabase.from('notifications').insert([
             {
               user_id: tBooking.seller_id, type: 'talent_booking_paid',
-              title: 'Neue Buchung 🎉', body: `${tBuyerName} hat „${tOfferTitle}" gebucht und bezahlt.`,
+              title: 'Neue Buchung 🎉',
+              // FREIE-BUCHUNG-001 (2026-08-20): Datum jetzt explizit im Text,
+              // Michael-Vorgabe-Format "Buchung für X am 13.September von Y".
+              body: `Buchung für „${tOfferTitle}" am ${tDateFormatted} von ${tBuyerName}.`,
               data: { ...tBookingMeta, other_user_id: tBooking.customer_id },
               metadata: { ...tBookingMeta, other_user_id: tBooking.customer_id },
               entity_id: tBooking.id, entity_type: 'talent_booking',

@@ -455,28 +455,41 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 4: Datum & Zeiten ─────────────────────────── */}
         {step === 4 && (
           <>
-            <Lbl text="Verfügbare Termine (optional)" hint="Im Kalender antippen, um Termine hinzuzufügen oder zu entfernen."/>
-            <div style={{
-              background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 14,
-              padding: "14px 12px", marginBottom: 12,
-            }}>
-              <AvailabilityCalendar
-                mode="edit"
-                selectedDates={availableDates}
-                onToggleDate={toggleDate}
-                disabled={locked}
-              />
-            </div>
-            {availableDates.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-                {availableDates.map(d => (
-                  <span key={d} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px",
-                    borderRadius: 99, background: "rgba(14,196,184,0.10)", fontSize: 12, color: C.teal, fontWeight: 600 }}>
-                    {d}
-                    {!locked && <span onClick={() => removeDate(d)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>}
-                  </span>
-                ))}
+            {/* FREIE-BUCHUNG-001 (2026-08-20): Bei "Freie Buchung" waehlt der
+                Kunde sein Wunschdatum selbst -- der Kalender hier waere
+                irrefuehrend (Termine, die dann ignoriert werden), deshalb
+                ausgeblendet und durch einen erklaerenden Hinweis ersetzt. */}
+            {recurring === "frei" ? (
+              <div style={{ background: "rgba(14,196,184,0.08)", border: `1.5px solid rgba(14,196,184,0.25)`,
+                borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: 12.5, color: C.inkMid, lineHeight: 1.5 }}>
+                Bei <strong style={{ color: C.teal }}>Freie Buchung</strong> entfällt die Terminauswahl hier — der Kunde wählt sein Wunschdatum direkt beim Buchen. Du bekommst danach eine Buchungsanfrage mit dem gewünschten Datum.
               </div>
+            ) : (
+              <>
+                <Lbl text="Verfügbare Termine (optional)" hint="Im Kalender antippen, um Termine hinzuzufügen oder zu entfernen."/>
+                <div style={{
+                  background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 14,
+                  padding: "14px 12px", marginBottom: 12,
+                }}>
+                  <AvailabilityCalendar
+                    mode="edit"
+                    selectedDates={availableDates}
+                    onToggleDate={toggleDate}
+                    disabled={locked}
+                  />
+                </div>
+                {availableDates.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                    {availableDates.map(d => (
+                      <span key={d} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px",
+                        borderRadius: 99, background: "rgba(14,196,184,0.10)", fontSize: 12, color: C.teal, fontWeight: 600 }}>
+                        {d}
+                        {!locked && <span onClick={() => removeDate(d)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             <Lbl text="Zeitfenster (optional)"/>
@@ -503,9 +516,12 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             )}
 
             <Lbl text="Wiederholung"/>
-            <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {TALENT_RECURRING_OPTIONS.map(o => (
-                <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => setRecurring(o.value)}>{o.label}</Chip>
+                <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => {
+                  setRecurring(o.value);
+                  if (o.value === "frei" && availableDates.length > 0) setAvailableDates([]);
+                }}>{o.label}</Chip>
               ))}
             </div>
 
