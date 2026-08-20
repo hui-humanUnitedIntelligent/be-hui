@@ -2,7 +2,7 @@
 // Route: /work/:id
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { safeQuery, extractWorkImageUrl } from "../lib/perfUtils";
+import { safeQuery } from "../lib/perfUtils";
 import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
@@ -61,13 +61,7 @@ function getImages(werk) {
   const imgs = [];
   if (werk.cover_url) imgs.push(werk.cover_url);
   if (Array.isArray(werk.images)) {
-    // WERK-BILDER-SLIDE-FIX (2026-08-20): extractWorkImageUrl parst sowohl
-    // Klartext-URLs als auch (Alt-Daten) JSON-stringifizierte {"url":...}
-    // Einträge in der text[]-Spalte works.images -- siehe perfUtils.js.
-    werk.images.forEach(entry => {
-      const u = extractWorkImageUrl(entry);
-      if (u && u !== werk.cover_url) imgs.push(u);
-    });
+    werk.images.forEach(u => { if (u && u !== werk.cover_url) imgs.push(u); });
   }
   return imgs.length > 0 ? imgs : [null];
 }

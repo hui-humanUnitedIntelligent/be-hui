@@ -1,7 +1,6 @@
 import { isProfileTalent, getFullDisplayName, getProfileRoleLabel } from "../../lib/profileUtils.js";
 import { OrbEngine } from "../../core/orbEngine.js";
 import { formatDateDE } from "../../lib/formatters.js";
-import { extractWorkImageUrl } from "../../lib/perfUtils.js";
 // HUI Pillars: dezente Grundpfeiler-Zuordnung für Feed-Items
 // Lazy-Import um keine Circular Dependencies zu erzeugen
 let _pillars = null;
@@ -95,10 +94,10 @@ function extractMedia(raw){
     return{type,url:su};
   };
   if(Array.isArray(raw.images)&&raw.images.length>0){
-    // WERK-BILDER-SLIDE-FIX (2026-08-20): extractWorkImageUrl statt naivem
-    // typeof-Check -- works.images (text[]) enthält bei Alt-Daten
-    // JSON-stringifizierte Objekte pro Element, siehe perfUtils.js.
-    return raw.images.map(img=>mk(extractWorkImageUrl(img))).filter(Boolean);
+    return raw.images.map(img=>{
+      const u=typeof img==="string"?img:(img&&img.url)?img.url:null;
+      return mk(u);
+    }).filter(Boolean);
   }
   if(Array.isArray(raw.media)&&raw.media.length>0){
     return raw.media.map(img=>{

@@ -226,39 +226,6 @@ export function optimizeImg(url, width = 400, quality = 75) {
   return url;
 }
 
-// WERK-BILDER-SLIDE-FIX (2026-08-20, Michael-Feedback "Bilder lassen sich
-// nicht sliden"): Root Cause war zweistufig:
-// (1) useFeedStream.js SELECT für 'works' holte nur cover_url/media_url,
-//     nie die images-Spalte -> Feed/Quick-Preview kannten nur 1 Bild.
-// (2) works.images ist in der DB eine text[]-Spalte (anders als
-//     experiences.images/talents.images, die jsonb sind). WerkWizard.jsx
-//     schickte Objekte {url,path} an diese text[]-Spalte -> Postgres/
-//     PostgREST serialisiert jedes Objekt zu einem JSON-STRING pro Array-
-//     Element ('{"url":"...","path":"..."}' als TEXT), da text[] keine
-//     Objekte aufnehmen kann. Jeder Consumer der images[] direkt als URL-
-//     String benutzte (unifiedNormalizer.extractMedia, WorkDetailPage.
-//     getImages) bekam dadurch keine gültige Bild-URL mehr.
-// Fix: (a) diese Hilfsfunktion parst beide Formen robust -- neue,
-//     korrekt geschriebene Klartext-URLs UND bereits vorhandene, defekt
-//     JSON-stringifizierte Altdaten. (b) WerkWizard.jsx schreibt ab jetzt
-//     nur noch Klartext-URL-Strings (kein Objekt mehr) in die Spalte.
-export function extractWorkImageUrl(entry) {
-  if (!entry) return null;
-  if (typeof entry === "string") {
-    const t = entry.trim();
-    // Alt-Daten: text[]-Element enthält einen JSON-String {"url":"...",...}
-    if (t.startsWith("{")) {
-      try {
-        const obj = JSON.parse(t);
-        return (obj && typeof obj.url === "string") ? obj.url : null;
-      } catch (_) { return null; }
-    }
-    return t || null;
-  }
-  if (typeof entry === "object" && typeof entry.url === "string") return entry.url;
-  return null;
-}
-
 // Spezifische Optimierungs-Funktionen für verschiedene Kontexte
 export function optimizeAvatar(url)  { return optimizeImg(url, 200); }
 export function optimizeCover(url)   { return optimizeImg(url, 800); }
