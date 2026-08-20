@@ -33,13 +33,15 @@ export default function OTAUpdateBanner() {
 
   if (!update || !Capacitor.isNativePlatform()) return null;
 
-  // OTA-UPDATE-LOOP-001 FIX (2026-08-20): reload() entfernt.
-  // Das native Plugin (autoUpdate:true) installiert Updates selbstständig.
-  // Der Banner ist rein informativ — kein manueller Eingriff mehr.
   async function applyNow() {
     setReloading(true);
-    // Nur visuelles Feedback — das Plugin macht die Installation.
-    setTimeout(() => setReloading(false), 2000);
+    try {
+      await CapacitorUpdater.reload();
+      // reload() startet die WebView neu — dieser Code läuft danach i.d.R. nicht mehr weiter.
+    } catch (err) {
+      console.error("[OTA] Reload fehlgeschlagen:", err);
+      setReloading(false);
+    }
   }
 
   return createPortal(

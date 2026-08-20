@@ -1,26 +1,32 @@
 // src/components/system/OTAUpdatePopup.jsx
 // ═══════════════════════════════════════════════════════════════════
-// OTA-Update-Popup v2 (2026-08-20)
+// OTA-Update-Popup (2026-08-11)
 // ═══════════════════════════════════════════════════════════════════
-// OTA-UPDATE-LOOP-001 FIX: Das Popup war vorher der DRITTE konkurrierende
-// Update-Pfad — es rief bei Klick CapacitorUpdater.download()+set()+reload()
-// auf, ZUSÄTZLICH zum nativen autoUpdate:true UND zum JS-autoCheckOTA().
-// Das hat den Bundle-Storage konkurrierend beschrieben → Race Condition.
+// WARUM: Wenn die App bereits im Hintergrund läuft und der Nutzer sie
+// wieder in den Vordergrund holt (Resume), soll ein Top-Down-Popup
+// erscheinen das ihm mitteilt: "Neues Update verfügbar". Das Popup
+// slided von oben nach unten ein, ist 6 Sekunden sichtbar und
+// verschwindet dann automatisch. Bei Klick darauf wird das Update
+// SOFORT installiert (CapacitorUpdater.reload()).
 //
-// NEU: Das Popup ist jetzt REIN INFORMATIV. Es zeigt dem Nutzer beim Resume
-// ("App kommt in den Vordergrund"), dass ein Update verfügbar ist und dass
-// es automatisch im Hintergrund installiert wird. Es löst KEINE Bundle-
-// Mutation mehr aus. Die Installation liegt exklusiv beim nativen Plugin
-// (autoUpdate:true in capacitor.config.json).
+// ARCHITEKTUR:
+// - Nutzt document.visibilitychange (Standard Web API) für Resume-Erkennung
+// - Auf nativ: zusätzlich Capacitor App 'resume' Event (registerPlugin)
+// - Beim Resume: fetch app-version.json → compareVersions
+// - Wenn neuer: Popup anzeigen (slide-down Animation, 6s Auto-Hide)
+// - Klick → CapacitorUpdater.download + set + reload
+// - KEINE Änderung am bestehenden OTAUpdateBanner (unten, permanent)
+//   — diese Komponente ist rein ADDITIV (NO-REGRESSION-PROTECTION).
 // ═══════════════════════════════════════════════════════════════════
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Capacitor, registerPlugin } from "@capacitor/core";
+import { CapacitorUpdater } from "@capgo/capacitor-updater";
 import { APP_VERSION } from "../../version.js";
 
 const UPDATE_URL = "https://be-hui.vercel.app/app-version.json";
-const POPUP_DURATION_MS = 6000;
+const POPUP_DURATION_MS = 6000; // 2026-08-14: verdoppelt (Michael-Feedback) — vorher 3000ms
 const ANIM_MS = 300;
 
 const CSS = `
@@ -63,12 +69,13 @@ export default function OTAUpdatePopup() {
   const [show, setShow] = useState(false);
   const [closing, setClosing] = useState(false);
   const [version, setVersion] = useState(null);
+  const [installing, setInstalling] = useState(false);
   const hideTimerRef = useRef(null);
   const resumeCheckRef = useRef(false); // debounce
 
   injectCSS();
 
-  // ── Popup anzeigen + Auto-Hide nach 6s ──
+  // ── Popup anzeigen + Auto-Hide nach 3s ──
   const showPopup = useCallback(function(ver) {
     setVersion(ver);
     setClosing(false);
@@ -87,7 +94,7 @@ export default function OTAUpdatePopup() {
     setTimeout(function() { setShow(false); setClosing(false); }, ANIM_MS);
   }, []);
 
-  // ── Update-Info lesen (beim Resume) — REIN INFORMATIV ──
+  // ── Update prüfen (beim Resume) ──
   const checkForUpdate = useCallback(async function() {
     try {
       const resp = await fetch(UPDATE_URL, { cache: "no-store" });
@@ -108,6 +115,7 @@ export default function OTAUpdatePopup() {
   useEffect(function() {
     function onVisibility() {
       if (document.visibilityState !== "visible") return;
+      // Debounce: verhindere Mehrfach-Check bei schn visibilitychange-Feuern
       if (resumeCheckRef.current) return;
       resumeCheckRef.current = true;
       setTimeout(function() { resumeCheckRef.current = false; }, 2000);
@@ -116,6 +124,7 @@ export default function OTAUpdatePopup() {
 
     document.addEventListener("visibilitychange", onVisibility, { passive: true });
 
+    // Auf nativ: App 'resume' Event (zusätzlich zu visibilitychange)
     let cleanup = null;
     if (Capacitor.isNativePlatform()) {
       AppPlugin.addListener("resume", function() {
@@ -135,11 +144,36 @@ export default function OTAUpdatePopup() {
     };
   }, [checkForUpdate]);
 
+  // ── Klick → Update sofort installieren ──
+  const installNow = useCallback(async function() {
+    if (installing) return;
+    setInstalling(true);
+    try {
+      const resp = await fetch(UPDATE_URL, { cache: "no-store" });
+      if (!resp.ok) return;
+      const data = await resp.json();
+      const bundleUrl = data.url;
+      const ver = data.version;
+      if (!bundleUrl || !ver) return;
+
+      const update = await CapacitorUpdater.download({
+        url: bundleUrl,
+        version: ver,
+      });
+      await CapacitorUpdater.set({ id: update.id });
+      // reload wendet das neue Bundle sofort an
+      await CapacitorUpdater.reload();
+    } catch (err) {
+      console.error("[OTA-Popup] Install fehlgeschlagen:", err);
+      setInstalling(false);
+    }
+  }, [installing]);
+
   if (!show) return null;
 
   return createPortal(
     React.createElement("div", {
-      onClick: dismiss,
+      onClick: installNow,
       style: {
         position: "fixed",
         top: 0, left: 0, right: 0,
@@ -147,7 +181,7 @@ export default function OTAUpdatePopup() {
         padding: "calc(env(safe-area-inset-top, 0px) + 8px) 12px 0",
         display: "flex",
         justifyContent: "center",
-        cursor: "pointer",
+        cursor: installing ? "default" : "pointer",
         fontFamily: "Inter, sans-serif",
         animation: closing
           ? `huiOtaSlideUp ${ANIM_MS}ms ease both`
@@ -156,6 +190,8 @@ export default function OTAUpdatePopup() {
     },
       React.createElement("div", {
         style: {
+          // 2026-08-14 (Michael-Feedback): freundlicher — weißer Hintergrund
+          // statt dunkel, schwarze Schrift statt weiß, weichere Rundung/Schatten.
           background: "#FFFFFF",
           color: "#1A1D23",
           borderRadius: "0 0 20px 20px",
@@ -167,7 +203,7 @@ export default function OTAUpdatePopup() {
           border: "1px solid rgba(14,196,184,0.16)",
           maxWidth: 420,
           width: "100%",
-          pointerEvents: "none",
+          pointerEvents: "none", // Klick geht aufs Parent
         },
       },
         React.createElement("div", {
@@ -188,12 +224,16 @@ export default function OTAUpdatePopup() {
           React.createElement("div", {
             style: { fontSize: 14, fontWeight: 600, lineHeight: 1.25, color: "#1A1D23" },
           },
-            "Neues Update verfügbar"
+            installing
+              ? "Update wird installiert…"
+              : "Neues Update verfügbar"
           ),
           React.createElement("div", {
             style: { fontSize: 12, opacity: 0.62, lineHeight: 1.3, marginTop: 2, color: "#1A1D23" },
           },
-            "v" + APP_VERSION + " → v" + (version || "?") + " · Wird automatisch installiert"
+            installing
+              ? "Bitte warten — App startet gleich neu"
+              : "v" + APP_VERSION + " → v" + (version || "?") + " · Tippen zum Installieren"
           )
         )
       )

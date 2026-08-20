@@ -1,29 +1,34 @@
 // ══════════════════════════════════════════════════════════
-// src/lib/otaUpdate.js — OTA Update System v2 (2026-08-08)
+// src/lib/otaUpdate.js — OTA Update System v3 (2026-08-20)
 // ══════════════════════════════════════════════════════════
 // Over-the-Air Updates für JS/CSS/HTML Änderungen.
-// Neue Web-Bundles werden im Hintergrund heruntergeladen und
-// beim nächsten App-Start angewendet — KEINE APK-Neuinstallation nötig.
 //
-// ARCHITEKTUR (v2):
-// - autoUpdate: false im native Plugin (kein unkontrolliertes Download)
-// - initOTA(): notifyAppReady() — MUSS als Erstes nach Start gerufen werden
-// - autoCheckOTA(): Background-Check nach 3s Verzögerung (nicht blockierend)
-//   → Vergleicht serverVersion > APP_VERSION (unsere eigene Logik)
-//   → Wenn neuer: Download im Hintergrund + "Update bereit" Event
-//   → Beim nächsten Start aktiv (kein mid-session reload!)
-// - checkForUpdate(): Manueller Check für Settings-Button
+// ROOT-CAUSE-FIX (2026-08-20, OTA-UPDATE-LOOP-001):
+// capacitor.config.json hat "CapacitorUpdater.autoUpdate: true" gesetzt.
+// Laut offizieller Capgo-Doku (https://capgo.app/docs/plugins/updater/settings/,
+// https://github.com/Cap-go/capacitor-updater) bedeutet autoUpdate:true:
+// Das native Plugin lädt und setzt neue Bundles VOLLSTÄNDIG SELBST — auf
+// Basis von updateUrl im capacitor.config.json. Der offizielle "manuelle"
+// Modus (eigener JS-Code ruft CapacitorUpdater.download()/.set() auf) ist
+// NUR für autoUpdate:false vorgesehen ("Manually control the entire update
+// process — set autoUpdate to false").
 //
-// WORKFLOW:
-// 1. release.sh patch → Version 1.4.7 → APK gebaut, bundle.zip + app-version.json auf Vercel
-// 2. Nutzer startet App (v1.4.7) → autoCheckOTA nach 3s
-// 3. Server sagt v1.4.8 → compareVersions(1.4.8, 1.4.7) > 0 → TRUE
-// 4. Download bundle.zip im Hintergrund → CapacitorUpdater.set()
-// 5. Kleines Banner: "Update v1.4.8 bereit — wird beim nächsten Start aktiv"
-// 6. Nutzer schließt App, öffnet wieder → v1.4.8 ist aktiv
+// Vorher liefen HIER GLEICHZEITIG drei Update-Pfade:
+// 1. Nativer Plugin-Auto-Update (capacitor.config.json autoUpdate:true)
+// 2. autoCheckOTA() — JS-Code rief ZUSÄTZLICH manuell download()+set() auf
+// 3. OTAUpdatePopup.jsx installNow() — rief bei Tap NOCHMAL download()+set() auf
 //
-// app-version.json Format (wird von generate-ota-bundle.sh generiert):
-// { "version": "1.4.7", "url": "https://be-hui.vercel.app/bundle.zip", "checksum": "..." }
+// Diese Doppel/Dreifach-Steuerung hat denselben nativen Update-Storage
+// gleichzeitig beschrieben → Race Condition. Symptom (bestätigt von Michael,
+// 2026-08-20): App blieb dauerhaft auf v2.1.310 hängen, obwohl der Server
+// bereits v2.1.313 auslieferte — das Plugin fiel nach der korrupten
+// Doppel-Installation auf das letzte saubere "known good" Bundle zurück.
+//
+// FIX: JS-seitiges manuelles download()/set() komplett entfernt. Die
+// Bundle-Verwaltung (Download, Set, Rollback-Schutz) liegt jetzt exklusiv
+// beim nativen Plugin (autoUpdate:true). JS ruft NUR NOCH notifyAppReady()
+// (Pflicht — sonst Rollback nach 3 Crashes) und liest optional den Status
+// für die Settings-Anzeige (rein informativ, keine Bundle-Mutation mehr).
 // ══════════════════════════════════════════════════════════
 
 import { Capacitor } from "@capacitor/core";
@@ -35,6 +40,7 @@ const UPDATE_URL = "https://be-hui.vercel.app/app-version.json";
 // ── 1. initOTA — MUSS als Erstes nach App-Start gerufen werden ──
 // Sagt dem Plugin: "Diese Version lebt, kein Rollback nötig."
 // Nach 3 Crashes ohne notifyAppReady → automatischer Rollback.
+// UNVERÄNDERT KRITISCH — bleibt der einzige Pflicht-Call.
 export async function initOTA() {
   if (!Capacitor.isNativePlatform()) {
     return { available: false, current: APP_VERSION };
@@ -52,59 +58,12 @@ export async function initOTA() {
   }
 }
 
-// ── 2. autoCheckOTA — Automatischer Background-Check nach App-Start ──
-// Läuft nach 3s Verzögerung (UI ist bereits gerendert).
-// Blockiert NICHT den App-Start. Lädt nur herunter wenn serverVersion > APP_VERSION.
-// Dispatched CustomEvent 'ota:update-ready' wenn ein Update heruntergeladen wurde.
-export async function autoCheckOTA() {
-  if (!Capacitor.isNativePlatform()) return;
-
-  // 3s Verzögerung — UI zuerst rendern lassen
-  await new Promise(r => setTimeout(r, 3000));
-
-  try {
-    const resp = await fetch(UPDATE_URL, { cache: "no-store" });
-    if (!resp.ok) {
-      return;
-    }
-    const data = await resp.json();
-    const serverVersion = data.version;
-    const bundleUrl = data.url;
-
-    if (!serverVersion || !bundleUrl) {
-      return;
-    }
-
-    // KRITISCH: Nur herunterladen wenn serverVersion > APP_VERSION
-    // (nicht >=, nicht == — nur strikt größer)
-    const isNewer = compareVersions(serverVersion, APP_VERSION) > 0;
-
-    if (!isNewer) {
-      return;
-    }
-
-
-    // Download im Hintergrund
-    const update = await CapacitorUpdater.download({
-      url: bundleUrl,
-      version: serverVersion,
-    });
-
-    // Set als aktives Bundle für den nächsten Start
-    await CapacitorUpdater.set({ id: update.id });
-
-
-    // UI informieren (InAppNotificationBanner oder ähnliches kann darauf hören)
-    window.dispatchEvent(new CustomEvent("ota:update-ready", {
-      detail: { version: serverVersion, current: APP_VERSION }
-    }));
-  } catch (err) {
-    console.error("[OTA] Auto-Check fehlgeschlagen:", err);
-  }
-}
-
-// ── 3. Manuelles Update-Check — für Settings "Nach Updates suchen" ──
-export async function checkForUpdate() {
+// ── 2. checkForUpdateInfo — REIN INFORMATIV für Settings-Anzeige ──
+// Liest NUR app-version.json + native Plugin-Status. Löst NIE mehr
+// download()/set() aus (das übernimmt jetzt exklusiv autoUpdate:true).
+// Zeigt an, ob der Server eine neuere Version hat, informiert den Nutzer
+// aber, dass die Installation automatisch im Hintergrund läuft.
+export async function checkForUpdateInfo() {
   if (!Capacitor.isNativePlatform()) {
     return { available: false, reason: "web", current: APP_VERSION };
   }
@@ -116,9 +75,8 @@ export async function checkForUpdate() {
     }
     const data = await resp.json();
     const serverVersion = data.version;
-    const bundleUrl = data.url;
 
-    if (!serverVersion || !bundleUrl) {
+    if (!serverVersion) {
       return { available: false, reason: "invalid_response", current: APP_VERSION };
     }
 
@@ -128,20 +86,12 @@ export async function checkForUpdate() {
       return { available: false, current: APP_VERSION, latest: serverVersion };
     }
 
-    const update = await CapacitorUpdater.download({
-      url: bundleUrl,
-      version: serverVersion,
-    });
-
-    await CapacitorUpdater.set({ id: update.id });
-
     return {
       available: true,
-      downloaded: true,
+      downloaded: false,
       current: APP_VERSION,
       latest: serverVersion,
-      bundleId: update.id,
-      message: "Update v" + serverVersion + " heruntergeladen — wird beim nächsten Start aktiv.",
+      message: "Update v" + serverVersion + " verfügbar — wird automatisch im Hintergrund installiert.",
     };
   } catch (err) {
     console.error("[OTA] Update-Check fehlgeschlagen:", err);
@@ -153,14 +103,12 @@ export async function checkForUpdate() {
   }
 }
 
-// ── 4. Versions-Vergleich (semver) ──
+// Rückwärtskompatibler Alias für bestehende Aufrufer (SettingsModal.jsx) —
+// gleiche Signatur wie vorher, aber ohne Bundle-Mutation.
+export const checkForUpdate = checkForUpdateInfo;
+
+// ── 3. Versions-Vergleich (semver) ──
 // Gibt zurück: 1 wenn a > b, -1 wenn a < b, 0 wenn gleich
-// FIX (2026-08-16, OTA-INFINITE-UPDATE-LOOP): Defense-in-Depth — strippt ein
-// eventuelles "v"-Präfix VOR dem Parsen. Root Cause war eigentlich, dass
-// src/version.ts nie mit "v2.1.230" synchron gehalten wurde (siehe
-// scripts/version.sh), aber falls dieser Wert je wieder ein "v"-Präfix
-// bekommt, darf Number("v2") NICHT mehr zu NaN und damit zu einer
-// Endlos-Update-Schleife führen.
 function compareVersions(a, b) {
   const clean = (v) => String(v).replace(/^v/i, "");
   const pa = clean(a).split(".").map(Number);
@@ -174,7 +122,7 @@ function compareVersions(a, b) {
   return 0;
 }
 
-// ── 5. Rollback (Notfall) ──
+// ── 4. Rollback (Notfall) ──
 export async function rollbackToBuiltin() {
   if (!Capacitor.isNativePlatform()) return;
   try {
@@ -184,7 +132,7 @@ export async function rollbackToBuiltin() {
   }
 }
 
-// ── 6. Status abrufen ──
+// ── 5. Status abrufen (informativ, keine Mutation) ──
 export async function getOTAStatus() {
   if (!Capacitor.isNativePlatform()) {
     return { current: APP_VERSION, native: false };
