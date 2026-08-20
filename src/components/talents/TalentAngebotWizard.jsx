@@ -405,12 +405,13 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
             {locationType !== "online" && (
               <>
-                {/* HAUSBESUCHE + AKTIONSRADIUS (2026-08-20) -- z.B. ein Saenger,
-                    der zu Feiern/Events kommt, statt an einem festen Ort
-                    aufzutreten. Bestimmt, wie die Adresse darunter zu
-                    verstehen ist: fester Auftrittsort vs. Ausgangsort fuer
-                    den Radius. */}
-                <Lbl text="Hausbesuche" hint="Kommst du zum Kunden, statt dass er zu einem festen Ort kommt? (z.B. Saenger bei Feiern, Handwerker beim Kunden)"/>
+                {/* HAUSBESUCHE + AKTIONSRADIUS (2026-08-20, Michael-Korrektur) -- z.B.
+                    ein Sänger, der zu Feiern/Events kommt, statt an einem
+                    festen Ort aufzutreten. Bestimmt, wie die Adresse darunter
+                    zu verstehen ist: fester Auftrittsort vs. Ausgangsort fuer
+                    den Radius. Hint-Text gekuerzt (redundante Frage entfernt,
+                    Beispiel mit korrektem Umlaut "Sänger" behalten). */}
+                <Lbl text="Hausbesuche" hint="(z.B. Sänger bei Feiern, Handwerker beim Kunden)"/>
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
                   <Chip active={offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(true)}>Ja, ich komme zum Kunden</Chip>
                   <Chip active={!offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(false)}>Nein, fester Ort</Chip>

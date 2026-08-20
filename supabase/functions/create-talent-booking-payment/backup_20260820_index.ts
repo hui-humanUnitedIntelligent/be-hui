@@ -37,12 +37,6 @@ const ERROR_MESSAGES: Record<string, string> = {
   seller_not_public:     'Dieses Profil ist nicht öffentlich — Buchungen sind aktuell deaktiviert.',
   invalid_participants:  'Ungültige Teilnehmerzahl.',
   not_authenticated:     'Bitte melde dich an.',
-  // AKTIONSRADIUS-ENFORCE-001 (2026-08-20, Michael-Vorgabe: "Der Aktionsradius
-  // muss zwingend eingehalten werden."):
-  address_required:      'Bitte gib deine Adresse an, damit der Anbieter zu dir kommen kann.',
-  seller_location_missing: 'Der Anbieter hat keinen Standort hinterlegt — Hausbesuch aktuell nicht buchbar.',
-  radius_not_configured: 'Der Anbieter hat keinen Aktionsradius hinterlegt — Hausbesuch aktuell nicht buchbar.',
-  outside_radius:        'Deine Adresse liegt außerhalb des Aktionsradius des Anbieters.',
 }
 
 serve(async (req) => {
@@ -79,13 +73,6 @@ serve(async (req) => {
     const timeSlot        = body.time_slot ?? null
     const participants    = Math.max(1, Math.min(500, Math.round(Number(body.participants) || 1)))
     const customerNote    = (body.customer_note ?? null) as string | null
-    // AKTIONSRADIUS-ENFORCE-001 (2026-08-20): Kunden-Adresse fuer Hausbesuche --
-    // wird server-seitig in rpc_create_talent_booking gegen den Aktionsradius
-    // des Anbieters geprueft (einzige Quelle der Wahrheit, Client-Pruefung ist
-    // nur UX-Komfort und kann nicht umgangen werden).
-    const customerAddress = (body.customer_address ?? null) as string | null
-    const customerLat     = body.customer_lat != null ? Number(body.customer_lat) : null
-    const customerLng     = body.customer_lng != null ? Number(body.customer_lng) : null
 
     if (!talentId || !selectedDate) {
       return new Response(JSON.stringify({ error: 'talent_id und selected_date erforderlich' }), {
@@ -108,9 +95,6 @@ serve(async (req) => {
       p_time_slot: timeSlot,
       p_participants: participants,
       p_customer_note: customerNote,
-      p_customer_address: customerAddress,
-      p_customer_lat: customerLat,
-      p_customer_lng: customerLng,
     })
 
     if (bookingErr) {
@@ -121,15 +105,10 @@ serve(async (req) => {
     }
     if (!bookingResult?.ok) {
       const code = bookingResult?.error || 'unknown_error'
-      // AKTIONSRADIUS-ENFORCE-001: bei outside_radius Distanz+Radius mitgeben,
-      // damit der Client eine konkrete Fehlermeldung anzeigen kann ("120km
-      // entfernt, Angebot nur bis 100km").
       return new Response(JSON.stringify({
         error: ERROR_MESSAGES[code] || 'Buchung nicht möglich.',
         code,
         remaining: bookingResult?.remaining,
-        radius_km: bookingResult?.radius_km,
-        distance_km: bookingResult?.distance_km,
       }), { status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
