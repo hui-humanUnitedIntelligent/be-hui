@@ -666,12 +666,7 @@ function S2({ data, onChange, onPickLocation }) {
 // Preis · Währung · Preis gilt pro · Teilnehmerzahl · Anmeldung
 // ══════════════════════════════════════════════════════════════
 function S3({ data, onChange }) {
-  // WÄHRUNG-FIX (2026-08-20, Michael-Screenshot): Erlebnisse werden systemweit
-  // ausschließlich in EUR abgerechnet (Stripe-Konfiguration, Balanced-Growth-v1
-  // Gebührenmodell rechnet zentral in EUR). Die CHF/USD-Auswahl täuschte eine
-  // Mehrwährungsfähigkeit vor, die es serverseitig nirgends gibt. Dropdown
-  // entfernt, currency bleibt fest 'EUR' (Default war ohnehin schon überall
-  // im Wizard/DB "EUR" — siehe INITIAL-STATE + Submit-Payload weiter unten).
+  const WÄHRUNGEN = ["EUR – Euro", "CHF – Franken", "USD – Dollar"];
 
   return (
     <div>
@@ -701,6 +696,21 @@ function S3({ data, onChange }) {
             }}
           />
         </div>
+      </Field>
+
+      {/* Währung */}
+      <Field label="Währung">
+        <select
+          value={data.currency || "EUR – Euro"}
+          onChange={e => onChange({ currency: e.target.value.split(" ")[0] })}
+          style={{
+            ...INP_BASE,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230EC4B8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+            backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center", paddingRight: 44,
+          }}
+        >
+          {WÄHRUNGEN.map(w => <option key={w} value={w}>{w}</option>)}
+        </select>
       </Field>
 
       {/* Preis gilt pro — vertikale Radio-Liste */}
