@@ -76,6 +76,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
 
   async function handleFile(file) {
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert("Bild max 5MB"); return; }
     if (!file.type.startsWith("image/")) { setError("Nur Bilder erlaubt"); return; }
     if (file.size > 5 * 1024 * 1024)    { setError("Maximal 5 MB"); return; }
     setLoading(true); setError(null);

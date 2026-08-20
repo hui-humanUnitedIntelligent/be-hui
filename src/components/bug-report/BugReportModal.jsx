@@ -14,7 +14,10 @@ import BugIcon from "./BugIcon.jsx";
 
 const MAX_FILES = 10;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "video/mp4"];
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB per file
+// UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos (Michael-Vorgabe)
+const MAX_FILE_SIZE_IMAGE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE_VIDEO = 25 * 1024 * 1024;
+const MAX_FILE_SIZE = MAX_FILE_SIZE_VIDEO; // kompatibel mit bestehendem Code
 
 export default function BugReportModal({ open = false, onClose = () => {}, user = null }) {
   const [description, setDescription] = useState("");
@@ -64,7 +67,8 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
         setError(`Datei "${f.name}" ist kein erlaubter Typ (nur JPG, PNG, MP4)`);
         continue;
       }
-      if (f.size > MAX_FILE_SIZE) {
+      const fMax = f.type.startsWith("video") ? MAX_FILE_SIZE_VIDEO : MAX_FILE_SIZE_IMAGE;
+      if (f.size > fMax) {
         setError(`Datei "${f.name}" ist zu groß (max 50MB)`);
         continue;
       }
@@ -390,7 +394,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                 </div>
               )}
               <p style={{ fontSize: 11, color: "rgba(20,20,34,0.35)", fontFamily: "Inter, sans-serif", margin: "4px 0 0" }}>
-                Erlaubt: JPG, PNG, MP4 · Max 50MB pro Datei · {files.length}/{MAX_FILES} hochgeladen
+                Bilder max 5MB · Videos max 25MB · {files.length}/{MAX_FILES}
               </p>
             </div>
 

@@ -152,6 +152,13 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   );
   const [locationNotes, setLocationNotes] = useState(existingTalent?.location_notes || "");
   const [mapLink, setMapLink] = useState(existingTalent?.map_link || "");
+  // HAUSBESUCHE + AKTIONSRADIUS (2026-08-20, Michael-Feedback): "wenn das
+  // Talent zu jemanden geht (z.B. ein Saenger), soll 'Hausbesuche' + ein
+  // Radius erscheinen." Additiv zu location_type -- unabhaengig davon, ob
+  // "Vor Ort" oder "Hybrid" gewaehlt ist, kann das Talent zusaetzlich
+  // markieren, dass es zum Kunden kommt statt eine feste Adresse zu haben.
+  const [offersHomeVisits, setOffersHomeVisits] = useState(existingTalent?.offers_home_visits || false);
+  const [homeVisitRadiusKm, setHomeVisitRadiusKm] = useState(existingTalent?.home_visit_radius_km ?? "");
 
   // 4) Datum & Zeiten
   const [availableDates, setAvailableDates] = useState(existingTalent?.available_dates || []);
@@ -254,6 +261,8 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       lng: geoLng,
       location_notes: locationNotes.trim() || null,
       map_link: mapLink.trim() || null,
+      offers_home_visits: offersHomeVisits,
+      home_visit_radius_km: offersHomeVisits ? num(homeVisitRadiusKm) : null,
       available_dates: availableDates,
       available_time_slots: timeSlots,
       recurring: recurring || null,
@@ -396,7 +405,28 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
             {locationType !== "online" && (
               <>
-                <Lbl text="Adresse / Ort" hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ."/>
+                {/* HAUSBESUCHE + AKTIONSRADIUS (2026-08-20, Michael-Korrektur) -- z.B.
+                    ein Sänger, der zu Feiern/Events kommt, statt an einem
+                    festen Ort aufzutreten. Bestimmt, wie die Adresse darunter
+                    zu verstehen ist: fester Auftrittsort vs. Ausgangsort fuer
+                    den Radius. Hint-Text gekuerzt (redundante Frage entfernt,
+                    Beispiel mit korrektem Umlaut "Sänger" behalten). */}
+                <Lbl text="Hausbesuche" hint="(z.B. Sänger bei Feiern, Handwerker beim Kunden)"/>
+                <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+                  <Chip active={offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(true)}>Ja, ich komme zum Kunden</Chip>
+                  <Chip active={!offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(false)}>Nein, fester Ort</Chip>
+                </div>
+
+                {offersHomeVisits && (
+                  <>
+                    <Lbl text="Aktionsradius (km)" hint="Wie weit reist du von deinem Standort aus zum Kunden?"/>
+                    <input type="number" min="0" step="1" value={homeVisitRadiusKm} disabled={locked}
+                      onChange={e => setHomeVisitRadiusKm(e.target.value)} placeholder="z.B. 30"
+                      style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                  </>
+                )}
+
+                <Lbl text="Adresse / Ort" hint={offersHomeVisits ? "Dein Ausgangsort — von hier aus berechnet sich dein Aktionsradius." : "Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ."}/>
                 <LocationAutocompleteInput
                   value={locationAddress}
                   onChange={v => { setLocationAddress(v); setPickedGeo(null); }}
@@ -406,9 +436,13 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                   style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}
                 />
 
-                <Lbl text="Karten-Link (optional)"/>
-                <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}
-                  placeholder="https://maps.google.com/..." style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                {!offersHomeVisits && (
+                  <>
+                    <Lbl text="Karten-Link (optional)"/>
+                    <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}
+                      placeholder="https://maps.google.com/..." style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
+                  </>
+                )}
               </>
             )}
 
@@ -422,28 +456,41 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 4: Datum & Zeiten ─────────────────────────── */}
         {step === 4 && (
           <>
-            <Lbl text="Verfügbare Termine (optional)" hint="Im Kalender antippen, um Termine hinzuzufügen oder zu entfernen."/>
-            <div style={{
-              background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 14,
-              padding: "14px 12px", marginBottom: 12,
-            }}>
-              <AvailabilityCalendar
-                mode="edit"
-                selectedDates={availableDates}
-                onToggleDate={toggleDate}
-                disabled={locked}
-              />
-            </div>
-            {availableDates.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-                {availableDates.map(d => (
-                  <span key={d} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px",
-                    borderRadius: 99, background: "rgba(14,196,184,0.10)", fontSize: 12, color: C.teal, fontWeight: 600 }}>
-                    {d}
-                    {!locked && <span onClick={() => removeDate(d)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>}
-                  </span>
-                ))}
+            {/* FREIE-BUCHUNG-001 (2026-08-20): Bei "Freie Buchung" waehlt der
+                Kunde sein Wunschdatum selbst -- der Kalender hier waere
+                irrefuehrend (Termine, die dann ignoriert werden), deshalb
+                ausgeblendet und durch einen erklaerenden Hinweis ersetzt. */}
+            {recurring === "frei" ? (
+              <div style={{ background: "rgba(14,196,184,0.08)", border: `1.5px solid rgba(14,196,184,0.25)`,
+                borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: 12.5, color: C.inkMid, lineHeight: 1.5 }}>
+                Bei <strong style={{ color: C.teal }}>Freie Buchung</strong> entfällt die Terminauswahl hier — der Kunde wählt sein Wunschdatum direkt beim Buchen. Du bekommst danach eine Buchungsanfrage mit dem gewünschten Datum.
               </div>
+            ) : (
+              <>
+                <Lbl text="Verfügbare Termine (optional)" hint="Im Kalender antippen, um Termine hinzuzufügen oder zu entfernen."/>
+                <div style={{
+                  background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 14,
+                  padding: "14px 12px", marginBottom: 12,
+                }}>
+                  <AvailabilityCalendar
+                    mode="edit"
+                    selectedDates={availableDates}
+                    onToggleDate={toggleDate}
+                    disabled={locked}
+                  />
+                </div>
+                {availableDates.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+                    {availableDates.map(d => (
+                      <span key={d} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 10px",
+                        borderRadius: 99, background: "rgba(14,196,184,0.10)", fontSize: 12, color: C.teal, fontWeight: 600 }}>
+                        {d}
+                        {!locked && <span onClick={() => removeDate(d)} style={{ cursor: "pointer", fontWeight: 600 }}>×</span>}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             <Lbl text="Zeitfenster (optional)"/>
@@ -470,9 +517,12 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             )}
 
             <Lbl text="Wiederholung"/>
-            <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+            <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {TALENT_RECURRING_OPTIONS.map(o => (
-                <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => setRecurring(o.value)}>{o.label}</Chip>
+                <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => {
+                  setRecurring(o.value);
+                  if (o.value === "frei" && availableDates.length > 0) setAvailableDates([]);
+                }}>{o.label}</Chip>
               ))}
             </div>
 

@@ -14,6 +14,7 @@
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -190,15 +191,20 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   useModalRegistration(true, onClose, "TalentAngebotWizard");
 
   async function handleUpload(e) {
-    const files = Array.from(e.target.files || []);
-    if (!userId || !files.length) return;
+    const { accepted, rejected } = processFileSelection(e.target.files || [], images.length);
+    if (!userId || !accepted.length) { if (fileRef.current) fileRef.current.value = ""; return; }
     setUploading(true);
     const next = [...images];
-    for (const file of files.slice(0, 5 - next.length)) {
-      const { url, path, error: upErr } = await uploadTalentImage(userId, file);
-      if (!upErr && url) next.push({ url, path });
+    for (const file of accepted.slice(0, UPLOAD_LIMITS.MAX_FILES - next.length)) {
+      const isVideo = file.type.startsWith("video/");
+      try {
+        const result = await uploadMediaFile(file, userId, "talents");
+        next.push({ url: result.url, type: result.type });
+        setImages([...next]);
+      } catch (err) {
+        console.error("[TalentAngebotWizard] Upload-Fehler:", err?.message);
+      }
     }
-    setImages(next);
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
   }
@@ -571,11 +577,15 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 6: Bilder ─────────────────────────────────── */}
         {step === 6 && (
           <>
-            <Lbl text="Bilder (bis zu 5)"/>
+            <Lbl text="Bilder & Videos (bis zu 10)"/>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
               {images.map((img, idx) => (
                 <div key={idx} style={{ position: "relative", aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "#e8e4df", border: `1.5px solid ${C.border}` }}>
-                  <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
+                  {img.type === "video" || img.url?.match(/\.(mp4|mov|webm)(\?|$)/i) ? (
+                    <video src={img.url} muted preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
+                  ) : (
+                    <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
+                  )}
                   {!locked && (
                     <button onClick={() => removeImage(idx)} style={{
                       position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%",
@@ -585,19 +595,19 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                   )}
                 </div>
               ))}
-              {images.length < 5 && !locked && (
+              {images.length < UPLOAD_LIMITS.MAX_FILES && !locked && (
                 <div onClick={() => !uploading && fileRef.current?.click()} style={{
                   aspectRatio: "1", borderRadius: 12, border: `2px dashed rgba(14,196,184,0.38)`,
                   background: "rgba(14,196,184,0.04)", display: "flex", flexDirection: "column",
                   alignItems: "center", justifyContent: "center", cursor: uploading ? "not-allowed" : "pointer", gap: 4,
                 }}>
                   {uploading ? <div style={{ fontSize: 12, color: C.teal }}>…</div> : (
-                    <><div style={{ fontSize: 20, color: C.teal, fontWeight: 300 }}>+</div><div style={{ fontSize: 9, color: C.teal, fontWeight: 600 }}>Bild</div></>
+                    <><div style={{ fontSize: 20, color: C.teal, fontWeight: 300 }}>+</div><div style={{ fontSize: 9, color: C.teal, fontWeight: 600 }}>Bild/Video</div></>
                   )}
                 </div>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handleUpload}/>
+            <input ref={fileRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handleUpload}/>
           </>
         )}
 

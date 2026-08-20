@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { useAmbassadorApplication } from "../../hooks/useAmbassador.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { processFileSelection } from "../../lib/uploadUtils.js";
 
 const T = {
   teal:    "#0EC4B8",
@@ -51,8 +50,8 @@ const GENDER_OPTIONS = [
   { value: "keine Angabe",  label: "Keine Angabe" },
 ];
 
-// UNIVERSELLER UPLOAD (2026-08-20): bis 10 Files total, 5MB/25MB (Michael-Vorgabe)
-const MAX_TOTAL = 10;
+const MAX_IMAGES = 5;
+const MAX_VIDEOS = 2;
 
 export default function AmbassadorModal({ userId, onClose, onSuccess }) {
   const { submit, loading, error } = useAmbassadorApplication();
@@ -87,8 +86,16 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
   };
 
   const handleFiles = (e) => {
-    const { accepted } = processFileSelection(e.target.files || [], mediaFiles.length);
-    setMediaFiles([...mediaFiles, ...accepted].slice(0, MAX_TOTAL));
+    const files = Array.from(e.target.files || []);
+    const images = files.filter(f => f.type.startsWith("image/"));
+    const videos = files.filter(f => f.type.startsWith("video/"));
+    const existImg = mediaFiles.filter(f => f.type.startsWith("image/")).length;
+    const existVid = mediaFiles.filter(f => f.type.startsWith("video/")).length;
+    setMediaFiles([
+      ...mediaFiles,
+      ...images.slice(0, MAX_IMAGES - existImg),
+      ...videos.slice(0, MAX_VIDEOS - existVid),
+    ]);
   };
 
   const removeFile = (idx) => setMediaFiles(f => f.filter((_, i) => i !== idx));
@@ -217,7 +224,7 @@ export default function AmbassadorModal({ userId, onClose, onSuccess }) {
               <div style={{ marginBottom: 20 }}>
                 <label className="amb-label">Bilder &amp; Videos (optional)</label>
                 <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 8 }}>
-                  Bilder max 5MB · Videos max 25MB · {mediaFiles.length}/{MAX_TOTAL}
+                  Max. {MAX_IMAGES} Bilder · Max. {MAX_VIDEOS} Videos
                 </div>
                 <button type="button" onClick={() => fileInputRef.current?.click()} className="amb-press"
                   style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 16px",

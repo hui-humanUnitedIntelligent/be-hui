@@ -740,7 +740,16 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       // Freigabe-Tracking
       last_submitted_at: status === "pending_review" ? new Date().toISOString() : undefined,
       is_update: status === "pending_review" ? !!existingWork?.id : undefined,
-      // Approval System: beim Einreichen immer pending, nur Admin kann auf approved setzen
+      // Approval System: beim Einreichen immer pending, nur Admin kann auf approved setzen.
+      // ENTWURF-BADGE-FIX (2026-08-20, Michael-Report "wird NICHT als Entwurf
+      // gekennzeichnet"): Erster Versuch war hier ":null" bei status="draft"
+      // -- FALSCH: works.approval_status ist NOT NULL + CHECK IN
+      // ('pending','approved','rejected') (Migration 20260609_works_approval_
+      // system.sql). null hätte JEDEN Entwurf-Speichervorgang mit 23502/23514
+      // crashen lassen. Zurück auf ":undefined" (Feld fehlt im Payload, DB-
+      // Default 'pending' greift bei Neuanlage) -- das war nie das Problem.
+      // Der tatsächliche Fix für die Badge-Anzeige liegt in MyBasisProfile.jsx
+      // (isDraft muss Vorrang vor isPending haben, siehe dort).
       approval_status: status === "pending_review" ? "pending" : undefined,
       // Bei Update: rejection_reason zurücksetzen (neue Prüfung)
       rejection_reason: status === "pending_review" ? null : undefined,

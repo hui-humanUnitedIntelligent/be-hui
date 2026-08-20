@@ -8,6 +8,7 @@ import {
   HUILinkIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import { UPLOAD_LIMITS, MAX_IMAGE_BYTES } from "../../lib/uploadUtils.js";
 import {
   FB_COVER, FB_AVATAR,
   sv,
@@ -126,13 +127,17 @@ export function ProfileHeader({
   // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
   const badgeLabel = isSuperadmin ? "Superadmin" : isTalentResolved ? "HUI-Talent" : "Basis-Nutzer";
 
-  const handleAvatarFile = useCallback((e) =>
-    handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading }),
-  [profile?.id, onEditAvatar]);
+  const handleAvatarFile = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_IMAGE_BYTES) { alert(`Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return; }
+    handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading });
+  }, [profile?.id, onEditAvatar]);
 
-  const handleCoverFile = useCallback((e) =>
-    handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onEditCover, setUploading: setCoverUploading }),
-  [profile?.id, onEditCover]);
+  const handleCoverFile = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_IMAGE_BYTES) { alert(`Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return; }
+    handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onEditCover, setUploading: setCoverUploading });
+  }, [profile?.id, onEditCover]);
 
   return (
     <>

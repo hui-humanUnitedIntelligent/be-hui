@@ -12,6 +12,7 @@ import { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
@@ -76,17 +77,8 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
   // ── Datei-Auswahl ────────────────────────────────────────────────
   const handleFileSelect = useCallback((e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    const newPreviews = files.map(f => ({
-      url: URL.createObjectURL(f),
-      name: f.name,
-      type: f.type,
-      size: f.size,
-    }));
-    setMediaFiles(prev => [...prev, ...files]);
-    setMediaPreviews(prev => [...prev, ...newPreviews]);
-  }, []);
+    const { accepted } = processFileSelection(e.target.files || [], mediaFiles.length);
+    setMediaFiles(prev => [...prev, ...accepted]);  }, []);
 
   const removeFile = (idx) => {
     setMediaFiles(prev => prev.filter((_, i) => i !== idx));
@@ -317,6 +309,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               accept="image/*,video/*"
               multiple
               onChange={handleFileSelect}
+                disabled={mediaFiles.length >= UPLOAD_LIMITS.MAX_FILES}
               style={{ display: "none" }}
             />
             <button

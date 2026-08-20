@@ -20,7 +20,6 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { publishExperience } from "../lib/factories/experienceContract.js";
 import { supabase }  from "../lib/supabaseClient";
-import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../lib/uploadUtils.js";
 import { useAuth }   from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import {
@@ -288,9 +287,9 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
 
   function pickFile(f) {
     if (!f) return;
-    const maxSize = f.type.startsWith("video") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    const maxSize = f.type.startsWith("video") ? 100 * 1024 * 1024 : 20 * 1024 * 1024;
     if (f.size > maxSize) {
-      setError(f.type.startsWith("video") ? `Video max. ${UPLOAD_LIMITS.MAX_VIDEO_MB} MB` : `Bild max. ${UPLOAD_LIMITS.MAX_IMAGE_MB} MB`);
+      setError(f.type.startsWith("video") ? "Video max. 100 MB" : "Bild max. 20 MB");
       return;
     }
     setError("");

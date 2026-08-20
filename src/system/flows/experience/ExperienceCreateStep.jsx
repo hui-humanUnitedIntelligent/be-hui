@@ -6,6 +6,7 @@ import { HUIFotoIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useRef, useCallback } from "react";
 import { ET, EInput } from "./ExperienceTokens.js";
+import { processFileSelection, UPLOAD_LIMITS } from "../../../lib/uploadUtils.js";
 // Kategorien-Architektur vereinheitlicht (2026-07-06, Lars) -- zentrale
 // Single Source of Truth statt hartcodierter lokaler Liste. Liefert exakt
 // dieselben 15 Werte in derselben Reihenfolge wie zuvor (siehe
@@ -94,11 +95,13 @@ export function ExperienceCreateStep({
   const canNext  = form.title.trim().length >= 3;
 
   const addFiles = useCallback((fileList) => {
-    const newFiles = Array.from(fileList).map(f => ({
-      file: f, preview: URL.createObjectURL(f), type: f.type,
+    // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos, max 10
+    const { accepted } = processFileSelection(fileList, mediaFiles.length);
+    const newFiles = accepted.map(f => ({
+      file: f, preview: f.previewUrl || URL.createObjectURL(f), type: f.type,
     }));
-    onMediaChange(prev => [...prev, ...newFiles]);
-  }, [onMediaChange]);
+    onMediaChange(prev => [...prev, ...newFiles].slice(0, UPLOAD_LIMITS.MAX_FILES));
+  }, [onMediaChange, mediaFiles.length]);
 
   const removeFile = useCallback(idx => {
     onMediaChange(prev => {

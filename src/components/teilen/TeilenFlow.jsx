@@ -9,6 +9,7 @@ import React, { useState, useRef, useCallback } from "react";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
+import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { HUI } from "../../design/hui.design.js";
 
 /* ── Tokens ── */
@@ -240,6 +241,12 @@ function StepCreate({ mode, data, onChange }) {
   function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
+    const maxBytes = file.type.startsWith("video") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > maxBytes) {
+      console.warn("[TeilenFlow] Datei zu groß");
+      return;
+    }
     const url  = URL.createObjectURL(file);
     const type = file.type.startsWith("video") ? "video" : "image";
     onChange({ ...data, mediaFile: file, mediaPreview: url, mediaType: type });

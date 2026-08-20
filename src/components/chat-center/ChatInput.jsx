@@ -5,6 +5,7 @@
 import React, { useRef, useState, useCallback } from "react";
 import { HUI } from "../../design/hui.design.js";
 import { supabase } from "../../lib/supabaseClient.js";
+import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { toast } from "../../lib/useToast.jsx";
 
 const C = {
@@ -178,6 +179,11 @@ export default function ChatInput({ onSend, sending = false, placeholder = "Schr
     if (!file) return;
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
       toast.warn("Nur Bilder und Videos erlaubt."); return;
+    }
+    // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
+    const maxSize = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > maxSize) {
+      toast.warn(file.type.startsWith("video/") ? `Video max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB` : `Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return;
     }
     setMediaFile(file);
     setMediaType(file.type.startsWith("video/") ? "video" : "image");

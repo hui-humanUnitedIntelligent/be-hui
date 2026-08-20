@@ -12,6 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
+import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -391,19 +392,19 @@ function S1({ data, onChange, userId }) {
   // hier in Schritt 1 wird ergaenzt.
   const [uplGallery, setUplGallery] = useState(false);
   const galleryRef = useRef(null);
-  const MAX_GALLERY = 10;
+  const MAX_GALLERY = UPLOAD_LIMITS.MAX_FILES;
   const galleryImgs = imgs.slice(1);
 
   async function uploadGallery(e) {
-    const files = Array.from(e.target.files || []);
-    if (!userId || !files.length) return;
+    const { accepted, rejected } = processFileSelection(e.target.files || [], galleryImgs.length);
+    if (!userId || !accepted.length) { if (galleryRef.current) galleryRef.current.value = ""; return; }
     const freeSlots = MAX_GALLERY - galleryImgs.length;
-    if (freeSlots <= 0) { if (galleryRef.current) galleryRef.current.value = ""; return; }
+    const toUpload = accepted.slice(0, freeSlots);
     const next = [...imgs];
     const previews = [];
-    for (const file of files.slice(0, freeSlots)) {
+    for (const file of toUpload) {
       const isVideo = file.type.startsWith("video");
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = file.previewUrl || URL.createObjectURL(file);
       next.push({ url: previewUrl, path: null, type: isVideo ? "video" : "image", _preview: true });
       previews.push({ file, previewUrl, isVideo, idx: next.length - 1 });
     }
@@ -411,23 +412,9 @@ function S1({ data, onChange, userId }) {
     setUplGallery(true);
     for (const { file, previewUrl, isVideo, idx } of previews) {
       try {
-        let blob = file, contentType = file.type, ext = file.name.split(".").pop().toLowerCase();
-        if (!isVideo) {
-          // Bilder: gleiche Kompression wie beim Titelbild.
-          blob = await compressImageForUpload(file, COVER_MAX_DIM, JPEG_QUALITY);
-          const wasCompressed = blob !== file;
-          contentType = wasCompressed ? "image/jpeg" : file.type;
-          ext = wasCompressed ? "jpg" : ext;
-        }
-        // Videos: unkomprimiert direkt hochladen (gleiches Muster wie
-        // WorkMediaStep.jsx -- kein Kompressions-Helper fuer Video vorhanden).
-        const path = `experiences/${userId}/gallery_${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
-        const { error } = await supabase.storage.from("media").upload(path, blob, { upsert: true, contentType });
-        if (!error) {
-          const { data: u } = supabase.storage.from("media").getPublicUrl(path);
-          next[idx] = { url: u.publicUrl, path, type: isVideo ? "video" : "image" };
-          onChange({ images: [...next] });
-        }
+        const result = await uploadMediaFile(file, userId, "experiences");
+        next[idx] = { url: result.url, path: null, type: result.type };
+        onChange({ images: [...next] });
         URL.revokeObjectURL(previewUrl);
       } catch (err) {
         console.error("[ExperienceWizard] Galerie-Upload-Fehler:", err?.message);
@@ -588,7 +575,7 @@ function S1({ data, onChange, userId }) {
           )}
         </div>
         <div style={{ fontSize: 11.5, color: C.inkFade, marginTop: 8, lineHeight: 1.4 }}>
-          Werden zusätzlich zum Titelbild in einer Galerie im Home-Feed angezeigt.
+          Werden zusätzlich zum Titelbild in einer Galerie im Home-Feed angezeigt. Bilder max 5MB · Videos max 25MB.
         </div>
         <input ref={galleryRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={uploadGallery}/>
       </Field>

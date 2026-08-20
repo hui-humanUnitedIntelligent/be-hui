@@ -150,8 +150,8 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
 
 // ── Upload zu 'media' bucket → Pfad: beitraege/{userId}/{ts}.ext ─────
 // Max-Größen
-const MAX_VIDEO_MB = 25;  // UNIVERSELLER UPLOAD (2026-08-20, Michael-Vorgabe)
-const MAX_FOTO_MB  = 5;
+const MAX_VIDEO_MB = 100;
+const MAX_FOTO_MB  = 20;
 
 async function uploadToMedia(file, userId) {
   const isVid = file.type.startsWith("video");

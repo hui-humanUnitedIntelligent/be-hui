@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
+import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -166,74 +167,112 @@ function RCard({ active, icon, label, sub, onClick }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// Screen 1 – Bilder
+// Screen 1 – Bilder & Videos (UNIVERSELLER UPLOAD 2026-08-20)
+// Bis zu 10 Bilder/Videos, 5MB Bilder, 25MB Videos (Michael-Vorgabe).
 // ══════════════════════════════════════════════════════════════
 function S1({ data, onChange, userId, onNext }) {
   const [upl, setUpl] = useState(false);
-  const ref = useRef(null);
-  const imgs = data.images||[];
+  const imgs = data.images || [];
 
-  async function upload(e) {
-    const files = Array.from(e.target.files||[]);
-    if (!userId||!files.length) return;
-    // Instant-Preview: lokale Blob-URLs SOFORT anzeigen, noch vor Kompression/Upload
-    const next=[...imgs];
+  // Universeller Upload: Bilder+Videos, bis 10, 5MB/25MB Limits
+  async function handleFilesChange(selectedFiles) {
+    if (!userId) return;
+    const next = [...imgs];
     const previews = [];
-    for (const file of files.slice(0,10-next.length)) {
+
+    for (const file of selectedFiles.slice(0, UPLOAD_LIMITS.MAX_FILES - next.length)) {
       const previewUrl = URL.createObjectURL(file);
-      next.push({ url: previewUrl, path: null, _preview: true });
+      const isVid = file.type.startsWith("video/");
+      next.push({ url: previewUrl, path: null, _preview: true, type: isVid ? "video" : "image" });
       previews.push({ file, previewUrl, idx: next.length - 1 });
     }
-    onChange({ images: next }); // Bild ist sofort sichtbar
-    // Kompression + Upload im Hintergrund
+    onChange({ images: next });
     setUpl(true);
+
     for (const { file, previewUrl, idx } of previews) {
       try {
-        const blob = await compressImageForUpload(file, COVER_MAX_DIM, JPEG_QUALITY);
-        const wasCompressed = blob !== file;
-        const ext = wasCompressed ? "jpg" : file.name.split(".").pop().toLowerCase();
-        const path=`works/${userId}/${Date.now()}_${Math.random().toString(36).slice(2,6)}.${ext}`;
-        const { error }=await supabase.storage.from("media").upload(path, blob, { upsert:true, contentType: wasCompressed ? "image/jpeg" : file.type });
-        if (!error) {
-          const { data:u }=supabase.storage.from("media").getPublicUrl(path);
-          // CDN-URL ersetzt lokale Vorschau
-          next[idx] = { url: u.publicUrl, path };
-          onChange({ images: [...next] });
-        }
+        const result = await uploadMediaFile(file, userId, "works");
+        next[idx] = { url: result.url, path: null, type: result.type };
+        onChange({ images: [...next] });
         URL.revokeObjectURL(previewUrl);
       } catch (err) {
         console.error("[WerkWizard] Upload-Fehler:", err?.message);
-        // Vorschau bleibt sichtbar bei Fehler (besser als kaputtes Bild)
       }
     }
     setUpl(false);
-    if (ref.current) ref.current.value="";
   }
+
+  function handleRemove(idx) {
+    onChange({ images: imgs.filter((_, i) => i !== idx) });
+  }
+
+  // WerkWizard nutzt data.images als Array von {url, type} Objekten.
+  // MultiUploadGrid braucht File[] aber WerkWizard arbeitet mit URLs.
+  // Daher behalten wir das manuelle Grid bei (Titelbild-Markierung, CDN-URLs
+  // die schon im data-Objekt sind), aber nutzen die universelle Upload-Logik.
+  const fileRef = useRef(null);
 
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Bilder</div>
-      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16, lineHeight:1.5 }}>Füge bis zu 10 Bilder hinzu. Das erste Bild wird als Titelbild verwendet.</div>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Bilder & Videos</div>
+      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16, lineHeight:1.5 }}>
+        Füge bis zu 10 Bilder oder Videos hinzu. Das erste Bild wird als Titelbild verwendet.
+      </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
-        {imgs.map((img,idx)=>(
-          <div key={idx} style={{ position:"relative", aspectRatio:"1", borderRadius:12, overflow:"hidden", background:"#e8e4df", border:idx===0?`2.5px solid ${C.teal}`:`1.5px solid ${C.border}` }}>
-            <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-            {idx===0&&<div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight: 600, color:"#fff", textAlign:"center" }}>TITELBILD</div>}
-            <button onClick={()=>onChange({ images:imgs.filter((_,i)=>i!==idx) })} style={{ position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%", background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>×</button>
-          </div>
-        ))}
-        {imgs.length<10&&(
-          <div onClick={()=>!upl&&ref.current?.click()} style={{ aspectRatio:"1", borderRadius:12, border:"2px dashed rgba(14,196,184,0.38)", background:"rgba(14,196,184,0.04)", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", cursor:upl?"not-allowed":"pointer", gap:4, touchAction:"manipulation" }} role="button" tabIndex={0}>
-            {upl?<div style={{ fontSize:12, color:C.teal, fontWeight:600 }}>…</div>:<>
+        {imgs.map((img, idx) => {
+          const isVid = img.type === "video" || img.url?.match(/\.(mp4|mov|webm|avi)(\?|$)/i);
+          return (
+            <div key={idx} style={{
+              position:"relative", aspectRatio:"1", borderRadius:12, overflow:"hidden",
+              background:"#e8e4df",
+              border: idx === 0 && !isVid ? `2.5px solid ${C.teal}` : `1.5px solid ${C.border}`,
+            }}>
+              {isVid ? (
+                <video src={img.url} style={{ width:"100%", height:"100%", objectFit:"cover" }} muted preload="metadata" />
+              ) : (
+                <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              )}
+              {isVid && (
+                <div style={{ position:"absolute", top:4, left:4, background:"rgba(0,0,0,0.6)", color:"#fff", fontSize:9, fontWeight:600, padding:"2px 6px", borderRadius:6 }}>VIDEO</div>
+              )}
+              {idx === 0 && !isVid && (
+                <div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight:600, color:"#fff", textAlign:"center" }}>TITELBILD</div>
+              )}
+              <button onClick={() => handleRemove(idx)} style={{
+                position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%",
+                background:"rgba(0,0,0,0.55)", border:"none", color:"#fff", fontSize:13,
+                cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+                touchAction:"manipulation",
+              }}>×</button>
+            </div>
+          );
+        })}
+        {imgs.length < UPLOAD_LIMITS.MAX_FILES && (
+          <div onClick={() => !upl && fileRef.current?.click()} style={{
+            aspectRatio:"1", borderRadius:12,
+            border:`2px dashed ${upl ? "rgba(26,26,24,0.15)" : "rgba(14,196,184,0.38)"}`,
+            background: upl ? "transparent" : "rgba(14,196,184,0.04)",
+            display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+            cursor: upl ? "not-allowed" : "pointer", gap:4, touchAction:"manipulation",
+          }} role="button" tabIndex={0}>
+            {upl ? <div style={{ fontSize:12, color:C.teal, fontWeight:600 }}>…</div> : <>
               <div style={{ fontSize:22, color:C.teal, fontWeight:300, lineHeight:1 }}>+</div>
-              <div style={{ fontSize:9, color:C.teal, fontWeight:600, textAlign:"center", lineHeight:1.4 }}>Bild<br/>hinzufügen</div>
+              <div style={{ fontSize:9, color:C.teal, fontWeight:600, textAlign:"center", lineHeight:1.4 }}>Bild/Video<br/>hinzufügen</div>
             </>}
           </div>
         )}
       </div>
-      {imgs.length>0&&<div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>{imgs.length}/10 Bilder</div>}
-      <input ref={ref} type="file" accept="image/*" multiple style={{ display:"none" }} onChange={upload}/>
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={imgs.length===0}/>}
+      {imgs.length > 0 && (
+        <div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>
+          {imgs.length}/{UPLOAD_LIMITS.MAX_FILES} · Bilder max {UPLOAD_LIMITS.MAX_IMAGE_MB}MB · Videos max {UPLOAD_LIMITS.MAX_VIDEO_MB}MB
+        </div>
+      )}
+      <input ref={fileRef} type="file" accept="image/*,video/*" multiple style={{ display:"none" }} onChange={(e) => {
+        const { accepted } = processFileSelection(e.target.files || [], imgs.length);
+        if (accepted.length) handleFilesChange(accepted);
+        if (fileRef.current) fileRef.current.value = "";
+      }}/>
+      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={imgs.length === 0} />}
     </div>
   );
 }

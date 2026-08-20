@@ -2,7 +2,6 @@
 // HUI Support — Kontaktformular mit Ticket-System
 import React, { useState, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
-import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { HUI } from "../../design/hui.design.js";
 
 const C = {
@@ -70,8 +69,9 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
   };
 
   const handleFiles = e => {
-    const { accepted } = processFileSelection(e.target.files || [], files.length);
-    setFiles(prev => [...prev, ...accepted].slice(0, UPLOAD_LIMITS.MAX_FILES));
+    const selected = Array.from(e.target.files || []).slice(0,5);
+    const ok = selected.filter(f => f.size < 10*1024*1024);
+    setFiles(prev => [...prev, ...ok].slice(0,5));
   };
 
   const removeFile = idx => setFiles(prev => prev.filter((_,i) => i !== idx));

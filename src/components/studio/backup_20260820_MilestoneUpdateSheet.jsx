@@ -14,7 +14,6 @@ import { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 
 // ── Design Tokens (konsistent mit HUI Design) ─────────────────────
 const T = {
@@ -58,8 +57,17 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
 
   // ── Datei-Auswahl ────────────────────────────────────────────────
   const handleFileSelect = useCallback((e) => {
-    const { accepted } = processFileSelection(e.target.files || [], mediaFiles.length);
-    setMediaFiles(prev => [...prev, ...accepted]);  }, []);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newPreviews = files.map(f => ({
+      url: URL.createObjectURL(f),
+      name: f.name,
+      type: f.type,
+      size: f.size,
+    }));
+    setMediaFiles(prev => [...prev, ...files]);
+    setMediaPreviews(prev => [...prev, ...newPreviews]);
+  }, []);
 
   const removeFile = (idx) => {
     setMediaFiles(prev => prev.filter((_, i) => i !== idx));

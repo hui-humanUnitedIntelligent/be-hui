@@ -6,6 +6,7 @@ import {
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useRef, useCallback } from "react";
 import { WT } from "./WorkTokens.js";
+import { processFileSelection, UPLOAD_LIMITS } from "../../../lib/uploadUtils.js";
 
 /* ── Shared Input Styles ─────────────────────────────────────── */
 const inputStyle = {
@@ -121,14 +122,15 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
 
   // ── Medien hinzufügen ────────────────────────────────────────
   const addFiles = useCallback((fileList, accept) => {
-    const arr = Array.from(fileList);
-    const newFiles = arr.map(f => ({
+    // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos, max 10
+    const { accepted } = processFileSelection(fileList, mediaFiles.length);
+    const newFiles = accepted.map(f => ({
       file:    f,
-      preview: URL.createObjectURL(f),
+      preview: f.previewUrl || URL.createObjectURL(f),
       type:    f.type,
     }));
-    onMediaChange(prev => [...prev, ...newFiles]);
-  }, [onMediaChange]);
+    onMediaChange(prev => [...prev, ...newFiles].slice(0, UPLOAD_LIMITS.MAX_FILES));
+  }, [onMediaChange, mediaFiles.length]);
 
   const removeFile = useCallback((idx) => {
     onMediaChange(prev => {

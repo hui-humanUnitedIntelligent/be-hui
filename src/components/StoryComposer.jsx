@@ -6,6 +6,7 @@ import { HUISettingsIcon,
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient";
+import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../lib/uploadUtils.js";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 
@@ -86,6 +87,14 @@ export default function StoryComposer({ onClose, onSuccess }) {
   function pickFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+    // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
+    const isVid = file.type.startsWith("video/") || /\.(mp4|mov|m4v)$/i.test(file.name);
+    const maxBytes = isVid ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > maxBytes) {
+      setError(isVid ? `Video max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB` : `Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`);
+      return;
+    }
+    setError(null);
     // Mobile Safari: ensure we have a proper blob
     const type = file.type || (file.name?.match(/\.(mp4|mov|m4v)$/i) ? "video/mp4" : "image/jpeg");
     const blob = file.slice(0, file.size, type);

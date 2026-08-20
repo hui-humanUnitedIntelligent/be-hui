@@ -12,6 +12,7 @@ import {
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React, { useState, useCallback, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
+import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processFileSelection } from "../../../lib/uploadUtils.js";
 import { useAuth }   from "../../../lib/AuthContext.jsx";
 import { formatNumberDE } from "../../../lib/formatters.js";
 
@@ -1324,6 +1325,12 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
   // ── Titelbild hochladen ──────────────────────────────────────
   const uploadCover = async (file) => {
     if (!file) return;
+    // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
+    const maxBytes = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
+    if (file.size > maxBytes) {
+      setCoverErr(file.type.startsWith("video/") ? `Video max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB` : `Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`);
+      return;
+    }
     setCoverUploading(true); setCoverErr(null);
     try {
       const ext  = file.name.split(".").pop();
@@ -1345,9 +1352,12 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
   // ── Zusatzmaterial hochladen ─────────────────────────────────
   const uploadExtras = async (files) => {
     if (!files?.length) return;
+    // UNIVERSELLER UPLOAD (2026-08-20): validate + max 10
+    const { accepted } = processFileSelection(files, attachments.length);
+    if (!accepted.length) return;
     setExtrasUploading(true);
     const urls = [...attachments];
-    for (const file of Array.from(files)) {
+    for (const file of accepted) {
       try {
         const ext  = file.name.split(".").pop();
         const path = `extras/${userId || "anon"}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;

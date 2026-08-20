@@ -2,7 +2,6 @@
 // Support-Tickets als E-Mail-Thread-Verlauf
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
-import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
@@ -55,8 +54,8 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
   const fileRef = useRef(null);
 
   const handleFiles = e => {
-    const { accepted } = processFileSelection(e.target.files || [], files.length);
-    setFiles(prev => [...prev, ...accepted].slice(0, UPLOAD_LIMITS.MAX_FILES));
+    const sel = Array.from(e.target.files || []).slice(0, 3);
+    setFiles(prev => [...prev, ...sel].slice(0, 3));
   };
 
   const handleSend = async () => {
