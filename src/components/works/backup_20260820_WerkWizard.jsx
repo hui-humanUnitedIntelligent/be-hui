@@ -506,6 +506,12 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   const [step,setSt]=useState(1);
   const [saving,setSaving]=useState(false);
   const [saveError,setSaveError]=useState(null);
+  // KBD-INSET-FIX (2026-08-20, Michael-Report): Hook war importiert, aber nie
+  // aufgerufen — dadurch passte sich der fixed-position Wizard nie an eine
+  // offene Tastatur an. Kategorie/Tags in Schritt 2 verschwanden hinter der
+  // Tastatur, ohne dass irgendetwas den sichtbaren Bereich verkleinerte oder
+  // dahin scrollte. Siehe Fix am Root-Container unten (bottom: var(--hui-keyboard-inset)).
+  useKeyboardInset();
   // Praezise Koordinaten aus einem angetippten Autocomplete-Vorschlag (Standort
   // fuer Abholung) -- siehe LocationAutocompleteInput.jsx. Wird beim Speichern
   // direkt uebernommen statt erneut zu geocodieren. Zurueckgesetzt sobald der
@@ -784,10 +790,12 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   return createPortal(
     /* Fullscreen — zIndex 10500 überschreibt BottomNav (9999) + ProfileLauncher (9500) */
     <div data-hui-kbd-self-managed style={{
-      position:"fixed", inset:0,
+      position:"fixed", top:0, left:0, right:0,
+      bottom:"var(--hui-keyboard-inset, 0px)", // KBD-INSET-FIX (2026-08-20)
       zIndex:10500,
       background:C.cream,
       display:"flex", flexDirection:"column",
+      transition:"bottom .15s ease-out",
       /* Kein overflow:hidden auf Root — damit iOS keyboard nicht bricht */
     }}>
 
