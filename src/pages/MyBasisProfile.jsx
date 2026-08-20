@@ -3042,7 +3042,34 @@ function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
 function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = () => {} }) {
   const [confirmExp, setConfirmExp] = React.useState(null);
   const [choiceExp, setChoiceExp] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
+  const [draftExp, setDraftExp] = React.useState(null); // DRAFT-ACTION-FIX (2026-08-20, Michael-Report)
   const { openRef } = useContentPreview();
+
+  // DRAFT-PUBLISH (2026-08-20, analog zu MeineWerkeSection.publishDraft):
+  // Entwurf zur Prüfung einreichen — setzt status auf pending_review und
+  // schickt es an den SADB. Zuvor gab es dafür keinen Pfad im Erlebnis-
+  // Bereich, ein Entwurf blieb für immer status='draft' + approval_status
+  // 'pending' (DB-Default) hängen und wurde faelschlich als "⏳ Prüfung"
+  // angezeigt statt als "📝 Entwurf" — siehe Badge-Logik unten.
+  const publishDraftExp = async (exp) => {
+    if (!exp?.id) return;
+    try {
+      const { error } = await supabase.from("experiences").update({
+        status: "pending_review",
+        approval_status: "pending",
+        last_submitted_at: new Date().toISOString(),
+        is_update: false,
+        rejection_reason: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", exp.id);
+      if (error) throw error;
+      toast.success("Erlebnis wurde zur Veröffentlichung eingereicht.", { duration: 3000 });
+      onDeleteErlebnis(); // triggert reload im Parent (identisch zu Werke-Muster)
+    } catch(e) {
+      console.error("Draft publish (Erlebnis):", e);
+      toast.error("Konnte nicht eingereicht werden.", { duration: 3000 });
+    }
+  };
 
   const handleDeleteClick = (e, exp) => {
     e.stopPropagation();
@@ -3115,6 +3142,15 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         </div>
       </div>
     )}
+    {draftExp && (
+      <DraftActionSheet
+        label="Erlebnis"
+        onPublish={() => { const exp = draftExp; setDraftExp(null); publishDraftExp(exp); }}
+        onEdit={() => { const exp = draftExp; setDraftExp(null); onErlebnisWizard?.(exp); }}
+        onDelete={() => { const exp = draftExp; setDraftExp(null); setConfirmExp(exp); }}
+        onCancel={() => setDraftExp(null)}
+      />
+    )}
     {choiceExp && (
       <ItemActionChoiceSheet
         label="Erlebnis"
@@ -3136,26 +3172,40 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
         {experiences.map((exp, i) => {
           // ── Badge-System identisch zu Meine Werke ──────────────
           const isApproved = exp.approval_status === "approved" || exp.status === "published";
-          const isPending  = !isApproved && (exp.approval_status === "pending" || exp.status === "pending_review" || exp.status === "pending");
-          const isRejected = !isApproved && !isPending && (exp.approval_status === "rejected" || exp.status === "rejected");
+          const isDraft     = !isApproved && exp.status === "draft";
+          // ENTWURF-BADGE-FIX (2026-08-20, Michael-Report "als Entwurf
+          // speichern hat nicht geklappt"): identisch zum WERK-Fix von
+          // heute — experiences.approval_status ist NOT NULL mit Default
+          // 'pending' und wird bei einem Entwurf (status='draft', save()
+          // schickt approval_status:undefined) NIE explizit gesetzt, bleibt
+          // also technisch immer auf 'pending' stehen, obwohl der Entwurf
+          // nie eingereicht wurde. isDraft (status, die einzig verlässliche
+          // Quelle) muss deshalb VOR isPending geprüft werden — sonst
+          // gewinnt fälschlich "⏳ Prüfung" statt "📝 Entwurf".
+          const isPending  = !isApproved && !isDraft && (exp.approval_status === "pending" || exp.status === "pending_review" || exp.status === "pending");
+          const isRejected = !isApproved && !isDraft && !isPending && (exp.approval_status === "rejected" || exp.status === "rejected");
           const badgeBg    = isApproved
             ? "rgba(14,196,184,0.92)"
             : isPending
               ? "rgba(234,179,8,0.92)"
-              : isRejected
-                ? "rgba(255,80,80,0.92)"
-                : "rgba(14,196,184,0.92)";
+              : isDraft
+                ? "rgba(120,120,128,0.85)"
+                : isRejected
+                  ? "rgba(255,80,80,0.92)"
+                  : "rgba(14,196,184,0.92)";
           const badgeText  = isApproved
             ? "✅ Live"
             : isPending
               ? "⏳ Prüfung"
-              : isRejected
-                ? "❌ Abgelehnt"
-                : "✅ Live";
-          const borderCol  = isApproved ? "#0EC4B8" : isPending ? "#D4A800" : isRejected ? "#ff5050" : "#0EC4B8";
+              : isDraft
+                ? "📝 Entwurf"
+                : isRejected
+                  ? "❌ Abgelehnt"
+                  : "✅ Live";
+          const borderCol  = isApproved ? "#0EC4B8" : isPending ? "#D4A800" : isDraft ? "rgba(120,120,128,0.5)" : isRejected ? "#ff5050" : "#0EC4B8";
           return (
             <div key={exp.id || i}
-              onClick={() => setChoiceExp(exp)}
+              onClick={() => isDraft ? setDraftExp(exp) : setChoiceExp(exp)}
               style={{
                 width:"100%", aspectRatio:"1/1",
                 borderRadius:T.r12, overflow:"hidden",
