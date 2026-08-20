@@ -110,7 +110,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
         // dadurch wurde der volle Broadcast-Bodytext (unifiedNormalizer.js kombiniert
         // caption+content) nie an den Client geliefert, egal wie der Normalizer selbst
         // aussah. Additiv ergaenzt, keine bestehende Spalte entfernt.
-        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at")
+        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at,moderation_blurred,moderation_flag,moderation_categories")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),

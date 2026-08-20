@@ -40,7 +40,7 @@ const RECOMMENDATIONS_SELECT =
   "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at";
 
 const MOMENTS_SELECT =
-  "id,user_id,src,type,moment_source,caption,content,created_at";
+  "id,user_id,src,type,moment_source,caption,content,created_at,moderation_blurred,moderation_flag";
 
 // ── Hilfsfunktionen ───────────────────────────────────────────────────
 function mergeUnique(primary = [], secondary = []) {

@@ -19,6 +19,7 @@ import { prefetchProfile, optimizeAvatar, optimizeCard } from "../../lib/perfUti
 // LIGHTBOX+SLIDER.1 (2026-08-08): Wiederverwendbare Komponenten fuer
 // Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
 import ImageSlider from "../../components/shared/ImageSlider.jsx";
+import { toast } from "../../lib/useToast.jsx";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -503,7 +504,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 });
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false }) {
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false, blurred = false }) {
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
   const [heartPos,  setHeartPos] = useState(null);
@@ -597,6 +598,10 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       tapRef.current = { t: now, startX: tapRef.current.startX, startY: tapRef.current.startY, moved: false };
       if (lightboxTimerRef.current) clearTimeout(lightboxTimerRef.current);
       lightboxTimerRef.current = setTimeout(() => {
+        if (blurred) {
+          toast.warn("Dieser Inhalt wird noch geprüft und ist vorübergehend nicht einsehbar.");
+          return;
+        }
         if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
           window.__HUI_LIGHTBOX__.open(imgs, 0);
         }
@@ -642,6 +647,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
             transition: "opacity 0.3s ease",
             willChange: "opacity, transform",
             background: "#000",
+            filter: blurred ? "blur(24px)" : "none",
           }}
         />
       </div>
@@ -678,14 +684,14 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
         }} />
       )}
 
-      <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
+      <div style={{ position: "relative", zIndex: 1, height: "100%", filter: blurred ? "blur(24px)" : "none" }}>
         <ImageSlider
           images={imgs}
           height={h}
           borderRadius={0}
           showDots={imgs.length > 1}
           objectFit="cover"
-          onImageTap={null /* use global lightbox via window.__HUI_LIGHTBOX__ */}
+          onImageTap={blurred ? () => { toast.warn("Dieser Inhalt wird noch geprüft und ist vorübergehend nicht einsehbar."); } : null /* MODERATION-BLUR-BYPASS-FIX */}
         />
         {/* onLoad tracking for first image shimmer */}
         <img
@@ -697,6 +703,18 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           onError={() => setErr(true)}
         />
       </div>
+
+      {blurred && (
+        <div style={{
+          position: "absolute", bottom: 8, left: "50%", transform: "translateX(-50%)",
+          padding: "4px 12px", borderRadius: 16,
+          background: "rgba(15,30,26,0.75)", color: "white",
+          fontSize: 11, fontWeight: 600, letterSpacing: 0.3,
+          zIndex: 2, pointerEvents: "none", whiteSpace: "nowrap",
+        }}>
+          ⚠️ Automatisch verpixelt — Inhalt wird geprüft
+        </div>
+      )}
 
       {/* Heart burst on double-tap */}
       {heartPos && (
@@ -1058,6 +1076,7 @@ export default React.memo(function BaseFeedCard({
           relaxed={!!(item._reactions?._relaxed)}
           onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
           disableTapLightbox={disableMediaLightbox}
+          blurred={!!(item?._raw?.moderation_blurred)}
         />
       </div>
       <FeedActions

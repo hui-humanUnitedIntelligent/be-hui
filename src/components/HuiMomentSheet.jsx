@@ -193,7 +193,42 @@ async function uploadToMedia(file, userId) {
 
   const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
   const url = urlData?.publicUrl || null;
-  return url;
+  // MODERATION-HARD-BLOCK-001: path mitgeben für Storage-Cleanup bei Verstoss
+  return { url, path };
+}
+
+
+// ── CONTENT-MODERATION-001 (2026-08-20): Automatische Erkennung ────
+async function moderateContent({ userId, mediaUrl, mediaType, text }) {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const resp = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/moderate-content`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token || import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          content_type: "moment",
+          user_id: userId,
+          media_url: mediaUrl || null,
+          media_type: mediaType || null,
+          text: text || null,
+          device_info: { platform: navigator.userAgent, source: "HuiMomentSheet" },
+        }),
+      }
+    );
+    if (!resp.ok) { console.warn("[Moderation] Non-OK:", resp.status); return { is_flagged: false, is_blurred: false, flag_categories: [] }; }
+    const json = await resp.json();
+    return json;
+  } catch (e) {
+    console.warn("[Moderation] fehlgeschlagen (nicht blockierend):", e?.message);
+    return { is_flagged: false, is_blurred: false, flag_categories: [] };
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -206,6 +241,8 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   const [uploading, setUploading] = useState(false);
   const [shareErr,  setShareErr]  = useState(null);
   const [momentSource, setMomentSource] = useState(null); // "foto"|"video"|"galerie"|"gedanke"
+  const [moderationNotice, setModerationNotice] = useState(null); // CONTENT-MODERATION-001
+  const [moderationBlocked, setModerationBlocked] = useState(false); // MODERATION-HARD-BLOCK-001
 
   // KEYBOARD-FIX (2026-08-11): useKeyboardInset() MUSS aufgerufen werden, damit
   // der globale visualViewport/native-Insets-Listener initialisiert wird — sonst
@@ -226,7 +263,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   }, [visible]);
 
   function resetState() {
-    setText(""); setShareErr(null); setUploading(false);
+    setText(""); setShareErr(null); setUploading(false); setModerationNotice(null); setModerationBlocked(false);
     setMediaURL(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
     setFileObj(null); setIsVideo(false);
   }
@@ -259,7 +296,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   }, []);
 
   // ── Kern-Logik: in beitraege inserieren ───────────────────────
-  async function _publishMoment({ src, type, caption }) {
+  async function _publishMoment({ src, storagePath, type, caption }) {
 
     // 1. User authentifizieren
     const { data: authData, error: authErr } = await supabase.auth.getUser();
@@ -267,6 +304,33 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       throw new Error("Nicht eingeloggt — bitte Seite neu laden");
     }
     const userId = authData.user.id;
+
+    // 1b. CONTENT-MODERATION-001: Prüfung VOR Insert
+    let modResult = { is_flagged: false, is_blurred: false, flag_categories: [] };
+    if (src || (caption && caption.trim())) {
+      modResult = await moderateContent({
+        userId,
+        mediaUrl: src,
+        mediaType: type === "video" ? "video" : (type === "foto" ? "image" : null),
+        text: caption,
+      });
+    }
+
+    // 1c. MODERATION-HARD-BLOCK-001: Verstoss → nicht posten, Media löschen
+    if (modResult.is_flagged) {
+      if (storagePath) {
+        try {
+          await supabase.storage.from("media").remove([storagePath]);
+        } catch (cleanupErr) {
+          console.warn("[HuiMoment] Storage-Cleanup fehlgeschlagen:", cleanupErr?.message);
+        }
+      }
+      const blockErr = new Error(
+        "Dieses Bild verstößt gegen unsere Richtlinien. Dein Account wurde bei einem Super-Admin gemeldet. Das Bild wurde nicht gepostet."
+      );
+      blockErr.isModerationBlock = true;
+      throw blockErr;
+    }
 
     // 2. Payload
     const payload = {
@@ -276,6 +340,9 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       moment_source:    momentSource || null,
       caption:          caption || null,
       visibility_scope: visibilityScope,
+      moderation_flag:       false,
+      moderation_blurred:    !!modResult.is_blurred,
+      moderation_categories: modResult.flag_categories || [],
     };
 
     // 3. INSERT in beitraege
@@ -304,17 +371,22 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
     setUploading(true); setShareErr(null);
     try {
       let src  = null;
+      let storagePath = null;
       let type = "gedanke";
 
       if (fileObj) {
         type = isVideo ? "video" : "foto";
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id;
-        if (userId) src = await uploadToMedia(fileObj, userId);
+        if (userId) {
+          const uploadResult = await uploadToMedia(fileObj, userId);
+          src = uploadResult?.url || null;
+          storagePath = uploadResult?.path || null;
+        }
         // Upload-Fehler wirft jetzt bei Videos (kein graceful-Fallback mehr)
       }
 
-      await _publishMoment({ src, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim() });
+      await _publishMoment({ src, storagePath, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim() });
 
       if (mediaURL) URL.revokeObjectURL(mediaURL);
       setMediaURL(null);

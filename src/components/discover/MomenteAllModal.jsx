@@ -6,6 +6,7 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import { toast } from "../../lib/useToast.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -34,9 +35,16 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
   const [imgErr, setImgErr] = useState(false);
   const likes = m.likes ?? 0;
   const comments = m.comments ?? 0;
+  const blurred = !!m.moderation_blurred;
   return (
     <div
-      onClick={() => onPress?.(m)}
+      onClick={() => {
+        if (blurred) {
+          toast.warn("Dieser Inhalt wird noch geprüft und ist vorübergehend nicht einsehbar.");
+          return;
+        }
+        onPress?.(m);
+      }}
       style={{
         background:T.white, borderRadius:18, overflow:"hidden",
         boxShadow:T.cardShadow, border:`1px solid ${T.border}`,
@@ -45,14 +53,16 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
       }}
     >
       <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
-        {!imgErr && m.src && m.type === "video"
-          ? <video src={m.src} muted playsInline preload="metadata"
-              onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : !imgErr && m.src
-          ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption}
-              onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-          : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
-        }
+        <div style={{ width:"100%", height:"100%", filter: blurred ? "blur(16px)" : "none" }}>
+          {!imgErr && m.src && m.type === "video"
+            ? <video src={m.src} muted playsInline preload="metadata"
+                onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            : !imgErr && m.src
+            ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption}
+                onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
+          }
+        </div>
         {m.created_at && (
           <div style={{
             position:"absolute", top:8, left:8,
@@ -60,6 +70,18 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
             fontSize:9.5, color:"#fff", fontWeight:600, padding:"2px 8px",
             backdropFilter:"blur(4px)"
           }}>{timeAgo(m.created_at)}</div>
+        )}
+        {blurred && (
+          <div style={{
+            position:"absolute", bottom:6, left:"50%", transform:"translateX(-50%)",
+            padding:"3px 9px", borderRadius:12,
+            background:"rgba(15,30,26,0.75)", color:"white",
+            fontSize:9.5, fontWeight:600, letterSpacing:0.2,
+            zIndex:2, pointerEvents:"none", whiteSpace:"nowrap",
+          }}>
+            ⚠️ Wird geprüft
+          </div>
+        )}
         )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
@@ -116,7 +138,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("beitraege")
-        .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id")
+        .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,moderation_blurred,moderation_flag")
         .order(sort === "alpha" ? "caption" : "created_at", { ascending: sort === "alpha" })
         .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
