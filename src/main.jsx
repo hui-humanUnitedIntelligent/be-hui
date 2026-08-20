@@ -6,7 +6,7 @@ import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
-import { initOTA } from './lib/otaUpdate.js'
+import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
 import { initGlobalKeyboardHandling } from './lib/globalKeyboardHandler.js'
 
 // ── Production Console Silencer (2026-08-12) ─────────────────────
@@ -36,15 +36,12 @@ initOTA().then((res) => {
   if (res?.error) console.warn('[OTA] Init warning:', res.error);
 }).catch((err) => console.warn('[OTA] Init error:', err));
 
-// OTA-UPDATE-LOOP-001 FIX (2026-08-20): autoCheckOTA() ENTFERNT.
-// Grund: capacitor.config.json hat CapacitorUpdater.autoUpdate=true gesetzt —
-// das native Plugin lädt/installiert neue Bundles bereits VOLLSTÄNDIG SELBST.
-// Der zusätzliche manuelle JS-Call (download()+set()) lief GLEICHZEITIG zum
-// nativen Auto-Update und hat denselben Bundle-Storage konkurrierend
-// beschrieben → Race Condition. Symptom: App blieb dauerhaft auf einer
-// alten Version (v2.1.310) hängen, obwohl der Server längst neuer war.
-// Native autoUpdate:true ist jetzt der EINZIGE Update-Pfad. Siehe otaUpdate.js
-// Header-Kommentar für die volle Analyse.
+// OTA v4 (2026-08-21): autoCheckOTA() WIEDERHERGESTELLT als Fallback.
+// Grund: Alte APKs (gebaut vor Aug 18) haben autoUpdate:false im native Plugin.
+// v3 hatte autoCheckOTA() entfernt → alte APKs ziehen keine Updates mehr.
+// v4: autoCheckOTA() mit Race-Condition-Schutz (prüft current bundle vor download).
+// Bei neuen APKs (autoUpdate:true) ist der Check idempotent — Plugin war schneller → skip.
+autoCheckOTA().catch((err) => console.warn('[OTA] Auto-check error:', err));
 
 // ── DEV: Contract Inspector ──────────────────────────────────────
 // In DevTools: window.__HUI_CONTRACTS?.()
