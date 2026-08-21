@@ -28,7 +28,7 @@
 		},
 		"CapacitorUpdater": {
 			"updateUrl": "https://be-hui.vercel.app/app-version.json",
-			"autoUpdate": false,
+			"autoUpdate": true,
 			"resetWhenUpdate": true,
 			"autoDeleteFailed": true,
 			"backgroundThrottle": false

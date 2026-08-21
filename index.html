@@ -244,7 +244,57 @@
       body { background: #FDFAF5; margin: 0; }
     </style>
     <!-- ════════════════════════════════════════════════════════ -->
-</head>
+
+  <!-- ══ DIAGNOSTIC ERROR OVERLAY (White-Screen Debug) ══════════ -->
+  <script>
+    (function() {
+      var errors = [];
+      function showErrors() {
+        if (!errors.length) return;
+        var div = document.createElement("div");
+        div.id = "hui-error-overlay";
+        div.style.cssText = "position:fixed;inset:0;z-index:999999;background:#fff;color:#000;font-family:monospace;font-size:13px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-all;";
+        var html = "<b style='color:#f00;font-size:16px'>⚠️ HUI ERROR</b>\n\n";
+        errors.forEach(function(e, i) {
+          html += (i+1) + ". " + e + "\n\n";
+        });
+        html += "\n<b>Chunk:</b> " + (document.querySelector('script[src*="main-"]') ? document.querySelector('script[src*="main-"]').src : 'NOT FOUND') + "\n";
+        html += "<b>Root children:</b> " + (document.getElementById("root") ? document.getElementById("root").children.length : 'NO ROOT DIV') + "\n";
+        html += "<b>UA:</b> " + navigator.userAgent;
+        div.innerHTML = html.replace(/\n/g, "<br>");
+        document.body ? document.body.appendChild(div) : document.documentElement.appendChild(div);
+      }
+      window.onerror = function(msg, src, line, col, err) {
+        errors.push(msg + " (" + src + ":" + line + ":" + col + ")" + (err && err.stack ? "\n" + err.stack : ""));
+        showErrors();
+      };
+      window.addEventListener("unhandledrejection", function(e) {
+        var r = e.reason;
+        errors.push("Promise: " + (r && r.message ? r.message : String(r)) + (r && r.stack ? "\n" + r.stack : ""));
+        showErrors();
+      });
+      // Check after 5s: if root is empty, show diagnostic
+      setTimeout(function() {
+        var root = document.getElementById("root");
+        if (!root || root.children.length === 0) {
+          errors.push("React did not render after 5s — root div is empty");
+          showErrors();
+        }
+      }, 5000);
+      // Check after 10s: if root still empty
+      setTimeout(function() {
+        var root = document.getElementById("root");
+        if (!root || root.children.length === 0) {
+          if (!document.getElementById("hui-error-overlay")) {
+            errors.push("React STILL not rendered after 10s");
+            showErrors();
+          }
+        }
+      }, 10000);
+    })();
+  </script>
+  <!-- ════════════════════════════════════════════════════════ -->
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
