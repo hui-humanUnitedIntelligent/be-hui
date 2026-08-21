@@ -248,5 +248,54 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+  
+    <!-- ═══ HUI DIAGNOSTIC OVERLAY (v2.1.320) ═══ -->
+    <!-- Fängt alle JS-Fehler ab und zeigt sie auf dem weißen Screen -->
+    <div id="hui-diag" style="display:none;position:fixed;inset:0;z-index:99999;background:#FDFAF5;color:#1a1a1a;font-family:monospace;font-size:12px;padding:20px;overflow:auto;z-index:99999;">
+      <div style="font-weight:bold;color:#FF3B30;font-size:16px;margin-bottom:12px;">⚠ HUI Fehler</div>
+      <div id="hui-diag-msg" style="white-space:pre-wrap;word-break:break-all;"></div>
+      <div id="hui-diag-stack" style="margin-top:12px;color:#666;white-space:pre-wrap;font-size:11px;"></div>
+      <div style="margin-top:20px;color:#999;font-size:11px;">Version: <span id="hui-diag-ver">unknown</span> | Time: <span id="hui-diag-time"></span></div>
+    </div>
+    <script>
+      (function() {
+        var diag = document.getElementById('hui-diag');
+        var msg = document.getElementById('hui-diag-msg');
+        var stack = document.getElementById('hui-diag-stack');
+        var ver = document.getElementById('hui-diag-ver');
+        var time = document.getElementById('hui-diag-time');
+        
+        function showErr(title, error) {
+          if (diag) {
+            diag.style.display = 'block';
+            if (msg) msg.textContent = title + ': ' + (error && error.message ? error.message : String(error));
+            if (stack) stack.textContent = error && error.stack ? error.stack : '';
+            if (ver) ver.textContent = '2.1.320';
+            if (time) time.textContent = new Date().toISOString();
+          }
+        }
+        
+        // Catch all uncaught errors
+        window.addEventListener('error', function(e) {
+          if (e.error) showErr('Error', e.error);
+          else if (e.message) showErr('Error', { message: e.message, stack: e.filename + ':' + e.lineno });
+        });
+        
+        // Catch unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+          showErr('Unhandled Rejection', e.reason);
+        });
+        
+        // Check for empty root after 8 seconds (app didn't render)
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (root && root.children.length === 0) {
+            showErr('App nicht geladen', { message: 'Root-Element ist leer nach 8s — JS Bundle konnte nicht starten oder React render nicht.', stack: 'Check: chunk loading failed, import error, or React crash.' });
+          }
+        }, 8000);
+      })();
+    </script>
+    <!-- ═══ END DIAGNOSTIC OVERLAY ═══ -->
+
   </body>
 </html>
