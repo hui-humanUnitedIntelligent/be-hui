@@ -1,6 +1,6 @@
 {
   "name": "base44-app",
-  "version": "2.1.322",
+  "version": "2.1.323",
   "type": "module",
   "private": true,
   "scripts": {
