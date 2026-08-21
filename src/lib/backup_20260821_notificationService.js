@@ -59,7 +59,7 @@ export async function createNotification({
         entity_id:   entityId   || null,
         entity_type: entityType || null,
         action_url:  actionUrl  || null,
-        metadata:    metadata   || {},
+        metadata:    metadata   || null,
         read:        false,
         is_read:     false,
         created_at:  new Date().toISOString(),
