@@ -7,7 +7,7 @@ import { GlobalAppBoundary } from './lib/ErrorBoundaries'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
-import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
+import { initOTA, autoCheckOTA, confirmAppReady } from './lib/otaUpdate.js'
 import { initGlobalKeyboardHandling } from './lib/globalKeyboardHandler.js'
 
 // ── Production Console Silencer (2026-08-12) ─────────────────────
@@ -30,9 +30,10 @@ initAppPerformance();
 // src/lib/globalKeyboardHandler.js für die volle Erklärung).
 initGlobalKeyboardHandling();
 
-// OTA (2026-08-08): Over-the-Air Updates — lädt neue Web-Bundles automatisch.
-// notifyAppReady MUSS innerhalb ~10s nach Start gerufen werden, sonst rollt
-// das Plugin nach 3 Crashes zum letzten stabilen Bundle zurück.
+// OTA v5 (2026-08-21): Over-the-Air Updates — lädt neue Web-Bundles automatisch.
+// notifyAppReady wird NICHT mehr hier gerufen — sondern erst nach React-Render
+// via confirmAppReady() in App.jsx useEffect. Siehe otaUpdate.js für Details.
+// Grund: notifyAppReady vor React-Render → White-Screen-Loop ohne Rollback.
 initOTA().then((res) => {
   if (res?.error) console.warn('[OTA] Init warning:', res.error);
 }).catch((err) => console.warn('[OTA] Init error:', err));
@@ -63,6 +64,9 @@ window.addEventListener('error', (event) => {
   if (!event.error) return;
   sentryCapture(event.error, { source: 'window.onerror', href: window.location.href });
 });
+
+// confirmAppReady global verfügbar machen — App.jsx ruft es nach erstem Render
+window.__HUI_CONFIRM_APP_READY__ = confirmAppReady;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

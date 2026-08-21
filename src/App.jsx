@@ -911,6 +911,16 @@ function PushInit() {
 }
 
 export default function App() {
+  // ── OTA v5: confirmAppReady nach erstem erfolgreichen React-Render ──
+  // Ruft notifyAppReady() beim native Plugin — "App lebt, kein Rollback".
+  // Wenn React crasht → dieser useEffect läuft nie → Plugin rollt nach 3
+  // Crashes automatisch zur letzten funktionierenden Version zurück.
+  React.useEffect(() => {
+    if (typeof window.__HUI_CONFIRM_APP_READY__ === 'function') {
+      window.__HUI_CONFIRM_APP_READY__();
+    }
+  }, []);
+
   return (
     <ErrorBoundary>
       <BrowserRouter>

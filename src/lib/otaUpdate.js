@@ -24,23 +24,39 @@ import { APP_VERSION } from "../version.js";
 
 const UPDATE_URL = "https://be-hui.vercel.app/app-version.json";
 
-// ── 1. initOTA — MUSS als Erstes nach App-Start gerufen werden ──
-// Sagt dem Plugin: "Diese Version lebt, kein Rollback nötig."
-// Nach 3 Crashes ohne notifyAppReady → automatischer Rollback.
+// ── 1. initOTA — Initialisiert Plugin, aber KEIN notifyAppReady! ──
+// OTA v5 CRASH-RECOVERY (2026-08-21):
+// notifyAppReady() wird NICHT mehr hier gerufen — stattdessen in
+// confirmAppReady() nach erfolgreichem React-Render (siehe App.jsx useEffect).
+// Grund: Wenn notifyAppReady() VOR React-Render gerufen wird und React
+// crasht → Plugin denkt "Version ist stabil" → kein Rollback → White-Screen-Loop.
+// Mit v5: React crash → useEffect läuft nie → kein notifyAppReady →
+// Plugin rollt nach 3 Crashes automatisch zur letzten funktionierenden Version zurück.
 export async function initOTA() {
   if (!Capacitor.isNativePlatform()) {
     return { available: false, current: APP_VERSION };
   }
 
   try {
-    await CapacitorUpdater.notifyAppReady();
-
+    // NUR Plugin initialisieren — KEIN notifyAppReady!
     const current = await CapacitorUpdater.current();
-
     return { available: false, current: APP_VERSION, bundleId: current.bundle?.id };
   } catch (err) {
-    console.error("[OTA] notifyAppReady fehlgeschlagen:", err);
+    console.error("[OTA] Init fehlgeschlagen:", err);
     return { available: false, current: APP_VERSION, error: err?.message };
+  }
+}
+
+// ── 1b. confirmAppReady — ERST nach erfolgreichem React-Render rufen! ──
+// Wird aus App.jsx useEffect nach erstem Render gerufen.
+// Sagt dem Plugin: "React lebt, kein Rollback nötig."
+export async function confirmAppReady() {
+  if (!Capacitor.isNativePlatform()) return;
+
+  try {
+    await CapacitorUpdater.notifyAppReady();
+  } catch (err) {
+    console.error("[OTA] confirmAppReady fehlgeschlagen:", err);
   }
 }
 
