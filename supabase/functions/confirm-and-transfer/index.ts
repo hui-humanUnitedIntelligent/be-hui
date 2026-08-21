@@ -11,6 +11,10 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "confirm-transfer", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
+
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
   if (!stripeKey) {
     return new Response(JSON.stringify({ error: 'Stripe key not configured' }), {
@@ -45,11 +49,7 @@ serve(async (req) => {
 
     // 1. RPC: Buyer-Confirmation in DB
     // FIX (2026-08-16, DUPLICATE-NOTIF-BUG + BROKEN-TRANSFER-BUG):
-    //   a) 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "confirm-transfer", 10, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-Die RPC gibt das Feld 'success' zurueck, nicht 'ok'. Der alte Check
+    //   a) Die RPC gibt das Feld 'success' zurueck, nicht 'ok'. Der alte Check
     //      `!confirmResult?.ok` war IMMER true (Feld existierte nie) -> diese
     //      Funktion brach hier IMMER mit 400 ab, BEVOR der Stripe-Transfer an
     //      den Verkaeufer ueberhaupt ausgeloest wurde. Das Geld blieb bei jedem

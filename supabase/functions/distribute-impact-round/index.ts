@@ -18,11 +18,12 @@ const corsHeaders = {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders }
+    return new Response('ok', { headers: corsHeaders });
+  }
+  
   // ── Rate Limiting (SCALE-006) ──
   const _rl = await checkRateLimit(req, "distribute-impact", 3, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);)
-  }
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
 
   try {
     // Service role — bypasses RLS
