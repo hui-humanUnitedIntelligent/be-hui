@@ -2,7 +2,7 @@
 // Media (Image/Video/Voice) + Bearbeiten/Löschen Modal
 // Click auf Nachricht → Mini-Modal (Bearbeiten / Löschen)
 
-import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { HUI } from "../../design/hui.design.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
@@ -241,44 +241,10 @@ function MediaContent({ msg = {}, own = false }) {
 }
 
 // ── Emoji Reaktion Bar (Long-Press → Emoji auswählen) ──
-function EmojiReactionBar({ msg = {}, anchorRect = null, onReact = () => {}, onClose = () => {} }) {
+function EmojiReactionBar({ msg = {}, position = {}, onReact = () => {}, onClose = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "EmojiReactionBar");
   const [animateIn, setAnimateIn] = useState(false);
-  const barRef = useRef(null);
-  // EMOJI-POS-FIX (2026-08-21): Vorher wurde ein top-relativer Wert (rect.bottom)
-  // direkt als CSS "bottom"-Wert benutzt (Koordinatensystem-Verwechslung) und
-  // horizontal war die Leiste hart auf 50% Bildschirmbreite fixiert — dadurch
-  // erschien das Emoji-Fenster willkürlich irgendwo auf dem Screen statt an
-  // der Nachricht. Fix: echte DOMRect der Bubble verwenden, Leiste per
-  // useLayoutEffect NACH dem Messen exakt 5px oberhalb (oder wenn kein Platz:
-  // 5px unterhalb) der Bubble positionieren, horizontal über der Bubble-Mitte
-  // zentriert und an den Viewport-Rand geklemmt.
-  const [style, setStyle] = useState(null);
-
-  useLayoutEffect(() => {
-    if (!anchorRect || !barRef.current) return;
-    const GAP = 5;
-    const EDGE_PAD = 8;
-    const barW = barRef.current.offsetWidth || 0;
-    const barH = barRef.current.offsetHeight || 0;
-
-    // Vertikal: bevorzugt oberhalb der Nachricht, sonst unterhalb
-    const fitsAbove = anchorRect.top - GAP - barH >= 0;
-    const top = fitsAbove
-      ? anchorRect.top - GAP - barH
-      : anchorRect.bottom + GAP;
-
-    // Horizontal: über der Bubble-Mitte zentriert, an Viewport-Rand geklemmt
-    const bubbleCenterX = anchorRect.left + anchorRect.width / 2;
-    const rawLeft = bubbleCenterX - barW / 2;
-    const left = Math.min(
-      Math.max(rawLeft, EDGE_PAD),
-      window.innerWidth - barW - EDGE_PAD
-    );
-
-    setStyle({ top, left });
-    requestAnimationFrame(() => setAnimateIn(true));
-  }, [anchorRect]);
+  useEffect(() => { requestAnimationFrame(() => setAnimateIn(true)); }, []);
 
   const isOwn = msg.own === true;
 
@@ -292,15 +258,13 @@ function EmojiReactionBar({ msg = {}, anchorRect = null, onReact = () => {}, onC
         transition:"opacity 0.15s ease-out",
       }}/>
       {/* Emoji-Leiste */}
-      <div ref={barRef} style={{
+      <div style={{
         position:"fixed", zIndex:10500,
-        top: style ? style.top : -9999,
-        left: style ? style.left : -9999,
-        visibility: style ? "visible" : "hidden",
-        transform: `scale(${animateIn ? 1 : 0.85})`,
-        transformOrigin: "center center",
+        bottom: Math.min(Math.max(position.y - 60, 80), window.innerHeight - 120),
+        left: "50%",
+        transform: `translateX(-50%) scale(${animateIn ? 1 : 0.85})`,
         opacity: animateIn ? 1 : 0,
-        transition:"opacity 0.20s cubic-bezier(0.22,1,0.36,1), transform 0.20s cubic-bezier(0.22,1,0.36,1)",
+        transition:"all 0.20s cubic-bezier(0.22,1,0.36,1)",
         background:"rgba(255,255,255,0.97)",
         backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
         borderRadius:28, padding:"8px 10px",
@@ -376,7 +340,7 @@ function ReactionBadges({ msg = {}, own = false }) {
 export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
   const own = msg.own === true;
   const [modal, setModal] = useState(null); // { x, y } | null
-  const [reactionAnchor, setReactionAnchor] = useState(null); // DOMRect-Snapshot | null
+  const [showReactions, setShowReactions] = useState(false);
   const bubbleRef = useRef(null);
   const longPressTimer = useRef(null);
   const touchStartPos = useRef({ x:0, y:0 });
@@ -405,11 +369,7 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
     touchStartPos.current = { x, y };
     clearTimeout(longPressTimer.current);
     longPressTimer.current = setTimeout(() => {
-      // EMOJI-POS-FIX: echte Bubble-Position im Moment des Öffnens snapshotten
-      const rect = bubbleRef.current?.getBoundingClientRect();
-      if (rect) {
-        setReactionAnchor({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
-      }
+      setShowReactions(true);
       // Haptic Feedback (falls unterstützt)
       if (navigator.vibrate) navigator.vibrate(50);
     }, 500);
@@ -479,12 +439,7 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
         onTouchStart={startLongPress}
         onTouchEnd={cancelLongPress}
         onTouchMove={cancelLongPress}
-        onContextMenu={e => {
-          e.preventDefault();
-          if (isDeleted) return;
-          const rect = bubbleRef.current?.getBoundingClientRect();
-          if (rect) setReactionAnchor({ top: rect.top, bottom: rect.bottom, left: rect.left, width: rect.width });
-        }}
+        onContextMenu={e => { e.preventDefault(); if(!isDeleted) setShowReactions(true); }}
       >
         {/* Bubble */}
         {own ? (
@@ -568,12 +523,12 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
       )}
 
       {/* Emoji Reaktion Bar (Long-Press — alle Nachrichten) */}
-      {reactionAnchor && (
+      {showReactions && (
         <EmojiReactionBar
           msg={{ ...msg, _currentUserId: msg._currentUserId }}
-          anchorRect={reactionAnchor}
+          position={{ y: bubbleRef.current?.getBoundingClientRect()?.bottom || 200 }}
           onReact={onReact}
-          onClose={() => setReactionAnchor(null)}
+          onClose={() => setShowReactions(false)}
         />
       )}
     </div>
