@@ -11,7 +11,7 @@
 // Bestehende Freigabe-Logik (isApproved sperrt Felder, wasRejected zeigt
 // Ablehnungsgrund + Resubmission-Reset) bleibt vollständig erhalten.
 // ══════════════════════════════════════════════════════════════════════
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
@@ -27,7 +27,6 @@ import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { HUI } from "../../design/hui.design.js";
-import BankdatenModal from "../settings/BankdatenModal.jsx";
 
 const C = {
   teal: HUI.COLOR.teal, tealD: HUI.COLOR.tealDeep, ink: HUI.COLOR.inkStudio, inkMid: "rgba(26,26,24,0.55)",
@@ -119,24 +118,6 @@ function Chip({ active, children, onClick, disabled }) {
 }
 
 export default function TalentAngebotWizard({ userId, existingTalent = null, onClose, onSaved }) {
-  // BANK-GATE-001 (2026-08-21, Michele-Report — siehe WerkWizard fuer Begruendung):
-  // Bankdaten-Pruefung JETZT beim Oeffnen des Wizards statt erst beim finalen
-  // Speichern in Schritt 6 -- verhindert Datenverlust durch komplettes Neu-
-  // Ausfuellen des 6-Schritte-Formulars.
-  const [bankHasDetails, setBankHasDetails] = useState(null);
-  const [showBankModal, setShowBankModal]   = useState(false);
-  const checkBank = useCallback(async () => {
-    if (!userId) { setBankHasDetails(true); return; }
-    try {
-      const { data } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
-      setBankHasDetails(!!data?.has_bank_details);
-    } catch (e) {
-      console.warn("[TalentAngebotWizard] bank-gate check failed:", e?.message);
-      setBankHasDetails(true);
-    }
-  }, [userId]);
-  useEffect(() => { checkBank(); }, [checkBank]);
-
   const isEdit = !!existingTalent?.id;
   const wasRejected = existingTalent?.status === "rejected";
   const isApproved = existingTalent?.status === "approved";
@@ -354,50 +335,6 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   }
 
   const isLast = step === TOTAL;
-
-  // ── BANK-GATE-001: Lade-/Sperr-Screen VOR dem eigentlichen Wizard ──
-  if (bankHasDetails === null) {
-    return createPortal(
-      <div style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ width:28, height:28, border:`3px solid ${C.border}`, borderTopColor:C.teal, borderRadius:"50%", animation:"hui-bankgate-spin 0.8s linear infinite" }}/>
-        <style>{"@keyframes hui-bankgate-spin{to{transform:rotate(360deg)}}"}</style>
-      </div>,
-      document.body
-    );
-  }
-  if (bankHasDetails === false) {
-    return createPortal(
-      <div data-hui-kbd-self-managed style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", flexDirection:"column" }}>
-        <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ width:28 }}/>
-          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>Bankdaten benötigt</div>
-          <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
-            <span style={{ fontSize:14, color:C.ink }}>×</span>
-          </button>
-        </div>
-        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px 28px", textAlign:"center", gap:14 }}>
-          <div style={{ fontSize:44 }}>🏦</div>
-          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>Bankdaten fehlen noch</div>
-          <div style={{ fontSize:14, color:C.inkMid, lineHeight:1.5 }}>
-            Bevor du ein Talent-Angebot veröffentlichen kannst, brauchen wir deine Bankverbindung — sonst können wir dir Auszahlungen aus Buchungen nicht überweisen.
-            Trag sie jetzt kurz ein, dann geht's direkt weiter mit deinem Angebot.
-          </div>
-        </div>
-        <div style={{ padding:"0 20px calc(20px + env(safe-area-inset-bottom, 0px))" }}>
-          <PBtn label="Bankdaten jetzt hinterlegen" onClick={() => setShowBankModal(true)}/>
-          <SBtn label="Abbrechen" onClick={() => onClose?.()}/>
-        </div>
-        {showBankModal && (
-          <BankdatenModal
-            userId={userId}
-            onClose={() => setShowBankModal(false)}
-            onSaved={() => { setShowBankModal(false); checkBank(); }}
-          />
-        )}
-      </div>,
-      document.body
-    );
-  }
 
   return createPortal(
     <div data-hui-kbd-self-managed style={{

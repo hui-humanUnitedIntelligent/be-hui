@@ -7,7 +7,7 @@ import {
   HUIPersonenIcon, HUIEuroIcon, HUIEinladungIcon,
   HUIPrivatIcon, HUISchreibenIcon, HUIWarnIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -20,7 +20,6 @@ import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
-import BankdatenModal from "../settings/BankdatenModal.jsx";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -855,25 +854,6 @@ function S4({ data, onChange, saving }) {
 // WIZARD ROOT
 // ══════════════════════════════════════════════════════════════
 export default function ExperienceWizard({ userId, existingExp = null, onClose, onSaved }) {
-  // BANK-GATE-001 (2026-08-21, Michele-Report — siehe WerkWizard fuer Begruendung):
-  // Bankdaten-Pruefung JETZT beim Oeffnen des Wizards statt erst beim finalen
-  // Speichern -- verhindert Datenverlust durch komplettes Neu-Ausfuellen.
-  // ExperienceWizard hatte bisher GAR KEINEN Bankdaten-Check (weder vorher
-  // noch am Ende) -- Ergaenzung fuer Konsistenz mit WerkWizard/TalentAngebotWizard.
-  const [bankHasDetails, setBankHasDetails] = useState(null);
-  const [showBankModal, setShowBankModal]   = useState(false);
-  const checkBank = useCallback(async () => {
-    if (!userId) { setBankHasDetails(true); return; }
-    try {
-      const { data } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
-      setBankHasDetails(!!data?.has_bank_details);
-    } catch (e) {
-      console.warn("[ExperienceWizard] bank-gate check failed:", e?.message);
-      setBankHasDetails(true);
-    }
-  }, [userId]);
-  useEffect(() => { checkBank(); }, [checkBank]);
-
   const TOTAL = 4;
   const [step, setSt]             = useState(1);
   const [saving, setSaving]       = useState(false);
@@ -958,23 +938,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       return;
     }
     setSaving(true);
-
-    // BANKDATEN-002 Parity-Fix (2026-08-21): Absicherung falls der Bank-Gate-
-    // Check beim Oeffnen (bankHasDetails) durch einen Edge-Case umgangen wurde
-    // (siehe WerkWizard/TalentAngebotWizard fuer Begruendung).
-    if (status === "pending_review") {
-      try {
-        const { data: bankCheck } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
-        if (!bankCheck?.has_bank_details) {
-          setSaving(false);
-          setSaveError("Bitte hinterlege zuerst deine Bankdaten in den Einstellungen (Account & Sicherheit → Bankdaten), damit wir dir Auszahlungen überweisen können.");
-          setTimeout(() => setSaveError(null), 6000);
-          return;
-        }
-      } catch (e) {
-        console.warn("[ExperienceWizard] bank-check failed:", e?.message);
-      }
-    }
 
     // ── DIFF-SNAPSHOT: Beim Update eines approved Erlebnisses, alten Stand speichern ──
     let snapshotPayload = {};
@@ -1100,57 +1063,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   }
 
   const isRejectedUpdate = existingExp?.approval_status === "rejected" || existingExp?.status === "rejected";
-
-  // ── BANK-GATE-001: Lade-/Sperr-Screen VOR dem eigentlichen Wizard ──
-  if (bankHasDetails === null) {
-    return createPortal(
-      <div style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", alignItems:"center", justifyContent:"center" }}>
-        <div style={{ width:28, height:28, border:`3px solid ${C.border}`, borderTopColor:C.teal, borderRadius:"50%", animation:"hui-bankgate-spin 0.8s linear infinite" }}/>
-        <style>{"@keyframes hui-bankgate-spin{to{transform:rotate(360deg)}}"}</style>
-      </div>,
-      document.body
-    );
-  }
-  if (bankHasDetails === false) {
-    return createPortal(
-      <div data-hui-kbd-self-managed style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", flexDirection:"column" }}>
-        <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:C.white, borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-          <span style={{ width:28 }}/>
-          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>Bankdaten benötigt</div>
-          <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
-            <span style={{ fontSize:14, color:C.ink }}>×</span>
-          </button>
-        </div>
-        <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px 28px", textAlign:"center", gap:14 }}>
-          <div style={{ fontSize:44 }}>🏦</div>
-          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>Bankdaten fehlen noch</div>
-          <div style={{ fontSize:14, color:C.inkMid, lineHeight:1.5 }}>
-            Bevor du ein Erlebnis veröffentlichen kannst, brauchen wir deine Bankverbindung — sonst können wir dir Auszahlungen aus Buchungen nicht überweisen.
-            Trag sie jetzt kurz ein, dann geht's direkt weiter mit deinem Erlebnis.
-          </div>
-        </div>
-        <div style={{ padding:"0 20px calc(20px + env(safe-area-inset-bottom, 0px))" }}>
-          <button onClick={() => setShowBankModal(true)} style={{
-            width:"100%", padding:"16px", background:`linear-gradient(135deg, ${C.teal}, ${C.tealD})`,
-            border:"none", borderRadius:14, color:"#fff", fontSize:15, fontWeight:600,
-            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation", marginBottom:6,
-          }}>Bankdaten jetzt hinterlegen</button>
-          <button onClick={() => onClose?.()} style={{
-            width:"100%", padding:"13px", background:"none", border:"none", color:C.teal,
-            fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
-          }}>Abbrechen</button>
-        </div>
-        {showBankModal && (
-          <BankdatenModal
-            userId={userId}
-            onClose={() => setShowBankModal(false)}
-            onSaved={() => { setShowBankModal(false); checkBank(); }}
-          />
-        )}
-      </div>,
-      document.body
-    );
-  }
 
   return createPortal(
     <div data-hui-kbd-self-managed style={{
