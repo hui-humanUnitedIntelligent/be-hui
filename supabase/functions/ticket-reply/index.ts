@@ -2,6 +2,7 @@
 // Erlaubt authentifizierten Usern eine Antwort auf ihr eigenes Support-Ticket zu senden
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -75,3 +76,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: { ...CORS, "Content-Type": "application/json" } });
   }
 });
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "ticket-reply", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

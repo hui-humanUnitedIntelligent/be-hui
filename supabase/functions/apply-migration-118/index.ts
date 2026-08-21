@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +8,10 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders }
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "apply-migration", 3, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt););
   }
   
   const supabase = createClient(

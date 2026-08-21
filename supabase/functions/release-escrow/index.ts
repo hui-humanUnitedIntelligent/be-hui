@@ -9,6 +9,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -151,3 +152,7 @@ serve(async (req) => {
     })
   }
 })
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "release-escrow", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

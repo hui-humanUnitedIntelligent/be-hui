@@ -17,6 +17,8 @@
 // ab, statt nochmal zu senden. Zusaetzlich wird der bereits vom DB-Trigger
 // mitgeschickte `outbox_id` jetzt tatsaechlich genutzt (v3 ignorierte ihn
 // komplett und scannte immer bis zu 50 Zeilen).
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
+
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const FCM_PROJECT_ID   = Deno.env.get("FCM_PROJECT_ID") || "";
@@ -189,6 +191,10 @@ async function processClaimedEntry(entry: { id: string; user_id: string; type: s
 }
 
 Deno.serve(async (req) => {
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "push-notifications", 20, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
+
   try {
     if (req.method === "GET") {
       return jsonResp({ status: "ok", fcm_configured: !!FCM_PROJECT_ID, supabase_url: SUPABASE_URL.substring(0, 30), version: "v4-atomic-claim" });

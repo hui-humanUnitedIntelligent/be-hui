@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14?target=denonext'
+import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,7 +45,11 @@ serve(async (req) => {
 
     // 1. RPC: Buyer-Confirmation in DB
     // FIX (2026-08-16, DUPLICATE-NOTIF-BUG + BROKEN-TRANSFER-BUG):
-    //   a) Die RPC gibt das Feld 'success' zurueck, nicht 'ok'. Der alte Check
+    //   a) 
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "confirm-transfer", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
+Die RPC gibt das Feld 'success' zurueck, nicht 'ok'. Der alte Check
     //      `!confirmResult?.ok` war IMMER true (Feld existierte nie) -> diese
     //      Funktion brach hier IMMER mit 400 ab, BEVOR der Stripe-Transfer an
     //      den Verkaeufer ueberhaupt ausgeloest wurde. Das Geld blieb bei jedem
