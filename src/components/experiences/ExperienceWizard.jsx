@@ -8,7 +8,6 @@ import {
   HUIPrivatIcon, HUISchreibenIcon, HUIWarnIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback } from "react";
-import { useScrollTopOnChange } from "../../hooks/useScrollTopOnChange.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -857,8 +856,6 @@ function S4({ data, onChange, saving }) {
 export default function ExperienceWizard({ userId, existingExp = null, onClose, onSaved }) {
   const TOTAL = 4;
   const [step, setSt]             = useState(1);
-  const scrollRef = useRef(null);
-  useScrollTopOnChange(scrollRef, [step]);
   const [saving, setSaving]       = useState(false);
   const [saveError, setSaveError] = useState(null);
   // KBD-INSET-FIX (2026-08-20, gleicher Root Cause wie WerkWizard): Hook war
@@ -1103,7 +1100,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       )}
 
       {/* Scrollbarer Content */}
-      <div ref={scrollRef} className="hui-scroll" style={{
+      <div className="hui-scroll" style={{
         flex: 1,
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
