@@ -163,7 +163,8 @@ export function useChatList(instanceId = "default") {
         .from("messages")
         .select("chat_id, created_at")
         .in("chat_id", chatIds)
-        .neq("sender_id", user.id);
+        .neq("sender_id", user.id)
+        .limit(500);  // Scale-Schutz: max 500 unread messages
 
       // 3. Unread pro Chat berechnen
       const unreadMap = {};

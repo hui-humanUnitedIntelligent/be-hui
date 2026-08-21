@@ -95,7 +95,7 @@ function makeAdapter(tableName) {
   return {
     list: async () => {
       if (!_supabase) return [];
-      const { data, error } = await _supabase.from(tableName).select("*");
+      const { data, error } = await _supabase.from(tableName).select("*").limit(200);
       if (error) { console.error(error); return []; }
       return data || [];
     },
@@ -103,7 +103,7 @@ function makeAdapter(tableName) {
       if (!_supabase) return [];
       let req = _supabase.from(tableName).select("*");
       if (query) Object.entries(query).forEach(([k, v]) => { req = req.eq(k, v); });
-      const { data, error } = await req;
+      const { data, error } = await req.limit(200);
       if (error) { console.error(error); return []; }
       return data || [];
     },
