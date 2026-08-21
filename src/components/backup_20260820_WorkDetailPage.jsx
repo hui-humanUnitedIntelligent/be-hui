@@ -1,0 +1,914 @@
+// WorkDetailPage.jsx — Premium Work Detail Experience
+// Route: /work/:id
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { safeQuery, extractWorkImageUrl } from "../lib/perfUtils";
+import { ProfileService } from '../services/db';
+import { supabase } from "../lib/supabaseClient";
+import { normalizeProfileInput } from '../lib/perfUtils';
+import { useAuth } from "../lib/AuthContext";
+import { useAppState } from "../lib/AppStateContext";
+import { HUI } from "../design/hui.design.js";
+// HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth,
+// dieselben Komponenten wie im Feed (BaseFeedCard.jsx).
+import {
+  HUIHeartIcon, HUIChatIcon, HUIBookmarkIcon, HUIShareIcon,
+} from "../design/icons/HuiInteractionIcons.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import { useSingleReaction } from "../lib/useReactions.jsx";
+import { useSavedPostsContext } from "../context/SavedPostsContext.jsx";
+import { haptic } from "./commerce/commerceUtils.js";
+import { toast } from "../lib/useToast.jsx";
+import { shareContent } from "../lib/shareContent.js";
+import { countComments, getComments } from "../lib/commentsService.js";
+import { prefetchComments } from "../lib/commentsPrefetchCache.js";
+import CommentsSheet from "./shared/CommentsSheet.jsx";
+import { formatDateDE } from "../lib/formatters.js";
+import { HUILogo } from "./brand/HUILogo.jsx";
+import { NAV_CLEARANCE_CSS } from "./home/navigation/navigationGeometry.js"; // GRAU-WASCH-FIX (2026-08-18)
+
+/* ── Design Tokens ─────────────────────────────────────────────────── */
+const C = {
+  teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, tealPale:HUI.COLOR.tealPale, tealGlow:"rgba(22,215,197,0.22)",
+  coral:HUI.COLOR.coral, coral2:HUI.COLOR.coral, coralPale:HUI.COLOR.coralPale, coralGlow:"rgba(255,138,107,0.22)",
+  gold:HUI.COLOR.gold, goldGlow:"rgba(245,166,35,0.18)",
+  warm:HUI.COLOR.cream, card:HUI.COLOR.white,
+  ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
+  muted:"#888", muted2:"#BBB",
+  border:"rgba(0,0,0,0.07)",
+};
+
+const CSS = `
+  @keyframes wdFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes wdSkel { 0%,100%{opacity:1} 50%{opacity:0.45} }
+  @keyframes wdSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  @keyframes wdPop { 0%{transform:scale(0.8);opacity:0} 100%{transform:scale(1);opacity:1} }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  .wd-tap:active { opacity: 0.72; transition: opacity 0.1s; }
+  .wd-scroll::-webkit-scrollbar { display: none; }
+  .wd-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+  .wd-swipe { touch-action: pan-y; user-select: none; }
+`;
+
+/* ── Helpers ────────────────────────────────────────────────────────── */
+function fmtPrice(p) {
+  if (p == null || p === "") return null;
+  const n = Number(p);
+  return isNaN(n) ? String(p) : `€ ${n.toFixed(2).replace(".", ",")}`;
+}
+
+function getImages(werk) {
+  const imgs = [];
+  if (werk.cover_url) imgs.push(werk.cover_url);
+  if (Array.isArray(werk.images)) {
+    // WERK-BILDER-SLIDE-FIX (2026-08-20): extractWorkImageUrl parst sowohl
+    // Klartext-URLs als auch (Alt-Daten) JSON-stringifizierte {"url":...}
+    // Einträge in der text[]-Spalte works.images -- siehe perfUtils.js.
+    werk.images.forEach(entry => {
+      const u = extractWorkImageUrl(entry);
+      if (u && u !== werk.cover_url) imgs.push(u);
+    });
+  }
+  return imgs.length > 0 ? imgs : [null];
+}
+
+/* ── Avatar ─────────────────────────────────────────────────────────── */
+function Avatar({ url, name, size = 40 }) {
+  const initials = (name || "?").split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  return (
+    <div style={{ position:"relative", width:size, height:size, flexShrink:0 }}>
+      {url && (
+        <img loading="lazy" decoding="async" src={url} alt={name}
+          style={{ width:size, height:size, borderRadius:"50%",
+            objectFit:"cover", border:"2px solid white",
+            boxShadow:"0 2px 10px rgba(0,0,0,0.15)", display:"block" }}
+          onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
+      )}
+      <div style={{ width:size, height:size, borderRadius:"50%",
+        background:"linear-gradient(135deg,#16D7C5,#FF8A6B)",
+        display: url ? "none" : "flex", alignItems:"center", justifyContent:"center",
+        fontSize:size*0.34, fontWeight: 600, color:"white",
+        border:"2px solid white", boxShadow:"0 2px 10px rgba(0,0,0,0.15)",
+        letterSpacing:-0.5, position:"absolute", top:0, left:0 }}>
+        {initials}
+      </div>
+    </div>
+  );
+}
+
+/* ── Skeleton ───────────────────────────────────────────────────────── */
+function Skel({ w="100%", h=16, r=8, mb=0 }) {
+  return <div style={{ width:w, height:h, borderRadius:r,
+    background:"#EBEBEB", animation:"wdSkel 1.4s ease-in-out infinite",
+    marginBottom:mb }}/>;
+}
+
+function WorkDetailSkeleton() {
+  return (
+    <div style={{ minHeight:"100vh", background:"transparent" }}>
+      <style>{CSS}</style>
+      {/* Hero skeleton */}
+      <div style={{ width:"100%", height:"55vh",
+        background:"linear-gradient(135deg,#e8e8e8,#f0f0f0)",
+        animation:"wdSkel 1.4s ease-in-out infinite" }}/>
+      <div style={{ padding:"24px 20px", display:"flex", flexDirection:"column", gap:12 }}>
+        <Skel h={10} w="40%" r={6}/>
+        <Skel h={28} w="85%" r={10}/>
+        <Skel h={20} w="30%" r={8}/>
+        <div style={{ height:1, background:C.border, margin:"8px 0" }}/>
+        <Skel h={13} w="100%" r={6}/>
+        <Skel h={13} w="92%" r={6}/>
+        <Skel h={13} w="76%" r={6}/>
+      </div>
+    </div>
+  );
+}
+
+/* ── Image Gallery with Swipe ───────────────────────────────────────── */
+function ImageGallery({ images, title }) {
+  const [idx, setIdx] = useState(0);
+  const startX = useRef(null);
+  const trackRef = useRef(null);
+
+  const prev = useCallback(() => setIdx(i => Math.max(0, i - 1)), []);
+  const next = useCallback(() => setIdx(i => Math.min(images.length - 1, i + 1)), [images.length]);
+
+  // Passive touch listeners → iOS scrollt ungehindert durch (nicht blockiert)
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const onStart = e => { startX.current = e.touches[0].clientX; };
+    const onEnd   = e => {
+      if (startX.current === null) return;
+      const diff = startX.current - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) { diff > 0 ? next() : prev(); }
+      startX.current = null;
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchend",   onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchend",   onEnd);
+    };
+  }, [next, prev]);
+
+  const img = images[idx];
+
+  return (
+    <div className="wd-swipe" ref={trackRef}
+      style={{ position:"relative", width:"100%",
+        height:"clamp(280px, 42vh, 480px)", overflow:"hidden",
+        background:"#111" }}>
+
+      {/* Image */}
+      {img ? (
+        <img loading="lazy" decoding="async" key={idx} src={img} alt={`${title} ${idx+1}`}
+          onClick={() => {
+            if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
+              window.__HUI_LIGHTBOX__.open(images.map(function(u) { return { url: u, type: "image" }; }), idx);
+            }
+          }}
+          style={{ width:"100%", height:"100%", objectFit:"cover",
+            cursor:"pointer",
+            animation:"wdFadeUp 0.35s both",
+            filter:"brightness(0.88) saturate(1.1)" }}/>
+      ) : (
+        <div style={{ width:"100%", height:"100%",
+          background:"linear-gradient(135deg,#E6FAF8,#FFF2EE)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          flexDirection:"column", gap:8 }}>
+          <div style={{ opacity:0.5 }}><HUILogo size={48} /></div>
+          <div style={{ fontSize:13, color:C.muted }}>Kein Bild verfügbar</div>
+        </div>
+      )}
+
+      {/* Gradient overlays */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+        background:"linear-gradient(to bottom, rgba(0,0,0,0.22) 0%, transparent 35%, transparent 55%, rgba(0,0,0,0.72) 100%)" }}/>
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none",
+        background:"radial-gradient(ellipse 70% 50% at 100% 0%, rgba(255,138,107,0.18) 0%, transparent 60%)" }}/>
+
+      {/* Coral top accent */}
+      <div style={{ position:"absolute", top:0, left:0, right:0, height:3,
+        background:`linear-gradient(90deg,${C.coral},${C.teal},transparent)`,
+        pointerEvents:"none" }}/>
+
+      {/* Dot indicators */}
+      {images.length > 1 && (
+        <div style={{ position:"absolute", bottom:16, left:"50%",
+          transform:"translateX(-50%)", display:"flex", gap:5 }}>
+          {images.map((_, i) => (
+            <div key={i} onClick={() => setIdx(i)}
+              style={{ width: i===idx ? 18 : 6, height:6, borderRadius:3,
+                background: i===idx ? "white" : "rgba(255,255,255,0.45)",
+                transition:"all 0.25s", cursor:"pointer" }} role="button" tabIndex={0} />
+          ))}
+        </div>
+      )}
+
+      {/* Arrow buttons (tablet+) */}
+      {images.length > 1 && (
+        <>
+          {idx > 0 && (
+            <button onClick={prev} className="wd-tap"
+              style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)",
+                width:36, height:36, borderRadius:"50%",
+                background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
+                border:"1px solid rgba(255,255,255,0.3)", color:"white",
+                fontSize:16, cursor:"pointer", display:"flex",
+                alignItems:"center", justifyContent:"center" }}>‹</button>
+          )}
+          {idx < images.length - 1 && (
+            <button onClick={next} className="wd-tap"
+              style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                width:36, height:36, borderRadius:"50%",
+                background:"rgba(255,255,255,0.18)", backdropFilter:"blur(8px)",
+                border:"1px solid rgba(255,255,255,0.3)", color:"white",
+                fontSize:16, cursor:"pointer", display:"flex",
+                alignItems:"center", justifyContent:"center" }}>›</button>
+          )}
+        </>
+      )}
+
+      {/* Image counter */}
+      {images.length > 1 && (
+        <div style={{ position:"absolute", top:16, right:16,
+          background:"rgba(0,0,0,0.45)", backdropFilter:"blur(8px)",
+          borderRadius:999, padding:"3px 10px",
+          fontSize:11, fontWeight: 600, color:"rgba(255,255,255,0.88)" }}>
+          {idx+1} / {images.length}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Related Work Mini Card ─────────────────────────────────────────── */
+function RelatedCard({ werk, onClick }) {
+  const img = werk.cover_url
+    || (Array.isArray(werk.images) && werk.images[0])
+    || null;
+  return (
+    <div className="wd-tap" onClick={() => onClick(werk.id)}
+      style={{ flexShrink:0, width:140, cursor:"pointer" }} role="button" tabIndex={0}>
+      <div style={{ borderRadius:16, overflow:"hidden", height:140,
+        position:"relative", background:"#eee",
+        boxShadow:"0 3px 12px rgba(0,0,0,0.10)" }}>
+        {img ? (
+          <img loading="lazy" decoding="async" src={img} alt={werk.title}
+            style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+        ) : (
+          <div style={{ width:"100%", height:"100%",
+            background:"linear-gradient(135deg,#E6FAF8,#FFF2EE)",
+            display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={32} style={{opacity:0.3}} />
+          </div>
+        )}
+        <div style={{ position:"absolute", inset:0,
+          background:"linear-gradient(transparent 50%,rgba(0,0,0,0.6))" }}/>
+        {werk.price != null && (
+          <div style={{ position:"absolute", bottom:8, left:8,
+            background:"rgba(255,255,255,0.92)", borderRadius:999,
+            padding:"2px 8px", fontSize:10, fontWeight: 600, color:C.ink }}>
+            {fmtPrice(werk.price)}
+          </div>
+        )}
+      </div>
+      <div style={{ padding:"6px 2px 0" }}>
+        <div style={{ fontSize:11.5, fontWeight: 600, color:C.ink,
+          lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis",
+          whiteSpace:"nowrap" }}>{werk.title || "Werk"}</div>
+        <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>
+          {werk.category || ""}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Icon Buttons ───────────────────────────────────────────────────── */
+// ARIA-Label je Interaktion -- deckt alle 4 Icons der HUI Interaction Icon
+// Library v1.0 ab (nicht nur Resonanz), analog ACTION_ARIA in BaseFeedCard.jsx.
+const DETAIL_ARIA = {
+  resonanz:    { on: "Resonanz entfernen",   off: "Resonanz geben" },
+  austauschen: { on: "Kommentare schliessen", off: "Austauschen" },
+  merken:      { on: "Aus Merkliste entfernen", off: "Merken" },
+  weitergeben: { off: "Weitergeben" }, // kein Toggle -- einmalige Aktion
+};
+function IconBtn({ Icon, label, active, color, onPress, disabled, loading, variant }) {
+  const [pressed, setPressed] = useState(false);
+  const [hover, setHover] = useState(false);
+  const isResonanz = variant === "resonanz";
+  const ariaSpec = DETAIL_ARIA[variant];
+  const isToggle = !!(ariaSpec && ariaSpec.on);
+  // Genereller Tap-Feedback (alle 4 Icons) -- die Resonanz-spezifische
+  // Aktivierungs-Animation (Puls + Lichtring) sitzt seit 2026-07-08 im
+  // HUIHeartIcon selbst (active-Prop), nicht mehr hier als filter-Glow
+  // (filter widerspricht der Vorgabe "nur transform/opacity"). Alle 4 Icons
+  // haben inzwischen ihre eigene, aber gleichwertige Aktivierungs-Animation
+  // eingebaut (siehe HuiInteractionIcons.jsx).
+  const pressMs = isResonanz ? 150 : 300;
+  const pressScale = isResonanz ? 1.08 : 1.25;
+  const handleTap = () => {
+    if (disabled || loading) return;
+    setPressed(true);
+    setTimeout(() => setPressed(false), pressMs);
+    onPress?.();
+  };
+  const ariaLabel = ariaSpec ? (active && ariaSpec.on ? ariaSpec.on : ariaSpec.off) : (label || undefined);
+  // v2.0 Zustände — Icon-Form bleibt immer identisch, nur Opacity/Scale ändern sich.
+  const iconOpacity = disabled ? 0.28 : loading ? 0.5 : active ? 1 : hover ? 0.8 : 0.55;
+  return (
+    <button onClick={handleTap} disabled={disabled}
+      aria-label={ariaLabel} aria-pressed={isToggle ? !!active : undefined}
+      aria-busy={!!loading}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{ display:"flex", flexDirection:"column", alignItems:"center",
+        gap:4, background:"none", border:"none",
+        cursor: disabled ? "default" : "pointer",
+        padding:"8px 12px", borderRadius:12,
+        minWidth: 48, minHeight: 48, // alle 4 Icons: 48x48 Touchflaeche (A11y-Vorgabe)
+        transform: pressed ? `scale(${pressScale})` : (hover && !disabled ? "scale(1.06)" : "scale(1)"),
+        transition: pressed && isResonanz
+          ? "transform 0.16s cubic-bezier(.22,1,.36,1)"
+          : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1)" }}>
+      <span style={{ position:"relative", display:"flex", opacity: iconOpacity, borderRadius:"50%", color: color || C.coral,
+        transition:"opacity 0.18s ease" }}>
+        {Icon ? <Icon size={24} active={!!active} /> : null}
+        {loading && (
+          <span aria-hidden="true" style={{
+            position:"absolute", inset:-2, borderRadius:"50%",
+            border:`2px solid ${color || C.coral}`, borderTopColor:"transparent",
+            animation:"hui-icon-spin 700ms linear infinite",
+          }} />
+        )}
+      </span>
+      <span style={{ fontSize:10, fontWeight:600,
+        color: active ? (color||C.coral) : C.muted }}>
+        {label}
+      </span>
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════════════════ */
+export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }) {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const { user } = useAuth();
+  const { toggleFollow } = useAppState();
+
+  const [werk,    setWerk]    = useState(null);
+  const [creator, setCreator] = useState(null);
+  const [related, setRelated] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState(null);
+  const [shareOk,   setShareOk]   = useState(false);
+  const [following, setFollowing] = useState(false);
+  // KOMMENTAR.1 (2026-07-09): comments/commentInput/submittingComment
+  // entfernt -- die alte "comments"-Tabelle (work_id) wurde durch Migration
+  // 073 zu "post_comments" (post_id+post_type) weiterentwickelt, die alte
+  // Inline-Query hier haette nach der Migration ins Leere gegriffen.
+  // CommentsSheet (bereits appweit in ContentPreviewSheet/PostFullscreenView
+  // genutzt) ersetzt die Inline-Kommentarliste 1:1 -- showComments bleibt
+  // als Auf/Zu-Flag fuer denselben "Austauschen"-Button erhalten.
+  const [commentCount, setCommentCount] = useState(0);
+  const [showComments, setShowComments] = useState(false);
+  // Back-Button: Comments registrieren
+  useModalRegistration(showComments, () => setShowComments(false), "WorkDetail-Comments");
+
+  // Resonanz/Merken -- EIN zentraler Mechanismus, identisch zum Feed
+  // (post_reactions/reaction_counts, siehe BaseFeedCard.jsx). Ersetzt die
+  // fruehere work_likes/work_saves-Direktanbindung samt den nicht
+  // existierenden toggleLikeWork/toggleSaveWork-Aufrufen (echter Bug --
+  // beide Funktionen gab es in AppStateContext nie, Resonanz auf der
+  // Werk-Detailseite schrieb daher nie in die DB).
+  // MERKEN.2A (2026-07-08): Snapshot der echten Werk-Daten fuer
+  // saved_posts.post_data -- identischer Mechanismus wie im Feed
+  // (UnifiedFeed.jsx), damit "Gemerkte Inhalte" auch von hier aus
+  // gespeicherte Werke mit Titel/Bild/Ersteller zeigt.
+  const postSnapshot = useMemo(() => ({
+    cover_url:   werk?.cover_url || null,
+    title:       werk?.title || null,
+    author_name: creator?.display_name || creator?.username || null,
+    user_id:     creator?.id || null,
+  }), [werk?.cover_url, werk?.title, creator?.display_name, creator?.username, creator?.id]);
+
+  const { counts: reactionCounts, myTypes: reactionTypes, toggle: toggleReaction } =
+    useSingleReaction(id, "work", creator?.id, postSnapshot);
+  const resonated      = reactionTypes.has("inspire");
+  const resonanceCount = reactionCounts.inspire || 0;
+  // Zweck: "gemerkt" appweit einheitlich aus saved_posts (Context) lesen,
+  // nicht aus post_reactions -- gleicher Zustand wie Feed/Suche/Profil.
+  const { isSaved, toggleSave } = useSavedPostsContext();
+  const saved = isSaved(id);
+
+  // LIVE-COMMENT-COUNT.1 (2026-08-07): analog zu UnifiedFeed.jsx -- ohne
+  // dieses Event blieb die Kommentar-Zahl neben dem "Austauschen"-Button
+  // nach Schreiben/Loeschen eines Kommentars in der CommentsSheet bis zum
+  // naechsten Reload auf dem alten Wert stehen.
+  useEffect(() => {
+    if (!id) return;
+    function onChanged(e) {
+      const d = e?.detail;
+      if (!d || d.postId !== id) return;
+      if (d.postType && d.postType !== "work") return;
+      countComments(id, "work").then(n => { if (n != null) setCommentCount(n); });
+    }
+    window.addEventListener("hui:comments:changed", onChanged);
+    return () => window.removeEventListener("hui:comments:changed", onChanged);
+  }, [id]);
+
+
+  /* ── Load Social State ──────────────────────────────────────────── */
+  const loadSocial = useCallback(async (werkId, creatorId) => {
+    if (!user?.id || !werkId) return;
+    try {
+      // Resonanz/Merken werden bereits von useSingleReaction geladen
+      // (post_reactions) -- hier nur noch Follow-Status + Kommentare.
+
+      // Following creator?
+      if (creatorId) {
+        const { data: followRow } = await supabase
+          .from("follows").select("follower_id")
+          .eq("follower_id", user.id).eq("followed_id", creatorId).maybeSingle();
+        setFollowing(!!followRow);
+      }
+
+      // KOMMENTAR.1: Kommentarzaehler ueber die generalisierte post_comments-
+      // Tabelle (RPC, kein Volltransfer) -- die eigentliche Liste rendert
+      // CommentsSheet bei Bedarf selbst.
+      const n = await countComments(werkId, "work");
+      setCommentCount(n);
+      // INSTANT-COMMENTS.1 (2026-08-07): Kommentare im Hintergrund vorladen.
+      prefetchComments(werkId, "work", user?.id, getComments);
+
+      // Increment view count
+      try { await supabase.rpc("increment_work_views", { work_id: werkId }); } catch {}
+    } catch(e) {
+      console.error("[WorkDetail] loadSocial:", e.message);
+    }
+  }, [user?.id]);
+
+  /* ── Toggle Resonanz — ueber post_reactions (useSingleReaction) ──── */
+  const handleLike = useCallback(() => {
+    if (!user?.id) return;
+    haptic(resonated ? "selection" : "light");
+    toggleReaction("inspire");
+  }, [user?.id, resonated, toggleReaction]);
+
+  /* ── Toggle Merken — ueber den geteilten SavedPosts-Context ───────── */
+  const handleSave = useCallback(() => {
+    if (!user?.id) return;
+    haptic(saved ? "selection" : "light");
+    toggleSave(id, "work", postSnapshot);
+    toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration: 1800 });
+  }, [user?.id, saved, toggleSave, id, postSnapshot]);
+
+  /* ── Toggle Follow — via AppStateContext (Single Owner) ─────────── */
+  const handleFollow = useCallback(async () => {
+    if (!user?.id || !creator?.id) return;
+    const newFollowing = !following;
+    // Optimistic local UI
+    setFollowing(newFollowing);
+    // DB-Sync via AppStateContext.toggleFollow — kein direktes supabase.from() hier
+    await toggleFollow(creator.id);
+  }, [user?.id, creator?.id, following, toggleFollow]);
+
+  /* ── Load ──────────────────────────────────────────────────────── */
+  const load = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      // Werk laden — nur Felder die tatsächlich in der DB existieren
+      // (works.user_id → auth.users, kein FK zu profiles → kein JOIN möglich)
+      const { data: w, error: wErr } = await supabase
+        .from("works")
+        .select("id,title,description,cover_url,media_url,price,category,tags,status,approval_status,user_id,creator_id,likes_count,created_at,images,caption,location_text")
+        .eq("id", id)
+        .single();
+
+      if (wErr || !w) throw new Error("Werk nicht gefunden");
+      setWerk(w);
+
+      // Profil separat via ProfileService (kein JOIN wegen fehlendem FK zu profiles)
+      const creatorId = w.user_id || w.creator_id;
+      if (creatorId) {
+        const { data: prof } = await ProfileService.getById(creatorId);
+        setCreator(prof || null);
+      }
+      await loadRelated(w.category, creatorId, id);
+      if (user?.id) await loadSocial(id, creatorId);
+
+    } catch (e) {
+      console.error("[HUI] WorkDetail Fehler:", e);
+      setError(e.message || "Werk konnte nicht geladen werden");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  async function loadRelated(category, userId, currentId) {
+    try {
+      // Gleiche Kategorie ODER gleicher Creator, exkl. aktuelles Werk
+      const queries = await Promise.allSettled([
+        supabase.from("works")
+          .select("id, title, price, cover_url, images, category")
+          .eq("status", "published")
+          .eq("category", category || "")
+          .neq("id", currentId)
+          .limit(6),
+        supabase.from("works")
+          .select("id, title, price, cover_url, images, category")
+          .eq("status", "published")
+          .eq("user_id", userId || "")
+          .neq("id", currentId)
+          .limit(4),
+      ]);
+
+      const catWorks  = queries[0].status === "fulfilled" ? (queries[0].value.data || []) : [];
+      const userWorks = queries[1].status === "fulfilled" ? (queries[1].value.data || []) : [];
+
+      // Merge + deduplizieren
+      const seen = new Set();
+      const merged = [...catWorks, ...userWorks].filter(w => {
+        if (seen.has(w.id)) return false;
+        seen.add(w.id);
+        return true;
+      }).slice(0, 8);
+
+      setRelated(merged);
+    } catch(e) {
+      console.warn("[HUI] Related works Fehler:", e.message);
+    }
+  }
+
+  useEffect(() => { load(); }, [load]);
+
+  // Body-Scroll sicherstellen: VOR den Early Returns (Rules of Hooks!)
+  useEffect(() => {
+    document.body.style.overflow = "";
+    document.body.classList.remove("hui-wizard-open");
+  }, []);
+
+  /* ── Share ─────────────────────────────────────────────────────── */
+  // SHARE.1 (2026-07-09): zentrale, appweit einheitliche Share-Funktion.
+  const handleShare = () => {
+    shareContent({
+      id: werk?.id, type: "work", title: werk?.title,
+      text: werk?.description, media: werk?.cover_url ? [{ url: werk.cover_url }] : [],
+    });
+    setShareOk(true);
+    setTimeout(() => setShareOk(false), 2000);
+  };
+
+  /* ── Loading ───────────────────────────────────────────────────── */
+  if (loading) return <WorkDetailSkeleton />;
+
+  /* ── Error ─────────────────────────────────────────────────────── */
+  if (error || !werk) return (
+    <div style={{ minHeight:"100vh", background:C.warm,
+      display:"flex", flexDirection:"column",
+      alignItems:"center", justifyContent:"center",
+      padding:32, fontFamily:"Inter,sans-serif" }}>
+      <style>{CSS}</style>
+      <div style={{ fontSize:52, marginBottom:16 }}>😕</div>
+      <div style={{ fontWeight: 600, fontSize:20, color:C.ink, marginBottom:8 }}>
+        Werk nicht gefunden
+      </div>
+      <div style={{ fontSize:13, color:C.muted, textAlign:"center",
+        lineHeight:1.6, marginBottom:24, maxWidth:260 }}>
+        {error || "Dieses Werk existiert nicht mehr oder wurde entfernt."}
+      </div>
+      <button onClick={() => navigate(-1)} className="wd-tap"
+        style={{ padding:"13px 28px", borderRadius:16,
+          background:`linear-gradient(135deg,${C.teal},${C.teal2})`,
+          color:"white", border:"none", fontWeight: 600,
+          fontSize:14, cursor:"pointer",
+          boxShadow:`0 4px 18px ${C.tealGlow}` }}>
+        Zurück
+      </button>
+    </div>
+  );
+
+  /* ── Data ──────────────────────────────────────────────────────── */
+  const images      = getImages(werk);
+  const priceStr    = fmtPrice(werk.price);
+  const displayName = creator?.display_name || creator?.username || "Unbekannter Creator";
+  const username    = creator?.username || "hui-user";
+  const avatarUrl   = creator?.avatar_url || null;
+
+
+  return (
+    <div style={{
+      height:"100dvh", overflowY:"auto", overflowX:"hidden",
+      WebkitOverflowScrolling:"touch",
+      background:C.warm,
+      fontFamily:"Inter,sans-serif",
+      paddingBottom:"calc(90px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px)))" }}>
+      <style>{CSS}</style>
+      <div style={{ maxWidth:680, margin:"0 auto", minHeight:"100%" }}>
+
+      {/* ── Back Button (floating) ── */}
+      <div style={{ position:"fixed", top:"max(var(--hui-safe-top, 0px),16px,env(safe-area-inset-top,16px))",
+        left:16, zIndex:200 }}>
+        <button onClick={() => navigate(-1)} className="wd-tap"
+          style={{ width:40, height:40, borderRadius:"50%",
+            background:"rgba(0,0,0,0.38)", backdropFilter:"blur(10px)",
+            border:"1px solid rgba(255,255,255,0.2)", color:"white",
+            fontSize:18, cursor:"pointer", display:"flex",
+            alignItems:"center", justifyContent:"center" }}>
+          ‹
+        </button>
+      </div>
+
+      {/* ── Hero Gallery ── */}
+      <ImageGallery images={images} title={werk.title || "Werk"}/>
+
+      {/* ── Content ── */}
+      <div style={{ padding:"0 0 120px", animation:"wdFadeUp 0.4s 0.1s both" }}>
+
+        {/* Category + Price header */}
+        <div style={{ padding:"20px 20px 0",
+          display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <div style={{ background:C.coralPale, border:`1px solid ${C.coral}33`,
+            borderRadius:999, padding:"4px 12px",
+            fontSize:11, fontWeight: 600, color:C.coral,
+            letterSpacing:1.2, textTransform:"uppercase" }}>
+            {werk.category || "Werk"}
+          </div>
+          {priceStr && (
+            <div style={{ fontSize:26, fontWeight: 600, color:C.ink,
+              letterSpacing:-0.5 }}>
+              {priceStr}
+            </div>
+          )}
+        </div>
+
+        {/* Title */}
+        <div style={{ padding:"12px 20px 0" }}>
+          <h1 style={{ margin:0, fontSize:"clamp(20px,2.2rem,30px)",
+            fontWeight: 600, color:C.ink, letterSpacing:-0.8, lineHeight:1.15 }}>
+            {werk.title || "Unbekanntes Werk"}
+          </h1>
+        </div>
+
+        {/* ── Creator Section — NICHT klickbar (2026-07-29). Button öffnet Profil.
+            LAYOUT-SQUEEZE-FIX (2026-08-15, Michael-Report — Screenshot
+            "Pinscher mit dem Perlohrring"/Linda, "viele Fehler hier. Name
+            Avatar, Text"): ROOT CAUSE verifiziert per DB-Query — username
+            "milileo69" und bio "Offizielle 1. Testerin der Besten App der
+            Welt!" sind vollständig und korrekt in der DB, avatar_url lädt
+            per curl mit HTTP 200. Der Bug war rein Layout: Name/Username/
+            Bio-Spalte (flex:1) und die Buttons-Reihe ("Profil ansehen" +
+            "Folge ich", flexShrink:0) standen in DERSELBEN Flex-Zeile neben
+            dem Avatar — die zwei Pill-Buttons zusammen sind breiter als der
+            verbleibende Platz auf einem Smartphone-Screen, wodurch die
+            Namensspalte auf eine winzige Breite gequetscht wurde und Text
+            mitten im Wort umbrach ("@milile"/"o69", "Offiziell"/"e 1....").
+            Fix: Buttons in eine EIGENE Zeile UNTERHALB von Avatar+Name+Bio
+            verschoben (zweizeiliges Kartenlayout) — Namensspalte hat jetzt
+            immer die volle Kartenbreite abzüglich nur des Avatars. ── */}
+        <div
+          style={{ margin:"16px 20px 0", padding:"14px 16px",
+            background:C.card, borderRadius:18,
+            border:`1px solid ${C.border}`,
+            boxShadow:"0 2px 12px rgba(0,0,0,0.05)" }}>
+          <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
+            <Avatar url={avatarUrl} name={displayName} size={46}/>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:2 }}>
+                <span style={{ fontWeight: 600, fontSize:15, color:C.ink,
+                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                  {displayName}
+                </span>
+                {creator?.is_wirker && (
+                  <span style={{ fontSize:13 }}>✦</span>
+                )}
+              </div>
+              <div style={{ fontSize:12, color:C.muted, overflow:"hidden",
+                textOverflow:"ellipsis", whiteSpace:"nowrap" }}>@{username}</div>
+              {creator?.bio && (
+                <div style={{ fontSize:12, color:C.ink2, marginTop:4,
+                  lineHeight:1.5, overflow:"hidden",
+                  display:"-webkit-box", WebkitLineClamp:2,
+                  WebkitBoxOrient:"vertical" }}>
+                  {creator.bio}
+                </div>
+              )}
+            </div>
+            <div style={{ color:C.muted, fontSize:18, flexShrink:0, marginTop:2 }}>›</div>
+          </div>
+          {(creator?.id || (user?.id && creator?.id && user.id !== creator.id)) && (
+            <div style={{ display:"flex", gap:8, marginTop:12 }}>
+              {creator?.id && (
+                <button
+                  onClick={() => {
+                    if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
+                      window.__HUI_OPEN_PROFILE__(creator.id);
+                    } else {
+                      navigate(`/profile/${username}`);
+                    }
+                  }}
+                  style={{ padding:"7px 14px",
+                    background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
+                    borderRadius:50, fontSize:12, fontWeight: 600, color:"#0DC4B5",
+                    cursor:"pointer", fontFamily:"inherit" }}
+                >Profil ansehen</button>
+              )}
+              {user?.id && creator?.id && user.id !== creator.id && (
+                <button onClick={handleFollow}
+                  style={{ padding:"7px 14px",
+                    background: following
+                      ? "rgba(0,0,0,0.06)"
+                      : "linear-gradient(135deg,#16D7C5,#11C5B7)",
+                    border:"none", borderRadius:50,
+                    fontSize:12, fontWeight: 600,
+                    color: following ? "#888" : "white",
+                    cursor:"pointer", fontFamily:"inherit",
+                    transition:"all .2s" }}>
+                  {following ? "Folge ich" : "Folgen"}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── Social Actions ── */}
+        <div style={{ margin:"16px 20px 0", padding:"8px 4px",
+          background:C.card, borderRadius:18, border:`1px solid ${C.border}`,
+          display:"flex", justifyContent:"space-around",
+          boxShadow:"0 2px 12px rgba(0,0,0,0.04)" }}>
+          {/* HUI Interaction Language v1.0 (2026-07-05) — Mapping:
+              Resonanz bleibt Like-Reaktion | Kommentar → Austauschen
+              (oeffnet bereits den Diskussions-Thread) | Teilen → Weitergeben
+              (2026-07-05: Schale+Samen → Schwung-Pfeil, Lars-Vorlage;
+              "das moechte ich an andere weitergeben") | Merken bleibt
+              Bookmark. */}
+          <IconBtn
+            Icon={HUIHeartIcon}
+            label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
+            active={resonated}
+            color={C.coral}
+            variant="resonanz"
+            onPress={handleLike}
+          />
+          <IconBtn
+            Icon={HUIChatIcon}
+            label={commentCount > 0 ? String(commentCount) : "Austauschen"}
+            active={showComments}
+            color={C.teal}
+            variant="austauschen"
+            onPress={() => { haptic("light"); setShowComments(s => !s); }}
+          />
+          <IconBtn
+            Icon={HUIShareIcon}
+            label={shareOk ? "Kopiert!" : "Weitergeben"}
+            active={shareOk}
+            color={C.teal}
+            variant="weitergeben"
+            onPress={() => { haptic("light"); handleShare(); }}
+          />
+          <IconBtn
+            Icon={HUIBookmarkIcon}
+            label={saved ? "Gemerkt" : "Merken"}
+            active={saved}
+            color={C.gold}
+            variant="merken"
+            onPress={handleSave}
+          />
+        </div>
+
+        {/* ── Kommentare (KOMMENTAR.1) — dieselbe CommentsSheet-Komponente wie
+              ContentPreviewSheet/PostFullscreenView, ueber post_comments
+              (post_id=id, post_type="work") statt der alten work_id-Tabelle. */}
+        <CommentsSheet
+          open={showComments} onClose={() => setShowComments(false)}
+          postId={id} postType="work" postAuthorId={creator?.id}
+        />
+
+        {/* ── Description ── */}
+        {werk.description && (
+          <div style={{ margin:"16px 20px 0", padding:"18px",
+            background:C.card, borderRadius:18, border:`1px solid ${C.border}` }}>
+            <div style={{ fontSize:11, fontWeight: 600, color:C.muted,
+              letterSpacing:1.4, textTransform:"uppercase", marginBottom:10 }}>
+              Beschreibung
+            </div>
+            <p style={{ margin:0, fontSize:14.5, color:C.ink2,
+              lineHeight:1.75, whiteSpace:"pre-wrap" }}>
+              {werk.description}
+            </p>
+          </div>
+        )}
+
+        {/* ── Details Grid ── */}
+        <div style={{ margin:"12px 20px 0",
+          display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+          {werk.category && (
+            <div style={{ padding:"14px 16px", background:C.card,
+              borderRadius:16, border:`1px solid ${C.border}` }}>
+              <div style={{ fontSize:10, fontWeight: 600, color:C.muted,
+                letterSpacing:1.2, textTransform:"uppercase", marginBottom:4 }}>
+                Kategorie
+              </div>
+              <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>
+                {werk.category}
+              </div>
+            </div>
+          )}
+          {werk.created_at && (
+            <div style={{ padding:"14px 16px", background:C.card,
+              borderRadius:16, border:`1px solid ${C.border}` }}>
+              <div style={{ fontSize:10, fontWeight: 600, color:C.muted,
+                letterSpacing:1.2, textTransform:"uppercase", marginBottom:4 }}>
+                Erstellt
+              </div>
+              <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>
+                {formatDateDE(new Date(werk.created_at), { day:"numeric", month:"long", year:"numeric" })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Related Works ── */}
+        {related.length > 0 && (
+          <div style={{ margin:"24px 0 0" }}>
+            <div style={{ padding:"0 20px 14px",
+              display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+              <div style={{ fontWeight: 600, fontSize:15, color:C.ink }}>
+                Ähnliche Werke
+              </div>
+              <div style={{ fontSize:11, color:C.muted, fontWeight:600 }}>
+                {related.length} Werke
+              </div>
+            </div>
+            <div className="wd-scroll"
+              style={{ display:"flex", gap:12, overflowX:"auto",
+                padding:"0 20px 4px" }}>
+              
+          {(related || []).filter(w => w && typeof w === 'object').map(w => (
+                <RelatedCard key={w.id} werk={w}
+                  onClick={id => navigate(`/work/${id}`)}/>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Sticky Commerce Bar ── */}
+      {/* GRAU-WASCH-FIX (2026-08-18, Michael-Screenshot): bottom war bisher nur
+          safe-area-inset — ignorierte die volle Höhe der HUIBottomNavigation
+          (Orb-Überhang + Tabbar + Safe-Area, siehe NAV_CLEARANCE_CSS). Dadurch
+          überlappte dieser halbtransparente, geblurrte Commerce-Bar (zIndex
+          10500, höher als die Navbar mit 10000) sichtbar die oberen Icons/
+          Labels der Navbar — der halbtransparente Cream-Blur über den
+          Icons wirkte wie ein "grauer Wasch-Balken". Fix: bottom nutzt jetzt
+          NAV_CLEARANCE_CSS — der Bar sitzt jetzt vollständig OBERHALB der
+          Navbar, ohne jede Überlappung, exakt wie in
+          .agents/rules/no-crash-props.md / Pflicht-Abstand-Regel gefordert. */}
+      <div style={{ position:"fixed", bottom:`calc(${NAV_CLEARANCE_CSS} + 8px)`, left:"50%",
+        transform:"translateX(-50%)", width:"100%", maxWidth:680,
+        padding:"12px 20px", paddingBottom:12,
+        background:"rgba(249,247,244,0.96)", backdropFilter:"blur(16px)",
+        borderTop:`1px solid ${C.border}`,
+        borderRadius:"18px 18px 0 0",
+        boxShadow:"0 -4px 20px rgba(0,0,0,0.06)",
+        display:"flex", gap:10, zIndex:10500 }}>
+        <button
+          onClick={handleSave}
+          className="wd-tap"
+          style={{ flex:1, padding:"14px",
+            background:"none", border:`1.5px solid ${C.coral}55`,
+            borderRadius:16, color:C.coral, fontSize:14,
+            fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
+          {saved ? "Gemerkt ✓" : "Merken"}
+        </button>
+        <button
+          onClick={() => {
+            const authorInfo = creator ? {
+              id: creator.id || werk.user_id || werk.creator_id,
+              name: creator.full_name || creator.display_name || creator.username || null,
+              avatar: creator.avatar_url || null,
+            } : null;
+            const buyPayload = {...werk, img: images[0], price: priceStr, author: authorInfo};
+            onBuyWerk ? onBuyWerk(buyPayload) : onBuyWerk?.(buyPayload);
+          }}
+          className="wd-tap"
+          style={{ flex:2, padding:"14px",
+            background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
+            border:"none", borderRadius:16, color:"white",
+            fontSize:14, fontWeight: 600, cursor:"pointer",
+            fontFamily:"inherit",
+            boxShadow:`0 4px 18px ${C.coralGlow}` }}>
+          Jetzt kaufen ✦
+        </button>
+      </div>
+
+      </div>
+    </div>
+  );
+}
