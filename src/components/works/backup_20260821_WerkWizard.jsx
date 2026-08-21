@@ -825,14 +825,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
     // FIX (2026-08-13): Erstes Werk kann Orb-Stufe (3=has_content) triggern —
     // Cache invalidieren, sonst haengt der Orb bis zu 5 Min. auf altem Wert.
     invalidateOrbStageCache(userId);
-    // WERK-CRASH-FIX (2026-08-21): "onSave?.(saved)" wurde hier aufgerufen,
-    // obwohl "onSave" NIE ein Prop von WerkWizard ist (Signatur oben nur
-    // onClose/onSaved) — jeder Aufruf warf "ReferenceError: onSave is not
-    // defined", NACH dem erfolgreichen DB-Insert. Nutzer sahen einen Crash-
-    // Screen trotz erfolgreich gespeichertem Werk (Michèle-Report 2026-08-21,
-    // App v2.1.332). Bug bestand bereits seit Commit 79b79a765 (2026-06-10) —
-    // niemand übergibt einen "onSave"-Prop an <WerkWizard>, nur "onSaved".
     onSaved?.(saved);
+    onSave?.(saved);   // Alias für MyBasisProfile reload
     // Bei pending_review: kurze Bestätigung zeigen, dann schließen
     if (status === "pending_review") {
       setSaveError(null);
