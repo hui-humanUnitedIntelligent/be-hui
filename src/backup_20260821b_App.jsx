@@ -911,16 +911,6 @@ function PushInit() {
 }
 
 export default function App() {
-  // OTA v5: notifyAppReady erst NACH dem ersten React-Render.
-  // Wenn React crasht (White-Screen) → dieser useEffect läuft nie →
-  // kein notifyAppReady → CapacitorUpdater rollt nach 3 Crashes
-  // automatisch zur letzten funktionierenden Version zurück.
-  React.useEffect(() => {
-    if (window.__HUI_CONFIRM_READY__) {
-      window.__HUI_CONFIRM_READY__();
-    }
-  }, []);
-
   return (
     <ErrorBoundary>
       <BrowserRouter>

@@ -6,7 +6,7 @@ import App from './App'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
-import { initOTA, autoCheckOTA } from './lib/otaUpdate.js'
+import { initOTA, autoCheckOTA, confirmAppReady } from './lib/otaUpdate.js'
 import { initGlobalKeyboardHandling } from './lib/globalKeyboardHandler.js'
 
 // ── Production Console Silencer (2026-08-12) ─────────────────────
@@ -29,12 +29,18 @@ initAppPerformance();
 // src/lib/globalKeyboardHandler.js für die volle Erklärung).
 initGlobalKeyboardHandling();
 
-// OTA (2026-08-08): Over-the-Air Updates — lädt neue Web-Bundles automatisch.
-// notifyAppReady MUSS innerhalb ~10s nach Start gerufen werden, sonst rollt
-// das Plugin nach 3 Crashes zum letzten stabilen Bundle zurück.
+// OTA v5 (2026-08-21): autoUpdate + Crash-Recovery
+// initOTA: initialisiert OHNE notifyAppReady (kein "ready" vor React-Render)
+// confirmAppReady: wird in App.jsx useEffect gerufen — NACH erfolgreichem Render
+// → Wenn React crasht: notifyAppReady nie gerufen → Plugin rollt nach 3 Crashes zurück
+// → Die alte Version kann dann die nächste OTA (mit Fix) ziehen.
+// autoCheckOTA: JS-Fallback für alte APKs (autoUpdate:false)
 initOTA().then((res) => {
   if (res?.error) console.warn('[OTA] Init warning:', res.error);
 }).catch((err) => console.warn('[OTA] Init error:', err));
+
+// confirmAppReady global verfügbar machen für App.jsx
+window.__HUI_CONFIRM_READY__ = confirmAppReady;
 
 // OTA v4 (2026-08-21): autoCheckOTA() WIEDERHERGESTELLT als Fallback.
 // Grund: Alte APKs (gebaut vor Aug 18) haben autoUpdate:false im native Plugin.
