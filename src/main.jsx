@@ -3,6 +3,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { GlobalAppBoundary } from './lib/ErrorBoundaries'
 import './index.css'
 import { initSentry, sentryCapture } from './lib/sentry'
 import { initAppPerformance } from './lib/appPerformance.js'
@@ -65,6 +66,8 @@ window.addEventListener('error', (event) => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <GlobalAppBoundary>
+      <App />
+    </GlobalAppBoundary>
   </React.StrictMode>,
 );

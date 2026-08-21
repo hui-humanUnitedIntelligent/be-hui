@@ -749,23 +749,23 @@ function AppRoutes() {
 
         {/* Main App — LAZY */}
         <Route path="/Home" element={
-          <ProtectedRoute><Home /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Home"><Home /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Work Detail — LAZY */}
         {/* COMMERCE-01 */}
         <Route path="/work/:id" element={
-          <ProtectedRoute><WorkDetailRouteWrapper /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="WorkDetail"><WorkDetailRouteWrapper /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* /profile/:username → PublicProfileRouteWrapper (helles Profil, DARK-PROFILE-REMOVE-001) */}
         <Route path="/profile/:username" element={
-          <ProtectedRoute><PublicProfileRouteWrapper /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="PublicProfile"><PublicProfileRouteWrapper /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* /profile/me shortcut */}
         <Route path="/profile/me" element={
-          <ProtectedRoute><OwnProfileRedirect /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="OwnProfile"><OwnProfileRedirect /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* DEEPLINK.1 (2026-07-09) — /wirker/:username ist ein reiner
@@ -775,28 +775,28 @@ function AppRoutes() {
 
         {/* DEEPLINK.1 — Werke ueber sprechenden Slug statt roher ID */}
         <Route path="/werke/:slug" element={
-          <ProtectedRoute><WorkBySlugOpener /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="WorkBySlug"><WorkBySlugOpener /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* DEEPLINK.1 — Beitrag/Projekt/Erlebnis/Veranstaltung: oeffnen
             ueber die bestehende, geteilte Preview/Fullscreen-Infra statt
             eigener neuer Detailseiten (siehe DeepLinkOpener oben). */}
         <Route path="/beitrag/:id" element={
-          <ProtectedRoute><DeepLinkOpener type="moment" /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="DeepLink-moment"><DeepLinkOpener type="moment" /></RouteBoundary></ProtectedRoute>
         }/>
         <Route path="/projekt/:id" element={
-          <ProtectedRoute><DeepLinkOpener type="project" /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="DeepLink-project"><DeepLinkOpener type="project" /></RouteBoundary></ProtectedRoute>
         }/>
         <Route path="/erlebnis/:id" element={
-          <ProtectedRoute><DeepLinkOpener type="experience" /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="DeepLink-experience"><DeepLinkOpener type="experience" /></RouteBoundary></ProtectedRoute>
         }/>
         <Route path="/veranstaltung/:id" element={
-          <ProtectedRoute><DeepLinkOpener type="event" /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="DeepLink-event"><DeepLinkOpener type="event" /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Impact — EAGER */}
         <Route path="/impact" element={
-          <ProtectedRoute><ImpactPageStandalone /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Impact"><ImpactPageStandalone /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Legacy redirect */}
@@ -804,23 +804,23 @@ function AppRoutes() {
 
         {/* Admin — LAZY */}
         <Route path="/Admin" element={
-          <ProtectedRoute><Admin /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Admin"><Admin /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Diagnose — LAZY (nur Dev) */}
-        <Route path="/diagnose" element={<ProtectedRoute><DiagnosePage /></ProtectedRoute>} />
+        <Route path="/diagnose" element={<ProtectedRoute><RouteBoundary name="Diagnose"><DiagnosePage /></RouteBoundary></ProtectedRoute>} />
 
         {/* Platform Dashboard — intern, Admin-only */}
         <Route path="/dashboard" element={
-          <ProtectedRoute><PlatformDashboard /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Dashboard"><PlatformDashboard /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Creator Studio — LAZY */}
         <Route path="/studio" element={
-          <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Studio"><CreatorStudio /></RouteBoundary></ProtectedRoute>
         }/>
         <Route path="/studio/:section" element={
-          <ProtectedRoute><CreatorStudio /></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Studio"><CreatorStudio /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Ref-Link Weiterleitung */}
