@@ -62,6 +62,11 @@ export const PLATFORM_EVENTS = {
   // Health (intern)
   SPAM_DETECTED:          'spam_detected',
   CONTENT_FLAGGED:        'content_flagged',
+
+  // Empfangsbereich / Onboarding (NEU, 2026-08-23)
+  WELCOME_SCREEN_VIEWED:  'welcome_screen_viewed',
+  RULES_SECTION_VIEWED:   'rules_section_viewed',
+  CORE_AREAS_VIEWED:      'core_areas_viewed',
 };
 
 // ── emit ──────────────────────────────────────────────────────
