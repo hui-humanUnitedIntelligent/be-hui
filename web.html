@@ -20,42 +20,6 @@
   </head>
   <body>
     <div id="web-root"></div>
-    <div id="diag" style="padding:20px;font-family:monospace;font-size:12px;color:#000;background:#fff;min-height:200px;white-space:pre-wrap;word-break:break-all"></div>
     <script type="module" src="/src/web-main.jsx"></script>
-    <script>
-      window.__HUI_DIAG__ = ['[HTML] Page loaded at ' + new Date().toISOString()];
-    </script>
-    <script type="module">
-      // This module runs in parallel — try to import the same chunks manually
-      try {
-        const vendor = await import('/assets/vendor-B6LSlCid.js');
-        document.getElementById('diag').innerHTML += '\n[VENDOR] OK — keys: ' + Object.keys(vendor).slice(0,5).join(',');
-      } catch(e) {
-        document.getElementById('diag').innerHTML += '\n[VENDOR-ERROR] ' + e.message + '\n' + (e.stack||'');
-      }
-      try {
-        const gkh = await import('/assets/globalKeyboardHandler-C08eAIP7.js');
-        document.getElementById('diag').innerHTML += '\n[GKH] OK — keys: ' + Object.keys(gkh).slice(0,5).join(',');
-      } catch(e) {
-        document.getElementById('diag').innerHTML += '\n[GKH-ERROR] ' + e.message + '\n' + (e.stack||'');
-      }
-      try {
-        const web = await import('/assets/web-qyVAZZ-F.js');
-        document.getElementById('diag').innerHTML += '\n[WEB] OK — keys: ' + Object.keys(web).slice(0,5).join(',');
-      } catch(e) {
-        document.getElementById('diag').innerHTML += '\n[WEB-ERROR] ' + e.message + '\n' + (e.stack||'');
-      }
-    </script>
-    <script>
-      setTimeout(function() {
-        var root = document.getElementById('web-root');
-        var diag = document.getElementById('diag');
-        if (root && !root.hasChildNodes()) {
-          if (diag) diag.innerHTML += '\n[TIMEOUT] React did not render after 5s';
-        } else {
-          if (diag) diag.innerHTML += '\n[TIMEOUT] React rendered OK — children: ' + (root ? root.childElementCount : 'no root');
-        }
-      }, 5000);
-    </script>
   </body>
 </html>
