@@ -21,31 +21,6 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { toast } from "../../lib/useToast.jsx";
-
-// ── Kontakt-Daten-Schutz: Email & Telefon im Kommentar blockieren ──────────
-// HUI-Regel: Kommentare & Anfragen dienen dem öffentlichen Austausch.
-// Keine Email-Adressen oder Telefonnummern (DSGVO + Plattform-Regeln).
-const CONTACT_BLOCK_MSG = "Aus Datenschutzgründen können keine E-Mail-Adressen oder Telefonnummern veröffentlicht werden. Bitte halte dich an die HUI-Regeln und tausche Kontakttdaten nur über den Chat nach einer Buchung aus.";
-
-function detectContactData(text) {
-  // Email: Standard-Pattern
-  const emailRe = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
-  if (emailRe.test(text)) return true;
-
-  // Telefon: Internationale und deutsche/schweizer/österreichische Formate
-  // +49..., +41..., +43..., 0049..., 0041..., 0043...
-  // Deutsche Festnetz/Mobil: 0151/0160/0163/0170-0179/030/069/etc + 6+ Ziffern
-  // Auch mit Leerzeichen, Bindestrichen, Klammern, Punkten als Trennzeichen
-  const phoneRe = /(?:\+|00)(?:49|41|43|1|44|33|39|34|31|32|358|46|47|45|48|420|421|36|40|359|30|385|386|421)\s?[\d\s().-]{6,}/;
-  if (phoneRe.test(text)) return true;
-
-  // Auch reine deutsche Nummern ohne + (015112345678, 0301234567 etc.)
-  const dePhoneRe = /\b0(?:1[5-7]\d{8}|[2-9]\d{4,11})\b/;
-  if (dePhoneRe.test(text)) return true;
-
-  return false;
-}
-
 import { haptic } from "../../components/commerce/commerceUtils.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import {
@@ -566,10 +541,6 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleSubmit = useCallback(async () => {
     const text = input.trim();
     if (!text || !user?.id) return;
-    if (detectContactData(text)) {
-      toast.error(CONTACT_BLOCK_MSG);
-      return;
-    }
     setSubmitting(true);
     haptic("light");
     const optimistic = {
@@ -603,10 +574,6 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleSubmitReply = useCallback(async () => {
     const text = replyText.trim();
     if (!text || !user?.id || !replyTargetId) return;
-    if (detectContactData(text)) {
-      toast.error(CONTACT_BLOCK_MSG);
-      return;
-    }
     setSubmittingReply(true);
     haptic("light");
     const parentId = replyTargetId;
@@ -646,10 +613,6 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleSaveEdit = useCallback(async (commentId, text) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (detectContactData(trimmed)) {
-      toast.error(CONTACT_BLOCK_MSG);
-      return;
-    }
     const patch = (list) => list.map(c => c.id === commentId ? { ...c, text: trimmed, is_edited:true } : { ...c, replies: patch(c.replies||[]) });
     setItems(prev => patch(prev));
     const { error } = await updateComment(commentId, trimmed);
