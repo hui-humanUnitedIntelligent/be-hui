@@ -22,7 +22,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
 
-    <!-- WHITESCREEN-CATCHER: Fängt Modul-Lade-Fehler ab VOR dem React-Import -->
+    <!-- WHITESCREEN-CATCHER + 5s FALLBACK -->
     <script>
       window.__HUI_ERRORS__ = [];
       window.addEventListener('error', function(event) {
@@ -34,18 +34,6 @@
           lineno: event.lineno,
           colno: event.colno
         });
-        var root = document.getElementById('web-root');
-        if (root && !root.hasChildNodes()) {
-          root.innerHTML = '<div style="padding:40px;font-family:monospace;font-size:14px;color:#000;max-width:900px;margin:0 auto;word-break:break-word">'
-            + '<h2 style="color:#e00">HUI Web — Load Error</h2>'
-            + '<p><b>' + (event.error ? event.error.message : event.message) + '</b></p>'
-            + '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;overflow:auto;font-size:12px">'
-            + (event.error ? event.error.stack : 'No stack available')
-            + '\n\nSource: ' + (event.filename || 'unknown') + ':' + (event.lineno || 0) + ":" + (event.colno || 0)
-            + '</pre>'
-            + '<p style="color:#666;margin-top:16px">If this persists, clear cache and reload. Error details above.</p>'
-            + '</div>';
-        }
       });
       window.addEventListener('unhandledrejection', function(event) {
         window.__HUI_ERRORS__.push({
@@ -54,6 +42,27 @@
           stack: event.reason && event.reason.stack ? event.reason.stack : ''
         });
       });
+      // 5s fallback: if #web-root still empty, show diagnostic
+      setTimeout(function() {
+        var root = document.getElementById('web-root');
+        if (root && !root.hasChildNodes()) {
+          var errs = window.__HUI_ERRORS__ || [];
+          var errHtml = errs.length 
+            ? errs.map(function(e) { 
+                return '<b>' + e.type + '</b>: ' + e.message 
+                  + (e.filename ? '<br>  @ ' + e.filename + ':' + (e.lineno||0) : '')
+                  + (e.stack ? '<pre style="background:#f5f5f5;padding:8px;border-radius:4px;overflow:auto;font-size:11px;margin:4px 0">' + e.stack.substring(0,1000) + '</pre>' : '');
+              }).join('<hr>')
+            : '<p style="color:#666">No errors were caught by window.error or unhandledrejection listeners.</p>';
+          root.innerHTML = '<div style="padding:40px;font-family:monospace;font-size:13px;color:#000;max-width:900px;margin:0 auto;word-break:break-word">'
+            + '<h2 style="color:#e00">⚠ HUI Web — White Screen Detected</h2>'
+            + '<p>#web-root has 0 children after 5 seconds. Module loaded but React did not render.</p>'
+            + '<h3>Caught Errors (' + errs.length + '):</h3>'
+            + errHtml
+            + '<p style="color:#666;margin-top:16px;font-size:11px">User-Agent: ' + navigator.userAgent.substring(0,100) + '</p>'
+            + '</div>';
+        }
+      }, 5000);
     </script>
   </head>
   <body>
