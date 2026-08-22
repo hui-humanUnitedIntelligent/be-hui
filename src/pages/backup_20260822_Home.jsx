@@ -18,7 +18,6 @@ import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import { logDebug }  from "../lib/debugCollector.js";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
-import { useUsageTracking } from "../hooks/useUsageTracking.js"; // SADB-ANALYSE-005
 import { useHuiFlow } from "../core/hui.flow.js";
 import { safeOrbAction } from "../core/hui.safePayload.js";
 import HomeHeader                from "../components/home/header/HomeHeader.jsx";
@@ -102,10 +101,6 @@ const GLOBAL_CSS = IX.CSS + `
 
 function HomeInner() {
   const navigate = useNavigate();
-  // SADB-ANALYSE-005 (2026-08-22): App-Nutzungs-Tracking für Admin-Analytics
-  // (DAU/WAU/MAU, Ø Sitzungsdauer) — additiv, blockiert nichts, siehe Hook-Kommentar.
-  const { user: _usageUser } = useHome();
-  useUsageTracking(_usageUser?.id);
   // Phase 16.6: Tab element refs for imperative Safari paint recovery
   const tabRefs = {
     feed:      React.useRef(null),
