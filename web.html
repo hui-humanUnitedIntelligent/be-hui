@@ -22,7 +22,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
 
-    <!-- HUI WHITESCREEN GUARD v2 (2026-08-22) -->
+    <!-- HUI WHITESCREEN GUARD v3 (2026-08-22) — Enhanced with Error Reporting -->
     <script>
       (function() {
         'use strict';
@@ -76,6 +76,19 @@
           }
         }
 
+        // Suspense-Hang Detection (Punkt 1 — 8s Timeout-Fallback)
+        // Wenn nach 8s immer noch ein Suspense-Fallback sichtbar ist
+        setTimeout(function() {
+          var loadingEl = document.querySelector('.web-loading, .suspense-loading, [data-suspense]');
+          if (loadingEl && loadingEl.offsetParent !== null) {
+            window.__HUI_ERRORS__.push({
+              type: 'suspense_hang',
+              message: 'Suspense-Hang: Loading-Element nach 8s noch sichtbar (React.lazy/Vite Preload)',
+              timestamp: new Date().toISOString(),
+            });
+          }
+        }, 8000);
+
         // White Screen Detector (5s Fallback)
         // 2s diagnostic: log what's in #web-root
         setTimeout(function() {
@@ -83,6 +96,7 @@
           console.log('[HUI Guard 2s] web-root children:', root ? root.childElementCount : 'no root');
           console.log('[HUI Guard 2s] web-root innerHTML length:', root ? root.innerHTML.length : 0);
           console.log('[HUI Guard 2s] errors caught:', window.__HUI_ERRORS__.length);
+          console.log('[HUI Guard 2s] __HUI_DIAG__:', window.__HUI_DIAG__ ? 'present' : 'MISSING');
         }, 2000);
         setTimeout(function() {
           checkQueuedChunkErrors();
@@ -145,19 +159,72 @@
             + '<p style="font-size:11px;color:#aaa;margin:24px 0 0 0;text-align:center">HUI Web Guard v2 &middot; ' + ts + '<br>UA: ' + escapeHtml(navigator.userAgent.substring(0, 120)) + '</p>'
             + '</div>';
 
-          // Auto-report (best-effort)
+          // Auto-report (best-effort) — Enhanced v3 with full context
           try {
-            var report = 'WHITESCREEN ' + ts + ' ' + window.location.href + ' errors=' + errCount;
-            if (errs.length > 0) report += ' err1=' + (errs[0].message || 'N/A').substring(0, 200);
-            // Use sendBeacon for fire-and-forget
+            var deviceModel = 'Unknown';
+            var ua = navigator.userAgent;
+            if (/iPad/.test(ua)) deviceModel = 'iPad';
+            else if (/iPhone/.test(ua)) deviceModel = 'iPhone';
+            else if (/Android/.test(ua)) {
+              var am = ua.match(/Android\s[\d.]+;\s([^)]+)\)/);
+              if (am) deviceModel = am[1].split(';')[0].trim();
+            }
+            else if (/Macintosh/.test(ua)) deviceModel = 'Mac';
+            else if (/Windows/.test(ua)) deviceModel = 'Windows PC';
+            else if (/Linux/.test(ua)) deviceModel = 'Linux PC';
+
+            var fullReport = {
+              item_type: 'system_error',
+              item_id: 'ws-' + Date.now(),
+              item_title: 'White Screen: ' + window.location.href,
+              trigger: 'ws-guard-v3',
+              error_data: {
+                errorType: 'white_screen',
+                errorCode: 'WS-100',
+                message: errs.length > 0 ? errs[0].message : 'White Screen — no errors caught, module may not have executed',
+                stack: errs.length > 0 ? (errs[0].stack || '').substring(0, 1500) : '',
+                filename: errs.length > 0 ? (errs[0].filename || '') : '',
+                lineno: errs.length > 0 ? (errs[0].lineno || 0) : 0,
+                route: window.location.pathname + window.location.hash,
+                component: 'Root / WhiteScreenGuard',
+                deviceModel: deviceModel,
+                osVersion: (function() {
+                  if (/OS (\d+[._]\d+)/.test(ua)) return ua.match(/OS (\d+[._]\d+)/)[1].replace('_','.');
+                  if (/Android (\d+[.\d]*)/.test(ua)) return ua.match(/Android (\d+[.\d]*)/)[1];
+                  return 'Unknown';
+                })(),
+                appVersion: window.__HUI_APP_VERSION__ || 'unknown',
+                browserVersion: (function() {
+                  if (/Chrome\/(\d+)/.test(ua) && !/Edg/.test(ua)) return 'Chrome ' + ua.match(/Chrome\/(\d+)/)[1];
+                  if (/Firefox\/(\d+)/.test(ua)) return 'Firefox ' + ua.match(/Firefox\/(\d+)/)[1];
+                  if (/Safari\/(\d+)/.test(ua) && !/Chrome/.test(ua)) return 'Safari';
+                  if (/Edg\/(\d+)/.test(ua)) return 'Edge ' + ua.match(/Edg\/(\d+)/)[1];
+                  return 'Unknown';
+                })(),
+                networkStatus: navigator.onLine ? 'online' : 'offline',
+                timestamp: ts,
+                userId: (function() {
+                  try {
+                    var s = localStorage.getItem('sb-gxztrhvhcxhmunhhkfjd-auth-token');
+                    if (s) { var p = JSON.parse(s); return p?.user?.id || p?.user?.email || 'authenticated'; }
+                  } catch(_) {}
+                  return 'anonymous';
+                })(),
+                appState: {
+                  rootChildren: root ? root.childElementCount : 0,
+                  visibilityState: document.visibilityState,
+                  online: navigator.onLine,
+                  viewport: window.innerWidth + 'x' + window.innerHeight,
+                },
+                lastUserAction: window.__HUI_LAST_USER_ACTION__ || null,
+                knownCause: errs.length === 0 ? 'Bekannte Ursache: #2 aus WHITESCREEN_CAUSES.md (Modul-Scope Init ohne try-catch)' : null,
+                priority: 'CRITICAL',
+                frequency: 1,
+                status: 'open',
+              },
+            };
             if (navigator.sendBeacon) {
-              var blob = new Blob([JSON.stringify({
-                item_type: 'whitescreen',
-                item_id: 'web-' + Date.now(),
-                item_title: 'HUI Web White Screen',
-                trigger: 'ws-guard-v2',
-                error_data: { url: window.location.href, errors: errs.slice(0, 3), ua: navigator.userAgent.substring(0, 200), ts: ts }
-              })], { type: 'application/json' });
+              var blob = new Blob([JSON.stringify(fullReport)], { type: 'application/json' });
               navigator.sendBeacon('https://sadb-webhook.b44-hui.workers.dev/', blob);
             }
           } catch(_) {}

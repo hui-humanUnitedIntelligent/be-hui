@@ -10,6 +10,7 @@
 import React from 'react';
 import { sentryCapture } from './sentry.js';
 import { normalizeError, SEVERITY } from './errors/index.js';
+import { reportError, markErrorFixed } from './errorReporter.js';
 import { HUI } from "../design/hui.design.js";
 
 const C = {
@@ -36,22 +37,58 @@ export class GlobalAppBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // ChunkLoadError → Hard Reload (stale assets nach neuem Deploy)
     const msg = error?.message || '';
-    if (msg.includes('Failed to fetch dynamically imported module') ||
-        msg.includes('Loading chunk') ||
-        msg.includes('ChunkLoadError')) {
+    const isChunk = msg.includes('Failed to fetch dynamically imported module') ||
+                    msg.includes('Loading chunk') ||
+                    msg.includes('ChunkLoadError') ||
+                    msg.includes('Importing a module script failed');
+    if (isChunk) {
+      // Error-Report vor dem Reload erzeugen (Punkt 2)
+      try {
+        reportError('chunk_load_error', {
+          message: msg,
+          stack: error.stack?.substring(0, 2000) || '',
+          component: 'GlobalAppBoundary',
+        });
+      } catch (_) {}
       const lastReload = Number(sessionStorage.getItem('_hui_chunk_reload') || 0);
-      if (Date.now() - lastReload > 10000) {
+      // Punkt 10.3: max 2 Retries, danach Fallback-UI (nicht endlos reload)
+      const reloadCount = Number(sessionStorage.getItem('_hui_chunk_reload_count') || 0);
+      if (reloadCount < 2 && Date.now() - lastReload > 10000) {
         sessionStorage.setItem('_hui_chunk_reload', String(Date.now()));
+        sessionStorage.setItem('_hui_chunk_reload_count', String(reloadCount + 1));
         window.location.reload();
         return;
+      } else {
+        // Nach 2 Reloads: Fallback-UI anzeigen (nicht weiter reloaden)
+        sessionStorage.removeItem('_hui_chunk_reload_count');
       }
     }
+
+    // Suspense-Hang Detection (Punkt 1 — Suspense-Hänger)
+    const isSuspense = msg.includes('Suspense') || msg.includes('lazy') ||
+                       msg.includes('__vitePreload');
+
     const appErr = normalizeError(error, {
       componentStack: errorInfo?.componentStack?.slice(0, 500),
       lastFeedComponent: window.__HUI_LAST_FEED_COMPONENT__,
       retryCount: this.state.retryCount,
     });
     sentryCapture(appErr, { boundary: 'GlobalAppBoundary' });
+
+    // ── Vollständiger Error-Report (Punkt 2) ──────────────────────
+    try {
+      reportError(isChunk ? 'chunk_load_error' : isSuspense ? 'suspense_hang' : 'react_render_crash', {
+        message: msg || 'React render crash',
+        stack: error.stack?.substring(0, 2000) || '',
+        filename: error.fileName || '',
+        lineno: error.lineNumber || 0,
+        colno: error.columnNumber || 0,
+        component: errorInfo?.componentStack?.split('\n')
+          ?.find(l => l.trim().startsWith('at '))?.trim()?.substring(0, 100) || 'GlobalAppBoundary',
+      });
+    } catch (e) {
+      console.error('[HUI] ErrorReporter failed in boundary:', e);
+    }
   }
 
   handleRetry() {
@@ -81,18 +118,33 @@ export class GlobalAppBoundary extends React.Component {
           {appErr.toUserMessage?.() || 'Ein unerwarteter Fehler ist aufgetreten.'}
         </div>
         {isFatal ? (
-          <button
-            onClick={() => window.location.reload()}
-            style={{ padding: '12px 28px', background: C.teal, border: 'none',
-              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-            App neu starten
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ padding: '12px 28px', background: C.teal, border: 'none',
+                borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+              App neu starten
+            </button>
+            <button
+              onClick={() => {
+                if (navigator.serviceWorker) {
+                  navigator.serviceWorker.getRegistrations().then(r =>
+                    r.forEach(sw => sw.unregister())
+                  ).then(() => window.location.reload());
+                } else { window.location.reload(); }
+              }}
+              style={{ padding: '10px 22px', background: 'transparent',
+                border: `1px solid ${C.border}`, borderRadius: 14,
+                color: C.muted, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              Cache leeren & neu laden
+            </button>
+          </div>
         ) : (
           <button
             onClick={this.handleRetry}
             style={{ padding: '12px 28px', background: C.teal, border: 'none',
               borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-            Erneut versuchen
+            Erneut versuchen ({this.state.retryCount}/3)
           </button>
         )}
       </div>

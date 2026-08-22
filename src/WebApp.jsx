@@ -33,6 +33,58 @@ function LoadingScreen() {
   );
 }
 
+// ── Suspense Timeout-Fallback (Punkt 10.1 — max 8s) ────────────────────────
+// Wenn ein lazy-loaded Component nach 8s nicht geladen ist,
+// zeige Fallback-UI mit Neu-Laden-Button statt ewigem Spinner.
+import { useState, useEffect } from 'react';
+import { RouteBoundary } from './lib/ErrorBoundaries.jsx';
+import { reportError } from './lib/errorReporter.js';
+
+function SuspenseWithTimeout({ children, fallback }) {
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimedOut(true);
+      try {
+        reportError('suspense_hang', {
+          message: 'Suspense-Hang: Component nach 8s nicht geladen (React.lazy/Vite)',
+          component: 'SuspenseWithTimeout',
+        });
+      } catch (_) {}
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, []);
+  if (timedOut) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        minHeight: '60vh', padding: 24, gap: 12,
+        fontFamily: 'inherit',
+      }}>
+        <div style={{ fontSize: 28, opacity: 0.5 }}>✦</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: '#1a1a1a' }}>
+          Laden dauert zu lange
+        </div>
+        <div style={{ fontSize: 13, color: '#888', textAlign: 'center', maxWidth: 280 }}>
+          Die Komponente konnte nicht rechtzeitig geladen werden.
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            padding: '10px 24px', background: '#0DC4B5',
+            border: 'none', borderRadius: 12,
+            color: 'white', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+          }}
+        >
+          Neu laden
+        </button>
+      </div>
+    );
+  }
+  return <Suspense fallback={fallback}>{children}</Suspense>;
+}
+
 // ── Conditional Router ──────────────────────────────────────────────────────
 function ConditionalRouter() {
   const { isAuthenticated, loadingAuth } = useAuth();
@@ -51,9 +103,11 @@ function ConditionalRouter() {
   }
 
   return (
-    <Suspense fallback={<LoadingScreen />}>
-      <AuthenticatedApp />
-    </Suspense>
+    <RouteBoundary name="AuthenticatedApp" fallbackTitle="App konnte nicht geladen werden">
+      <SuspenseWithTimeout fallback={<LoadingScreen />}>
+        <AuthenticatedApp />
+      </SuspenseWithTimeout>
+    </RouteBoundary>
   );
 }
 

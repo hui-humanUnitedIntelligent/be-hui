@@ -1,77 +1,37 @@
 <!doctype html>
-<html lang="de">
-  <head>
-    <meta charset="UTF-8" />
-    <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>HUI Diag</title>
-    <style>
-      body { font-family: monospace; padding: 20px; font-size: 13px; line-height: 1.6; }
-      .ok { color: #0a0; }
-      .err { color: #e00; }
-      .info { color: #00a; }
-      pre { background: #f5f5f5; padding: 8px; border-radius: 4px; overflow: auto; max-width: 100%; }
-    </style>
-  </head>
-  <body>
-    <h2>HUI Web Diagnostic</h2>
-    <div id="log"></div>
-    <script>
-      function log(msg, cls) {
-        var div = document.getElementById('log');
-        var p = document.createElement('div');
-        p.className = cls || 'info';
-        p.innerHTML = msg;
-        div.appendChild(p);
-      }
-      
-      log('1. Script started', 'ok');
-      log('2. User agent: ' + navigator.userAgent.substring(0, 100));
-      log('3. Location: ' + window.location.href);
-      
-      // Test: can we load the vendor chunk?
-      log('4. Testing vendor chunk load...', 'info');
-      
-      fetch('/assets/vendor-DIz4Qdmz.js', { method: 'HEAD' })
-        .then(function(r) { log('5. Vendor chunk HTTP ' + r.status, r.ok ? 'ok' : 'err'); })
-        .catch(function(e) { log('5. Vendor chunk fetch failed: ' + e.message, 'err'); });
-      
-      // Test: dynamic import of the web entry chunk
-      log('6. Testing dynamic import of web chunk...', 'info');
-      
-      import('/assets/web-k6EA6qi-.js')
-        .then(function(m) { 
-          log('7. Web chunk imported OK! Exports: ' + Object.keys(m).join(', '), 'ok');
-        })
-        .catch(function(e) { 
-          log('7. Web chunk import FAILED: ' + (e.message || e), 'err');
-          log('8. Stack: <pre>' + (e.stack || 'No stack') + '</pre>', 'err');
-        });
-      
-      // Test: load vendor chunk and check
-      log('9. Testing vendor chunk dynamic import...', 'info');
-      import('/assets/vendor-DIz4Qdmz.js')
-        .then(function(m) {
-          log('10. Vendor chunk imported OK! Has React: ' + (m.r !== undefined), 'ok');
-          log('10b. Vendor exports: ' + Object.keys(m).slice(0, 10).join(', '), 'ok');
-        })
-        .catch(function(e) {
-          log('10. Vendor chunk import FAILED: ' + (e.message || e), 'err');
-          log('10b. Stack: <pre>' + (e.stack || 'No stack') + '</pre>', 'err');
-        });
-      
-      // Test: load globalKeyboardHandler chunk
-      log('11. Testing globalKeyboardHandler chunk...', 'info');
-      import('/assets/globalKeyboardHandler-Cpwz3uif.js')
-        .then(function(m) {
-          log('12. GKH chunk imported OK! Exports: ' + Object.keys(m).slice(0, 15).join(', '), 'ok');
-        })
-        .catch(function(e) {
-          log('12. GKH chunk import FAILED: ' + (e.message || e), 'err');
-          log('12b. Stack: <pre>' + (e.stack || 'No stack') + '</pre>', 'err');
-        });
-      
-      log('13. All tests dispatched. Waiting for results...', 'info');
-    </script>
-  </body>
+<html>
+<head><meta charset="UTF-8"><title>HUI Diag</title></head>
+<body>
+<div id="out" style="padding:20px;font-family:monospace;font-size:12px;color:#000;background:#fff;white-space:pre-wrap;word-break:break-all"></div>
+<script>
+var out = document.getElementById('out');
+function log(msg) { out.innerHTML += msg + '\n'; }
+log('[START] Diagnostic page loaded');
+
+// Fetch the main HTML to get current chunk names
+fetch('/app/login').then(r => r.text()).then(html => {
+  var scripts = html.match(/assets\/[A-Za-z0-9_-]+\.js/g) || [];
+  log('[HTML] Found chunks: ' + scripts.join(', '));
+  
+  // Try to dynamically import each chunk
+  var chunks = [...new Set(scripts)];
+  var pending = chunks.length;
+  
+  chunks.forEach(function(chunk) {
+    import('/' + chunk).then(function(m) {
+      log('[OK] ' + chunk + ' — exports: ' + Object.keys(m).slice(0,8).join(','));
+      pending--;
+      if (pending === 0) log('[DONE] All chunks loaded');
+    }).catch(function(err) {
+      log('[FAIL] ' + chunk + ' — ' + (err && err.message ? err.message : String(err)));
+      log('  stack: ' + (err && err.stack ? err.stack.split('\n').slice(0,3).join('\n  ') : 'none'));
+      pending--;
+      if (pending === 0) log('[DONE] All chunks processed (some failed)');
+    });
+  });
+}).catch(function(err) {
+  log('[FETCH-ERROR] ' + err.message);
+});
+</script>
+</body>
 </html>

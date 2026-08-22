@@ -1,8 +1,42 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { readdirSync, statSync } from 'fs';
+import { join } from 'path';
+
+// ── Pre-Build: Backup-Dateien-Check (Punkt 10.8) ─────────────────
+// Build MUSS abbrechen, wenn .bak/.old/backup_* Dateien in src/ erkannt werden.
+function checkBackupFiles() {
+  const blockedDirs = ['src', 'android/app/src/main/java', 'android/app/src/main/res'];
+  const issues = [];
+  for (const dir of blockedDirs) {
+    try {
+      function scan(d) {
+        for (const entry of readdirSync(d)) {
+          const full = join(d, entry);
+          try {
+            if (statSync(full).isDirectory()) { scan(full); continue; }
+          } catch (_) { continue; }
+          if (entry.startsWith('backup_') || entry.endsWith('.bak') || entry.endsWith('.old')) {
+            issues.push(full);
+          }
+        }
+      }
+      scan(dir);
+    } catch (_) {} // Dir doesn't exist, skip
+  }
+  if (issues.length > 0) {
+    console.error('\n❌ BUILD GATE: Backup-Dateien im Source-Tree erkannt (Punkt 10.8):');
+    issues.forEach(f => console.error('   ' + f));
+    console.error('   Verschiebe sie nach backups/ oder lösche sie.\n');
+    process.exit(1);
+  }
+}
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    { name: 'hui-backup-gate', buildStart() { checkBackupFiles(); } },
+    react(),
+  ],
 
   build: {
     target: 'es2018',
