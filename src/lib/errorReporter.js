@@ -575,10 +575,20 @@ export function initErrorReporting() {
   // User-Action Tracking (Punkt 2 — letzter User-Action-Event)
   ['click', 'submit', 'change', 'keydown'].forEach(evt => {
     document.addEventListener(evt, (e) => {
+      // FIX (2026-08-22, SVG-CLICK-CRASH): e.target.className ist bei SVG-Elementen
+      // (z.B. Zahnrad-Icon im Profil) KEIN String, sondern ein SVGAnimatedString-Objekt
+      // ohne .substring()-Methode -> "o.substring is not a function" bei JEDEM Klick
+      // auf ein SVG/<path>-Icon systemweit. getAttribute('class') liefert bei HTML-
+      // UND SVG-Elementen zuverlässig einen echten String (oder null).
+      let cls = '';
+      try {
+        const raw = e.target?.getAttribute ? e.target.getAttribute('class') : null;
+        cls = typeof raw === 'string' ? raw.substring(0, 50) : '';
+      } catch (_) { /* nie einen Tracking-Fehler nach außen werfen */ }
       trackUserAction(evt, {
         target: e.target?.tagName || 'unknown',
         id: e.target?.id || '',
-        className: e.target?.className?.substring(0, 50) || '',
+        className: cls,
       });
     }, { passive: true });
   });
