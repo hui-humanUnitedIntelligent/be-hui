@@ -1132,6 +1132,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     profile,
     wirkerProfile,
     works,
+    worksSaleStatus,
     experiences,
     recommendations,
     moments,
@@ -1452,6 +1453,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
             profile={profile}
             isOwner={isOwner}
             loading={loading}
+            saleStatus={worksSaleStatus}
             onShowAll={() => {}}
             onAddWork={isOwner ? () => { setEditingWerk(null); setShowWerkWizard(true); } : null}
           />

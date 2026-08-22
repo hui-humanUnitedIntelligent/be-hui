@@ -62,6 +62,7 @@ export function WorksSection({
   profile    = null,
   isOwner    = false,
   loading    = false,
+  saleStatus = {},   // WORK-SALE-STATUS-001: {workId: "verkauft"|"reserviert"}
   onAddWork  = null,   // () => void  — öffnet WerkWizard
   onDeleteWork = null, // (id) => void
   onShowAll  = null,   // () => void
@@ -211,6 +212,26 @@ export function WorksSection({
                     </div>
                   )}
 
+                  {/* WORK-SALE-STATUS-001: Verkauft/Reserviert Badge — sichtbar für alle (Owner + Visitor) */}
+                  {(() => {
+                    const ss = saleStatus[w.id];
+                    if (!ss) return null;
+                    const isVerkauft  = ss === "verkauft";
+                    const isReserviert = ss === "reserviert";
+                    return (
+                      <div style={{
+                        position:"absolute", bottom:4, left:4,
+                        background: isVerkauft ? "rgba(26,26,46,0.78)" : "rgba(245,166,35,0.85)",
+                        color:"#fff",
+                        fontSize:8.5, fontWeight:700, padding:"2px 7px", borderRadius:99,
+                        letterSpacing:0.3, whiteSpace:"nowrap",
+                        backdropFilter:"blur(4px)",
+                      }}>
+                        {isVerkauft ? "Verkauft" : "Reserviert"}
+                      </div>
+                    );
+                  })()}
+
                   {/* Löschen-Button — nur Owner */}
                   {isOwner && (
                     <button className="ws-press"
@@ -228,6 +249,15 @@ export function WorksSection({
                     overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
                     {w.title || "Werk"}
                   </div>
+                  {saleStatus[w.id] && (
+                    <div style={{
+                      fontSize:9.5, fontWeight:600,
+                      color: saleStatus[w.id] === "verkauft" ? "rgba(26,26,46,0.5)" : "rgba(245,166,35,0.95)",
+                      marginTop:1,
+                    }}>
+                      {saleStatus[w.id] === "verkauft" ? "Verkauft" : "Reserviert"}
+                    </div>
+                  )}
                 </div>
               );
             })}

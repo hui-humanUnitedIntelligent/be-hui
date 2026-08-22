@@ -22,11 +22,12 @@ const SORT_OPTIONS = [
 const FORMAT_LABEL = { original:"Original", druck:"Druck", digital:"Digital Art" };
 const FORMAT_BADGE = { original:"#7C3AED", druck:"#0891B2", digital:"#D97706" };
 
-function WerkCardItem({ w, onPress }) {
+function WerkCardItem({ w, onPress, saleStatus }) {
   const [imgErr, setImgErr] = useState(false);
   const price = w.price != null ? `${formatNumberDE(Number(w.price))} €` : null;
   const badge = FORMAT_LABEL[w.file_format] || w.category || "Werk";
   const badgeColor = FORMAT_BADGE[w.file_format] || T.teal;
+  const ss = saleStatus?.[w.id];
   return (
     <div onClick={() => onPress?.(w)} style={{
       background:T.white, borderRadius:16, overflow:"hidden",
@@ -45,6 +46,15 @@ function WerkCardItem({ w, onPress }) {
           background:badgeColor, color:"#fff", borderRadius:99,
           fontSize:9.5, fontWeight: 600, padding:"2px 8px"
         }}>{badge}</div>
+        {ss && (
+          <div style={{
+            position:"absolute", bottom:8, left:8,
+            background: ss === "verkauft" ? "rgba(26,26,46,0.82)" : "rgba(245,166,35,0.88)",
+            color:"#fff", borderRadius:99,
+            fontSize:9, fontWeight:700, padding:"2px 8px",
+            backdropFilter:"blur(4px)",
+          }}>{ss === "verkauft" ? "Verkauft" : "Reserviert"}</div>
+        )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
         <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:2,
@@ -86,6 +96,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   const scrollRef                = useRef(null);
   const searchTimer              = useRef(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [saleStatusMap, setSaleStatusMap] = useState({}); // WORK-SALE-STATUS-001
 
   // Debounce
   useEffect(() => {
@@ -97,7 +108,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   // Reset wenn Filter/Suche ändert
   useEffect(() => {
     if (!isOpen) return;
-    setItems([]); setPage(0); setHasMore(true);
+    setItems([]); setPage(0); setHasMore(true); setSaleStatusMap({});
   }, [debouncedSearch, filter, sort, isOpen]);
 
   // Laden
@@ -130,6 +141,21 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
       const enriched = data.map(w => ({ ...w, _authorName: nameMap[w.user_id] || null }));
       setItems(prev => pageNum === 0 ? enriched : [...prev, ...enriched]);
       if (data.length < PAGE_SIZE) setHasMore(false);
+
+      // WORK-SALE-STATUS-001: Sale-Status batch-fetch (non-blocking)
+      const newIds = data.map(w => w.id).filter(Boolean);
+      if (newIds.length > 0) {
+        supabase
+          .rpc("rpc_get_works_sale_status", { p_work_ids: newIds })
+          .then(({ data: statusRows }) => {
+            const updates = {};
+            (statusRows || []).forEach(r => {
+              if (r.sale_status) updates[r.work_id] = r.sale_status;
+            });
+            setSaleStatusMap(prev => ({ ...prev, ...updates }));
+          })
+          .catch(() => {});
+      }
     } finally {
       setLoading(false);
     }

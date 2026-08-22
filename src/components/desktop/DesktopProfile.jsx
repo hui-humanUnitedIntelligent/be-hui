@@ -130,7 +130,7 @@ export default function DesktopProfile() {
           {profile.has_talent_profile && <section><PublicTalentOffersSection profileId={profileId} /></section>}
           <section>
             <h2 className="prof-section-title">Werke</h2>
-            {publicWorks.length > 0 ? <WorksSection works={publicWorks} profile={profile} isOwner={isOwner} loading={loading} /> : <p className="v3-empty">Noch keine Werke vorhanden.</p>}
+            {publicWorks.length > 0 ? <WorksSection works={publicWorks} profile={profile} isOwner={isOwner} loading={loading} saleStatus={{}} /> : <p className="v3-empty">Noch keine Werke vorhanden.</p>}
           </section>
           <section>
             <h2 className="prof-section-title">Momente</h2>

@@ -364,7 +364,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
   const {
     profile, works, experiences, recommendations, moments,
-    followCounts, loading, loadingLazy, error, loadLazy, reload,
+    worksSaleStatus, followCounts, loading, loadingLazy, error, loadLazy, reload,
   } = useProfileData(profileId, false);
 
   // STATS-DEEPLINK-001 (2026-08-16): Talent-Anzahl fürs QuickStats-Widget.
@@ -540,7 +540,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>
               ) : works.length > 0 ? (
-                  <WorksSection works={works} profile={profile} isOwner={false} loading={false} />
+                  <WorksSection works={works} profile={profile} isOwner={false} loading={false} saleStatus={worksSaleStatus} />
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
                   🎨 Noch keine Werke vorhanden

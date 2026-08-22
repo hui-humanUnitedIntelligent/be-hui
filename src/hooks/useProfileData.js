@@ -71,6 +71,7 @@ export function useProfileData(profileId, includePrivate = false) {
   const [experiences,     setExperiences]     = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [moments,         setMoments]         = useState([]);
+  const [worksSaleStatus, setWorksSaleStatus] = useState({}); // {workId: "verkauft"|"reserviert"|null}
   const [followCounts,    setFollowCounts]    = useState({ followers: 0, following: 0 });
 
   // Phase-1 = Profil + followCounts loaded; Phase-2 = lazy content loaded
@@ -277,7 +278,25 @@ export function useProfileData(profileId, includePrivate = false) {
 
       if (myId !== lazyRequestId.current) return;
 
-      setWorks(Array.isArray(worksRes.data) ? worksRes.data : []);
+      const worksData = Array.isArray(worksRes.data) ? worksRes.data : [];
+      setWorks(worksData);
+
+      // WORK-SALE-STATUS-001 (2026-08-22): Sale-Status für Werke abrufen
+      // (verkauft/reserviert) — non-blocking, überschreibt nicht die Werke selbst
+      if (worksData.length > 0) {
+        const workIds = worksData.map(w => w.id).filter(Boolean);
+        supabase
+          .rpc("rpc_get_works_sale_status", { p_work_ids: workIds })
+          .then(({ data: statusRows }) => {
+            if (myId !== lazyRequestId.current) return;
+            const statusMap = {};
+            (statusRows || []).forEach(r => {
+              if (r.sale_status) statusMap[r.work_id] = r.sale_status;
+            });
+            setWorksSaleStatus(statusMap);
+          })
+          .catch(() => {}); // Non-blocking — kein Sale-Status = kein Badge
+      }
       setExperiences(Array.isArray(expsRes.data) ? expsRes.data : []);
       setMoments(momentsRes.data || []);
 
@@ -321,6 +340,7 @@ export function useProfileData(profileId, includePrivate = false) {
     setExperiences([]);
     setMoments([]);
     setRecommendations([]);
+    setWorksSaleStatus({});
     lazyRequestId.current = 0;
     setLoadingLazy(false);
     lazyInFlight.current = false;
@@ -351,6 +371,7 @@ export function useProfileData(profileId, includePrivate = false) {
     experiences,
     recommendations,
     moments,
+    worksSaleStatus,
     followCounts,
     loading,
     loadingLazy,
