@@ -261,28 +261,24 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
   async function sendReply() {
     if (!replyText.trim() || !user?.id || !current) return;
     try {
-      // CHAT-LOGIK v2: Story-Reply nur in bestehenden Chats (keine neuen ohne Buchung)
-      const { data: existing } = await supabase
-        .from('chats')
-        .select('id, participant_ids')
-        .contains('participant_ids', [user.id])
-        .neq('state', 'deleted')
-        .order('last_message_at', { ascending: false, nullsFirst: false })
-        .limit(50);
-      const match = (existing || []).find(c =>
-        Array.isArray(c.participant_ids) && c.participant_ids.includes(current.user_id)
-      );
-      if (match?.id) {
+      // Story-Reply via Chat-System (messages.chat_id → chats.id)
+      const chat = await findOrCreateChat({
+        userId: user.id,
+        otherUserId: current.user_id,
+        contextType: 'story_reply',
+      });
+      if (chat?.id) {
         await supabase.from('messages').insert({
-          chat_id: match.id,
+          chat_id: chat.id,
           sender_id: user.id,
           text: `↩ Story: ${replyText.trim()}`,
           created_at: new Date().toISOString(),
         });
+        // Chat-Metadaten aktualisieren
         await supabase.from('chats').update({
           last_message: `↩ Story: ${replyText.trim()}`.slice(0, 100),
           last_message_at: new Date().toISOString(),
-        }).eq('id', match.id);
+        }).eq('id', chat.id);
       }
     } catch(_) { /* story transition — suppress */ }
     setSentReply(true);

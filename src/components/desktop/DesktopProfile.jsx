@@ -72,8 +72,7 @@ function ProfileSidebar({ profile, followCounts, isOwner, onNavigate }) {
       <div className="prof-actions">
         {!isOwner ? (
           <>
-            <button className="btn-primary">Verbinden</button>
-            <button className="btn-secondary">Nachricht</button>
+            <button className="btn-primary">Folgen</button>
           </>
         ) : (
           <button className="btn-secondary" onClick={() => onNavigate('/profile/me/edit')}>Profil bearbeiten</button>

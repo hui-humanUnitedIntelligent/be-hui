@@ -89,7 +89,7 @@ function MediaPreview({ file, type, duration, onRemove }) {
   );
 }
 
-export default function ChatInput({ onSend, sending = false, disabled = false, placeholder = "Schreib etwas Echtes\u2026" }) {
+export default function ChatInput({ onSend, sending = false, placeholder = "Schreib etwas Echtes\u2026" }) {
   const [text,      setText]      = useState("");
   const [focused,   setFocused]   = useState(false);
   const [mediaFile, setMediaFile] = useState(null);
@@ -191,7 +191,7 @@ export default function ChatInput({ onSend, sending = false, disabled = false, p
   }
 
   async function send() {
-    if (sending || uploading || recording || disabled) return;
+    if (sending || uploading || recording) return;
     if (!text.trim() && !mediaFile) return;
     setUploading(true);
     try {
@@ -251,7 +251,7 @@ export default function ChatInput({ onSend, sending = false, disabled = false, p
     }
   }
 
-  const canSend = (!!text.trim() || !!mediaFile) && !sending && !uploading && !recording && !disabled;
+  const canSend = (!!text.trim() || !!mediaFile) && !sending && !uploading && !recording;
   const isBusy  = sending || uploading;
 
   return (

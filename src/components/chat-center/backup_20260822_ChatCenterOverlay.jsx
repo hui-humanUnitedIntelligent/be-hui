@@ -12,7 +12,6 @@ import ConversationRoom from "./ConversationRoom.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useChatList, findOrCreateChat, deleteChat } from "../../lib/chatContext.js";
-import { supabase } from "../../lib/supabaseClient.js";
 import AppointmentViewer from "./AppointmentViewer.jsx";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
@@ -226,75 +225,53 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
       setPendingRecipient(initialRecipient);
       return;
     }
-    // CHAT-LOGIK v2: Nur bestehende Chats öffnen (keine neuen ohne Buchung)
     setLoadingConv(true);
-    (async () => {
-      try {
-        const { data: existing } = await supabase
-          .from("chats")
-          .select("id, state, participant_ids")
-          .contains("participant_ids", [user.id])
-          .neq("state", "deleted")
-          .order("last_message_at", { ascending: false, nullsFirst: false })
-          .limit(50);
-        const match = (existing || []).find(c =>
-          Array.isArray(c.participant_ids) && c.participant_ids.includes(initialRecipient.id)
-        );
-        if (match) {
-          setActiveConv({
-            id:           match.id,
-            user_id:      initialRecipient.id           || null,
-            name:         getFullDisplayName(initialRecipient) || "Creator",
-            avatar_url:   initialRecipient.avatar_url   || null,
-            talent:       initialRecipient.talent        || null,
-            has_talent_profile: initialRecipient.has_talent_profile || false,
-            online:       true,
-          });
-        } else {
-          setPendingRecipient(initialRecipient);
-        }
-      } catch(e) {
-        setPendingRecipient(initialRecipient);
-      } finally {
-        setLoadingConv(false);
-      }
-    })();
+    findOrCreateChat({
+      userId:      user.id,
+      otherUserId: initialRecipient.id,
+      chatType:    "direct",
+    }).then(chatRecord => {
+      if (!chatRecord?.id) { setPendingRecipient(initialRecipient); return; }
+      setActiveConv({
+        id:           chatRecord.id,
+        user_id:      initialRecipient.id           || null,
+        name:         getFullDisplayName(initialRecipient) || "Creator",
+        avatar_url:   initialRecipient.avatar_url   || null,
+        talent:       initialRecipient.talent        || null,
+        has_talent_profile: initialRecipient.has_talent_profile || false,
+        online:       true,
+      });
+    }).catch(() => {
+      setPendingRecipient(initialRecipient);
+    }).finally(() => {
+      setLoadingConv(false);
+    });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openPendingChat() {
     if (!pendingRecipient?.id || !user?.id) return;
     setPendingRecipient(null);
-    // CHAT-LOGIK v2: Nur bestehende Chats öffnen
     setLoadingConv(true);
-    (async () => {
-      try {
-        const { data: existing } = await supabase
-          .from("chats")
-          .select("id, state, participant_ids")
-          .contains("participant_ids", [user.id])
-          .neq("state", "deleted")
-          .order("last_message_at", { ascending: false, nullsFirst: false })
-          .limit(50);
-        const match = (existing || []).find(c =>
-          Array.isArray(c.participant_ids) && c.participant_ids.includes(pendingRecipient.id)
-        );
-        if (match) {
-          setActiveConv({
-            id:           match.id,
-            user_id:      pendingRecipient.id           || null,
-            name:         getFullDisplayName(pendingRecipient) || "Creator",
-            avatar_url:   pendingRecipient.avatar_url   || null,
-            talent:       pendingRecipient.talent        || null,
-            has_talent_profile: pendingRecipient.has_talent_profile || false,
-            online:       true,
-          });
-        }
-      } catch(err) {
-        console.error("[HUI_CHAT] openPendingChat error:", err?.message);
-      } finally {
-        setLoadingConv(false);
-      }
-    })();
+    findOrCreateChat({
+      userId:      user.id,
+      otherUserId: pendingRecipient.id,
+      chatType:    "direct",
+    }).then(chatRecord => {
+      if (!chatRecord?.id) return;
+      setActiveConv({
+        id:           chatRecord.id,
+        user_id:      pendingRecipient.id           || null,
+        name:         getFullDisplayName(pendingRecipient) || "Creator",
+        avatar_url:   pendingRecipient.avatar_url   || null,
+        talent:       pendingRecipient.talent        || null,
+        has_talent_profile: pendingRecipient.has_talent_profile || false,
+        online:       true,
+      });
+    }).catch(err => {
+      console.error("[HUI_CHAT] findOrCreateChat error:", err?.message);
+    }).finally(() => {
+      setLoadingConv(false);
+    });
   }
 
   function openConv(rawConv) {
@@ -425,13 +402,28 @@ if (loadingConv && !activeConv) {
             });
           }}
           onOpenChat={(profile) => {
-            // CHAT-LOGIK v2: Chat nur nach Buchung. PeopleSearch öffnet nur Profil.
             setShowPeopleSearch(false);
-            if (!profile?.id) return;
-            openCreatorProfile(profile.id, {
-              display_name: profile?.display_name,
-              avatar_url:   profile?.avatar_url,
-              talent:       profile?.talent,
+            if (!profile?.id || !user?.id) return;
+            setLoadingConv(true);
+            findOrCreateChat({
+              userId:      user.id,
+              otherUserId: profile.id,
+              chatType:    "direct",
+            }).then(chatRecord => {
+              if (!chatRecord?.id) return;
+              setActiveConv({
+                id:                 chatRecord.id,
+                user_id:            profile.id                   || null,
+                name:               getFullDisplayName(profile)         || "Creator",
+                avatar_url:         profile.avatar_url           || null,
+                talent:             profile.talent               || null,
+                has_talent_profile: profile.has_talent_profile   || false,
+                online:             true,
+              });
+            }).catch(err => {
+              console.error("[HUI_CHAT] findOrCreateChat error:", err?.message);
+            }).finally(() => {
+              setLoadingConv(false);
             });
           }}
         />

@@ -19,7 +19,6 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
-import { autoCreateOrReopenChat } from "../../lib/chatContext.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -335,18 +334,6 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
     // 5 Min. auf altem Wert.
     invalidateOrbStageCache(user?.id);
-
-    // CHAT-LOGIK v2 (2026-08-22): Automatisch Chat mit Talent-Ersteller erstellen/öffnen
-    if (user?.id && talent?.user_id && user.id !== talent.user_id) {
-      autoCreateOrReopenChat({
-        userId:       user.id,
-        otherUserId:  talent.user_id,
-        bookingId:    String(talent.id),
-        bookingType:  "talent",
-        bookingTitle: talentTitle || talent?.title || "Talent-Buchung",
-      }).catch((e) => console.warn("[CHAT-V2] autoCreateOrReopenChat:", e?.message));
-    }
-
     setStep("success");
   }, [user?.id, user?.email, talent, selectedDate, selectedSlot]);
 

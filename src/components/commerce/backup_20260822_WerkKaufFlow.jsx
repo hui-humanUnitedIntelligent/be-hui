@@ -21,7 +21,6 @@ import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
-import { autoCreateOrReopenChat } from "../../lib/chatContext.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { IMPACT_RATE } from "./commerceUtils.js";
@@ -214,17 +213,6 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
     // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
     // 5 Min. auf altem Wert.
     invalidateOrbStageCache(user?.id);
-
-    // CHAT-LOGIK v2 (2026-08-22): Automatisch Chat mit Verkäufer erstellen/öffnen
-    if (user?.id && creatorId && user.id !== creatorId) {
-      autoCreateOrReopenChat({
-        userId:       user.id,
-        otherUserId:  creatorId,
-        bookingId:    oid || workId,
-        bookingType:  "werk",
-        bookingTitle: title || werk?.title || "Werk-Kauf",
-      }).catch((e) => console.warn("[CHAT-V2] autoCreateOrReopenChat:", e?.message));
-    }
 
     setPhase("success");
   }

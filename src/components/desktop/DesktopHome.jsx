@@ -98,7 +98,7 @@ function TalentHero({ talent, navigate }) {
         {talent.bio && <p className="hero-desc">{talent.bio.slice(0, 120)}{talent.bio.length > 120 ? '…' : ''}</p>}
         {talent.location_label && <span className="hero-location">{talent.location_label}</span>}
         <div className="hero-action">
-          <button className="hero-btn">Verbinden →</button>
+          <button className="hero-btn">Jetzt entdecken →</button>
         </div>
       </div>
     </div>
