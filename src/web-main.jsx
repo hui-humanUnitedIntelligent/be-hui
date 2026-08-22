@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
+import { ToastContainer } from './lib/useToast.jsx';
 import LoginPage from './pages/LoginPage';
-import LandingPage from './components/landing/LandingPage';
 import './index.css';
 import './web.css';
 import './landing.css';
@@ -12,40 +12,71 @@ const _d = document.getElementById('diag');
 const rootEl = document.getElementById('web-root');
 if (_d) _d.innerHTML = '[JS] start';
 
-class ErrorCatcher extends React.Component {
-  constructor(props) { super(props); this.state = { error: null }; }
-  static getDerivedStateFromError(error) { return { error }; }
-  componentDidCatch(error, info) {
-    if (_d) _d.innerHTML += '\n[CAUGHT] ' + error.message + '\n' + (info.componentStack||'').substring(0,400);
+class EC extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(e) { return { err: e }; }
+  componentDidCatch(e, i) {
+    if (_d) _d.innerHTML += '\n[CAUGHT] ' + e.message + '\n' + (i.componentStack||'').substring(0,300);
   }
   render() {
-    if (this.state.error) return <div style={{padding:20,color:'red'}}>{String(this.state.error.message)}</div>;
+    if (this.state.err) return <div style={{padding:20,color:'red',fontFamily:'monospace'}}>ERR: {String(this.state.err.message)}</div>;
     return this.props.children;
   }
 }
 
-// Test 1: Just LoginPage directly (no routes)
-function TestLoginPage() {
+// Test A: Routes with simple div (no LoginPage)
+function TestA() {
   return (
     <BrowserRouter basename="/app">
-      <ErrorCatcher>
-        <LoginPage />
-      </ErrorCatcher>
+      <AuthProvider>
+        <EC>
+          <Routes>
+            <Route path="/login" element={<div style={{padding:40}}>Routes+Div works</div>} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </EC>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
 
-if (_d) _d.innerHTML += '\n[JS] importing done';
-
-try {
-  const r = ReactDOM.createRoot(rootEl);
-  r.render(<TestLoginPage />);
-  if (_d) _d.innerHTML += '\n[JS] render() called';
-} catch(e) {
-  if (_d) _d.innerHTML += '\n[JS] CRASH: ' + e.message;
+// Test B: Routes with real LoginPage
+function TestB() {
+  return (
+    <BrowserRouter basename="/app">
+      <AuthProvider>
+        <EC>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </EC>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
+// Run Test A first
+if (_d) _d.innerHTML += '\n[JS] TestA starting';
+const r = ReactDOM.createRoot(rootEl);
+r.render(<TestA />);
+if (_d) _d.innerHTML += '\n[JS] TestA render() called';
+
 setTimeout(() => {
-  if (_d) _d.innerHTML += '\n[3s] children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
-  if (_d) _d.innerHTML += '\n[3s] preview=' + rootEl.innerHTML.substring(0, 500);
-}, 3000);
+  if (_d) {
+    _d.innerHTML += '\n[2s] TestA: children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
+    _d.innerHTML += '\n[2s] TestA preview=' + rootEl.innerHTML.substring(0, 200);
+    
+    // Now switch to Test B
+    if (_d) _d.innerHTML += '\n[2s] Switching to TestB';
+    r.render(<TestB />);
+    if (_d) _d.innerHTML += '\n[2s] TestB render() called';
+    
+    setTimeout(() => {
+      if (_d) {
+        _d.innerHTML += '\n[5s] TestB: children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
+        _d.innerHTML += '\n[5s] TestB preview=' + rootEl.innerHTML.substring(0, 200);
+      }
+    }, 3000);
+  }
+}, 2000);
