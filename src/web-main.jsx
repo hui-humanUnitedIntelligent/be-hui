@@ -1,69 +1,64 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
-import LoginPage from './pages/LoginPage';
+import WebApp from './WebApp.jsx';
 import './index.css';
 import './web.css';
 import './landing.css';
+import { initSentry } from './lib/sentry.js';
+import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
 
 const _d = document.getElementById('diag');
 const rootEl = document.getElementById('web-root');
-if (_d) _d.innerHTML = '[JS] start';
+if (_d) _d.innerHTML = '[JS] web-main loaded';
 
+// Capture ALL console output
+const _origLog = console.log;
+const _origErr = console.error;
+const _origWarn = console.warn;
+
+function logToDiag(prefix, args) {
+  if (!_d) return;
+  const msg = args.map(a => {
+    try { return typeof a === 'object' ? JSON.stringify(a).substring(0,200) : String(a); }
+    catch { return String(a); }
+  }).join(' ');
+  _d.innerHTML += '\n' + prefix + ' ' + msg.substring(0,500);
+}
+
+console.error = function(...a) { logToDiag('[ERR]', a); _origErr.apply(console, a); };
+console.warn  = function(...a) { logToDiag('[WARN]', a); _origWarn.apply(console, a); };
+console.log   = function(...a) { logToDiag('[LOG]', a); _origLog.apply(console, a); };
+
+// Capture errors
 window.addEventListener('error', (e) => {
-  if (_d) _d.innerHTML += '\n[WIN_ERR] ' + e.message;
+  if (_d) _d.innerHTML += '\n[WIN_ERR] ' + e.message + ' @ ' + (e.filename||'') + ':' + (e.lineno||'');
 });
 window.addEventListener('unhandledrejection', (e) => {
   if (_d) _d.innerHTML += '\n[REJ] ' + (e.reason?.message || e.reason);
 });
 
-class EC extends React.Component {
-  constructor(p) { super(p); this.state = { err: null }; }
-  static getDerivedStateFromError(e) { return { err: e }; }
-  componentDidCatch(e, i) {
-    if (_d) _d.innerHTML += '\n[CAUGHT] ' + e.message + '\n' + (i.componentStack||'').substring(0,500);
-  }
-  render() {
-    if (this.state.err) return <div style={{padding:20,color:'red',fontFamily:'monospace'}}>ERR: {String(this.state.err.message)}</div>;
-    return this.props.children;
-  }
-}
+try { initSentry(); } catch(e) { if (_d) _d.innerHTML += '\n[JS] Sentry crash: ' + e.message; }
+try { initGlobalKeyboardHandling(); } catch(e) { if (_d) _d.innerHTML += '\n[JS] KB crash: ' + e.message; }
 
-// Proper React wrapper — LoginPage rendered as JSX component
-function TracedLoginPage() {
-  React.useEffect(() => {
-    if (_d) _d.innerHTML += '\n[JS] TracedLoginPage MOUNTED';
-    if (_d) _d.innerHTML += '\n[JS] after mount rootEl.children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
-    return () => {
-      if (_d) _d.innerHTML += '\n[JS] TracedLoginPage UNMOUNTED';
-    };
-  }, []);
-  
-  return <LoginPage />;
-}
-
-function TestB() {
-  return (
-    <BrowserRouter basename="/app">
-      <AuthProvider>
-        <EC>
-          <Routes>
-            <Route path="/login" element={<TracedLoginPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        </EC>
-      </AuthProvider>
-    </BrowserRouter>
+// Render the REAL WebApp
+try {
+  const r = ReactDOM.createRoot(rootEl);
+  r.render(
+    <React.StrictMode>
+      <WebApp />
+    </React.StrictMode>
   );
+  if (_d) _d.innerHTML += '\n[JS] render() called';
+} catch(e) {
+  if (_d) _d.innerHTML += '\n[JS] RENDER CRASH: ' + e.message + '\n' + (e.stack||'').substring(0,500);
 }
 
-const r = ReactDOM.createRoot(rootEl);
-r.render(<TestB />);
-if (_d) _d.innerHTML += '\n[JS] render() called';
-
-[1, 2, 3, 5].forEach(t => {
+// Check DOM state at intervals
+[1, 2, 3, 5, 8].forEach(t => {
   setTimeout(() => {
     if (_d) _d.innerHTML += '\n[' + t + 's] children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
+    if (rootEl.innerHTML.length > 0 && rootEl.innerHTML.length < 500) {
+      if (_d) _d.innerHTML += ' preview=' + rootEl.innerHTML.substring(0, 200);
+    }
   }, t * 1000);
 });
