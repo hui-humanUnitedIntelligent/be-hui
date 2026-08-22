@@ -1,5 +1,7 @@
 // Build: 2026-05-24T16:55:29Z
 // src/main.jsx
+// WHITESCREEN-FIX (2026-08-22): try-catch um alle Modul-Scope-Init-Aufrufe.
+// Wenn Sentry, Performance oder Keyboard-Handler crasht, wird die App trotzdem gerendert.
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -21,14 +23,28 @@ if (!import.meta.env.DEV && !localStorage.getItem('hui_debug_log')) {
   console.debug = noop;
 }
 
-initSentry()
-initAppPerformance();
+// WHITESCREEN-FIX (2026-08-22): Defensive init — try-catch um alle Init-Aufrufe
+try {
+  initSentry()
+} catch (e) {
+  console.error('[HUI] Sentry init failed (non-fatal):', e)
+}
+
+try {
+  initAppPerformance();
+} catch (e) {
+  console.error('[HUI] Performance init failed (non-fatal):', e)
+}
 
 // KEYBOARD-FIX (2026-08-10): Globales, framework-weites Keyboard-Handling —
 // scrollt JEDES fokussierte Textfeld automatisch sichtbar, sobald die
 // Systemtastatur aufgeht. Kein Setup pro Screen nötig (siehe
 // src/lib/globalKeyboardHandler.js für die volle Erklärung).
-initGlobalKeyboardHandling();
+try {
+  initGlobalKeyboardHandling();
+} catch (e) {
+  console.error('[HUI] Keyboard handler init failed (non-fatal):', e)
+}
 
 // OTA v5 (2026-08-21): Over-the-Air Updates — lädt neue Web-Bundles automatisch.
 // notifyAppReady wird NICHT mehr hier gerufen — sondern erst nach React-Render

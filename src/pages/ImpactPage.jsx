@@ -12,7 +12,7 @@ import ReactDOM from 'react-dom';
 import React from "react";
 import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
-import { ImpactService, FeedService } from "../services/db.js";
+import { ImpactService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";

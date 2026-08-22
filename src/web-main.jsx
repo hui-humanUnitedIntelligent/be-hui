@@ -2,10 +2,9 @@
 // web-main.jsx — HUI Web Entry Point (Desktop V3)
 // ══════════════════════════════════════════════════════════════════════════════
 //
+// v2.5: Defensive init — try-catch um alle Modul-Scope-Init-Aufrufe.
+//       Wenn Sentry oder Keyboard-Handler crasht, wird die App trotzdem gerendert.
 // v2.4: desktopV3.css nach AuthenticatedApp verschoben.
-// Öffentliche Landingpage lädt nur index.css + web.css + landing.css.
-// cssCodeSplit: true → desktopV3.css wird als separater CSS-Chunk
-// erst nach Login geladen.
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
@@ -21,11 +20,23 @@ import './landing.css';                     // Landing Page Styles (nur Public)
 // ── Sentry ────────────────────────────────────────────────────────────────────
 import { initSentry, sentryCapture } from './lib/sentry.js';
 
-initSentry();
+// WHITESCREEN-FIX (2026-08-22): try-catch um initSentry — wenn Sentry crasht,
+// darf nicht die ganze App sterben. Sentry ist optional, Rendering ist Pflicht.
+try {
+  initSentry();
+} catch (e) {
+  console.error('[HUI] Sentry init failed (non-fatal):', e);
+}
 
 // KEYBOARD-PUSH-UP (2026-08-15): Globales Keyboard-Handling auch für Web/Mobile-Web
 import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
-initGlobalKeyboardHandling();
+
+// WHITESCREEN-FIX (2026-08-22): try-catch um keyboard init — defensive
+try {
+  initGlobalKeyboardHandling();
+} catch (e) {
+  console.error('[HUI] Keyboard handler init failed (non-fatal):', e);
+}
 
 // ── Global Error Handlers ───────────────────────────────────────────────────
 window.addEventListener('unhandledrejection', (event) => {
