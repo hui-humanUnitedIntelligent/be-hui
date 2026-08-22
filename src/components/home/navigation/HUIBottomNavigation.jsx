@@ -228,7 +228,7 @@ export default function HUIBottomNavigation({
         // Creme-Wert mehr, verschmilzt nahtlos mit der Seite. Die Pille selbst
         // bleibt bei TABBAR_FILL/creamSoft (unverändert, wirkt weiterhin als
         // dezent hellere "Karte" auf der Seite — Design-Intention).
-        background: HUI.COLOR.cream,
+        background: "transparent", // NAV-TRANSPARENT-FIX (2026-08-23): kein Farb-Matching mehr — echtes transparent
         marginTop: "0",
         // ⚠️ PFLICHTREGEL: JEDES fixed-position Modal/Sheet/Overlay in dieser App MUSS
         // zIndex >= 10500 haben, sonst wird es von dieser Bar überdeckt (siehe
