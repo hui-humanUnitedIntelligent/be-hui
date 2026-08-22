@@ -3454,8 +3454,8 @@ function InfoSheet({ modal, onClose }) {
         <>
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
-              { icon:"👤", text:"Normale Nutzer: 1 Stimme pro Monat" },
-              { icon:"🏅", text:"Mitglieder & Talente: 2 Stimmen pro Monat" },
+              { icon:"🎨", text:"Nur Talente können abstimmen: 1 Stimme pro Monat" },
+              { icon:"👤", text:"Basis-Nutzer haben kein Stimmrecht" },
               { icon:"📅", text:"Stimmen verfallen am Monatsende — sie addieren sich nicht" },
               { icon:"🏆", text:"Projekt mit den meisten Stimmen erhält die volle Wunschsumme" },
               { icon:"🌱", text:"Restbetrag geht fair an alle anderen Projekte" },

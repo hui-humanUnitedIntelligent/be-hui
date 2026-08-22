@@ -102,8 +102,8 @@ const SECTIONS = [
   {
     title: "5. Impact-Voting",
     items: [
-      "Nutzer können für Projekte abstimmen, die Impact-Fonds erhalten sollen.",
-      "Stimmgewichtung: 1 Stimme für Basis-Nutzer, 2 Stimmen für Talent-Nutzer.",
+      "Nur Talente können für Projekte abstimmen, die Impact-Fonds erhalten sollen.",
+      "Stimmgewichtung: 1 Stimme pro Talent pro Monat. Basis-Nutzer haben kein Stimmrecht.",
       "Verteilung erfolgt monatlich (50/30/20 auf die Top-3-Projekte).",
       "Monatliche Reset am 1. des Monats. Vorherige Ergebnisse werden archiviert.",
       "Stimmmanipulation ist untersagt.",

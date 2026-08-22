@@ -4,8 +4,7 @@
 // Zeigt verfügbare Stimmen, aktive Projekte, abgegebene Stimmen als Icons
 // Schema: impact_votes (voter_id, project_id, pool_month, weight, created_at)
 //         impact_projects (id, name, icon, color, votes, status)
-// VOTING v2 (2026-08-22): NUR Talente können abstimmen — 1 Stimme/Monat.
-// Basis-User haben KEIN Stimmrecht (ersetzt alte 1/2-Stimmen-Regel).
+// Basis-User: 1 Stimme/Monat | Talent-User: 2 Stimmen/Monat
 // Reset: automatisch am 1. des Monats (month_key = "YYYY-MM")
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -98,7 +97,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
   useModalRegistration(true, () => onClose?.(), "ImpactStimmenModal");
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent  = isProfileTalent(profile);
-  const maxVotes  = isTalent ? 1 : 0; // VOTING v2: nur Talente, 1 Stimme/Monat
+  const maxVotes  = isTalent ? 2 : 1;
   const monthKey  = currentMonthKey();
 
   const [projects,    setProjects]    = useState([]);
@@ -185,12 +184,6 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
   // Stimme abgeben
   const castVote = async (projectId) => {
     if (!profile?.id || voting) return;
-    // VOTING v2 (2026-08-22): Basis-User dürfen nicht abstimmen
-    if (!isTalent) {
-      setErrorMsg("Nur Talente können abstimmen. Werde Talent, um mitzuentscheiden.");
-      setTimeout(() => setErrorMsg(""), 3500);
-      return;
-    }
     // Prüfe ob bereits für dieses SPEZIFISCHE Projekt gestimmt wurde
     if (myVotes.some(v => v.project_id === projectId)) {
       setErrorMsg("Du hast für dieses Projekt bereits gestimmt.");
@@ -398,8 +391,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                 </div>
               ))}
               <div style={{ flex: 1 }}>
-                {/* VOTING v2: maxVotes=0 für Basis-User — kein "aufgebraucht"-Text, sondern Sperr-Hinweis unten */}
-                {maxVotes === 0 ? null : allUsed ? (
+                {allUsed ? (
                   <div style={{
                     background: "rgba(26,26,24,0.04)", borderRadius: T.r12,
                     padding: "10px 14px",
@@ -427,7 +419,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               </div>
             </div>
 
-            {/* VOTING v2 (2026-08-22): Basis-User haben kein Stimmrecht mehr */}
+            {/* Talent-Hinweis für Basis-User */}
             {!isTalent && (
               <div style={{
                 background: "rgba(255,193,7,0.08)", borderRadius: T.r12,
@@ -437,10 +429,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                 <HUIAwardIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#92700A" }}>
-                    Nur Talente können abstimmen
+                    Mit Mitgliedschaft auf 2 Stimmen
                   </div>
                   <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>
-                    Werde Talent, um jeden Monat 1 Stimme abzugeben und mitzuentscheiden.
+                    Mitglieder und Talente können doppelt so viel bewirken.
                   </div>
                 </div>
               </div>

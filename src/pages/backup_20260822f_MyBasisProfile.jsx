@@ -2269,7 +2269,7 @@ function MeinBereichMenu({
         <MeinBereichDrawer title="Impact & Stimmen" icon={<HUIImpactIcon size={18}/>} subtitle="Deine Wirkung und abgegebene Stimmen." onClose={close} footer={false}>
           <MeinBereichChooserRow
             icon={<HUIStimmeIcon size={18}/>} label="Impact-Stimmen"
-            desc={isTalent ? "1 Stimme / Monat" : "Nur für Talente"}
+            desc={isTalent ? "2 Stimmen / Monat" : "1 Stimme / Monat"}
             onPress={() => setImpactDetail("stimmen")}
           />
           <MeinBereichChooserRow
