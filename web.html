@@ -77,6 +77,13 @@
         }
 
         // White Screen Detector (5s Fallback)
+        // 2s diagnostic: log what's in #web-root
+        setTimeout(function() {
+          var root = document.getElementById('web-root');
+          console.log('[HUI Guard 2s] web-root children:', root ? root.childElementCount : 'no root');
+          console.log('[HUI Guard 2s] web-root innerHTML length:', root ? root.innerHTML.length : 0);
+          console.log('[HUI Guard 2s] errors caught:', window.__HUI_ERRORS__.length);
+        }, 2000);
         setTimeout(function() {
           checkQueuedChunkErrors();
           var root = document.getElementById('web-root');
@@ -107,7 +114,21 @@
               errDetailsHtml += '</div>';
             }
           } else {
-            errDetailsHtml = '<p style="color:#888;font-size:13px">Keine Fehler wurden abgefangen. Das deutet auf eine stille ES-Modul-Import-Fehler oder einen Build-Fehler hin.</p>';
+            errDetailsHtml = '<p style="color:#888;font-size:13px">Keine Fehler wurden abgefangen.</p>';
+            var diag = window.__HUI_DIAG__;
+            if (diag) {
+              errDetailsHtml += '<div style="margin-top:12px;padding:10px;background:#f0f7f6;border-radius:8px;font-size:12px;color:#333">'
+                + '<b>Diagnostic:</b><br>'
+                + 'step: ' + (diag.step||'?') + '<br>'
+                + 'sentry: ' + (diag.sentry||'?') + '<br>'
+                + 'keyboard: ' + (diag.keyboard||'?') + '<br>'
+                + 'rootEl: ' + (diag.rootEl||'?') + '<br>'
+                + 'crash: ' + (diag.crash||'none') + '<br>'
+                + 'stack: ' + (diag.stack ? '<pre style="font-size:10px;white-space:pre-wrap">' + escapeHtml(diag.stack) + '</pre>' : 'none')
+                + '</div>';
+            } else {
+              errDetailsHtml += '<p style="color:#d32f2f;font-size:13px"><b>__HUI_DIAG__ is undefined — module never executed!</b><br>Dies bestätigt einen stillen ES-Modul-Import-Fehler.</p>';
+            }
           }
 
           root.innerHTML = '<div style="position:fixed;inset:0;background:#F9F6F2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;overflow-y:auto">'
