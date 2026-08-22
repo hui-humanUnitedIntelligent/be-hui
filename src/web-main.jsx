@@ -1,23 +1,51 @@
-// MINIMAL TEST: Does React render at all?
+// WHITESCREEN DIAGNOSTIC: Find which import crashes
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-
-// Minimal CSS
 import './index.css';
 
-console.log('[HUI web-main] Starting minimal render...');
+const root = ReactDOM.createRoot(document.getElementById('web-root'));
 
-try {
-  const root = document.getElementById('web-root');
-  console.log('[HUI web-main] root element:', root);
-  ReactDOM.createRoot(root).render(
-    React.createElement('div', { style: { padding: 40, fontFamily: 'sans-serif' } },
-      React.createElement('h1', null, 'HUI Web — Minimal Test'),
-      React.createElement('p', null, 'If you see this, React works. The issue is in the app imports.')
+function show(content) {
+  root.render(
+    React.createElement('div', { style: { padding: 40, fontFamily: 'monospace', fontSize: 14, whiteSpace: 'pre-wrap' } },
+      content
     )
   );
-  console.log('[HUI web-main] Render called successfully');
-} catch (e) {
-  console.error('[HUI web-main] Render FAILED:', e);
-  document.getElementById('web-root').innerHTML = '<div style="padding:40px;font-family:sans-serif"><h1>Render Error</h1><pre>' + (e.message || e) + '</pre></div>';
 }
+
+show('Testing imports one by one...');
+
+async function testImport(name, importFn) {
+  try {
+    const mod = await importFn();
+    show(document.getElementById('web-root').textContent + `\n✅ ${name} OK`);
+    return mod;
+  } catch (e) {
+    show(document.getElementById('web-root').textContent + `\n❌ ${name} CRASHED: ${e.message}\n${e.stack?.split('\n').slice(0,5).join('\n')}`);
+    throw e;
+  }
+}
+
+(async () => {
+  try {
+    // Test each import from WebApp.jsx chain
+    await testImport('sentry.js', () => import('./lib/sentry.js'));
+    await testImport('globalKeyboardHandler.js', () => import('./lib/globalKeyboardHandler.js'));
+    await testImport('supabaseClient.js', () => import('./lib/supabaseClient.js'));
+    await testImport('AuthContext.jsx', () => import('./lib/AuthContext.jsx'));
+    await testImport('useToast.jsx', () => import('./lib/useToast.jsx'));
+    await testImport('WebApp.jsx', () => import('./WebApp.jsx'));
+    
+    show(document.getElementById('web-root').textContent + '\n\nAll imports OK! Rendering WebApp...');
+    
+    const { default: WebApp } = await import('./WebApp.jsx');
+    root.render(
+      React.createElement(React.StrictMode, null,
+        React.createElement(WebApp)
+      )
+    );
+  } catch (e) {
+    // Error already shown by testImport
+    console.error('Import chain failed:', e);
+  }
+})();
