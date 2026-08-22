@@ -296,7 +296,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   // offizielle Mitteilung handelt, nicht um einen normalen Bot-Moment.
   const isBroadcast = (item?._raw?.moment_source === "system_broadcast");
 
-  // Talent-Akzentfarbe: Wirker=Teal (#0DC4B5), Ambassador=Coral, Basis-Nutzer=
+  // Talent-Akzentfarbe: Wirker=Teal (#0DC4B5), Basis-Nutzer=
   // gedaempftes HUI-Teal (#0AADA3) -- konsistent mit dem etablierten
   // Badge-Farbschema in ProfileHeader.jsx (badgeLabel "Basis-Nutzer" nutzt
   // dort bereits #0AADA3, NICHT grau). Vorher faelschlich grau
@@ -304,7 +304,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   // "die richtige gruene Farbe" verwenden statt Grau.
   const talentColor = (isT || mType === "talent" || mType === "wirker")
     ? "#0DC4B5"
-    : (mType === "ambassador" ? "#F47355" : "#0AADA3");
+    : "#0AADA3";
 
   return (
     <div style={{ padding: "12px 16px 0" }}>

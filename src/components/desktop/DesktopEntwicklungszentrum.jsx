@@ -8,7 +8,7 @@
 // und menschlich — nicht wie ein technisches Backoffice.
 //
 // Zugang: Nur für Team-Mitglieder (role: admin, superadmin).
-// V7.5: Kein responsibilities-Tabelle. Vorhandene Felder (is_talent, is_ambassador).
+// V7.5: Kein responsibilities-Tabelle. Vorhandene Felder (is_talent).
 //
 // Bereiche:
 //   Übersicht    — Was braucht Aufmerksamkeit
@@ -23,7 +23,7 @@
 //
 // ARL-01: VERANTWORTUNGS-EXKLUSIVITÄT
 //   Das Entwicklungszentrum ist die EINZIGE offizielle Stelle, an der
-//   Verantwortungen (is_talent, is_ambassador, role, membership_active)
+//   Verantwortungen (is_talent, role, membership_active)
 //   vergeben, geändert, pausiert oder entzogen werden.
 //   Andere Bereiche der Anwendung dürfen Verantwortungen niemals direkt
 //   verändern. Dies gilt für Desktop und Mobile.

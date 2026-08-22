@@ -66,7 +66,7 @@ export const supportService = {
         id, amount, currency, status, description, metadata, created_at,
         supporter:user_id(id, display_name, avatar_url, membership_type)
       `)
-      .eq("ambassador_id", creatorId)
+      // [archived: ambassador commission query removed]
       .eq("payment_type", "support")
       .order("created_at", { ascending: false })
       .limit(limit)

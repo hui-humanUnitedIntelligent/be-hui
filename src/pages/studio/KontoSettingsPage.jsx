@@ -15,7 +15,7 @@
 // Dieselbe warme Designsprache wie das gesamte Studio.
 // Keine typische Settings-App. Sondern ein ruhiger persönlicher Raum.
 //
-// ARL-01: Verantwortungen (is_talent, is_ambassador, role) sind read-only.
+// ARL-01: Verantwortungen (is_talent, role) sind read-only.
 //         Nur das Entwicklungszentrum vergibt oder ändert sie.
 // ARL-09: Jeder Bereich leistet einen echten Beitrag zum persönlichen Weg.
 // ARL-10: Keine Schalter-Flut. Ruhe ist Gestaltungsprinzip.
@@ -39,7 +39,6 @@ const C = {
 
 const ROLE_LABELS = {
   talent:     'Talent',
-  ambassador:  'Ambassador',
   guardian:   'Guardian',
   admin:      'Team',
   superadmin: 'Team',
@@ -137,7 +136,6 @@ export default function KontoSettingsPage() {
   }
 
   const isTalent = isProfileTalent(profile);
-  const isAmb = profile?.is_ambassador === true;
   const memberSince = profile?.member_since || profile?.created_at;
 
   return (
@@ -291,17 +289,15 @@ export default function KontoSettingsPage() {
             </span>
           </div>
 
-          {/* Ambassador */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 0',
           }}>
-            <span style={{ fontSize: 14, color: C.ink }}>Ambassador-Verantwortung</span>
             <span style={{
               fontSize: 13, fontWeight: 500,
-              color: isAmb ? C.green : C.muted,
+              color: C.muted,
             }}>
-              {isAmb ? 'Getragen' : 'Nicht getragen'}
+              {'—'}
             </span>
           </div>
 

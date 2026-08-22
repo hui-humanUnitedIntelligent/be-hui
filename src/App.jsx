@@ -31,7 +31,6 @@ import AuthCallback from './pages/AuthCallback';
 // WelcomeOverlay wird von AppEntryController eingebunden
 import AppEntryController from './components/entry/AppEntryController.jsx';
 import { supabase } from './lib/supabaseClient';
-import { detectReferral } from './lib/referralTracking.js';
 
 // ── SplashScreen (NEU) ───────
 import SplashScreen from './pages/SplashScreen.tsx';
@@ -43,7 +42,6 @@ import Home              from './pages/Home';
 
 // Chunk-Mismatch Recovery
 
-const RefRedirect       = lazy(() => import('./pages/RefRedirect').catch(makeChunkReload("App:RefRedirect")))
 import ImpactPage from './pages/ImpactPage';
 const Admin             = lazy(() => import('./pages/Admin').catch(makeChunkReload("App:Admin")))
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage').catch(makeChunkReload("App:DiagnosePage")))
@@ -113,7 +111,6 @@ window.__HUI_LAST_FEED_COMPONENT__ = null;
 window.__HUI_WORLD_STATE__         = { activeSurface: null, activeTab: "feed", repaintPhase: null };
 
 // Referral-Code aus URL beim App-Start erkennen
-if (typeof window !== 'undefined') { detectReferral(); }
 
 // Phase 16.6: Global error tracer for crash diagnostics
 if (typeof window !== "undefined" && !window.__HUI_ERROR_TRACER__) {
@@ -823,15 +820,6 @@ function AppRoutes() {
           <ProtectedRoute><RouteBoundary name="Studio"><CreatorStudio /></RouteBoundary></ProtectedRoute>
         }/>
 
-        {/* Ref-Link Weiterleitung */}
-        <Route path="/ref/:username" element={
-          <Suspense fallback={<div style={{minHeight:1}} />}><RefRedirect /></Suspense>
-        }/>
-
-        {/* Direkte Ref-Links: /:username → RefRedirect (z.B. be-hui.com/milileo) */}
-        <Route path="/:username" element={
-          <Suspense fallback={<div style={{minHeight:1}} />}><RefRedirect /></Suspense>
-        }/>
 
         {/* 404 / Unbekannte Route: SmartNotFound wartet auf Auth */}
         <Route path="*" element={<SmartNotFound />} />

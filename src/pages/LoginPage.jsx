@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { processReferralForUser } from '../lib/referralTracking.js';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
@@ -339,8 +338,6 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation(); // DEEPLINK.1 (2026-07-09) — Rueckweg nach Login
 
-  // REGISTRATION-UPGRADE-001: Keine automatische Vorbefüllung des Reflink-Feldes.
-  // Reflink wird NUR manuell eingegeben (Validierung via resolveRefLink).
   // localStorage-Eintrag bleibt für processReferralForUser erhalten (OAuth-Flows).
 
   const [searchParams] = useSearchParams();
@@ -357,7 +354,6 @@ export default function LoginPage() {
   const [lastName,    setLastName]    = useState('');
   const [username,    setUsername]    = useState('');
   const [usernameErr, setUsernameErr] = useState('');
-  const [refLink,    setRefLink]    = useState('');
   const [refValid,   setRefValid]   = useState(null);
   // REGISTRATION-UPGRADE-001 (2026-08-15): Neue Pflichtfelder
   const [anrede,     setAnrede]     = useState('');
@@ -457,102 +453,12 @@ export default function LoginPage() {
         setErr("Dein Konto wurde blockiert und wird von unserem Team geprüft.");
         return;
       }
-
-      // 3. Referral verarbeiten (falls Nutzer über Ambassador-Link kam)
-      // Fire-and-forget: blockiert Login nicht
-      processReferralForUser(signInData.user.id).catch(() => {});
     }
 
-    setLoading(false);
-    // success → useEffect navigates
-  }
-
-  // Ambassador-Namen validieren (rpc_validate_ambassador_name Logik)
-  // Erlaubt: NUR den Ambassador-Usernamen (z.B. "milileo")
-  // NICHT: Links, Codes, URLs
-  // Silent fail wenn kein Ambassador gefunden
-  async function resolveRefLink(input) {
-    if (!input?.trim()) return null;
-    // Normalisierung: extrahiere Username aus Link falls nötig
-    let username = input.trim().toLowerCase();
-    // Wenn jemand doch den Link eingibt: Username extrahieren
-    const urlMatch = username.match(/(?:https?:\/\/)?(?:www\.)?be-hui\.com\/([a-z0-9._-]+)/i);
-    if (urlMatch) username = urlMatch[1].toLowerCase();
-    // Format-Prüfung: nur gültige Usernames
-    if (!/^[a-z0-9._-]{2,40}$/.test(username)) return null;
-    // Ausschluss-Liste: keine Systemseiten
-    const EXCLUDED = ['home','login','studio','impact','admin','diagnose',
-      'dashboard','profile','work','auth','ref','entdecken','buchung',
-      'mein-hui','community','impressum','datenschutz','agb','cookies','copyright'];
-    if (EXCLUDED.includes(username)) return null;
-
-    // WICHTIG: An dieser Stelle ist der Nutzer noch NICHT eingeloggt (anon-Key).
-    // profiles/ambassador_ref_links haben KEINE anon-SELECT-Policy (RLS) — ein
-    // direktes .from(...).select() liefert hier IMMER [] zurueck, egal ob der
-    // Ambassador existiert! Deshalb ausschliesslich ueber die SECURITY-DEFINER-RPC
-    // aufloesen, die bewusst fuer anon freigegeben ist (rpc_resolve_ref_link).
-    const { data, error } = await supabase.rpc('rpc_resolve_ref_link', { p_username: username });
-    if (error) { console.warn('[HUI Referral] rpc_resolve_ref_link Fehler:', error.message); return null; }
-    if (data?.found && data?.ambassador_id) {
-      return { ambassadorId: data.ambassador_id, username: data.username || username };
-    }
-    return null;
-  }
-
-  // Sichert eine manuell im Reflink-Feld eingetippte Eingabe im localStorage,
-  // damit JEDER Signup-Weg (Email/PW, Google, Apple, Magic Link) sie spaeter
-  // ueber processReferralForUser()/AuthCallback zuverlaessig aufloesen kann —
-  // unabhaengig davon, ob die sofortige Aufloesung hier gerade gelingt.
-  async function persistManualRefLinkToStorage() {
-    if (!refLink.trim()) return;
-    const rawUsername = refLink.trim().toLowerCase();
-    const expiry = Date.now() + 7 * 24 * 60 * 60 * 1000;
-    try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({ username: rawUsername, expiry })); } catch {}
-    let refResult = await resolveRefLink(refLink.trim());
-    if (!refResult?.ambassadorId) {
-      await new Promise(r => setTimeout(r, 400));
-      refResult = await resolveRefLink(refLink.trim());
-    }
-    if (refResult?.ambassadorId) {
-      try { localStorage.setItem('hui_referral_ambassador', JSON.stringify({
-        username: refResult.username, ambassadorId: refResult.ambassadorId, expiry
-      })); } catch {}
-    }
-  }
-
-  // ── Altersberechnung ──
-  
-
+  // ── Registration ──────────────────────────────────────────────
   async function handleRegister(e) {
-    e.preventDefault(); clearMessages(); setUsernameErr('');
-
-    // ── Pflichtfeld-Validierung ──
-    if (!anrede)                { setErr('Bitte wähle eine Anrede.');                        return; }
-    if (!fullName.trim())       { setErr('Bitte gib deinen Vornamen ein.');                 return; }
-    if (!lastName.trim())       { setErr('Bitte gib deinen Nachnamen ein.');               return; }
-    if (!username.trim())       { setErr('Bitte wähle einen Benutzernamen.');              return; }
-    if (!email)                 { setErr('Bitte gib deine E-Mail ein.');                   return; }
-    if (!pw)                    { setErr('Bitte gib ein Passwort ein.');                   return; }
-    if (pw.length < 6)          { setErr('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
-    if (!pw2)                   { setErr('Bitte wiederhole dein Passwort.');               return; }
-    if (pw !== pw2)             { setErr('Die Passwörter stimmen nicht überein.');          return; }
-
-    // Username-Format prüfen
-    const uname = username.trim().toLowerCase().replace(/\s+/g, '_');
-    if (!/^[a-z0-9_]{3,30}$/.test(uname)) {
-      setErr('Benutzername: 3-30 Zeichen, nur Buchstaben, Zahlen und _');
-      return;
-    }
-
-    // Reflink-Validierung (wenn eingegeben)
-    if (refLink.trim()) {
-      const refResult = await resolveRefLink(refLink.trim());
-      if (!refResult?.ambassadorId) {
-        setErr('Dieser Reflink ist ungültig.');
-        return;
-      }
-    }
-
+    e.preventDefault(); clearMessages();
+    if (!email || !pw || !uname) { setErr('Bitte alle Felder ausfüllen.'); return; }
     setLoading(true);
 
     // Username-Verfügbarkeit prüfen
@@ -606,105 +512,6 @@ export default function LoginPage() {
 
     const combinedName = `${fullName.trim()} ${lastName.trim()}`;
 
-    // ── Ref-Link auflösen (manuelles Feld ODER localStorage ODER URL) ──
-    await persistManualRefLinkToStorage();
-    let ambassadorId = null;
-    try {
-      let justStored = null; try { justStored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null'); } catch(e) {}
-      if (justStored?.ambassadorId) ambassadorId = justStored.ambassadorId;
-    } catch {}
-    if (!ambassadorId) {
-      try {
-        let stored = null; try { stored = JSON.parse(localStorage.getItem('hui_referral_ambassador') || 'null'); } catch(e) {}
-        if (stored?.ambassadorId && Date.now() < stored.expiry) {
-          ambassadorId = stored.ambassadorId;
-        }
-      } catch {}
-    }
-
-    // ── Supabase signUp ──
-    // REGISTRATION-UPGRADE-001: mailer_autoconfirm=false → Supabase sendet
-    // Bestätigungs-Mail, KEINE Session wird zurückgegeben.
-    // BUGFIX 2026-08-15: emailRedirectTo fehlte hier komplett (im Gegensatz zu
-    // Magic-Link/Reset-Password weiter unten, die bereits getAuthRedirectUrl()
-    // nutzen). Ohne diese Option fällt Supabase auf den Auth-Setting-Fallback
-    // 'site_url' (https://be-hui.vercel.app/ — die reine Marketing-Landingpage)
-    // zurück, statt auf /auth/callback zu leiten. Ergebnis: Bestätigt man die
-    // Mail am Computer, öffnet sich nur die Webseite statt der Web-App
-    // (/app/Home). getAuthRedirectUrl() liefert automatisch den korrekten
-    // Pfad je Plattform: '/app/auth/callback' im Web-Browser (→ Web-App),
-    // '/auth/callback' in der nativen App (→ App öffnet sich wieder).
-    const { error, data: signUpData } = await supabase.auth.signUp({
-      email, password: pw,
-      options: {
-        emailRedirectTo: getAuthRedirectUrl(),
-        data: {
-          full_name:    combinedName,
-          display_name: fullName.trim(),
-          username:     uname,
-          anrede:       anrede,
-  
-        },
-      },
-    });
-    if (error) {
-      // EMAIL-DUPLICATE-PROTECTION: Falls Supabase selbst den Duplikat-Fehler
-      // wirft (user_already_exists / already registered), zusätzlich
-      // emailBlocked setzen für den "Passwort vergessen?" Button.
-      const errStr = (error.message || '').toLowerCase();
-      if (errStr.includes('already') || errStr.includes('user_already_exists') || errStr.includes('registered')) {
-        setErr(translateError(error.message));
-        setEmailBlocked(true);
-        // Sicherheits-Log
-        try {
-          await supabase.rpc('rpc_log_registration_blocked', {
-            p_email: email,
-            p_reason: 'supabase_signup_rejected',
-          });
-        } catch (e) {
-          console.warn('[HUI Register] log error:', e);
-        }
-      } else {
-        setErr(translateError(error.message));
-      }
-      setLoading(false);
-      return;
-    }
-
-    // Profil befüllen (anrede Pflicht)
-    if (signUpData?.user?.id) {
-      const profileData = {
-        id:           signUpData.user.id,
-        full_name:    combinedName,
-        display_name: fullName.trim(),
-        username:     uname,
-        email:        email,
-        anrede:       anrede,
-
-        updated_at:   new Date().toISOString(),
-      };
-      await supabase.from('profiles').upsert(profileData, { onConflict: 'id' });
-
-      // referred_by über SECURITY-DEFINER-RPC setzen
-      if (ambassadorId) {
-        try {
-          const { data: rpcRes, error: rpcErr } = await supabase.rpc('rpc_register_with_ambassador', {
-            p_user_id: signUpData.user.id,
-            p_ambassador_id: ambassadorId,
-          });
-          if (rpcErr || rpcRes?.ok === false) {
-            console.warn('[HUI Referral] rpc_register_with_ambassador fehlgeschlagen:', rpcErr?.message || rpcRes?.error);
-          } else {
-            try { localStorage.removeItem('hui_referral_ambassador'); } catch {}
-          }
-        } catch (e) {
-          console.warn('[HUI Referral] rpc_register_with_ambassador Exception:', e);
-        }
-      } else {
-        processReferralForUser(signUpData.user.id).catch(() => {});
-      }
-    }
-
     // ── KEIN Auto-Login mehr ──
     // Stattdessen: Verifikations-Modal anzeigen, das alle 3 Sekunden
     // prüft ob die E-Mail bestätigt wurde.
@@ -730,7 +537,6 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     clearMessages();
-    if (mode === 'register') await persistManualRefLinkToStorage();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: getAuthRedirectUrl() },
@@ -739,7 +545,6 @@ export default function LoginPage() {
 
   async function handleApple() {
     clearMessages();
-    if (mode === 'register') await persistManualRefLinkToStorage();
     await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: { redirectTo: getAuthRedirectUrl() },
@@ -1066,56 +871,7 @@ export default function LoginPage() {
                 }
               />
             )}
-
-            {/* REF-LINK — nur bei Registrierung sichtbar */}
-            {mode === 'register' && (
-              <div style={{ marginTop: 2 }}>
-                <GlassInput
-                  id="reflink"
-                  name="reflink"
-                  type="text"
-                  value={refLink}
-                  onChange={e => setRefLink(e.target.value)}
-                  placeholder="Reflink (optional)"
-                  autoComplete="off"
-                  rightSlot={
-                    refLink.trim() ? (
-                      <span style={{
-                        fontSize: 11, fontWeight: 600, letterSpacing: '0.04em',
-                        color: /^[a-z0-9._-]{2,40}$/i.test(refLink.trim())
-                          ? '#0EC4B8' : 'rgba(255,138,107,0.9)',
-                      }}>
-                        {/^[a-z0-9._-]{2,40}$/i.test(refLink.trim()) ? '✓' : '✗'}
-                      </span>
-                    ) : null
-                  }
-                />
-              </div>
-            )}
-
-            {}
-            {err && <ErrorMessage msg={err} />}
-            {success && <SuccessMessage msg={success} />}
-
-            {}
-            <div style={{ marginTop: 2 }}>
-              <PrimaryBtn type="submit" loading={loading} disabled={loading}>
-                {loading ? 'Bitte warten…' : copy.cta}
-              </PrimaryBtn>
-            </div>
-
-            {}
-            {mode === 'login' && (
-              <div style={{ textAlign: 'center', marginTop: -4 }}>
-                <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer',
-                    fontSize: 13, color: T.muted, fontFamily: 'inherit' }}>
-                  Passwort vergessen?
-                </button>
-              </div>
-            )}
-
-            {/* EMAIL-DUPLICATE-PROTECTION: "Passwort vergessen?" Button
+{/* EMAIL-DUPLICATE-PROTECTION: "Passwort vergessen?" Button
                 erscheint unter der Fehlermeldung, wenn die Registrierung
                 wegen existierender E-Mail blockiert wurde. */}
             {mode === 'register' && emailBlocked && (
@@ -1170,4 +926,5 @@ export default function LoginPage() {
       />
     </div>
   );
+}
 }

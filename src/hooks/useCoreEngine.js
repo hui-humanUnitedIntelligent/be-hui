@@ -285,14 +285,6 @@ export const signalHelpers = Object.freeze({
     ]);
   },
 
-  /** Wird aufgerufen wenn ein Ambassador einen neuen Nutzer wirbt. */
-  async onAmbassadorReferral(ambassadorId, newUserId) {
-    return CoreEngine.signals.record({
-      userId: ambassadorId, signalType: SIGNAL_TYPES.AMBASSADOR_REFERRED,
-      targetUserId: newUserId, isGiving: true,
-    });
-  },
-
   /** Wird aufgerufen wenn ein Werk verkauft wird. */
   async onWorkSold(sellerId, buyerId, workId) {
     await Promise.all([
@@ -316,10 +308,6 @@ export const signalHelpers = Object.freeze({
 // Werden von anderen Services aufgerufen — nicht direkt in UI-Komponenten.
 // ─────────────────────────────────────────────────────────────────────
 
-/**
- * Resonanz-Helfer für häufige Reaktions-Ereignisse.
- * Diese sind Ebene 2 (Resonanz) und bestätigen je nach Typ direkt Wirkung (Ebene 3).
- */
 export const resonanceHelpers = Object.freeze({
 
   /** Werk wurde gekauft → Resonanz für Creator */
@@ -353,7 +341,6 @@ export const resonanceHelpers = Object.freeze({
       entityId:   bookingId,
       entityType: 'booking',
     });
-    // BOOKING_CONFIRMED ist in DIRECT_IMPACT_REACTIONS → erzeugt sofort Ebene 3
   },
 
   /** Dienstleistung abgeschlossen + bestätigt → direkte Wirkung */
@@ -426,15 +413,6 @@ export const resonanceHelpers = Object.freeze({
       entityType: 'impact_project',
     });
   },
-
-  /** Ambassador-Referral führt zu aktivem Nutzer → Resonanz */
-  async onAmbassadorActivation(newUserId, ambassadorId) {
-    return ResonanceEngine.onReaction({
-      reactorId:  newUserId,
-      actorId:    ambassadorId,
-      reactionType: REACTION_TYPES.CONNECTION_ACCEPTED,
-    });
-  },
 });
 
 // ─────────────────────────────────────────────────────────────────────
@@ -442,11 +420,6 @@ export const resonanceHelpers = Object.freeze({
 // Hook für Resonanz-Statistiken — für internes Profil und Team Dashboard.
 // ─────────────────────────────────────────────────────────────────────
 
-/**
- * Resonanz-Statistiken für einen Nutzer.
- * Enthält: Wirkungstiefe, Resonanz-Ketten, beschreibende Qualität.
- * NICHT als Zahlen im UI anzeigen — nur für semantische Auswertung.
- */
 export function useResonanceProfile(userId) {
   const [stats,       setStats]   = useState(null);
   const [description, setDesc]    = useState(null);

@@ -495,20 +495,6 @@ export const ROUTE_REGISTRY = Object.freeze([
   },
 
   // ── 15: Ref-Link (explizit) ───────────────────────────────────────────────
-  // /ref/:username → RefRedirect (Ambassador-Tracking)
-  // Kein ProtectedRoute — Refs funktionieren auch ohne Login.
-  {
-    id:            "ref-explicit",
-    path:          "/ref/:username",
-    name:          "Ref-Link (explizit)",
-    owner:         OWNER.REFERRAL,
-    authLevel:     AUTH.PUBLIC,
-    loading:       LOADING.LAZY,
-    routeType:     ROUTE_TYPE.WRAPPER,
-    wrapper:       WRAPPER.SUSPENSE,
-    redirect:      { dynamic: true, logic: "RefRedirect: DB-Lookup → speichert Ambassador → /login" },
-    errorBoundary: false,
-    layout:        "none",
     meta:          { title: "HUI – Weiterleitung", description: null, noIndex: true },
     analytics: {
       trackPageView: true,
@@ -517,7 +503,7 @@ export const ROUTE_REGISTRY = Object.freeze([
     featureFlags:  ["referral"],
     notes: [
       "LAZY + Suspense (kein ProtectedRoute).",
-      "RefRedirect prüft DB (ambassador_ref_links), speichert im localStorage (7 Tage).",
+      "",
       "ABWEICHUNG: Nicht in APP_ROUTES.",
     ].join(" "),
   },

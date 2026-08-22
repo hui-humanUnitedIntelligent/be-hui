@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════════════════════════
 //
 // Zweck: Mitglieder gruppiert nach Verantwortung. Übersicht aktiver Talente,
-//        Ambassadors, Guardian, Team. Verantwortungen können verwaltet werden.
+//        Talents, Team. Verantwortungen können verwaltet werden.
 //        Warm, ruhig, menschlich.
 //
 // DATEN: Supabase (profiles, notifications)
@@ -38,7 +38,7 @@ export default function StudioBegleitung() {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
-      .select('id, display_name, username, avatar_url, is_talent, is_ambassador, role, membership_active, membership_type, profile_modules, created_at')
+      .select('id, display_name, username, avatar_url, is_talent, role, membership_active, membership_type, profile_modules, created_at')
       .order('created_at', { ascending: false })
       .limit(200);
     setMembers(data || []);
@@ -58,7 +58,7 @@ export default function StudioBegleitung() {
     if (error) {
       setToast({ text: 'Änderung fehlgeschlagen.', type: 'error' });
     } else {
-      const label = field === 'is_talent' ? 'Talent' : 'Ambassador';
+      const label = field === 'is_talent' ? 'Talent' : 'Team';
       if (newValue) {
         await sendNotification(member.id, 'responsibility_granted',
           `Du hast eine neue Verantwortung erhalten`,
@@ -79,7 +79,6 @@ export default function StudioBegleitung() {
   // Gruppieren
   const groups = [
     { key: 'talents', label: 'Talente', filter: m => m.is_talent === true && m.membership_active !== false },
-    { key: 'ambassadors', label: 'Ambassadors', filter: m => m.is_ambassador === true },
     { key: 'guardians', label: 'Guardian', filter: m => m.profile_modules?.guardian?.status === 'active' },
     { key: 'team', label: 'Team', filter: m => m.role === 'admin' || m.role === 'superadmin' },
     { key: 'inactive', label: 'Inaktive Mitglieder', filter: m => m.membership_active !== true },
@@ -179,8 +178,7 @@ function MemberRow({ member, expanded, onToggleExpand, onToggleResp, updating })
           <div style={{ fontSize: 14, fontWeight: 500, color: C.ink }}>{name}</div>
           <div style={{ display: 'flex', gap: 6, marginTop: 3 }}>
             {member.is_talent === true && <Badge label="Talent" color={C.teal} />}
-            {member.is_ambassador === true && <Badge label="Ambassador" color={C.coral} />}
-            {(member.role === 'admin' || member.role === 'superadmin') && <Badge label="Team" color={C.ink} />}
+                        {(member.role === 'admin' || member.role === 'superadmin') && <Badge label="Team" color={C.ink} />}
           </div>
         </div>
         <span style={{ color: C.muted, fontSize: 12 }}>{expanded ? '▴' : '▾'}</span>
@@ -195,9 +193,7 @@ function MemberRow({ member, expanded, onToggleExpand, onToggleResp, updating })
             }}>Verantwortungen</div>
             <RespToggle label="Talent" desc="Kreative Angebote gestalten" active={member.is_talent === true}
               onToggle={() => onToggleResp(member, 'is_talent')} disabled={updating} />
-            <RespToggle label="Ambassador" desc="Neue Mitglieder einladen" active={member.is_ambassador === true}
-              onToggle={() => onToggleResp(member, 'is_ambassador')} disabled={updating} />
-          </div>
+                      </div>
         </div>
       )}
     </div>

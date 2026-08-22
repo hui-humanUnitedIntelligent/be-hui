@@ -118,7 +118,6 @@ export const SIGNAL_TYPES = Object.freeze({
   RESONANCE_GIVEN:           'resonance_given',
   RECOMMENDATION_GIVEN:      'recommendation_given',
   PROFILE_VISITED:           'profile_visited',        // schwaches Signal (weight 0.3)
-  AMBASSADOR_REFERRED:       'ambassador_referred',
 });
 
 /**
@@ -135,7 +134,6 @@ export const SIGNAL_WEIGHTS = Object.freeze({
   [SIGNAL_TYPES.IMPACT_PROJECT_CREATED]:    2.0,
   [SIGNAL_TYPES.RECOMMENDATION_GIVEN]:      2.0,
   [SIGNAL_TYPES.INTRODUCTION_MADE]:         2.0,
-  [SIGNAL_TYPES.AMBASSADOR_REFERRED]:       2.0,
   [SIGNAL_TYPES.WORK_SOLD]:                 1.8,
   [SIGNAL_TYPES.EXPERIENCE_BOOKED]:         1.8,
   [SIGNAL_TYPES.MENTORING_OFFERED]:         1.8,
@@ -200,7 +198,6 @@ const SIGNAL_MAP = Object.freeze({
   [SIGNAL_TYPES.RESONANCE_GIVEN]:          { pillar: PILLARS.UNTERSTUETZEN, category: SIGNAL_CATEGORIES.COMMUNITY     },
   [SIGNAL_TYPES.RECOMMENDATION_GIVEN]:     { pillar: PILLARS.VERBINDEN,     category: SIGNAL_CATEGORIES.COMMUNITY     },
   [SIGNAL_TYPES.PROFILE_VISITED]:          { pillar: PILLARS.VERBINDEN,     category: SIGNAL_CATEGORIES.CONNECTION    },
-  [SIGNAL_TYPES.AMBASSADOR_REFERRED]:      { pillar: PILLARS.VERBINDEN,     category: SIGNAL_CATEGORIES.CONNECTION    },
 });
 
 // ─────────────────────────────────────────────────────────────────────

@@ -82,7 +82,6 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
             ⚠️ Wird geprüft
           </div>
         )}
-        )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
         <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4,

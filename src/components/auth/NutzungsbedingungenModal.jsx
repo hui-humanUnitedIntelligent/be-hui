@@ -42,7 +42,6 @@ const SECTIONS = [
       { h: "2.3 Mitgliedschafts-Typen", items: [
         "Basis-Nutzer: Grundlegende Funktionen (Entdecken, Profil, Inhalte erstellen, Kaufen, Buchen).",
         "Talent/Wirker: Erweiterte Funktionen (Angebote erstellen, Buchungen annehmen, Verkäufe).",
-        "Ambassador: Empfehlungsprogramm mit Vergütung bei erfolgreicher Vermittlung.",
         "Mitgliedschaft: Optionale kostenpflichtige Mitgliedschaft mit erweiterten Funktionen.",
       ]},
     ],
@@ -93,10 +92,6 @@ const SECTIONS = [
         "Talente und Erlebnisse können gebucht werden.",
         "Die Zahlungsabwicklung erfolgt über Stripe.",
         "Stornierungsbedingungen werden beim Angebot ausgewiesen.",
-      ]},
-      { h: "4.4 Ambassador-Vergütung", items: [
-        "Ambassador erhalten eine Provision aus dem Unternehmensanteil der Plattformgebühr (5 % bis 20 %, gestaffelt nach Empfehlungs-Anzahl).",
-        "Die Auszahlung erfolgt über Stripe Connect nach Freigabe.",
       ]},
       { h: "4.5 Mitgliedschaft", items: [
         "Eine optionale HUI-Mitgliedschaft kann kostenpflichtig abgeschlossen werden.",

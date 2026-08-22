@@ -21,9 +21,7 @@ import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 // GemeinschaftsFlow direkt importiert (kein lazy/Suspense — verhindert Klick-ohne-Reaktion-Bug)
 // NotificationPanel direkt importiert (kein lazy/Suspense)
-// AmbassadorModal direkt importiert (kein lazy/Suspense)
 import SettingsModal from "../components/settings/SettingsModal.jsx";
-import { useAmbassador } from "../hooks/useAmbassador.js";
 import { useNotifications } from "../lib/useNotifications.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { usePullToRefresh } from "../hooks/usePullToRefresh.js";
@@ -53,7 +51,6 @@ import WerkWizard from "../components/works/WerkWizard.jsx";
 import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
 import { useTalents, deleteTalent } from "../hooks/useTalents.js";
 import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
-// AmbassadorStudioSection wird direkt importiert (kein lazy → kein Suspense-Hänger)
 // HuiMomentSheet direkt importiert (kein lazy — verhindert ewigen Suspense-Spinner)
 // MyRecommendationsModal direkt importiert
 // ImpactStimmenModal direkt importiert
@@ -63,14 +60,13 @@ import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.js
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
 import {
   HUIResonanzIcon, HUITalentIcon, HUIWerkeIcon, HUIErlebnisIcon,
-  HUIAmbassadorIcon, HUIEmpfehlungIcon, HUIImpactIcon, HUIFinanzIcon,
+  HUIEmpfehlungIcon, HUIImpactIcon, HUIFinanzIcon,
   HUIStimmeIcon, HUIProjektIcon, HUIEinAusIcon, HUIKalenderIcon,
   HUIVerkaufIcon, HUIStatistikIcon,
   HUIFotoIcon, HUIAnsichtIcon, HUISettingsIcon, HUISchreibenIcon,
 } from "../design/icons/HuiSystemIcons.jsx";
 import { HUILogo } from '../components/brand/HUILogo.jsx';
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
-// AmbassadorStudioSection direkt importiert (kein lazy/Suspense)
 import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
 import MyRecommendationsModal from "../components/studio/MyRecommendationsModal.jsx";
 import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
@@ -78,9 +74,7 @@ import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
 import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
 import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
-import AmbassadorModal from "../components/ambassador/AmbassadorModal.jsx";
 import HuiStudio from "../components/studio/HuiStudio.jsx";
-import AmbassadorStudioSection from "../components/ambassador/AmbassadorStudioSection.jsx";
 import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
 import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 // FinanzuebersichtModal — ersetzt 4 separate Finanz-Modals (eager, kein Lazy-Bug)
@@ -88,33 +82,6 @@ import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.js
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 // ── Design Tokens ────────────────────────────────────────────────
-
-// ── Ambassador ErrorBoundary ─────────────────────────────────────
-class AmbassadorErrorBoundary extends React.Component {
-  constructor(props) { super(props); this.state = { hasError: false }; }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(e, info) { console.error("[Ambassador] Render-Fehler:", e, info); }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding:"24px 20px", textAlign:"center", color:"rgba(26,26,24,0.45)", fontSize:13 }}>
-          <div style={{ fontSize:22, marginBottom:8 }}>⚠️</div>
-          Ambassador-Bereich konnte nicht geladen werden.
-          <br/>
-          <button
-            onClick={() => this.setState({ hasError: false })}
-            style={{
-              marginTop:12, padding:"8px 18px", borderRadius:99,
-              background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.3)",
-              color:"#0A9E94", fontSize:12, fontWeight: 600, cursor:"pointer", fontFamily:"inherit",
-            }}
-          >Nochmal versuchen</button>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
 
 const T = {
   bg:       "#F9F7F4",
@@ -461,8 +428,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const [localAvatar, setLocalAvatar] = useState(null);
   const [localCover,  setLocalCover]  = useState(null);
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
-  const [showAmbModal,    setShowAmbModal]    = useState(false);
-  const [showAmbDrawer,   setShowAmbDrawer]   = useState(false);
   const [showMomentSheet, setShowMomentSheet]  = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [showMerken,       setShowMerken]       = useState(false);
@@ -509,8 +474,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // NOTE: activeDrawer/empfehlungDetail/showFinanzModal werden in MeinBereichMenu
   // registriert (separate Komponente) — hier entfernt da TDZ-Crash im Bundle.
   useModalRegistration(showGemeinschaft, () => setShowGemeinschaft(false), "MyBasisProfile-Gemeinschaft");
-  useModalRegistration(showAmbModal, () => setShowAmbModal(false), "MyBasisProfile-AmbModal");
-  useModalRegistration(showAmbDrawer, () => setShowAmbDrawer(false), "MyBasisProfile-AmbDrawer");
   useModalRegistration(showMomentSheet, () => setShowMomentSheet(false), "MyBasisProfile-MomentSheet");
   useModalRegistration(showPublicPreview, () => setShowPublicPreview(false), "MyBasisProfile-PublicPreview");
   useModalRegistration(showMerken, () => setShowMerken(false), "MyBasisProfile-Merken");
@@ -781,7 +744,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
 
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
   // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)
-  const ambState = useAmbassador(profile);
   const [localWorks,       setLocalWorks]       = useState(null);
   const [localExperiences, setLocalExperiences] = useState(null);
   const works          = localWorks       ?? hooksWorks ?? [];
@@ -1144,7 +1106,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={24}/>
             */}
 
-            {/* T2b-T4 + Ambassador/Empfehlungen/Impact/Finanzen — PROFIL-DRAWER-REDESIGN-003
+            {/* T2b-T4 + Empfehlungen/Impact/Finanzen — PROFIL-DRAWER-REDESIGN-003
                 (2026-07-06): zusammengefasst in die "Mein Bereich"-Menü-Karte
                 (MeinBereichMenu). Jede Kachel oeffnet die jeweilige Section/Modal
                 als Bottom-Sheet-Drawer statt permanent inline zu rendern. */}
@@ -1181,7 +1143,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <Gap h={24}/>
 
 
-
             <Gap h={24}/>
 
             {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
@@ -1191,13 +1152,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 onSave={handleVisibilitySave}
               /></Suspense>
         <Gap h={28}/>
-
-            {/* T8. Ambassador-Balken — nur sichtbar wenn is_ambassador=true */}
-            <AmbassadorBanner
-              profile={profile}
-              ambState={ambState}
-              onPress={() => setShowAmbDrawer(true)}
-            />
             <Gap h={40}/>
           </>
         ) : (
@@ -1267,14 +1221,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 onSave={handleVisibilitySave}
               /></Suspense>
         <Gap h={28}/>
-
-
-            {/* B6. Ambassador-Balken — nur sichtbar wenn is_ambassador=true */}
-            <AmbassadorBanner
-              profile={profile}
-              ambState={ambState}
-              onPress={() => setShowAmbDrawer(true)}
-            />
             <Gap h={40}/>
           </>
         )}
@@ -1298,278 +1244,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
         ,
         document.body
       )}
-
-      {/* AMBASSADOR-DRAWER — createPortal(body), zIndex:10500 */}
-      {showAmbDrawer && createPortal(
-        <div style={{
-          position:"fixed", inset:0, zIndex:10500,
-          display:"flex", flexDirection:"column", justifyContent:"flex-end",
-        }}>
-          {/* Backdrop */}
-          <div onClick={() => setShowAmbDrawer(false)} style={{
-            position:"absolute", inset:0,
-            background:"rgba(26,26,24,0.55)", backdropFilter:"blur(2px)",
-          }}/>
-          {/* Sheet */}
-          <div style={{
-            position:"relative", zIndex:1,
-            background:"#F7F5F0", borderRadius:"20px 20px 0 0",
-            maxHeight:"88dvh", overflowY:"auto",
-            paddingBottom:"calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
-          }}>
-            {/* Handle */}
-            <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:4 }}>
-              <div style={{ width:38, height:4, borderRadius:2, background:"rgba(26,26,24,0.15)" }}/>
-            </div>
-            {/* Header */}
-            <div style={{
-              display:"flex", alignItems:"center", justifyContent:"space-between",
-              padding:"8px 20px 14px",
-            }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <HUIAmbassadorIcon size={18} style={{color:"rgba(255,193,7,0.9)"}}/>
-                <span style={{ fontSize:16, fontWeight: 600, color:"#1A1A18" }}>Ambassador-Bereich</span>
-              </div>
-              <button onClick={() => setShowAmbDrawer(false)} style={{
-                background:"none", border:"none", cursor:"pointer",
-                fontSize:18, color:"rgba(26,26,24,0.45)", padding:4,
-                fontFamily:"inherit",
-              }}>✕</button>
-            </div>
-            {/* AmbassadorStudioSection direkt — kein lazy/Suspense nötig */}
-            <AmbassadorErrorBoundary>
-        <AmbassadorStudioSection profile={profile} />
-        </AmbassadorErrorBoundary>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* GEMEINSCHAFT FLOW MODAL */}
-      {showGemeinschaft && (
-        <GemeinschaftsFlow
-          onClose={() => setShowGemeinschaft(false)}
-          onComplete={() => {
-            setShowGemeinschaft(false);
-            // Sprint F.7D P2: reload() übernimmt is_talent-Aktualisierung
-            refreshProfile?.().catch(() => {});
-            reload();
-          }}
-        />
-      )}
-
-      {/* SETTINGS MODAL — eigenes Suspense, damit die Seite beim Laden nicht blank geht */}
-      {showSettings && (
-          <SettingsModal
-            profile={profile}
-            onClose={() => { setShowSettings(false); setSettingsAutoBankdaten(false); }}
-            autoOpenBankdaten={settingsAutoBankdaten}
-            onProfileUpdate={(updated) => {
-              refreshProfile?.().catch(() => {});
-            }}
-            onEditProfile={() => {
-              setShowSettings(false);
-              setShowProfilEditPage(true);
-            }}
-            onOpenBookings={() => {
-              setShowSettings(false);
-              if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("hui:openBookings"));
-            }}
-          />
-      )}
-      {showProfilEditPage && (
-          <ProfilBearbeitenModal
-            profile={profile}
-            onClose={() => setShowProfilEditPage(false)}
-            onProfileUpdate={() => { refreshProfile?.().catch(() => {}); setShowProfilEditPage(false); }}
-          />
-      )}
-
-      {/* GEMERKTE INHALTE — Portal pflicht (liegt sonst hinter BottomNav durch mbp-root Stacking Context) */}
-      {showMerken && createPortal(
-        <div style={{
-          position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
-          background:"#F9F7F4",
-          overflowY:"auto",
-          WebkitOverflowScrolling:"touch",
-        }}>
-          {/* Header */}
-          <div style={{
-            position:"sticky", top:0, zIndex:10510, /* >BottomNav(10000) */
-            background:"rgba(249,247,244,0.95)",
-            borderBottom:"1px solid rgba(26,26,46,0.07)",
-            // HEADER-ZU-WEIT-OBEN-FIX (2026-08-18, Michael-Screenshot): Header lag
-            // unter Statusleiste (Uhrzeit/Akku), da kein Safe-Area-Top-Padding gesetzt
-            // war. Fix: SSOT-Pattern wie in MeinHUI.jsx/PostFullscreenView.jsx —
-            // max(CSS-Var, Fallback-px, env()) statt reinem "12px 16px".
-            paddingTop:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px))",
-            paddingBottom:"12px",
-            paddingLeft:"16px",
-            paddingRight:"16px",
-            display:"flex", alignItems:"center", justifyContent:"space-between",
-            backdropFilter:"blur(2px)",
-          }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <span style={{ display:"flex", color:"#1A1A2E" }}><HUIBookmarkIcon size={18} /></span>
-              <span style={{ fontSize:15, fontWeight: 600, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
-                Gemerkte Inhalte
-              </span>
-            </div>
-            <button
-              onClick={() => setShowMerken(false)}
-              style={{
-                padding:"6px 14px", borderRadius:20,
-                background:"rgba(26,26,46,0.08)", border:"1px solid rgba(26,26,46,0.10)",
-                fontSize:12, fontWeight: 600, color:"rgba(26,26,46,0.55)",
-                cursor:"pointer", touchAction:"manipulation",
-              }}
-            >✕ Schließen</button>
-          </div>
-          {/* Content */}
-          <div style={{ padding:"16px" }}>
-        <MerkenSection
-              onClose={() => setShowMerken(false)}
-              onOpenProfile={(id) => {
-                setShowMerken(false);
-                if (typeof window !== "undefined" && window.__HUI_OPEN_PROFILE__) {
-                  window.__HUI_OPEN_PROFILE__(id);
-                }
-              }}
-              onOpenDiscover={() => {
-                setShowMerken(false);
-                switchTab("discover");
-              }}
-            />
-        </div>
-        </div>,
-        document.body
-      )}
-
-      {/* 👁️ ÖFFENTLICHE PROFILANSICHT */}
-      {showPublicPreview && profile?.id && (
-        <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
-        <PublicProfilePreview
-            profileId={profile.id}
-            onClose={() => setShowPublicPreview(false)}
-          />
-        </Suspense>
-        )}
-
-      {/* HUI STUDIO MODAL */}
-      {showStudio && (
-        <HuiStudio
-          profile={profile}
-          onClose={() => setShowStudio(false)}
-          onProfileUpdate={(upd) => {
-            // Sprint F.7D P2: setProfile → reload()
-            setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
-            refreshProfile?.().catch(() => {});
-            reload();
-          }}
-        />
-      )}
-
-      {/* ❤️ MEINE RESONANZ */}
-      {showResonanz && (
-        <MeineResonanz
-          onClose={() => setShowResonanz(false)}
-          onNavigate={(type, navId) => {
-            setShowResonanz(false);
-          }}
-        />
-      )}
-
-      {/* AMBASSADOR BEWERBUNGS-MODAL */}
-      {showAmbModal && profile?.id && (
-        <AmbassadorModal
-            userId={profile.id}
-            onClose={() => setShowAmbModal(false)}
-            onSuccess={() => {
-              setShowAmbModal(false);
-              refreshProfile?.().catch(() => {});
-            }}
-          />
-        )}
-
-      {/* NOTIFICATION PANEL */}
-      {showNotifications && profile?.id && (
-        <NotificationPanel
-          userId={profile.id}
-          onClose={() => setShowNotifications(false)}
-          onUnreadChange={setUnreadCount}
-          onAction={handleNotifAction}
-        />
-      )}
-
-
-      {/* WERK WIZARD */}
-      {showWerkWizard && profile?.id && (
-        <WerkWizard
-          userId={profile.id}
-          existingWork={editingWerk}
-          onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
-          onSaved={(werk) => {
-            setShowWerkWizard(false); setEditingWerk(null);
-            setLocalWorks(prev => {
-              const list = Array.isArray(prev) ? prev : (Array.isArray(hooksWorks) ? hooksWorks : []);
-              const idx = list.findIndex(w => w.id === werk.id);
-              if (idx >= 0) { const n=[...list]; n[idx]=werk; return n; }
-              return [werk, ...list];
-            });
-          }}
-        />
-      )}
-
-      {/* TALENT WERDEN — Onboarding Flow */}
-      {showTalentOnboarding && (
-        <TalentOnboardingModal
-          onClose={() => setShowTalentOnboarding(false)}
-          onSuccess={() => {
-            setShowTalentOnboarding(false);
-            reload();
-            refreshProfile?.().catch(() => {});
-          }}
-        />
-      )}
-
-      {/* TALENT-ANGEBOT WIZARD */}
-      {showTalentWizard && profile?.id && (
-        <TalentAngebotWizard
-          userId={profile.id}
-          existingTalent={editingTalent}
-          onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
-          onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); }}
-        />
-      )}
-
-      {/* EXPERIENCE WIZARD */}
-      {showExpWizard && profile?.id && (
-        <ExperienceWizard
-          userId={profile.id}
-          existingExp={editingExp}
-          onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
-          onSaved={(exp) => {
-            setShowExpWizard(false); setEditingExp(null);
-            setLocalExperiences(prev => {
-              const list = Array.isArray(prev) ? prev : (Array.isArray(hooksExps) ? hooksExps : []);
-              const idx = list.findIndex(e => e.id === exp.id);
-              if (idx >= 0) { const n=[...list]; n[idx]=exp; return n; }
-              return [exp, ...list];
-            });
-          }}
-        />
-      )}
     </div>
     </Suspense>
   );
 }
 
-
-
-// ══════════════════════════════════════════════════════════════
-// AMBASSADOR-PROFIL-SEKTION
-// Zeigt Status, Einladungslink, Empfehlungen
-// ══════════════════════════════════════════════════════════════
 // ══════════════════════════════════════════════════════════════
 // MEIN MOMENTE DRAWER — Zeigt Momente-Grid + "Neuen Moment erstellen"
 // Performance: lazy images, keine Off-Screen-Elemente, Viewport-only Render
@@ -1804,102 +1483,6 @@ function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
   );
 }
 
-function AmbassadorProfilSection({ profile, ambState, onApply }) {
-  const T2 = {
-    teal:"#0EC4B8", tealSoft:"rgba(14,196,184,0.08)",
-    tealMid:"rgba(14,196,184,0.2)", ink:"#1A1A18",
-    inkSoft:"#555552", inkFaint:"#888885",
-    bgCard:"#FFFFFF", border:"rgba(26,26,24,0.09)",
-    r16:"12px", r12:"10px", r99:"99px", card:"0 1px 4px rgba(0,0,0,0.06)",
-  };
-
-  const isAmb      = profile?.is_ambassador === true;
-  const status     = ambState?.applicationStatus;
-  const hasPending = status === 'offen' || status === 'pending';
-  const isRejected = status === 'abgelehnt' || status === 'rejected';
-  const ref_link   = profile?.profile_modules?.ambassador?.referral_link || null;
-  const ref_code   = profile?.profile_modules?.ambassador?.referral_code || null;
-  const refCount   = profile?.profile_modules?.ambassador?.referral_count || 0;
-
-  function copyLink() {
-    if (ref_link) {
-      navigator.clipboard.writeText(ref_link).catch(() => {});
-    }
-  }
-
-  // RECHTE-LOGIK: Kein Ambassador → nichts anzeigen
-  // Ambassador-Rechte werden ausschließlich durch SADB vergeben (kein Self-Signup)
-  if (!isAmb) return null;
-
-  // Aktiver Ambassador: Dashboard
-
-  return (
-    <div style={{ padding:"0 20px" }}>
-      {/* Status-Badge */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}>
-        <SectionRow title="Ambassador" />
-        <div style={{
-          display:"inline-flex", alignItems:"center", gap:5,
-          background:"rgba(14,196,184,0.08)", borderRadius:T2.r99,
-          border:`1px solid ${T2.tealMid}`, padding:"3px 10px",
-          fontSize:11, fontWeight: 600, color:T2.teal,
-        }}>
-          ✅ Aktiv
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div style={{
-        display:"grid", gridTemplateColumns:"1fr 1fr",
-        gap:10, marginBottom:14,
-      }}>
-        {[
-          { emoji:"👥", label:"Eingeladene", value: refCount },
-          { emoji:"🥉", label:"Level", value: refCount >= 201 ? "Platin" : refCount >= 51 ? "Gold" : refCount >= 11 ? "Silber" : "Bronze" },
-        ].map(({ emoji, label, value }) => (
-          <div key={label} style={{
-            background:T2.bgCard, borderRadius:T2.r12,
-            border:`1px solid ${T2.border}`, padding:"12px",
-            textAlign:"center", boxShadow:T2.card,
-          }}>
-            <div style={{fontSize:20, marginBottom:4}}>{emoji}</div>
-            <div style={{fontSize:18, fontWeight: 600, color:T2.teal}}>{value}</div>
-            <div style={{fontSize:11, color:T2.inkFaint}}>{label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Einladungslink */}
-      {ref_link && (
-        <div style={{
-          background:T2.tealSoft, borderRadius:T2.r12,
-          border:`1px solid ${T2.tealMid}`, padding:"12px 14px",
-          marginBottom:10,
-        }}>
-          <div style={{fontSize:11, fontWeight: 600, color:T2.teal, marginBottom:4}}>
-            🔗 Dein Einladungslink
-          </div>
-          <div style={{
-            fontSize:12, color:T2.inkSoft, fontFamily:"monospace",
-            wordBreak:"break-all", marginBottom:8,
-          }}>
-            {ref_link}
-          </div>
-          <button onClick={copyLink} style={{
-            padding:"6px 14px", borderRadius:T2.r99,
-            background:T2.teal, border:"none", color:"white",
-            fontSize:11, fontWeight: 600, cursor:"pointer", fontFamily:"inherit",
-            touchAction:"manipulation",
-          }}>
-            Link kopieren
-          </button>
-        </div>
-      )}
-
-
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // TALENT-ERWEITERUNG
@@ -1979,65 +1562,6 @@ function TalentErweiterung({ profile, onProfileUpdate }) {
 // AMBASSADOR BANNER — Screenshot-genau unten im Profil
 // Kompakter Banner mit Bild + Text + Button
 // ══════════════════════════════════════════════════════════════
-function AmbassadorBanner({ profile, ambState, onPress }) {
-  // RECHTE-LOGIK: Ambassador-Balken nur für bestätigte Ambassadors sichtbar
-  // Vergabe ausschließlich durch SADB — keine Self-Aktivierung möglich
-  const isAmb = profile?.is_ambassador === true;
-  if (!isAmb) return null; // Kein CTA, kein Bewerben-Button — nur für aktive Ambassadors
-
-  // Ambassador-Balken: horizontaler Streifen am unteren Profilrand
-  return (
-    <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{
-        background:"linear-gradient(135deg,rgba(255,193,7,0.10),rgba(255,165,0,0.07))",
-        borderRadius:T.r16,
-        border:"1.5px solid rgba(255,193,7,0.28)",
-        padding:"13px 16px",
-        display:"flex", alignItems:"center", gap:12,
-      }}>
-        {/* Badge-Icon */}
-        <div style={{
-          width:36, height:36, borderRadius:T.r12, flexShrink:0,
-          background:"linear-gradient(135deg,rgba(255,193,7,0.18),rgba(255,193,7,0.08))",
-          border:"1.5px solid rgba(255,193,7,0.30)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontSize:18,
-        }}>
-          🏅
-        </div>
-
-        {/* Text */}
-        <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:13, fontWeight: 600, color:T.ink, marginBottom:1 }}>
-            HUI Ambassador
-          </div>
-          <div style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.4 }}>
-            Aktiv · Empfiehlst HUI weiter
-          </div>
-        </div>
-
-        {/* Öffnen-Button */}
-        <button
-          onClick={onPress}
-          className="mbp-press"
-          style={{
-            flexShrink:0,
-            padding:"8px 14px", borderRadius:T.r99,
-            background:"rgba(255,193,7,0.18)",
-            border:"1.5px solid rgba(255,193,7,0.35)",
-            color:"#9A7000",
-            fontSize:12, fontWeight: 600,
-            cursor:"pointer", touchAction:"manipulation",
-            fontFamily:"inherit",
-            whiteSpace:"nowrap",
-          }}
-        >
-          Mein Bereich ›
-        </button>
-      </div>
-    </div>
-  );
-}
 
 // ══════════════════════════════════════════════════════════════
 // TALENT-PROFIL SEKTIONEN (is_talent === true)
@@ -2272,7 +1796,7 @@ function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
 // ────────────────────────────────────────────────────────────────
 // Ersetzt die bisherigen, permanent sichtbaren Inline-Listen
 // (Talent-Angebote/Meine Werke/Erlebnisse) sowie die aus dem Studio
-// umgezogenen Bereiche (Ambassador/Empfehlungen/Impact/Finanzen) durch
+// umgezogenen Bereiche (Empfehlungen/Impact/Finanzen) durch
 // eine kompakte Menü-Karte mit Icon-Grid — jedes Feld oeffnet die
 // jeweilige bestehende Section/Modal als Bottom-Sheet-Drawer. Kein
 // Feature neu gebaut, nur die Praesentation vereinheitlicht (Charta:
@@ -2430,7 +1954,7 @@ function MeinBereichMenu({
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
-  const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|ambassador|empfehlungen|impact|finanzen
+  const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|empfehlungen|impact|finanzen
 
   // MEIN-BEREICH-UPDATE-DOT (2026-08-15, Michael-Request) -- SSOT ist die
   // bestehende notifications-Tabelle + is_read (siehe Memory #637/#877,
@@ -2625,15 +2149,7 @@ function MeinBereichMenu({
       {/* HuiMomentSheet — wird AUSSCHLIESSLICH über MyBasisProfile-Portal geöffnet
           (onOpenMomentSheetProp = MyBasisProfile.setShowMomentSheet).
           Kein eigenes internes Portal → kein redundanter lazy-Load-Hänger */}
-
-      {/* ── Ambassador-Bereich ───────────────────────────────── */}
-      {activeDrawer === "ambassador" && (
-        <MeinBereichDrawer title="Ambassador-Bereich" icon={<HUIAmbassadorIcon size={18}/>} subtitle="Dein Ambassador-Programm und Provisionen." onClose={close} footer={false}>
-          <AmbassadorStudioSection profile={profile} />
-        </MeinBereichDrawer>
-      )}
-
-      {/* ── Empfehlungen — Chooser: Kundenstimmen + Meine Empfehlungen ─ */}
+{/* ── Empfehlungen — Chooser: Kundenstimmen + Meine Empfehlungen ─ */}
       {activeDrawer === "empfehlungen" && !empfehlungDetail && (
         <MeinBereichDrawer title="Empfehlungen" icon={<HUIEmpfehlungIcon size={18}/>} subtitle="Erhaltene und gegebene Empfehlungen." onClose={close} footer={false}>
           <MeinBereichChooserRow
@@ -3300,7 +2816,6 @@ function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = (
 }
 
 
-
 // ══════════════════════════════════════════════════════════════
 // IMPACT PROJEKTE TAB — Zeigt die Impact-Projekte des Users
 // Fragt impact_applications per user_id ab.
@@ -3835,8 +3350,6 @@ function TalentWerdenBanner({ onStart = () => {} }) {
 // wrapped in createPortal + zIndex:10500 (Pflicht-Regel)
 // ══════════════════════════════════════════════════════════════
 // TalentOnboarding wird jetzt eager importiert (siehe Import-Block oben) — kein React.lazy mehr, um den Suspense-fallback={null}-Hang-Bug zu vermeiden (analog zu MyRecommendationsModal/ImpactStimmenModal).
-
-
 
 
 function TalentOnboardingModal({ onClose = () => {}, onSuccess = () => {} }) {

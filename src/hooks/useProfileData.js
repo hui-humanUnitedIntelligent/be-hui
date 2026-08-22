@@ -15,7 +15,7 @@ import { supabase } from "../lib/supabaseClient.js";
 // ── Felder ────────────────────────────────────────────────────────────
 // SICHERHEIT: phone entfernt aus öffentlichem Profil-Load (2026-07-29)
 // PRIVAT: phone wird nur geladen wenn includePrivate=true (eigenes Profil)
-const PROFILE_SELECT_PUBLIC = "id,display_name,full_name,username,avatar_url,header_img,bio,location,location_label,member_since,role,has_talent_profile,is_ambassador,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,website,tagline,skills,is_available,hourly_rate,focus_type";
+const PROFILE_SELECT_PUBLIC = "id,display_name,full_name,username,avatar_url,header_img,bio,location,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,website,tagline,skills,is_available,hourly_rate,focus_type";
 const PROFILE_SELECT_PRIVATE = PROFILE_SELECT_PUBLIC;
 
 const WORKS_SELECT =

@@ -35,7 +35,6 @@ const C = {
 export default function StudioOverviewPage({ onNavigate }) {
   const { profile } = useAuth();
   const isTalent = isProfileTalent(profile);
-  const isAmbassador = profile?.is_ambassador === true;
   const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
 
   const displayName = profile?.display_name || profile?.username || 'Mitglied';
@@ -43,7 +42,6 @@ export default function StudioOverviewPage({ onNavigate }) {
   // Verantwortungs-Status
   const responsibilities = [];
   if (isTalent) responsibilities.push({ label: 'Talent', emoji: '✨' });
-  if (isAmbassador) responsibilities.push({ label: 'Ambassador', emoji: '🤝' });
   if (profile?.profile_modules?.guardian?.status === 'active') responsibilities.push({ label: 'Guardian', emoji: '🛡' });
   if (profile?.profile_modules?.team?.status === 'active') responsibilities.push({ label: 'Team', emoji: '👥' });
   if (isAdmin) responsibilities.push({ label: 'Administrator', emoji: '⚙' });

@@ -12,9 +12,7 @@
  * iPad + Mobile + Desktop optimiert
  */
 
-import { HUIAmbassadorIcon,
-  HUISicherheitIcon,
-} from '../design/icons/HuiSystemIcons.jsx';
+import { HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";
@@ -994,7 +992,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
           <div style={{ animation:"hmf5-rise 0.5s 0.32s ease both" }}>
             <CtaBtn
               label="Mitglied werden"
-              icon={<HUIAmbassadorIcon size={20}/>}
+              icon={<HUIMitgliedIcon size={20}/>}
               variant="coral"
               onClick={() => onFinish()}
               disabled={!allChecked}

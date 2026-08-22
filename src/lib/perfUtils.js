@@ -1,7 +1,7 @@
 // src/lib/perfUtils.js — HUI Performance Utils
 // VERIFIZIERT: Nur Spalten die in profiles wirklich existieren (Stand 2026-06-08)
 // Verboten: membership_type, has_talent_profile, is_wirker, wirkerProfile,
-//           ambassador_level, ref_link, referred_users_count, impact_revenue,
+//           impact_revenue,
 //           profile_complete
 
 // ─── Cache TTL ─────────────────────────────────────────────────
@@ -42,9 +42,7 @@ export function normalizeProfile(raw) {
     bio:                      raw.bio             || null,
     is_talent:                raw.is_talent       === true,
     talent_since:             raw.talent_since    || null,
-    is_ambassador:            raw.is_ambassador   === true,
     referred_by:              raw.referred_by     || null,
-    referred_by_ambassador_id:raw.referred_by_ambassador_id || null,
     blocked:                  raw.blocked         === true,
     profile_modules:          raw.profile_modules || {},
     skills:                   Array.isArray(raw.skills)   ? raw.skills   : [],

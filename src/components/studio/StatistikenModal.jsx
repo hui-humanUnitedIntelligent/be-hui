@@ -1,5 +1,5 @@
 import { HUIBookmarkIcon, HUIChatIcon, HUIHeartIcon } from '../../design/icons/HuiInteractionIcons.jsx';
-import { HUIAmbassadorIcon, HUIAnsichtIcon, HUIBenachrichtigungIcon, HUIEmpfehlungIcon, HUIFinanzIcon, HUIFolgenIcon, HUIFotoIcon, HUIImpactIcon, HUIMitgliedIcon, HUIProjektIcon, HUIStatistikIcon, HUIStimmeIcon, HUITalentIcon, HUIWerkeIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIAnsichtIcon, HUIBenachrichtigungIcon, HUIEmpfehlungIcon, HUIFinanzIcon, HUIFolgenIcon, HUIFotoIcon, HUIImpactIcon, HUIMitgliedIcon, HUIProjektIcon, HUIStatistikIcon, HUIStimmeIcon, HUITalentIcon, HUIWerkeIcon } from '../../design/icons/HuiSystemIcons.jsx';
 // StatistikenModal.jsx — Nutzer-Statistiken + PDF-Download
 // ══════════════════════════════════════════════════════════
 // Lädt alle relevanten Aktivitätsdaten des Nutzers aus Supabase
@@ -46,7 +46,7 @@ const fmtNum  = (n)   => n == null ? "0" :formatNumberDE(Number(n));
 
 // ── Statistiken-Kategorien ─────────────────────────────────────────
 const CATEGORIES = [
-  { key: "community",  label: "Community",         icon: <HUIAmbassadorIcon size={16}/>, color: T.teal   },
+  { key: "community",  label: "Community",         icon: <HUIMitgliedIcon size={16}/>, color: T.teal   },
   { key: "content",    label: "Inhalte & Werke",   icon: <HUIWerkeIcon size={16}/>, color: T.violet },
   { key: "handel",     label: "Handel & Buchungen",icon: <HUIFinanzIcon size={16}/>, color: T.green  },
   { key: "impact",     label: "Impact & Wirkung",  icon: <HUIImpactIcon size={16}/>, color: T.teal   },
@@ -120,7 +120,7 @@ export default function StatistikenModal({ profile, onClose }) {
         // Einnahmen: order_items als Verkäufer (seller_id)
         sq(supabase.from("order_items").select("unit_price_eur,quantity").eq("seller_id", uid)),
         // Profil
-        sq(supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile,is_ambassador").eq("id", uid).single()),
+        sq(supabase.from("profiles").select("profile_views,followers_count,trust_score,member_since,created_at,has_talent_profile").eq("id", uid).single()),
         // Project-Support Betrag
         sq(supabase.from("project_support").select("amount_eur").eq("user_id", uid)),
         // MERKEN.6: appweite Save-Stats ueber post_reactions (type=save)
@@ -158,7 +158,6 @@ export default function StatistikenModal({ profile, onClose }) {
         profileViews:   profileData?.profile_views || 0,
         trustScore:     profileData?.trust_score || 0,
         isTalent:       profileData?.is_talent,
-        isAmbassador:   profileData?.is_ambassador,
         // Community
         following:      followingCount || 0,
         followers:      followerCount  || profileData?.follower_count || 0,
@@ -238,7 +237,7 @@ export default function StatistikenModal({ profile, onClose }) {
       y = 46;
 
       // ── Mitglied seit ──
-      text(`Mitglied seit: ${fmtDate(stats.memberSince)}   ·   ${stats.isTalent ? "HUI-Talent" : "HUI-Mitglied"}${stats.isAmbassador ? "  ·  Ambassador" : ""}`,
+      text(`Mitglied seit: ${fmtDate(stats.memberSince)}   ·   ${stats.isTalent ? "HUI-Talent" : "HUI-Mitglied"}`,
         M, y, { size:8.5, color:HEX.soft });
       y += 10;
 
@@ -416,13 +415,13 @@ export default function StatistikenModal({ profile, onClose }) {
                   <div style={{ fontSize:10, color:T.inkFaint }}>Status</div>
                   <div style={{ fontSize:13, fontWeight: 600, color:T.teal }}>
                     {stats.isTalent ? <><HUITalentIcon size={12} style={{marginRight:4}}/> HUI-Talent</> : <><HUIMitgliedIcon size={12} style={{marginRight:4}}/> HUI-Mitglied</>}
-                    {stats.isAmbassador && " · 🏅 Ambassador"}
+                    
                   </div>
                 </div>
               </div>
 
               {/* ── Kategorien ── */}
-              <StatSection icon={<HUIAmbassadorIcon size={18}/>} label="Community & Netzwerk" color={T.teal}>
+              <StatSection icon={<HUIMitgliedIcon size={18}/>} label="Community & Netzwerk" color={T.teal}>
                 <KachelGrid items={[
                   { icon:<HUIBenachrichtigungIcon size={16}/>, label:"Follower",          val: fmtNum(stats.followers),    col:T.teal   },
                   { icon:<HUIFolgenIcon size={16}/>, label:"Folge ich",          val: fmtNum(stats.following),    col:T.teal   },

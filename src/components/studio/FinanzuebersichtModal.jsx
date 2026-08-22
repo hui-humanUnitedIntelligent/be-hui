@@ -1051,14 +1051,14 @@ function MeineSupports({ userId }) {
     setLoading(true);
     const [g, r] = await Promise.all([
       supabase.from("stripe_payments")
-        .select("id, ambassador_id, amount, status, payment_type, description, metadata, created_at")
+        .select("id, amount, status, payment_type, description, metadata, created_at")
         .eq("user_id", userId)
         .eq("payment_type", "support")
         .order("created_at", { ascending: false })
         .limit(50),
       supabase.from("stripe_payments")
         .select("id, user_id, amount, status, payment_type, description, metadata, created_at")
-        .eq("ambassador_id", userId)
+        // [archived: ambassador commission filter removed]
         .eq("payment_type", "support")
         .order("created_at", { ascending: false })
         .limit(50),
@@ -1094,7 +1094,7 @@ function MeineSupports({ userId }) {
     return <EmptyState text="Noch keine Unterstützungen gegeben oder erhalten." />;
 
   const items = view === "given" ? given : received;
-  const otherIdKey = view === "given" ? "ambassador_id" : "user_id";
+  const otherIdKey = view === "given" ? "seller_id" : "user_id";
 
   return (
     <div>

@@ -64,7 +64,6 @@ export function AuthProvider({ children }) {
             display_name: null,
             username: null,
             is_talent: false,
-            is_ambassador: false,
           }), 6000
         );
         if (newProf) setProfile(newProf);

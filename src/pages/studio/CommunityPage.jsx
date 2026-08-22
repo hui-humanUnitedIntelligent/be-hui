@@ -68,7 +68,7 @@ export default function CommunityPage() {
     ] = await Promise.all([
       // Aktive Mitglieder — die letzten 12 mit activity (nicht nach followers sortiert)
       supabase.from('profiles')
-        .select('id, display_name, avatar_url, role, is_talent, is_ambassador, membership_active, updated_at')
+        .select('id, display_name, avatar_url, role, is_talent, membership_active, updated_at')
         .eq('membership_active', true)
         .order('updated_at', { ascending: false })
         .limit(12),
@@ -283,7 +283,7 @@ function Section({ title = "", hint = "", children }) {
 
 // ── Mitgliedskarte ───────────────────────────────────────────────────
 function MemberCard({ member = {} }) {
-  const roleLabel = member.is_talent ? 'Talent' : member.is_ambassador ? 'Ambassador' : 'Mitglied';
+  const roleLabel = member.is_talent ? 'Talent' : 'Mitglied';
 
   return (
     <div style={{

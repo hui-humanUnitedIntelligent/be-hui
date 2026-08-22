@@ -9,7 +9,7 @@
 // Step 3: Veröffentlichen (Preview + Confirm)
 // ═══════════════════════════════════════════════════════════════
 
-import { HUIAmbassadorIcon, HUILocationIcon, HUIPersonenIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUILocationIcon, HUIPersonenIcon, HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useCallback, useRef } from "react";
 import { supabase }  from "../../lib/supabaseClient.js";
 import { useAuth }   from "../../lib/AuthContext.jsx";
@@ -343,7 +343,7 @@ function PreviewStep({ data, onPublish, onBack, publishing }) {
 function SuccessScreen({ onClose }) {
   return (
     <div style={{ textAlign:"center", padding:"32px 24px", animation:"if-up .32s ease both" }}>
-      <div style={{ marginBottom:16, animation:"if-pop .5s ease both", display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.8)" }}><HUIAmbassadorIcon size={56}/></div>
+      <div style={{ marginBottom:16, animation:"if-pop .5s ease both", display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.8)" }}><HUIPersonenIcon size={56}/></div>
       <div style={{ fontSize:22, fontWeight: 600, color:V.ink, letterSpacing:-0.5, marginBottom:8 }}>
         Einladung raus!
       </div>
