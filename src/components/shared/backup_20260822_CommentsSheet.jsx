@@ -702,9 +702,9 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px 10px" }}>
           <div>
-            <div style={{ fontSize:17, fontWeight: 600, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>Kommentar & Anfragen</div>
+            <div style={{ fontSize:17, fontWeight: 600, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>Kommentare</div>
             <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
-              {total > 0 ? `${total} ${total === 1 ? "Kommentar" : "Kommentare"}` : "Kommentiere und stelle Anfragen an das Talent"}
+              {total > 0 ? `${total} ${total === 1 ? "Kommentar" : "Kommentare"}` : "Noch keine Kommentare"}
             </div>
           </div>
           <button className="cs-btn" onClick={onClose} style={{ fontSize:20, color:T.inkFaint, padding:6 }}>✕</button>
