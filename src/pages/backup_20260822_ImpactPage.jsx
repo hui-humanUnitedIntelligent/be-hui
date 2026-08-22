@@ -723,7 +723,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             .eq("voter_id", currentUser.id)
             .eq("pool_month", poolMonth);
           // Single Source of Truth: isProfileTalent
-          const maxStimmen = isProfileTalent(currentUser) ? 1 : 0; // v2: Nur Talente
+          const maxStimmen = isProfileTalent(currentUser) ? 2 : 1;
           if (!dead) setUserVotesLeft(Math.max(0, maxStimmen - (usedThisMonth || 0)));
         }
 
@@ -808,10 +808,6 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
   const handleVote = async () => {
     if (!currentUser?.id || voted || loading) return;
-    if (!isProfileTalent(currentUser)) {
-      setVoteError("Nur Talente können abstimmen. Werde Talent, um mitzuentscheiden.");
-      return;
-    }
     if (userVotesLeft !== null && userVotesLeft <= 0) {
       setVoteError("Du hast diesen Monat keine Stimmen mehr.");
       return;
@@ -1188,7 +1184,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   border:     `1px solid ${userVotesLeft > 0 ? "rgba(13,196,181,0.25)" : "rgba(239,68,68,0.25)"}`,
                   borderRadius:99, padding:"4px 10px",
                 }}>
-                  {userVotesLeft > 0 ? `${userVotesLeft} Stimme${userVotesLeft !== 1 ? "n" : ""} übrig` : isProfileTalent(currentUser) ? "Keine Stimmen mehr" : "Nur Talente"}
+                  {userVotesLeft > 0 ? `${userVotesLeft} Stimme${userVotesLeft !== 1 ? "n" : ""} übrig` : "Keine Stimmen mehr"}
                 </div>
               )}
             </div>
@@ -1235,31 +1231,15 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               ) : userVotesLeft === 0 ? (
                 <div style={{
                   textAlign:"center", padding:"14px 16px",
-                  background: isProfileTalent(currentUser)
-                    ? "rgba(239,68,68,0.06)" : "rgba(0,0,0,0.04)",
-                  borderRadius:14,
-                  border: isProfileTalent(currentUser)
-                    ? "1px solid rgba(239,68,68,0.20)" : "1px solid rgba(0,0,0,0.08)",
+                  background:"rgba(239,68,68,0.06)", borderRadius:14,
+                  border:"1px solid rgba(239,68,68,0.20)",
                 }}>
-                  {isProfileTalent(currentUser) ? (
-                    <>
-                      <div style={{ fontSize:13, fontWeight:600, color:"#ef4444" }}>
-                        <span className="hui-emoji">🗳</span> Keine Stimmen mehr diesen Monat
-                      </div>
-                      <div style={{ fontSize:11, color:"#888", marginTop:4 }}>
-                        Deine Stimmen werden am 1. des nächsten Monats erneuert.
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
-                        Nur Talente können abstimmen
-                      </div>
-                      <div style={{ fontSize:11, color:T.muted, marginTop:4, opacity:0.8 }}>
-                        Werde Talent, um beim Impact-Voting mitzuentscheiden.
-                      </div>
-                    </>
-                  )}
+                  <div style={{ fontSize:13, fontWeight:600, color:"#ef4444" }}>
+                    <span className="hui-emoji">🗳</span> Keine Stimmen mehr diesen Monat
+                  </div>
+                  <div style={{ fontSize:11, color:"#888", marginTop:4 }}>
+                    Deine Stimmen werden am 1. des nächsten Monats erneuert.
+                  </div>
                 </div>
               ) : (
                 <button
@@ -1778,12 +1758,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   // ── Vote ──
   const castVote = async (projectId) => {
     if (!currentUser?.id || voteLoading) return;
-    if (!isProfileTalent(currentUser)) {
-      toast.info("Nur Talente können abstimmen.");
-      return;
-    }
     if (userVotes.some(v => v.project_id === projectId)) return;
-    const maxV = 1; // v2: 1 Stimme pro Talent pro Monat
+    const maxV = isProfileTalent(currentUser) ? 2 : 1;
     const usedV = userVotes.reduce((s,v) => s + safeNum(v.weight || 1), 0);
     if (usedV >= maxV) return;
 
@@ -1824,7 +1800,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   // ── Derived — Stimmen basieren auf echtem Profil-Status ──
   // isProfileTalent = Single Source of Truth (profileUtils.js)
   const isMem    = isProfileTalent(currentUser);
-  const maxVotes = isMem ? 1 : 0; // v2: Nur Talente, 1 Stimme
+  const maxVotes = isMem ? 2 : 1;
   const usedVotes   = userVotes.reduce((s,v) => s + safeNum(v.weight || 1), 0);
   const remainVotes = Math.max(0, maxVotes - usedVotes);
   const totalVotes  = projects.reduce((s,p) => s + safeNum(p.votes), 0);
@@ -1868,7 +1844,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 
       {/* ══ 3 ── AKTUELLE ABSTIMMUNG ═══════════════════════════ */}
       <VotingSection
-        canVote={isMem}
         projects={
           projects.length > 0 ? projects
           : monthlyTop3.length > 0
@@ -2111,7 +2086,7 @@ function PoolCard({ pool, userImpact }) {
 // ════════════════════════════════════════════════════════════════
 // 3. AKTUELLE ABSTIMMUNG — das Herzstück
 // ════════════════════════════════════════════════════════════════
-function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes, onVote, loading, onInfoClick, onOpen, canVote }) {
+function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes, onVote, loading, onInfoClick, onOpen }) {
   return (
     <div style={{ marginTop:24 }}>
       {/* Header */}
@@ -2159,8 +2134,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
             <VotingCard key={p.id} project={p} rank={i}
               voted={userVotes.some(v => v.project_id === p.id)}
               remainVotes={remainVotes}
-              totalVotes={totalVotes} onVote={onVote} onOpen={onOpen}
-              canVote={canVote} />
+              totalVotes={totalVotes} onVote={onVote} onOpen={onOpen} />
           ))}
         </div>
       )}
@@ -2168,7 +2142,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
   );
 }
 
-function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen, canVote = true }) {
+function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen }) {
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
   const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
@@ -2303,18 +2277,6 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
               Deine Stimme zählt
             </span>
           </div>
-        ) : !canVote ? (
-          <div style={{
-            width:"100%", borderRadius:18, padding:"14px 0", textAlign:"center",
-            background:"rgba(0,0,0,0.04)", border:"1.5px solid rgba(0,0,0,0.08)",
-          }}>
-            <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
-              Nur Talente können abstimmen
-            </div>
-            <div style={{ fontSize:11, color:T.muted, marginTop:2, opacity:0.8 }}>
-              Werde Talent, um mitzuentscheiden
-            </div>
-          </div>
         ) : remainVotes <= 0 ? (
           <div style={{
             width:"100%", borderRadius:18, padding:"14px 0", textAlign:"center",
@@ -2408,20 +2370,20 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
           })}
         </div>
 
-        {/* Talent-Hinweis */}
+        {/* Mitglied-Hinweis */}
         {isMem ? (
           <div style={{ fontSize:11, color:T.teal, fontWeight: 600 }}>
-            🏅 Als Talent hast du 1 Stimme pro Monat
+            🏅 Als Mitglied oder Talent hast du 2 Stimmen pro Monat
           </div>
         ) : (
           <div style={{ padding:"12px 14px",
             background:`${T.gold}10`, border:`1px solid ${T.gold}25`,
             borderRadius:14 }}>
             <div style={{ fontSize:12, fontWeight: 600, color:T.gold, marginBottom:3 }}>
-              ⭐ Abstimmung ist Talent vorbehalten
+              ⭐ Mit Mitgliedschaft auf 2 Stimmen
             </div>
             <div style={{ fontSize:11, color:T.ink2 }}>
-              Nur Talente können beim Impact-Voting mitentscheiden. Werde Talent, um teilzunehmen.
+              Mitglieder und Talente können doppelt so viel bewirken.
             </div>
           </div>
         )}

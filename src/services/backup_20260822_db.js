@@ -288,7 +288,7 @@ export const ImpactService = {
         .eq('pool_month', month)
     );
     const totalUsed = (existing || []).reduce((s, v) => s + (v.weight || 1), 0);
-    const maxVotes = 1; // v2: Nur Talente, 1 Stimme pro Monat (Talent-2x gestrichen)
+    const maxVotes  = voteWeight >= 2 ? 2 : 1;
 
     if (totalUsed >= maxVotes) {
       return { data: null, error: { message: `Maximale Stimmen für diesen Monat erreicht (${maxVotes})` } };
