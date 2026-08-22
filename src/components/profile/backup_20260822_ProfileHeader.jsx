@@ -299,22 +299,20 @@ export function ProfileHeader({
               )}
             </div>
 
-            {/* Follower — unter Badge. IMMER sichtbar (auch bei 0), damit die
-                Zahlen als soziales Signal erkennbar bleiben (Michael-Request
-                CHAT-LOGIK-v2, 2026-08-22: "Followerliste wieder einbauen"). */}
-            {!loading && (
+            {/* Follower — unter Badge */}
+            {!loading && (followCounts.followers > 0 || followCounts.following > 0) && (
               <div style={{
                 display:"flex", gap:10, marginTop:7,
                 fontSize:12, color:T.inkFaint,
               }}>
                 <span>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
-                    {followCounts.followers ?? 0}
+                    {followCounts.followers}
                   </strong>{" "}Follower
                 </span>
                 <span>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
-                    {followCounts.following ?? 0}
+                    {followCounts.following}
                   </strong>{" "}folgt
                 </span>
               </div>

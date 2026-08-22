@@ -1,28 +1,19 @@
 // src/components/shared/ProfileRelationButtons.jsx
-// CHAT-LOGIK-v2 (2026-08-22, Michael-Vorgabe): Der "Verbinden"-Button
-// (öffnete bisher ungated einen Chat mit JEDEM Profil) wurde entfernt.
-// Grund: Chat ist ab sofort AUSSCHLIESSLICH nach Buchung/Kauf (Werk, Talent,
-// Erlebnis) verfügbar und öffnet automatisch nach erfolgter Bezahlung —
-// nicht mehr per Klick von einem beliebigen öffentlichen Profil aus.
-// "Inspirierende Menschen" (kein Buchungsverhältnis) sehen daher nur noch
-// den "Folgen"-Button, keine Möglichkeit sich zu "verbinden"/zu chatten.
-//
-// WICHTIG: Dieser Chat-Entry-Point ist damit entfernt, ABER die tiefere
-// Absicherung (chats.insert nur mit gültiger booking_id / RLS-Check) ist
-// NICHT Teil dieser Änderung — findOrCreateChat() in chatContext.js erlaubt
-// weiterhin bookingId=null und wird u.a. auch von ChatCenterOverlay.jsx
-// ("neuer Chat" Flow) u. StoryBar.jsx aufgerufen. Das ist ein separater,
-// größerer Härtungs-Task (DB/RLS-Änderung) — hier bewusst nicht angefasst,
-// um keine bestehende Chat-Funktionalität ungeprüft zu brechen.
+// Kompakte "Verbinden" + "Folgen"-Buttons für ALLE öffentlichen Profile.
+// Nebeneinander, klein, wiederverwendbar.
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useHome } from "../home/HomeShell.jsx";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 
 const T = {
+  teal:     "#0DC4B5",
   tealDeep: "#0AA89B",
+  glow:     "0 4px 18px rgba(13,196,181,0.28)",
+  card:     "0 1px 6px rgba(26,26,46,0.07)",
+  border:   "rgba(26,26,46,0.08)",
   bgCard:   "#fff",
   inkSoft:  "rgba(26,26,46,0.50)",
-  border:   "rgba(26,26,46,0.08)",
   r99:      99,
   px:       20,
 };
@@ -32,10 +23,12 @@ export default function ProfileRelationButtons({
   currentUserId = "",
   profile       = {},
   onFollowChange,
-  onClose, // eslint-disable-line no-unused-vars -- Signatur bewusst beibehalten (Aufrufer übergeben ihn weiterhin)
+  onClose,
 }) {
   const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isConnected,   setIsConnected]   = useState(false);
+  const { setShowChat, setChatRecipient } = useHome?.() || {};
 
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
   const shortName   = displayName.split(" ")[0] || displayName;
@@ -50,6 +43,17 @@ export default function ProfileRelationButtons({
         setIsFollowing(!!data);
       }).catch(() => {});
   }, [profileId, currentUserId]);
+
+  // Prüfe ob bereits verbunden (gegenseitig)
+  useEffect(() => {
+    if (!profileId || !currentUserId || profileId === currentUserId) return;
+    supabase.from("follows").select("follower_id")
+      .eq("follower_id", profileId).eq("followed_id", currentUserId)
+      .maybeSingle().then(({ data, error }) => {
+        if (error) { console.warn("[Follow] connected check error:", error.message); return; }
+        if (data) setIsConnected(true);
+      }).catch(() => {});
+  }, [profileId, currentUserId, isFollowing]);
 
   if (!currentUserId || profileId === currentUserId) return null;
 
@@ -96,6 +100,20 @@ export default function ProfileRelationButtons({
     finally { setFollowLoading(false); }
   };
 
+  const handleChat = (e) => {
+    e?.stopPropagation();
+    if (!profile?.id || !setShowChat) return;
+    setChatRecipient?.({
+      id: profile.id,
+      display_name: profile.display_name || profile.username || "Mitglied",
+      avatar_url: profile.avatar_url || null,
+    });
+    if (onClose) onClose();   // Profil schließen
+    setShowChat?.(true);      // Chat öffnen
+  };
+
+  const connected = isFollowing && isConnected;
+
   const btnBase = {
     flex:1, height:36, borderRadius:T.r99,
     fontWeight:600, fontSize:12, cursor:"pointer",
@@ -107,7 +125,21 @@ export default function ProfileRelationButtons({
 
   return (
     <div style={{ display:"flex", flexDirection:"row", gap:8, padding:`0 ${T.px}px`, marginBottom:4 }}>
-      {/* Folgen — einziger Aktions-Button (Verbinden entfernt, siehe CHAT-LOGIK-v2) */}
+      {/* Verbinden */}
+      <button onClick={handleChat} className="ppp-press" style={{
+        ...btnBase,
+        background: connected ? T.bgCard : T.teal,
+        border: connected ? `1.5px solid ${T.border}` : "none",
+        color: connected ? T.inkSoft : "#fff",
+        boxShadow: connected ? T.card : T.glow,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>{connected ? "Verbunden" : "Verbinden"}</span>
+      </button>
+
+      {/* Folgen */}
       <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
         ...btnBase,
         background: isFollowing ? T.bgCard : "transparent",

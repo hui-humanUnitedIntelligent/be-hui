@@ -18,6 +18,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
+import { useHome }  from "../components/home/HomeShell.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import {
@@ -125,12 +126,10 @@ function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
 }
 
 // ── Aktions-Sektion: Verbinden + Folgen ───────────────────────────
-// CHAT-LOGIK-v2 (2026-08-22, Michael): "Verbinden"-Button entfernt — Chat
-// ist ab sofort ausschließlich nach Buchung/Kauf verfügbar (öffnet automatisch
-// nach Bezahlung), nicht mehr per Klick von einem beliebigen Profil aus.
-function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
+function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange, onOpenChat }) {
   const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [isConnected,   setIsConnected]   = useState(false);
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
 
   // Prüfe ob bereits gefolgt
@@ -145,6 +144,21 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
       .then(({ data }) => setIsFollowing(!!data))
       .catch(() => {});
   }, [profileId, currentUserId]);
+
+  // Prüfe ob bereits verbunden (gegenseitig folgend = Verbindung)
+  useEffect(() => {
+    if (!profileId || !currentUserId || profileId === currentUserId) return;
+    supabase
+      .from("follows")
+      .select("follower_id")
+      .eq("follower_id", profileId)
+      .eq("followed_id", currentUserId)
+      .maybeSingle()
+      .then(({ data: theyFollow }) => {
+        if (theyFollow) setIsConnected(true);
+      })
+      .catch(() => {});
+  }, [profileId, currentUserId, isFollowing]);
 
   if (!currentUserId || profileId === currentUserId) return null;
 
@@ -184,12 +198,46 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
     finally { setFollowLoading(false); }
   };
 
+  const handleChat = (e) => {
+    e?.stopPropagation();
+    if (!profile?.id) return;
+    onOpenChat?.({
+      id: profile.id,
+      display_name: profile.display_name || profile.username || "Mitglied",
+      avatar_url: profile.avatar_url || null,
+    });
+  };
+
+  // Verbindungs-Label: gegenseitig folgend = verbunden
+  const connected = isFollowing && isConnected;
+
   // Kurzname für Button-Labels
   const shortName = (displayName || "").split(" ")[0] || displayName;
 
   return (
     <div style={{ display:"flex", flexDirection:"row", gap:8, padding:`0 ${T.px}px`, marginBottom:4 }}>
-      {/* Folgen Button — einziger Aktions-Button (Verbinden entfernt, CHAT-LOGIK-v2) */}
+      {/* Verbinden Button — kompakt, teal gefüllt */}
+      <button onClick={handleChat} className="ppp-press" style={{
+        flex:1, height:36, borderRadius:T.r99,
+        background: connected ? T.bgCard : T.teal,
+        border: connected ? `1.5px solid ${T.border}` : "none",
+        color: connected ? T.inkSoft : "#fff",
+        fontWeight:600, fontSize:12, cursor:"pointer",
+        touchAction:"manipulation", fontFamily:"inherit",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+        boxShadow: connected ? T.card : T.glow,
+        transition:"all .18s ease", whiteSpace:"nowrap", overflow:"hidden",
+        paddingLeft:10, paddingRight:12,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+          {connected ? "Verbunden" : `Verbinden`}
+        </span>
+      </button>
+
+      {/* Folgen Button — kompakt, outline */}
       <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
         flex:1, height:36, borderRadius:T.r99,
         background: isFollowing ? T.bgCard : "transparent",
@@ -359,8 +407,19 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "PublicProfilePage");
   const { user } = useAuth();
   const isOwnProfile = user?.id === profileId;
-  // CHAT-LOGIK-v2 (2026-08-22): handleOpenChat entfernt — Chat wird nicht
-  // mehr per Klick vom Profil aus geöffnet, siehe RelationButtons-Kommentar.
+  const { setShowChat, setChatRecipient } = useHome() || {};
+
+  // Öffnet Chat direkt UND schließt das Profil — Reihenfolge: erst Recipient setzen, dann Profil schließen, dann Chat öffnen
+  const handleOpenChat = useCallback((recipient) => {
+    if (!recipient?.id || !setShowChat) return;
+    setChatRecipient?.({
+      id: recipient.id,
+      display_name: recipient.display_name || "Mitglied",
+      avatar_url: recipient.avatar_url || null,
+    });
+    onClose?.();          // Profil schließen
+    setShowChat(true);    // Chat öffnen
+  }, [setChatRecipient, setShowChat, onClose]);
 
   const {
     profile, works, experiences, recommendations, moments,
@@ -462,7 +521,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── AKTIONS-BUTTONS ── */}
         {profile && !isOwnProfile && (
-          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} />
+          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} onOpenChat={handleOpenChat} />
         )}
         {SHOW_SUPPORT_BUTTON && profile && !isOwnProfile && (
           <button onClick={() => setShowSupport(true)} className="ppp-press" style={{
