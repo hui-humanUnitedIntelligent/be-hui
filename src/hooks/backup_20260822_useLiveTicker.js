@@ -417,47 +417,6 @@ async function fetchFallbackStats() {
 // connections/recommendations/project_support haben kaum Daten → langsam)
 // plus Stimmen/Talente/Nutzer (LIVETICKER.2, 2026-08-10) plus Fallback-
 // Aggregatzahlen fuer den Turnus wenn nichts Neues gekommen ist.
-
-// Impact-Pool-Einzahlungen — anonymisiert (kein Nutzername, nur Betrag).
-// Quelle: impact_distributions (öffentlich lesbar, RLS USING(true)).
-// Zeigt z.B. "€ 3,20 wurden gerade in den Impact-Pool eingezahlt"
-async function fetchImpactPoolContributions() {
-  const rows = await safe(
-    supabase.from("impact_distributions")
-      .select("id,amount_eur,distributed_at,project_id")
-      .order("distributed_at", { ascending:false })
-      .limit(PER_SOURCE_LIMIT)
-  );
-  if (!rows.length) return [];
-
-  // Projektname anreichern (falls projektbezogen)
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const projectIds = [...new Set(rows.map(r => r.project_id).filter(id => UUID_RE.test(String(id))))];
-  let nameById = {};
-  if (projectIds.length) {
-    const projects = await safe(
-      supabase.from("impact_applications")
-        .select("id,project_name")
-        .in("id", projectIds)
-    );
-    nameById = Object.fromEntries(projects.map(p => [p.id, p.project_name]));
-  }
-
-  return rows.map(r => {
-    const amount = Number(r.amount_eur || 0);
-    const fmtAmount = amount.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const projName = nameById[r.project_id];
-    return {
-      id: `pool_${r.id}`,
-      createdAt: r.distributed_at,
-      text: projName
-        ? `€ ${fmtAmount} wurden gerade für „${esc(projName)}" verteilt`
-        : `€ ${fmtAmount} wurden gerade in den Impact-Pool eingezahlt`,
-      openRef: r.project_id ? { type:"project", id:r.project_id } : null,
-    };
-  });
-}
-
 const SOURCES = [
   fetchWorks,
   fetchExperiences,
@@ -465,7 +424,6 @@ const SOURCES = [
   fetchResonance,
   fetchWorkSales,
   fetchExperienceBookings,
-  fetchImpactPoolContributions,
   fetchVotes,
   fetchNewTalents,
   fetchNewUsers,
