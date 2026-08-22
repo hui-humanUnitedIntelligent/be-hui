@@ -847,7 +847,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
               ref={inputRef}
               value={input} onChange={e=>setInput(e.target.value)} rows={1}
               className="cs-textarea"
-              placeholder="Teile deine Gedanken …"
+              placeholder="Kommentiere und/oder stelle Anfragen an das Talent"
               style={{
                 flex:1, border:`1px solid ${T.border}`, borderRadius:18, padding:"9px 14px",
                 fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
