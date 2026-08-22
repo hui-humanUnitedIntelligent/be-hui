@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './lib/AuthContext.jsx';
+import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 import LoginPage from './pages/LoginPage';
 import './index.css';
 import './web.css';
@@ -30,21 +30,17 @@ class EC extends React.Component {
   }
 }
 
-// Check if LoginPage is valid
-if (_d) _d.innerHTML += '\n[JS] LoginPage type=' + typeof LoginPage;
-if (_d) _d.innerHTML += '\n[JS] LoginPage isFn=' + (typeof LoginPage === 'function');
-
-// Wrap LoginPage to trace renders
+// Proper React wrapper — LoginPage rendered as JSX component
 function TracedLoginPage() {
-  if (_d) _d.innerHTML += '\n[JS] TracedLoginPage RENDER called';
-  try {
-    const result = LoginPage();
-    if (_d) _d.innerHTML += '\n[JS] LoginPage() returned type=' + (result === null ? 'null' : result === undefined ? 'undefined' : result?.type?.name || result?.type || 'element');
-    return result;
-  } catch(e) {
-    if (_d) _d.innerHTML += '\n[JS] LoginPage() THREW: ' + e.message;
-    throw e;
-  }
+  React.useEffect(() => {
+    if (_d) _d.innerHTML += '\n[JS] TracedLoginPage MOUNTED';
+    if (_d) _d.innerHTML += '\n[JS] after mount rootEl.children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
+    return () => {
+      if (_d) _d.innerHTML += '\n[JS] TracedLoginPage UNMOUNTED';
+    };
+  }, []);
+  
+  return <LoginPage />;
 }
 
 function TestB() {
@@ -66,7 +62,6 @@ const r = ReactDOM.createRoot(rootEl);
 r.render(<TestB />);
 if (_d) _d.innerHTML += '\n[JS] render() called';
 
-// Multiple checks
 [1, 2, 3, 5].forEach(t => {
   setTimeout(() => {
     if (_d) _d.innerHTML += '\n[' + t + 's] children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
