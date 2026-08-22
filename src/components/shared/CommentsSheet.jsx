@@ -25,7 +25,7 @@ import { toast } from "../../lib/useToast.jsx";
 // ── Kontakt-Daten-Schutz: Email & Telefon im Kommentar blockieren ──────────
 // HUI-Regel: Kommentare & Anfragen dienen dem öffentlichen Austausch.
 // Keine Email-Adressen oder Telefonnummern (DSGVO + Plattform-Regeln).
-const CONTACT_BLOCK_MSG = "Aus Datenschutzgründen können keine E-Mail-Adressen oder Telefonnummern veröffentlicht werden. Bitte halte dich an die HUI-Regeln und tausche Kontakttdaten nur über den Chat nach einer Buchung aus.";
+const CONTACT_BLOCK_MSG = "Aus Datenschutzgründen können keine E-Mail-Adressen, Telefonnummern oder Social-Media-Links veröffentlicht werden. Bitte halte dich an die HUI-Regeln und tausche Kontaktdaten nur über den Chat nach einer Buchung aus.";
 
 function detectContactData(text) {
   // Email: Standard-Pattern
@@ -42,6 +42,16 @@ function detectContactData(text) {
   // Auch reine deutsche Nummern ohne + (015112345678, 0301234567 etc.)
   const dePhoneRe = /\b0(?:1[5-7]\d{8}|[2-9]\d{4,11})\b/;
   if (dePhoneRe.test(text)) return true;
+
+  // Social-Media-Links: Instagram, Facebook, Twitter/X, TikTok, LinkedIn,
+  // YouTube, WhatsApp, Telegram, Snapchat, Pinterest, Threads, Twitch
+  // Matchet sowohl volle URLs (https://instagram.com/...) als auch bare handles (@username)
+  const socialRe = /(?:https?:\/\/)?(?:www\.)?(?:instagram\.com|instagr\.am|facebook\.com|fb\.me|fb\.com|twitter\.com|x\.com|tiktok\.com|linkedin\.com|youtube\.com|youtu\.be|whatsapp\.com|wa\.me|t\.me|telegram\.me|snapchat\.com|pinterest\.com|threads\.net|twitch\.tv)\S*/i;
+  if (socialRe.test(text)) return true;
+
+  // @-Handles fuer Instagram/Twitter/TikTok etc. (nur wenn gefolgt von 3+ Zeichen)
+  const atHandleRe = /@(?:[a-zA-Z0-9_.]{3,})\s*(?:!|\s|$)/;
+  if (atHandleRe.test(text)) return true;
 
   return false;
 }
