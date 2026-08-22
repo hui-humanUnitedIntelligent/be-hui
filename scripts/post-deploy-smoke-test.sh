@@ -18,7 +18,7 @@ echo "════════════════════════�
 
 # ── Kernrouten ──────────────────────────────────────────────────
 ROUTES=(
-  "/|Landing Page"
+  "/landing.html|Landing Page"
   "/app/login|Login Page"
   "/app/auth/callback|Auth Callback"
 )
@@ -32,23 +32,27 @@ for entry in "${ROUTES[@]}"; do
   echo "Testing: $NAME ($URL)"
 
   # HTTP Status
-  HTTP_CODE=$(curl -s -o /tmp/smoke-response.html -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
+  HTTP_CODE=$(curl -sL -o /tmp/smoke-response.html -w "%{http_code}" "$URL" 2>/dev/null || echo "000")
 
   if [ "$HTTP_CODE" = "200" ]; then
-    # Check if #web-root or #root exists
+    # Check content: React app routes have #web-root/#root, static pages have other content
     if grep -q 'id="web-root"' /tmp/smoke-response.html || grep -q 'id="root"' /tmp/smoke-response.html; then
-      # Check if JS module script exists
+      # React app page — check module script
       if grep -q 'type="module"' /tmp/smoke-response.html; then
-        echo "  ✅ $NAME: HTTP 200, HTML structure OK"
+        echo "  ✅ $NAME: HTTP 200, React app structure OK"
         RESULTS="${RESULTS}✅ ${NAME}: OK\n"
       else
         echo "  ⚠️ $NAME: HTTP 200 but no module script found"
         RESULTS="${RESULTS}⚠️ ${NAME}: no module script\n"
         FAILED=$((FAILED + 1))
       fi
+    elif grep -q '<!DOCTYPE html>' /tmp/smoke-response.html && [ $(wc -c < /tmp/smoke-response.html) -gt 500 ]; then
+      # Static HTML page — check it has content
+      echo "  ✅ $NAME: HTTP 200, static HTML ($(wc -c < /tmp/smoke-response.html) bytes)"
+      RESULTS="${RESULTS}✅ ${NAME}: static OK\n"
     else
-      echo "  ❌ $NAME: HTTP 200 but no #web-root/#root element"
-      RESULTS="${RESULTS}❌ ${NAME}: no root element\n"
+      echo "  ❌ $NAME: HTTP 200 but no valid HTML content"
+      RESULTS="${RESULTS}❌ ${NAME}: no content\n"
       FAILED=$((FAILED + 1))
     fi
   else
@@ -68,7 +72,7 @@ if [ -n "$MAIN_CHUNK" ]; then
   else
     CHUNK_URL="${BASE_URL}/${MAIN_CHUNK}"
   fi
-  CHUNK_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$CHUNK_URL" 2>/dev/null || echo "000")
+  CHUNK_CODE=$(curl -sL -o /dev/null -w "%{http_code}" "$CHUNK_URL" 2>/dev/null || echo "000")
   if [ "$CHUNK_CODE" = "200" ]; then
     echo "  ✅ Main chunk: HTTP 200 ($MAIN_CHUNK)"
   else
