@@ -511,9 +511,22 @@ p, h1, h2, h3, h4, h5, h6, span, div {
     box-sizing: border-box;
   }
 
-  [role="dialog"] {
-    max-width: calc(100vw - 32px) !important;
-  }
+  /* ROOT-CAUSE-FIX (2026-08-22): [role="dialog"] { max-width: calc(100vw-32px) }
+     wurde entfernt. Ursache eines Layout-Bugs in ImpactPage.jsx: beide
+     Vollbild-Portal-Sheets (ImpactVormonateModal + Info-Modal-System) setzen
+     role="dialog" UND position:fixed;inset:0 für Edge-to-Edge-Vollbild-
+     Darstellung. Diese globale Regel zwang sie auf max-width:calc(100vw-32px)
+     bei gleichzeitig durch inset:0 gesetztem left:0 — Ergebnis: eine 32px
+     breite Lücke am rechten Rand, durch die der Hintergrund (Foto/Icons der
+     ImpactPage) sichtbar durchschien ("Höhe/Breite kaputt"-Report von Michael,
+     Screenshot 2026-08-22 23:23). Kein anderer Ort im Code nutzt role="dialog"
+     (verifiziert per grep) — die Regel hatte keinen legitimen Anwendungsfall
+     mehr und war nur noch schädlich. Falls künftig ein KLEINER, zentrierter
+     Alert/Confirm-Dialog mit role="dialog" gebaut wird, der bewusst Ränder
+     zum Screen-Rand haben soll: max-width lokal per Inline-Style oder eigene
+     CSS-Klasse setzen — NICHT erneut global über [role="dialog"], da das
+     jeden zukünftigen Vollbild-Portal-Sheet mit role="dialog" erneut brechen
+     würde. */
 }
 
 img[loading="lazy"] {

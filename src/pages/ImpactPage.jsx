@@ -2391,13 +2391,37 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
 function ImpactVormonateModal({ months, loading, onClose }) {
   const [openMonth, setOpenMonth] = React.useState(0); // erster Monat aufgeklappt
 
+  // Escape schließt (analog InfoSheet-Muster in derselben Datei)
+  React.useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Body-Scroll sperren (fehlte zuvor — InfoSheet in derselben Datei hat dies
+  // bereits, ImpactVormonateModal war die Ausnahme; für Konsistenz ergänzt,
+  // 2026-08-22)
+  React.useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   const content = (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Impact Vormonate"
       style={{
-        position:"fixed", inset:0, zIndex:10500,
+        // Redundante explizite top/right/bottom/left ZUSÄTZLICH zu inset:0
+        // (ROOT-CAUSE-FIX 2026-08-22: eine globale [role="dialog"]-Regel hat
+        // dieses Sheet zuvor per max-width geschrumpft, obwohl inset:0
+        // korrekt war — siehe index.css Kommentar. Diese Redundanz ist ein
+        // zusätzlicher Schutz gegen künftige CSS-Kollisionen mit demselben
+        // Selektor-Muster, da width/height:"100%" explizit gegen jede
+        // max-width/max-height-Fremdregel gegensteuert.)
+        position:"fixed", inset:0, top:0, right:0, bottom:0, left:0,
+        width:"100%", height:"100%", maxWidth:"100vw", maxHeight:"100dvh",
+        zIndex:10500,
         display:"flex", flexDirection:"column",
         background:T.surfaceHi,
         animation:"ipFadeIn 0.22s ease both",
@@ -3785,7 +3809,12 @@ function InfoSheet({ modal, onClose }) {
       aria-modal="true"
       aria-label={c.title}
       style={{
-        position:"fixed", inset:0, zIndex:10500,
+        // Redundante explizite top/right/bottom/left ZUSÄTZLICH zu inset:0
+        // (ROOT-CAUSE-FIX 2026-08-22: analog zu ImpactVormonateModal — siehe
+        // index.css Kommentar zur entfernten globalen [role="dialog"]-Regel.)
+        position:"fixed", inset:0, top:0, right:0, bottom:0, left:0,
+        width:"100%", height:"100%", maxWidth:"100vw", maxHeight:"100dvh",
+        zIndex:10500,
         display:"flex",
         flexDirection:"column",
         background:T.surfaceHi,
