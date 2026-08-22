@@ -1,59 +1,23 @@
-// ══════════════════════════════════════════════════════════════════════════════
-// web-main.jsx — HUI Web Entry Point (Desktop V3)
-// ══════════════════════════════════════════════════════════════════════════════
-//
-// v2.5: Defensive init — try-catch um alle Modul-Scope-Init-Aufrufe.
-//       Wenn Sentry oder Keyboard-Handler crasht, wird die App trotzdem gerendert.
-// v2.4: desktopV3.css nach AuthenticatedApp verschoben.
-// ══════════════════════════════════════════════════════════════════════════════
-
+// MINIMAL TEST: Does React render at all?
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import WebApp from './WebApp.jsx';
 
-// ── Styles (Public-only) ─────────────────────────────────────────────────────
-import './index.css';                       // Shared Design System (Tailwind, CSS Variables, Fonts)
-import './web.css';                         // Web-spezifische Styles (Root Reset, Loading Screen)
-import './landing.css';                     // Landing Page Styles (nur Public)
-// desktopV3.css → jetzt in AuthenticatedApp.jsx (lazy nach Login)
+// Minimal CSS
+import './index.css';
 
-// ── Sentry ────────────────────────────────────────────────────────────────────
-import { initSentry, sentryCapture } from './lib/sentry.js';
+console.log('[HUI web-main] Starting minimal render...');
 
-// WHITESCREEN-FIX (2026-08-22): try-catch um initSentry — wenn Sentry crasht,
-// darf nicht die ganze App sterben. Sentry ist optional, Rendering ist Pflicht.
 try {
-  initSentry();
+  const root = document.getElementById('web-root');
+  console.log('[HUI web-main] root element:', root);
+  ReactDOM.createRoot(root).render(
+    React.createElement('div', { style: { padding: 40, fontFamily: 'sans-serif' } },
+      React.createElement('h1', null, 'HUI Web — Minimal Test'),
+      React.createElement('p', null, 'If you see this, React works. The issue is in the app imports.')
+    )
+  );
+  console.log('[HUI web-main] Render called successfully');
 } catch (e) {
-  console.error('[HUI] Sentry init failed (non-fatal):', e);
+  console.error('[HUI web-main] Render FAILED:', e);
+  document.getElementById('web-root').innerHTML = '<div style="padding:40px;font-family:sans-serif"><h1>Render Error</h1><pre>' + (e.message || e) + '</pre></div>';
 }
-
-// KEYBOARD-PUSH-UP (2026-08-15): Globales Keyboard-Handling auch für Web/Mobile-Web
-import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
-
-// WHITESCREEN-FIX (2026-08-22): try-catch um keyboard init — defensive
-try {
-  initGlobalKeyboardHandling();
-} catch (e) {
-  console.error('[HUI] Keyboard handler init failed (non-fatal):', e);
-}
-
-// ── Global Error Handlers ───────────────────────────────────────────────────
-window.addEventListener('unhandledrejection', (event) => {
-  const err = event.reason instanceof Error
-    ? event.reason
-    : new Error(String(event.reason ?? 'Unhandled rejection'));
-  sentryCapture(err, { source: 'unhandledrejection', href: window.location.href });
-});
-
-window.addEventListener('error', (event) => {
-  if (!event.error) return;
-  sentryCapture(event.error, { source: 'window.onerror', href: window.location.href });
-});
-
-// ── Render ────────────────────────────────────────────────────────────────────
-ReactDOM.createRoot(document.getElementById('web-root')).render(
-  <React.StrictMode>
-    <WebApp />
-  </React.StrictMode>
-);
