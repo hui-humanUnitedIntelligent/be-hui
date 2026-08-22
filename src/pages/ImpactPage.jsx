@@ -2429,7 +2429,11 @@ function ImpactVormonateModal({ months, loading, onClose }) {
     >
       {/* Sticky Header mit Close */}
       <div style={{
-        padding:"56px 22px 16px",
+        // FIX (2026-08-23): fester 56px-Top-Wert reichte auf Geräten mit
+        // hoher Statusleiste (Notch/Kamera-Insel/System-UI) nicht — Titel
+        // saß zu nah an Uhr/Akku-Icons. SSOT-Safe-Area-Muster (wie in
+        // LoginPage.jsx, MyBasisProfile.jsx, MeinHUI.jsx u.a.) übernommen.
+        padding:"max(var(--hui-safe-top, 0px),56px,env(safe-area-inset-top,56px)) 22px 16px",
         borderBottom:`1px solid ${T.line}`,
         background:T.surfaceHi, flexShrink:0, position:"relative",
       }}>
@@ -2438,7 +2442,13 @@ function ImpactVormonateModal({ months, loading, onClose }) {
           className="ip-p"
           aria-label="Schließen"
           style={{
-            position:"absolute", top:16, right:16,
+            // FIX (2026-08-23): absolute top:16 bezieht sich auf den Rand
+            // der Header-Box (nicht auf den Safe-Area-Innenrand) — Button
+            // wäre trotz Header-Padding-Fix weiterhin zu nah am Systembereich
+            // geblieben. Gleiches Safe-Area-Maß wie der Header-Top-Padding.
+            position:"absolute",
+            top:"max(var(--hui-safe-top, 0px),16px,calc(env(safe-area-inset-top,16px) + 8px))",
+            right:16,
             width:36, height:36, borderRadius:"50%",
             background:"rgba(0,0,0,0.07)",
             border:"none", cursor:"pointer",
@@ -3824,7 +3834,10 @@ function InfoSheet({ modal, onClose }) {
     >
       {/* Sticky Header mit Close */}
       <div style={{
-        padding:"56px 22px 16px", /* 56px = Status-Bar-Platz */
+        // FIX (2026-08-23): fester 56px-Wert reichte auf Geräten mit hoher
+        // Statusleiste nicht — SSOT-Safe-Area-Muster übernommen (siehe
+        // ImpactVormonateModal-Fix in derselben Datei, gleicher Root Cause).
+        padding:"max(var(--hui-safe-top, 0px),56px,env(safe-area-inset-top,56px)) 22px 16px",
         borderBottom:`1px solid ${T.line}`,
         background:T.surfaceHi,
         flexShrink:0,
@@ -3836,7 +3849,11 @@ function InfoSheet({ modal, onClose }) {
           className="ip-p"
           aria-label="Schließen"
           style={{
-            position:"absolute", top:16, right:16,
+            // FIX (2026-08-23): absolute top:16 ignorierte die Safe-Area —
+            // gleiches Maß wie Header-Top-Padding.
+            position:"absolute",
+            top:"max(var(--hui-safe-top, 0px),16px,calc(env(safe-area-inset-top,16px) + 8px))",
+            right:16,
             width:36, height:36, borderRadius:"50%",
             background:"rgba(0,0,0,0.07)",
             border:"none", cursor:"pointer",
