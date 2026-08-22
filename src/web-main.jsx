@@ -1,34 +1,48 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import WebApp from './WebApp.jsx';
+import { GlobalAppBoundary } from './lib/ErrorBoundaries.jsx';
+import './index.css';
+import './web.css';
+import './landing.css';
+import { initSentry } from './lib/sentry.js';
+import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
 
 const _d = document.getElementById('diag');
-if (_d) _d.innerHTML += '\n[JS] module loaded';
+if (_d) _d.innerHTML = '[JS] module loaded, React=' + React.version;
 
-// Check React/ReactDOM versions
-if (_d) _d.innerHTML += '\n[JS] React=' + (React.version || 'no version');
-if (_d) _d.innerHTML += '\n[JS] ReactDOM=' + (ReactDOM.version || 'no version');
+try { initSentry(); } catch(e) {}
+try { initGlobalKeyboardHandling(); } catch(e) {}
 
-// Check #web-root exists
-const root = document.getElementById('web-root');
-if (_d) _d.innerHTML += '\n[JS] #web-root exists=' + (!!root) + ' children=' + (root ? root.childElementCount : 'N/A');
+const rootEl = document.getElementById('web-root');
+const r = ReactDOM.createRoot(rootEl);
 
-// Step 1: Render simple div
-try {
-  const r = ReactDOM.createRoot(root);
-  r.render(React.createElement('div', {style:{padding:40,color:'#0dc4b5',fontSize:24}}, 'TEST DIV — React works!'));
-  
-  // Check after render
-  if (_d) _d.innerHTML += '\n[JS] After render: #web-root children=' + root.childElementCount + ' innerHTML.len=' + root.innerHTML.length;
-  if (_d) _d.innerHTML += '\n[JS] First child tag=' + (root.firstElementChild ? root.firstElementChild.tagName : 'none');
-  if (_d) _d.innerHTML += '\n[JS] First child text=' + (root.firstElementChild ? root.firstElementChild.textContent.substring(0,50) : 'none');
-  
-  // Check after a tick
-  setTimeout(() => {
-    if (_d) _d.innerHTML += '\n[JS] After 1s: #web-root children=' + root.childElementCount + ' innerHTML.len=' + root.innerHTML.length;
-    if (_d) _d.innerHTML += '\n[JS] After 1s child tag=' + (root.firstElementChild ? root.firstElementChild.tagName : 'none');
-    if (_d) _d.innerHTML += '\n[JS] After 1s child text=' + (root.firstElementChild ? root.firstElementChild.textContent.substring(0,50) : 'none');
-  }, 1000);
-  
-} catch(e) {
-  if (_d) _d.innerHTML += '\n[JS] RENDER CRASH: ' + e.message + '\n' + (e.stack||'').split('\n').slice(0,3).join('\n');
-}
+r.render(
+  <React.StrictMode>
+    <GlobalAppBoundary>
+      <WebApp />
+    </GlobalAppBoundary>
+  </React.StrictMode>
+);
+
+if (_d) _d.innerHTML += '\n[JS] render() called';
+
+// Inspect DOM after 3s
+setTimeout(() => {
+  if (_d) {
+    _d.innerHTML += '\n[3s] #web-root children=' + rootEl.childElementCount;
+    _d.innerHTML += '\n[3s] innerHTML.len=' + rootEl.innerHTML.length;
+    _d.innerHTML += '\n[3s] innerHTML.preview=' + rootEl.innerHTML.substring(0, 300);
+    // Check for error boundary UI
+    const errUI = rootEl.querySelector('[style*="background"]');
+    _d.innerHTML += '\n[3s] has error UI=' + !!errUI;
+    // Check for loading screen
+    const loadingEl = rootEl.querySelector('.web-loading');
+    _d.innerHTML += '\n[3s] has .web-loading=' + !!loadingEl;
+    // Check all class names
+    const allEls = rootEl.querySelectorAll('*');
+    const classes = new Set();
+    allEls.forEach(el => { if(el.className) el.classList.forEach(c => classes.add(c)); });
+    _d.innerHTML += '\n[3s] classes=' + [...classes].slice(0, 15).join(',');
+  }
+}, 3000);
