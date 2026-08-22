@@ -457,6 +457,7 @@ export default function LoginPage() {
         return;
       }
     }
+  }
 
   // ── Registration ──────────────────────────────────────────────
   function calculateAge(birthStr) {
@@ -1013,5 +1014,4 @@ export default function LoginPage() {
       />
     </div>
   );
-}
 }
