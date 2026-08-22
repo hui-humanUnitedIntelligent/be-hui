@@ -2,34 +2,43 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 
 const _d = document.getElementById('diag');
-if (_d) _d.innerHTML += '<br>[JS] web-main.jsx module loaded';
+if (_d) _d.innerHTML += '\n[JS] web-main.jsx loaded';
 
-import WebApp from './WebApp.jsx';
-import { GlobalAppBoundary } from './lib/ErrorBoundaries.jsx';
-import './index.css';
-import './web.css';
-import './landing.css';
-import { initSentry } from './lib/sentry.js';
-import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
-
-if (_d) _d.innerHTML += '<br>[JS] All imports loaded';
-
-try { initSentry(); if (_d) _d.innerHTML += '<br>[JS] Sentry OK'; }
-catch(e) { if (_d) _d.innerHTML += '<br>[JS] Sentry FAIL: ' + e.message; }
-
-try { initGlobalKeyboardHandling(); if (_d) _d.innerHTML += '<br>[JS] Keyboard OK'; }
-catch(e) { if (_d) _d.innerHTML += '<br>[JS] Keyboard FAIL: ' + e.message; }
-
+// Step 1: Render a simple div
 try {
-  if (_d) _d.innerHTML += '<br>[JS] Calling createRoot...';
-  ReactDOM.createRoot(document.getElementById('web-root')).render(
+  const testRoot = ReactDOM.createRoot(document.getElementById('web-root'));
+  testRoot.render(
     <React.StrictMode>
-      <GlobalAppBoundary>
-        <WebApp />
-      </GlobalAppBoundary>
+      <div style={{padding:40,fontFamily:'sans-serif',fontSize:24,color:'#0dc4b5'}}>
+        ✓ React works — loading WebApp...
+      </div>
     </React.StrictMode>
   );
-  if (_d) _d.innerHTML += '<br>[JS] render() called';
+  if (_d) _d.innerHTML += '\n[JS] Test div rendered';
 } catch(e) {
-  if (_d) _d.innerHTML += '<br>[JS] RENDER CRASH: ' + e.message + '<pre>' + (e.stack||'') + '</pre>';
+  if (_d) _d.innerHTML += '\n[JS] TEST DIV CRASH: ' + e.message;
 }
+
+// Step 2: After 2s, replace with WebApp
+setTimeout(async () => {
+  if (_d) _d.innerHTML += '\n[JS] Loading WebApp...';
+  try {
+    const WebApp = (await import('./WebApp.jsx')).default;
+    const { GlobalAppBoundary } = await import('./lib/ErrorBoundaries.jsx');
+    await import('./index.css');
+    await import('./web.css');
+    await import('./landing.css');
+    
+    const testRoot = ReactDOM.createRoot(document.getElementById('web-root'));
+    testRoot.render(
+      <React.StrictMode>
+        <GlobalAppBoundary>
+          <WebApp />
+        </GlobalAppBoundary>
+      </React.StrictMode>
+    );
+    if (_d) _d.innerHTML += '\n[JS] WebApp render() called';
+  } catch(e) {
+    if (_d) _d.innerHTML += '\n[JS] WEBAPP CRASH: ' + e.message + '\n' + (e.stack||'').split('\n').slice(0,5).join('\n');
+  }
+}, 2000);
