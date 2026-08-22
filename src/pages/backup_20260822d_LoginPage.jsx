@@ -357,9 +357,6 @@ export default function LoginPage() {
   const [refValid,   setRefValid]   = useState(null);
   // REGISTRATION-UPGRADE-001 (2026-08-15): Neue Pflichtfelder
   const [anrede,     setAnrede]     = useState('');
-  // ALTERSSCHUTZ (2026-08-22): Geburtsdatum + Alters-Verifikation (min. 16)
-  const [birthDate,  setBirthDate]  = useState('');
-  const [ageError,   setAgeError]   = useState('');
 
   const [pw2,        setPw2]        = useState('');
   const [showPw2,    setShowPw2]    = useState(false);
@@ -459,41 +456,8 @@ export default function LoginPage() {
     }
 
   // ── Registration ──────────────────────────────────────────────
-  function calculateAge(birthStr) {
-    // birthStr = YYYY-MM-DD
-    if (!birthStr) return -1;
-    const parts = birthStr.split('-');
-    if (parts.length !== 3) return -1;
-    const birth = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-    if (isNaN(birth.getTime())) return -1;
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const mDiff = today.getMonth() - birth.getMonth();
-    if (mDiff < 0 || (mDiff === 0 && today.getDate() < birth.getDate())) age--;
-    return age;
-  }
-
   async function handleRegister(e) {
     e.preventDefault(); clearMessages();
-
-    // ALTERSSCHUTZ: Prüfe Alter VOR allem anderen
-    const age = calculateAge(birthDate);
-    if (!birthDate || age < 0) {
-      setErr('Bitte gib dein Geburtsdatum an.');
-      return;
-    }
-    if (age < 16) {
-      setErr(''); // Normale Fehlermeldung ausblenden
-      setAgeError(`Du bist ${age} Jahre alt. HUI ist eine Plattform für Personen ab 16 Jahren. ` +
-        `Warum? HUI umfasst kreative Werke, Talente, Erlebnisse und Finanztransaktionen (Escrow, Stripe). ` +
-        `Für Minderjährige gelten besondere rechtliche Schutzvorschriften — ` +
-        `Verträge, Zahlungen und Datenverarbeitung erfordern in der Regel die Zustimmung der Erziehungsberechtigten ` +
-        `oder sind für unter 16-Jährige gesetzlich ausgeschlossen. ` +
-        `Wir freuen uns auf dich, wenn du 16 geworden bist!`);
-      return;
-    }
-    setAgeError('');
-
     if (!email || !pw || !uname) { setErr('Bitte alle Felder ausfüllen.'); return; }
     setLoading(true);
 
@@ -852,57 +816,6 @@ export default function LoginPage() {
                 {usernameErr && (
                   <div style={{ fontSize: 11, color: 'rgba(255,138,107,0.9)', marginTop: -6, paddingLeft: 4 }}>
                     {usernameErr}
-                  </div>
-                )}
-
-                {/* ALTERSSCHUTZ (2026-08-22): Geburtsdatum — min. 16 Jahre */}
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="birthdate"
-                    type="date"
-                    value={birthDate}
-                    onChange={e => { setBirthDate(e.target.value); setAgeError(''); clearMessages(); }}
-                    required
-                    max={new Date(new Date().getFullYear() - 16, new Date().getMonth(), new Date().getDate()).toISOString().slice(0, 10)}
-                    min="1900-01-01"
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: T.glass,
-                      border: '1.5px solid rgba(255,255,255,0.13)',
-                      borderRadius: 14,
-                      fontSize: 14,
-                      color: birthDate ? T.white : 'rgba(255,255,255,0.38)',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
-                      caretColor: T.teal,
-                    }}
-                  />
-                  {!birthDate && (
-                    <span style={{
-                      position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-                      fontSize: 14, color: 'rgba(255,255,255,0.38)', pointerEvents: 'none',
-                      fontFamily: 'inherit',
-                    }}>
-                      Geburtsdatum *
-                    </span>
-                  )}
-                </div>
-
-                {/* Alters-Info (erscheint nur bei unter 16) */}
-                {ageError && (
-                  <div style={{
-                    background: 'rgba(255,138,107,0.08)',
-                    border: '1px solid rgba(255,138,107,0.2)',
-                    borderRadius: 12,
-                    padding: '12px 14px',
-                    fontSize: 12,
-                    lineHeight: 1.6,
-                    color: 'rgba(255,200,190,0.95)',
-                    marginTop: -2,
-                  }}>
-                    {ageError}
                   </div>
                 )}
 
