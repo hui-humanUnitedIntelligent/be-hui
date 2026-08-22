@@ -12,7 +12,9 @@ import { APP_VERSION } from '../version.js';
 import { sentryCapture } from './sentry.js';
 
 // ── Konstanten ──────────────────────────────────────────────────
-const REPORT_URL = 'https://sadb-webhook.b44-hui.workers.dev/';
+// Direkter Insert in Supabase system_error_reports Tabelle (anon key, RLS erlaubt INSERT)
+const SUPABASE_ERROR_URL = (import.meta.env.VITE_SUPABASE_URL || '').trim() + '/rest/v1/system_error_reports';
+const SUPABASE_ANON = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 const STORAGE_KEY = 'hui_error_reports';
 const KNOWN_ERRORS_KEY = 'hui_known_errors';
 const MAX_STORED_REPORTS = 50;
@@ -307,46 +309,43 @@ export function createErrorReport(errorType, errorData = {}) {
 export function sendErrorReport(report) {
   // An SADB (Punkt 5)
   try {
+    // Direkter Insert in Supabase system_error_reports (RLS erlaubt anon INSERT)
     const payload = {
-      item_type: 'system_error',
-      item_id: report.id,
-      item_title: `[${report.errorCode}] ${report.errorType}: ${(report.message || '').substring(0, 100)}`,
-      trigger: 'error-reporter',
-      error_data: {
-        errorType: report.errorType,
-        errorCode: report.errorCode,
-        message: report.message,
-        stack: report.stack?.substring(0, 1500),
-        filename: report.filename,
-        lineno: report.lineno,
-        colno: report.colno,
-        route: report.route,
-        component: report.component,
-        deviceModel: report.deviceModel,
-        osVersion: report.osVersion,
-        appVersion: report.appVersion,
-        browserVersion: report.browserVersion,
-        networkStatus: report.networkStatus,
-        timestamp: report.timestamp,
-        userId: report.userId,
-        appState: report.appState,
-        lastUserAction: report.lastUserAction,
-        knownCause: report.knownCause,
-        priority: report.priority,
-        frequency: report.frequency,
-        fingerprint: report.fingerprint,
-        status: report.status,
-      },
+      error_id:        report.id,
+      error_type:      report.errorType || 'unknown',
+      error_code:      report.errorCode || null,
+      message:         (report.message || '').substring(0, 2000),
+      stack:           report.stack?.substring(0, 3000) || null,
+      filename:        report.filename || null,
+      lineno:          report.lineno || null,
+      colno:           report.colno || null,
+      route:           report.route || null,
+      component:       report.component || null,
+      device_model:    report.deviceModel || null,
+      os_version:      report.osVersion || null,
+      app_version:     report.appVersion || null,
+      browser_version: report.browserVersion || null,
+      network_status:  report.networkStatus || null,
+      user_id:         report.userId || null,
+      app_state:       report.appState || null,
+      last_user_action: report.lastUserAction || null,
+      known_cause_id:  report.knownCause?.id || null,
+      known_cause_name: report.knownCause?.name || null,
+      priority:        report.priority || 'MEDIUM',
+      frequency:       report.frequency || 1,
+      fingerprint:     report.fingerprint || null,
+      status:          report.status || 'new',
     };
 
-    if (navigator.sendBeacon) {
-      const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-      navigator.sendBeacon(REPORT_URL, blob);
-    } else {
-      fetch(REPORT_URL, {
+    if (SUPABASE_ERROR_URL && SUPABASE_ANON) {
+      fetch(SUPABASE_ERROR_URL, {
         method: 'POST',
         body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`,
+        },
         keepalive: true,
       }).catch(() => {});
     }
@@ -421,17 +420,14 @@ function logSADBEvent(eventType, report) {
       priority: report.priority,
       known_cause: report.knownCause?.label || null,
     };
-    // Best-effort an SADB
-    if (navigator.sendBeacon) {
-      const blob = new Blob([JSON.stringify({
-        item_type: 'sadb_event',
-        item_id: `evt-${Date.now()}`,
-        item_title: eventType,
-        trigger: 'error-reporter-event',
-        error_data: event,
-      })], { type: 'application/json' });
-      navigator.sendBeacon(REPORT_URL, blob);
-    }
+    // Event-Log wird lokal gespeichert (kein separater Network-Call nötig —
+    // der Error-Report selbst geht bereits an Supabase).
+    try {
+      const logs = JSON.parse(localStorage.getItem('hui_sadb_events') || '[]');
+      logs.push(event);
+      if (logs.length > 100) logs.splice(0, logs.length - 100);
+      localStorage.setItem('hui_sadb_events', JSON.stringify(logs));
+    } catch (_) {}
   } catch (_) {}
 }
 
