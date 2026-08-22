@@ -14,6 +14,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { HUIFinanzIcon, HUISicherheitIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js"; // KBD-INSET-FIX (2026-08-23)
 import { formatDateDE } from "../../lib/formatters.js";
 
 const T = {
@@ -43,6 +44,7 @@ const inp = {
 
 export default function BankdatenModal({ userId, onClose = () => {}, onSaved = () => {} }) {
   useModalRegistration(true);
+  useKeyboardInset(); // KBD-INSET-FIX (2026-08-23): aktiviert --hui-keyboard-inset CSS-Var
   const [status, setStatus] = useState(null); // { has_bank_details, bank_iban_last4, updated_at }
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -112,12 +114,19 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
   };
 
   return createPortal(
-    <div onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }} role="button" tabIndex={0} style={{
-      position:"fixed", inset:0, background:"rgba(0,0,0,0.45)",
+    <div onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }} role="button" tabIndex={0}
+      data-hui-kbd-self-managed
+      style={{
+      position:"fixed", top:0, left:0, right:0,
+      bottom:"var(--hui-keyboard-inset, 0px)", // KBD-INSET-FIX (2026-08-23): Sheet weicht der Tastatur
+      background:"rgba(0,0,0,0.45)",
       display:"flex", alignItems:"flex-end", justifyContent:"center", zIndex:10500,
+      transition:"bottom .15s ease-out",
     }}>
       <div style={{
-        width:"100%", maxWidth:520, maxHeight:"88vh", overflowY:"auto",
+        width:"100%", maxWidth:520,
+        maxHeight:"calc(88vh - var(--hui-keyboard-inset, 0px))", // KBD-INSET-FIX (2026-08-23)
+        overflowY:"auto", transition:"max-height .15s ease-out",
         background:T.bg, borderRadius:"20px 20px 0 0",
         paddingBottom:"calc(24px + env(safe-area-inset-bottom, 0px))",
       }}>
