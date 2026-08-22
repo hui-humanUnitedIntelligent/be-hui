@@ -246,7 +246,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
               />
               <h1 style={{
                 margin:       0,
-                fontSize:     20,
+                fontSize:     22,
                 fontWeight: 600,
                 color:        INK,
                 letterSpacing: "-0.025em",
@@ -278,7 +278,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
               <div style={{ textAlign: "center", marginBottom: 4 }}>
                 <p style={{
                   margin:     "0 0 4px",
-                  fontSize:   13,
+                  fontSize:   15,
                   fontWeight: 600,
                   color:      INK,
                   letterSpacing: "-0.01em",
@@ -286,11 +286,11 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   Schön, dass du da bist.
                 </p>
                 <p style={{
-                  fontSize:     12,
+                  fontSize:     14,
                   color:        INK2,
-                  lineHeight:   1.25,
-                  letterSpacing: "-0.006em",
-                  maxWidth:     270,
+                  lineHeight:   1.35,
+                  letterSpacing: "-0.004em",
+                  maxWidth:     280,
                   margin:       "0 auto",
                 }}>
                   HUI ist ein Ort für Menschen, die gemeinsam Werte schaffen,
@@ -302,9 +302,9 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
             {isRulesOnly && (
               <div style={{ textAlign: "center", marginBottom: 4 }}>
                 <p style={{
-                  fontSize:     12,
+                  fontSize:     14,
                   color:        INK2,
-                  lineHeight:   1.3,
+                  lineHeight:   1.4,
                   letterSpacing: "-0.006em",
                   maxWidth:     280,
                   margin:       "0 auto",
@@ -333,17 +333,17 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
             >
               <div style={{
                 display: "flex", alignItems: "center", gap: 6,
-                fontSize: 12, fontWeight: 600, color: INK,
-                letterSpacing: "-0.01em", marginBottom: 6,
+                fontSize: 14.5, fontWeight: 600, color: INK,
+                letterSpacing: "-0.01em", marginBottom: 7,
               }}>
-                <span style={{ fontSize: 13 }}>🔒</span>
+                <span style={{ fontSize: 16 }}>🔒</span>
                 Wichtige Hinweise für die Nutzung von HUI
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {RULES_ITEMS.map((r, i) => (
                   <div key={i} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 11, flexShrink: 0, marginTop: 1, lineHeight: 1.3 }}>{r.icon}</span>
-                    <span style={{ fontSize: 10.5, color: INK2, lineHeight: 1.4, letterSpacing: "-0.004em" }}>
+                    <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1, lineHeight: 1.4 }}>{r.icon}</span>
+                    <span style={{ fontSize: 13, color: INK2, lineHeight: 1.5, letterSpacing: "-0.002em" }}>
                       {r.text}
                     </span>
                   </div>
@@ -359,8 +359,8 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                ══════════════════════════════════════════════════════ */}
             <div ref={areasRef} style={{ marginBottom: 8 }}>
               <div style={{
-                fontSize: 12, fontWeight: 600, color: INK,
-                letterSpacing: "-0.01em", marginBottom: 5,
+                fontSize: 14.5, fontWeight: 600, color: INK,
+                letterSpacing: "-0.01em", marginBottom: 6,
                 textAlign: isRulesOnly ? "center" : "left",
                 paddingLeft: isRulesOnly ? 0 : 2,
               }}>
@@ -398,19 +398,19 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontSize:      11,
+                        fontSize:      13.5,
                         fontWeight: 600,
                         color:         INK,
-                        letterSpacing: "-0.01em",
+                        letterSpacing: "-0.008em",
                         lineHeight:    1.15,
                       }}>
                         {f.title}
                       </div>
-                      <div style={{ fontSize: 9.5, color: "rgba(58,58,85,0.65)", lineHeight: 1.2 }}>
+                      <div style={{ fontSize: 12, color: "rgba(58,58,85,0.7)", lineHeight: 1.3 }}>
                         {f.sub}
                       </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "rgba(13,196,181,0.50)", flexShrink: 0, fontWeight: 600 }}>
+                    <div style={{ fontSize: 14, color: "rgba(13,196,181,0.55)", flexShrink: 0, fontWeight: 600 }}>
                       ›
                     </div>
                   </div>
@@ -455,19 +455,19 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                     {/* Text */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
-                        fontSize:      11,
+                        fontSize:      13.5,
                         fontWeight: 600,
                         color:         INK,
-                        letterSpacing: "-0.01em",
+                        letterSpacing: "-0.008em",
                         marginBottom:  0,
                         lineHeight:    1.15,
                       }}>
                         {f.title}
                       </div>
                       <div style={{
-                        fontSize:  9.5,
-                        color:     "rgba(58,58,85,0.65)",
-                        lineHeight: 1.2,
+                        fontSize:  12,
+                        color:     "rgba(58,58,85,0.7)",
+                        lineHeight: 1.3,
                       }}>
                         {f.sub}
                       </div>
@@ -475,8 +475,8 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
 
                     {/* Chevron */}
                     <div style={{
-                      fontSize:  12,
-                      color:     "rgba(13,196,181,0.50)",
+                      fontSize:  14,
+                      color:     "rgba(13,196,181,0.55)",
                       flexShrink: 0,
                       fontWeight: 600,
                     }}>
@@ -493,22 +493,22 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                 <div style={{ fontSize: 12, marginBottom: 2, opacity: 0.6 }}>♡</div>
                 <p style={{
                   margin:       0,
-                  fontSize:     11,
-                  color:        "rgba(58,58,85,0.55)",
-                  lineHeight:   1.4,
+                  fontSize:     13,
+                  color:        "rgba(58,58,85,0.6)",
+                  lineHeight:   1.45,
                   letterSpacing: "-0.005em",
                 }}>
                   Jede Begegnung kann etwas verändern.
                 </p>
                 <p style={{
                   margin:       "0",
-                  fontSize:     11,
+                  fontSize:     13,
                   fontWeight:   600,
                   color:        TEAL2,
                   letterSpacing: "-0.008em",
                 }}>
                   Vielleicht beginnt deine genau heute.{" "}
-                  <span style={{ fontSize: 11 }}>🌿</span>
+                  <span style={{ fontSize: 13 }}>🌿</span>
                 </p>
               </div>
             )}
@@ -536,7 +536,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                 border:         "none",
                 background:     `linear-gradient(135deg, ${TEAL} 0%, ${TEAL2} 100%)`,
                 color:          "#fff",
-                fontSize:       14.5,
+                fontSize:       16,
                 fontWeight: 600,
                 letterSpacing:  "-0.01em",
                 cursor:         "pointer",

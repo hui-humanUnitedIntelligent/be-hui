@@ -145,6 +145,19 @@ html {
   text-size-adjust: 100%;
 }
 
+/* ── Root (Mobile/Capacitor #root — Pendant zu #web-root in web.css) ────────
+   FIX (2026-08-23, CSS-700 False-Positive): #root hatte KEIN min-height.
+   Sobald ein reines position:fixed-Overlay (z.B. WelcomeOverlay) der einzige
+   Render-Inhalt war, kollabierte #root auf offsetHeight===0 (fixed-Elemente
+   tragen nicht zur Flow-Höhe des Elternelements bei) → der CSS White-Screen-
+   Detector in errorReporter.js (Check: root.offsetHeight===0 nach 6s) schlug
+   fälschlich Alarm ("CSS-700: Root-Element unsichtbar"), obwohl die App
+   sichtbar und normal bedienbar war. #web-root hat dieses min-height bereits
+   seit Langem (web.css) — #root (Mobile) hatte es nie. Analoger Fix. */
+#root {
+  min-height: 100dvh;
+}
+
 /* ── Body ──────────────────────────────────────────────────────────────────── */
 body {
   margin: 0;
