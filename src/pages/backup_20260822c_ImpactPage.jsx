@@ -456,68 +456,6 @@ class ImpactErrorBoundary extends React.Component {
 // HAUPT-INNER
 // ════════════════════════════════════════════════════════════════
 
-
-// ════════════════════════════════════════════════════════════════
-// HOOK: useMonthlyProjects — Admin-ausgewählte 3 Projekte pro Monat
-// Versucht rpc_get_monthly_projects; Fallback auf useAllApprovedByVotes
-// ════════════════════════════════════════════════════════════════
-function useMonthlyProjects() {
-  const [monthlyProjects, setMonthlyProjects] = React.useState([]);
-  const [monthlyLoading, setMonthlyLoading] = React.useState(true);
-
-  const load = React.useCallback(async () => {
-    try {
-      const poolMonth = new Date().toISOString().slice(0, 7);
-      const { data, error } = await supabase.rpc("rpc_get_monthly_projects", { p_pool_month: poolMonth });
-      if (error || !data?.length) {
-        // Fallback: keine admin-Auswahl → bestehende Top-3-Logik greift
-        return [];
-      }
-      return data.map(app => ({
-        id:                 app.project_id,
-        name:               app.project_name,
-        category:           app.short_desc?.slice(0, 28) || "Herzensprojekt",
-        description:        app.short_desc,
-        icon:               "💚",
-        color:              "#0DC4B5",
-        votes:              Number(app.votes) || 0,
-        vote_count:         Number(app.votes) || 0,
-        awarded_eur:        app.funding_goal || 2000,
-        current_amount_eur: app.current_amount_eur || 0,
-        status:             app.status,
-        is_completed:       app.is_completed || false,
-        img:                app.cover_url || (app.media_urls && app.media_urls[0]) || null,
-        img_url:            app.cover_url || (app.media_urls && app.media_urls[0]) || null,
-        created_at:         app.created_at,
-        _monthlySelected:   true,
-      })).sort((a, b) =>
-        b.votes - a.votes ||
-        new Date(a.created_at) - new Date(b.created_at)
-      );
-    } catch(e) { console.warn("[MONTHLY PROJECTS]", e?.message); return []; }
-  }, []);
-
-  React.useEffect(() => {
-    let dead = false;
-    load().then(rows => { if (!dead) { setMonthlyProjects(rows); setMonthlyLoading(false); } });
-    const refreshHandler = () => { load().then(rows => { if (!dead) setMonthlyProjects(rows); }); };
-    window.addEventListener("feed-refresh", refreshHandler);
-    // Realtime: bei neuen Votes sofort neu sortieren
-    const topic = "imp_monthly_rt_" + Date.now();
-    const sub = supabase.channel(topic)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_votes" }, () => {
-        load().then(rows => { if (!dead) setMonthlyProjects(rows); });
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "impact_monthly_projects" }, () => {
-        load().then(rows => { if (!dead) setMonthlyProjects(rows); });
-      })
-      .subscribe();
-    return () => { dead = true; supabase.removeChannel(sub); window.removeEventListener("feed-refresh", refreshHandler); };
-  }, [load]);
-
-  return { monthlyProjects, monthlyLoading };
-}
-
 // ════════════════════════════════════════════════════════════════
 // HOOK: useAllApprovedByVotes — Single Source of Truth
 // Lädt ALLE approved Projekte + vote_count dieses Monats
@@ -1700,7 +1638,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const finanziert = useWeitereProjects();
   const activities = useImpactActivities();
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
-  const { monthlyProjects, monthlyLoading } = useMonthlyProjects();
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
 
@@ -1741,19 +1678,13 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     }
   }, [navigate]);
 
-  // ── Projekte: Admin-Monatsauswahl (Priority) → Fallback Top-3 ──
+  // ── Projekte: werden jetzt von useAllApprovedByVotes gehandelt ──
+  // Top 3 nach Stimmen → projects State (für Kompatibilität mit bestehendem Code)
   React.useEffect(() => {
-    // Wenn admin-ausgewählte Monats-Projekte vorhanden → diese verwenden
-    if (monthlyProjects.length > 0) {
-      setProjects(monthlyProjects);
-      setLoadingProj(false);
-      return;
-    }
-    // Fallback: bestehende Top-3-Logik
     if (rankedProjs.loading) return;
     setProjects(rankedProjs.top3);
     setLoadingProj(false);
-  }, [monthlyProjects, rankedProjs.top3, rankedProjs.loading]);
+  }, [rankedProjs.top3, rankedProjs.loading]);
 
   // ── ActiveRound + UserVotes (live aus impact_votes) ──
   React.useEffect(() => {
@@ -1939,8 +1870,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       <VotingSection
         canVote={isMem}
         projects={
-          monthlyProjects.length > 0 ? monthlyProjects
-          : projects.length > 0 ? projects
+          projects.length > 0 ? projects
           : monthlyTop3.length > 0
             ? monthlyTop3.map(a => ({
                 id: a.id, name: a.project_name,
