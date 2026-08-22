@@ -670,3 +670,39 @@ body.hui-keyboard-open [contenteditable]:focus {
 [style*="fontWeight: 900"], [style*="fontWeight:900"] {
   font-weight: 600 !important;
 }
+
+/* ── ALTERSSCHUTZ / Geburtsdatum-Input Fix (2026-08-22) ─────────────────── */
+/* Root Cause: <input type="date"> zeigt IMMER den nativen Browser-Platzhalter
+   (z.B. "tt.mm.jjjj" in DE-Locale) an, sobald leer — placeholder-Attribut wird
+   dafür von Browsern ignoriert. Das kollidierte mit unserem eigenen absolut
+   positionierten "Geburtsdatum *"-Label (LoginPage.jsx), da beide Texte an der
+   selben Stelle gerendert wurden → unlesbarer Textsalat.
+   Fix: Solange das Feld leer + nicht fokussiert ist (.hui-date-empty), werden
+   die nativen Datums-Segmente transparent gemacht — unser Label übernimmt.
+   Bei Fokus/Wert (.hui-date-hasvalue) werden sie wieder sichtbar, damit der
+   Nutzer beim Tippen/Auswählen sein Ergebnis sieht. */
+.hui-date-empty::-webkit-datetime-edit,
+.hui-date-empty::-webkit-datetime-edit-fields-wrapper,
+.hui-date-empty::-webkit-datetime-edit-text,
+.hui-date-empty::-webkit-datetime-edit-month-field,
+.hui-date-empty::-webkit-datetime-edit-day-field,
+.hui-date-empty::-webkit-datetime-edit-year-field {
+  color: transparent;
+}
+
+.hui-date-hasvalue::-webkit-datetime-edit,
+.hui-date-hasvalue::-webkit-datetime-edit-fields-wrapper,
+.hui-date-hasvalue::-webkit-datetime-edit-text,
+.hui-date-hasvalue::-webkit-datetime-edit-month-field,
+.hui-date-hasvalue::-webkit-datetime-edit-day-field,
+.hui-date-hasvalue::-webkit-datetime-edit-year-field {
+  color: inherit;
+}
+
+/* Kalender-Icon (Browser-Standard) einheitlich einfärben, damit es zum
+   dunklen Glass-Theme passt statt schwarz auf schwarz unsichtbar zu sein. */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.75);
+  opacity: 0.7;
+  cursor: pointer;
+}
