@@ -575,7 +575,7 @@ export function useFeedStream() {
 
   return {
     // Items
-    items:          rhythmicItems,   // Rhythmisiert, fertig zum Rendern
+    items:          items,           // Chronologisch (_sortKey), ohne rhythmizeFeed
     rawItems:       items,           // Unverarbeitet (für Debug)
     loading,
     loadingMore,
