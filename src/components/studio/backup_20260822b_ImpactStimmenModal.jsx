@@ -321,7 +321,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
-              Impact-Stimmen
+              
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               {monthKey} · {isTalent ? "Talent" : "Basis"}-Mitglied
