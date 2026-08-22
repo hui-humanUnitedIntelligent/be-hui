@@ -13,7 +13,7 @@
     <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2" />
     <link rel="icon" type="image/png" href="/favicon.png?v=2" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+    <link rel="apple-touch-icon" sizes="180x180px" href="/apple-touch-icon.png?v=2" />
 
     <meta property="og:title" content="HUI — Human United Intelligence" />
     <meta property="og:description" content="Ein ruhiges kreatives Netzwerk fuer Menschen die wirken." />
@@ -22,42 +22,37 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
 
-    <!-- WHITESCREEN-CATCHER: Fängt Modul-Lade-Fehler ab VOR dem React-Import -->
+    <!-- DIAGNOSTIC -->
     <script>
-      window.__HUI_ERRORS__ = [];
-      window.addEventListener('error', function(event) {
-        window.__HUI_ERRORS__.push({
-          type: 'error',
-          message: event.error ? event.error.message : event.message,
-          stack: event.error ? event.error.stack : '',
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno
-        });
-        var root = document.getElementById('web-root');
-        if (root && !root.hasChildNodes()) {
-          root.innerHTML = '<div style="padding:40px;font-family:monospace;font-size:14px;color:#000;max-width:900px;margin:0 auto;word-break:break-word">'
-            + '<h2 style="color:#e00">HUI Web — Load Error</h2>'
-            + '<p><b>' + (event.error ? event.error.message : event.message) + '</b></p>'
-            + '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;overflow:auto;font-size:12px">'
-            + (event.error ? event.error.stack : 'No stack available')
-            + '\n\nSource: ' + (event.filename || 'unknown') + ':' + (event.lineno || 0) + ":" + (event.colno || 0)
-            + '</pre>'
-            + '<p style="color:#666;margin-top:16px">If this persists, clear cache and reload. Error details above.</p>'
-            + '</div>';
-        }
+      window.__HUI_DIAG__ = ['[HTML] Page loaded'];
+      window.addEventListener('error', function(e) {
+        window.__HUI_DIAG__.push('[ERROR] ' + (e.error ? e.error.message : e.message) + ' @ ' + (e.filename||'?') + ':' + (e.lineno||0));
       });
-      window.addEventListener('unhandledrejection', function(event) {
-        window.__HUI_ERRORS__.push({
-          type: 'unhandledrejection',
-          message: event.reason && event.reason.message ? event.reason.message : String(event.reason),
-          stack: event.reason && event.reason.stack ? event.reason.stack : ''
-        });
+      window.addEventListener('unhandledrejection', function(e) {
+        window.__HUI_DIAG__.push('[REJECT] ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)));
       });
     </script>
   </head>
   <body>
     <div id="web-root"></div>
+    <div id="diag" style="padding:20px;font-family:monospace;font-size:12px;color:#000;background:#fff;min-height:100px"></div>
     <script type="module" src="/src/web-main.jsx"></script>
+    <script>
+      // Timeout check: if #web-root is empty after 5s, show diagnostics
+      setTimeout(function() {
+        var root = document.getElementById('web-root');
+        var diag = document.getElementById('diag');
+        if (root && !root.hasChildNodes()) {
+          if (diag) {
+            diag.innerHTML = '<b style="color:red">⚠ React did not render after 5s</b><br>'
+              + window.__HUI_DIAG__.join('<br>');
+          }
+        } else if (diag) {
+          diag.innerHTML = '<b style="color:green">✓ React rendered</b><br>'
+            + 'web-root children: ' + (root ? root.childElementCount : 'no root') + '<br>'
+            + window.__HUI_DIAG__.join('<br>');
+        }
+      }, 5000);
+    </script>
   </body>
 </html>
