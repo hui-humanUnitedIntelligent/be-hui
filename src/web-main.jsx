@@ -1,33 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import WebApp from './WebApp.jsx';
+import { GlobalAppBoundary } from './lib/ErrorBoundaries';
+import './index.css';
+import './web.css';
+import './landing.css';
+import { initSentry, sentryCapture } from './lib/sentry.js';
+import { initGlobalKeyboardHandling } from "./lib/globalKeyboardHandler.js";
 
-const rootEl = document.getElementById('web-root');
-const root = ReactDOM.createRoot(rootEl);
+try { initSentry(); } catch (e) { console.error('[HUI] Sentry init failed:', e); }
+try { initGlobalKeyboardHandling(); } catch (e) { console.error('[HUI] Keyboard init failed:', e); }
 
-function show(msg) {
-  root.render(
-    React.createElement('div', { style: { padding: 40, fontFamily: 'monospace', fontSize: 14, whiteSpace: 'pre-wrap', color: '#000' } }, msg)
-  );
-}
+window.addEventListener('unhandledrejection', (event) => {
+  const err = event.reason instanceof Error ? event.reason : new Error(String(event.reason ?? 'Unhandled rejection'));
+  sentryCapture(err, {source: 'unhandledrejection', href: window.location.href});
+});
+window.addEventListener('error', (event) => {
+  if (!event.error) return;
+  sentryCapture(event.error, {source: 'window.onerror', href: window.location.href});
+});
 
-show('Testing imports...');
-
-(async () => {
-  try {
-    show('1. Testing sentry.js...');
-    await import('./lib/sentry.js');
-    show('2. Testing globalKeyboardHandler.js...');
-    await import('./lib/globalKeyboardHandler.js');
-    show('3. Testing supabaseClient.js...');
-    await import('./lib/supabaseClient.js');
-    show('4. Testing AuthContext.jsx...');
-    await import('./lib/AuthContext.jsx');
-    show('5. Testing useToast.jsx...');
-    await import('./lib/useToast.jsx');
-    show('6. Testing WebApp.jsx...');
-    await import('./WebApp.jsx');
-    show('ALL IMPORTS OK!');
-  } catch (e) {
-    show('CRASH: ' + (e.message || e) + '\n' + (e.stack || '').split('\n').slice(0,5).join('\n'));
-  }
-})();
+ReactDOM.createRoot(document.getElementById('web-root')).render(
+  <React.StrictMode>
+    <GlobalAppBoundary>
+      <WebApp />
+    </GlobalAppBoundary>
+  </React.StrictMode>
+);
