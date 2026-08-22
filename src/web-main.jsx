@@ -1,51 +1,33 @@
-// WHITESCREEN DIAGNOSTIC: Find which import crashes
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
 
-const root = ReactDOM.createRoot(document.getElementById('web-root'));
+const rootEl = document.getElementById('web-root');
+const root = ReactDOM.createRoot(rootEl);
 
-function show(content) {
+function show(msg) {
   root.render(
-    React.createElement('div', { style: { padding: 40, fontFamily: 'monospace', fontSize: 14, whiteSpace: 'pre-wrap' } },
-      content
-    )
+    React.createElement('div', { style: { padding: 40, fontFamily: 'monospace', fontSize: 14, whiteSpace: 'pre-wrap', color: '#000' } }, msg)
   );
 }
 
-show('Testing imports one by one...');
-
-async function testImport(name, importFn) {
-  try {
-    const mod = await importFn();
-    show(document.getElementById('web-root').textContent + `\n✅ ${name} OK`);
-    return mod;
-  } catch (e) {
-    show(document.getElementById('web-root').textContent + `\n❌ ${name} CRASHED: ${e.message}\n${e.stack?.split('\n').slice(0,5).join('\n')}`);
-    throw e;
-  }
-}
+show('Testing imports...');
 
 (async () => {
   try {
-    // Test each import from WebApp.jsx chain
-    await testImport('sentry.js', () => import('./lib/sentry.js'));
-    await testImport('globalKeyboardHandler.js', () => import('./lib/globalKeyboardHandler.js'));
-    await testImport('supabaseClient.js', () => import('./lib/supabaseClient.js'));
-    await testImport('AuthContext.jsx', () => import('./lib/AuthContext.jsx'));
-    await testImport('useToast.jsx', () => import('./lib/useToast.jsx'));
-    await testImport('WebApp.jsx', () => import('./WebApp.jsx'));
-    
-    show(document.getElementById('web-root').textContent + '\n\nAll imports OK! Rendering WebApp...');
-    
-    const { default: WebApp } = await import('./WebApp.jsx');
-    root.render(
-      React.createElement(React.StrictMode, null,
-        React.createElement(WebApp)
-      )
-    );
+    show('1. Testing sentry.js...');
+    await import('./lib/sentry.js');
+    show('2. Testing globalKeyboardHandler.js...');
+    await import('./lib/globalKeyboardHandler.js');
+    show('3. Testing supabaseClient.js...');
+    await import('./lib/supabaseClient.js');
+    show('4. Testing AuthContext.jsx...');
+    await import('./lib/AuthContext.jsx');
+    show('5. Testing useToast.jsx...');
+    await import('./lib/useToast.jsx');
+    show('6. Testing WebApp.jsx...');
+    await import('./WebApp.jsx');
+    show('ALL IMPORTS OK!');
   } catch (e) {
-    // Error already shown by testImport
-    console.error('Import chain failed:', e);
+    show('CRASH: ' + (e.message || e) + '\n' + (e.stack || '').split('\n').slice(0,5).join('\n'));
   }
 })();
