@@ -458,6 +458,13 @@ export default function LoginPage() {
         return;
       }
     }
+
+    // ── Success: Login war erfolgreich, Nutzer ist nicht blockiert ──
+    // AuthContext.onAuthStateChange feuert SIGNED_IN → isAuthenticated=true
+    // → ConditionalRouter re-rendert → AuthenticatedApp wird angezeigt.
+    // setLoading(false) als Defensive — falls onAuthStateChange verzögert feuert.
+    setLoading(false);
+    setSuccess('Login erfolgreich! Du wirst weitergeleitet…');
   }
 
   // ── Registration ──────────────────────────────────────────────
