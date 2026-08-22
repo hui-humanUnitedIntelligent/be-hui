@@ -387,6 +387,128 @@ function usePoolDistributionsTicker() {
   return { items, loading };
 }
 
+// ──────────────────────────────────────────────────────────────
+// IMPACT-VORMONATE (2026-08-22): Vollständiges monatliches Archiv der
+// Impact-Pool-Verteilungen — für die "Impact Vormonate"-Übersicht im
+// PoolCard-Button. Aggregiert je Monat: Gesamtbetrag, die (bis zu 3)
+// ausgewählten Projekte mit Betrag + Stimmenanzahl + Rang.
+// Quellen: impact_distributions (öffentlich, RLS USING(true)),
+// impact_monthly_projects (öffentlich, RLS USING(true), historische
+// Zeilen bleiben mit is_active=false erhalten), impact_applications
+// (Projektnamen), rpc_get_vote_counts (aggregierte Stimmen, kein Voter-
+// Bezug). Lazy geladen — erst wenn das Modal tatsächlich geöffnet wird.
+// ──────────────────────────────────────────────────────────────
+function useImpactMonthlyHistory(enabled) {
+  const [months, setMonths] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!enabled || loaded) return;
+    let dead = false;
+    (async () => {
+      try {
+        // 1. Alle jemals verteilten Beträge (öffentlich, anonymisiert)
+        const { data: distRows } = await supabase
+          .from("impact_distributions")
+          .select("project_id,amount_eur,distributed_at")
+          .order("distributed_at", { ascending: false })
+          .limit(1000);
+
+        // 2. Alle monatlichen Projekt-Auswahlen (auch vergangene, is_active egal)
+        const { data: monthlyRows } = await supabase
+          .from("impact_monthly_projects")
+          .select("project_id,pool_month,position")
+          .order("pool_month", { ascending: false });
+
+        if (dead) return;
+
+        // ── Beträge pro Monat + Projekt summieren ──
+        const byMonth = {}; // { "2026-08": { total, projects: { pid: eur } } }
+        for (const r of (distRows || [])) {
+          const m = String(r.distributed_at || "").slice(0, 7);
+          if (!m) continue;
+          if (!byMonth[m]) byMonth[m] = { total: 0, projects: {} };
+          const eur = Number(r.amount_eur) || 0;
+          byMonth[m].total += eur;
+          if (r.project_id) {
+            byMonth[m].projects[r.project_id] = (byMonth[m].projects[r.project_id] || 0) + eur;
+          }
+        }
+
+        // ── Monats-Auswahl (Rang/Position) einmischen ──
+        const posByMonth = {}; // { "2026-08": { pid: position } }
+        for (const r of (monthlyRows || [])) {
+          if (!r.pool_month) continue;
+          if (!posByMonth[r.pool_month]) posByMonth[r.pool_month] = {};
+          posByMonth[r.pool_month][r.project_id] = r.position;
+          // Projekt auch dann in byMonth aufnehmen, wenn (noch) kein Betrag
+          // verteilt wurde (z.B. laufender Monat) — Rang bleibt sichtbar.
+          if (!byMonth[r.pool_month]) byMonth[r.pool_month] = { total: 0, projects: {} };
+          if (!(r.project_id in byMonth[r.pool_month].projects)) {
+            byMonth[r.pool_month].projects[r.project_id] = 0;
+          }
+        }
+
+        const allMonths = Object.keys(byMonth).sort((a, b) => b.localeCompare(a));
+        if (!allMonths.length) { if (!dead) { setMonths([]); setLoading(false); setLoaded(true); } return; }
+
+        // ── Alle beteiligten Projekt-IDs sammeln → Namen laden ──
+        const allProjIds = [...new Set(
+          allMonths.flatMap(m => Object.keys(byMonth[m].projects))
+        )];
+        let nameById = {};
+        if (allProjIds.length) {
+          const { data: apps } = await supabase
+            .from("impact_applications")
+            .select("id,project_name")
+            .in("id", allProjIds);
+          nameById = Object.fromEntries((apps || []).map(a => [a.id, a.project_name]));
+        }
+
+        // ── Stimmen pro Monat laden (aggregiert, kein Voter-Bezug) ──
+        const votesByMonth = {}; // { "2026-08": { pid: count } }
+        await Promise.all(allMonths.map(async (m) => {
+          const pids = Object.keys(byMonth[m].projects);
+          if (!pids.length) return;
+          try {
+            const { data: vc } = await supabase
+              .rpc("rpc_get_vote_counts", { p_project_ids: pids, p_pool_month: m });
+            votesByMonth[m] = Object.fromEntries((vc || []).map(v => [v.project_id, Number(v.vote_count) || 0]));
+          } catch { votesByMonth[m] = {}; }
+        }));
+
+        if (dead) return;
+
+        const result = allMonths.map(m => {
+          const projs = Object.entries(byMonth[m].projects).map(([pid, eur]) => ({
+            id: pid,
+            name: nameById[pid] || "Unbenanntes Projekt",
+            eur,
+            votes: votesByMonth[m]?.[pid] || 0,
+            position: posByMonth[m]?.[pid],
+          }));
+          // Sortierung: bekannte Position zuerst (0,1,2…), sonst nach Betrag
+          projs.sort((a, b) => {
+            if (a.position != null && b.position != null) return a.position - b.position;
+            if (a.position != null) return -1;
+            if (b.position != null) return 1;
+            return b.eur - a.eur;
+          });
+          return { month: m, label: fmtMonth(m), total: byMonth[m].total, projects: projs };
+        });
+
+        if (!dead) { setMonths(result); setLoading(false); setLoaded(true); }
+      } catch {
+        if (!dead) { setLoading(false); setLoaded(true); }
+      }
+    })();
+    return () => { dead = true; };
+  }, [enabled, loaded]);
+
+  return { months, loading };
+}
+
 function useImpactActivities() {
   const [acts, setActs] = React.useState([]);
   React.useEffect(() => {
@@ -1754,9 +1876,13 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const { monthlyProjects, monthlyLoading } = useMonthlyProjects();
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
+  // IMPACT-VORMONATE (2026-08-22): Archiv-Modal, lazy geladen erst bei Öffnen
+  const [showVormonate, setShowVormonate] = React.useState(false);
+  const vormonate = useImpactMonthlyHistory(showVormonate);
 
   // ── Back-Button: Impact-Detail-Overlays registrieren ──
   useModalRegistration(!!detailApp, () => setDetailApp(null), "ImpactPage-DetailApp");
+  useModalRegistration(showVormonate, () => setShowVormonate(false), "ImpactPage-Vormonate");
   // Flag: wurde Detail per Deep-Link (aus Discover) geöffnet?
   // → onClose navigiert dann zurück zu "/" statt nur Modal schließen
   const _openedViaDeepLink = React.useRef(false);
@@ -1984,7 +2110,14 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       <BigHero pool={pool} />
 
       {/* ══ 2 ── POOL-KARTE mit Budget-Chips ════════════════════ */}
-      <PoolCard pool={pool} userImpact={userImpact} />
+      <PoolCard pool={pool} userImpact={userImpact} onOpenVormonate={() => setShowVormonate(true)} />
+      {showVormonate && (
+        <ImpactVormonateModal
+          months={vormonate.months}
+          loading={vormonate.loading}
+          onClose={() => setShowVormonate(false)}
+        />
+      )}
 
       {/* ══ 3 ── AKTUELLE ABSTIMMUNG ═══════════════════════════ */}
       <VotingSection
@@ -2163,7 +2296,7 @@ function BigHero({ pool }) {
 // ════════════════════════════════════════════════════════════════
 // 2. POOL-KARTE (zentral, einfach, emotional)
 // ════════════════════════════════════════════════════════════════
-function PoolCard({ pool, userImpact }) {
+function PoolCard({ pool, userImpact, onOpenVormonate }) {
   return (
     <div style={{ padding:"24px 16px 0" }}>
       {/* Haupt-Pool-Karte */}
@@ -2190,6 +2323,23 @@ function PoolCard({ pool, userImpact }) {
             <div style={{ fontSize:11, color:T.ink2, marginTop:5 }}>
               Live berechnet aus HUI-Buchungen
             </div>
+            {/* IMPACT-VORMONATE (2026-08-22): Button öffnet Archiv aller
+                vergangenen Monatsverteilungen — Betrag, Projekte, Stimmen. */}
+            <button
+              onClick={onOpenVormonate}
+              className="ip-p"
+              style={{
+                marginTop:10,
+                display:"inline-flex", alignItems:"center", gap:5,
+                background:"rgba(255,255,255,0.55)",
+                border:`1px solid ${T.teal}30`,
+                borderRadius:20, padding:"6px 12px",
+                fontSize:11, fontWeight: 600, color:T.teal,
+                cursor:"pointer",
+              }}
+            >
+              <span style={{ fontSize:12 }}>📅</span> Impact Vormonate
+            </button>
           </div>
           <div style={{ fontSize:38,
             filter:"drop-shadow(0 4px 14px rgba(13,196,181,0.32))",
@@ -2230,6 +2380,161 @@ function PoolCard({ pool, userImpact }) {
 
     </div>
   );
+}
+
+// ════════════════════════════════════════════════════════════════
+// IMPACT VORMONATE — Vollständiges Archiv der Monatsverteilungen
+// (2026-08-22, Michael-Vorgabe): Full-Screen-Portal-Sheet analog zum
+// bestehenden Info-Modal-Muster (Portal→document.body, zIndex 10500,
+// sticky Header mit Close-X, scrollbarer Body mit Navbar-Safe-Padding).
+// ════════════════════════════════════════════════════════════════
+function ImpactVormonateModal({ months, loading, onClose }) {
+  const [openMonth, setOpenMonth] = React.useState(0); // erster Monat aufgeklappt
+
+  const content = (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Impact Vormonate"
+      style={{
+        position:"fixed", inset:0, zIndex:10500,
+        display:"flex", flexDirection:"column",
+        background:T.surfaceHi,
+        animation:"ipFadeIn 0.22s ease both",
+      }}
+    >
+      {/* Sticky Header mit Close */}
+      <div style={{
+        padding:"56px 22px 16px",
+        borderBottom:`1px solid ${T.line}`,
+        background:T.surfaceHi, flexShrink:0, position:"relative",
+      }}>
+        <button
+          onClick={onClose}
+          className="ip-p"
+          aria-label="Schließen"
+          style={{
+            position:"absolute", top:16, right:16,
+            width:36, height:36, borderRadius:"50%",
+            background:"rgba(0,0,0,0.07)",
+            border:"none", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:18, color:T.muted,
+          }}
+        >✕</button>
+        <h3 style={{
+          margin:"0 44px 0 0", fontSize:18, fontWeight: 600,
+          color:T.ink, letterSpacing:"-0.022em", lineHeight:1.25,
+        }}>
+          Impact Vormonate
+        </h3>
+        <p style={{ margin:"6px 0 0", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+          Alle vergangenen Verteilungen aus dem Impact Pool — vollständig nachvollziehbar.
+        </p>
+      </div>
+
+      {/* Scrollbarer Inhalt */}
+      <div style={{
+        flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+        padding:"20px 22px",
+        paddingBottom:"calc(96px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
+      }}>
+        {loading ? (
+          <div style={{ textAlign:"center", padding:"40px 0", color:T.muted, fontSize:13 }}>
+            Lade Verteilungshistorie …
+          </div>
+        ) : !months?.length ? (
+          <div style={{ textAlign:"center", padding:"40px 20px" }}>
+            <div style={{ fontSize:32, marginBottom:10 }}>🌱</div>
+            <p style={{ margin:0, fontSize:13, color:T.ink2, lineHeight:1.6 }}>
+              Noch keine abgeschlossenen Monate — die erste Verteilung
+              erscheint hier, sobald der Impact Pool zum ersten Mal ausgezahlt wurde.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+            {months.map((m, mi) => {
+              const isOpen = openMonth === mi;
+              return (
+                <div key={m.month} style={{
+                  background:T.surfaceHi, borderRadius:18,
+                  border:`1px solid ${T.line}`, boxShadow:S.card, overflow:"hidden",
+                }}>
+                  {/* Monats-Header — klickbar zum Auf-/Zuklappen */}
+                  <button
+                    onClick={() => setOpenMonth(isOpen ? -1 : mi)}
+                    className="ip-p"
+                    style={{
+                      width:"100%", display:"flex", alignItems:"center",
+                      justifyContent:"space-between", gap:12,
+                      padding:"14px 16px", background:"transparent",
+                      border:"none", cursor:"pointer", textAlign:"left",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>{m.label}</div>
+                      <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>
+                        {m.projects.length} Projekt{m.projects.length !== 1 ? "e" : ""} unterstützt
+                      </div>
+                    </div>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <span style={{ fontSize:16, fontWeight: 600, color:T.teal, letterSpacing:"-0.02em" }}>
+                        {fmtEur(m.total)}
+                      </span>
+                      <span style={{
+                        fontSize:12, color:T.muted, transform: isOpen ? "rotate(180deg)" : "none",
+                        transition:"transform 0.18s",
+                      }}>▾</span>
+                    </div>
+                  </button>
+
+                  {/* Projekt-Details */}
+                  {isOpen && (
+                    <div style={{ borderTop:`1px solid ${T.line}` }}>
+                      {m.projects.map((pr, pi) => (
+                        <div key={pr.id} style={{
+                          display:"flex", alignItems:"center", gap:10,
+                          padding:"12px 16px",
+                          borderBottom: pi < m.projects.length - 1 ? `1px solid ${T.line}` : "none",
+                        }}>
+                          <div style={{
+                            width:26, height:26, borderRadius:"50%", flexShrink:0,
+                            background:`${T.teal}12`, border:`1px solid ${T.teal}20`,
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            fontSize:11, fontWeight: 600, color:T.teal,
+                          }}>
+                            {["🥇","🥈","🥉"][pr.position] || (pi + 1)}
+                          </div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <div style={{ fontSize:13, color:T.ink, fontWeight: 600,
+                              overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                              {pr.name}
+                            </div>
+                            <div style={{ fontSize:11, color:T.muted, marginTop:1 }}>
+                              {pr.votes} Stimme{pr.votes !== 1 ? "n" : ""}
+                            </div>
+                          </div>
+                          <div style={{ fontSize:13, fontWeight: 600, color:T.teal, flexShrink:0 }}>
+                            {fmtEur(pr.eur)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <p style={{ fontSize:10.5, color:T.muted, margin:"16px 4px 0", lineHeight:1.5, textAlign:"center" }}>
+          Vollständig transparent & anonymisiert — keine Namen, nur Beträge und Projekte.
+        </p>
+      </div>
+    </div>
+  );
+
+  return ReactDOM.createPortal(content, document.body);
 }
 
 // ════════════════════════════════════════════════════════════════
