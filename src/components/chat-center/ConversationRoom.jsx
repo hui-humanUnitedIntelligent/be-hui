@@ -116,8 +116,8 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     );
   }
 
-  // Zustand: delivered → Käufer bewertet
-  if (delivery.delivery_status === "delivered") {
+  // Zustand: delivered → Käufer bewertet (nur wenn noch nicht bewertet)
+  if (delivery.delivery_status === "delivered" && !delivery.buyer_rating) {
     return (
       <div style={{ padding: "10px 14px 4px" }}>
         <div style={{ fontSize: 11.5, color: "rgba(80,80,80,0.55)", textAlign: "center", marginBottom: 8 }}>
@@ -131,6 +131,19 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
             👎 Nicht empfehlen
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Nach negativer Bewertung: Info "Chat bleibt offen" (keine Buttons, kein Schließen)
+  if (delivery.delivery_status === "delivered" && delivery.buyer_rating === "not_recommend") {
+    return (
+      <div style={{
+        padding: "10px 14px 4px",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+        fontSize: 12, color: "rgba(226,87,76,0.75)", textAlign: "center",
+      }}>
+        <span>⚠ Chat bleibt offen bis eine Einigung erzielt wurde.</span>
       </div>
     );
   }

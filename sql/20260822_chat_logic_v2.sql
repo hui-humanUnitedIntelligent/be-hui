@@ -229,7 +229,8 @@ END;
 $$;
 
 -- 7. RPC: rpc_chat_submit_rating
--- Schließt den Chat nach Bewertung: delivery_status='closed', state='closed'
+-- Bei "recommend": Chat wird geschlossen (delivery_status='closed', state='closed')
+-- Bei "not_recommend": Chat bleibt OFFEN — Bewertung wird gespeichert, aber Schreibsperre NICHT aktiviert
 CREATE OR REPLACE FUNCTION rpc_chat_submit_rating(
   p_chat_id  UUID,
   p_user_id  UUID,
@@ -257,35 +258,48 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error', 'Ungültige Bewertung');
   END IF;
 
-  -- Bewertung speichern + Chat schließen
+  -- Bewertung immer speichern
   UPDATE chats SET
-    delivery_status    = 'closed',
-    buyer_rated_at     = now(),
-    buyer_rating       = p_rating,
-    state              = 'closed',
-    closed_at          = now(),
-    transaction_status = 'completed'
+    buyer_rated_at = now(),
+    buyer_rating   = p_rating
   WHERE id = p_chat_id;
 
-  -- Events loggen
+  -- Event: Bewertung abgegeben
   INSERT INTO chat_events (chat_id, event_type, user_id, data)
   VALUES (p_chat_id, 'chat_message_sent', p_user_id,
     jsonb_build_object('system_message',
-      CASE WHEN p_rating = 'recommend' THEN 'Käufer empfiehlt' ELSE 'Käufer nicht empfohlen' END));
+      CASE WHEN p_rating = 'recommend' THEN 'Käufer empfiehlt den Verkäufer' ELSE 'Käufer empfiehlt den Verkäufer nicht' END));
 
-  INSERT INTO chat_events (chat_id, event_type, user_id, data)
-  VALUES (p_chat_id, 'chat_write_locked', p_user_id,
-    jsonb_build_object('reason', 'delivery_complete'));
+  IF p_rating = 'recommend' THEN
+    -- POSITIVE Empfehlung -> Chat schliessen
+    UPDATE chats SET
+      delivery_status    = 'closed',
+      state              = 'closed',
+      closed_at          = now(),
+      transaction_status = 'completed'
+    WHERE id = p_chat_id;
 
-  INSERT INTO chat_events (chat_id, event_type, user_id, data)
-  VALUES (p_chat_id, 'chat_closed', p_user_id,
-    jsonb_build_object('rating', p_rating));
+    INSERT INTO chat_events (chat_id, event_type, user_id, data)
+    VALUES (p_chat_id, 'chat_write_locked', p_user_id,
+      jsonb_build_object('reason', 'delivery_complete'));
 
-  INSERT INTO chat_events (chat_id, event_type, user_id, data)
-  VALUES (p_chat_id, 'chat_archived', p_user_id,
-    jsonb_build_object('archived_at', now()::text));
+    INSERT INTO chat_events (chat_id, event_type, user_id, data)
+    VALUES (p_chat_id, 'chat_closed', p_user_id,
+      jsonb_build_object('rating', p_rating));
 
-  RETURN jsonb_build_object('ok', true, 'delivery_status', 'closed', 'state', 'closed');
+    INSERT INTO chat_events (chat_id, event_type, user_id, data)
+    VALUES (p_chat_id, 'chat_archived', p_user_id,
+      jsonb_build_object('archived_at', now()::text));
+
+    RETURN jsonb_build_object('ok', true, 'delivery_status', 'closed', 'state', 'closed');
+  ELSE
+    -- NEGATIVE Empfehlung -> Chat bleibt OFFEN
+    INSERT INTO chat_events (chat_id, event_type, user_id, data)
+    VALUES (p_chat_id, 'chat_message_sent', p_user_id,
+      jsonb_build_object('system_message', 'Chat bleibt offen bis Einigung erzielt wurde'));
+
+    RETURN jsonb_build_object('ok', true, 'delivery_status', 'delivered', 'state', 'opened', 'chat_stays_open', true);
+  END IF;
 END;
 $$;
 
