@@ -4,56 +4,63 @@
     <meta charset="UTF-8" />
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
-
     <title>HUI Web — Human United Intelligence</title>
-    <meta name="description" content="HUI — Ein ruhiges kreatives Netzwerk fuer Menschen die wirken. Verbinde dich mit kreativen Talenten, buche Zusammenarbeit, gestalte Impact." />
+    <meta name="description" content="HUI — Ein ruhiges kreatives Netzwerk fuer Menschen die wirken." />
     <meta name="theme-color" content="#0DC4B5" />
     <meta name="application-name" content="HUI Web" />
-
     <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2" />
     <link rel="icon" type="image/png" href="/favicon.png?v=2" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
-
     <meta property="og:title" content="HUI — Human United Intelligence" />
     <meta property="og:description" content="Ein ruhiges kreatives Netzwerk fuer Menschen die wirken." />
     <meta property="og:type" content="website" />
-
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
 
-    <!-- WHITESCREEN-CATCHER: Fängt Modul-Lade-Fehler ab VOR dem React-Import -->
+    <!-- DIAG: Visible diagnostic banner -->
+    <div id="diag" style="position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff0;color:#000;padding:8px;font-family:monospace;font-size:13px;border:2px solid red">
+      [HUI-DIAG] HTML loaded. Waiting for JS...
+    </div>
     <script>
-      window.__HUI_ERRORS__ = [];
-      window.addEventListener('error', function(event) {
-        window.__HUI_ERRORS__.push({
-          type: 'error',
-          message: event.error ? event.error.message : event.message,
-          stack: event.error ? event.error.stack : '',
-          filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno
+      (function() {
+        var diag = document.getElementById('diag');
+        if (!diag) return;
+        
+        window.addEventListener('error', function(e) {
+          diag.innerHTML += '<br>❌ ERROR: ' + (e.error ? e.error.message : e.message);
+          if (e.error && e.error.stack) diag.innerHTML += '<pre style="font-size:10px">' + e.error.stack.substring(0, 500) + '</pre>';
+          if (e.filename) diag.innerHTML += '<br>File: ' + e.filename + ':' + e.lineno;
+          diag.style.background = '#f00';
+          diag.style.color = '#fff';
         });
-        var root = document.getElementById('web-root');
-        if (root && !root.hasChildNodes()) {
-          root.innerHTML = '<div style="padding:40px;font-family:monospace;font-size:14px;color:#000;max-width:900px;margin:0 auto;word-break:break-word">'
-            + '<h2 style="color:#e00">HUI Web — Load Error</h2>'
-            + '<p><b>' + (event.error ? event.error.message : event.message) + '</b></p>'
-            + '<pre style="background:#f5f5f5;padding:12px;border-radius:6px;overflow:auto;font-size:12px">'
-            + (event.error ? event.error.stack : 'No stack available')
-            + '\n\nSource: ' + (event.filename || 'unknown') + ':' + (event.lineno || 0) + ":" + (event.colno || 0)
-            + '</pre>'
-            + '<p style="color:#666;margin-top:16px">If this persists, clear cache and reload. Error details above.</p>'
-            + '</div>';
-        }
-      });
-      window.addEventListener('unhandledrejection', function(event) {
-        window.__HUI_ERRORS__.push({
-          type: 'unhandledrejection',
-          message: event.reason && event.reason.message ? event.reason.message : String(event.reason),
-          stack: event.reason && event.reason.stack ? event.reason.stack : ''
+        
+        window.addEventListener('unhandledrejection', function(e) {
+          diag.innerHTML += '<br>❌ REJECT: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+          diag.style.background = '#f80';
         });
-      });
+        
+        // Check after 3s and 7s
+        setTimeout(function() {
+          var root = document.getElementById('web-root');
+          var children = root ? root.childNodes.length : 'NULL';
+          diag.innerHTML += '<br>[3s] web-root children: ' + children;
+          if (root && root.childNodes.length > 0) {
+            diag.innerHTML += '<br>[3s] web-root innerHTML length: ' + root.innerHTML.length;
+          }
+        }, 3000);
+        
+        setTimeout(function() {
+          var root = document.getElementById('web-root');
+          var children = root ? root.childNodes.length : 'NULL';
+          diag.innerHTML += '<br>[7s] web-root children: ' + children;
+          if (children === 0 || children === 'NULL') {
+            diag.innerHTML += '<br>❌ REACT DID NOT RENDER';
+            diag.style.background = '#f00';
+            diag.style.color = '#fff';
+          }
+        }, 7000);
+      })();
     </script>
   </head>
   <body>
