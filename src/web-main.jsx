@@ -11,23 +11,39 @@ const _d = document.getElementById('diag');
 const rootEl = document.getElementById('web-root');
 if (_d) _d.innerHTML = '[JS] start';
 
-// Global error handlers to catch EVERYTHING
 window.addEventListener('error', (e) => {
-  if (_d) _d.innerHTML += '\n[WINDOW ERROR] ' + e.message + ' @ ' + (e.filename||'') + ':' + (e.lineno||'');
+  if (_d) _d.innerHTML += '\n[WIN_ERR] ' + e.message;
 });
 window.addEventListener('unhandledrejection', (e) => {
-  if (_d) _d.innerHTML += '\n[UNHANDLED REJECTION] ' + (e.reason?.message || e.reason || 'unknown');
+  if (_d) _d.innerHTML += '\n[REJ] ' + (e.reason?.message || e.reason);
 });
 
 class EC extends React.Component {
   constructor(p) { super(p); this.state = { err: null }; }
   static getDerivedStateFromError(e) { return { err: e }; }
   componentDidCatch(e, i) {
-    if (_d) _d.innerHTML += '\n[CAUGHT] ' + e.message + '\n' + (i.componentStack||'').substring(0,400);
+    if (_d) _d.innerHTML += '\n[CAUGHT] ' + e.message + '\n' + (i.componentStack||'').substring(0,500);
   }
   render() {
-    if (this.state.err) return <div style={{padding:20,color:'red',fontFamily:'monospace',fontSize:14}}>ERR: {String(this.state.err.message)}<br/>Stack: {String(this.state.err.stack||'').substring(0,500)}</div>;
+    if (this.state.err) return <div style={{padding:20,color:'red',fontFamily:'monospace'}}>ERR: {String(this.state.err.message)}</div>;
     return this.props.children;
+  }
+}
+
+// Check if LoginPage is valid
+if (_d) _d.innerHTML += '\n[JS] LoginPage type=' + typeof LoginPage;
+if (_d) _d.innerHTML += '\n[JS] LoginPage isFn=' + (typeof LoginPage === 'function');
+
+// Wrap LoginPage to trace renders
+function TracedLoginPage() {
+  if (_d) _d.innerHTML += '\n[JS] TracedLoginPage RENDER called';
+  try {
+    const result = LoginPage();
+    if (_d) _d.innerHTML += '\n[JS] LoginPage() returned type=' + (result === null ? 'null' : result === undefined ? 'undefined' : result?.type?.name || result?.type || 'element');
+    return result;
+  } catch(e) {
+    if (_d) _d.innerHTML += '\n[JS] LoginPage() THREW: ' + e.message;
+    throw e;
   }
 }
 
@@ -37,7 +53,7 @@ function TestB() {
       <AuthProvider>
         <EC>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<TracedLoginPage />} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </EC>
@@ -50,7 +66,9 @@ const r = ReactDOM.createRoot(rootEl);
 r.render(<TestB />);
 if (_d) _d.innerHTML += '\n[JS] render() called';
 
-setTimeout(() => {
-  if (_d) _d.innerHTML += '\n[5s] children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
-  if (_d) _d.innerHTML += '\n[5s] preview=' + rootEl.innerHTML.substring(0, 500);
-}, 5000);
+// Multiple checks
+[1, 2, 3, 5].forEach(t => {
+  setTimeout(() => {
+    if (_d) _d.innerHTML += '\n[' + t + 's] children=' + rootEl.childElementCount + ' html.len=' + rootEl.innerHTML.length;
+  }, t * 1000);
+});
