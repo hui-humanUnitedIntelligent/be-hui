@@ -337,56 +337,6 @@ function useWeitereProjects() {
   return projects;
 }
 
-// ──────────────────────────────────────────────────────────────
-// IMPACT-POOL LIVE-TICKER (2026-08-22): Zeigt die letzten 5 Verteilungen
-// aus dem Impact-Pool an — für vollständige Transparenz "wohin fließt
-// mein Geld". Quelle: impact_distributions (öffentlich lesbar, RLS
-// USING(true)), anonymisiert: kein Nutzername, nur Betrag + Projekt.
-// ──────────────────────────────────────────────────────────────
-function usePoolDistributionsTicker() {
-  const [items, setItems] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  React.useEffect(() => {
-    let dead = false;
-    const load = async () => {
-      try {
-        const { data: rows } = await supabase
-          .from("impact_distributions")
-          .select("id,amount_eur,distributed_at,project_id")
-          .order("distributed_at", { ascending:false })
-          .limit(5);
-        if (dead) return;
-        if (!rows?.length) { setItems([]); setLoading(false); return; }
-
-        const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        const projIds = [...new Set(rows.map(r => r.project_id).filter(id => UUID_RE.test(String(id))))];
-        let nameById = {};
-        if (projIds.length) {
-          const { data: apps } = await supabase
-            .from("impact_applications")
-            .select("id,project_name")
-            .in("id", projIds);
-          nameById = Object.fromEntries((apps || []).map(a => [a.id, a.project_name]));
-        }
-        if (dead) return;
-
-        setItems(rows.map(r => ({
-          id: r.id,
-          amount: Number(r.amount_eur || 0),
-          proj: r.project_id ? nameById[r.project_id] : null,
-          ts: r.distributed_at,
-          ago: relTime(r.distributed_at),
-        })));
-        setLoading(false);
-      } catch { if (!dead) setLoading(false); }
-    };
-    load();
-    const iv = setInterval(load, 60_000);
-    return () => { dead = true; clearInterval(iv); };
-  }, []);
-  return { items, loading };
-}
-
 function useImpactActivities() {
   const [acts, setActs] = React.useState([]);
   React.useEffect(() => {
@@ -1747,7 +1697,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const pool       = usePoolBudgets();
   const transp     = useTransparenz();
   const payoutData = useLastPayout();
-  const poolTicker  = usePoolDistributionsTicker();
   const finanziert = useWeitereProjects();
   const activities = useImpactActivities();
   const rankedProjs   = useAllApprovedByVotes();          // ← SSOT für alle Rankings
@@ -2048,9 +1997,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       {payoutData.payout && (
         <LetzteAuszahlung payout={payoutData.payout} others={payoutData.others} />
       )}
-
-      {/* ══ GANZ UNTEN: IMPACT-POOL VERTEILUNGS-TICKER (max 5) ═══ */}
-      <PoolTransparenzTicker items={poolTicker.items} />
 
       {/* ══ DETAIL-MODAL via Portal — immer ganz oben ════════════ */}
       {detailApp && (
@@ -3162,54 +3108,6 @@ function LiveTicker({ activities }) {
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-// ════════════════════════════════════════════════════════════════
-// 8b. IMPACT-POOL VERTEILUNGS-TICKER (ganz unten, max 5, 2026-08-22)
-// ════════════════════════════════════════════════════════════════
-function PoolTransparenzTicker({ items }) {
-  if (!items?.length) return null;
-  return (
-    <div style={{ padding:"28px 16px 0" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-        <div style={{ width:7, height:7, borderRadius:"50%", background:T.teal,
-          animation:"ipPulse 1.4s ease-in-out infinite" }}/>
-        <h3 style={{ margin:0, fontSize:14, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.01em" }}>Verteilungen aus dem Impact-Pool</h3>
-      </div>
-
-      <div style={{ background:T.surfaceHi, borderRadius:20,
-        boxShadow:S.card, border:`1px solid ${T.line}`, overflow:"hidden" }}>
-        {items.slice(0,5).map((it, i) => (
-          <div key={it.id} style={{
-            display:"flex", alignItems:"center", gap:10,
-            padding:"11px 16px",
-            borderBottom: i < Math.min(items.length,5)-1 ? `1px solid ${T.line}` : "none",
-            animation:"ipFade 0.28s ease both", animationDelay:`${i*0.04}s`,
-          }}>
-            <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0,
-              background:`${T.teal}12`, border:`1px solid ${T.teal}20`,
-              display:"flex", alignItems:"center", justifyContent:"center", fontSize:13 }}>
-              <span style={{ color:T.teal }}>€</span>
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:12, color:T.ink, lineHeight:1.4,
-                overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                <b>{fmtEur(it.amount)}</b> {it.proj
-                  ? <>wurden für „<b>{it.proj}</b>" verteilt</>
-                  : <>wurden gerade in den Impact-Pool eingezahlt</>
-                }
-              </div>
-            </div>
-            <div style={{ fontSize:10, color:T.muted, flexShrink:0 }}>{it.ago}</div>
-          </div>
-        ))}
-      </div>
-      <p style={{ fontSize:10.5, color:T.muted, margin:"10px 4px 0", lineHeight:1.5 }}>
-        Vollständig transparent & anonymisiert — keine Namen, nur Beträge.
-      </p>
     </div>
   );
 }
