@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 import { ToastContainer } from './lib/useToast.jsx';
 
-// Only LandingPage (imports only React)
 import LandingPage from './components/landing/LandingPage';
+import LoginPage from './pages/LoginPage';
 
 function LoadingScreen() {
   return React.createElement('div', { style: { padding: 40 } }, 'Loading...');
@@ -16,7 +16,7 @@ function ConditionalRouter() {
   if (!isAuthenticated) {
     return React.createElement(Routes, null,
       React.createElement(Route, { path: '/', element: React.createElement(LandingPage) }),
-      React.createElement(Route, { path: '/login', element: React.createElement('div', {style:{padding:40}}, 'Login Placeholder') }),
+      React.createElement(Route, { path: '/login', element: React.createElement(LoginPage) }),
       React.createElement(Route, { path: '*', element: React.createElement(Navigate, { to: '/login', replace: true }) })
     );
   }
