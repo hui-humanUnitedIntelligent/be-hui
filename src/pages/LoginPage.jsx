@@ -970,7 +970,36 @@ export default function LoginPage() {
                 }
               />
             )}
-{/* EMAIL-DUPLICATE-PROTECTION: "Passwort vergessen?" Button
+{/* RESTORE (2026-08-22): Err/Success-Feedback + Submit-Button + Login-Forgot-Link
+                waren beim Ambassador-Removal-Commit (f473c037) versehentlich mit entfernt
+                worden (Collateral-Damage — Reflink-Feld korrekt entfernt, aber diese
+                3 unabhängigen Blöcke standen im selben Diff-Hunk und wurden mitgelöscht).
+                Root Cause: Kein Submit-Button sichtbar, keine Fehler-/Erfolgsmeldung,
+                kein "Passwort vergessen?" im Login-Modus. Wiederhergestellt aus Git-History
+                (Commit vor f473c037), unverändert bis auf Entfernung der Reflink-Abhängigkeit. */}
+            {}
+            {err && <ErrorMessage msg={err} />}
+            {success && <SuccessMessage msg={success} />}
+
+            {}
+            <div style={{ marginTop: 2 }}>
+              <PrimaryBtn type="submit" loading={loading} disabled={loading}>
+                {loading ? 'Bitte warten…' : copy.cta}
+              </PrimaryBtn>
+            </div>
+
+            {}
+            {mode === 'login' && (
+              <div style={{ textAlign: 'center', marginTop: -4 }}>
+                <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer',
+                    fontSize: 13, color: T.muted, fontFamily: 'inherit' }}>
+                  Passwort vergessen?
+                </button>
+              </div>
+            )}
+
+            {/* EMAIL-DUPLICATE-PROTECTION: "Passwort vergessen?" Button
                 erscheint unter der Fehlermeldung, wenn die Registrierung
                 wegen existierender E-Mail blockiert wurde. */}
             {mode === 'register' && emailBlocked && (
