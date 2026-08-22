@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import WebApp from './WebApp.jsx';
+import { GlobalAppBoundary } from './lib/ErrorBoundaries.jsx';
 import './index.css';
 import './web.css';
 import './landing.css';
@@ -16,6 +17,8 @@ initGlobalKeyboardHandling();
 // ── Render ────────────────────────────────────────────────────────────────────
 ReactDOM.createRoot(document.getElementById('web-root')).render(
   <React.StrictMode>
-    <WebApp />
+    <GlobalAppBoundary>
+      <WebApp />
+    </GlobalAppBoundary>
   </React.StrictMode>
 );
