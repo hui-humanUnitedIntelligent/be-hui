@@ -170,9 +170,6 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
           transform: scale(0.97);
           opacity: 0.92;
         }
-        .hui-welcome-feature:hover {
-          background: rgba(13,196,181,0.06) !important;
-        }
         .hui-welcome-scroll::-webkit-scrollbar { display: none; }
         .hui-welcome-scroll { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
@@ -372,6 +369,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                     key={i}
                     className="hui-welcome-feature"
                     style={{
+                      pointerEvents: "none",
                       display:       "flex",
                       alignItems:    "center",
                       gap:           7,
@@ -418,74 +416,6 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
               </div>
             </div>
 
-            {/* ── Feature-Liste (bestehend, unverändert, nur bei "full") ── */}
-            {!isRulesOnly && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 6 }}>
-                {FEATURES.map((f, i) => (
-                  <div
-                    key={i}
-                    className="hui-welcome-feature"
-                    style={{
-                      display:       "flex",
-                      alignItems:    "center",
-                      gap:           7,
-                      padding:       "4px 9px",
-                      borderRadius:  11,
-                      background:    "rgba(250,247,242,0.9)",
-                      border:        "1px solid rgba(13,196,181,0.10)",
-                      transition:    "background 0.2s",
-                      cursor:        "default",
-                    }}
-                  >
-                    {/* Icon-Badge */}
-                    <div style={{
-                      width:         23,
-                      height:        23,
-                      borderRadius:  7,
-                      background:    f.bg,
-                      display:       "flex",
-                      alignItems:    "center",
-                      justifyContent:"center",
-                      fontSize:      12,
-                      flexShrink:    0,
-                    }}>
-                      {f.icon}
-                    </div>
-
-                    {/* Text */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{
-                        fontSize:      13.5,
-                        fontWeight: 600,
-                        color:         INK,
-                        letterSpacing: "-0.008em",
-                        marginBottom:  0,
-                        lineHeight:    1.15,
-                      }}>
-                        {f.title}
-                      </div>
-                      <div style={{
-                        fontSize:  12,
-                        color:     "rgba(58,58,85,0.7)",
-                        lineHeight: 1.3,
-                      }}>
-                        {f.sub}
-                      </div>
-                    </div>
-
-                    {/* Chevron */}
-                    <div style={{
-                      fontSize:  14,
-                      color:     "rgba(13,196,181,0.55)",
-                      flexShrink: 0,
-                      fontWeight: 600,
-                    }}>
-                      ›
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
 
             {/* ── Abschluss-Zitat (bestehend, unverändert, nur bei "full") ── */}
             {!isRulesOnly && (
@@ -518,7 +448,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
           <div style={{
             position:   "relative",
             zIndex:     2,
-            padding:    "8px 20px 16px",
+            padding:    "8px 20px max(25px, env(safe-area-inset-bottom, 16px))", // 25px-Sicherheitsabstand (Michael-Wunsch 2026-08-23)
             background: "rgba(253,252,250,0.98)",
             borderTop:  "1px solid rgba(13,196,181,0.08)",
           }}>
