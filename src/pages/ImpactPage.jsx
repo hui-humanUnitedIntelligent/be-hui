@@ -102,13 +102,13 @@ const SEED_PROJECTS = [];
 // ════════════════════════════════════════════════════════════════
 
 import {
-  safeArr, safeNum, fmtEur, relTime, fmtMonth,
+  
   useHeroStats, usePoolBudgets, useTransparenz,
   useLastPayout, useWeitereProjects, usePoolDistributionsTicker,
   useImpactMonthlyHistory, useImpactActivities, useMonthlyProjects,
   useAllApprovedByVotes, useWeitereHerzensprojekte, useApprovedApplications,
   useMonthlyVoteRanking,
-} from "../hooks/impact/useImpactData.js";
+} from "../hooks/impact/useImpactData.jsx";
 
 // ── Detailseite für bewilligte Anträge ──────────────────────────
 function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = () => {} }) {
