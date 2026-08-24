@@ -27,6 +27,7 @@ import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
 import { countComments, getComments } from "../lib/commentsService.js";
 import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
+import FeedImpactTicker from "./FeedImpactTicker.jsx";
 
 // TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
 import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
@@ -300,6 +301,10 @@ const FEED_CSS = `
 .hui-feed-card {
   animation: huiFeedCardIn 0.32s ease both;
   -webkit-tap-highlight-color: transparent;
+}
+@keyframes feedImpactPulse {
+  0%,100% { opacity: 1; }
+  50%     { opacity: 0.35; }
 }
 `;
 
@@ -952,6 +957,11 @@ export default function UnifiedFeed({
           />
         </SectionBoundary>
       )}
+
+      {/* ── IMPACT TRANSPARENCY TICKER (2026-08-24) ── */}
+      <SectionBoundary name="impactTicker">
+        <FeedImpactTicker />
+      </SectionBoundary>
 
       {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
 
