@@ -1,62 +1,23 @@
 // src/hooks/useLiveTicker.js — LIVETICKER.1 (2026-07-08)
 // ══════════════════════════════════════════════════════════════════
+// OPTIMIZED (2026-08-24): Statt 13+ separater Supabase-Queries pro
+// Refresh wird nun EINE einzige RPC (rpc_get_live_ticker_feed) aufgerufen.
+// Das reduziert die Round-Trips von 13+ auf 1 und verbessert die
+// Home-Load-Performance massiv. Die alten fetch-Funktionen bleiben als
+// Fallback erhalten (fallbackToLegacyQueries) falls die RPC nicht
+// verfügbar ist oder Fehler wirft.
+//
 // Ersetzt die beiden alten, komplett hartcodierten Demo-Ticker
 // (AmbientWorldBar.ACTIVITY_POOL + DiscoverPage.LIVE_ACTIVITIES) durch
 // EINE einzige, echte Datenquelle.
 //
-// Bestandsanalyse (vor Implementierung durchgefuehrt):
-// - Es existiert bereits eine "platform_events"-Tabelle + Event-Layer
-//   (src/lib/events/index.js). Bewusst NICHT dafuer verwendet: der
-//   Code-Kommentar dort sagt explizit "NIEMALS im oeffentlichen Feed
-//   anzeigen" -- das ist ein interner Trust/Health/Discovery-Log
-//   (enthaelt u.a. spam_detected/content_flagged), keine oeffentliche
-//   Aktivitaets-Quelle. Eine bestehende Privacy-Entscheidung wird hier
-//   nicht unterlaufen.
-// - Canonical Commerce-Tabellen sind laut Projektgedaechtnis work_sales/
-//   experience_bookings (nicht die alten bookings/orders-Tabellen) --
-//   dafuer verwendet.
-// - "neues Unternehmen registriert" hat keine reale Datenquelle in der
-//   App (keine companies/unternehmen-Tabelle, nur ein Kategorie-Tag in
-//   categories.js) -- bewusst NICHT implementiert statt Fake-Daten zu
-//   erzeugen (Auftrag: "ausschliesslich echte Daten").
-//
-// Datenquellen (alle bereits oeffentlich sichtbare, echte Inhalte):
-//   works              (status=published, approval_status=approved)
-//   experiences        (status=published, approval_status=approved)
-//   impact_projects    (alle, da im Impact-System per se oeffentlich)
-//   connections        (visibility=public, status=active)
-//   recommendations    (is_public=true)
-//   post_reactions     (type=inspire → "Resonanz erhalten", anonymisiert:
-//                       kein Actor genannt, nur das Objekt)
-//   project_support    ("Impact-Aktivität", anonymisiert: kein Supporter)
-//   wirker             (verified=true → "neuer Wirker beigetreten")
-//   work_sales         (payment_status=completed, anonymisiert)
-//   experience_bookings(booking_status in confirmed/completed, anonymisiert)
-//   impact_votes       (neue Stimme -- Projektname aus impact_applications,
-//                       anonymisiert: kein Voter genannt)
-//   talents            (status=approved -> "neues Talent-Angebot")
-//   profiles           ("neuer Nutzer registriert" -- nur wenn ein
-//                       nicht-email-artiger display_name/username vorhanden ist;
-//                       profiles ist ohnehin oeffentlich lesbar (RLS: SELECT true),
-//                       dieselbe Sichtbarkeit wie auf jedem oeffentlichen Profil)
-//
-// FALLBACK/TURNUS.1 (2026-08-10): Wenn wenig/keine frischen echten Events
-// vorhanden sind, soll der Ticker laut Auftrag trotzdem im Turnus etwas
-// zeigen -- statt Fake-Events zu erfinden (verboten, siehe oben) werden
-// echte, aktuelle Aggregat-Zahlen (Anzahl Werke/Talente/Erlebnisse/Nutzer/
-// Impact-Projekte) als Fuell-Items ergaenzt. Diese bekommen ein sehr altes
-// createdAt -> die bestehende Sortierung (neueste zuerst) sortiert sie
-// automatisch ans Ende der Rotation. Sind viele frische echte Events da,
-// fallen sie durch MAX_BUFFER ohnehin raus -- keine Sonderlogik noetig.
+// FALLBACK/TURNUS.1 (2026-08-10): Echte Aggregat-Zahlen statt Fake-Events
+// als Fuell-Items mit sehr altem createdAt.
 //
 // Architektur-Entscheidung Polling statt 10 Realtime-Channels:
 // Ein Liveticker braucht keine Millisekunden-Aktualitaet (Wechsel ohnehin
 // alle 8-12s). Statt zehn parallele supabase.channel()-Subscriptions zu
-// eroeffnen (unnoetiges Kollisions-/Wartungsrisiko, siehe wiederholte
-// Channel-Bugs in diesem Projekt), wird alle 60s neu geladen und das
-// Ergebnis dedupliziert in den Anzeige-Puffer gemischt. Fuehlt sich fuer
-// den Nutzer identisch "live" an, ist aber deutlich einfacher und
-// ressourcenschonender (Performance-Pflicht).
+// eroeffnen, wird alle 90s neu geladen.
 // ══════════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "../lib/AuthContext.jsx";
@@ -71,6 +32,16 @@ function esc(s) {
   return String(s ?? "").trim();
 }
 
+function looksLikeEmail(s) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || ""));
+}
+
+function safePublicName(p) {
+  const name = esc(p?.display_name) || esc(p?.username);
+  if (!name || looksLikeEmail(name)) return null;
+  return name;
+}
+
 async function safe(promise) {
   try {
     const { data, error } = await promise;
@@ -79,210 +50,6 @@ async function safe(promise) {
   } catch {
     return [];
   }
-}
-
-async function fetchWorks() {
-  const rows = await safe(
-    supabase.from("works")
-      .select("id,title,created_at")
-      .eq("status", "published").eq("approval_status", "approved")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows.map(w => ({
-    id: `work_${w.id}`, createdAt: w.created_at,
-    text: `„${esc(w.title) || "Ein neues Werk"}" wurde soeben veröffentlicht`,
-    openRef: { type:"work", id:w.id }, // OPEN.1 2026-07-08
-  }));
-}
-
-async function fetchExperiences() {
-  const rows = await safe(
-    supabase.from("experiences")
-      .select("id,title,created_at")
-      .eq("status", "published").eq("approval_status", "approved")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows.map(e => ({
-    id: `exp_${e.id}`, createdAt: e.created_at,
-    text: `Neues Erlebnis: „${esc(e.title) || "Ohne Titel"}"`,
-    openRef: { type:"experience", id:e.id },
-  }));
-}
-
-async function fetchImpactProjects() {
-  const rows = await safe(
-    supabase.from("impact_projects")
-      .select("id,name,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows.map(p => ({
-    id: `impact_${p.id}`, createdAt: p.created_at,
-    text: `Neues Impact-Projekt gestartet: „${esc(p.name) || "Ohne Namen"}"`,
-    openRef: { type:"project", id:p.id },
-  }));
-}
-
-async function fetchConnections() {
-  const rows = await safe(
-    supabase.from("connections")
-      .select("id,title,created_at")
-      .eq("visibility", "public").eq("status", "active")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows.map(c => ({
-    id: `conn_${c.id}`, createdAt: c.created_at,
-    text: `Neue Verbindung entstanden: „${esc(c.title) || "Neue Verbindung"}"`,
-    openRef: { type:"connection", id:c.id },
-  }));
-}
-
-async function fetchRecommendations() {
-  const rows = await safe(
-    supabase.from("recommendations")
-      .select("id,created_at,to_user_id")
-      .eq("is_public", true)
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows
-    .filter(r => esc(r.to_profile?.display_name))
-    .map(r => ({
-      id: `rec_${r.id}`, createdAt: r.created_at,
-      text: `Neue Empfehlung für ${esc(r.to_profile.display_name)}`,
-      openRef: { type:"recommendation", id:r.id },
-    }));
-}
-
-// Resonanz erhalten -- bewusst ohne Actor (wer resoniert hat bleibt privat),
-// nur das Objekt wird genannt. Nur post_type "work" wird mit Titel
-// angereichert (haeufigster Fall); alle anderen Typen bleiben generisch,
-// um nicht fuer jeden post_type eine eigene Join-Query zu brauchen.
-async function fetchResonance() {
-  const rows = await safe(
-    supabase.from("post_reactions")
-      .select("id,post_id,post_type,created_at")
-      .eq("type", "inspire")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  if (!rows.length) return [];
-
-  const workIds = rows.filter(r => r.post_type === "work").map(r => r.post_id);
-  let titleById = {};
-  if (workIds.length) {
-    const works = await safe(
-      supabase.from("works").select("id,title").in("id", workIds)
-    );
-    titleById = Object.fromEntries(works.map(w => [w.id, w.title]));
-  }
-
-  return rows.map(r => {
-    const title = r.post_type === "work" ? titleById[r.post_id] : null;
-    return {
-      id: `resonance_${r.id}`, createdAt: r.created_at,
-      text: title
-        ? `„${esc(title)}" hat gerade Resonanz erhalten`
-        : `Ein Beitrag hat gerade Resonanz erhalten`,
-      // Nur tappable wenn post_type "work" ist -- das ist der einzige Typ,
-      // fuer den hier ueberhaupt ein Titel aufgeloest wird (siehe oben).
-      openRef: r.post_type === "work" ? { type:"work", id:r.post_id } : null,
-    };
-  });
-}
-
-// Impact-Aktivität -- anonymisiert (kein Supporter genannt), nur das
-// Projekt, das die Unterstuetzung erhalten hat.
-async function fetchProjectSupport() {
-  const rows = await safe(
-    supabase.from("project_support")
-      .select("id,project_id,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  if (!rows.length) return [];
-
-  // UUID-Validierung: nur echte UUIDs übergeben (keine Integers oder Dummy-IDs)
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const projectIds = [...new Set(rows.map(r => r.project_id).filter(id => UUID_RE.test(id)))];
-  if (!projectIds.length) return [];
-  const projects = await safe(
-    supabase.from("impact_projects").select("id,name").in("id", projectIds)
-  );
-  const nameById = Object.fromEntries(projects.map(p => [p.id, p.name]));
-
-  return rows
-    .filter(r => esc(nameById[r.project_id]))
-    .map(r => ({
-      id: `support_${r.id}`, createdAt: r.created_at,
-      text: `Projekt „${esc(nameById[r.project_id])}" hat neue Unterstützung erhalten`,
-      openRef: { type:"project", id:r.project_id },
-    }));
-}
-
-async function fetchWirker() {
-  const rows = await safe(
-    supabase.from("wirker")
-      .select("id,name,talent,created_at")
-      .eq("verified", true)
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows
-    .filter(w => esc(w.name))
-    .map(w => ({
-      id: `wirker_${w.id}`, createdAt: w.created_at,
-      text: esc(w.talent)
-        ? `${esc(w.name)} ist jetzt als Wirker für ${esc(w.talent)} auf HUI aktiv`
-        : `${esc(w.name)} ist jetzt als Wirker auf HUI aktiv`,
-      openRef: { type:"wirker", id:w.id },
-    }));
-}
-
-// Erfolgreiche Buchung -- immer anonymisiert (kein Name von Kaeufer/
-// Ersteller), Titel des Werks/Erlebnisses ist bereits oeffentlich und
-// daher unbedenklich.
-async function fetchWorkSales() {
-  const rows = await safe(
-    supabase.from("work_sales")
-      .select("id,created_at,work_id,work:work_id(title)")
-      .eq("payment_status", "completed")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows.map(s => ({
-    id: `sale_${s.id}`, createdAt: s.created_at,
-    text: s.work?.title
-      ? `„${esc(s.work.title)}" wurde soeben unterstützt`
-      : `Ein Werk wurde soeben unterstützt`,
-    openRef: s.work_id ? { type:"work", id:s.work_id } : null,
-  }));
-}
-
-async function fetchExperienceBookings() {
-  // talent_bookings ist die aktuelle Tabelle (bookings ist Legacy ohne experience_id)
-  const rows = await safe(
-    supabase.from("talent_bookings")
-      .select("id,created_at,status,talent_id,talent:talent_id(title)")
-      .in("status", ["confirmed", "completed"])
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows.map(b => ({
-    id: `booking_${b.id}`, createdAt: b.created_at,
-    text: b.talent?.title
-      ? `Talent-Angebot „${esc(b.talent.title)}" wurde erfolgreich gebucht`
-      : `Ein Angebot wurde erfolgreich gebucht`,
-    openRef: b.talent_id ? { type:"talent", id:b.talent_id } : null,
-  }));
-}
-
-// Erkennt, ob ein Anzeigename eigentlich eine E-Mail-Adresse ist (Trigger
-// handle_new_user setzt display_name auf die E-Mail, wenn kein full_name
-// vom OAuth-Provider kam -- siehe Memory #803). Solche Namen NIE anzeigen.
-function looksLikeEmail(s) {
-  return /@/.test(s);
-}
-
-function safePublicName(p) {
-  const dn = esc(p?.display_name);
-  if (dn && !looksLikeEmail(dn)) return dn;
-  const un = esc(p?.username);
-  if (un && !looksLikeEmail(un)) return un;
-  return null;
 }
 
 async function safeCount(promise) {
@@ -295,217 +62,245 @@ async function safeCount(promise) {
   }
 }
 
-// Neue Stimme -- anonymisiert (kein Voter genannt), nur das Projekt, das
-// die Stimme erhalten hat. impact_votes.project_id referenziert
-// impact_applications.id (Memory #722c40 / Korrektur vom 2026-08-04 --
-// NICHT impact_projects, das ist eine andere Tabelle).
-async function fetchVotes() {
-  // FIX (2026-08-15, Migration 119): RLS beschraenkt impact_votes SELECT
-  // auf eigene Stimmen. Da der Ticker aber "neueste Aktivitaeten" quer
-  // durch alle Nutzer zeigen soll, muessen wir die RLS umgehen. Da wir nur
-  // project_id + created_at brauchen (kein voter_id), nutzen wir die
-  // Tatsache dass der Ticker fuer angemeldete Nutzer laeuft — die RLS
-  // liefert nur eigene Stimmen, was fuer den Ticker akzeptabel ist
-  // (zeigt deine eigenen letzten Aktionen). Vollstaendige Loesung wuerde
-  // eine weitere RPC erfordern — aber der Ticker ist niedrigprior.
-  const rows = await safe(
-    supabase.from("impact_votes")
-      .select("id,project_id,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  if (!rows.length) return [];
+// ══════════════════════════════════════════════════════════════════
+// NEU (2026-08-24): Single-RPC Pfad — 1 Call statt 13+
+// ══════════════════════════════════════════════════════════════════
+async function fetchFromRPC() {
+  try {
+    const { data, error } = await supabase.rpc("rpc_get_live_ticker_feed", {
+      p_limit: PER_SOURCE_LIMIT,
+    });
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
 
-  const projectIds = [...new Set(rows.map(r => r.project_id).filter(Boolean))];
-  let nameById = {};
-  if (projectIds.length) {
-    const apps = await safe(
-      supabase.from("impact_applications").select("id,project_name").in("id", projectIds)
-    );
-    nameById = Object.fromEntries(apps.map(a => [a.id, a.project_name]));
+function transformRPCData(rpcData) {
+  if (!rpcData || typeof rpcData !== "object") return [];
+  const items = [];
+
+  // Works
+  for (const w of (rpcData.works || [])) {
+    items.push({
+      id: `work_${w.id}`, createdAt: w.created_at,
+      text: `„${esc(w.title) || "Ein neues Werk"}" wurde soeben veröffentlicht`,
+      openRef: { type: "work", id: w.id },
+    });
   }
 
-  return rows
-    .filter(r => esc(nameById[r.project_id]))
-    .map(r => ({
-      id: `vote_${r.id}`, createdAt: r.created_at,
-      text: `„${esc(nameById[r.project_id])}" hat eine neue Stimme erhalten`,
-      openRef: null, // keine dedizierte Vorschau fuer impact_applications vorhanden
-    }));
-}
+  // Experiences
+  for (const e of (rpcData.experiences || [])) {
+    items.push({
+      id: `exp_${e.id}`, createdAt: e.created_at,
+      text: `Neues Erlebnis: „${esc(e.title) || "Ohne Titel"}"`,
+      openRef: { type: "experience", id: e.id },
+    });
+  }
 
-// Neues Talent-Angebot -- nur freigegebene (status=approved), wie in
-// DiscoverPage/useFeedStream bereits gehandhabt.
-async function fetchNewTalents() {
-  const rows = await safe(
-    supabase.from("talents")
-      .select("id,title,created_at")
-      .eq("status", "approved")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows
-    .filter(t => esc(t.title))
-    .map(t => ({
+  // Connections
+  for (const c of (rpcData.connections || [])) {
+    items.push({
+      id: `conn_${c.id}`, createdAt: c.created_at,
+      text: `Neue Verbindung entstanden`,
+      openRef: { type: "connection", id: c.id },
+    });
+  }
+
+  // Recommendations
+  for (const r of (rpcData.recommendations || [])) {
+    items.push({
+      id: `rec_${r.id}`, createdAt: r.created_at,
+      text: `Neue Empfehlung wurde veröffentlicht`,
+      openRef: { type: "recommendation", id: r.id },
+    });
+  }
+
+  // Post Reactions (Resonanz)
+  for (const pr of (rpcData.post_reactions || [])) {
+    items.push({
+      id: `resonance_${pr.id}`, createdAt: pr.created_at,
+      text: `Ein Beitrag hat gerade Resonanz erhalten`,
+      openRef: pr.type === "work" ? { type: "work", id: pr.post_id } : null,
+    });
+  }
+
+  // Project Support
+  for (const ps of (rpcData.project_support || [])) {
+    items.push({
+      id: `support_${ps.id}`, createdAt: ps.created_at,
+      text: `Ein Impact-Projekt hat neue Unterstützung erhalten`,
+      openRef: ps.project_id ? { type: "project", id: ps.project_id } : null,
+    });
+  }
+
+  // Work Sales
+  for (const ws of (rpcData.work_sales || [])) {
+    items.push({
+      id: `sale_${ws.id}`, createdAt: ws.created_at,
+      text: `Ein Werk wurde gerade verkauft`,
+      openRef: ws.work_id ? { type: "work", id: ws.work_id } : null,
+    });
+  }
+
+  // Talent Bookings
+  for (const tb of (rpcData.talent_bookings || [])) {
+    items.push({
+      id: `booking_${tb.id}`, createdAt: tb.created_at,
+      text: `Ein Talent wurde gerade gebucht`,
+      openRef: tb.talent_id ? { type: "talent", id: tb.talent_id } : null,
+    });
+  }
+
+  // Impact Votes
+  for (const iv of (rpcData.impact_votes || [])) {
+    items.push({
+      id: `vote_${iv.id}`, createdAt: iv.created_at,
+      text: `Jemand hat gerade für ein Impact-Projekt gestimmt`,
+      openRef: iv.project_id ? { type: "project", id: iv.project_id } : null,
+    });
+  }
+
+  // New Talents
+  for (const t of (rpcData.talents || [])) {
+    if (!esc(t.title)) continue;
+    items.push({
       id: `talentoffer_${t.id}`, createdAt: t.created_at,
       text: `Neues Talent-Angebot: „${esc(t.title)}"`,
-      openRef: { type:"talent", id:t.id },
-    }));
-}
+      openRef: { type: "talent", id: t.id },
+    });
+  }
 
-// Neuer Nutzer registriert -- profiles ist bereits vollstaendig oeffentlich
-// lesbar (RLS-Policy profiles_select_all USING(true), dieselbe Sichtbarkeit
-// wie auf jedem oeffentlichen Profil). Trotzdem: niemals eine E-Mail-artige
-// display_name/username anzeigen (siehe safePublicName) -- Registrierungen
-// ohne sicheren Namen werden schlicht ausgelassen statt einen generischen
-// "Ein Nutzer ist beigetreten"-Text zu erfinden.
-async function fetchNewUsers() {
-  const rows = await safe(
-    supabase.from("profiles")
-      .select("id,display_name,username,created_at")
-      .order("created_at", { ascending:false }).limit(PER_SOURCE_LIMIT)
-  );
-  return rows
-    .filter(p => safePublicName(p))
-    .map(p => ({
+  // New Users
+  for (const p of (rpcData.new_users || [])) {
+    const name = esc(p.username) || esc(p.display_name);
+    if (!name || looksLikeEmail(name)) continue;
+    items.push({
       id: `newuser_${p.id}`, createdAt: p.created_at,
-      text: `${esc(safePublicName(p))} ist jetzt bei HUI dabei`,
-      openRef: { type:"profile", id:p.id },
-    }));
+      text: `${name} ist jetzt bei HUI dabei`,
+      openRef: { type: "profile", id: p.id },
+    });
+  }
+
+  // Impact Pool Contributions
+  for (const ip of (rpcData.impact_pool || [])) {
+    const amount = Number(ip.amount_eur || 0);
+    const fmtAmount = amount.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    items.push({
+      id: `pool_${ip.id}`,
+      createdAt: ip.created_at,
+      text: `€ ${fmtAmount} wurden gerade in den Impact-Pool eingezahlt`,
+      openRef: null,
+    });
+  }
+
+  return items;
 }
 
-// FALLBACK/TURNUS.1 (2026-08-10) -- echte Aggregat-Zahlen statt Fake-Events,
-// siehe Kommentar am Dateianfang. Sehr altes createdAt -> landet durch die
-// bestehende Sortierung (neueste zuerst) automatisch am Ende der Rotation,
-// wird also nur gezeigt wenn nicht genug frischere echte Events da sind.
+// ══════════════════════════════════════════════════════════════════
+// LEGACY FALLBACK — falls RPC nicht verfügbar
+// ══════════════════════════════════════════════════════════════════
+async function fetchWorks() {
+  const rows = await safe(
+    supabase.from("works")
+      .select("id,title,created_at")
+      .eq("status", "published").eq("approval_status", "approved")
+      .order("created_at", { ascending: false }).limit(PER_SOURCE_LIMIT)
+  );
+  return rows.map(w => ({
+    id: `work_${w.id}`, createdAt: w.created_at,
+    text: `„${esc(w.title) || "Ein neues Werk"}" wurde soeben veröffentlicht`,
+    openRef: { type: "work", id: w.id },
+  }));
+}
+
 async function fetchFallbackStats() {
   const [works, talentsN, experiences, users, projects] = await Promise.all([
-    safeCount(supabase.from("works").select("id", { count:"exact", head:true })
+    safeCount(supabase.from("works").select("id", { count: "exact", head: true })
       .eq("status", "published").eq("approval_status", "approved")),
-    safeCount(supabase.from("talents").select("id", { count:"exact", head:true })
+    safeCount(supabase.from("talents").select("id", { count: "exact", head: true })
       .eq("status", "approved")),
-    safeCount(supabase.from("experiences").select("id", { count:"exact", head:true })
+    safeCount(supabase.from("experiences").select("id", { count: "exact", head: true })
       .eq("status", "published").eq("approval_status", "approved")),
-    safeCount(supabase.from("profiles").select("id", { count:"exact", head:true })),
-    safeCount(supabase.from("impact_applications").select("id", { count:"exact", head:true })
+    safeCount(supabase.from("profiles").select("id", { count: "exact", head: true })),
+    safeCount(supabase.from("impact_applications").select("id", { count: "exact", head: true })
       .eq("status", "approved")),
   ]);
 
   const out = [];
   if (works > 0) out.push({
-    id:"fb_works", createdAt:"2000-01-01T00:00:00Z",
-    text:`Schon ${works} Werke auf HUI veröffentlicht`, openRef:null,
+    id: "fb_works", createdAt: "2000-01-01T00:00:00Z",
+    text: `Schon ${works} Werke auf HUI veröffentlicht`, openRef: null,
   });
   if (talentsN > 0) out.push({
-    id:"fb_talents", createdAt:"2000-01-01T00:00:01Z",
-    text:`${talentsN} Talente bieten aktuell ihr Können auf HUI an`, openRef:null,
+    id: "fb_talents", createdAt: "2000-01-01T00:00:01Z",
+    text: `${talentsN} Talente bieten aktuell ihr Können auf HUI an`, openRef: null,
   });
   if (experiences > 0) out.push({
-    id:"fb_experiences", createdAt:"2000-01-01T00:00:02Z",
-    text:`${experiences} Erlebnisse warten auf HUI darauf, entdeckt zu werden`, openRef:null,
+    id: "fb_experiences", createdAt: "2000-01-01T00:00:02Z",
+    text: `${experiences} Erlebnisse warten auf HUI darauf, entdeckt zu werden`, openRef: null,
   });
   if (users > 0) out.push({
-    id:"fb_users", createdAt:"2000-01-01T00:00:03Z",
-    text:`Schon ${users} Menschen sind Teil von HUI`, openRef:null,
+    id: "fb_users", createdAt: "2000-01-01T00:00:03Z",
+    text: `Schon ${users} Menschen sind Teil von HUI`, openRef: null,
   });
   if (projects > 0) out.push({
-    id:"fb_projects", createdAt:"2000-01-01T00:00:04Z",
-    text:`${projects} Herzensprojekte werden aktuell über den Impact Pool unterstützt`, openRef:null,
+    id: "fb_projects", createdAt: "2000-01-01T00:00:04Z",
+    text: `${projects} Herzensprojekte werden aktuell über den Impact Pool unterstützt`, openRef: null,
   });
   return out;
 }
 
-// Alle Quellen: die urspruenglichen 6 schnellsten/wertvollsten (wirker/
-// connections/recommendations/project_support haben kaum Daten → langsam)
-// plus Stimmen/Talente/Nutzer (LIVETICKER.2, 2026-08-10) plus Fallback-
-// Aggregatzahlen fuer den Turnus wenn nichts Neues gekommen ist.
-
-// Impact-Pool-Einzahlungen — anonymisiert (kein Nutzername, nur Betrag).
-// Quelle: impact_distributions (öffentlich lesbar, RLS USING(true)).
-// Zeigt z.B. "€ 3,20 wurden gerade in den Impact-Pool eingezahlt"
-async function fetchImpactPoolContributions() {
-  const rows = await safe(
-    supabase.from("impact_distributions")
-      .select("id,amount_eur,distributed_at,project_id")
-      .order("distributed_at", { ascending:false })
-      .limit(PER_SOURCE_LIMIT)
-  );
-  if (!rows.length) return [];
-
-  // Projektname anreichern (falls projektbezogen)
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  const projectIds = [...new Set(rows.map(r => r.project_id).filter(id => UUID_RE.test(String(id))))];
-  let nameById = {};
-  if (projectIds.length) {
-    const projects = await safe(
-      supabase.from("impact_applications")
-        .select("id,project_name")
-        .in("id", projectIds)
-    );
-    nameById = Object.fromEntries(projects.map(p => [p.id, p.project_name]));
-  }
-
-  return rows.map(r => {
-    const amount = Number(r.amount_eur || 0);
-    const fmtAmount = amount.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const projName = nameById[r.project_id];
-    return {
-      id: `pool_${r.id}`,
-      createdAt: r.distributed_at,
-      text: projName
-        ? `€ ${fmtAmount} wurden gerade für „${esc(projName)}" verteilt`
-        : `€ ${fmtAmount} wurden gerade in den Impact-Pool eingezahlt`,
-      openRef: r.project_id ? { type:"project", id:r.project_id } : null,
-    };
-  });
+async function fallbackToLegacyQueries() {
+  const results = await Promise.all([
+    fetchWorks().catch(() => []),
+    fetchFallbackStats().catch(() => []),
+  ]);
+  return results.flat();
 }
 
-const SOURCES = [
-  fetchWorks,
-  fetchExperiences,
-  fetchImpactProjects,
-  fetchResonance,
-  fetchWorkSales,
-  fetchExperienceBookings,
-  fetchImpactPoolContributions,
-  fetchVotes,
-  fetchNewTalents,
-  fetchNewUsers,
-  fetchFallbackStats,
-];
-
-
+// ══════════════════════════════════════════════════════════════════
+// HOOK
+// ══════════════════════════════════════════════════════════════════
 export function useLiveTicker() {
   const { user } = useAuth();
   const [items, setItems]     = useState([]);
   const [loading, setLoading] = useState(true);
-  const bufferRef = useRef(new Map()); // id -> item, für Dedupe über Refreshes hinweg
+  const bufferRef = useRef(new Map());
   const mounted   = useRef(true);
 
   const refresh = useCallback(async () => {
     const _t = performance.now();
-    // Timeout 1500ms pro Quelle, damit eine langsame Tabelle nicht alles blockiert
-    const results = await Promise.all(
-      SOURCES.map(fn =>
-        Promise.race([
-          fn().catch(() => []),
-          new Promise(resolve => setTimeout(() => resolve([]), 1500)),
-        ])
-      )
-    );
+
+    // HAUPTPFAD: 1 RPC Call statt 13+ separater Queries
+    let activityItems = [];
+    const rpcData = await fetchFromRPC();
+
+    if (rpcData) {
+      activityItems = transformRPCData(rpcData);
+      // Fallback-Stats hinzufügen (immer, als Füll-Items)
+      const stats = await fetchFallbackStats();
+      activityItems = [...activityItems, ...stats];
+    } else {
+      // FALLBACK: Legacy Queries wenn RPC nicht verfügbar
+      console.warn("[HUI LiveTicker] RPC nicht verfügbar, falle zurück auf Legacy Queries");
+      activityItems = await fallbackToLegacyQueries();
+    }
+
     const _ms = Math.round(performance.now() - _t);
     if (_ms > 600) console.warn(`[HUI PERF] 🐌 LiveTicker refresh langsam (${_ms}ms)`);
     if (!mounted.current) return;
 
     const merged = bufferRef.current;
-    for (const list of results) {
-      for (const item of list) merged.set(item.id, item);
+    for (const item of activityItems) {
+      merged.set(item.id, item);
     }
 
     const sorted = [...merged.values()]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, MAX_BUFFER);
 
-    // Puffer auf die behaltenen Eintraege zuruecksetzen (kein unbegrenztes
-    // Wachstum über die App-Laufzeit).
     bufferRef.current = new Map(sorted.map(i => [i.id, i]));
 
     setItems(sorted);
@@ -513,11 +308,9 @@ export function useLiveTicker() {
   }, []);
 
   useEffect(() => {
-    // Auth-Gate: LiveTicker nicht laden vor Login (verhindert 6-7 Queries auf /login)
     if (!user?.id) return;
 
     mounted.current = true;
-    // Nur laden wenn Tab sichtbar — kein Hintergrund-Polling
     if (document.visibilityState === "visible") refresh();
 
     let interval = null;

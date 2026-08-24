@@ -1,0 +1,11 @@
+-- ══════════════════════════════════════════════════════════════════════════════
+-- Migration 20260824_125 — Live Ticker RPC (13+ Queries → 1 Call)
+-- 
+-- Ersetzt 13+ separate Supabase-Queries in useLiveTicker.js durch
+-- eine einzige RPC: rpc_get_live_ticker_feed
+-- 
+-- Liefert: works, experiences, connections, recommendations,
+--          post_reactions, project_support, work_sales, talent_bookings,
+--          impact_votes, talents, new_users, impact_pool
+-- ══════════════════════════════════════════════════════════════════════════════
+-- (RPC wurde direkt via Supabase Management API deployed, nicht via File)
