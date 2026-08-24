@@ -503,14 +503,14 @@ export default function LoginPage() {
     }
     setAgeError('');
 
-    if (!email || !pw || !uname) { setErr('Bitte alle Felder ausfüllen.'); return; }
+    if (!email || !pw || !username) { setErr('Bitte alle Felder ausfüllen.'); return; }
     setLoading(true);
 
     // Username-Verfügbarkeit prüfen
     const { data: existingUser } = await supabase
       .from('profiles')
       .select('id')
-      .eq('username', uname)
+      .eq('username', username)
       .maybeSingle();
     if (existingUser) {
       setErr('Dieser Benutzername ist bereits vergeben. Bitte wähle einen anderen.');
