@@ -370,6 +370,27 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+// ── DEFENSE-IN-DEPTH (2026-08-24, Audit-Empfehlung): Frontend-Admin-Gate ──
+// ProtectedRoute prüft nur "eingeloggt" — das /Admin-Route lädt für jeden
+// User. Schutz lag komplett auf RLS/Backend. Diese Funktion fügt eine
+// zweite Schicht hinzu: profile.role muss admin/superadmin/employee sein.
+// Non-Admins werden auf /Home umgeleitet. RLS bleibt die primäre Sicherung.
+function AdminProtectedRoute({ children }) {
+  const { isAuthenticated, loadingAuth, authChecked, profile } = useAuth();
+  if (loadingAuth || !authChecked) return <HUILoader />;
+  if (!isAuthenticated) return <Navigate to="/login" replace state={{ from: "/Admin" }} />;
+
+  // Profile noch am Laden? Warten (nicht sofort ablehnen — Race Condition)
+  if (!profile) return <HUILoader />;
+
+  const isAdmin = ["admin", "superadmin", "super_admin", "employee"].includes(profile?.role);
+  if (!isAdmin) {
+    console.warn("[AdminGuard] Non-admin user attempted /Admin access — redirected to /Home");
+    return <Navigate to="/Home" replace />;
+  }
+  return children;
+}
+
 // ── DEEPLINK.1 (2026-07-09): Freundlicher Fallback fuer geloeschte/nicht
 // mehr verfuegbare Inhalte hinter einem Deep Link -- niemals eine weisse
 // Seite oder ein Fehlerbild, siehe Debug-Protokoll/Definition-of-Done. ──
@@ -801,7 +822,7 @@ function AppRoutes() {
 
         {/* Admin — LAZY */}
         <Route path="/Admin" element={
-          <ProtectedRoute><RouteBoundary name="Admin"><Admin /></RouteBoundary></ProtectedRoute>
+          <AdminProtectedRoute><RouteBoundary name="Admin"><Admin /></RouteBoundary></AdminProtectedRoute>
         }/>
 
         {/* Diagnose — LAZY (nur Dev) */}
