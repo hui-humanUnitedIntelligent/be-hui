@@ -249,6 +249,14 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
             talent:       initialRecipient.talent        || null,
             has_talent_profile: initialRecipient.has_talent_profile || false,
             online:       true,
+            // BUGFIX (2026-08-25): other_profile fehlte hier — ChatHeader.jsx liest
+            // getFullDisplayName(conv?.other_profile) MIT VORRANG vor conv?.name.
+            // getFullDisplayName(undefined) liefert bereits den Fallback-String
+            // "Mitglied" zurueck (truthy!), wodurch conv?.name NIE genutzt wurde,
+            // obwohl der echte Name dort korrekt gesetzt war (Michael-Report,
+            // Screenshot 2026-08-25: Chat-Header zeigte "Mitglied" statt Name
+            // nach Verbinden-Button-Klick).
+            other_profile: initialRecipient,
           });
         } else {
           setPendingRecipient(initialRecipient);
@@ -287,6 +295,8 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
             talent:       pendingRecipient.talent        || null,
             has_talent_profile: pendingRecipient.has_talent_profile || false,
             online:       true,
+            // BUGFIX (2026-08-25): siehe Kommentar oben — other_profile ergaenzt.
+            other_profile: pendingRecipient,
           });
         }
       } catch(err) {
