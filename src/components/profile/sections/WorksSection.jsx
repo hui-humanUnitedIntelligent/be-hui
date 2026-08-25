@@ -193,69 +193,97 @@ export function WorksSection({
                   style={{
                   flexShrink:0, width:100, position:"relative", cursor:"pointer",
                 }}>
-                  <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
-                    background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
-                    {w.cover_url
-                      ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{ width:"100%",height:"100%",objectFit:"cover" }}
-                          onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
-                      : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
-                          justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>}
-                  </div>
-
-                  {/* approval Badge — nur Owner */}
-                  {isOwner && (
-                    <div style={{ position:"absolute", top:4, left:4,
-                      background:badgeBg, color:"white",
-                      fontSize:9, fontWeight: 600, padding:"2px 6px", borderRadius:99,
-                      backdropFilter:"blur(4px)" }}>
-                      {badgeLabel}
-                    </div>
-                  )}
-
-                  {/* WORK-SALE-STATUS-001: Verkauft/Reserviert Badge — sichtbar für alle (Owner + Visitor) */}
                   {(() => {
                     const ss = saleStatus[w.id];
-                    if (!ss) return null;
-                    const isVerkauft  = ss === "verkauft";
+                    const isVerkauft   = ss === "verkauft";
                     const isReserviert = ss === "reserviert";
                     return (
-                      <div style={{
-                        position:"absolute", bottom:4, left:4,
-                        background: isVerkauft ? "rgba(26,26,46,0.78)" : "rgba(245,166,35,0.85)",
-                        color:"#fff",
-                        fontSize:8.5, fontWeight:700, padding:"2px 7px", borderRadius:99,
-                        letterSpacing:0.3, whiteSpace:"nowrap",
-                        backdropFilter:"blur(4px)",
-                      }}>
-                        {isVerkauft ? "Verkauft" : "Reserviert"}
+                      <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
+                        position:"relative", background:"linear-gradient(135deg,#2C3B2D,#4A6741)", boxShadow:T.card }}>
+                        {w.cover_url
+                          ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{
+                              width:"100%",height:"100%",objectFit:"cover",
+                              // VERKAUFT-BILD-STEMPEL (2026-08-25, Michael-Feedback): Werk-Bild
+                              // leicht gräulich + blurry, sobald verkauft — statt nur einer
+                              // kleinen Ecken-Pille, damit auf den ersten Blick klar ist:
+                              // dieses Werk ist nicht mehr verfügbar.
+                              filter: isVerkauft ? "grayscale(0.55) blur(1.1px) brightness(0.8)" : "none",
+                              transition:"filter 0.2s ease",
+                            }}
+                              onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
+                          : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",
+                              justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>}
+
+                        {/* approval Badge — nur Owner */}
+                        {isOwner && (
+                          <div style={{ position:"absolute", top:4, left:4,
+                            background:badgeBg, color:"white",
+                            fontSize:9, fontWeight: 600, padding:"2px 6px", borderRadius:99,
+                            backdropFilter:"blur(4px)" }}>
+                            {badgeLabel}
+                          </div>
+                        )}
+
+                        {/* WORK-SALE-STATUS-001: "Verkauft" direkt ins Bild gestempelt */}
+                        {isVerkauft && (
+                          <div style={{
+                            position:"absolute", inset:0,
+                            display:"flex", alignItems:"center", justifyContent:"center",
+                            background:"rgba(26,26,46,0.28)",
+                          }}>
+                            <span style={{
+                              color:"#fff", fontSize:13, fontWeight:800,
+                              letterSpacing:1.2, textTransform:"uppercase",
+                              textShadow:"0 1px 4px rgba(0,0,0,0.55)",
+                              border:"1.5px solid rgba(255,255,255,0.85)",
+                              padding:"4px 10px", borderRadius:6,
+                              transform:"rotate(-8deg)",
+                            }}>
+                              Verkauft
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Reserviert-Badge bleibt als kleine Ecken-Pille (Kauf noch offen) */}
+                        {isReserviert && (
+                          <div style={{
+                            position:"absolute", bottom:4, left:4,
+                            background:"rgba(245,166,35,0.85)", color:"#fff",
+                            fontSize:8.5, fontWeight:700, padding:"2px 7px", borderRadius:99,
+                            letterSpacing:0.3, whiteSpace:"nowrap",
+                            backdropFilter:"blur(4px)",
+                          }}>
+                            Reserviert
+                          </div>
+                        )}
+
+                        {/* Löschen-Button — nur Owner */}
+                        {isOwner && (
+                          <button className="ws-press"
+                            onClick={e => { e.stopPropagation(); setConfirmWork(w); }}
+                            style={{ position:"absolute", top:4, right:4,
+                              width:22, height:22, borderRadius:"50%",
+                              background:"rgba(26,26,24,0.55)", border:"none",
+                              display:"flex", alignItems:"center", justifyContent:"center",
+                              fontSize:11, cursor:"pointer", color:"white" }}>
+                            ×
+                          </button>
+                        )}
                       </div>
                     );
                   })()}
-
-                  {/* Löschen-Button — nur Owner */}
-                  {isOwner && (
-                    <button className="ws-press"
-                      onClick={e => { e.stopPropagation(); setConfirmWork(w); }}
-                      style={{ position:"absolute", top:4, right:4,
-                        width:22, height:22, borderRadius:"50%",
-                        background:"rgba(26,26,24,0.55)", border:"none",
-                        display:"flex", alignItems:"center", justifyContent:"center",
-                        fontSize:11, cursor:"pointer", color:"white" }}>
-                      ×
-                    </button>
-                  )}
 
                   <div style={{ fontSize:11, fontWeight:600, color:T.ink, marginTop:5,
                     overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>
                     {w.title || "Werk"}
                   </div>
-                  {saleStatus[w.id] && (
+                  {saleStatus[w.id] === "reserviert" && (
                     <div style={{
                       fontSize:9.5, fontWeight:600,
-                      color: saleStatus[w.id] === "verkauft" ? "rgba(26,26,46,0.5)" : "rgba(245,166,35,0.95)",
+                      color:"rgba(245,166,35,0.95)",
                       marginTop:1,
                     }}>
-                      {saleStatus[w.id] === "verkauft" ? "Verkauft" : "Reserviert"}
+                      Reserviert
                     </div>
                   )}
                 </div>
