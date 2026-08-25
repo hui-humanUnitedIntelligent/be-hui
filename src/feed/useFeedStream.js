@@ -93,6 +93,13 @@ async function fetchFeedPage(userId = null, cursors = null) {
         .select("id,title,cover_url,media_url,images,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at,is_unique,stock_total,stock_available")
         .eq("status", "published")
         .eq("approval_status", "approved")
+        // FEED-SOLD-HIDE-001 (2026-08-25, Michael-Feedback "wieso ist es immer
+        // ich im Feed" — bestätigt verkaufte Werke sollen aus dem Feed
+        // verschwinden, nicht nur "Verkauft" anzeigen): stock_available=0
+        // heisst bereits verkauft (Bestand atomar dekrementiert bei PI-
+        // Erstellung, siehe create-payment-intent). NULL = kein Stock-Tracking
+        // (Altbestand/unbegrenzt) → bleibt sichtbar.
+        .or("stock_available.is.null,stock_available.gt.0")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
@@ -527,6 +534,22 @@ export function useFeedStream() {
         // JS-Guard: approval_status analog zur Feed-Query prüfen
         if (payload.new?.approval_status !== "approved") return;
         _receiveLiveItem(payload.new, normalizeWorkRow);
+      })
+      // FEED-SOLD-HIDE-001 (2026-08-25): works UPDATE — sobald stock_available
+      // auf 0 faellt (Werk verkauft), Post SOFORT live aus dem Feed entfernen,
+      // ohne dass der Nutzer reloaden muss.
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "works",
+      }, (payload) => {
+        if (!mountedRef.current) return;
+        const w = payload.new;
+        if (!w?.id) return;
+        const soldOut = w.stock_available != null && w.stock_available <= 0;
+        if (!soldOut) return;
+        setItems(prev => prev.filter(i => i.id !== w.id));
+        setPendingItems(prev => prev.filter(i => i.id !== w.id));
       })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
