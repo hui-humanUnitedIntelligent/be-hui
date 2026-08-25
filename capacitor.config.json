@@ -2,7 +2,6 @@
   "appId": "com.hui.app",
   "appName": "HUI",
   "webDir": "www",
-  "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https",
     "cleartext": false,

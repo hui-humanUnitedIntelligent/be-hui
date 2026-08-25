@@ -100,6 +100,23 @@ jobs:
           if [ "${{ github.event.inputs.sign }}" = "true" ]; then
             # Signed build for TestFlight/App Store
             echo "Building signed IPA..."
+            # Create ExportOptions.plist
+            cat > ExportOptions.plist << PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>teamID</key>
+              <string>${{ secrets.APPLE_TEAM_ID }}</string>
+              <key>uploadSymbols</key>
+              <true/>
+              <key>uploadBitcode</key>
+              <false/>
+          </dict>
+          </plist>
+          PLIST
             # Decode signing certificate
             echo "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" | base64 --decode > cert.p12
             echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
