@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { RecommendationService } from "../../services/db";
 import { supabase } from "../../lib/supabaseClient";
+import { submitBuyerRating } from "../../lib/chatContext.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
@@ -75,6 +76,45 @@ export default function RecommendModal({
         { orderId, bookingId }
       );
       if (result.error) throw result.error;
+
+      // CHAT-LOGIK v2 (Michael-Vorgabe 2026-08-22, Punkt 5): "Bei positiver
+      // Empfehlung + Ware versendet + Ware erhalten + Geld überwiesen →
+      // Chat wird archiviert/geschlossen." BUGFIX (2026-08-25, Michael-Report
+      // "Chat mit Michelle sollte geschlossen werden"): Dieser Finanzübersicht-
+      // Pfad (RecommendModal, aufgerufen aus TransactionDetailSheet) schrieb
+      // die Empfehlung bisher NUR in die recommendations-Tabelle, ohne den
+      // zugehörigen Chat zu schliessen — anders als der parallele In-Chat-
+      // Bewertungspfad (ConversationRoom.jsx → submitBuyerRating() →
+      // rpc_chat_submit_rating), der genau das schon korrekt tut. Da hier
+      // NUR positive Empfehlungen möglich sind (kein Dispute-Zweig in diesem
+      // Modal — der läuft separat über EmpfehlenModal "Nicht empfehlen"),
+      // ist jede erfolgreiche Submission hier gleichbedeutend mit "recommend".
+      // Fix: erweitert bestehende, bereits getestete RPC-Logik (rpc_chat_
+      // submit_rating) statt eigene Close-Logik zu duplizieren (Architektur-
+      // Charta Prinzip 1 "Erweitern statt duplizieren").
+      try {
+        const txId = orderId || bookingId;
+        if (txId && currentUserId && toUserId) {
+          const { data: matchingChat } = await supabase
+            .from("chats")
+            .select("id")
+            .eq("booking_id", txId)
+            .contains("participant_ids", [currentUserId, toUserId])
+            .neq("state", "deleted")
+            .maybeSingle();
+          if (matchingChat?.id) {
+            const closeResult = await submitBuyerRating(matchingChat.id, currentUserId, "recommend");
+            if (closeResult?.error) {
+              console.warn("[RECOMMEND-MODAL] Chat-Schliessung fehlgeschlagen:", closeResult.error);
+            }
+          }
+        }
+      } catch (chatErr) {
+        // Empfehlung ist bereits gespeichert — Chat-Schliessung ist Zusatz-
+        // Effekt, darf den Erfolg der Empfehlung selbst nicht blockieren.
+        console.warn("[RECOMMEND-MODAL] Chat-Lookup/Close Fehler:", chatErr?.message);
+      }
+
       setSubmitting(false);
       setShowSuccess(true);
     } catch (e) {
