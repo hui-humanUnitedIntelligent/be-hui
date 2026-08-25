@@ -13,6 +13,7 @@ import RecommendModal from "../RecommendModal.jsx";
 import { RecommendationService } from "../../../services/db";
 import { supabase } from "../../../lib/supabaseClient";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
+import { RecommendationScoreBadge, RecommendationRankingModal } from "../RecommendationScoreBadge.jsx";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 
 const T = {
@@ -52,6 +53,7 @@ export function RecommendationsSection({
 
   // ── Empfehlung schreiben (Visitor, nach Kauf/Buchung) ──
   const [showRecommendModal, setShowRecommendModal] = useState(false);
+  const [showRankingModal, setShowRankingModal] = useState(false);
   const [canRec, setCanRec]       = useState(false);
   const [hasRecd, setHasRecd]     = useState(false);
   const [recContext, setRecContext] = useState({ orderId: null, bookingId: null });
@@ -154,8 +156,11 @@ export function RecommendationsSection({
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:`0 ${T.px}px`, marginBottom:12 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-          Kundenstimmen
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+            Kundenstimmen
+          </div>
+          <RecommendationScoreBadge profileOwnerId={profileOwnerId} onOpen={() => setShowRankingModal(true)} />
         </div>
         {recommendations.length > 0 && onShowAll && (
           <button onClick={onShowAll} style={{ background:"none", border:"none", padding:0,
@@ -330,6 +335,13 @@ export function RecommendationsSection({
         document.body
       )}
 
+      {showRankingModal && (
+        <RecommendationRankingModal
+          profileOwnerId={profileOwnerId}
+          profileOwnerName={profileOwnerName}
+          onClose={() => setShowRankingModal(false)}
+        />
+      )}
     </div>
   );
 }

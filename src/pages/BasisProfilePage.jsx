@@ -404,6 +404,16 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     }
   }, [profile, lazyLoaded, loadLazy]);
 
+  // SADB: recommendation_profile_viewed
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase.from("commerce_events").insert({
+      event_type: "recommendation_profile_viewed",
+      actor_type: "user",
+      payload: { profile_owner_id: profile.id },
+    }).then(() => {});
+  }, [profile?.id]);
+
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
   // P3: Chat-Einstieg — Profil schließen DANN Chat öffnen

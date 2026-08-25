@@ -358,7 +358,7 @@ export const RecommendationService = {
   },
 
   async create(fromUserId, toUserId, text, { bookingId = null, orderId = null } = {}) {
-    const payload = { from_user_id: fromUserId, to_user_id: toUserId, text, is_public: true };
+    const payload = { from_user_id: fromUserId, to_user_id: toUserId, text, is_public: true, is_positive: true };
     if (bookingId) payload.booking_id = bookingId;
     if (orderId)   payload.order_id   = orderId;
     return safeQuery(

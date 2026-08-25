@@ -37,7 +37,7 @@ const EXPERIENCES_SELECT =
   "max_participants,currency,price_per,registration_required";
 
 const RECOMMENDATIONS_SELECT =
-  "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at";
+  "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at,is_positive";
 
 const MOMENTS_SELECT =
   "id,user_id,src,type,moment_source,caption,content,created_at,moderation_blurred,moderation_flag";

@@ -1184,6 +1184,16 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     }
   }, [profile, lazyLoaded, loadLazy]);
 
+  // SADB: recommendation_profile_viewed
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase.from("commerce_events").insert({
+      event_type: "recommendation_profile_viewed",
+      actor_type: "user",
+      payload: { profile_owner_id: profile.id },
+    }).then(() => {});
+  }, [profile?.id]);
+
   // ── Sprint F.9G.4: Realtime — Admin-Freigabe (works + experiences) ──
   // Nur UPDATE: wenn Admin status → published/approved setzt, sofort sichtbar.
   // DELETE bewusst ausgelassen (Skalierungsrisiko, kein primärer UX-Flow).

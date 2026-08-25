@@ -419,6 +419,16 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
     }
   }, [profile, loadLazy, profileId]);
 
+  // SADB: recommendation_profile_viewed
+  useEffect(() => {
+    if (!profileId) return;
+    supabase.from("commerce_events").insert({
+      event_type: "recommendation_profile_viewed",
+      actor_type: "user",
+      payload: { profile_owner_id: profileId },
+    }).then(() => {});
+  }, [profileId]);
+
   const handleBack = useCallback(() => onClose?.(), [onClose]);
 
   // Fehler-State
