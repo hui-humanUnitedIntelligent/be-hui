@@ -1042,3 +1042,188 @@ export async function logChatEvent(chatId, eventType, userId = null, data = {}) 
     console.warn("[CHAT-V2] logChatEvent error:", e?.message);
   }
 }
+
+// ══════════════════════════════════════════════════════════════════
+// MOMENT-CONNECT (2026-08-25, Michael-Vorgabe)
+// Verbinden-Funktion NUR für Momente — direkter Chat zwischen
+// zwei Nutzern, unabhängig von Kauf/Verkauf. Keine Schreibsperre,
+// keine Treuhand-Logik, keine Bewertung. Chat bleibt offen bis
+// manuell geschlossen. ADDITIV — keine bestehende Logik berührt.
+// ══════════════════════════════════════════════════════════════════
+
+// ────────────────────────────────────────────────────────────────
+// createMomentChat — Chat zwischen zwei Nutzern über ein Moment
+// Sucht bestehenden Chat (auch geschlossenen) → öffnet ihn wieder.
+// Oder erstellt einen neuen Chat mit booking_title="Moment-Chat".
+// Keine Vermischung mit Kauf-Chats (booking_id bleibt null).
+// ────────────────────────────────────────────────────────────────
+export async function createMomentChat({
+  userId,
+  otherUserId,
+  momentId = null,
+}) {
+  if (!userId || !otherUserId) {
+    console.error("[MOMENT-CHAT] userId/otherUserId fehlt");
+    return null;
+  }
+
+  if (userId === otherUserId) {
+    console.warn("[MOMENT-CHAT] kann nicht mit sich selbst chatten");
+    return null;
+  }
+
+  try {
+    // 1. Bestehenden Chat zwischen diesen beiden Nutzern suchen
+    // (egal ob "opened" oder "closed" — bei geschlossen → wieder öffnen)
+    const { data: existing, error: findError } = await supabase
+      .from("chats")
+      .select("id, participant_ids, state, booking_id, booking_title")
+      .contains("participant_ids", [userId, otherUserId])
+      .neq("state", "deleted")
+      .order("last_message_at", { ascending: false, nullsFirst: false })
+      .limit(5);
+
+    if (findError) {
+      console.error("[MOMENT-CHAT] SELECT error:", findError.message);
+    }
+
+    // Einen Chat finden, der KEINE booking_id hat (Moment-Chat) oder
+    // auch einen mit booking_title "Moment-Chat"
+    const momentChat = (existing || []).find(c =>
+      Array.isArray(c.participant_ids) &&
+      c.participant_ids.includes(userId) &&
+      c.participant_ids.includes(otherUserId) &&
+      (!c.booking_id || c.booking_title === "Moment-Chat")
+    );
+
+    if (momentChat) {
+      // Bestehenden Chat ggf. wieder öffnen
+      if (momentChat.state === "closed") {
+        await supabase
+          .from("chats")
+          .update({
+            state:     "opened",
+            closed_at: null,
+            last_message_at: new Date().toISOString(),
+          })
+          .eq("id", momentChat.id);
+      }
+
+      // SADB-Event: moment_chat_reopened
+      await logMomentEvent("moment_chat_reopened", {
+        chat_id: momentChat.id,
+        moment_id: momentId,
+        user_id: userId,
+        other_user_id: otherUserId,
+      });
+
+      return {
+        ok: true,
+        chat_id: momentChat.id,
+        reopened: momentChat.state === "closed",
+      };
+    }
+
+    // 2. Neuen Moment-Chat erstellen
+    const { error: createError } = await supabase
+      .from("chats")
+      .insert({
+        participant_ids:  [userId, otherUserId],
+        state:            "opened",
+        booking_id:       null,   // KEINE Vermischung mit Kauf-Chats
+        booking_title:    "Moment-Chat",
+        opened_at:        new Date().toISOString(),
+        last_message_at:  new Date().toISOString(),
+      });
+
+    if (createError) {
+      console.error("[MOMENT-CHAT] INSERT error:", createError.message);
+      return null;
+    }
+
+    // Gerade erzeugten Chat nachladen
+    const { data: created, error: fetchError } = await supabase
+      .from("chats")
+      .select("id, participant_ids, state, booking_title")
+      .contains("participant_ids", [userId, otherUserId])
+      .eq("state", "opened")
+      .order("opened_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError || !created) {
+      console.error("[MOMENT-CHAT] FETCH error:", fetchError?.message);
+      return null;
+    }
+
+    // SADB-Event: moment_chat_created
+    await logMomentEvent("moment_chat_created", {
+      chat_id: created.id,
+      moment_id: momentId,
+      user_id: userId,
+      other_user_id: otherUserId,
+    });
+
+    return {
+      ok: true,
+      chat_id: created.id,
+      reopened: false,
+    };
+  } catch (e) {
+    console.error("[MOMENT-CHAT] exception:", e?.message);
+    return null;
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// logMomentEvent — SADB-Event für Moment-Connect-System
+// Speichert Events in der moment_events Tabelle (wird via Migration
+// angelegt). Failsafe: wenn Tabelle nicht existiert → silent fail.
+// ────────────────────────────────────────────────────────────────
+async function logMomentEvent(eventType, data = {}) {
+  try {
+    await supabase
+      .from("moment_events")
+      .insert({
+        event_type:  eventType,
+        moment_id:   data.moment_id   || null,
+        chat_id:     data.chat_id      || null,
+        user_id:     data.user_id      || null,
+        other_user_id: data.other_user_id || null,
+        created_at:  new Date().toISOString(),
+      });
+  } catch (e) {
+    // Silent fail — Event-Logging darf nie den Hauptfluss blockieren
+    if (import.meta.env.DEV) console.warn("[MOMENT-EVENT]", eventType, e?.message);
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// closeMomentChat — Nutzer schließt einen Moment-Chat manuell
+// ────────────────────────────────────────────────────────────────
+export async function closeMomentChat(chatId, userId) {
+  if (!chatId || !userId) return { error: "missing_args" };
+  try {
+    const { error } = await supabase
+      .from("chats")
+      .update({
+        state:     "closed",
+        closed_at: new Date().toISOString(),
+      })
+      .eq("id", chatId)
+      .contains("participant_ids", [userId])
+      .eq("booking_title", "Moment-Chat");
+
+    if (error) return { error: error.message };
+
+    // SADB-Event
+    await logMomentEvent("moment_chat_closed", {
+      chat_id: chatId,
+      user_id: userId,
+    });
+
+    return { error: null };
+  } catch (e) {
+    return { error: e?.message ?? "unknown" };
+  }
+}

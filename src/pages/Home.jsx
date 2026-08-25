@@ -312,6 +312,15 @@ function HomeInner() {
     window.__HUI_OPEN_TALENT_FLOW    = () => setShowMembership(true);
     window.__HUI_OPEN_CREATOR_DASH   = () => setShowCreatorDash(true);
     window.__HUI_OPEN_PROFILE__       = (id) => { if(id) openProfileById(id); };
+    // MOMENT-CONNECT (2026-08-25): Globaler Hook für Verbinden-Button
+    // aus MomentContent.jsx → öffnet Chat mit einem bestimmten Nutzer.
+    // Wird von VerbindenModal nach erfolgreicher createMomentChat() aufgerufen.
+    window.__HUI_OPEN_CHAT_WITH__     = (recipient) => {
+      if (recipient?.id) {
+        setChatRecipient?.(recipient);
+        setShowChat?.(true);
+      }
+    };
     // BANKDATEN-LINK (2026-08-16): Öffnet Profil → Settings → Bankdaten-Modal.
     // Wird von der "Bankdaten fehlen"-Notification im Resonanzzentrum aufgerufen.
     window.__HUI_OPEN_BANKDATEN__    = () => {
@@ -329,9 +338,10 @@ function HomeInner() {
       delete window.__HUI_OPEN_TALENT_FLOW;
       delete window.__HUI_OPEN_CREATOR_DASH;
       delete window.__HUI_OPEN_PROFILE__;
+      delete window.__HUI_OPEN_CHAT_WITH__;
       delete window.__HUI_OPEN_BANKDATEN__;
     };
-    }, [setShowMembership, setShowCreatorDash, setShowCreatorDashboard, openProfileById]);  // ─────────────────────────────────────────────────────────────
+    }, [setShowMembership, setShowCreatorDash, setShowCreatorDashboard, openProfileById, setChatRecipient, setShowChat]);  // ─────────────────────────────────────────────────────────────
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();

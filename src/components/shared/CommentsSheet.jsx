@@ -576,7 +576,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleSubmit = useCallback(async () => {
     const text = input.trim();
     if (!text || !user?.id) return;
-    if (detectContactData(text)) {
+    if (postType !== "moment" && detectContactData(text)) {
       toast.error(CONTACT_BLOCK_MSG);
       return;
     }
@@ -613,7 +613,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleSubmitReply = useCallback(async () => {
     const text = replyText.trim();
     if (!text || !user?.id || !replyTargetId) return;
-    if (detectContactData(text)) {
+    if (postType !== "moment" && detectContactData(text)) {
       toast.error(CONTACT_BLOCK_MSG);
       return;
     }
@@ -656,7 +656,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleSaveEdit = useCallback(async (commentId, text) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-    if (detectContactData(trimmed)) {
+    if (postType !== "moment" && detectContactData(trimmed)) {
       toast.error(CONTACT_BLOCK_MSG);
       return;
     }
