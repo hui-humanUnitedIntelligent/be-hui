@@ -1,6 +1,7 @@
 # GitHub Actions: iOS Build for HUI (be-hui)
 # Builds the Capacitor iOS app on a macOS runner — no local Mac needed.
-# First run creates the Xcode project and commits it; subsequent runs sync + build.
+# sign=false: unsigned verification build (compiles check only)
+# sign=true:  signed IPA for TestFlight / Ad-Hoc distribution via diawi.com
 
 name: iOS Build
 
@@ -8,13 +9,21 @@ on:
   workflow_dispatch:
     inputs:
       sign:
-        description: 'Sign IPA for TestFlight (needs Apple secrets)'
+        description: 'Sign IPA for distribution (needs Apple secrets)'
         required: false
         default: 'false'
         type: choice
         options:
           - 'false'
           - 'true'
+      distribution:
+        description: 'Distribution method (only when sign=true)'
+        required: false
+        default: 'ad-hoc'
+        type: choice
+        options:
+          - 'ad-hoc'
+          - 'app-store'
 
 env:
   NODE_VERSION: '20'
@@ -98,8 +107,10 @@ jobs:
         run: |
           cd ios/App
           if [ "${{ github.event.inputs.sign }}" = "true" ]; then
-            # Signed build for TestFlight/App Store
-            echo "Building signed IPA..."
+            # ── Signed build ──
+            DISTRIBUTION="${{ github.event.inputs.distribution }}"
+            echo "Building signed IPA ($DISTRIBUTION)..."
+
             # Create ExportOptions.plist
             cat > ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -107,45 +118,103 @@ jobs:
           <plist version="1.0">
           <dict>
               <key>method</key>
-              <string>app-store</string>
+              <string>${DISTRIBUTION}</string>
               <key>teamID</key>
               <string>${{ secrets.APPLE_TEAM_ID }}</string>
               <key>uploadSymbols</key>
               <true/>
               <key>uploadBitcode</key>
               <false/>
+              <key>compileBitcode</key>
+              <false/>
           </dict>
           </plist>
           PLIST
-            # Decode signing certificate
+
+            # Decode signing certificate + provisioning profile
             echo "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" | base64 --decode > cert.p12
             echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
-            # Import certificate to keychain
-            security create-keychain -p "" build.keychain
+
+            # Create keychain + import certificate
+            KEYCHAIN_PASSWORD="build-keychain-$(date +%s)"
+            security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
             security default-keychain -s build.keychain
-            security unlock-keychain -p "" build.keychain
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
             security import cert.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -A
-            security set-partition-list -s apple-tool -k "" build.keychain
+            security set-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
             # Install provisioning profile
             mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
             cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
-            # Build + archive
-            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath build/App.xcarchive -sdk iphoneos archive CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER="" DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+
+            # Archive
+            xcodebuild -workspace App.xcworkspace \
+              -scheme App \
+              -configuration Release \
+              -archivePath build/App.xcarchive \
+              -sdk iphoneos \
+              archive \
+              CODE_SIGN_STYLE=Manual \
+              DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+
             # Export IPA
-            xcodebuild -exportArchive -archivePath build/App.xcarchive -exportPath build/ipa -exportOptionsPlist ExportOptions.plist
+            xcodebuild -exportArchive \
+              -archivePath build/App.xcarchive \
+              -exportPath build/ipa \
+              -exportOptionsPlist ExportOptions.plist
+
+            # List the exported IPA
+            echo "=== IPA created ==="
+            find build/ipa -name "*.ipa" -exec ls -lh {} \;
           else
-            # Unsigned build for verification
+            # ── Unsigned build for verification ──
             echo "Building unsigned app (verification only)..."
-            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build
+            xcodebuild -workspace App.xcworkspace \
+              -scheme App \
+              -configuration Release \
+              -sdk iphoneos \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO \
+              build
+
+            # Try to create an unsigned .app → .ipa for manual testing
+            APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "App.app" -path "*/Build/Products/Release-iphoneos/*" | head -1)
+            if [ -n "$APP_PATH" ]; then
+              mkdir -p build/ipa/Payload
+              cp -R "$APP_PATH" build/ipa/Payload/
+              cd build/ipa
+              zip -r HUI-unsigned.ipa Payload
+              echo "=== Unsigned IPA created ==="
+              ls -lh HUI-unsigned.ipa
+            fi
           fi
 
-      # ── 9. Upload artifact ──
-      - name: Upload build artifacts
+      # ── 9. Upload IPA artifact ──
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        if: github.event.inputs.sign == 'true'
+        with:
+          name: hui-ios-ipa
+          path: ios/App/build/ipa/*.ipa
+          retention-days: 30
+
+      # ── 10. Upload unsigned IPA (verification) ──
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        if: github.event.inputs.sign == 'false'
+        with:
+          name: hui-ios-unsigned
+          path: ios/App/build/ipa/*.ipa
+          retention-days: 14
+
+      # ── 11. Upload full build logs (debug) ──
+      - name: Upload build logs
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ios-build
+          name: ios-build-logs
           path: |
             ios/App/build/
-            ios/App/Pods/
-          retention-days: 30
+            !ios/App/build/ipa/*.ipa
+          retention-days: 7
