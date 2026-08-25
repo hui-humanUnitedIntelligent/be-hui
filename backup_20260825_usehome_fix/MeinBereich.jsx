@@ -1,7 +1,7 @@
 // src/components/profile/my-basis/MeinBereich.jsx
 // MeinBereichDrawer, MeinBereichChooserRow, MeinBereichTile, MeinBereichMenu
 // Extracted from MyBasisProfile.jsx — no logic changes.
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
 import {
   HUIResonanzIcon, HUITalentIcon, HUIWerkeIcon, HUIErlebnisIcon,
@@ -14,19 +14,15 @@ import MeineProjekteModal from "../../studio/MeineProjekteModal.jsx";
 import FinanzuebersichtModal from "../../studio/FinanzuebersichtModal.jsx";
 import ImpactUpdateSheet from "../../studio/ImpactUpdateSheet.jsx";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
-// BUGFIX (2026-08-25, Michael-Report "PROFIL CRASH: useHome is not defined"):
-// Beim MyBasisProfile-Refactor (3449→1006 Zeilen, 10 Dateien extrahiert,
-// siehe Memory #Refactor 2026-08-25) wurde useHome() in diese Datei
-// mitverschoben, der Import aber vergessen -- Crash bei jedem Profil-Öffnen.
-import { useHome } from "../../home/HomeShell.jsx";
-import { useNotifications } from "../../../lib/useNotifications.jsx";
-import { RecommendationsSection } from "../sections/RecommendationsSection.jsx";
-import ProfilBearbeitenModal from "../../studio/ProfilBearbeitenModal.jsx";
 import { TalentAngeboteSection, MeineWerkeSection, ErlebnisseSection } from "./ContentSections.jsx";
 import { ImpactProjekteTab } from "./ImpactProjekteTab.jsx";
 import { MeinMomenteDrawerContent } from "./MeinMomenteDrawerContent.jsx";
+import { TalentErweiterung } from "./TalentErweiterung.jsx";
+import { DraftActionSheet, ItemActionChoiceSheet, DeleteWerkConfirm, DeleteTalentConfirm } from "./ActionSheets.jsx";
+import { TalentWerdenBanner, TalentOnboardingModal } from "./Misc.jsx";
 import { createPortal } from "react-dom";
 import { T } from "./constants.js";
+import { Gap, Divider } from "./atoms.jsx";
 
 export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = true }) {
   return createPortal(

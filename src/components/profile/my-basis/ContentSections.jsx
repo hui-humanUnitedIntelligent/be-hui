@@ -1,13 +1,15 @@
 // src/components/profile/my-basis/ContentSections.jsx
 // TalentAngeboteSection, MeineWerkeSection, ErlebnisseSection
 // Extracted from MyBasisProfile.jsx — no logic changes.
-import React, { useState } from "react";
+import React from "react";
+import { deleteTalent } from "../../../hooks/useTalents.js";
+import { formatDateDE } from "../../../lib/formatters.js";
+import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { toast } from "../../../lib/useToast.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { DraftActionSheet, ItemActionChoiceSheet, DeleteWerkConfirm, DeleteTalentConfirm } from "./ActionSheets.jsx";
-import { T, a, s } from "./constants.js";
-import { Gap, Divider, Sheet } from "./atoms.jsx";
+import { T } from "./constants.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 
 export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = () => {} }) {

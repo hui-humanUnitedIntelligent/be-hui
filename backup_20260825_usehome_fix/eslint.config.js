@@ -4,22 +4,6 @@ import pluginReact from "eslint-plugin-react";
 import pluginReactHooks from "eslint-plugin-react-hooks";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 
-// BUGFIX (2026-08-25, Michael-Report "PROFIL CRASH: useHome is not defined"):
-// Root Cause war NICHT nur der fehlende Import in MeinBereich.jsx, sondern
-// auch dass ESLints "no-undef"-Regel (die genau solche Bugs zur Build-/Dev-
-// Zeit fangen würde) systemweit UNBEABSICHTIGT ausgeschaltet war: Die
-// vorherige Version dieser Datei hat `...pluginJs.configs.recommended` und
-// `...pluginReact.configs.flat.recommended` auf TOP-LEVEL des Config-Objekts
-// gespreadet -- das setzt kurz "rules"/"plugins"/"languageOptions", wird
-// aber von den WEITER UNTEN im selben Objekt-Literal erneut definierten
-// gleichnamigen Keys ("rules: {...}", "plugins: {...}", "languageOptions:
-// {...}") komplett ÜBERSCHRIEBEN (spätere Duplicate-Keys in einem JS-Objekt-
-// Literal gewinnen immer). Ergebnis: ALLE eslint:recommended + react/
-// recommended Regeln (inkl. no-undef) waren de facto deaktiviert -- nur die
-// explizit unten gelisteten Custom-Regeln griffen. Der useHome-Bug hätte
-// mit aktivem no-undef sofort beim Lint auffallen müssen.
-// FIX: Regeln werden jetzt korrekt INNERHALB von "rules" gemerged statt auf
-// Objekt-Ebene gespreadet und dann überschrieben.
 export default [
   {
     files: [
@@ -28,6 +12,8 @@ export default [
       "src/Layout.jsx",
     ],
     ignores: ["src/lib/**/*", "src/components/ui/**/*"],
+    ...pluginJs.configs.recommended,
+    ...pluginReact.configs.flat.recommended,
     languageOptions: {
       globals: globals.browser,
       parserOptions: {
@@ -49,12 +35,6 @@ export default [
       "unused-imports": pluginUnusedImports,
     },
     rules: {
-      // Basis: eslint:recommended (enthält no-undef) + react/recommended --
-      // JETZT als echter Merge in "rules", nicht mehr auf Objekt-Ebene
-      // gespreadet und danach überschrieben.
-      ...pluginJs.configs.recommended.rules,
-      ...pluginReact.configs.flat.recommended.rules,
-
       "no-unused-vars": "off",
       "react/jsx-uses-vars": "error",
       "react/jsx-uses-react": "error",

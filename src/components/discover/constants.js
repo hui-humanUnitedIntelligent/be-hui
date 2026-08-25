@@ -64,6 +64,20 @@ export const CSS = `
   .dp-engage span { display:flex;align-items:center;gap:3px; }
 `;
 
+export const CARD_RADIUS = 16;
+
+
+export const MEDIUM_COLOR = {
+  "Malerei":    { bg:"rgba(147,51,234,0.12)",  text:"#9333EA" },
+  "Musik":      { bg:"rgba(14,196,184,0.12)",  text:"#0EC4B8" },
+  "Fotografie": { bg:"rgba(22,163,74,0.12)",   text:"#16A34A" },
+  "Illustration":{ bg:"rgba(232,87,58,0.12)", text:"#E8573A" },
+  "Skulptur":   { bg:"rgba(245,158,11,0.12)",  text:"#D97706" },
+  "Text":       { bg:"rgba(100,116,139,0.12)", text:"#64748B" },
+};
+
+export const TALENT_LOCATION_LABEL = { online:"Online", vor_ort:"Vor Ort", hybrid:"Online & Vor Ort" };
+
 export const safeStr = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
 export const safeNum = (v, fb=0)  => (typeof v === "number" && isFinite(v) ? v : fb);
 export const safeArr = (v)         => (Array.isArray(v) ? v : []);

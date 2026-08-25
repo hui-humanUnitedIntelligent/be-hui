@@ -1,10 +1,9 @@
 // src/components/discover/PeopleSection.jsx
 // PersonCard + PeopleSection — extracted from DiscoverPage.jsx. No logic changes.
-import React from "react";
-import { T, safeStr, safeNum, fmtImpact } from "./constants.js";
+import React, { useState } from "react";
+import { T, fmtImpact } from "./constants.js";
 import { Skel, SectionHead } from "./atoms.jsx";
-import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUIPersonenIcon, HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { formatPresence } from "../../lib/usePresence.js";
 import { optimizeAvatar } from "../../lib/perfUtils.js";
 

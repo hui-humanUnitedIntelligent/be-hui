@@ -1,12 +1,13 @@
 // src/components/discover/ErlebnisSection.jsx
 // ErlebnisCard + ErlebnisseSection — extracted from DiscoverPage.jsx.
-import React from "react";
-import { T, safeStr, safeNum, safeArr } from "./constants.js";
-import { Skel, SectionHead, CardBadge, CardTitle } from "./atoms.jsx";
+import React, { useState } from "react";
+import { T, CARD_RADIUS } from "./constants.js";
+import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUIErlebnisIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
-import { formatNumberDE, formatDateDE } from "../../lib/formatters.js";
+import { HUIHeartIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { LocationRadiusRow } from "./TalentSection.jsx";
 
 export function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -204,3 +205,4 @@ export function ErlebnisseSection({
 // ════════════════════════════════════════════════════════════════
 // SEED_PROJEKTE entfernt — war Dead Code (nie referenziert).
 
+const ErlebnisCardM = React.memo(ErlebnisCard);

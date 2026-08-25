@@ -2,8 +2,6 @@
 // TalentErweiterung — extracted from MyBasisProfile.jsx. No logic changes.
 import React from "react";
 import { T } from "./constants.js";
-import { createPortal } from "react-dom";
-import { Sheet } from "./atoms.jsx";
 
 export function TalentErweiterung({ profile, onProfileUpdate }) {
 

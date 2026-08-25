@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { useProfileLauncher } from '../home/profile/ProfileLauncher.jsx';
 import { formatNumberDE } from "../../lib/formatters.js";
 
 const T = {

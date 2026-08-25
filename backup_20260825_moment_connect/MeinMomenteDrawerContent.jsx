@@ -1,12 +1,13 @@
 // src/components/profile/my-basis/MeinMomenteDrawerContent.jsx
 // MeinMomenteDrawerContent — extracted from MyBasisProfile.jsx.
 // Shows moments grid + "Create new moment". No logic changes.
-import React from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
-import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { HUIFotoIcon } from "../../../design/icons/HuiSystemIcons.jsx";
-import { T } from "./constants.js";
+import HuiMomentSheet from "../../HuiMomentSheet.jsx";
+import { T, a } from "./constants.js";
+import { Sheet, Gap } from "./atoms.jsx";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 
 export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {

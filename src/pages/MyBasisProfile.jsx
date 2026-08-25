@@ -12,24 +12,18 @@ import { makeChunkReload } from "../lib/chunkReload.js";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
-import {
-  FB_AVATAR,
-  handleAvatarUpload, handleCoverUpload,
-} from "../lib/profileMedia.js";
-import { NAV_RESERVED_HEIGHT_CSS, NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
+
+
+import { NAV_RESERVED_HEIGHT_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { useAuth }   from "../lib/AuthContext.jsx";
 import { useHome }   from "../components/home/HomeShell.jsx";
 import SettingsModal from "../components/settings/SettingsModal.jsx";
-import { useNotifications } from "../lib/useNotifications.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { usePullToRefresh } from "../hooks/usePullToRefresh.js";
 import { PullToRefreshIndicator } from "../components/ui/PullToRefreshIndicator.jsx";
-import { toast } from "../lib/useToast.jsx";
-import MeineResonanz from "./studio/MeineResonanz.jsx";
 const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
 const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(makeChunkReload("MyBasisProfile:OrbSignatur")));
 import MerkenSection from "../components/profile/MerkenSection.jsx";
-import { optimizeCard } from "../lib/perfUtils.js";
 const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(makeChunkReload("MyBasisProfile:AboutSection")));
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 const TalentSection = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })).catch(makeChunkReload("MyBasisProfile:TalentSection")));
@@ -37,34 +31,14 @@ const RecommendationsSection = React.lazy(() => import("../components/profile/se
 const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(makeChunkReload("MyBasisProfile:AvailabilitySection")));
 const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(makeChunkReload("MyBasisProfile:VisibilitySection")));
 
-import WerkWizard from "../components/works/WerkWizard.jsx";
-import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
-import { useTalents, deleteTalent } from "../hooks/useTalents.js";
-import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+import { useTalents } from "../hooks/useTalents.js";
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
-import {
-  HUIResonanzIcon, HUITalentIcon, HUIWerkeIcon, HUIErlebnisIcon,
-  HUIEmpfehlungIcon, HUIImpactIcon, HUIFinanzIcon,
-  HUIStimmeIcon, HUIProjektIcon, HUIEinAusIcon, HUIKalenderIcon,
-  HUIVerkaufIcon, HUIStatistikIcon,
-  HUIFotoIcon, HUIAnsichtIcon, HUISettingsIcon, HUISchreibenIcon,
+import { HUIAnsichtIcon, HUISettingsIcon,
 } from "../design/icons/HuiSystemIcons.jsx";
-import { HUILogo } from '../components/brand/HUILogo.jsx';
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
-import MyRecommendationsModal from "../components/studio/MyRecommendationsModal.jsx";
-import ImpactStimmenModal from "../components/studio/ImpactStimmenModal.jsx";
-import MeineProjekteModal from "../components/studio/MeineProjekteModal.jsx";
-import TalentOnboarding from "../components/TalentOnboarding.jsx";
-import GemeinschaftsFlow from "../components/GemeinschaftsFlow.jsx";
-import NotificationPanel from "../components/notifications/NotificationPanel.jsx";
-import HuiStudio from "../components/studio/HuiStudio.jsx";
-import ImpactUpdateSheet from "../components/studio/ImpactUpdateSheet.jsx";
-import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
-import FinanzuebersichtModal from "../components/studio/FinanzuebersichtModal.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
-import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 
 // ── Extracted sub-components ────────────────────────────────────
 import { T, CSS } from "../components/profile/my-basis/constants.js";

@@ -1,11 +1,11 @@
 // src/components/discover/OrtSection.jsx
 // OrteSection + OrtCard — extracted from DiscoverPage.jsx.
-import React from "react";
-import { T, safeStr } from "./constants.js";
+import React, { useState, useEffect } from "react";
+import { T, CARD_RADIUS } from "./constants.js";
 import { Skel, SectionHead } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { getPlaceImage } from "../../lib/placeImage.js";
+import { optimizeCard } from "../../lib/perfUtils.js";
 
 export function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 }) {
   return (

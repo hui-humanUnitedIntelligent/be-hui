@@ -1,11 +1,14 @@
 // src/components/discover/WerkSection.jsx
 // WerkCard + WerkeSection — extracted from DiscoverPage.jsx.
-import React from "react";
-import { T, safeStr, safeNum } from "./constants.js";
+import React, { useState } from "react";
+import { T, CARD_RADIUS, MEDIUM_COLOR } from "./constants.js";
 import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUIWerkeIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
+import { HUIHeartIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { formatNumberDE } from "../../lib/formatters.js";
+import { LocationRadiusRow } from "./TalentSection.jsx";
 
 export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -179,3 +182,4 @@ export function WerkeSection({
 // ════════════════════════════════════════════════════════════════
 // SEED_ERLEBNISSE entfernt — war Dead Code (nie referenziert).
 
+const WerkCardM = React.memo(WerkCard);

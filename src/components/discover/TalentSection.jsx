@@ -1,11 +1,12 @@
 // src/components/discover/TalentSection.jsx
 // TalentCard + LocationRadiusRow + TalenteSection — extracted from DiscoverPage.jsx.
-import React from "react";
-import { T, safeStr, safeNum, safeArr } from "./constants.js";
+import React, { useState } from "react";
+import { T, safeStr, safeNum, safeArr, CARD_RADIUS, MEDIUM_COLOR, TALENT_LOCATION_LABEL } from "./constants.js";
 import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUITalentIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUITalentIcon, HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
+import { formatNumberDE } from "../../lib/formatters.js";
 import { radiusLabel } from "../../hooks/useRadiusFilter.js";
 
 export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
@@ -285,12 +286,5 @@ export function TalenteSection({
 // ════════════════════════════════════════════════════════════════
 // SEED_WERKE entfernt — war Dead Code (nie referenziert).
 
-const MEDIUM_COLOR = {
-  "Malerei":    { bg:"rgba(147,51,234,0.12)",  text:"#9333EA" },
-  "Musik":      { bg:"rgba(14,196,184,0.12)",  text:T.teal    },
-  "Fotografie": { bg:"rgba(22,163,74,0.12)",   text:"#16A34A" },
-  "Illustration":{ bg:"rgba(232,87,58,0.12)", text:T.coral    },
-  "Skulptur":   { bg:"rgba(245,158,11,0.12)",  text:"#D97706" },
-  "Text":       { bg:"rgba(100,116,139,0.12)", text:"#64748B" },
-};
 
+const TalentCardM = React.memo(TalentCard);

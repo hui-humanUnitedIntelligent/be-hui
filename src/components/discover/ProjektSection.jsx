@@ -1,11 +1,12 @@
 // src/components/discover/ProjektSection.jsx
 // ProjektCard + ProjekteSection — extracted from DiscoverPage.jsx.
-import React from "react";
-import { T, safeStr, safeNum, fmtImpact } from "./constants.js";
-import { Skel, SectionHead } from "./atoms.jsx";
+import React, { useState } from "react";
+import { T, CARD_RADIUS } from "./constants.js";
+import { Skel, SectionHead, CardBadge, CardTitle } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUIProjektIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUIPersonenIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
+import { formatNumberDE } from "../../lib/formatters.js";
 
 export function ProjektCard({ projekt, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);

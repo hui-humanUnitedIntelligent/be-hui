@@ -2,6 +2,7 @@
 // Shared UI atoms for DiscoverPage. Extracted — no logic changes.
 import React from "react";
 import { T } from "./constants.js";
+import { HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
 
 export function Skel({ w="100%", h=14, r=10, mb=0 }) {
   return <div className="dp-skel" style={{ width:w, height:h, borderRadius:r, marginBottom:mb }} />;

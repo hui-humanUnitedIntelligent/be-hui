@@ -14,17 +14,16 @@ import { supabase }      from "../lib/supabaseClient.js";
 import { getOptimalPageSize } from "../lib/deviceTier.js";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
-import { useRadiusFilter, radiusLabel } from "../hooks/useRadiusFilter.js";
+import { useRadiusFilter } from "../hooks/useRadiusFilter.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx";
-import { HUIHeartIcon, HUIChatIcon } from "../design/icons/HuiInteractionIcons.jsx";
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx";
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
-import { normalizeTalentForPreview, normalizePostForPreview, normalizeProjectForPreview, normalizeWirkerForPreview } from "../lib/previewNormalizers.js";
+import { normalizeTalentForPreview, normalizePostForPreview } from "../lib/previewNormalizers.js";
 import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
 import { ProfileService } from "../services/db.js";
-import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
+import { formatDateDE } from "../lib/formatters.js";
 
 const MenschenAllModal = lazy(() => import("../components/discover/MenschenAllModal.jsx"));
 const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
@@ -35,8 +34,7 @@ const ProjekteAllModal = lazy(() => import("../components/discover/ProjekteAllMo
 const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx"));
 
 // ── Extracted sub-components ────────────────────────────────────
-import { T, CSS, SYSTEM_USER_ID, safeStr, safeNum, safeArr, fmtImpact, timeAgo, _discoverCache, isCacheValid, filterByRadius } from "../components/discover/constants.js";
-import { Skel, SectionHead } from "../components/discover/atoms.jsx";
+import { T, CSS, SYSTEM_USER_ID, safeStr, safeNum, _discoverCache, isCacheValid, filterByRadius } from "../components/discover/constants.js";
 import { DiscoverTitleBar } from "../components/discover/DiscoverTitleBar.jsx";
 import { PeopleSection } from "../components/discover/PeopleSection.jsx";
 import { MomenteSection } from "../components/discover/MomenteSection.jsx";
@@ -551,7 +549,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
     }
     load();
     return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   // ── DiscoverPage Cache-Sync: schreibt geladene Daten in den SWR-Cache ──
   // Wird nach jedem erfolgreichen Load ausgeführt und merkt sich die Daten für 5 Min.

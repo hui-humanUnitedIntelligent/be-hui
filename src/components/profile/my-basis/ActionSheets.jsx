@@ -3,8 +3,6 @@
 // Extracted from MyBasisProfile.jsx — no logic changes.
 import React from "react";
 import { createPortal } from "react-dom";
-import { T } from "./constants.js";
-import { Sheet } from "./atoms.jsx";
 
 export function DraftActionSheet({ label, onPublish, onEdit, onDelete = null, onCancel }) {
   // DRAFT-ACTION (2026-08-20, Michael-Request): Beim Klick auf einen Entwurf

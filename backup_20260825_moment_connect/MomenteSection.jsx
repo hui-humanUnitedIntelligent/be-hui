@@ -1,12 +1,11 @@
 // src/components/discover/MomenteSection.jsx
 // MomentCard + MomenteSection — extracted from DiscoverPage.jsx. No logic changes.
-import React, { useState } from "react";
-import { T, timeAgo, CARD_RADIUS } from "./constants.js";
-import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atoms.jsx";
+import React from "react";
+import { T, safeStr, timeAgo } from "./constants.js";
+import { Skel, SectionHead } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
-import { HUIAnsichtIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUIFotoIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { HUIHeartIcon, HUIChatIcon } from "../../design/icons/HuiInteractionIcons.jsx";
-import { optimizeCard } from "../../lib/perfUtils.js";
 
 export function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -144,6 +143,7 @@ export function MomenteSection({ momente, loading, delay=0, view='cards', onPres
 // ════════════════════════════════════════════════════════════════
 // SEED_TALENTE entfernt — war Dead Code (nie referenziert).
 
+const TALENT_LOCATION_LABEL = { online:"Online", vor_ort:"Vor Ort", hybrid:"Online & Vor Ort" };
 
 // ── Gemeinsame Card-Bausteine (Werk/Erlebnis/Talent) ──────────────
 // SUCHKARTEN-VEREINHEITLICHUNG 2026-07-09: TalentCard/WerkCard/ErlebnisCard
@@ -152,4 +152,5 @@ export function MomenteSection({ momente, loading, delay=0, view='cards', onPres
 // drei Discover-Karten wie eine Familie wirken -- Inhalte pro Typ bleiben
 // bewusst unterschiedlich (Preis/Status/Datum sind echte Domaenen-Unterschiede,
 // keine Inkonsistenz).
+const CARD_RADIUS = 16;
 

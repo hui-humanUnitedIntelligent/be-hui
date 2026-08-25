@@ -4,8 +4,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import TalentOnboarding from "../../TalentOnboarding.jsx";
-import { T } from "./constants.js";
-import { Gap } from "./atoms.jsx";
 
 export function GemeinschaftsKarte({ onJoin }) {
   return (

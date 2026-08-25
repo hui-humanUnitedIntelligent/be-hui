@@ -1,12 +1,10 @@
 // src/components/profile/my-basis/ImpactProjekteTab.jsx
 // ImpactProjekteTab — extracted from MyBasisProfile.jsx. No logic changes.
-import React, { useState, useEffect } from "react";
-import { T, s, a } from "./constants.js";
-import { supabase } from "../../../lib/supabaseClient.js";
+import React from "react";
+import { T } from "./constants.js";
+import { useImageGallery } from "../../../context/ImageGalleryContext.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { HUISchreibenIcon } from "../../../design/icons/HuiSystemIcons.jsx";
-import { Gap, Divider, Sheet } from "./atoms.jsx";
-import { HUILogo } from "../../brand/HUILogo.jsx";
 import { formatDateDE, formatNumberDE } from "../../../lib/formatters.js";
 
 export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
