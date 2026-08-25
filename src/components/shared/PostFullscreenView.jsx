@@ -71,21 +71,6 @@ const CSS = `
 
 const ANIM_MS = 280;
 
-// ── MOMENT-CONNECT: Verbinden-Icon (zwei Pfeile die sich treffen) ─────
-function VerbindenIcon({ size = 18, color = "#FFFFFF" }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M8 12h8" />
-      <path d="M12 8l4 4-4 4" />
-      <path d="M4 8v8" />
-      <path d="M20 8v8" />
-    </svg>
-  );
-}
-
 // ── "Weitere Beitraege dieses Wirkers" — schlanker Nachbar-Query,
 //    gleiches Muster wie die bestehenden beitraege-Queries in useFeedStream.js
 function useMoreFromAuthor(authorId, excludeId) {
@@ -399,9 +384,8 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
               <button className="pfv-btn" onClick={() => setVerbindenOpen(true)} style={{
                 flex:1.4, padding:"13px", borderRadius:14,
                 background:"rgba(13,196,181,0.10)", color:T.teal, fontSize:14, fontWeight: 600,
-                display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                display:"flex", alignItems:"center", justifyContent:"center",
               }}>
-                <VerbindenIcon size={16} color={T.teal} />
                 Verbinden
               </button>
             )}
