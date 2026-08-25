@@ -1,6 +1,7 @@
 // chat-center/ConversationCard.jsx v2
 // Screenshot-exact nach HUI Chat Design
 // Glass cards, warme Atmosphäre, Mood-Status
+// BUGFIX 2026-08-25: isClosed prop — grau markiert + "Geschlossen"-Badge
 
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
@@ -18,7 +19,7 @@ function timeAgo(iso) {
   return "Gestern";
 }
 
-export default function ConversationCard({ conv, onPress, isActive }) {
+export default function ConversationCard({ conv, onPress, isActive, isClosed = false }) {
   // NAME-DISPLAY-FIX (2026-08-17): ConversationCard griff bisher direkt auf
   // other_profile?.display_name zu (frei wählbarer Spitzname, z.B. "Linda",
   // "Michèle", "Meyer") statt auf die SSOT-Funktion getFullDisplayName()
@@ -40,22 +41,27 @@ export default function ConversationCard({ conv, onPress, isActive }) {
         padding:"15px 14px",
         background: isActive
           ? "rgba(22,215,197,0.06)"
-          : "rgba(255,255,255,0.68)",
+          : isClosed
+            ? "rgba(240,238,235,0.55)"
+            : "rgba(255,255,255,0.68)",
         backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
         border: isActive
           ? "1px solid rgba(22,215,197,0.22)"
-          : "1px solid rgba(255,255,255,0.55)",
+          : isClosed
+            ? "1px solid rgba(0,0,0,0.06)"
+            : "1px solid rgba(255,255,255,0.55)",
         borderRadius:16,
         boxShadow: unread > 0
           ? "0 2px 12px rgba(0,0,0,0.06)"
           : "0 2px 8px rgba(0,0,0,0.04)",
         display:"flex", alignItems:"center", gap:12,
         cursor:"pointer", marginBottom:8,
+        opacity: isClosed ? 0.58 : 1,
         WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
         transition:"transform 0.28s ease, background 0.30s, box-shadow 0.30s",
       }}
-      onTouchStart={e => e.currentTarget.style.transform="scale(0.992)"}
-      onTouchEnd={e   => e.currentTarget.style.transform="scale(1)"}
+      onTouchStart={e => e.currentTarget.style.transform = "scale(0.992)"}
+      onTouchEnd={e   => e.currentTarget.style.transform = "scale(1)"}
     >
       {/* Avatar */}
       <div style={{ position:"relative", flexShrink:0 }}>
@@ -68,6 +74,7 @@ export default function ConversationCard({ conv, onPress, isActive }) {
           boxShadow:"0 3px 10px rgba(0,0,0,0.10)",
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:18, color:"white", fontWeight: 600,
+          ...(isClosed ? { filter: "grayscale(0.7)" } : {}),
         }}>{!avatar && initials}</div>
         {/* Kein Online-Status-Dot — kein Presence-Druck */}
       </div>
@@ -87,12 +94,25 @@ export default function ConversationCard({ conv, onPress, isActive }) {
             {timeAgo(conv.last_message_at || conv.last_at)}
           </span>
         </div>
-        {/* Letzte Nachricht */}
-        <div style={{
-          fontSize:13, color: unread ? C.ink : C.muted,
-          fontWeight: unread ? 600 : 400,
-          overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-        }}>{lastMsg}</div>
+        {/* Letzte Nachricht oder "Geschlossen"-Badge */}
+        {isClosed ? (
+          <div style={{
+            display:"inline-flex", alignItems:"center", gap:4,
+            fontSize:12, color:C.muted, fontWeight:500,
+          }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}>
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <span>Geschlossen · {lastMsg}</span>
+          </div>
+        ) : (
+          <div style={{
+            fontSize:13, color: unread ? C.ink : C.muted,
+            fontWeight: unread ? 600 : 400,
+            overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+          }}>{lastMsg}</div>
+        )}
       </div>
 
       {/* Unread indicator */}

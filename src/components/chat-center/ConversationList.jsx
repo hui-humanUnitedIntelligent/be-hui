@@ -1,6 +1,8 @@
 import { HUIChatIcon } from '../../design/icons/HuiInteractionIcons.jsx';
 // chat-center/ConversationList.jsx v2
 // Screenshot-exact: Sektionen — Aktive Gespräche, Buchungen, Verbindungen, Impact-Card
+// BUGFIX 2026-08-25: Geschlossene Chats nicht mehr ausgeblendet —
+// stattdessen in separater "Abgeschlossene Gespräche"-Sektion grau markiert.
 
 import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
@@ -111,9 +113,15 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
   // Nur echte Daten — kein Mock-Fallback
   // Suchfilter: display_name, name, username, title (case-insensitive)
   const q = (search || "").trim().toLowerCase();
-  // Geschlossene Chats (state==="closed") immer herausfiltern
-  const openChats = (chats || []).filter(c => c?.id && c.state !== "closed");
-  const filteredChats = q
+
+  // BUGFIX 2026-08-25: Geschlossene Chats (state==="closed") nicht mehr
+  // komplett ausgeblendet — sie werden in einer separaten Sektion grau
+  // markiert angezeigt. Nur bei aktiver Suche werden sie ausgeblendet.
+  const allChats    = (chats || []).filter(c => c?.id);
+  const openChats   = allChats.filter(c => c.state !== "closed");
+  const closedChats = allChats.filter(c => c.state === "closed");
+
+  const filteredOpen = q
     ? openChats.filter(c => {
         const hay = [
           c.name, c.title, c.display_name, c.username,
@@ -122,8 +130,19 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
         return hay.includes(q);
       })
     : openChats;
-  const activeConvs  = filteredChats.filter(c => c?.id && c.chat_type !== "booking");
-  const bookingConvs = filteredChats.filter(c => c?.id && c.chat_type === "booking");
+
+  const filteredClosed = q
+    ? closedChats.filter(c => {
+        const hay = [
+          c.name, c.title, c.display_name, c.username,
+          c.other_profile?.display_name, c.other_profile?.username,
+        ].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(q);
+      })
+    : closedChats;
+
+  const activeConvs  = filteredOpen.filter(c => c?.id && c.chat_type !== "booking");
+  const bookingConvs = filteredOpen.filter(c => c?.id && c.chat_type === "booking");
 
   return (
     <div style={{ padding:"0 16px" }}>
@@ -155,7 +174,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
         <div style={{ padding:"24px 0", textAlign:"center", color:C.muted, fontSize:13 }}>
           Laden\u2026
         </div>
-      ) : (chats?.length === 0 || (q && activeConvs.length === 0 && bookingConvs.length === 0)) ? (
+      ) : (chats?.length === 0 || (q && activeConvs.length === 0 && bookingConvs.length === 0 && filteredClosed.length === 0)) ? (
         /* Phase 23: Echter Empty State — keine Mock-Gespräche */
         <div style={{
           padding:"32px 0 16px", textAlign:"center",
@@ -201,6 +220,16 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
           <SectionHead title="Buchungsanfragen" onMore={() => {}}/>
           {(bookingConvs || []).filter(c => c && c.id).map(c => (
             <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
+          ))}
+        </>
+      )}
+
+      {/* Abgeschlossene Gespräche — grau markiert, noch sichtbar */}
+      {filteredClosed.length > 0 && (
+        <>
+          <SectionHead title="Abgeschlossene Gespräche"/>
+          {filteredClosed.map(c => (
+            <ConversationCard key={c.id} conv={c} onPress={onOpen} isClosed={true}/>
           ))}
         </>
       )}
