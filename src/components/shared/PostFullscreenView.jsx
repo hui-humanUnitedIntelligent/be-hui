@@ -428,10 +428,16 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
       />
 
       {/* MOMENT-CONNECT (2026-08-25 v2): Verbinden-Modal — NUR bei Momenten,
-          ausgelöst durch den Verbinden-Button oben in der Merken/Profil-Zeile. */}
+          ausgelöst durch den Verbinden-Button oben in der Merken/Profil-Zeile.
+          BUGFIX (2026-08-25): zIndex={15600} explizit gesetzt — VerbindenModal
+          war hart auf 10500 codiert und rendert damit UNSICHTBAR HINTER dieser
+          Fullscreen-Ansicht (zIndex:15000, gleicher Stacking-Context via Portal
+          zu document.body). Button reagierte deshalb scheinbar nicht (Michael-
+          Report, Screenshot 2026-08-25 10:57). */}
       <VerbindenModal
         open={verbindenOpen}
         onClose={() => setVerbindenOpen(false)}
+        zIndex={15600}
         otherUser={{
           id:           authorId,
           display_name: mountedItem?.author?.name || "diesem Nutzer",

@@ -6,7 +6,11 @@
 //
 // Architektur-Regeln:
 // - createPortal zu document.body (Stacking-Context-Fix, siehe footer-navbar-zindex.md)
-// - zIndex >= 10500 (über BottomNav)
+// - zIndex >= 10500 (über BottomNav), via Prop konfigurierbar — Aufrufer
+//   ÜBER anderen Overlays (z.B. PostFullscreenView, zIndex 15000) MÜSSEN
+//   einen höheren Wert übergeben, sonst rendert das Modal unsichtbar
+//   dahinter (BUGFIX 2026-08-25: genau dieser Fall bei Verbinden-Button
+//   im Post-Modal — Klick tat scheinbar nichts, Modal war nur verdeckt).
 // - padding-bottom: 88px (Navbar + Luft)
 // - Keine Beeinflussung von Kauf-/Verkaufs-Chats
 
@@ -51,6 +55,9 @@ export default function VerbindenModal({
   otherUser  = null,   // { id, display_name, avatar_url }
   momentId   = null,
   onChatOpened = () => {},  // Callback nach erfolgreicher Chat-Erstellung
+  zIndex     = 10500,   // BUGFIX 2026-08-25: konfigurierbar — muss höher sein
+                         // als jedes Overlay, aus dem das Modal geöffnet wird
+                         // (z.B. 15600 aus PostFullscreenView, das selbst 15000 ist)
 }) {
   const { user } = useAuth();
   const [connecting, setConnecting] = useState(false);
@@ -106,7 +113,7 @@ export default function VerbindenModal({
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 10500,
+        zIndex,
         background: T.overlay,
         display: "flex",
         alignItems: "center",
