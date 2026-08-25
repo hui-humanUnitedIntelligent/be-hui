@@ -1,0 +1,134 @@
+# GitHub Actions: iOS Build for HUI (be-hui)
+# Builds the Capacitor iOS app on a macOS runner — no local Mac needed.
+# First run creates the Xcode project and commits it; subsequent runs sync + build.
+
+name: iOS Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: 'Sign IPA for TestFlight (needs Apple secrets)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+env:
+  NODE_VERSION: '20'
+  BUNDLE_ID: 'com.hui.app'
+
+jobs:
+  build:
+    name: Build iOS
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      # ── 1. Checkout ──
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. Node.js ──
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # ── 3. Install dependencies ──
+      - name: Install npm dependencies
+        run: npm ci
+
+      # ── 4. Build web assets ──
+      - name: Build web app (Vite)
+        run: npx vite build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+
+      # ── 5. Add iOS platform (first run only) ──
+      - name: Add iOS platform if missing
+        run: |
+          if [ ! -d "ios/App" ]; then
+            echo "Creating iOS project (first run)..."
+            npx cap add ios
+            # Configure Info.plist with permission descriptions
+            python3 -c "
+            import plistlib, os
+            plist_path = 'ios/App/App/Info.plist'
+            if os.path.exists(plist_path):
+                with open(plist_path, 'rb') as f:
+                    plist = plistlib.load(f)
+                # Permission descriptions required by App Store
+                plist['NSMicrophoneUsageDescription'] = 'HUI benötigt Mikrofonzugang für Sprachnachrichten.'
+                plist['NSCameraUsageDescription'] = 'HUI benötigt Kamerazugang für Fotos und Videos.'
+                plist['NSPhotoLibraryUsageDescription'] = 'HUI benötigt Zugriff auf deine Fotobibliothek zum Auswählen von Bildern.'
+                plist['NSPhotoLibraryAddUsageDescription'] = 'HUI benötigt Zugriff zum Speichern von Bildern in deiner Fotobibliothek.'
+                plist['NSLocationWhenInUseUsageDescription'] = 'HUI verwendet deinen Standort für die Umkreissuche und lokale Entdeckungen.'
+                # App Transport Security — allow Supabase + Vercel
+                plist['NSAppTransportSecurity'] = {
+                    'NSAllowsArbitraryLoads': False,
+                    'NSAllowsLocalNetworking': True,
+                }
+                with open(plist_path, 'wb') as f:
+                    plistlib.dump(plist, f)
+                print('Info.plist updated with permission strings')
+            "
+          else
+            echo "iOS project already exists, syncing..."
+          fi
+
+      # ── 6. Sync Capacitor ──
+      - name: Sync Capacitor iOS
+        run: npx cap sync ios
+
+      # ── 7. Install CocoaPods ──
+      - name: Install CocoaPods
+        run: |
+          cd ios/App
+          pod install
+
+      # ── 8. Build app ──
+      - name: Build with xcodebuild
+        run: |
+          cd ios/App
+          if [ "${{ github.event.inputs.sign }}" = "true" ]; then
+            # Signed build for TestFlight/App Store
+            echo "Building signed IPA..."
+            # Decode signing certificate
+            echo "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" | base64 --decode > cert.p12
+            echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
+            # Import certificate to keychain
+            security create-keychain -p "" build.keychain
+            security default-keychain -s build.keychain
+            security unlock-keychain -p "" build.keychain
+            security import cert.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -A
+            security set-partition-list -s apple-tool -k "" build.keychain
+            # Install provisioning profile
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+            # Build + archive
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -archivePath build/App.xcarchive -sdk iphoneos archive CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE_SPECIFIER="" DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+            # Export IPA
+            xcodebuild -exportArchive -archivePath build/App.xcarchive -exportPath build/ipa -exportOptionsPlist ExportOptions.plist
+          else
+            # Unsigned build for verification
+            echo "Building unsigned app (verification only)..."
+            xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -sdk iphoneos CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO build
+          fi
+
+      # ── 9. Upload artifact ──
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ios-build
+          path: |
+            ios/App/build/
+            ios/App/Pods/
+          retention-days: 30
