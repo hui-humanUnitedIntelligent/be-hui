@@ -8,9 +8,6 @@ import BaseFeedCard, { ActionBtn } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import ReportReasonModal from "../../components/shared/ReportReasonModal.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
-// MOMENT-CONNECT (2026-08-25): Verbinden-Button + Modal NUR für Momente
-import VerbindenModal from "../../components/shared/VerbindenModal.jsx";
-import { haptic } from "../../components/commerce/commerceUtils.js";
 
 // ── Farben (identisch zu WorkContent / ExperienceContent) ────
 const TEAL       = "#0DC4B5";
@@ -31,21 +28,6 @@ function XIcon({ size = 24 }) {
     >
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
-// ── MOMENT-CONNECT: Verbinden-Icon (Pfeil-Person-Verbindung) ─────
-function VerbindenIcon({ size = 24 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
-      aria-label="Verbinden"
-    >
-      <path d="M8 12h8" />
-      <path d="M12 8l4 4-4 4" />
-      <circle cx="18" cy="12" r="3" opacity="0.7" />
-      <circle cx="6" cy="12" r="3" opacity="0.7" />
     </svg>
   );
 }
@@ -123,9 +105,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   const [reporting,  setReporting]  = useState(false);
   const [reportDone, setReportDone] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
-
-  // ── MOMENT-CONNECT: Verbinden-Modal State ───────────────────
-  const [verbindenOpen, setVerbindenOpen] = useState(false);
 
   // Prüfen ob dieser Nutzer den Moment bereits gemeldet hat
   useEffect(() => {
@@ -233,26 +212,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
     </div>
   );
 
-  // ── MOMENT-CONNECT: Verbinden-Button ─────────────────────────
-  // NUR bei Momenten, NICHT bei Werken/Talenten/Erlebnissen.
-  // System-Broadcasts und System-Project-Links kriegen keinen Verbinden-Button.
-  const momentAuthorId = item?.author?.id || raw.user_id || raw.creator_id || null;
-  const isOwnMoment    = momentAuthorId === user?.id;
-  const isSystemPost   = raw.moment_source === "system_broadcast" ||
-                         raw.moment_source === "system_impact_completion";
-  const canVerbinden   = !!user?.id && !!momentAuthorId && !isOwnMoment && !isSystemPost;
-
-  const verbindenButton = canVerbinden ? (
-    <ActionBtn
-      Icon={VerbindenIcon}
-      active={false}
-      activeColor={"#0AA89B"}
-      inactiveColor={"#0AA89B"}
-      variant="verbinden"
-      onClick={() => { haptic("light"); setVerbindenOpen(true); }}
-    />
-  ) : null;
-
   const isSystemProjectLink = raw.moment_source === "system_impact_completion" && !!raw.linked_project_id;
 
   return (
@@ -275,7 +234,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         }
         open(item);
       }}
-      extraActions={<>{verbindenButton}{reportButton}</>}
+      extraActions={reportButton}
     >
       {/* ── Titel — volle Kartenbreite, bis zu 3 Zeilen sichtbar
           (FIX 2026-08-11 v2: Typ-Badge "Foto-Moment" etc. entfernt, siehe
@@ -322,41 +281,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         </p>
       )}
     </BaseFeedCard>
-
-      {/* MOMENT-CONNECT: Verbinden-Modal — NUR bei Moments */}
-      <VerbindenModal
-        open={verbindenOpen}
-        onClose={() => setVerbindenOpen(false)}
-        otherUser={{
-          id:           momentAuthorId,
-          display_name: item?.author?.name || item?.author?.displayName || "diesem Nutzer",
-          avatar_url:   item?.author?.avatar || item?.author?.avatar_url || null,
-        }}
-        momentId={item?._raw?.id || item?.id || null}
-        onChatOpened={(result) => {
-          // Nach erfolgreicher Chat-Erstellung → Chat öffnen
-          if (typeof window !== "undefined" && typeof window.__HUI_OPEN_CHAT_WITH__ === "function") {
-            window.__HUI_OPEN_CHAT_WITH__({
-              id:         momentAuthorId,
-              display_name: item?.author?.name || item?.author?.displayName || "Nutzer",
-              avatar_url: item?.author?.avatar || item?.author?.avatar_url || null,
-            });
-          }
-          // SADB-Event: moment_connect_clicked
-          try {
-            import("../../lib/supabaseClient.js").then(({ supabase }) => {
-              supabase.from("moment_events").insert({
-                event_type: "moment_connect_clicked",
-                moment_id:  item?._raw?.id || item?.id || null,
-                chat_id:     result?.chat_id || null,
-                user_id:     user?.id,
-                other_user_id: momentAuthorId,
-                created_at:  new Date().toISOString(),
-              }).then(() => {});
-            });
-          } catch { /* silent */ }
-        }}
-      />
     </>
   );
 }

@@ -52,6 +52,9 @@ import { countComments, getComments } from "../../lib/commentsService.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
+// MOMENT-CONNECT UI (2026-08-25 v2): Button lebt im Fullscreen-Modal statt in der
+// Feed-Icon-Leiste (Michael-Feedback nach v1) — NUR bei postType==="moment".
+import VerbindenModal from "./VerbindenModal.jsx";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -67,6 +70,21 @@ const CSS = `
 `;
 
 const ANIM_MS = 280;
+
+// ── MOMENT-CONNECT: Verbinden-Icon (zwei Pfeile die sich treffen) ─────
+function VerbindenIcon({ size = 18, color = "#FFFFFF" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8 12h8" />
+      <path d="M12 8l4 4-4 4" />
+      <path d="M4 8v8" />
+      <path d="M20 8v8" />
+    </svg>
+  );
+}
 
 // ── "Weitere Beitraege dieses Wirkers" — schlanker Nachbar-Query,
 //    gleiches Muster wie die bestehenden beitraege-Queries in useFeedStream.js
@@ -169,6 +187,8 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
   // KOMMENTAR.1 (2026-07-09): Kommentarzaehler + Sheet.
   const [commentCount, setCommentCount] = useState(0);
   const [showComments, setShowComments] = useState(false);
+  // ── MOMENT-CONNECT: Verbinden-Modal State (2026-08-25 v2) ───────────────
+  const [verbindenOpen, setVerbindenOpen] = useState(false);
   useEffect(() => {
     if (!postId) return;
     let cancelled = false;
@@ -217,6 +237,13 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
     dragRef.current.dragging = false;
     if (dragRef.current.dy > 110) { onClose(); } else { setDragY(0); }
   }, [onClose]);
+
+  // ── MOMENT-CONNECT: Verbinden-Button — NUR bei Momenten (postType==="moment"),
+  // nicht beim eigenen Moment, nicht bei System-Posts (2026-08-25 v2).
+  const isOwnMoment  = !!authorId && authorId === user?.id;
+  const isSystemPost = mountedItem?._raw?.moment_source === "system_broadcast" ||
+                        mountedItem?._raw?.moment_source === "system_impact_completion";
+  const canVerbinden  = postType === "moment" && !!user?.id && !!authorId && !isOwnMoment && !isSystemPost;
 
   if (!mountedItem) return null;
 
@@ -357,7 +384,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             </div>
           )}
 
-          {/* 8) Merken + Profil ansehen */}
+          {/* 8) Merken + Verbinden (nur Momente) + Profil ansehen */}
           <div style={{ display:"flex", gap:10, marginTop:22 }}>
             <button className="pfv-btn" onClick={() => handleReaction("save")} style={{
               flex:1, padding:"13px", borderRadius:14,
@@ -366,6 +393,18 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             }}>
               {saved ? "Gemerkt ✓" : "Merken"}
             </button>
+            {/* MOMENT-CONNECT (2026-08-25 v2): Verbinden-Button lebt hier im
+                Fullscreen-Modal statt in der Feed-Icon-Leiste (Michael-Feedback). */}
+            {canVerbinden && (
+              <button className="pfv-btn" onClick={() => setVerbindenOpen(true)} style={{
+                flex:1.4, padding:"13px", borderRadius:14,
+                background:"rgba(13,196,181,0.10)", color:T.teal, fontSize:14, fontWeight: 600,
+                display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+              }}>
+                <VerbindenIcon size={16} color={T.teal} />
+                Verbinden
+              </button>
+            )}
             <button className="pfv-btn" onClick={handleOpenProfile} style={{
               flex:2, padding:"13px", borderRadius:14,
               background:T.ink, color:"#fff", fontSize:14, fontWeight: 600,
@@ -386,6 +425,41 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
         open={showComments} onClose={() => setShowComments(false)}
         postId={postId} postType={postType} postAuthorId={authorId}
         zIndex={15500}
+      />
+
+      {/* MOMENT-CONNECT (2026-08-25 v2): Verbinden-Modal — NUR bei Momenten,
+          ausgelöst durch den Verbinden-Button oben in der Merken/Profil-Zeile. */}
+      <VerbindenModal
+        open={verbindenOpen}
+        onClose={() => setVerbindenOpen(false)}
+        otherUser={{
+          id:           authorId,
+          display_name: mountedItem?.author?.name || "diesem Nutzer",
+          avatar_url:   mountedItem?.author?.avatar || null,
+        }}
+        momentId={postId}
+        onChatOpened={(result) => {
+          // Nach erfolgreicher Chat-Erstellung → Fullscreen schliessen + Chat öffnen
+          onClose();
+          if (typeof window !== "undefined" && typeof window.__HUI_OPEN_CHAT_WITH__ === "function") {
+            window.__HUI_OPEN_CHAT_WITH__({
+              id:           authorId,
+              display_name: mountedItem?.author?.name || "Nutzer",
+              avatar_url:   mountedItem?.author?.avatar || null,
+            });
+          }
+          // SADB-Event: moment_connect_clicked
+          try {
+            supabase.from("moment_events").insert({
+              event_type:    "moment_connect_clicked",
+              moment_id:     postId,
+              chat_id:       result?.chat_id || null,
+              user_id:       user?.id,
+              other_user_id: authorId,
+              created_at:    new Date().toISOString(),
+            }).then(() => {});
+          } catch { /* silent */ }
+        }}
       />
     </div>
   );
