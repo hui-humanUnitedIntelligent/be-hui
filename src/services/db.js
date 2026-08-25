@@ -487,6 +487,43 @@ export const RecommendationService = {
     );
     return (data && data.length > 0);
   },
+
+  // BUGFIX (2026-08-25, Michael-Report "Button soll anzeigen, dass bereits
+  // eine Empfehlung gemacht wurde"): Batch-Check pro TRANSAKTION (order_id /
+  // booking_id) statt nur global pro Personen-Paar. Grund: ein Käufer kann
+  // mehrmals beim selben Verkäufer kaufen/buchen — jede einzelne Transaktion
+  // soll unabhängig ihre eigene "bereits empfohlen"-Markierung tragen, nicht
+  // eine einzige globale Sperre für die ganze Beziehung. Wird von
+  // FinanzuebersichtModal (MeineKaeufe/MeineBuchungen) genutzt, um den
+  // "+ Empfehlung schreiben"-Button in TransactionDetailSheet korrekt als
+  // bereits abgegeben zu kennzeichnen (persistent, überlebt Reload).
+  async getRecommendedTransactionIds(fromUserId, { orderIds = [], bookingIds = [] } = {}) {
+    const result = { orderIds: new Set(), bookingIds: new Set() };
+    if (!fromUserId) return result;
+    const cleanOrderIds = [...new Set((orderIds || []).filter(Boolean))];
+    const cleanBookingIds = [...new Set((bookingIds || []).filter(Boolean))];
+    if (!cleanOrderIds.length && !cleanBookingIds.length) return result;
+
+    if (cleanOrderIds.length) {
+      const { data } = await safeQuery(
+        supabase.from('recommendations')
+          .select('order_id')
+          .eq('from_user_id', fromUserId)
+          .in('order_id', cleanOrderIds)
+      );
+      (data || []).forEach(r => { if (r.order_id) result.orderIds.add(r.order_id); });
+    }
+    if (cleanBookingIds.length) {
+      const { data } = await safeQuery(
+        supabase.from('recommendations')
+          .select('booking_id')
+          .eq('from_user_id', fromUserId)
+          .in('booking_id', cleanBookingIds)
+      );
+      (data || []).forEach(r => { if (r.booking_id) result.bookingIds.add(r.booking_id); });
+    }
+    return result;
+  },
 };
 
 // ─── SEARCH ──────────────────────────────────────────────────

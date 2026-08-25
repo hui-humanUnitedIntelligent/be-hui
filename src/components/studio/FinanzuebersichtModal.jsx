@@ -15,6 +15,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import RecommendModal from "../profile/RecommendModal.jsx";
+import { RecommendationService } from "../../services/db.js";
 import TransactionDetailSheet from "./TransactionDetailSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
@@ -154,6 +155,10 @@ function MeineKaeufe({ userId }) {
   const [recModal, setRecModal] = useState(null); // { sellerId, sellerName, orderId }
   const [sellerMap, setSellerMap] = useState({});
   const [detail, setDetail] = useState(null);
+  // BUGFIX (2026-08-25): persistente "bereits empfohlen"-Markierung pro
+  // order_id — überlebt Reload, im Gegensatz zum vorherigen rein lokalen
+  // confirmDone-State. Siehe RecommendationService.getRecommendedTransactionIds.
+  const [recommendedOrderIds, setRecommendedOrderIds] = useState(new Set());
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -178,6 +183,15 @@ function MeineKaeufe({ userId }) {
         map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, email: p.email || null, website: p.website || null };
       });
       setSellerMap(map);
+    }
+
+    // BUGFIX (2026-08-25): welche dieser Bestellungen wurden vom Käufer
+    // bereits mit einer Empfehlung versehen? → Button in TransactionDetailSheet
+    // dauerhaft (nicht nur bis zum nächsten Reload) auf "abgegeben" umschalten.
+    const orderIds = (data || []).map(o => o.id);
+    if (orderIds.length) {
+      const { orderIds: doneIds } = await RecommendationService.getRecommendedTransactionIds(userId, { orderIds });
+      setRecommendedOrderIds(doneIds);
     }
 
     setLoading(false);
@@ -333,8 +347,9 @@ function MeineKaeufe({ userId }) {
         disputing: disputingId === o.id,
         disputeOpen: isDisputed,
         onChat: (sellerId && sInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar }, source: S.SYSTEM }) : null,
-        canRecommend: !!(confirmed && sellerId),
-        onRecommend: (confirmed && sellerId) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id }); } : null,
+        canRecommend: !!(confirmed && sellerId && !recommendedOrderIds.has(o.id)),
+        recommendationGiven: recommendedOrderIds.has(o.id),
+        onRecommend: (confirmed && sellerId && !recommendedOrderIds.has(o.id)) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id }); } : null,
         onDownloadReceipt: async () => {
           try {
             await generateReceipt({
@@ -397,7 +412,14 @@ function MeineKaeufe({ userId }) {
           toUserName={recModal.sellerName}
           orderId={recModal.orderId}
           onClose={() => setRecModal(null)}
-          onSubmitted={() => setRecModal(null)}
+          onSubmitted={() => {
+            // BUGFIX (2026-08-25): sofortige UI-Aktualisierung, kein Warten
+            // auf den nächsten load() — Button zeigt direkt "abgegeben".
+            if (recModal.orderId) {
+              setRecommendedOrderIds(prev => new Set(prev).add(recModal.orderId));
+            }
+            setRecModal(null);
+          }}
         />
       )}
     </div>
@@ -613,6 +635,9 @@ function MeineBuchungen({ userId }) {
   const [recModal, setRecModal] = useState(null);
   const [showChatConfirm, setShowChatConfirm] = useState(null); // bookingId or null
   const [detail, setDetail] = useState(null);
+  // BUGFIX (2026-08-25): persistente "bereits empfohlen"-Markierung pro
+  // booking_id — überlebt Reload (siehe MeineKaeufe für dieselbe Logik).
+  const [recommendedBookingIds, setRecommendedBookingIds] = useState(new Set());
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -632,6 +657,15 @@ function MeineBuchungen({ userId }) {
       nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", email: p.email || null, website: p.website || null }]));
     }
     setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_email: sm.email || null, seller_website: sm.website || null }; }));
+
+    // BUGFIX (2026-08-25): welche dieser Buchungen wurden vom Kunden bereits
+    // mit einer Empfehlung versehen?
+    const bookingIds = (data || []).map(b => b.id);
+    if (bookingIds.length) {
+      const { bookingIds: doneIds } = await RecommendationService.getRecommendedTransactionIds(userId, { bookingIds });
+      setRecommendedBookingIds(doneIds);
+    }
+
     setLoading(false);
   }, [userId]);
 
@@ -714,7 +748,8 @@ function MeineBuchungen({ userId }) {
     const title = b.talents?.title || "Talent-Angebot";
     const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
     const done = b.status === "completed" || b.status === "confirmed";
-    const canRec = done && b.seller_id;
+    const alreadyRecommended = recommendedBookingIds.has(b.id);
+    const canRec = done && b.seller_id && !alreadyRecommended;
     const location = b.talents?.location_type === "online" ? "Online" : (b.talents?.location_address || null);
     const timeStr = b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null;
 
@@ -751,6 +786,7 @@ function MeineBuchungen({ userId }) {
         disputeOpen: bDisputed,
         onChat: (b.seller_id && b.status !== "cancelled") ? () => setShowChatConfirm(b.id) : null,
         canRecommend: !!(canRec && !confirmDone[b.id]),
+        recommendationGiven: alreadyRecommended,
         onRecommend: (canRec && !confirmDone[b.id]) ? () => { setConfirmDone(p => ({ ...p, [b.id]: true })); setDetail(null); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); } : null,
         onDownloadReceipt: b.status !== "cancelled" ? async () => {
           try {
@@ -819,7 +855,13 @@ function MeineBuchungen({ userId }) {
           toUserName={recModal.sellerName}
           bookingId={recModal.bookingId}
           onClose={() => setRecModal(null)}
-          onSubmitted={() => setRecModal(null)}
+          onSubmitted={() => {
+            // BUGFIX (2026-08-25): sofortige UI-Aktualisierung analog MeineKaeufe.
+            if (recModal.bookingId) {
+              setRecommendedBookingIds(prev => new Set(prev).add(recModal.bookingId));
+            }
+            setRecModal(null);
+          }}
         />
       )}
 

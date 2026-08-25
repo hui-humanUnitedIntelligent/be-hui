@@ -143,7 +143,7 @@ function Cover({ src, imgErr, onErr }) {
  *       onDispute, disputing,                    // NEU: Nicht erhalten
  *       disputeOpen,                              // NEU: Dispute bereits offen
  *       onDownloadReceipt,
- *       onRecommend, canRecommend,
+ *       onRecommend, canRecommend, recommendationGiven, // NEU: bereits abgegeben
  *     }
  *   }
  */
@@ -497,6 +497,16 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             {a.canRecommend && a.onRecommend && (
               <ActionButton variant="outline" onClick={a.onRecommend}>
                 + Empfehlung schreiben
+              </ActionButton>
+            )}
+            {/* BUGFIX (2026-08-25, Michael-Report): Wenn bereits eine
+                Empfehlung zu dieser Transaktion abgegeben wurde, zeigt der
+                Button das jetzt an statt einfach zu verschwinden — analog
+                zum bereits bestehenden Muster in RecommendationsSection.jsx
+                ("✓ Empfohlen"). disabled=true → kein Klick möglich. */}
+            {a.recommendationGiven && (
+              <ActionButton variant="ghost" disabled>
+                ✓ Empfehlung abgegeben
               </ActionButton>
             )}
             {a.onDownloadReceipt && (
