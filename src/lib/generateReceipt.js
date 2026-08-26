@@ -110,8 +110,13 @@ export async function generateReceipt(data) {
     const now = new Date();
     const dateStr = formatDateDE(now, { day: "2-digit", month: "long", year: "numeric" });
     doc.text("Erstellt am: " + dateStr, M, y);
+    // BELEG-012 (2026-08-26): Michael-Feedback — volle UUID (36 Zeichen) ist zu lang
+    // und unpraktisch fuer Support/Admin-Suche. Gekuerzt auf die ersten 8 Hex-Zeichen
+    // (Grossbuchstaben) — identische Kuerzungslogik wie SADB BookingsView.jsx (shortBookingCode),
+    // damit Admin per kurzer Nummer aus dem Beleg im SADB-Suchfeld wiederfinden kann.
     if (data.bookingId) {
-      doc.text("Buchungs-ID: " + String(data.bookingId || "\u2013"), W - M - 70, y);
+      const shortBookingId = String(data.bookingId).replace(/^(tb_|bos_)/, "").slice(0, 8).toUpperCase();
+      doc.text("Buchungs-ID: " + (shortBookingId || "\u2013"), W - M - 70, y);
     }
     y += 12;
 
