@@ -178,7 +178,7 @@ function MeineKaeufe({ userId }) {
     const sellerIds = [...new Set((data || []).map(o => o.order_items?.[0]?.seller_id).filter(Boolean))];
     if (sellerIds.length) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username, img, avatar_url, email, website")
+        .select("id, display_name, username, avatar_url, email, website")
         .in("id", sellerIds);
       const map = {};
       (profs || []).forEach(p => {
@@ -529,7 +529,7 @@ function MeineVerkaeufe({ userId }) {
     const buyerIds = [...new Set((data || []).map(i => i.orders?.customer_id).filter(Boolean))];
     if (buyerIds.length) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username, img, avatar_url, email, website")
+        .select("id, display_name, username, avatar_url, email, website")
         .in("id", buyerIds);
       const map = {};
       (profs || []).forEach(p => {
