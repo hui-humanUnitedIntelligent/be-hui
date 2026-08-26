@@ -1,28 +1,21 @@
-// src/components/notifications/BelegViewerModal.jsx — BELEG-006 (2026-08-14)
+// src/components/notifications/BelegViewerModal.jsx — BELEG-006 (2026-08-14) + BELEG-008 (2026-08-26)
 //
-// Michael-Feedback: "ich möchte es nicht nur versenden oder teilen ich möchte
-// lokal auf meinem Smartphone haben ... und das PDF in der Ansicht gezeigt wird".
+// BELEG-008 (2026-08-26): Michael-Feedback — "ich dachte du hast es eingebaut das der
+// Beleg als Download direkt lokal auf dem Handy gespeichert wird". Der vorherige
+// BelegViewerModal hatte nur einen "Teilen"-Button, der bedingt auf `native && uri`
+// war — wenn das Filesystem-Plugin nicht verfügbar ist (BELEG-007), war der Button
+// UNSICHTBAR und es gab gar keinen Weg, den Beleg aus der Ansicht heraus zu speichern.
 //
-// FAKT (Truth over Assumption — HUI Engineering Constitution): Der Android-System-
-// WebView, in dem die HUI-App läuft, hat KEINEN eingebauten PDF-Renderer (anders als
-// Desktop-Chrome). Ein "echtes" eingebettetes PDF (Byte-für-Byte gerendert) würde
-// entweder ein neues natives Capacitor-Plugin (Reinstall der APK nötig, nicht per OTA
-// möglich) oder eine pdf.js-Integration (zusätzliche Komplexität/Bundle-Größe/Worker-
-// Risiken in einer Capacitor-WebView) erfordern.
-//
-// GEWÄHLTE LÖSUNG (pragmatisch, 100% OTA-fähig, kein Reinstall nötig): Diese Ansicht
-// zeigt exakt dieselben Beleg-Inhalte, die auch im PDF stehen (Titel, Anbieter, Betrag,
-// Datum, Beleg-Nr, Angebotstyp) — als natives App-UI statt als PDF-Rendering. Die
-// eigentliche PDF-Datei liegt dauerhaft lokal auf dem Gerät (Directory.External, siehe
-// generateReceipt.js) und kann über den "Teilen"-Button bei Bedarf weitergegeben werden.
-//
-// Falls Michael später einen Byte-genauen PDF-Viewer will: pdf.js-Integration als
-// separate Folgeaufgabe möglich (Canvas-Rendering, offline-fähig, kein natives Plugin).
+// Fix: Zwei Buttons, beide IMMER sichtbar:
+// 1. "Auf Handy speichern" (primär) — nutzt downloadReceiptFile(), die bei vorhandener
+//    Datei-URI das Share-Sheet öffnet (mit "In Downloads speichern" Option) und sonst
+//    einen direkten Blob-Download auslöst (funktioniert IMMER).
+// 2. "Beleg teilen" (sekundär) — nutzt shareReceiptFile(), öffnet das Share-Sheet.
 
 import React from "react";
 import { createPortal } from "react-dom";
 import { formatDateDE } from "../../lib/formatters.js";
-import { shareReceiptFile } from "../../lib/generateReceipt.js";
+import { shareReceiptFile, downloadReceiptFile } from "../../lib/generateReceipt.js";
 
 function Row({ label, value }) {
   if (!value) return null;
@@ -39,8 +32,11 @@ function Row({ label, value }) {
 }
 
 export default function BelegViewerModal({ result, onClose = () => {} }) {
+  const [downloading, setDownloading] = React.useState(false);
+  const [sharing, setSharing] = React.useState(false);
+
   if (!result) return null;
-  const { fileName, uri, native, receiptData: d = {} } = result;
+  const { fileName, uri, blobUrl, native, receiptData: d = {} } = result;
 
   const sellerLabel = d.offerType === "werk" ? "Verkauft von" : "Gebucht bei";
   const offerLabel = d.offerType === "werk" ? "Gekauftes Werk" : "Gebuchtes Angebot";
@@ -52,13 +48,27 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
   const dateStr = formatDateDE(new Date(), { day: "2-digit", month: "long", year: "numeric" });
   const bookingShort = d.bookingId ? String(d.bookingId).substring(0, 8) + "…" : null;
 
-  const [sharing, setSharing] = React.useState(false);
+  async function handleDownload() {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      await downloadReceiptFile(result);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function handleShare() {
     if (sharing) return;
     setSharing(true);
     try {
-      await shareReceiptFile(uri, fileName);
+      // Wenn uri vorhanden, direkt shareReceiptFile nutzen
+      if (uri) {
+        await shareReceiptFile(uri, fileName);
+      } else if (blobUrl) {
+        // Kein uri → blob download als "Teilen"-Ersatz
+        await downloadReceiptFile(result);
+      }
     } finally {
       setSharing(false);
     }
@@ -124,36 +134,54 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
           }
         </div>
 
-        {/* Teilen (optional, sekundär) */}
-        {native && uri && (
-          <button
-            onClick={handleShare}
-            disabled={sharing}
-            style={{
-              width: "100%", padding: "13px", borderRadius: 99,
-              background: "rgba(14,196,184,0.08)",
-              border: "1.5px solid rgba(14,196,184,0.35)",
-              color: "#0EC4B8", fontSize: 14, fontWeight: 600,
-              cursor: sharing ? "default" : "pointer", fontFamily: "inherit",
-              marginBottom: 10, opacity: sharing ? 0.6 : 1,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="2" />
-              <path d="M8.6 13.5l6.8 3.9M15.4 6.6L8.6 10.5" stroke="currentColor" strokeWidth="2" />
-            </svg>
-            {sharing ? "Teilen …" : "Beleg teilen"}
-          </button>
-        )}
+        {/* "Auf Handy speichern" — IMMER sichtbar (BELEG-008) */}
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          style={{
+            width: "100%", padding: "14px", borderRadius: 99,
+            background: "#0EC4B8", border: "none",
+            color: "#fff", fontSize: 15, fontWeight: 700,
+            cursor: downloading ? "default" : "pointer", fontFamily: "inherit",
+            marginBottom: 10, opacity: downloading ? 0.6 : 1,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {downloading ? "Speichern …" : "Auf Handy speichern"}
+        </button>
+
+        {/* "Beleg teilen" — IMMER sichtbar (BELEG-008) */}
+        <button
+          onClick={handleShare}
+          disabled={sharing}
+          style={{
+            width: "100%", padding: "13px", borderRadius: 99,
+            background: "rgba(14,196,184,0.08)",
+            border: "1.5px solid rgba(14,196,184,0.35)",
+            color: "#0EC4B8", fontSize: 14, fontWeight: 600,
+            cursor: sharing ? "default" : "pointer", fontFamily: "inherit",
+            marginBottom: 10, opacity: sharing ? 0.6 : 1,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="2" />
+            <path d="M8.6 13.5l6.8 3.9M15.4 6.6L8.6 10.5" stroke="currentColor" strokeWidth="2" />
+          </svg>
+          {sharing ? "Teilen …" : "Beleg teilen"}
+        </button>
 
         {/* Schließen */}
         <button
           onClick={onClose}
           style={{
-            width: "100%", padding: "14px", borderRadius: 99,
-            background: "#0EC4B8", border: "none",
-            color: "#fff", fontSize: 15, fontWeight: 700,
+            width: "100%", padding: "12px", borderRadius: 99,
+            background: "transparent", border: "none",
+            color: "#888", fontSize: 14, fontWeight: 600,
             cursor: "pointer", fontFamily: "inherit",
           }}
         >

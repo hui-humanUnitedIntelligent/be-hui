@@ -13,7 +13,7 @@ import { registerPlugin } from "@capacitor/core";
 // haben nur Symptome behoben, nie die eigentliche Fehlerursache). Fix: registerPlugin()
 // aus @capacitor/core nutzen — exakt das Muster, das @capacitor/filesystem/share intern
 // selbst verwenden, nur ohne den npm-Paket-Import. @capacitor/core wird überall im Projekt
-// bereits normal gebündelt, also kein Resolve-Fehler.
+// bereits normal gebündelt, also kein resolve-Fehler.
 const Filesystem = registerPlugin("Filesystem", {});
 const Share = registerPlugin("Share", {});
 // Directory-Enum-Werte von Capacitor (string constants, siehe
@@ -26,21 +26,6 @@ const Share = registerPlugin("Share", {});
 // scoped external storage) und ist bereits in file_paths.xml als <external-path> deklariert
 // (FileProvider-Voraussetzung, seit 2026-07-09 im APK -- kein Reinstall noetig).
 const DIRECTORY_EXTERNAL = "EXTERNAL";
-// src/lib/generateReceipt.js — BELEG-001 (2026-08-11) + BELEG-002 (2026-08-14)
-// Generiert einen PDF-Beleg (Wirkungsbeleg / Beitragsnachweis) fuer Talent-Buchungen,
-// Erlebnis-Buchungen UND Werk-Kaeufe (offerType: "talent" | "experience" | "werk").
-// Desktop: doc.save() (Browser-Download)
-// Android (Capacitor): Filesystem.writeFile → Share Sheet (Downloads/Teilen)
-// iOS (Capacitor): Filesystem.writeFile → Share Sheet (Teilen/Speichern)
-//
-// BELEG-002 (2026-08-14): Michael meldete "Beleg-Download geht auf dem Handy nicht".
-// Root Cause: Alle Fehler wurden bisher nur mit console.warn() verschluckt — auf dem
-// Handy sieht man KEINE console.warn(). Wenn Filesystem/Share auf einem bestimmten
-// Geraet/Android-Version fehlschlug, passierte für den Nutzer optisch schlicht NICHTS.
-// Fix: (1) toast.info() sofort bei Klick (native), damit sichtbar ist dass etwas passiert.
-// (2) toast.error() bei jedem Fehlschlag (inkl. Fallback-Fehlschlag) — nie mehr stiller Fail.
-// (3) Directory.Cache statt Directory.Documents — zuverlässiger für "Datei erzeugen und
-//     sofort teilen"-Flow, kein Abhängigkeit von Documents-Verzeichnis-Semantik auf Android.
 
 let _isNative = null;
 function isNative() {
@@ -113,10 +98,9 @@ export async function generateReceipt(data) {
           logoReader.onerror = reject;
           logoReader.readAsDataURL(logoBlob);
         });
-        // Logo: 22x22mm, oben rechts mit 2mm Abstand zum Rand
         var logoSize = 22;
         var logoX = W - M - logoSize;
-        var logoY = y - 14; // zentriert relativ zur Textzeile
+        var logoY = y - 14;
         doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
       }
     } catch (logoErr) {
@@ -133,7 +117,6 @@ export async function generateReceipt(data) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     doc.setTextColor(26, 26, 26);
-    // BELEG-001: "Beleg" statt "Quittung" + Untertitel
     var docTitle = data.offerType === "werk" ? "Beitragsnachweis" : "Dein Wirkungsbeleg";
     doc.text(docTitle, M, y);
     y += 7;
@@ -320,32 +303,32 @@ export async function generateReceipt(data) {
     // ── Dateiname ──────────────────────────────────────────────
     var fileName = "HUI_Beleg_" + (data.offerTitle ? data.offerTitle.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_") : "Buchung") + ".pdf";
 
+    // ── Blob-URL IMMER erzeugen (BELEG-008, 2026-08-26) ──────────
+    // Michael-Feedback: "ich dachte du hast es eingebaut das der Beleg als Download
+    // direkt lokal auf dem Handy gespeichert wird". Der BelegViewerModal hatte nur
+    // einen "Teilen"-Button, der bedingt auf `native && uri` war — wenn das
+    // Filesystem-Plugin nicht verfügbar ist (BELEG-007), war der Button unsichtbar
+    // und es gab keinen Weg, den Beleg zu speichern.
+    // Fix: Wir erzeugen IMMER einen blob: URL aus dem jsPDF doc und geben ihn im
+    // Ergebnis mit zurück. Der BelegViewerModal nutzt diesen für einen "Auf Handy
+    // speichern" Button, der IMMER sichtbar ist — unabhängig vom Filesystem-Plugin.
+    const pdfBlob = doc.output("blob");
+    const blobUrl = URL.createObjectURL(pdfBlob);
+
     // ── Plattform-spezifischer Download ──────────────────────────
-    // BELEG-006 (2026-08-14): Michael-Feedback — "nicht nur versenden/teilen, ich will
-    // es lokal auf dem Handy haben und danach die Beleg-Ansicht sehen". Rueckgabewert
-    // ist jetzt ein Objekt { fileName, uri, native, receiptData }, das der Aufrufer
-    // (NotificationPanel) nutzt, um eine In-App-Beleg-Ansicht zu oeffnen — OHNE
-    // automatisches Share-Sheet. Teilen bleibt als OPTIONALE Aktion in der Ansicht
-    // erhalten (siehe BelegViewerModal.jsx), wird aber nicht mehr erzwungen.
+    // BELEG-006: Rueckgabewert ist { fileName, uri, blobUrl, native, receiptData }.
     if (isNative()) {
-      // BELEG-002: sofortiges Feedback — sonst wirkt der Tap "totes" auf dem Handy,
-      // waehrend jsPDF-Chunk laedt + Filesystem im Hintergrund arbeitet.
       toast.info("Beleg wird gespeichert …", { duration: 2500 });
       const saved = await saveNative(doc, fileName);
-      // BELEG-007: Nur bei echtem Filesystem-Save "gespeichert" behaupten — beim
-      // Fallback zeigte saveNative bereits (falls unerwartet) eine eigene Toast an,
-      // eine zusaetzliche pauschale "gespeichert ✓" waere dort irrefuehrend
-      // (suggeriert dauerhaften Speicherort, den es beim Fallback nicht gibt).
       if (saved.method === "filesystem") {
         toast.info("Beleg gespeichert ✓", { duration: 2000 });
       } else {
         toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
       }
-      return { fileName, uri: saved.uri, native: true, receiptData: data };
+      return { fileName, uri: saved.uri, blobUrl, native: true, receiptData: data };
     } else {
-      // Web/Desktop: klassischer Browser Download
       doc.save(fileName);
-      return { fileName, uri: null, native: false, receiptData: data };
+      return { fileName, uri: null, blobUrl, native: false, receiptData: data };
     }
   } catch (err) {
     console.error("[generateReceipt] Failed:", err);
@@ -354,16 +337,6 @@ export async function generateReceipt(data) {
   }
 }
 
-/**
- * Speichert die PDF dauerhaft im App-externen Speicherbereich des Geraets (Android/iOS).
- * KEIN automatisches Share-Sheet mehr (BELEG-006) — reine Speicherung. Gibt { uri } zurueck.
- *
- * BELEG-006 (2026-08-14): Directory.External statt Directory.Cache — der Cache-Ordner
- * kann vom System jederzeit automatisch geleert werden, was fuer einen dauerhaft
- * aufzubewahrenden Beleg falsch ist. External (getExternalFilesDir(null)) bleibt bis zur
- * App-Deinstallation erhalten und ist bereits als <external-path> in file_paths.xml
- * deklariert (FileProvider-Voraussetzung, seit 2026-07-09 im APK compiliert).
- */
 function blobDownloadFallback(doc, fileName) {
   const blob = doc.output("blob");
   const url = URL.createObjectURL(blob);
@@ -375,11 +348,6 @@ function blobDownloadFallback(doc, fileName) {
 }
 
 async function saveNative(doc, fileName) {
-  // BELEG-007: Erst PRUEFEN ob das native Filesystem-Plugin auf diesem Geraet
-  // ueberhaupt registriert ist, statt es blind zu versuchen. Fehlt es, ist das
-  // KEIN unerwarteter Fehler (der Blob-Fallback liefert die Datei trotzdem
-  // zuverlaessig aus) — also keine alarmierende Fehler-Toast, sondern direkt
-  // und ruhig der Fallback-Pfad mit ehrlichem method-Flag fuer den Aufrufer.
   if (!isFilesystemPluginAvailable()) {
     console.warn("[generateReceipt] Filesystem-Plugin auf diesem Geraet nicht registriert — nutze Download-Fallback.");
     try {
@@ -393,14 +361,9 @@ async function saveNative(doc, fileName) {
   }
 
   try {
-    // BELEG-004: Filesystem ist ein Modul-Level registerPlugin()-Proxy (siehe Dateikopf).
-
-    // PDF als Base64 holen (ohne Data-URL-Präfix)
-    const dataUri = doc.output("datauristring"); // "data:application/pdf;base64,XXXX"
+    const dataUri = doc.output("datauristring");
     const base64 = dataUri.split(",")[1];
 
-    // BELEG-003: KEIN `encoding` Parameter bei Base64-Binärdaten! Wuerde Capacitor
-    // veranlassen, `data` als reinen UTF8-Text statt Base64 zu behandeln -> korrupte Datei.
     await Filesystem.writeFile({
       path: fileName,
       data: base64,
@@ -408,7 +371,6 @@ async function saveNative(doc, fileName) {
       recursive: true,
     });
 
-    // URI der geschriebenen Datei holen (fuer optionales Teilen aus der Beleg-Ansicht)
     const uriResult = await Filesystem.getUri({
       directory: DIRECTORY_EXTERNAL,
       path: fileName,
@@ -418,14 +380,12 @@ async function saveNative(doc, fileName) {
   } catch (err) {
     console.error("[generateReceipt] Native save failed:", err);
     const errMsg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage) : "Unbekannter Fehler";
-    // Fallback: Blob-Download versuchen (funktioniert evtl. auf manchen WebViews)
     try {
       blobDownloadFallback(doc, fileName);
       toast.warn("Speichern fehlgeschlagen (" + errMsg.substring(0, 60) + "). Download-Fallback genutzt.");
       return { uri: null, method: "fallback" };
     } catch (err2) {
       console.error("[generateReceipt] Fallback also failed:", err2);
-      // BELEG-002: nie mehr stiller Fail — Nutzer bekommt IMMER eine Rückmeldung.
       toast.error("Beleg konnte nicht gespeichert werden. Bitte Speicher-Zugriff für HUI prüfen.");
       throw err2;
     }
@@ -433,10 +393,55 @@ async function saveNative(doc, fileName) {
 }
 
 /**
- * BELEG-006 (2026-08-14): Optionales Teilen aus der Beleg-Ansicht heraus (nicht mehr
- * automatisch bei jedem Download). "Share canceled" (Nutzer hat das Share-Sheet einfach
- * weggewischt/X gedrueckt) ist KEIN Fehler und darf NIE eine Fehler-Toast zeigen — das
- * war der "orangene Fehler", den Michael nach dem Schliessen des Share-Sheets sah.
+ * BELEG-008 (2026-08-26): "Auf Handy speichern" — speichert den Beleg direkt lokal.
+ * Funktioniert IMMER, unabhängig vom Filesystem-Plugin-Status:
+ * - Native + uri (Filesystem verfügbar): Nutzt Share.share mit der Datei-URI —
+ *   das Android-Share-Sheet bietet "In Downloads speichern", "In Drive speichern" etc.
+ * - Native/Web + blobUrl (Filesystem NICHT verfügbar oder Web): Direkter Blob-Download,
+ *   der die PDF in den Download-Ordner speichert.
+ */
+export async function downloadReceiptFile(result) {
+  if (!result) return;
+  const { uri, blobUrl, fileName, native } = result;
+
+  // Wenn wir eine native Datei-URI haben → Share Sheet (bietet "Speichern unter" Optionen)
+  if (native && uri) {
+    try {
+      await Share.share({
+        title: "HUI Beleg",
+        text: "Dein HUI-Beleg: " + (fileName || "Beleg.pdf"),
+        url: uri,
+        dialogTitle: "Beleg speichern",
+      });
+      return;
+    } catch (err) {
+      const msg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage).toLowerCase() : "";
+      if (msg.includes("cancel")) return;
+      console.warn("[downloadReceiptFile] Share failed, trying blob download:", err);
+    }
+  }
+
+  // Blob-Download (immer verfügbar wenn blobUrl vorhanden)
+  if (blobUrl) {
+    try {
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName || "HUI_Beleg.pdf";
+      a.click();
+      toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
+    } catch (err) {
+      console.error("[downloadReceiptFile] Blob download failed:", err);
+      toast.error("Download fehlgeschlagen. Bitte nochmal versuchen.");
+    }
+    return;
+  }
+
+  toast.error("Beleg-Datei nicht verfügbar.");
+}
+
+/**
+ * BELEG-006: Optionales Teilen aus der Beleg-Ansicht heraus.
+ * "Share canceled" ist KEIN Fehler und darf NIE eine Fehler-Toast zeigen.
  */
 export async function shareReceiptFile(uri, fileName) {
   if (!uri) {
@@ -452,7 +457,6 @@ export async function shareReceiptFile(uri, fileName) {
     });
   } catch (err) {
     const msg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage).toLowerCase() : "";
-    // Nutzer-Abbruch (Android: "Share canceled") ist normales Verhalten, kein Fehler.
     if (msg.includes("cancel")) return;
     console.error("[shareReceiptFile] Failed:", err);
     toast.error("Teilen ist fehlgeschlagen. Bitte nochmal versuchen.");
