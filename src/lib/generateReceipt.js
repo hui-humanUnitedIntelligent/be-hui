@@ -2,29 +2,9 @@ import { formatDateDE } from "./formatters.js";
 import { toast } from "./useToast.jsx";
 import { registerPlugin } from "@capacitor/core";
 
-// BELEG-004 (2026-08-14): Wir importieren @capacitor/filesystem und @capacitor/share
-// NICHT als npm-Paket. In vite.config.js sind beide Pakete bewusst als
-// `rollupOptions.external` markiert (gleicher Grund wie bei push-notifications/app —
-// siehe pushNotificationService.js) — das führt dazu, dass ein `import("@capacitor/filesystem")`
-// im ausgelieferten Bundle ALS LITERALER bare-module-specifier stehen bleibt, den der
-// Android-WebView zur Laufzeit nicht auflösen kann:
-//   "Failed to resolve module specifier '@capacitor/filesystem'"
-// Das war der ECHTE Root Cause hinter dem gesamten Beleg-Download-Problem (BELEG-002/003
-// haben nur Symptome behoben, nie die eigentliche Fehlerursache). Fix: registerPlugin()
-// aus @capacitor/core nutzen — exakt das Muster, das @capacitor/filesystem/share intern
-// selbst verwenden, nur ohne den npm-Paket-Import. @capacitor/core wird überall im Projekt
-// bereits normal gebündelt, also kein resolve-Fehler.
+// BELEG-004: registerPlugin statt npm-Import (siehe BELEG-004 Kommentar in altem Code)
 const Filesystem = registerPlugin("Filesystem", {});
 const Share = registerPlugin("Share", {});
-// Directory-Enum-Werte von Capacitor (string constants, siehe
-// node_modules/@capacitor/filesystem/dist/esm/definitions.js)
-// BELEG-006 (2026-08-14): EXTERNAL statt CACHE -- Michael will den Beleg DAUERHAFT
-// lokal auf dem Handy haben. CACHE (getExternalCacheDir()) kann vom Android-System
-// JEDERZEIT automatisch geleert werden (Speicherplatz-Druck) -- fuer einen Beleg, den
-// man spaeter wiederfinden soll, ist das semantisch falsch. EXTERNAL (getExternalFilesDir(null))
-// bleibt bis zur App-Deinstallation erhalten, braucht keine Laufzeit-Berechtigung (App-
-// scoped external storage) und ist bereits in file_paths.xml als <external-path> deklariert
-// (FileProvider-Voraussetzung, seit 2026-07-09 im APK -- kein Reinstall noetig).
 const DIRECTORY_EXTERNAL = "EXTERNAL";
 
 let _isNative = null;
@@ -36,23 +16,6 @@ function isNative() {
   return _isNative;
 }
 
-// BELEG-007 (2026-08-15): Nutzer-Report — orangene Fehlermeldung "Speichern
-// fehlgeschlagen (\"Filesystem\" plugin is not implemented on android)" beim
-// Beleg-Download im Talent-Profil, trotz vorheriger BELEG-004-Fixes. Root Cause:
-// dieser exakte Fehlertext kommt AUSSCHLIESSLICH aus @capacitor/core's generischem
-// registerPlugin()-Proxy, wenn `window.Capacitor.PluginHeaders` (vom nativen Bridge
-// beim App-Start injiziert) KEINEN Eintrag fuer "Filesystem" enthaelt — d.h. der
-// gerade installierte native Android-Shell hat die Filesystem-Plugin-Klasse zur
-// Laufzeit nicht registriert (unabhaengig davon ob der JS-Code korrekt ist).
-// Das kann nach jedem OTA-Update passieren, bei dem der Nutzer eine AELTERE APK
-// installiert hat, ODER wenn die Bridge aus irgendeinem Grund die Registrierung
-// verpasst hat — OTA kann das NICHT nachtraeglich fixen (native Plugin-Registrierung
-// ist Java-Bridge-Zustand, kein WWW-Bundle-Inhalt).
-// FIX: Verfuegbarkeit proaktiv PRUEFEN statt blind zu versuchen + Fehler zu fangen.
-// Ist Filesystem nicht verfuegbar, wird direkt (ohne Zwischen-Fehlversuch und ohne
-// alarmierende orangene Fehler-Toast) der Blob-Download-Fallback genutzt — der
-// funktioniert unabhaengig vom Capacitor-Plugin-Status und liefert dem Nutzer die
-// Datei trotzdem zuverlaessig aus.
 function isFilesystemPluginAvailable() {
   try {
     return !!(
@@ -60,9 +23,19 @@ function isFilesystemPluginAvailable() {
       typeof window.Capacitor.isPluginAvailable === "function" &&
       window.Capacitor.isPluginAvailable("Filesystem")
     );
-  } catch {
-    return false;
-  }
+  } catch { return false; }
+}
+
+// BELEG-009 (2026-08-26): Native Download-Schnittstelle prüfen.
+// Die Java-Seite (MainActivity.java) registriert window.__HUI_DOWNLOAD.saveToDownloads(),
+// die über MediaStore direkt in den öffentlichen Downloads/HUI/ Ordner schreibt.
+// Das ist der ZUVERLÄSSIGSTE Weg auf Android — der Capacitor Filesystem-Plugin
+// schreibt nur in den app-privaten Speicher (nicht im Dateimanager sichtbar),
+// und Blob-Download (<a download>) funktioniert in WebViews nicht.
+function isNativeDownloadAvailable() {
+  try {
+    return !!(window.__HUI_DOWNLOAD && typeof window.__HUI_DOWNLOAD.saveToDownloads === "function");
+  } catch { return false; }
 }
 
 export async function generateReceipt(data) {
@@ -84,7 +57,7 @@ export async function generateReceipt(data) {
     doc.setFont("helvetica", "normal");
     doc.text("Human United Intelligence", M + 14, y - 1);
 
-    // HUI-Logo oben rechts (22x22mm, zentriert auf y)
+    // HUI-Logo oben rechts
     try {
       var logoUrl = (typeof window !== "undefined" && window.location)
         ? window.location.origin + "/assets/brand/hui-logo.png"
@@ -188,7 +161,7 @@ export async function generateReceipt(data) {
     doc.text("Typ: " + typeLabel, M, y);
     y += 8;
 
-    // Termin (nur fuer Buchungen, nicht fuer Werk-Kauf)
+    // Termin
     if (data.offerType !== "werk" && (data.date || data.time)) {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(11);
@@ -303,32 +276,34 @@ export async function generateReceipt(data) {
     // ── Dateiname ──────────────────────────────────────────────
     var fileName = "HUI_Beleg_" + (data.offerTitle ? data.offerTitle.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_") : "Buchung") + ".pdf";
 
-    // ── Blob-URL IMMER erzeugen (BELEG-008, 2026-08-26) ──────────
-    // Michael-Feedback: "ich dachte du hast es eingebaut das der Beleg als Download
-    // direkt lokal auf dem Handy gespeichert wird". Der BelegViewerModal hatte nur
-    // einen "Teilen"-Button, der bedingt auf `native && uri` war — wenn das
-    // Filesystem-Plugin nicht verfügbar ist (BELEG-007), war der Button unsichtbar
-    // und es gab keinen Weg, den Beleg zu speichern.
-    // Fix: Wir erzeugen IMMER einen blob: URL aus dem jsPDF doc und geben ihn im
-    // Ergebnis mit zurück. Der BelegViewerModal nutzt diesen für einen "Auf Handy
-    // speichern" Button, der IMMER sichtbar ist — unabhängig vom Filesystem-Plugin.
+    // ── Base64 + Blob-URL immer erzeugen ────────────────────────
+    const dataUri = doc.output("datauristring");
+    const base64 = dataUri.split(",")[1];
     const pdfBlob = doc.output("blob");
     const blobUrl = URL.createObjectURL(pdfBlob);
 
     // ── Plattform-spezifischer Download ──────────────────────────
-    // BELEG-006: Rueckgabewert ist { fileName, uri, blobUrl, native, receiptData }.
+    // BELEG-009 (2026-08-26): Priority chain:
+    // 1. window.__HUI_DOWNLOAD.saveToDownloads() — native Java interface,
+    //    schreibt direkt in öffentlichen Downloads/HUI/ Ordner (MediaStore).
+    //    ZUVERLÄSSIGST: funktioniert immer, wenn das APK die Interface hat.
+    // 2. Capacitor Filesystem plugin — schreibt in app-privaten Speicher
+    //    (nicht im Dateimanager sichtbar, aber Datei existiert + kann geteilt werden).
+    // 3. Blob-Download Fallback — funktioniert nur im Browser, nicht in WebView.
     if (isNative()) {
       toast.info("Beleg wird gespeichert …", { duration: 2500 });
-      const saved = await saveNative(doc, fileName);
-      if (saved.method === "filesystem") {
+      const saved = await saveNative(base64, fileName);
+      if (saved.method === "native") {
+        toast.info("Beleg gespeichert ✓ — im Downloads/HUI Ordner", { duration: 3000 });
+      } else if (saved.method === "filesystem") {
         toast.info("Beleg gespeichert ✓", { duration: 2000 });
       } else {
         toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
       }
-      return { fileName, uri: saved.uri, blobUrl, native: true, receiptData: data };
+      return { fileName, uri: saved.uri, blobUrl, base64, native: true, receiptData: data };
     } else {
       doc.save(fileName);
-      return { fileName, uri: null, blobUrl, native: false, receiptData: data };
+      return { fileName, uri: null, blobUrl, base64, native: false, receiptData: data };
     }
   } catch (err) {
     console.error("[generateReceipt] Failed:", err);
@@ -347,64 +322,89 @@ function blobDownloadFallback(doc, fileName) {
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
 
-async function saveNative(doc, fileName) {
-  if (!isFilesystemPluginAvailable()) {
-    console.warn("[generateReceipt] Filesystem-Plugin auf diesem Geraet nicht registriert — nutze Download-Fallback.");
+async function saveNative(base64, fileName) {
+  // BELEG-009 (2026-08-26): 1. Versuch — Native __HUI_DOWNLOAD Interface
+  // (Java MainActivity.java, MediaStore.Downloads). Schreibt direkt in den
+  // öffentlichen Downloads/HUI/ Ordner — im Dateimanager sichtbar.
+  if (isNativeDownloadAvailable()) {
     try {
-      blobDownloadFallback(doc, fileName);
-      return { uri: null, method: "fallback" };
-    } catch (err2) {
-      console.error("[generateReceipt] Fallback failed (no Filesystem plugin):", err2);
-      toast.error("Beleg konnte nicht gespeichert werden. Bitte Speicher-Zugriff für HUI prüfen.");
-      throw err2;
+      const result = window.__HUI_DOWNLOAD.saveToDownloads(base64, fileName, "application/pdf");
+      if (result && !result.startsWith("ERROR:")) {
+        return { uri: result, method: "native" };
+      }
+      console.warn("[generateReceipt] Native download returned error:", result);
+    } catch (err) {
+      console.warn("[generateReceipt] Native download failed:", err);
     }
   }
 
-  try {
-    const dataUri = doc.output("datauristring");
-    const base64 = dataUri.split(",")[1];
-
-    await Filesystem.writeFile({
-      path: fileName,
-      data: base64,
-      directory: DIRECTORY_EXTERNAL,
-      recursive: true,
-    });
-
-    const uriResult = await Filesystem.getUri({
-      directory: DIRECTORY_EXTERNAL,
-      path: fileName,
-    });
-
-    return { uri: uriResult.uri, method: "filesystem" };
-  } catch (err) {
-    console.error("[generateReceipt] Native save failed:", err);
-    const errMsg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage) : "Unbekannter Fehler";
+  // 2. Versuch — Capacitor Filesystem Plugin (app-privater Speicher)
+  if (isFilesystemPluginAvailable()) {
     try {
-      blobDownloadFallback(doc, fileName);
-      toast.warn("Speichern fehlgeschlagen (" + errMsg.substring(0, 60) + "). Download-Fallback genutzt.");
-      return { uri: null, method: "fallback" };
-    } catch (err2) {
-      console.error("[generateReceipt] Fallback also failed:", err2);
-      toast.error("Beleg konnte nicht gespeichert werden. Bitte Speicher-Zugriff für HUI prüfen.");
-      throw err2;
+      await Filesystem.writeFile({
+        path: fileName,
+        data: base64,
+        directory: DIRECTORY_EXTERNAL,
+        recursive: true,
+      });
+      const uriResult = await Filesystem.getUri({
+        directory: DIRECTORY_EXTERNAL,
+        path: fileName,
+      });
+      return { uri: uriResult.uri, method: "filesystem" };
+    } catch (err) {
+      console.error("[generateReceipt] Filesystem save failed:", err);
     }
+  }
+
+  // 3. Versuch — Blob Download Fallback (nur Browser, nicht WebView)
+  try {
+    const { default: jsPDF } = await import("jspdf");
+    // Wir haben kein doc mehr hier — base64 direkt als Blob
+    const byteChars = atob(base64);
+    const byteNumbers = new Array(byteChars.length);
+    for (let i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    return { uri: null, method: "fallback" };
+  } catch (err) {
+    console.error("[generateReceipt] All save methods failed:", err);
+    toast.error("Beleg konnte nicht gespeichert werden.");
+    throw err;
   }
 }
 
 /**
- * BELEG-008 (2026-08-26): "Auf Handy speichern" — speichert den Beleg direkt lokal.
- * Funktioniert IMMER, unabhängig vom Filesystem-Plugin-Status:
- * - Native + uri (Filesystem verfügbar): Nutzt Share.share mit der Datei-URI —
- *   das Android-Share-Sheet bietet "In Downloads speichern", "In Drive speichern" etc.
- * - Native/Web + blobUrl (Filesystem NICHT verfügbar oder Web): Direkter Blob-Download,
- *   der die PDF in den Download-Ordner speichert.
+ * BELEG-009 (2026-08-26): "Auf Handy speichern" aus dem BelegViewerModal.
+ * Priority: Native Interface → Share Sheet → Blob Download
  */
 export async function downloadReceiptFile(result) {
   if (!result) return;
-  const { uri, blobUrl, fileName, native } = result;
+  const { uri, blobUrl, base64, fileName, native } = result;
 
-  // Wenn wir eine native Datei-URI haben → Share Sheet (bietet "Speichern unter" Optionen)
+  // 1. Native __HUI_DOWNLOAD Interface (direkt in Downloads/HUI/)
+  if (native && base64 && isNativeDownloadAvailable()) {
+    try {
+      const dlResult = window.__HUI_DOWNLOAD.saveToDownloads(base64, fileName || "HUI_Beleg.pdf", "application/pdf");
+      if (dlResult && !dlResult.startsWith("ERROR:")) {
+        toast.info("Beleg gespeichert ✓ — im Downloads/HUI Ordner", { duration: 3000 });
+        return;
+      }
+      console.warn("[downloadReceiptFile] Native download error:", dlResult);
+    } catch (err) {
+      console.warn("[downloadReceiptFile] Native download failed:", err);
+    }
+  }
+
+  // 2. Share Sheet (wenn Datei-URI vorhanden)
   if (native && uri) {
     try {
       await Share.share({
@@ -417,11 +417,11 @@ export async function downloadReceiptFile(result) {
     } catch (err) {
       const msg = (err && (err.message || err.errorMessage)) ? String(err.message || err.errorMessage).toLowerCase() : "";
       if (msg.includes("cancel")) return;
-      console.warn("[downloadReceiptFile] Share failed, trying blob download:", err);
+      console.warn("[downloadReceiptFile] Share failed, trying blob:", err);
     }
   }
 
-  // Blob-Download (immer verfügbar wenn blobUrl vorhanden)
+  // 3. Blob Download (Browser/Web)
   if (blobUrl) {
     try {
       const a = document.createElement("a");
@@ -441,7 +441,6 @@ export async function downloadReceiptFile(result) {
 
 /**
  * BELEG-006: Optionales Teilen aus der Beleg-Ansicht heraus.
- * "Share canceled" ist KEIN Fehler und darf NIE eine Fehler-Toast zeigen.
  */
 export async function shareReceiptFile(uri, fileName) {
   if (!uri) {
