@@ -102,7 +102,7 @@ const SEED_PROJECTS = [];
 // ════════════════════════════════════════════════════════════════
 
 import {
-  
+  ImpactErrorBoundary,
   useHeroStats, usePoolBudgets, useTransparenz,
   useLastPayout, useWeitereProjects, usePoolDistributionsTicker,
   useImpactMonthlyHistory, useImpactActivities, useMonthlyProjects,
@@ -1334,6 +1334,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     <div data-impact-page style={{ width:"100%", background:T.page,
       fontFamily:T.ff,
       overflowX:"hidden" }}>
+
       <style>{`
         @keyframes ipFade    { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:none} }
         @keyframes ipFadeIn  { from{opacity:0} to{opacity:1} }

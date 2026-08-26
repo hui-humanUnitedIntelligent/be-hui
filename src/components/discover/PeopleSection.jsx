@@ -113,7 +113,7 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
   );
 }
 
-export function PeopleSection({ people, onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
+export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>

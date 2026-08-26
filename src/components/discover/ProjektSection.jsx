@@ -73,7 +73,7 @@ export function ProjektCard({ projekt, delay=0, onPress }) {
   );
 }
 
-export function ProjekteSection({ projekte, loading, delay=0, view='cards', onPress, onSectionAction }) {
+export function ProjekteSection({ projekte=[], loading, delay=0, view='cards', onPress, onSectionAction }) {
   const allProjekte = projekte; // nur echte Daten
   const hero = allProjekte[0];
   const rest = allProjekte.slice(1);

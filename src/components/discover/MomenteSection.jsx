@@ -79,7 +79,7 @@ export function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   );
 }
 
-export function MomenteSection({ momente, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction }) {
+export function MomenteSection({ momente=[], loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction }) {
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-momente/>

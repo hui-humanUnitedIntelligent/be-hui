@@ -115,7 +115,7 @@ export function ErlebnisCard({ erlebnis, delay=0, onPress }) {
 }
 
 export function ErlebnisseSection({
-  erlebnisse, loading, delay=0, view='cards', onPress, onSectionAction,
+  erlebnisse=[], loading, delay=0, view='cards', onPress, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {

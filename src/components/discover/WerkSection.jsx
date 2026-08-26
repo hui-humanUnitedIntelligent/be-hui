@@ -94,7 +94,7 @@ export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
  * lichungs-Session, gleiches Verhalten.
  */
 export function WerkeSection({
-  werke, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
+  werke=[], loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {

@@ -87,7 +87,7 @@ export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
 }
 
 export function LocationRadiusRow({
-  locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
+  locQuery="", onLocQueryChange, locSuggest=[], locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
   return (
@@ -150,7 +150,7 @@ export function LocationRadiusRow({
 }
 
 export function TalenteSection({
-  talente, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
+  talente=[], loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {

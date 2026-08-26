@@ -526,7 +526,7 @@ export function useImpactActivities() {
 // ════════════════════════════════════════════════════════════════
 // ERROR BOUNDARY
 // ════════════════════════════════════════════════════════════════
-class ImpactErrorBoundary extends React.Component {
+export class ImpactErrorBoundary extends React.Component {
   constructor(p) { super(p); this.state = { crashed:false, error:null }; }
   static getDerivedStateFromError(e) { return { crashed:true, error:e }; }
   componentDidCatch(e) {
