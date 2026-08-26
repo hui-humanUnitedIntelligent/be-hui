@@ -31,6 +31,11 @@ const RecommendationsSection = React.lazy(() => import("../components/profile/se
 const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(makeChunkReload("MyBasisProfile:AvailabilitySection")));
 const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(makeChunkReload("MyBasisProfile:VisibilitySection")));
 
+// ── Wizard lazy imports (BUGFIX 2026-08-26: Wizard-Render-Blöcke fehlten nach Refactor) ──
+const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("MyBasisProfile:WerkWizard")));
+const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx").catch(makeChunkReload("MyBasisProfile:TalentAngebotWizard")));
+const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("MyBasisProfile:ExperienceWizard")));
+
 import { useTalents } from "../hooks/useTalents.js";
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
 import { HUIBookmarkIcon }      from "../design/icons/HuiInteractionIcons.jsx";
@@ -968,6 +973,43 @@ export default function MyBasisProfile({ onClose, profileId }) {
         ,
         document.body
       )}
+      {/* ── WIZARD RENDERS (BUGFIX 2026-08-26: fehlten nach Refactor 35ca88f2) ── */}
+      {showWerkWizard && profile?.id && createPortal(
+        <Suspense fallback={null}>
+          <WerkWizard
+            userId={profile.id}
+            existingWork={editingWerk}
+            onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
+            onSaved={() => { setShowWerkWizard(false); setEditingWerk(null); reload(); }}
+          />
+        </Suspense>,
+        document.body
+      )}
+
+      {showTalentWizard && profile?.id && createPortal(
+        <Suspense fallback={null}>
+          <TalentAngebotWizard
+            userId={profile.id}
+            existingTalent={editingTalent}
+            onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
+            onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); reload(); }}
+          />
+        </Suspense>,
+        document.body
+      )}
+
+      {showExpWizard && profile?.id && createPortal(
+        <Suspense fallback={null}>
+          <ExperienceWizard
+            userId={profile.id}
+            existingExp={editingExp}
+            onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+            onSaved={() => { setShowExpWizard(false); setEditingExp(null); reload(); }}
+          />
+        </Suspense>,
+        document.body
+      )}
+
     </div>
     </Suspense>
   );
