@@ -281,6 +281,25 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             </Section>
           )}
 
+          {/* FIX (2026-08-26, Michael): Separate Transparenz-Sektion — zeigt
+              wie sich der bereits bezahlte Werk-Preis zwischen Verkäufer und
+              Plattform aufteilt (inkl. Impact-Pool). Bewusst getrennt von
+              "Preis-Aufschlüsselung" oben, damit klar ist: das ist KEIN
+              zusätzlicher Betrag, den der Käufer zahlt — nur Transparenz,
+              wohin der bereits im Werk-Preis enthaltene Plattform-Anteil geht. */}
+          {Array.isArray(tx.revenueSplit) && tx.revenueSplit.length > 0 && (
+            <Section title="Transparenz: So verteilt sich der Werk-Preis">
+              <div style={{ background: T.bgCard, borderRadius: T.r12, padding: "4px 14px", border: `1px solid ${T.border}` }}>
+                {tx.revenueSplit.map((row, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < tx.revenueSplit.length - 1 ? `1px solid ${T.border}` : "none" }}>
+                    <span style={{ fontSize: 13, color: T.inkSoft }}>{row.label}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{row.value}</span>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
+
           {Array.isArray(tx.meta) && tx.meta.length > 0 && (
             <Section title="Details">
               <div style={{ background: T.bgCard, borderRadius: T.r12, padding: "4px 14px", border: `1px solid ${T.border}` }}>

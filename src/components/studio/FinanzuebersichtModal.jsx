@@ -166,7 +166,7 @@ function MeineKaeufe({ userId }) {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status, order_items(id, snapshot, unit_price_eur, payout_eur, seller_id, work_id, variant_id, variant_name)")
+      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status, order_items(id, snapshot, unit_price_eur, payout_eur, shipping_eur, impact_eur, seller_id, work_id, variant_id, variant_name)")
       .eq("customer_id", userId)
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
@@ -318,19 +318,39 @@ function MeineKaeufe({ userId }) {
     if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
     if (confirmed) statusChips.push({ label: "Erhalten ✓", color: T.teal, bg: T.tealSoft });
 
-    // FIX (2026-08-16): Vollständige Preisaufschlüsselung für Käufer
-    // — Plattformgebühr + Impact-Anteil transparent darstellen.
+    // FIX (2026-08-26, Michael): Vorherige Version zeigte "Werk-Preis 10 +
+    // Plattformgebühr 2 = 12" während "Gesamt bezahlt" 13 anzeigte — die
+    // Rechnung ging nicht auf, weil Versandkosten (hier 3€) komplett fehlten
+    // UND weil die Plattformgebühr wie ein Aufpreis für den Käufer wirkte,
+    // obwohl sie NICHT zusätzlich bezahlt wird, sondern vom Werk-Preis
+    // zwischen Verkäufer und Plattform aufgeteilt wird (Käufer zahlt nur
+    // Werk-Preis + Versand — siehe commerceUtils.js: "Plattformgebühr wird
+    // von HUI getragen, kein Abzug für den Käufer").
+    //
+    // Block 1 — was der Käufer tatsächlich bezahlt hat (muss exakt aufgehen):
+    const priceEur = item?.snapshot?.price_eur ?? item?.unit_price_eur ?? 0;
+    const shippingEur = Number(item?.shipping_eur ?? 0);
     const breakdown = [];
-    if (item?.snapshot?.price_eur != null) breakdown.push({ label: "Werk-Preis", value: eur(item.snapshot.price_eur) });
-    const itemFee = (item?.unit_price_eur || 0) - (item?.payout_eur || 0);
-    if (itemFee > 0) breakdown.push({ label: "Plattformgebühr (20%)", value: eur(itemFee) });
-    if (item?.snapshot?.impact_eur != null) breakdown.push({ label: "Davon Impact-Pool (6%)", value: eur(item.snapshot.impact_eur) });
+    breakdown.push({ label: "Werk-Preis", value: eur(priceEur) });
+    if (shippingEur > 0) breakdown.push({ label: "Versand", value: eur(shippingEur) });
     breakdown.push({ label: "Gesamt bezahlt", value: eur(o.total_eur) });
+
+    // Block 2 — separate Transparenz-Anzeige: wie sich der Werk-Preis
+    // (NICHT der Versand) zwischen Verkäufer und Plattform aufteilt.
+    // Kein zusätzlicher Käufer-Cent — nur Aufschlüsselung des bereits
+    // gezahlten Werk-Preises.
+    const itemFee = (item?.unit_price_eur || 0) - (item?.payout_eur || 0);
+    const impactEurBuyer = item?.snapshot?.impact_eur ?? item?.impact_eur ?? null;
+    const revenueSplit = itemFee > 0 ? [
+      { label: "Verkäufer-Anteil (80%)", value: eur(item?.payout_eur || 0) },
+      { label: "Plattform-Anteil (20%)", value: eur(itemFee) },
+      ...(impactEurBuyer != null ? [{ label: "davon Impact-Pool (30% der Plattformgebühr)", value: eur(impactEurBuyer) }] : []),
+    ] : [];
 
     return {
       id: o.id, kindLabel: "Kauf", title: titleWithVariant, image,
       amount: o.total_eur, amountLabel: "Bezahlt",
-      dateLabel: dt(o.created_at), statusChips, breakdown, needsConfirm,
+      dateLabel: dt(o.created_at), statusChips, breakdown, revenueSplit, needsConfirm,
       meta: [
         ...(o.shipped_at ? [{ label: "Versendet am", value: dt(o.shipped_at) }] : []),
         ...(o.delivered_at ? [{ label: "Zugestellt am", value: dt(o.delivered_at) }] : []),

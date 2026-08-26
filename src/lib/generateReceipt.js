@@ -313,13 +313,30 @@ export async function generateReceipt(data) {
       // waehrend jsPDF-Chunk laedt + Filesystem im Hintergrund arbeitet.
       toast.info("Beleg wird gespeichert …", { duration: 2500 });
       const saved = await saveNative(doc, fileName);
-      // BELEG-007: Nur bei echtem Filesystem-Save "gespeichert" behaupten — beim
-      // Fallback zeigte saveNative bereits (falls unerwartet) eine eigene Toast an,
-      // eine zusaetzliche pauschale "gespeichert ✓" waere dort irrefuehrend
-      // (suggeriert dauerhaften Speicherort, den es beim Fallback nicht gibt).
-      if (saved.method === "filesystem") {
-        toast.info("Beleg gespeichert ✓", { duration: 2000 });
+
+      if (saved.method === "filesystem" && saved.uri) {
+        // FIX (2026-08-26, Michael): Datei ist jetzt im app-privaten Speicher
+        // (/Android/data/com.hui.app/files/) — den findet der Nutzer im
+        // normalen Dateimanager NICHT. Deshalb automatisch das Share-Sheet
+        // öffnen, damit der Nutzer die Datei in Downloads/Dateien speichern
+        // oder an eine App teilen kann. Cancel = kein Fehler.
+        toast.info("Beleg gespeichert — tippe zum Speichern/Teilen ✓", { duration: 3000 });
+        try {
+          await Share.share({
+            title: "HUI Beleg",
+            text: "Dein HUI-Beleg: " + fileName,
+            url: saved.uri,
+            dialogTitle: "Beleg speichern oder teilen",
+          });
+        } catch (shareErr) {
+          const msg = String(shareErr?.message || shareErr?.errorMessage || "").toLowerCase();
+          // Nutzer hat Share-Sheet weggedrückt — Datei ist trotzdem gespeichert
+          if (!msg.includes("cancel")) {
+            console.warn("[generateReceipt] Share failed (file still saved):", shareErr);
+          }
+        }
       } else {
+        // Fallback (Blob-Download) — saveNative hat schon eine Toast gezeigt
         toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
       }
       return { fileName, uri: saved.uri, native: true, receiptData: data };
