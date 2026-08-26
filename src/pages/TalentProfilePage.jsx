@@ -1156,6 +1156,16 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const [showStudio,        setShowStudio]        = useState(false);
   const [showWerkWizard,   setShowWerkWizard]   = useState(false);
 
+  const [editingWerk,     setEditingWerk]     = useState(null);
+  const [showExpWizard,   setShowExpWizard]   = useState(false);
+  const [editingExp,      setEditingExp]      = useState(null);
+  const kompassToggleRef = React.useRef(() => {});
+
+  // FIX 2026-08-26: isOwner MUSS vor dem useEffect deklariert werden, der es
+  // im Dependency-Array referenziert — sonst TDZ-Verletzung → ReferenceError
+  // → RouteBoundary fängt ab → "Seite konnte nicht geladen werden" auf /profile/:username
+  const isOwner = !publicView && (!!user?.id && (profileId === user.id || (!profileId && !!user.id)));
+
   // PRELOAD: Wizard-Chunks preloaden sobald Owner das Profil öffnet
   useEffect(() => {
     if (isOwner) {
@@ -1163,12 +1173,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       import("../components/experiences/ExperienceWizard.jsx").catch(() => {});
     }
   }, [isOwner]);
-  const [editingWerk,     setEditingWerk]     = useState(null);
-  const [showExpWizard,   setShowExpWizard]   = useState(false);
-  const [editingExp,      setEditingExp]      = useState(null);
-  const kompassToggleRef = React.useRef(() => {});
-
-  const isOwner = !publicView && (!!user?.id && (profileId === user.id || (!profileId && !!user.id)));
 
   // Mount-Animation
   useEffect(() => {
