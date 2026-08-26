@@ -180,7 +180,7 @@ function MeineKaeufe({ userId }) {
         .in("id", sellerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, email: p.email || null, website: p.website || null };
+        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, email: p.email || null, website: p.website || null, username: p.username || null };
       });
       setSellerMap(map);
     }
@@ -377,6 +377,7 @@ function MeineKaeufe({ userId }) {
               sellerName: sInfo?.name || "Verkäufer",
               sellerEmail: sInfo?.email || null,
               sellerWebsite: sInfo?.website || null,
+              sellerUsername: sInfo?.username || null,
               amountEur: o.total_eur,
               bookingId: o.id,
               offerId: item?.work_id || null,
@@ -674,9 +675,9 @@ function MeineBuchungen({ userId }) {
     let nameMap = {};
     if (sellerIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, display_name, username, email, website").in("id", sellerIds);
-      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", email: p.email || null, website: p.website || null }]));
+      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", email: p.email || null, website: p.website || null, username: p.username || null }]));
     }
-    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_email: sm.email || null, seller_website: sm.website || null }; }));
+    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_email: sm.email || null, seller_website: sm.website || null, seller_username: sm.username || null }; }));
 
     // BUGFIX (2026-08-25): welche dieser Buchungen wurden vom Kunden bereits
     // mit einer Empfehlung versehen?
@@ -815,6 +816,7 @@ function MeineBuchungen({ userId }) {
               sellerName: b.seller_name,
               sellerEmail: b.seller_email || null,
               sellerWebsite: b.seller_website || null,
+              sellerUsername: b.seller_username || null,
               date: b.selected_date,
               time: timeStr,
               location,

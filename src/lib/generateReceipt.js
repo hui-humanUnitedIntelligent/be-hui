@@ -89,7 +89,7 @@ export async function generateReceipt(data) {
     const M = 20;
     let y = 20;
 
-    // Header
+    // Header — HUI Text links, HUI-Logo rechts
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(14, 196, 184);
@@ -98,6 +98,31 @@ export async function generateReceipt(data) {
     doc.setTextColor(120, 120, 120);
     doc.setFont("helvetica", "normal");
     doc.text("Human United Intelligence", M + 14, y - 1);
+
+    // HUI-Logo oben rechts (22x22mm, zentriert auf y)
+    try {
+      var logoUrl = (typeof window !== "undefined" && window.location)
+        ? window.location.origin + "/assets/brand/hui-logo.png"
+        : "/assets/brand/hui-logo.png";
+      var logoResp = await fetch(logoUrl);
+      if (logoResp.ok) {
+        var logoBlob = await logoResp.blob();
+        var logoReader = new FileReader();
+        var logoBase64 = await new Promise(function(resolve, reject) {
+          logoReader.onload = function() { resolve(logoReader.result); };
+          logoReader.onerror = reject;
+          logoReader.readAsDataURL(logoBlob);
+        });
+        // Logo: 22x22mm, oben rechts mit 2mm Abstand zum Rand
+        var logoSize = 22;
+        var logoX = W - M - logoSize;
+        var logoY = y - 14; // zentriert relativ zur Textzeile
+        doc.addImage(logoBase64, "PNG", logoX, logoY, logoSize, logoSize);
+      }
+    } catch (logoErr) {
+      console.warn("[generateReceipt] Logo konnte nicht geladen werden:", logoErr);
+    }
+
     y += 6;
     doc.setDrawColor(14, 196, 184);
     doc.setLineWidth(0.5);
@@ -113,6 +138,15 @@ export async function generateReceipt(data) {
     doc.text(docTitle, M, y);
     y += 7;
 
+    // Untertitel / Intro-Text
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    var introText = "Deine Transaktion wurde erfolgreich erfasst. Damit wird sichtbar, was durch deinen Beitrag ermöglicht wurde.";
+    var introLines = doc.splitTextToSize(introText, W - 2 * M);
+    doc.text(introLines, M, y);
+    y += introLines.length * 5 + 6;
+
     // Buchungs-ID + Datum
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
@@ -121,7 +155,7 @@ export async function generateReceipt(data) {
     const dateStr = formatDateDE(now, { day: "2-digit", month: "long", year: "numeric" });
     doc.text("Erstellt am: " + dateStr, M, y);
     if (data.bookingId) {
-      doc.text("Buchungs-ID: " + String(data.bookingId).substring(0, 8) + "\u2026", W - M - 50, y);
+      doc.text("Buchungs-ID: " + String(data.bookingId || "\u2013"), W - M - 70, y);
     }
     y += 12;
 
@@ -136,6 +170,16 @@ export async function generateReceipt(data) {
     doc.setFontSize(12);
     doc.text(data.sellerName || "Anbieter", M, y);
     y += 6;
+    if (data.sellerEmail) {
+      doc.setFontSize(9);
+      doc.setTextColor(14, 196, 184);
+      doc.text("E-Mail: " + data.sellerEmail, M, y);
+      y += 5;
+    }
+    doc.setFontSize(9);
+    doc.setTextColor(14, 196, 184);
+    doc.text("Webseite: " + (data.sellerWebsite || "\u2013"), M, y);
+    y += 5;
     y += 6;
 
     // Gebuchtes Angebot / Gekauftes Werk
@@ -207,6 +251,21 @@ export async function generateReceipt(data) {
       y += 8;
     }
 
+    // Link zum öffentlichen Profil des Verkäufers
+    if (data.sellerUsername) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(26, 26, 26);
+      doc.text("Anbieter-Profil:", M, y);
+      y += 6;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(14, 196, 184);
+      var profileUrl = "https://www.be-hui.app/profile/" + data.sellerUsername;
+      doc.text(profileUrl, M, y);
+      y += 8;
+    }
+
     // Trennlinie
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.3);
@@ -222,6 +281,14 @@ export async function generateReceipt(data) {
     doc.text(amountStr, W - M - 40, y);
     y += 10;
 
+    if (data.participants && data.participants > 1 && data.amountEur) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(120, 120, 120);
+      var perPerson = (Number(data.amountEur) / data.participants).toFixed(2).replace(".", ",");
+      doc.text("Pro Teilnehmer: " + perPerson + " \u20AC", M, y);
+      y += 6;
+    }
     y += 8;
 
     // Status
@@ -233,6 +300,13 @@ export async function generateReceipt(data) {
       : "\u2713 Beitrag erfasst \u2014 Termin reserviert";
     doc.text(statusText, M, y);
     y += 10;
+
+    // Chat-Hinweis
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Du kannst den Anbieter uber HUI kontaktieren \u2013 in der App unter Finanz\u00fcbersicht.", M, y);
+    y += 6;
 
     // Footer
     doc.setDrawColor(200, 200, 200);
@@ -257,66 +331,17 @@ export async function generateReceipt(data) {
       // BELEG-002: sofortiges Feedback — sonst wirkt der Tap "totes" auf dem Handy,
       // waehrend jsPDF-Chunk laedt + Filesystem im Hintergrund arbeitet.
       toast.info("Beleg wird gespeichert …", { duration: 2500 });
-
-      // FIX (2026-08-26, Michael): Vorherige Version speicherte in den
-      // app-privaten Speicher (/Android/data/com.hui.app/files/) — den
-      // findet man im normalen Dateimanager NICHT. Jetzt: native
-      // DownloadInterface nutzen, die den Beleg direkt in den
-      // öffentlichen Downloads-Ordner (Download/HUI/) schreibt.
-      // Das erfordert KEINE Laufzeit-Berechtigung (MediaStore API).
-      const base64 = doc.output("datauristring").split(",")[1];
-
-      if (window.__HUI_DOWNLOAD && typeof window.__HUI_DOWNLOAD.saveToDownloads === "function") {
-        const result = window.__HUI_DOWNLOAD.saveToDownloads(base64, fileName, "application/pdf");
-        if (result && !result.startsWith("ERROR")) {
-          // Erfolg — Datei ist jetzt in Downloads/HUI/ sichtbar
-          toast.info("Beleg in Downloads gespeichert ✓ (Ordner: Download/HUI)", { duration: 3500 });
-          // Optional: Share-Sheet anbieten, falls Nutzer teilen möchte
-          try {
-            await Share.share({
-              title: "HUI Beleg",
-              text: "Dein HUI-Beleg: " + fileName,
-              url: result,
-              dialogTitle: "Beleg teilen?",
-            });
-          } catch (shareErr) {
-            const msg = String(shareErr?.message || shareErr?.errorMessage || "").toLowerCase();
-            if (!msg.includes("cancel")) {
-              console.warn("[generateReceipt] Share failed (file still in Downloads):", shareErr);
-            }
-          }
-          return { fileName, uri: result, native: true, receiptData: data };
-        } else {
-          console.warn("[generateReceipt] Native download failed:", result);
-          // Fallback: Filesystem + Share
-          const saved = await saveNative(doc, fileName);
-          toast.info("Beleg gespeichert — im Share-Menü 'In Dateien speichern' wählen", { duration: 4000 });
-          return { fileName, uri: saved.uri, native: true, receiptData: data };
-        }
+      const saved = await saveNative(doc, fileName);
+      // BELEG-007: Nur bei echtem Filesystem-Save "gespeichert" behaupten — beim
+      // Fallback zeigte saveNative bereits (falls unerwartet) eine eigene Toast an,
+      // eine zusaetzliche pauschale "gespeichert ✓" waere dort irrefuehrend
+      // (suggeriert dauerhaften Speicherort, den es beim Fallback nicht gibt).
+      if (saved.method === "filesystem") {
+        toast.info("Beleg gespeichert ✓", { duration: 2000 });
       } else {
-        // DownloadInterface nicht verfügbar (alte APK) — Fallback
-        console.warn("[generateReceipt] __HUI_DOWNLOAD not available — using Filesystem fallback");
-        const saved = await saveNative(doc, fileName);
-        if (saved.method === "filesystem" && saved.uri) {
-          toast.info("Beleg gespeichert — tippe zum Speichern/Teilen ✓", { duration: 3000 });
-          try {
-            await Share.share({
-              title: "HUI Beleg",
-              text: "Dein HUI-Beleg: " + fileName,
-              url: saved.uri,
-              dialogTitle: "Beleg speichern oder teilen",
-            });
-          } catch (shareErr) {
-            const msg = String(shareErr?.message || shareErr?.errorMessage || "").toLowerCase();
-            if (!msg.includes("cancel")) {
-              console.warn("[generateReceipt] Share failed (file still saved):", shareErr);
-            }
-          }
-        } else {
-          toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
-        }
-        return { fileName, uri: saved.uri, native: true, receiptData: data };
+        toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
       }
+      return { fileName, uri: saved.uri, native: true, receiptData: data };
     } else {
       // Web/Desktop: klassischer Browser Download
       doc.save(fileName);
