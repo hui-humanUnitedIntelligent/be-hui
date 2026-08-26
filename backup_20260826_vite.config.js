@@ -92,15 +92,5 @@ export default defineConfig({
     strictPort: true,
   },
 
-  // BASE-PATH-FIX (2026-08-26): './' (relativ) verursachte 'React did not render'
-  // auf allen Deep-Links (z.B. /profile/michelemeier aus Belegen) — der Browser
-  // löst './assets/main-XXX.js' relativ zum AKTUELLEN Pfad auf (wird zu
-  // /profile/assets/main-XXX.js statt /assets/main-XXX.js) → 404 → React
-  // rendert nie. '/' (absolut) ist für Capacitor GENAUSO sicher: die WebView
-  // (androidScheme:'https') lädt index.html IMMER von der Root
-  // (https://localhost/), interne Navigation läuft rein über Client-Side-
-  // Routing ohne Server-Reload — nie ein direkter Deep-Link-Hardload wie im
-  // Web. Web (Vercel, direkte URLs, Bots, Beleg-Links) braucht dagegen
-  // absolute Pfade, da index.html für JEDEN Pfad via Rewrite ausgeliefert wird.
-  base: '/',
+  base: './',
 });
