@@ -163,7 +163,12 @@ class ErrorBoundary extends React.Component {
       const now = Date.now();
       if (now - lastReload > 30_000) { // max 1x alle 30s
         sessionStorage.setItem(reloadKey, String(now));
-        window.location.reload();
+        // SICHERHEITSFIX (Red-Team-Audit C.15): Nutzer-Feedback vor Reload
+        const _ov = document.createElement('div');
+        _ov.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:Inter,sans-serif;flex-direction:column;gap:12px';
+        _ov.innerHTML = '<div style="font-size:16px;font-weight:600;color:#333">App wird aktualisiert…</div><div style="font-size:14px;color:#666">Ein kurzer Moment bitte</div><div style="width:40px;height:40px;border:3px solid #16D7C3;border-top-color:transparent;border-radius:50%;animation:_hui_spin 0.8s linear infinite"></div><style>@keyframes _hui_spin{to{transform:rotate(360deg)}}</style>';
+        document.body.appendChild(_ov);
+        setTimeout(() => window.location.reload(), 200);
         return { hasError: false, error: null }; // kurz bevor reload kommt
       }
     }
