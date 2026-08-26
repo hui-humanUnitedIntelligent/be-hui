@@ -44,9 +44,9 @@ export function initSentry() {
 
       // Replay: Video-ähnliche Wiedergabe bei Crash
       Sentry.replayIntegration({
-        // Keine PII — Texte und Medien maskieren
-        maskAllText:   false,   // Feed-Labels lesbar lassen für Diagnose
-        blockAllMedia: false,   // Bilder sichtbar für Kontext
+        // PII-Schutz — Texte und Medien maskieren (Red-Team-Audit-Fix)
+        maskAllText:   true,    // SICHERHEITSFIX (2026-08-26): PII-Schutz — Texte maskieren
+        blockAllMedia: true,   // Bilder sichtbar für Kontext
       }),
     ],
 

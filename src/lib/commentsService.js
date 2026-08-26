@@ -38,12 +38,12 @@ async function moderateCommentText({ userId, text }) {
         }),
       }
     );
-    if (!resp.ok) { console.warn("[Comment-Moderation] Non-OK:", resp.status); return { is_flagged: false }; }
+    if (!resp.ok) { console.warn("[Comment-Moderation] Non-OK:", resp.status); return { is_flagged: true, reason: "moderation_unavailable" }; } // SICHERHEITSFIX: fail-closed
     const json = await resp.json();
     return json;
   } catch (e) {
-    console.warn("[Comment-Moderation] fehlgeschlagen (nicht blockierend):", e?.message);
-    return { is_flagged: false };
+    console.warn("[Comment-Moderation] fehlgeschlagen (fail-closed):", e?.message);
+    return { is_flagged: true, reason: "moderation_error" };
   }
 }
 

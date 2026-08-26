@@ -123,7 +123,7 @@ function getUserId() {
     const session = localStorage.getItem('sb-gxztrhvhcxhmunhhkfjd-auth-token');
     if (session) {
       const parsed = JSON.parse(session);
-      return parsed?.user?.id || parsed?.user?.email || 'authenticated';
+      return parsed?.user?.id || 'authenticated'; // SICHERHEITSFIX (2026-08-26): kein E-Mail-Fallback (PII-Schutz)
     }
   } catch (_) {}
   return 'anonymous';

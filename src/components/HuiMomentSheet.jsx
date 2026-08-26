@@ -222,12 +222,12 @@ async function moderateContent({ userId, mediaUrl, mediaType, text }) {
         }),
       }
     );
-    if (!resp.ok) { console.warn("[Moderation] Non-OK:", resp.status); return { is_flagged: false, is_blurred: false, flag_categories: [] }; }
+    if (!resp.ok) { console.warn("[Moderation] Non-OK (fail-closed):", resp.status); return { is_flagged: true, is_blurred: true, flag_categories: ["moderation_unavailable"] }; }
     const json = await resp.json();
     return json;
   } catch (e) {
-    console.warn("[Moderation] fehlgeschlagen (nicht blockierend):", e?.message);
-    return { is_flagged: false, is_blurred: false, flag_categories: [] };
+    console.warn("[Moderation] fehlgeschlagen (fail-closed):", e?.message);
+    return { is_flagged: true, is_blurred: true, flag_categories: ["moderation_error"] };
   }
 }
 

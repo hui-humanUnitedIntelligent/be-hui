@@ -435,6 +435,18 @@ serve(async (req) => {
           })
         if (vErr || !vResult?.success) {
           console.error('[PI] Variant stock decrement failed for', vItem.item_id, 'variant', vItem.variant_id, ':', vErr?.message || vResult?.error)
+          // SICHERHEITSFIX (2026-08-26): PI stornieren statt nur loggen
+          try {
+            await stripe.paymentIntents.cancel(paymentIntent.id)
+          } catch (cancelErr: any) {
+            console.error('[PI] Failed to cancel PI after variant stock failure:', cancelErr.message)
+          }
+          await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+          return new Response(JSON.stringify({
+            error: 'Variante nicht mehr verfügbar — Zahlung storniert.',
+            code:  'VARIANT_STOCK_DECREMENT_FAILED',
+            detail: vErr?.message || vResult?.error || null,
+          }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
         } else {
           console.log('[PI] Variant stock decremented:', vItem.item_id, 'variant', vItem.variant_id, 'new available:', vResult.new_stock_available)
           // Wenn alle Varianten ausverkauft sind, markiere Werk als verkauft
@@ -452,7 +464,18 @@ serve(async (req) => {
           })
         if (stockErr || !stockResult?.success) {
           console.error('[PI] Stock decrement failed for', vItem.item_id, ':', stockErr?.message || stockResult?.error)
-          // Nicht blockierend — PI bereits erstellt, Bestand wird manuell korrigiert
+          // SICHERHEITSFIX (2026-08-26): PI stornieren statt nur loggen
+          try {
+            await stripe.paymentIntents.cancel(paymentIntent.id)
+          } catch (cancelErr: any) {
+            console.error('[PI] Failed to cancel PI after stock failure:', cancelErr.message)
+          }
+          await supabase.from('orders').update({ state: 'aborted' }).eq('id', dbOrder.id)
+          return new Response(JSON.stringify({
+            error: 'Artikel nicht mehr verfügbar — Zahlung storniert.',
+            code:  'STOCK_DECREMENT_FAILED',
+            detail: stockErr?.message || stockResult?.error || null,
+          }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' }})
         } else {
           console.log('[PI] Stock decremented:', vItem.item_id, 'new available:', stockResult.new_stock_available)
         }
