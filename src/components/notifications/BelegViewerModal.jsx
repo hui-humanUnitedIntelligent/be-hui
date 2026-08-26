@@ -12,6 +12,17 @@
 //    einen direkten Blob-Download auslöst (funktioniert IMMER).
 // 2. "Beleg teilen" (sekundär) — nutzt shareReceiptFile(), öffnet das Share-Sheet.
 
+// BELEG-011 (2026-08-26): Michael-Feedback — "das modal ist hinter dem fenster
+// versteckt. wenn man auf Beleg Herunterladen klickt soll das Modal angezeigt werden".
+// Root Cause: BelegViewerModal wird aus TransactionDetailSheet.jsx heraus geöffnet
+// (Button "Beleg herunterladen"). TransactionDetailSheet läuft selbst als Portal mit
+// zIndex:10550 (bewusst höher als Standard-10500, siehe Kommentar dort). Da beide
+// Elemente per createPortal auf document.body rendern, gewinnt bei zIndex 10500 vs
+// 10550 IMMER TransactionDetailSheet — das BelegViewerModal lag optisch dahinter.
+// Fix: zIndex auf 10600 angehoben (> 10550 des Elternfensters). Gilt als weitere
+// gestapelte Ebene gemäß footer-navbar-zindex.md — bei künftigen Modals, die AUS
+// TransactionDetailSheet (10550) heraus geöffnet werden, IMMER zIndex >= 10600 setzen.
+
 import React from "react";
 import { createPortal } from "react-dom";
 import { formatDateDE } from "../../lib/formatters.js";
@@ -77,7 +88,7 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
   return createPortal(
     <div
       style={{
-        position: "fixed", inset: 0, zIndex: 10500,
+        position: "fixed", inset: 0, zIndex: 10600,
         background: "rgba(0,0,0,0.45)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 16,
