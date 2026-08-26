@@ -21,6 +21,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
+import BelegViewerModal from "../notifications/BelegViewerModal.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { formatDateDE, formatEUR } from "../../lib/formatters.js";
 
@@ -159,6 +160,7 @@ function MeineKaeufe({ userId }) {
   // order_id — überlebt Reload, im Gegensatz zum vorherigen rein lokalen
   // confirmDone-State. Siehe RecommendationService.getRecommendedTransactionIds.
   const [recommendedOrderIds, setRecommendedOrderIds] = useState(new Set());
+  const [receiptPreview, setReceiptPreview] = useState(null);
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -372,7 +374,7 @@ function MeineKaeufe({ userId }) {
         onRecommend: (confirmed && sellerId && !recommendedOrderIds.has(o.id)) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id }); } : null,
         onDownloadReceipt: async () => {
           try {
-            await generateReceipt({
+            const result = await generateReceipt({
               offerTitle: title,
               sellerName: sInfo?.name || "Verkäufer",
               sellerEmail: sInfo?.email || null,
@@ -383,6 +385,10 @@ function MeineKaeufe({ userId }) {
               offerId: item?.work_id || null,
               offerType: "werk",
             });
+            // BUGFIX (2026-08-26): Nach dem Speichern die Beleg-Vorschau mit
+            // "Teilen"-Button oeffnen (analog NotificationPanel.jsx) — vorher
+            // wurde das result komplett verworfen, kein Share war moeglich.
+            if (result) setReceiptPreview(result);
           } catch (e) { console.warn("Receipt failed:", e); }
         },
         onViewProfile: sellerId ? () => window.__HUI_OPEN_PROFILE__?.(sellerId) : null,
@@ -443,6 +449,8 @@ function MeineKaeufe({ userId }) {
           }}
         />
       )}
+
+      <BelegViewerModal result={receiptPreview} onClose={() => setReceiptPreview(null)} />
     </div>
   );
 }
@@ -659,6 +667,7 @@ function MeineBuchungen({ userId }) {
   // BUGFIX (2026-08-25): persistente "bereits empfohlen"-Markierung pro
   // booking_id — überlebt Reload (siehe MeineKaeufe für dieselbe Logik).
   const [recommendedBookingIds, setRecommendedBookingIds] = useState(new Set());
+  const [receiptPreview, setReceiptPreview] = useState(null);
   const actions = useHuiActions();
 
   const load = useCallback(async () => {
@@ -811,7 +820,7 @@ function MeineBuchungen({ userId }) {
         onRecommend: (canRec && !confirmDone[b.id]) ? () => { setConfirmDone(p => ({ ...p, [b.id]: true })); setDetail(null); setRecModal({ sellerId: b.seller_id, sellerName: b.seller_name, bookingId: b.id }); } : null,
         onDownloadReceipt: b.status !== "cancelled" ? async () => {
           try {
-            await generateReceipt({
+            const result = await generateReceipt({
               offerTitle: title,
               sellerName: b.seller_name,
               sellerEmail: b.seller_email || null,
@@ -826,6 +835,9 @@ function MeineBuchungen({ userId }) {
               offerId: b.talent_id,
               offerType: "talent",
             });
+            // BUGFIX (2026-08-26): Beleg-Vorschau mit "Teilen"-Button oeffnen
+            // (analog NotificationPanel.jsx) — vorher wurde result verworfen.
+            if (result) setReceiptPreview(result);
           } catch (e) { console.warn("Receipt failed:", e); }
         } : null,
         onViewProfile: b.talent_id ? () => window.__HUI_OPEN_PROFILE__?.(b.seller_id) : null,
@@ -916,6 +928,8 @@ function MeineBuchungen({ userId }) {
           </div>
         );
       })()}
+
+      <BelegViewerModal result={receiptPreview} onClose={() => setReceiptPreview(null)} />
     </div>
   );
 }
