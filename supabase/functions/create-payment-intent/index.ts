@@ -16,11 +16,9 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14'
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+// CORS: jetzt per getCorsHeaders(req) — dynamisch und restriktiv (SICHERHEITSFIX 2026-08-26)
 
 // Serverseitige Konstanten — nie vom Client übernehmen
 // COM-MIGRATION-015.3: Gebuehr 10%->15%, Impact 7%->2.25% (=15% der Gebuehr), Creator 90%->85%
@@ -44,6 +42,7 @@ function buildCartHash(userId: string, items: any[]): string {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')

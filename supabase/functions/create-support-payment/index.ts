@@ -4,11 +4,9 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14?target=denonext'
 import { checkRateLimit, rateLimitResponse } from "../_shared/rateLimit.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+// CORS: jetzt per getCorsHeaders(req) — dynamisch und restriktiv (SICHERHEITSFIX 2026-08-26)
 
 const PLATFORM_FEE_RATE = 0.15
 const CREATOR_SHARE     = 0.85
@@ -17,6 +15,7 @@ const MIN_AMOUNT_CENTS  = 50
 const MAX_AMOUNT_CENTS  = 500000
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
