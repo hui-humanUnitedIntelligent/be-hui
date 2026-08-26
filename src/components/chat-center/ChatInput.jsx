@@ -30,8 +30,8 @@ async function uploadChatMedia(file, type) {
   if (error) throw error;
   const { data: signed } = await supabase.storage
     .from("chat-media")
-    .createSignedUrl(path, 365 * 24 * 60 * 60);
-  return { url: signed?.signedUrl || "", path };
+    .createSignedUrl(path, 24 * 60 * 60); // SICHERHEITSFIX (2026-08-26): 24h TTL statt 365 Tage (on-demand re-signing = TODO)
+  return { url: signed?.signedUrl || "", path }; // path für künftiges on-demand re-signing
 }
 
 function VoiceWaveform({ levels = [] }) {
