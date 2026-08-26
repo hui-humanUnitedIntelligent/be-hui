@@ -113,15 +113,6 @@ export async function generateReceipt(data) {
     doc.text(docTitle, M, y);
     y += 7;
 
-    // Untertitel / Intro-Text
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    var introText = "Deine Transaktion wurde erfolgreich erfasst. Damit wird sichtbar, was durch deinen Beitrag ermöglicht wurde.";
-    var introLines = doc.splitTextToSize(introText, W - 2 * M);
-    doc.text(introLines, M, y);
-    y += introLines.length * 5 + 6;
-
     // Buchungs-ID + Datum
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
@@ -145,18 +136,6 @@ export async function generateReceipt(data) {
     doc.setFontSize(12);
     doc.text(data.sellerName || "Anbieter", M, y);
     y += 6;
-    if (data.sellerEmail) {
-      doc.setFontSize(9);
-      doc.setTextColor(14, 196, 184);
-      doc.text("E-Mail: " + data.sellerEmail, M, y);
-      y += 5;
-    }
-    if (data.sellerWebsite) {
-      doc.setFontSize(9);
-      doc.setTextColor(14, 196, 184);
-      doc.text("Webseite: " + data.sellerWebsite, M, y);
-      y += 5;
-    }
     y += 6;
 
     // Gebuchtes Angebot / Gekauftes Werk
@@ -228,25 +207,6 @@ export async function generateReceipt(data) {
       y += 8;
     }
 
-    // Link zum Angebot
-    if (data.offerId && data.offerType) {
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(26, 26, 26);
-      doc.text("Angebot ansehen:", M, y);
-      y += 6;
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(14, 196, 184);
-      var offerPath = data.offerType === "talent" ? "talent"
-        : data.offerType === "experience" ? "erlebnis"
-        : data.offerType === "werk" ? "werk"
-        : "angebot";
-      var offerUrl = "https://be-hui.vercel.app/" + offerPath + "?id=" + data.offerId;
-      doc.text(offerUrl, M, y);
-      y += 8;
-    }
-
     // Trennlinie
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.3);
@@ -262,14 +222,6 @@ export async function generateReceipt(data) {
     doc.text(amountStr, W - M - 40, y);
     y += 10;
 
-    if (data.participants && data.participants > 1 && data.amountEur) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      doc.setTextColor(120, 120, 120);
-      var perPerson = (Number(data.amountEur) / data.participants).toFixed(2).replace(".", ",");
-      doc.text("Pro Teilnehmer: " + perPerson + " \u20AC", M, y);
-      y += 6;
-    }
     y += 8;
 
     // Status
@@ -282,13 +234,6 @@ export async function generateReceipt(data) {
     doc.text(statusText, M, y);
     y += 10;
 
-    // Chat-Hinweis
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(120, 120, 120);
-    doc.text("Du kannst den Anbieter uber HUI kontaktieren \u2013 in der App unter Finanz\u00fcbersicht.", M, y);
-    y += 6;
-
     // Footer
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.3);
@@ -296,7 +241,7 @@ export async function generateReceipt(data) {
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.text("HUI \u2014 Human United Intelligence", M, 275);
-    doc.text("be-hui.vercel.app", W - M - 35, 275);
+    doc.text("www.be-hui.app", W - M - 35, 275);
 
     // ── Dateiname ──────────────────────────────────────────────
     var fileName = "HUI_Beleg_" + (data.offerTitle ? data.offerTitle.substring(0, 20).replace(/[^a-zA-Z0-9]/g, "_") : "Buchung") + ".pdf";
