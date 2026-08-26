@@ -777,10 +777,8 @@ function AppRoutes() {
         }/>
 
         {/* /profile/:username → PublicProfileRouteWrapper (helles Profil, DARK-PROFILE-REMOVE-001) */}
-        {/* PUBLIC-PROFILE-FIX (2026-08-26): Kein ProtectedRoute — öffentliche */}
-        {/* Profile müssen ohne Login zugänglich sein (Beleg-Links, Social Media). */}
         <Route path="/profile/:username" element={
-          <RouteBoundary name="PublicProfile"><PublicProfileRouteWrapper /></RouteBoundary>
+          <ProtectedRoute><RouteBoundary name="PublicProfile"><PublicProfileRouteWrapper /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* /profile/me shortcut */}
