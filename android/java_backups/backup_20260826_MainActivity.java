@@ -24,21 +24,6 @@ import androidx.core.view.WindowInsetsCompat;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
 
-// ── Beleg-Download (2026-08-26): Native Downloads-Schnittstelle ──
-// Schreibt base64-kodierte Dateien direkt in den öffentlichen
-// Downloads-Ordner (MediaStore.Downloads auf API 29+,
-// Environment.getExternalStoragePublicDirectory auf < 29).
-// Der app-private Speicher (Capacitor Filesystem Directory.External)
-// ist im normalen Dateimanager nicht sichtbar — diese Schnittstelle
-// umgeht das Problem.
-import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.net.Uri;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Base64;
-import java.io.OutputStream;
-
 public class MainActivity extends BridgeActivity {
 
     private static final int MIC_PERMISSION_REQUEST_CODE = 1001;
@@ -74,57 +59,6 @@ public class MainActivity extends BridgeActivity {
             if (webViewRef != null) {
                 webViewRef.evaluateJavascript(
                     "window.__HUI_MIC_PERMISSION_RESULT(" + granted + ")", null);
-            }
-        }
-    }
-
-    // ── Beleg-Download (2026-08-26): Native JS-Schnittstelle ──
-    // window.__HUI_DOWNLOAD.saveToDownloads(base64, fileName, mimeType)
-    // Schreibt die Datei in den öffentlichen Downloads-Ordner des Geräts.
-    // Returns: content URI als String, oder "ERROR: <msg>" bei Fehlschlag.
-    public class DownloadInterface {
-        @android.webkit.JavascriptInterface
-        public String saveToDownloads(String base64Data, String fileName, String mimeType) {
-            try {
-                byte[] data = Base64.decode(base64Data, Base64.DEFAULT);
-                ContentResolver resolver = getContentResolver();
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-                values.put(MediaStore.MediaColumns.MIME_TYPE, mimeType != null ? mimeType : "application/pdf");
-
-                Uri uri;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    // Android 10+ (API 29): Scoped Storage — MediaStore.Downloads
-                    values.put(MediaStore.MediaColumns.RELATIVE_PATH,
-                        Environment.DIRECTORY_DOWNLOADS + "/HUI");
-                    values.put(MediaStore.MediaColumns.IS_PENDING, 1);
-                    uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (uri == null) return "ERROR: MediaStore insert failed";
-                    try (OutputStream os = resolver.openOutputStream(uri)) {
-                        if (os == null) return "ERROR: OutputStream null";
-                        os.write(data);
-                        os.flush();
-                    }
-                    values.clear();
-                    values.put(MediaStore.MediaColumns.IS_PENDING, 0);
-                    resolver.update(uri, values, null, null);
-                } else {
-                    // Android < 10: Direkt in öffentlichen Downloads-Ordner schreiben
-                    java.io.File downloadsDir =
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DOWNLOADS);
-                    java.io.File huiDir = new java.io.File(downloadsDir, "HUI");
-                    if (!huiDir.exists()) huiDir.mkdirs();
-                    java.io.File file = new java.io.File(huiDir, fileName);
-                    java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
-                    fos.write(data);
-                    fos.flush();
-                    fos.close();
-                    uri = Uri.fromFile(file);
-                }
-                return uri.toString();
-            } catch (Exception e) {
-                return "ERROR: " + e.getMessage();
             }
         }
     }
@@ -214,9 +148,6 @@ public class MainActivity extends BridgeActivity {
             // über den Standard-WebView-Permission-Flow.
             webViewRef = webView;
             webView.addJavascriptInterface(new MicPermissionInterface(), "__HUI_MIC");
-            // BELEG-DOWNLOAD (2026-08-26): Native Schnittstelle für
-            // Downloads in den öffentlichen Downloads-Ordner
-            webView.addJavascriptInterface(new DownloadInterface(), "__HUI_DOWNLOAD");
             // MediaPlayback ohne User-Gesture erlauben (für SpeechRecognition)
             webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
 

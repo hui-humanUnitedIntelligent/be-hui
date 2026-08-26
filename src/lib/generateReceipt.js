@@ -312,34 +312,66 @@ export async function generateReceipt(data) {
       // BELEG-002: sofortiges Feedback — sonst wirkt der Tap "totes" auf dem Handy,
       // waehrend jsPDF-Chunk laedt + Filesystem im Hintergrund arbeitet.
       toast.info("Beleg wird gespeichert …", { duration: 2500 });
-      const saved = await saveNative(doc, fileName);
 
-      if (saved.method === "filesystem" && saved.uri) {
-        // FIX (2026-08-26, Michael): Datei ist jetzt im app-privaten Speicher
-        // (/Android/data/com.hui.app/files/) — den findet der Nutzer im
-        // normalen Dateimanager NICHT. Deshalb automatisch das Share-Sheet
-        // öffnen, damit der Nutzer die Datei in Downloads/Dateien speichern
-        // oder an eine App teilen kann. Cancel = kein Fehler.
-        toast.info("Beleg gespeichert — tippe zum Speichern/Teilen ✓", { duration: 3000 });
-        try {
-          await Share.share({
-            title: "HUI Beleg",
-            text: "Dein HUI-Beleg: " + fileName,
-            url: saved.uri,
-            dialogTitle: "Beleg speichern oder teilen",
-          });
-        } catch (shareErr) {
-          const msg = String(shareErr?.message || shareErr?.errorMessage || "").toLowerCase();
-          // Nutzer hat Share-Sheet weggedrückt — Datei ist trotzdem gespeichert
-          if (!msg.includes("cancel")) {
-            console.warn("[generateReceipt] Share failed (file still saved):", shareErr);
+      // FIX (2026-08-26, Michael): Vorherige Version speicherte in den
+      // app-privaten Speicher (/Android/data/com.hui.app/files/) — den
+      // findet man im normalen Dateimanager NICHT. Jetzt: native
+      // DownloadInterface nutzen, die den Beleg direkt in den
+      // öffentlichen Downloads-Ordner (Download/HUI/) schreibt.
+      // Das erfordert KEINE Laufzeit-Berechtigung (MediaStore API).
+      const base64 = doc.output("datauristring").split(",")[1];
+
+      if (window.__HUI_DOWNLOAD && typeof window.__HUI_DOWNLOAD.saveToDownloads === "function") {
+        const result = window.__HUI_DOWNLOAD.saveToDownloads(base64, fileName, "application/pdf");
+        if (result && !result.startsWith("ERROR")) {
+          // Erfolg — Datei ist jetzt in Downloads/HUI/ sichtbar
+          toast.info("Beleg in Downloads gespeichert ✓ (Ordner: Download/HUI)", { duration: 3500 });
+          // Optional: Share-Sheet anbieten, falls Nutzer teilen möchte
+          try {
+            await Share.share({
+              title: "HUI Beleg",
+              text: "Dein HUI-Beleg: " + fileName,
+              url: result,
+              dialogTitle: "Beleg teilen?",
+            });
+          } catch (shareErr) {
+            const msg = String(shareErr?.message || shareErr?.errorMessage || "").toLowerCase();
+            if (!msg.includes("cancel")) {
+              console.warn("[generateReceipt] Share failed (file still in Downloads):", shareErr);
+            }
           }
+          return { fileName, uri: result, native: true, receiptData: data };
+        } else {
+          console.warn("[generateReceipt] Native download failed:", result);
+          // Fallback: Filesystem + Share
+          const saved = await saveNative(doc, fileName);
+          toast.info("Beleg gespeichert — im Share-Menü 'In Dateien speichern' wählen", { duration: 4000 });
+          return { fileName, uri: saved.uri, native: true, receiptData: data };
         }
       } else {
-        // Fallback (Blob-Download) — saveNative hat schon eine Toast gezeigt
-        toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
+        // DownloadInterface nicht verfügbar (alte APK) — Fallback
+        console.warn("[generateReceipt] __HUI_DOWNLOAD not available — using Filesystem fallback");
+        const saved = await saveNative(doc, fileName);
+        if (saved.method === "filesystem" && saved.uri) {
+          toast.info("Beleg gespeichert — tippe zum Speichern/Teilen ✓", { duration: 3000 });
+          try {
+            await Share.share({
+              title: "HUI Beleg",
+              text: "Dein HUI-Beleg: " + fileName,
+              url: saved.uri,
+              dialogTitle: "Beleg speichern oder teilen",
+            });
+          } catch (shareErr) {
+            const msg = String(shareErr?.message || shareErr?.errorMessage || "").toLowerCase();
+            if (!msg.includes("cancel")) {
+              console.warn("[generateReceipt] Share failed (file still saved):", shareErr);
+            }
+          }
+        } else {
+          toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
+        }
+        return { fileName, uri: saved.uri, native: true, receiptData: data };
       }
-      return { fileName, uri: saved.uri, native: true, receiptData: data };
     } else {
       // Web/Desktop: klassischer Browser Download
       doc.save(fileName);
