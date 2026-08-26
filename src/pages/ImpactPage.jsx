@@ -1171,6 +1171,17 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     setLoadingProj(false);
   }, [monthlyProjects, rankedProjs.top3, rankedProjs.loading]);
 
+  // Safety: force loadingProj=false after 10s regardless of what happens
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingProj(l => {
+        if (l) console.warn('[ImpactPage] Safety timeout: forcing loadingProj=false after 10s');
+        return false;
+      });
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // ── ActiveRound + UserVotes (live aus impact_votes) ──
   React.useEffect(() => {
     if (!currentUser?.id) return;

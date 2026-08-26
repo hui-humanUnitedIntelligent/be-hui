@@ -91,7 +91,16 @@ export const timeAgo = (dateStr) => {
 };
 
 // Discover cache (module-level, shared across mounts)
-export const _discoverCache = { data: null, ts: 0, loading: false };
+export const _discoverCache = { data: null, ts: 0, loading: false, loadingTs: 0 };
+
+// Safety: if loading has been true for >15s, reset it (prevents permanent stuck state)
+export function resetStaleLoading() {
+  if (_discoverCache.loading && _discoverCache.loadingTs && (Date.now() - _discoverCache.loadingTs > 15000)) {
+    console.warn('[DiscoverCache] Stale loading flag detected (>15s), resetting');
+    _discoverCache.loading = false;
+    _discoverCache.loadingTs = 0;
+  }
+}
 
 export function isCacheValid() {
   return _discoverCache.data && (Date.now() - _discoverCache.ts < 60000);

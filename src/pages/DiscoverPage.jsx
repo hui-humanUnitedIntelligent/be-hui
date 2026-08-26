@@ -34,7 +34,7 @@ const ProjekteAllModal = lazy(() => import("../components/discover/ProjekteAllMo
 const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx"));
 
 // ── Extracted sub-components ────────────────────────────────────
-import { T, CSS, SYSTEM_USER_ID, safeStr, safeNum, _discoverCache, isCacheValid, filterByRadius } from "../components/discover/constants.js";
+import { T, CSS, SYSTEM_USER_ID, safeStr, safeNum, _discoverCache, isCacheValid, filterByRadius, resetStaleLoading } from "../components/discover/constants.js";
 import { DiscoverTitleBar } from "../components/discover/DiscoverTitleBar.jsx";
 import { PeopleSection } from "../components/discover/PeopleSection.jsx";
 import { MomenteSection } from "../components/discover/MomenteSection.jsx";
@@ -187,8 +187,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       }
 
       // Dedup: verhindert parallele Loads (z.B. durch mehrfache PTR-Events)
+      resetStaleLoading();
       if (_discoverCache.loading) return;
       _discoverCache.loading = true;
+      _discoverCache.loadingTs = Date.now();
 
       try {
         // People — sortiert nach Beliebtheit (Follower + Likes kombiniert) via RPC
@@ -538,6 +540,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         console.warn("[DiscoverPage] load error:", e?.message);
       } finally {
         _discoverCache.loading = false;
+        _discoverCache.loadingTs = 0;
         if (!cancelled) setLoading(false);
       }
     }
@@ -548,7 +551,18 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       load();
     }
     load();
-    return () => { cancelled = true; };
+    // Safety: force loading=false after 10s regardless of what happens
+    const safetyTimer = setTimeout(() => {
+      if (!cancelled) {
+        setLoading(l => {
+          if (l) console.warn('[DiscoverPage] Safety timeout: forcing loading=false after 10s');
+          return false;
+        });
+        _discoverCache.loading = false;
+        _discoverCache.loadingTs = 0;
+      }
+    }, 10000);
+    return () => { cancelled = true; clearTimeout(safetyTimer); };
   }, []);  
 
   // ── DiscoverPage Cache-Sync: schreibt geladene Daten in den SWR-Cache ──
