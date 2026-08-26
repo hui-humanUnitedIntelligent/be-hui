@@ -9,6 +9,7 @@ import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import ReportReasonModal from "../../components/shared/ReportReasonModal.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
+import VerbindenModal from "../../components/shared/VerbindenModal.jsx";
 
 // ── Farben (identisch zu WorkContent / ExperienceContent) ────
 const TEAL       = "#0DC4B5";
@@ -107,6 +108,8 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   const [reportDone, setReportDone] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
 
+  // MOMENT-CONNECT (2026-08-25): Verbinden-Modal State
+  const [verbindenOpen, setVerbindenOpen] = useState(false);
 
   // Prüfen ob dieser Nutzer den Moment bereits gemeldet hat
   useEffect(() => {
@@ -282,7 +285,87 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           Das ist die Kraft von HUI: Wenn viele zusammenhalten, wird aus einer Idee Wirklichkeit. Entdecke im Impact-Bereich, welches Projekt du als Nächstes unterstützen möchtest.
         </p>
       )}
-      {/* MOMENT-CONNECT Feed-Button entfernt (2026-08-26, Michael-Vorgabe) — VerbindenModal.jsx selbst unveraendert, weiterhin ueber Profilseiten erreichbar */}
+      {/* ── MOMENT-CONNECT (2026-08-25, Michael-Vorgabe) ───────────────
+          Verbinden-Button NUR bei Momenten — nicht bei Werken, Talenten,
+          Erlebnissen oder Projekten. Erscheint unter jedem Moment-Post,
+          ausser bei:
+          - Eigenen Moments (author.id === user.id → kein Selbst-Connect)
+          - System-Broadcasts (moment_source === "system_broadcast")
+          - System-Projekt-Links (system_impact_completion)
+          ────────────────────────────────────────────────────────────── */}
+      {(() => {
+        const authorId = item.author?.id || raw.user_id;
+        const isOwn    = !user?.id || !authorId || authorId === user.id;
+        const isSystem = raw.moment_source === "system_broadcast" || isSystemProjectLink;
+        if (isOwn || isSystem) return null;
+
+        return (
+          <>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                haptic("light");
+                // SADB-Events
+                try {
+                  await supabase.from("moment_events").insert([
+                    { event_type: "moment_connect_clicked", moment_id: item._raw?.id || item.id, user_id: user.id, other_user_id: authorId, created_at: new Date().toISOString() },
+                    { event_type: "moment_interaction_logged", moment_id: item._raw?.id || item.id, user_id: user.id, other_user_id: authorId, created_at: new Date().toISOString() },
+                  ]);
+                } catch { /* silent — SADB non-blocking */ }
+                setVerbindenOpen(true);
+              }}
+              style={{
+                width: "100%",
+                marginTop: 12,
+                padding: "10px 16px",
+                borderRadius: 99,
+                border: "1px solid rgba(13,196,181,0.25)",
+                background: "rgba(13,196,181,0.06)",
+                color: "#0AA89B",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                fontFamily: "inherit",
+                touchAction: "manipulation",
+                transition: "all 0.18s ease",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M8 12h8" />
+                <path d="M12 8l4 4-4 4" />
+                <path d="M4 8v8" />
+                <path d="M20 8v8" />
+              </svg>
+              Verbinden
+            </button>
+
+            <VerbindenModal
+              open={verbindenOpen}
+              onClose={() => setVerbindenOpen(false)}
+              otherUser={{
+                id:           authorId,
+                display_name: item.author?.displayName || item.author?.name || "Mitglied",
+                avatar_url:   item.author?.avatar || null,
+              }}
+              momentId={item._raw?.id || item.id}
+              zIndex={10500}
+              onChatOpened={(result) => {
+                // Chat in der ChatCenter-Overlay öffnen
+                if (result?.chat_id) {
+                  window.__HUI_OPEN_CHAT_WITH__?.({ id: authorId, display_name: item.author?.displayName || item.author?.name });
+                }
+              }}
+            />
+          </>
+        );
+      })()}
 
     </BaseFeedCard>
     </>
