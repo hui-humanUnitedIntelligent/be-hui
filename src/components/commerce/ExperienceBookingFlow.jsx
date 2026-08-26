@@ -355,7 +355,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                   await generateReceipt({
                     offerTitle: title || "Erlebnis",
                     sellerName: creatorName || "Anbieter",
-                    sellerEmail: prof?.email || null,
+                    // BELEG-013: sellerEmail wird nicht mehr übergeben — generateReceipt.js
+                    // zeigt jetzt IMMER support@be-hui.com als Kontakt (SSOT, Datenschutz).
                     sellerWebsite: prof?.website || null,
                     amountEur: amount,
                     bookingId: null,

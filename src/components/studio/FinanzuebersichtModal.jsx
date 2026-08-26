@@ -182,7 +182,7 @@ function MeineKaeufe({ userId }) {
         .in("id", sellerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, email: p.email || null, website: p.website || null, username: p.username || null };
+        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, website: p.website || null, username: p.username || null };
       });
       setSellerMap(map);
     }
@@ -360,7 +360,7 @@ function MeineKaeufe({ userId }) {
         ...(o.shipping_address ? [{ label: "Lieferadresse", value: (o.shipping_address.full || "").replace(/\n/g, ", ") }] : []),
         ...(o.tracking_number ? [{ label: "Tracking", value: o.tracking_number }] : []),
       ],
-      person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, email: sInfo.email, website: sInfo.website, roleLabel: "Verkäufer" } : null,
+      person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, website: sInfo.website, roleLabel: "Verkäufer" } : null,
       actions: {
         onConfirmReceipt: needsConfirm ? () => handleConfirm(o.id) : null,
         confirmingReceipt: confirmingId === o.id,
@@ -377,7 +377,8 @@ function MeineKaeufe({ userId }) {
             const result = await generateReceipt({
               offerTitle: title,
               sellerName: sInfo?.name || "Verkäufer",
-              sellerEmail: sInfo?.email || null,
+              // BELEG-013: sellerEmail entfernt — generateReceipt.js zeigt
+              // immer support@be-hui.com (SSOT, Datenschutz).
               sellerWebsite: sInfo?.website || null,
               sellerUsername: sInfo?.username || null,
               amountEur: o.total_eur,
@@ -684,9 +685,9 @@ function MeineBuchungen({ userId }) {
     let nameMap = {};
     if (sellerIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, display_name, username, email, website").in("id", sellerIds);
-      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", email: p.email || null, website: p.website || null, username: p.username || null }]));
+      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", website: p.website || null, username: p.username || null }]));
     }
-    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_email: sm.email || null, seller_website: sm.website || null, seller_username: sm.username || null }; }));
+    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_website: sm.website || null, seller_username: sm.username || null }; }));
 
     // BUGFIX (2026-08-25): welche dieser Buchungen wurden vom Kunden bereits
     // mit einer Empfehlung versehen?
@@ -806,7 +807,7 @@ function MeineBuchungen({ userId }) {
         { label: "Teilnehmer", value: b.participants || null },
         { label: "Kategorie", value: b.talents?.category || null },
       ],
-      person: { name: b.seller_name, email: b.seller_email, website: b.seller_website, roleLabel: "Anbieter" },
+      person: { name: b.seller_name, website: b.seller_website, roleLabel: "Anbieter" },
       actions: {
         onConfirmReceipt: bNeedsConfirm ? () => handleConfirmBooking(b.id) : null,
         confirmingReceipt: confirmingBooking === b.id,
@@ -823,7 +824,8 @@ function MeineBuchungen({ userId }) {
             const result = await generateReceipt({
               offerTitle: title,
               sellerName: b.seller_name,
-              sellerEmail: b.seller_email || null,
+              // BELEG-013: sellerEmail entfernt — generateReceipt.js zeigt
+              // immer support@be-hui.com (SSOT, Datenschutz).
               sellerWebsite: b.seller_website || null,
               sellerUsername: b.seller_username || null,
               date: b.selected_date,

@@ -324,8 +324,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   <div style={{ fontSize: 14, fontWeight: 600, color: T.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {tx.person.name}
                   </div>
-                  {tx.person.email && <div style={{ fontSize: 11, color: T.teal, marginTop: 2 }}>✉ {tx.person.email}</div>}
-                  {tx.person.website && <div style={{ fontSize: 11, color: T.teal, marginTop: 1 }}>🔗 {tx.person.website}</div>}
+                  {tx.person.website && <div style={{ fontSize: 11, color: T.teal, marginTop: 2 }}>🔗 {tx.person.website}</div>}
                 </div>
               </div>
             </Section>
@@ -509,8 +508,14 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
           {/* Standard-Aktionen */}
           <Section>
             {a.onChat && (
-              <ActionButton variant="outline" onClick={a.onChat}>
-                {tx.person?.roleLabel ? `${tx.person.roleLabel} kontaktieren` : "Kontaktieren"}
+              <ActionButton
+                variant="outline"
+                onClick={a.receiptConfirmed ? undefined : a.onChat}
+                disabled={a.receiptConfirmed}
+              >
+                {a.receiptConfirmed
+                  ? "Chat geschlossen"
+                  : (tx.person?.roleLabel ? `${tx.person.roleLabel} kontaktieren` : "Kontaktieren")}
               </ActionButton>
             )}
             {a.canRecommend && a.onRecommend && (

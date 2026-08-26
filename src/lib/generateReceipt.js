@@ -131,10 +131,16 @@ export async function generateReceipt(data) {
     doc.setFontSize(12);
     doc.text(data.sellerName || "Anbieter", M, y);
     y += 6;
-    if (data.sellerEmail) {
+    // BELEG-013 (2026-08-26): Michael-Feedback — die private Verkaeufer-Email
+    // (data.sellerEmail) darf NIEMALS im Beleg erscheinen (Datenschutz). Frueher
+    // stand hier bedingt die private Email des Verkaeufers/Anbieters. SSOT-Fix:
+    // Beleg zeigt jetzt IMMER die zentrale Support-Adresse, unabhaengig davon,
+    // was der Aufrufer als sellerEmail uebergibt — der Parameter wird hier
+    // bewusst nicht mehr gelesen, damit dieser Fehler nie wieder auftreten kann.
+    {
       doc.setFontSize(9);
       doc.setTextColor(14, 196, 184);
-      doc.text("E-Mail: " + data.sellerEmail, M, y);
+      doc.text("Kontakt: support@be-hui.com", M, y);
       y += 5;
     }
     doc.setFontSize(9);

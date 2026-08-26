@@ -468,7 +468,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   await generateReceipt({
                     offerTitle: talent.title || "Talent-Angebot",
                     sellerName: talent.author || "Anbieter",
-                    sellerEmail: prof?.email || null,
+                    // BELEG-013: sellerEmail wird nicht mehr übergeben — generateReceipt.js
+                    // zeigt jetzt IMMER support@be-hui.com als Kontakt (SSOT, Datenschutz).
                     sellerWebsite: prof?.website || null,
                     date: selectedDate,
                     time: selectedSlot ? selectedSlot.start + (selectedSlot.end ? " – " + selectedSlot.end : "") : null,
