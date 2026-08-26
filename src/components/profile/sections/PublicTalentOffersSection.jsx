@@ -132,7 +132,7 @@ function TalentDetailModal({ talent, onClose }) {
       <div
         onClick={onClose}
         style={{
-          position:"fixed", inset:0, zIndex:10490,
+          position:"fixed", inset:0, zIndex:10500,
           background:"rgba(26,26,24,0.55)", backdropFilter:"blur(4px)",
         }}
       />

@@ -68,7 +68,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 10490,
+          zIndex: 10500,
           background: "rgba(0,0,0,0.5)",
         }}
       />

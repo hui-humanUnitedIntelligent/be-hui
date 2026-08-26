@@ -1323,7 +1323,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
   return createPortal(
     <>
       {/* Backdrop */}
-      <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:10490, background:"rgba(0,0,0,0.35)" }} role="button" tabIndex={0} />
+      <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:10500, background:"rgba(0,0,0,0.35)" }} role="button" tabIndex={0} />
 
       {/* Drawer */}
       <div style={{

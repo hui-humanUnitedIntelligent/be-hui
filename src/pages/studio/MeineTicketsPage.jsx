@@ -116,7 +116,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
   return (
     <>
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:10490, /* >BottomNav(10000) */
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.45)", zIndex:10500, /* >BottomNav(10000) */
       }} />
       <div style={{
         position:"fixed", bottom:0, left:0, right:0, zIndex:10500, /* >BottomNav(10000) */

@@ -327,7 +327,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, zIndex:10490, /* >BottomNav(10000) */
+        position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
         background:"rgba(0,0,0,0.55)", backdropFilter:"blur(6px)",
         animation:"ipFadeIn 0.22s ease both",
       }} />

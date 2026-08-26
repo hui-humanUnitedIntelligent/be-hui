@@ -440,7 +440,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
       <div
         onClick={onClose}
         style={{
-          position:"fixed", inset:0, zIndex:10490,
+          position:"fixed", inset:0, zIndex:10500,
           background:"rgba(15,15,25,0.55)",
           backdropFilter:"blur(12px)",
           WebkitBackdropFilter:"blur(12px)",

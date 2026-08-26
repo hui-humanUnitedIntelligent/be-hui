@@ -68,7 +68,7 @@ function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDele
     <>
       {/* Backdrop */}
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, zIndex:10490,
+        position:"fixed", inset:0, zIndex:10500,
         background:"rgba(0,0,0,0.08)",
       }}/>
       {/* Modal */}
@@ -286,7 +286,7 @@ function EmojiReactionBar({ msg = {}, anchorRect = null, onReact = () => {}, onC
     <>
       {/* Transparenter Backdrop — schließt bei Tap außerhalb */}
       <div onClick={onClose} style={{
-        position:"fixed", inset:0, zIndex:10490,
+        position:"fixed", inset:0, zIndex:10500,
         background:"rgba(0,0,0,0.06)",
         opacity: animateIn ? 1 : 0,
         transition:"opacity 0.15s ease-out",
