@@ -344,7 +344,7 @@ function MeineKaeufe({ userId }) {
     const revenueSplit = itemFee > 0 ? [
       { label: "Verkäufer-Anteil (80%)", value: eur(item?.payout_eur || 0) },
       { label: "Plattform-Anteil (20%)", value: eur(itemFee) },
-      ...(impactEurBuyer != null ? [{ label: "davon Impact-Pool (30% der Plattformgebühr)", value: eur(impactEurBuyer) }] : []),
+      ...(impactEurBuyer != null ? [{ label: "Impact-Pool (30% vom Plattform-Anteil)", value: eur(impactEurBuyer) }] : []),
     ] : [];
 
     return {
