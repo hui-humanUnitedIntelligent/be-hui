@@ -24,7 +24,6 @@ import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import { formatDateDE, formatNumberDE } from "../lib/formatters.js";
 import GemeinsamErmoeglichtAllModal from "../components/discover/GemeinsamErmoeglichtAllModal.jsx";
 import { toast } from "../lib/useToast.jsx";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 // ── Helpers ──────────────────────────────────────────────────
 const safeArr = (v) => Array.isArray(v) ? v : [];
@@ -32,20 +31,20 @@ const safeNum = (v) => (typeof v === "number" && isFinite(v)) ? v : 0;
 const fmtEur  = (n) =>
   `€${formatNumberDE(safeNum(n), { minimumFractionDigits: 0 })}`;
 
-function relTime(t, ts) {
+function relTime(ts) {
   if (!ts) return "";
   const d = (Date.now() - new Date(ts).getTime()) / 1000;
-  if (d < 60)    return t("impact.relTimeMin");
-  if (d < 3600) return t("impact.relTimeMinutes", { count: Math.round(d / 60) });
-  if (d < 86400) return t("impact.relTimeHours", { count: Math.round(d / 3600) });
-  return t("impact.relTimeDays", { count: Math.round(d / 86400) });
+  if (d < 60)    return "vor 1 Min.";
+  if (d < 3600)  return `vor ${Math.round(d / 60)} Min.`;
+  if (d < 86400) return `vor ${Math.round(d / 3600)} Std.`;
+  return `vor ${Math.round(d / 86400)} Tg.`;
 }
 
-const FMT_MONTH_KEYS = ["","impact.monthJan","impact.monthFeb","impact.monthMar","impact.monthApr","impact.monthMay","impact.monthJun","impact.monthJul","impact.monthAug","impact.monthSep","impact.monthOct","impact.monthNov","impact.monthDec"];
-function fmtMonth(t, iso) {
+function fmtMonth(iso) {
   if (!iso) return "";
   const [y, m] = iso.split("-");
-  return `${t(FMT_MONTH_KEYS[parseInt(m, 10)])} ${y}`;
+  const N = ["","Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  return `${N[parseInt(m, 10)]} ${y}`;
 }
 
 // ── Design Tokens ────────────────────────────────────────────
@@ -79,27 +78,21 @@ const S = {
 };
 
 // Konstanten
-// i18n: getCycleSteps takes t as parameter (module-level function)
-function getCycleSteps(t) {
-  return [
-    { icon:"📝", label: t("impact.cycleStep1") },
-    { icon:"🔍", label: t("impact.cycleStep2") },
-    { icon:"🌿", label: t("impact.cycleStep3") },
-    { icon:"🩷", label: t("impact.cycleStep4") },
-    { icon:"🏆", label: t("impact.cycleStep5") },
-    { icon:"🌱", label: t("impact.cycleStep6") },
-  ];
-}
+const CYCLE_STEPS = [
+  { icon:"📝", label:"Projekt einreichen"          },
+  { icon:"🔍", label:"HUI-Team prüft"              },
+  { icon:"🌿", label:"3 Projekte nominiert"         },
+  { icon:"🩷", label:"Community stimmt ab"          },
+  { icon:"🏆", label:"Sieger erhält volle Summe"   },
+  { icon:"🌱", label:"Restbetrag wird verteilt"     },
+];
 
-// i18n: getPoolSlices takes t as parameter (module-level function)
-function getPoolSlices(t) {
-  return [
-    { pct:40, emoji:"🗳", label: t("impact.poolSlice1"),  color:T.teal   },
-    { pct:30, emoji:"🚀", label: t("impact.poolSlice2"),  color:T.coral  },
-    { pct:20, emoji:"💡", label: t("impact.poolSlice3"),  color:T.gold   },
-    { pct:10, emoji:"🛡", label: t("impact.poolSlice4"),  color:T.violet },
-  ];
-}
+const POOL_SLICES = [
+  { pct:40, emoji:"🗳", label:"Community-Fonds",      color:T.teal   },
+  { pct:30, emoji:"🚀", label:"Wirkungsbudget",        color:T.coral  },
+  { pct:20, emoji:"💡", label:"Innovationsbudget",     color:T.gold   },
+  { pct:10, emoji:"🛡", label:"Kurationsbudget",       color:T.violet },
+];
 
 // SEED_PROJECTS deaktiviert — nur echte Projekte aus impact_applications (status=approved)
 const SEED_PROJECTS = [];
@@ -119,7 +112,6 @@ import {
 
 // ── Detailseite für bewilligte Anträge ──────────────────────────
 function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = () => {} }) {
-  const { t } = useTranslation();
   const { openGallery } = useImageGallery();
   // Normalisierung: Akzeptiert sowohl impact_applications-Format als auch VotingCard-Format
   const app = React.useMemo(() => ({
@@ -290,11 +282,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   const handleVote = async () => {
     if (!currentUser?.id || voted || loading) return;
     if (!isProfileTalent(currentUser)) {
-      setVoteError(t("impact.errorNurTalente"));
+      setVoteError("Nur Talente können abstimmen. Werde Talent, um mitzuentscheiden.");
       return;
     }
     if (userVotesLeft !== null && userVotesLeft <= 0) {
-      setVoteError(t("impact.errorKeineStimmen"));
+      setVoteError("Du hast diesen Monat keine Stimmen mehr.");
       return;
     }
     setLoading(true);
@@ -315,14 +307,14 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
       } else {
         const msg = (error.message || "").toLowerCase();
         if (msg.includes("maximale") || msg.includes("keine stimmen")) {
-          setVoteError(t("impact.errorAlleStimmen"));
+          setVoteError("Du hast bereits alle deine Stimmen diesen Monat vergeben.");
         } else if (msg.includes("bereits")) {
-          setVoteError(t("impact.errorBereitsGestimmt"));
+          setVoteError("Du hast bereits für dieses Projekt gestimmt.");
         } else {
-          setVoteError(t("impact.errorAbstimmungFehl"));
+          setVoteError("Abstimmung fehlgeschlagen. Bitte lade die Seite neu und versuche es erneut. (Session abgelaufen?)");
         }
       }
-    } catch { setVoteError(t("impact.errorVerbindungsfehler")); }
+    } catch { setVoteError("Verbindungsfehler. Bitte lade die Seite neu und versuche es erneut."); }
     setLoading(false);
   };
 
@@ -383,7 +375,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             position:"absolute", bottom:12, left:12,
             background:"rgba(13,196,181,0.92)", borderRadius:99,
             padding:"4px 12px", fontSize:11, fontWeight: 600, color:"#fff",
-          }}>{t("impact.bewilligt")}</div>
+          }}>✅ Bewilligt</div>
         </div>
 
         {/* Inhalt */}
@@ -397,19 +389,19 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
           {app.problem && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>{t("impact.dasProblem")}</div>
+              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Das Problem</div>
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.problem}</p>
             </div>
           )}
           {app.vision && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>{t("impact.visionLoesung")}</div>
+              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Vision & Lösung</div>
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.vision}</p>
             </div>
           )}
           {app.why_support && (
             <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>{t("impact.warumFoerdern")}</div>
+              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>Warum fördern?</div>
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.why_support}</p>
             </div>
           )}
@@ -421,31 +413,31 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
             background:"rgba(13,196,181,0.07)", borderRadius:14, padding:14,
           }}>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>{t("impact.foerderbetrag")}</div>
+              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Förderbetrag</div>
               <div style={{ fontSize:18, fontWeight: 600, color:"#0DC4B5" }}>
                 € {formatNumberDE((app.funding_goal || 0))}
               </div>
             </div>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>{t("impact.eingereicht")}</div>
+              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Eingereicht</div>
               <div style={{ fontSize:14, fontWeight: 600, color:"#141422" }}>{fmtDate(app.created_at)}</div>
             </div>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>{t("impact.stimmen")}</div>
+              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Stimmen</div>
               <div style={{ fontSize:16, fontWeight: 600, color:"#0DC4B5" }}>
                 {checking ? "…" : `${voteCount} 🗳`}
               </div>
             </div>
             <div>
-              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>{t("impact.status")}</div>
-              <div style={{ fontSize:12, fontWeight: 600, color:"#22c55e" }}>{t("impact.bewilligt")}</div>
+              <div style={{ fontSize:10, color:"#999", fontWeight: 600, textTransform:"uppercase" }}>Status</div>
+              <div style={{ fontSize:12, fontWeight: 600, color:"#22c55e" }}>✅ Bewilligt</div>
             </div>
           </div>
 
           {/* Finanzierungsbalken */}
           <div style={{ background:'rgba(13,196,181,0.06)', borderRadius:16, padding:'16px', marginBottom:16 }}>
             <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'#666', marginBottom:6 }}>
-              <span>{t("impact.finanzierungsfortschritt")}</span>
+              <span>Finanzierungsfortschritt</span>
               <span style={{ fontWeight: 600, color:'#0DC4B5' }}>{fundPct}%</span>
             </div>
             <div style={{ height:8, borderRadius:99, background:'rgba(0,0,0,0.08)', overflow:'hidden', marginBottom:8 }}>
@@ -453,17 +445,17 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                 background:'linear-gradient(90deg,#0DC4B5,#09A89D)', transition:'width 1.2s ease' }}/>
             </div>
             <div style={{ fontSize:13, fontWeight: 600, color:'#1A1A1A' }}>
-              {t("impact.finanziertVon", { funded: formatNumberDE(fundedEur), goal: formatNumberDE(goalFromDb) })}
+              €{formatNumberDE(fundedEur)} von €{formatNumberDE(goalFromDb)} finanziert
             </div>
           </div>
           {/* Stimmen-Counter — NUR Counter, kein Balken */}
-          <div style={{ fontSize:13, color:"#888", marginBottom:16, display:"flex", alignItems:"center", gap:4 }}><HUIStimmeIcon size={13}/>{t("impact.stimmenBisher", { count: voteCount })}</div>
+          <div style={{ fontSize:13, color:"#888", marginBottom:16, display:"flex", alignItems:"center", gap:4 }}><HUIStimmeIcon size={13}/>{voteCount} Stimmen bisher</div>
 
           {/* Zusatzmaterial */}
           {displayMediaUrls && displayMediaUrls.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:8 }}>
-                {t("impact.zusatzmaterial", { count: displayMediaUrls.length, suffix: displayMediaUrls.length !== 1 ? "s" : "" })}
+                Zusatzmaterial ({displayMediaUrls.length} Datei{displayMediaUrls.length !== 1 ? "en" : ""})
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {displayMediaUrls.map((url, idx) => {
@@ -485,7 +477,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                         fontSize:12, color:"#7264D6", fontWeight:600,
                         textDecoration:"none",
                       }}>
-                      📎 {t("impact.datei", { count: idx+1 })}
+                      📎 Datei {idx+1}
                     </a>
                   );
                 })}
@@ -496,21 +488,21 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           {/* ── Projekt-Updates / Neuigkeiten ── */}
           <div style={{ marginTop: 20, marginBottom: 20 }}>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-              <div style={{ fontSize: 15, fontWeight: 600, color: '#141422' }}>{t("impact.neuigkeiten")}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: '#141422' }}>📰 Neuigkeiten</div>
               {isProjectOwner && (
                 <button onClick={() => setShowUpdateSheet(true)} style={{
                   padding:"6px 12px", borderRadius:99, border:"1.5px dashed #0DC4B5",
                   background:"transparent", color:"#0DC4B5", fontSize:12, fontWeight: 600,
                   cursor:"pointer", fontFamily:"inherit",
                 }}>
-                  {t("impact.updateHinzufuegen")}
+                  + Update hinzufügen
                 </button>
               )}
             </div>
             {updatesLoading ? (
-              <div style={{ color:'#888', fontSize:13 }}>{t("impact.laden")}</div>
+              <div style={{ color:'#888', fontSize:13 }}>Laden...</div>
             ) : updates.length === 0 ? (
-              <div style={{ color:'#888', fontSize:13 }}>{t("impact.keineNeuigkeiten")}</div>
+              <div style={{ color:'#888', fontSize:13 }}>Noch keine Neuigkeiten von der Projektleitung.</div>
             ) : (
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {updates.map((u) => {
@@ -558,11 +550,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
           {/* ── Meilensteine ── */}
           <div style={{ marginTop: 20, marginBottom: 20 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: '#141422', marginBottom: 12 }}>{t("impact.meilensteine")}</div>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#141422', marginBottom: 12 }}>🏁 Meilensteine</div>
             {milestonesLoading ? (
-              <div style={{ color: '#888', fontSize: 13 }}>{t("impact.laden")}</div>
+              <div style={{ color: '#888', fontSize: 13 }}>Laden...</div>
             ) : milestones.length === 0 ? (
-              <div style={{ color: '#888', fontSize: 13 }}>{t("impact.keineMeilensteine")}</div>
+              <div style={{ color: '#888', fontSize: 13 }}>Noch keine Meilensteine definiert.</div>
             ) : (
               milestones.map((m, idx) => <MilestoneCard key={m.id} milestone={m} index={idx} onViewProgress={() => setDetailMilestone(m)} />)
             )}
@@ -570,7 +562,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
 
 
-          {/* ── {t("impact.vollstaendigFinanziert")}: Stimmen-System ersetzen (additiv,
+          {/* ── Vollständig finanziert: Stimmen-System ersetzen (additiv,
               betrifft nur abgeschlossene Projekte -- Abstimmen ergibt bei
               100%+ Finanzierung keinen Sinn mehr). Alle Projekte <100%
               zeigen weiterhin unveraendert das normale Stimmen-System. ── */}
@@ -581,9 +573,9 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               border:"1px solid rgba(34,197,94,0.25)",
             }}>
               <div style={{ fontSize:26, marginBottom:6 }}>✅</div>
-              <div style={{ fontSize:14, fontWeight:600, color:"#22c55e" }}>{t("impact.vollstaendigFinanziert")}</div>
+              <div style={{ fontSize:14, fontWeight:600, color:"#22c55e" }}>Vollständig finanziert</div>
               <div style={{ fontSize:12, color:"#666", marginTop:4 }}>
-                {t("impact.zielErreicht", { name: app.project_name })}
+                „{app.project_name}" hat sein Ziel gemeinsam erreicht — danke an alle Unterstützer!
               </div>
             </div>
           ) : null}
@@ -602,10 +594,10 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               border:"1px solid rgba(0,0,0,0.08)",
             }}>
               <div style={{ fontSize:13, fontWeight:600, color:"#141422", marginBottom:12 }}>
-                {t("impact.beitraegeFinanzierung")}
+                Beiträge, die zur Finanzierung geführt haben
               </div>
               {contributionsLoading ? (
-                <div style={{ fontSize:12, color:"#888" }}>{t("impact.laedt")}</div>
+                <div style={{ fontSize:12, color:"#888" }}>Lädt…</div>
               ) : (
                 <>
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
@@ -636,7 +628,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                         cursor:"pointer",
                       }}
                     >
-                      {t("impact.weitereAnzeigen", { count: contributions.length - visibleContribCount })}
+                      Weitere anzeigen ({contributions.length - visibleContribCount} übrig)
                     </button>
                   )}
                 </>
@@ -658,7 +650,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   {checking ? "…" : voteCount}
                 </span>
                 <span style={{ fontSize:12, color:"#888" }}>
-                  {voteCount === 1 ? t("impact.stimme") : t("impact.stimmenPlural")} {t("impact.stimmenBisher", { count: "" }).split(" ")[1]}
+                  {voteCount === 1 ? "Stimme" : "Stimmen"} bisher
                 </span>
               </div>
               {currentUser?.id && userVotesLeft !== null && !voted && (
@@ -708,9 +700,9 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   border:"1px solid rgba(34,197,94,0.25)",
                 }}>
                   <div style={{ fontSize:22, marginBottom:4 }}>💚</div>
-                  <div style={{ fontSize:14, fontWeight: 600, color:"#22c55e" }}>{t("impact.deineStimmeZaehlt")}</div>
+                  <div style={{ fontSize:14, fontWeight: 600, color:"#22c55e" }}>Deine Stimme zählt!</div>
                   <div style={{ fontSize:12, color:"#666", marginTop:2 }}>
-                    {t("impact.gestimmtFuer", { name: app.project_name })}
+                    Du hast für „{app.project_name}" gestimmt.
                   </div>
                 </div>
               ) : userVotesLeft === 0 ? (
@@ -725,19 +717,19 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   {isProfileTalent(currentUser) ? (
                     <>
                       <div style={{ fontSize:13, fontWeight:600, color:"#ef4444" }}>
-                        <span className="hui-emoji">🗳</span> {t("impact.keineStimmenMonat2")}
+                        <span className="hui-emoji">🗳</span> Keine Stimmen mehr diesen Monat
                       </div>
                       <div style={{ fontSize:11, color:"#888", marginTop:4 }}>
-                        {t("impact.stimmenErneuert")}
+                        Deine Stimmen werden am 1. des nächsten Monats erneuert.
                       </div>
                     </>
                   ) : (
                     <>
                       <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
-                        {t("impact.nurTalenteAbstimmen")}
+                        Nur Talente können abstimmen
                       </div>
                       <div style={{ fontSize:11, color:T.muted, marginTop:4, opacity:0.8 }}>
-                        {t("impact.werdeTalent")}
+                        Werde Talent, um beim Impact-Voting mitzuentscheiden.
                       </div>
                     </>
                   )}
@@ -760,9 +752,9 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   }}
                 >
                   {loading ? (
-                    <><span style={{ fontSize:16 }}>⏳</span> {t("impact.wirdGespeichert")}</>
+                    <><span style={{ fontSize:16 }}>⏳</span> Wird gespeichert…</>
                   ) : (
-                    <><HUIStimmeIcon size={16}/> {t("impact.fuerProjektAbstimmen")}</>
+                    <><HUIStimmeIcon size={16}/> Für dieses Projekt abstimmen</>
                   )}
                 </button>
               )
@@ -771,7 +763,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                 textAlign:"center", padding:"14px",
                 background:"rgba(0,0,0,0.04)", borderRadius:14,
               }}>
-                <div style={{ fontSize:13, color:"#666" }}>{t("impact.anmeldenAbstimmen")}</div>
+                <div style={{ fontSize:13, color:"#666" }}>Melde dich an, um abstimmen zu können.</div>
               </div>
             )}
           </div>
@@ -812,12 +804,11 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
 // ── MilestoneCard (inline in ImpactPage) ─────────────────────────
 function MilestoneCard({ milestone, index, onViewProgress }) {
-  const { t } = useTranslation();
   const m = milestone;
   const statusConfig = {
-    planned:      { label: t('impact.msPlanned'),      color: '#898998', bg: 'rgba(137,137,152,0.12)' },
-    in_progress:  { label: t('impact.msInProgress'),     color: '#0DC4B5', bg: 'rgba(13,196,181,0.12)' },
-    completed:    { label: t('impact.msCompleted'),  color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+    planned:      { label: '📅 Geplant',      color: '#898998', bg: 'rgba(137,137,152,0.12)' },
+    in_progress:  { label: '🔄 In Arbeit',     color: '#0DC4B5', bg: 'rgba(13,196,181,0.12)' },
+    completed:    { label: '✅ Abgeschlossen',  color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
   };
   const sc = statusConfig[m.status] || statusConfig.planned;
   const truncatedDesc = m.description && m.description.length > 100
@@ -864,7 +855,7 @@ function MilestoneCard({ milestone, index, onViewProgress }) {
             fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
           }}
         >
-          {t("impact.fortschrittAnsehen")}
+          📊 Fortschritt ansehen
         </button>
       </div>
     </div>
@@ -873,7 +864,6 @@ function MilestoneCard({ milestone, index, onViewProgress }) {
 
 // ── MilestoneDetailSheet ─────────────────────────────────────────
 function MilestoneDetailSheet({ milestone, onClose }) {
-  const { t } = useTranslation();
   const { openGallery } = useImageGallery();
   const m = milestone;
   const updates = m.impact_milestone_updates || [];
@@ -882,9 +872,9 @@ function MilestoneDetailSheet({ milestone, onClose }) {
   );
 
   const statusConfig = {
-    planned:      { label: t('impact.msPlanned'),      color: '#898998', bg: 'rgba(137,137,152,0.12)' },
-    in_progress:  { label: t('impact.msInProgress'),     color: '#0DC4B5', bg: 'rgba(13,196,181,0.12)' },
-    completed:    { label: t('impact.msCompleted'),  color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+    planned:      { label: '📅 Geplant',      color: '#898998', bg: 'rgba(137,137,152,0.12)' },
+    in_progress:  { label: '🔄 In Arbeit',     color: '#0DC4B5', bg: 'rgba(13,196,181,0.12)' },
+    completed:    { label: '✅ Abgeschlossen',  color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
   };
   const sc = statusConfig[m.status] || statusConfig.planned;
   const plannedDate = m.planned_date || m.target_date || m.due_date || null;
@@ -917,7 +907,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
           padding: "10px 20px 14px", flexShrink: 0,
         }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#141422" }}>{t("impact.msFortschritt")}</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "#141422" }}>🏁 Meilenstein-Fortschritt</div>
             <div style={{ fontSize: 13, color: "#666", marginTop: 2 }}>{m.title}</div>
           </div>
           <button onClick={onClose} style={{
@@ -957,7 +947,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
           </div>
           {sortedUpdates.length === 0 ? (
             <div style={{ color: "#888", fontSize: 13, textAlign: "center", padding: "24px 0" }}>
-              {t("impact.msKeineUpdates")}
+              Noch keine Updates für diesen Meilenstein.
             </div>
           ) : (
             sortedUpdates.map((u, idx) => (
@@ -1000,7 +990,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
                             background: "rgba(114,100,214,0.08)", border: "1px solid rgba(114,100,214,0.20)",
                             borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#7264D6",
                             fontWeight: 600, textDecoration: "none",
-                          }}>{t("impact.msVideo", { count: mi+1 })}</a>
+                          }}>🎬 Video {mi+1}</a>
                       ) : (
                         <a key={mi} href={url} target="_blank" rel="noreferrer"
                           style={{
@@ -1008,7 +998,7 @@ function MilestoneDetailSheet({ milestone, onClose }) {
                             background: "rgba(114,100,214,0.08)", border: "1px solid rgba(114,100,214,0.20)",
                             borderRadius: 10, padding: "8px 12px", fontSize: 12, color: "#7264D6",
                             fontWeight: 600, textDecoration: "none",
-                          }}>📎 {t("impact.datei", { count: mi+1 })}</a>
+                          }}>📎 Datei {mi+1}</a>
                       );
                     })}
                   </div>
@@ -1027,7 +1017,6 @@ function MilestoneDetailSheet({ milestone, onClose }) {
 
 // ── Karte für bewilligte Anträge ────────────────────────────────
 function ApprovedAppCard({ app, onOpen }) {
-  const { t } = useTranslation();
   const [hov, setHov] = React.useState(false);
   const img = app.cover_url
     || (app.media_urls && app.media_urls[0])
@@ -1060,7 +1049,7 @@ function ApprovedAppCard({ app, onOpen }) {
           position:"absolute", top:10, right:10,
           background:"rgba(13,196,181,0.90)", borderRadius:99,
           padding:"3px 10px", fontSize:10, fontWeight: 600, color:"#fff",
-        }}>{t("impact.bewilligt")}</div>
+        }}>✅ Bewilligt</div>
       </div>
       {/* Text */}
       <div style={{ padding:"14px 16px 16px" }}>
@@ -1082,7 +1071,7 @@ function ApprovedAppCard({ app, onOpen }) {
             background:"rgba(13,196,181,0.10)", borderRadius:99, padding:"4px 10px",
             border:"1px solid rgba(13,196,181,0.25)",
           }}>
-            {t("impact.mehrErfahren")}
+            Mehr erfahren →
           </span>
         </div>
       </div>
@@ -1091,7 +1080,6 @@ function ApprovedAppCard({ app, onOpen }) {
 }
 
 function ImpactPageInner({ currentUser: currentUserProp }) {
-  const { t } = useTranslation();
   // ── Auth — immer aus AuthContext, Props als Fallback ──
   const { user, profile } = useAuth();
   // currentUser = echtes Supabase-Profil (Single Source of Truth)
@@ -1287,7 +1275,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const castVote = async (projectId) => {
     if (!currentUser?.id || voteLoading) return;
     if (!isProfileTalent(currentUser)) {
-      toast.info(t("impact.toastNurTalente"));
+      toast.info("Nur Talente können abstimmen.");
       return;
     }
     if (userVotes.some(v => v.project_id === projectId)) return;
@@ -1311,11 +1299,11 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         // Sichtbarer Fehler — kein stiller Fail
         const msg = error.message || "";
         if (msg.includes("Maximale Stimmen")) {
-          toast.warn(t("impact.toastStimmenVergeben"));
+          toast.warn("Alle Stimmen diesen Monat vergeben");
         } else if (msg.includes("Bereits für")) {
-          toast.info(t("impact.toastBereitsGestimmt"));
+          toast.info("Bereits für dieses Projekt gestimmt");
         } else {
-          toast.error(t("impact.toastAbstimmungFehl"));
+          toast.error("Abstimmung fehlgeschlagen — Seite neu laden");
         }
       } else {
         // Feed-Activity wird via Datenbankfunktion erzeugt — kein Client-Side-Insert nötig
@@ -1325,7 +1313,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       setUserVotes(prev => prev.filter(v => v.project_id !== projectId));
       setProjects(prev => prev.map(p =>
         p.id === projectId ? { ...p, votes:Math.max(0,(p.votes||1)-1) } : p));
-      toast.error(t("impact.toastVerbindungsfehler"));
+      toast.error("Verbindungsfehler — Seite neu laden");
     } finally { setVoteLoading(false); }
   };
 
@@ -1391,7 +1379,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           : monthlyTop3.length > 0
             ? monthlyTop3.map(a => ({
                 id: a.id, name: a.project_name,
-                category: a.short_desc?.slice(0,20) || t("impact.weitereHerzens"),
+                category: a.short_desc?.slice(0,20) || "Herzensprojekt",
                 description: a.short_desc, icon: "💚", color: "#0DC4B5",
                 votes: a.vote_count || 0, awarded_eur: a.funding_goal || 0,
                 status: "approved",
@@ -1480,7 +1468,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 const HERO_IMG = "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1000&q=92";
 
 function BigHero({ pool }) {
-  const { t } = useTranslation();
   return (
     <div style={{
       position:"relative", overflow:"hidden", minHeight:320,
@@ -1512,22 +1499,22 @@ function BigHero({ pool }) {
           <div style={{ width:6, height:6, borderRadius:"50%", background:T.teal,
             animation:"ipPulse 2s ease-in-out infinite" }}/>
           <span style={{ fontSize:10, fontWeight: 600, color:T.teal,
-            letterSpacing:"0.14em", textTransform:"uppercase" }}>{t("impact.heroBadge")}</span>
+            letterSpacing:"0.14em", textTransform:"uppercase" }}>HUI Impact Pool</span>
         </div>
 
         {/* Headline — groß + emotional */}
         <h1 style={{ margin:"0 0 14px", fontSize:30, fontWeight: 600,
           lineHeight:1.15, letterSpacing:"-0.028em", color:T.ink }}>
-          {t("impact.heroHeadline1")}<br/>
-          <span style={{ color:T.teal }}>{t("impact.heroHeadline2")}</span> {t("impact.heroHeadline3")}
+          Gemeinsam<br/>
+          <span style={{ color:T.teal }}>Wirkung</span> schaffen.
         </h1>
 
         <p style={{ margin:"0 0 8px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:280 }}>
-          {t("impact.heroSub1")}
+          Jede Buchung auf HUI hilft dabei, echte Herzensprojekte möglich zu machen.
         </p>
 
         <p style={{ margin:"0 0 28px", fontSize:14, fontWeight: 600, color:T.teal }}>
-          {t("impact.heroSub2")}
+          Kein Projekt geht leer aus.
         </p>
 
         {/* Handschrift-Stil Spruch (wie Screenshot) */}
@@ -1540,8 +1527,8 @@ function BigHero({ pool }) {
           opacity:0.75,
           pointerEvents:"none",
         }}>
-          {t("impact.heroHand1")}<br/>
-          <span style={{ fontWeight: 600, color:T.ink }}>{t("impact.heroHand2")}</span>
+          Deine Entscheidungen<br/>
+          <span style={{ fontWeight: 600, color:T.ink }}>bewegen echte Projekte.</span>
           <div style={{
             marginTop:4, borderBottom:`1.5px solid ${T.teal}`,
             width:80, margin:"8px auto 0",
@@ -1561,7 +1548,6 @@ function BigHero({ pool }) {
 // 2. POOL-KARTE (zentral, einfach, emotional)
 // ════════════════════════════════════════════════════════════════
 function PoolCard({ pool, userImpact, onOpenVormonate }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding:"24px 16px 0" }}>
       {/* Haupt-Pool-Karte */}
@@ -1578,7 +1564,7 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
               <span style={{ fontSize:18 }}>❤️</span>
               <span style={{ fontSize:11, fontWeight: 600, color:T.teal,
                 letterSpacing:"0.06em", textTransform:"uppercase" }}>
-                {t("impact.poolThisMonth")}
+                Diesen Monat im Impact Pool
               </span>
             </div>
             <div style={{ fontSize:36, fontWeight: 600, color:T.teal,
@@ -1586,7 +1572,7 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
               {pool.loading ? "—" : fmtEur(pool.pool)}
             </div>
             <div style={{ fontSize:11, color:T.ink2, marginTop:5 }}>
-              {t("impact.poolLiveCalculated")}
+              Live berechnet aus HUI-Buchungen
             </div>
             {/* IMPACT-VORMONATE (2026-08-22): Button öffnet Archiv aller
                 vergangenen Monatsverteilungen — Betrag, Projekte, Stimmen. */}
@@ -1621,21 +1607,21 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
           }}>
             <div style={{ display:"flex", alignItems:"center", gap:6 }}>
               <span style={{ fontSize:13 }}>💚</span>
-              <span style={{ fontSize:11, fontWeight: 600, color:T.teal }}>{t("impact.deineWirkung")}</span>
+              <span style={{ fontSize:11, fontWeight: 600, color:T.teal }}>Deine Wirkung</span>
             </div>
             <div style={{ display:"flex", gap:18 }}>
               <div style={{ textAlign:"right" }}>
                 <div style={{ fontSize:13, fontWeight: 600, color:T.teal, lineHeight:1 }}>
                   {userImpact.eur > 0 ? fmtEur(userImpact.eur) : "0 €"}
                 </div>
-                <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>{t("impact.eingebracht")}</div>
+                <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>eingebracht</div>
               </div>
               <div style={{ textAlign:"right" }}>
                 <div style={{ fontSize:13, fontWeight: 600, color:T.teal, lineHeight:1 }}>
                   {userImpact.projekte}
                 </div>
                 <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>
-                  {t("impact.projektUnterstuetzt", { suffix: userImpact.projekte !== 1 ? "e" : "" })}
+                  Projekt{userImpact.projekte !== 1 ? "e" : ""} unterstützt
                 </div>
               </div>
             </div>
@@ -1654,7 +1640,6 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
 // sticky Header mit Close-X, scrollbarer Body mit Navbar-Safe-Padding).
 // ════════════════════════════════════════════════════════════════
 function ImpactVormonateModal({ months, loading, onClose }) {
-  const { t } = useTranslation();
   const [openMonth, setOpenMonth] = React.useState(0); // erster Monat aufgeklappt
 
   // Escape schließt (analog InfoSheet-Muster in derselben Datei)
@@ -1676,7 +1661,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={t("impact.vormonateTitle")}
+      aria-label="Impact Vormonate"
       style={{
         // Redundante explizite top/right/bottom/left ZUSÄTZLICH zu inset:0
         // (ROOT-CAUSE-FIX 2026-08-22: eine globale [role="dialog"]-Regel hat
@@ -1706,7 +1691,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
         <button
           onClick={onClose}
           className="ip-p"
-          aria-label={t("impact.schliessen")}
+          aria-label="Schließen"
           style={{
             // FIX (2026-08-23): absolute top:16 bezieht sich auf den Rand
             // der Header-Box (nicht auf den Safe-Area-Innenrand) — Button
@@ -1729,7 +1714,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
           Impact Vormonate
         </h3>
         <p style={{ margin:"6px 0 0", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-          {t("impact.vormonateSub")}
+          Alle vergangenen Verteilungen aus dem Impact Pool — vollständig nachvollziehbar.
         </p>
       </div>
 
@@ -1741,7 +1726,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
       }}>
         {loading ? (
           <div style={{ textAlign:"center", padding:"40px 0", color:T.muted, fontSize:13 }}>
-            {t("impact.vormonateLoading")}
+            Lade Verteilungshistorie …
           </div>
         ) : !months?.length ? (
           <div style={{ textAlign:"center", padding:"40px 20px" }}>
@@ -1774,7 +1759,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
                     <div>
                       <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>{m.label}</div>
                       <div style={{ fontSize:11, color:T.muted, marginTop:2 }}>
-                        {t("impact.vormonateProjects", { count: m.projects.length, suffix: m.projects.length !== 1 ? "e" : "" })}
+                        {m.projects.length} Projekt{m.projects.length !== 1 ? "e" : ""} unterstützt
                       </div>
                     </div>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
@@ -1811,7 +1796,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
                               {pr.name}
                             </div>
                             <div style={{ fontSize:11, color:T.muted, marginTop:1 }}>
-                              {t("impact.vormonateStimmen", { count: pr.votes, n: pr.votes !== 1 ? "n" : "" })}
+                              {pr.votes} Stimme{pr.votes !== 1 ? "n" : ""}
                             </div>
                           </div>
                           <div style={{ fontSize:13, fontWeight: 600, color:T.teal, flexShrink:0 }}>
@@ -1828,7 +1813,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
         )}
 
         <p style={{ fontSize:10.5, color:T.muted, margin:"16px 4px 0", lineHeight:1.5, textAlign:"center" }}>
-          {t("impact.vormonateTransparent")}
+          Vollständig transparent & anonymisiert — keine Namen, nur Beträge und Projekte.
         </p>
       </div>
     </div>
@@ -1841,7 +1826,6 @@ function ImpactVormonateModal({ months, loading, onClose }) {
 // 3. AKTUELLE ABSTIMMUNG — das Herzstück
 // ════════════════════════════════════════════════════════════════
 function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes, onVote, loading, onInfoClick, onOpen, canVote }) {
-  const { t } = useTranslation();
   return (
     <div style={{ marginTop:24 }}>
       {/* Header */}
@@ -1850,10 +1834,10 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
           justifyContent:"space-between", flexWrap:"wrap", gap:6 }}>
           <div>
             <h2 style={{ margin:"0 0 4px", fontSize:20, fontWeight: 600, color:T.ink,
-              letterSpacing:"-0.022em" }}>{t("impact.aktuelleAbstimmung")}</h2>
+              letterSpacing:"-0.022em" }}>Aktuelle Abstimmung</h2>
             {daysLeft !== null && (
               <span style={{ fontSize:12, color:T.coral, fontWeight: 600 }}>
-                {t("impact.nochTage", { count: daysLeft, suffix: daysLeft !== 1 ? "e" : "" })}
+                Noch {daysLeft} Tag{daysLeft !== 1 ? "e" : ""} — stimme jetzt ab
               </span>
             )}
           </div>
@@ -1876,7 +1860,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
             e.currentTarget.style.boxShadow  = `0 0 0 0 ${T.teal}00`;
             e.currentTarget.style.border     = `1px solid ${T.teal}38`;
           }}
-          >{t("impact.keinProjektLeer")}</button>
+          >💚 Kein Projekt geht leer aus</button>
         </div>
       </div>
 
@@ -1899,7 +1883,6 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
 }
 
 function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen, canVote = true }) {
-  const { t } = useTranslation();
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
   const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
@@ -1957,7 +1940,7 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
         {/* Finanzierung + Stimmen */}
         <div style={{ display:"flex", justifyContent:"space-between",
           fontSize:12, color:T.muted, marginBottom:8 }}>
-          <span>{t("impact.finanziertVonCard", { funded: formatNumberDE(fundedEur), goal: formatNumberDE(goalEur) })}</span>
+          <span>€{formatNumberDE(fundedEur)} von €{formatNumberDE(goalEur)} finanziert</span>
           <span><b style={{ color:T.ink }}>{p.votes||0}</b> Stimmen</span>
         </div>
 
@@ -1980,8 +1963,8 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
           </div>
           <span style={{ fontSize:11, color:T.muted }}>
             {(p.votes||0) > 0
-              ? `${p.votes} ${p.votes === 1 ? t("impact.menschenMoechte", {count: p.votes}) : t("impact.menschenMoechten", {count: p.votes})}`
-              : t("impact.seiErste")}
+              ? `${p.votes} ${p.votes === 1 ? "Mensch möchte" : "Menschen möchten"} dieses Projekt ermöglichen`
+              : "Sei der Erste, der unterstützt"}
           </span>
         </div>
 
@@ -1995,17 +1978,17 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
           {[
             {
               top: `${p.votes||0} Stimmen`,
-              bot: t("impact.fuerProjekt"),
+              bot: "für dieses Projekt",
               accent,
             },
             {
               top: `€${formatNumberDE(fundedEur)}`,
-              bot: t("impact.bereitsFinanziert"),
+              bot: "bereits finanziert",
               accent,
             },
             {
               top: `Noch €${formatNumberDE(Math.max(0,goalEur-fundedEur))}`,
-              bot: t("impact.bisZiel"),
+              bot: "bis Ziel",
               accent,
             },
           ].map((stat, si) => (
@@ -2031,7 +2014,7 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
           }}>
             <span style={{ fontSize:16 }}>✓</span>
             <span style={{ fontSize:14, fontWeight:600, letterSpacing:"-0.01em", color:accent }}>
-              {t("impact.deineStimmeZaehltKurz")}
+              Deine Stimme zählt
             </span>
           </div>
         ) : !canVote ? (
@@ -2040,10 +2023,10 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
             background:"rgba(0,0,0,0.04)", border:"1.5px solid rgba(0,0,0,0.08)",
           }}>
             <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
-              {t("impact.nurTalenteAbstimmen")}
+              Nur Talente können abstimmen
             </div>
             <div style={{ fontSize:11, color:T.muted, marginTop:2, opacity:0.8 }}>
-              {t("impact.werdeTalentMit2")}
+              Werde Talent, um mitzuentscheiden
             </div>
           </div>
         ) : remainVotes <= 0 ? (
@@ -2052,10 +2035,10 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
             background:"rgba(0,0,0,0.04)", border:"1.5px solid rgba(0,0,0,0.08)",
           }}>
             <div style={{ fontSize:13, fontWeight:600, color:T.muted }}>
-              {t("impact.keineStimmenMonat2")}
+              Keine Stimmen mehr diesen Monat
             </div>
             <div style={{ fontSize:11, color:T.muted, marginTop:2, opacity:0.8 }}>
-              {t("impact.erneuertMonat")}
+              Erneuert sich am 1. des nächsten Monats
             </div>
           </div>
         ) : (
@@ -2071,7 +2054,7 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
               transition:"all 0.22s ease",
             }}>
             <span style={{ fontSize:16 }}>🩷</span>
-            <span>{t("impact.mit1Stimme")}</span>
+            <span>Mit 1 Stimme unterstützen</span>
           </button>
         )}
       </div>
@@ -2083,7 +2066,6 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
 // 4. STIMMEN — PERSÖNLICH + WARM
 // ════════════════════════════════════════════════════════════════
 function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, projects }) {
-  const { t } = useTranslation();
   const projMap = Object.fromEntries(projects.map(p => [p.id, p]));
 
   return (
@@ -2094,7 +2076,7 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
       }}>
         {/* Emotionaler Titel */}
         <h3 style={{ margin:"0 0 6px", fontSize:17, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.018em" }}>{t("impact.deineStimmeZaehltKurz")}.</h3>
+          letterSpacing:"-0.018em" }}>Deine Stimme zählt.</h3>
         <p style={{ margin:"0 0 18px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
           {remainVotes > 0
             ? <>Du kannst diesen Monat noch{" "}
@@ -2127,12 +2109,12 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
                 <div style={{ fontSize:12, color: isUsed ? T.ink : T.muted }}>
                   {isUsed ? (
                     (proj || vote?.project_name) ? (
-                      <><b>{proj?.name || vote?.project_name}</b><div style={{ fontSize:10,color:T.muted }}>{t("impact.stimmeVergeben")}</div></>
+                      <><b>{proj?.name || vote?.project_name}</b><div style={{ fontSize:10,color:T.muted }}>Stimme vergeben</div></>
                     ) : (
-                      <><b style={{ color:T.ink }}>{t("impact.stimmeVergeben")}</b><div style={{ fontSize:10,color:T.muted }}>{t("impact.projektGeladen")}</div></>
+                      <><b style={{ color:T.ink }}>Stimme vergeben</b><div style={{ fontSize:10,color:T.muted }}>Projekt geladen…</div></>
                     )
                   ) : (
-                    <span style={{ color:T.muted }}>{t("impact.nochVerfuegbar")}</span>
+                    <span style={{ color:T.muted }}>Noch verfügbar</span>
                   )}
                 </div>
               </div>
@@ -2143,17 +2125,17 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
         {/* Talent-Hinweis */}
         {isMem ? (
           <div style={{ fontSize:11, color:T.teal, fontWeight: 600 }}>
-            {t("impact.talent1Stimme")}
+            🏅 Als Talent hast du 1 Stimme pro Monat
           </div>
         ) : (
           <div style={{ padding:"12px 14px",
             background:`${T.gold}10`, border:`1px solid ${T.gold}25`,
             borderRadius:14 }}>
             <div style={{ fontSize:12, fontWeight: 600, color:T.gold, marginBottom:3 }}>
-              {t("impact.abstimmungTalent")}
+              ⭐ Abstimmung ist Talent vorbehalten
             </div>
             <div style={{ fontSize:11, color:T.ink2 }}>
-              {t("impact.nurTalenteMit")}
+              Nur Talente können beim Impact-Voting mitentscheiden. Werde Talent, um teilzunehmen.
             </div>
           </div>
         )}
@@ -2173,24 +2155,20 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
 const SEED_WEITERE_PROJEKTE = [];
 
 // ════════════════════════════════════════════════════════════════
-// i18n: getHpStatus takes t as parameter (module-level function)
-function getHpStatus(t) {
-  return {
-    submitted:   { icon:"📬", color:"#9CA3AF", label: t("impact.statusSubmitted")   },
-    pending:     { icon:"🟡", color:"#D97706", label: t("impact.statusPending")     },
-    approved:    { icon:"🟢", color:"#16A34A", label: t("impact.statusApproved")     },
-    nominated:   { icon:"🗳️", color:"#0DC4B5", label: t("impact.statusNominated")     },
-    active:      { icon:"🗳️", color:"#0DC4B5", label: t("impact.statusActive")    },
-    in_progress: { icon:"🚀", color:"#7264D6", label: t("impact.statusInProgress") },
-    funded:      { icon:"💪", color:"#0DC4B5", label: t("impact.statusFunded")   },
-    finished:    { icon:"✅",     color:"#16A34A", label: t("impact.statusFinished") },
-  };
-}
+const HP_STATUS = {
+  submitted:   { icon:"📬", color:"#9CA3AF", label:"Eingegangen"   },
+  pending:     { icon:"🟡", color:"#D97706", label:"In Prüfung"     },
+  approved:    { icon:"🟢", color:"#16A34A", label:"Genehmigt"     },
+  nominated:   { icon:"🗳️", color:"#0DC4B5", label:"Nominiert"     },
+  active:      { icon:"🗳️", color:"#0DC4B5", label:"Abstimmung"    },
+  in_progress: { icon:"🚀", color:"#7264D6", label:"In Umsetzung" },
+  funded:      { icon:"💪", color:"#0DC4B5", label:"Finanziert"   },
+  finished:    { icon:"✅",     color:"#16A34A", label:"Abgeschlossen" },
+};
 
 function HerzensKarte({ p, idx }) {
-  const { t } = useTranslation();
   const [imgErr, setImgErr] = React.useState(false);
-  const cfg     = getHpStatus(t)[p.status] || getHpStatus(t).pending;
+  const cfg     = HP_STATUS[p.status] || HP_STATUS.pending;
   const accent  = p.color || T.teal;
   const goalEur = safeNum(p.awarded_eur) || 0;
   return (
@@ -2231,7 +2209,7 @@ function HerzensKarte({ p, idx }) {
           {/* Stimmen-Counter */}
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:5 }}>
             <span style={{ fontSize:10, color:T.muted }}>
-              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? t("impact.stimme") : t("impact.stimmenPlural")}
+              <span className="hui-emoji">🗳</span> {safeNum(p.vote_count || p.votes)} {safeNum(p.vote_count || p.votes) === 1 ? "Stimme" : "Stimmen"}
             </span>
           </div>
           {/* Finanzierungsbalken */}
@@ -2264,7 +2242,6 @@ function HerzensKarte({ p, idx }) {
 }
 
 function WeitereHerzensprojekte({ data, loading }) {
-  const { t } = useTranslation();
   const [expanded, setExpanded] = React.useState(false);
   // Wenn DB leer → Seed-Projekte als Platzhalter zeigen
   const rawList = Array.isArray(data) ? data : [];
@@ -2279,21 +2256,21 @@ function WeitereHerzensprojekte({ data, loading }) {
           justifyContent:"space-between", marginBottom:4 }}>
           <h2 style={{ margin:0, fontSize:20, fontWeight: 600, color:T.ink,
             letterSpacing:"-0.022em" }}>
-            <span className="hui-emoji">🌱</span> {t("impact.weitereHerzens")}
+            <span className="hui-emoji">🌱</span> Weitere Herzensprojekte
           </h2>
           {!loading && list.length > 4 && !expanded && (
             <button onClick={() => setExpanded(true)} className="ip-p"
               style={{ background:"none", border:"none", padding:0, cursor:"pointer",
                 fontSize:11, fontWeight: 600, color:T.teal, flexShrink:0, marginLeft:8 }}>
-              {t("impact.alleAnzeigen", { count: list.length })}
+              Alle {list.length} anzeigen →
             </button>
           )}
         </div>
         <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
           {loading
-            ? t("impact.wirdGeladen")
+            ? "Wird geladen…"
             : isSeed
-              ? t("impact.beispielprojekte")
+              ? "Beispielprojekte — so sehen eingereichte Herzensprojekte aus."
               : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`
           }
         </p>
@@ -2324,8 +2301,8 @@ function WeitereHerzensprojekte({ data, loading }) {
             borderRadius:13, display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ fontSize:14 }}>📨</span>
             <span style={{ fontSize:11, color:T.ink2, lineHeight:1.5 }}>
-              {t("impact.neueMonatlich")}{" "}
-              <b style={{ color:T.teal }}>{t("impact.poolLebt")}</b>
+              Neue Herzensprojekte kommen jeden Monat hinzu.{" "}
+              <b style={{ color:T.teal }}>Der Impact Pool lebt und wächst.</b>
             </span>
           </div>
         </>
@@ -2343,22 +2320,21 @@ function WeitereHerzensprojekte({ data, loading }) {
 // Wird angezeigt wenn keine echten Projekte in Supabase existieren
 // ════════════════════════════════════════════════════════════════
 function EmptyImpactState({ type = "voting" }) {
-  const { t } = useTranslation();
   const configs = {
     voting: {
       icon: "🗳",
-      title: t("impact.emptyVotingTitle"),
-      text: t("impact.emptyVotingText"),
+      title: "Noch keine Projekte in der Abstimmung",
+      text: "Sobald Herzensprojekte vom HUI-Team geprüft und nominiert wurden, erscheinen sie hier.",
     },
     weitere: {
       icon: "🌱",
-      title: t("impact.emptyWeitereTitle"),
-      text: t("impact.emptyWeitereText"),
+      title: "Noch keine weiteren Herzensprojekte",
+      text: "Eingereichte Projekte erscheinen hier, sobald sie vom HUI-Team geprüft wurden.",
     },
     bewilligt: {
       icon: "💚",
-      title: t("impact.emptyBewilligtTitle"),
-      text: t("impact.emptyBewilligtText"),
+      title: "Noch keine bewilligten Projekte",
+      text: "Sobald ein Herzensprojekt bewilligt wird, erscheint es hier.",
     },
   };
   const cfg = configs[type] || configs.voting;
@@ -2385,7 +2361,6 @@ function EmptyImpactState({ type = "voting" }) {
 // WeitereHerzensSection — Platz 2-5 approved + Fallback Seed
 // ════════════════════════════════════════════════════════════════
 function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpen }) {
-  const { t } = useTranslation();
   const [expanded, setExpanded] = React.useState(false);
   const hasReal = !loadingApps && apps && apps.length > 0;
   const rawList = hasReal ? apps : [];
@@ -2397,18 +2372,18 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
     <div style={{ marginTop:24, padding:"0 16px" }}>
       <div style={{ marginBottom:14 }}>
         <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:4 }}>
-          <h2 style={{ margin:0, fontSize:20, fontWeight: 600, color:T.ink, letterSpacing:"-0.022em", display:"flex", alignItems:"center", gap:6 }}><HUIImpactIcon size={18}/>{t("impact.weitereHerzens")}</h2>
+          <h2 style={{ margin:0, fontSize:20, fontWeight: 600, color:T.ink, letterSpacing:"-0.022em", display:"flex", alignItems:"center", gap:6 }}><HUIImpactIcon size={18}/>Weitere Herzensprojekte</h2>
           {!isLoading && rawList.length > 4 && !expanded && (
             <button onClick={() => setExpanded(true)} className="ip-p"
               style={{ background:"none", border:"none", padding:0, cursor:"pointer", fontSize:11, fontWeight: 600, color:T.teal, flexShrink:0, marginLeft:8 }}>
-              {t("impact.alleAnzeigen", { count: rawList.length })}
+              Alle {rawList.length} anzeigen →
             </button>
           )}
         </div>
         <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
-          {isLoading ? t("impact.wirdGeladen") : isSeed
-            ? t("impact.beispielprojekte")
-            : `t("impact.projekteSortiert", { count: rawList.length, suffix: rawList.length !== 1 ? "e" : "" })`}
+          {isLoading ? "Wird geladen…" : isSeed
+            ? "Beispielprojekte — so sehen eingereichte Herzensprojekte aus."
+            : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`}
         </p>
       </div>
       {isLoading ? <SkeletonCards count={3} /> : rawList.length === 0 ? (
@@ -2428,14 +2403,14 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
                 border:`1px solid ${T.teal}30`, borderRadius:14, padding:"11px 0",
                 fontSize:12, fontWeight: 600, color:T.teal, cursor:"pointer",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-              {expanded ? <span>{t("impact.weniger")}</span> : <span>{t("impact.alleProjekte", { count: rawList.length })}</span>}
+              {expanded ? <span>▲ Weniger</span> : <span>▼ Alle {rawList.length} Projekte</span>}
             </button>
           )}
           <div style={{ marginTop:12, padding:"9px 13px", background:`${T.teal}07`, border:`1px solid ${T.teal}14`,
             borderRadius:13, display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ fontSize:14 }}>📨</span>
             <span style={{ fontSize:11, color:T.ink2, lineHeight:1.5 }}>
-              Neue Herzensprojekte kommen jeden Monat hinzu. <b style={{ color:T.teal }}>{t("impact.poolLebt")}</b>
+              Neue Herzensprojekte kommen jeden Monat hinzu. <b style={{ color:T.teal }}>Der Impact Pool lebt und wächst.</b>
             </span>
           </div>
         </>
@@ -2445,10 +2420,9 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
 }
 
 // ════════════════════════════════════════════════════════════════
-// ApprovedAppCardCompact — Kompaktkarte für t("impact.weitereHerzens")
+// ApprovedAppCardCompact — Kompaktkarte für "Weitere Herzensprojekte"
 // ════════════════════════════════════════════════════════════════
 function ApprovedAppCardCompact({ app, rank, onOpen }) {
-  const { t } = useTranslation();
   const img = app.cover_url || (app.media_urls && app.media_urls[0])
     || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
   return (
@@ -2483,13 +2457,13 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
             border:"1px solid rgba(34,197,94,0.20)" }}>✅ Bewilligt</span>
           <span style={{ fontSize:11, color: app.vote_count > 0 ? T.teal : "#aaa", fontWeight: 600,
             transition:"color 0.3s ease" }}>
-            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? t("impact.stimme") : t("impact.stimmenPlural")}
+            <span className="hui-emoji">🗳</span> {app.vote_count || 0} {app.vote_count === 1 ? "Stimme" : "Stimmen"}
           </span>
         </div>
       </div>
       <div style={{ flexShrink:0, textAlign:"right" }}>
         <div style={{ fontSize:12, fontWeight: 600, color:T.teal }}>€ {formatNumberDE((app.funding_goal||0))}</div>
-        <div style={{ fontSize:10, color:"#999" }}>{t("impact.ziel")}</div>
+        <div style={{ fontSize:10, color:"#999" }}>Ziel</div>
       </div>
     </div>
   );
@@ -2499,7 +2473,6 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
 
 // ════════════════════════════════════════════════════════════════
 function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
-  const { t } = useTranslation();
   const [showAll, setShowAll] = React.useState(false);
   return (
     <div style={{ padding:"20px 16px 0" }}>
@@ -2507,14 +2480,14 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
       <div style={{ display:"flex", alignItems:"baseline",
         justifyContent:"space-between", marginBottom:4 }}>
         <h2 style={{ margin:0, fontSize:18, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.02em" }}>{t("impact.gemeinsamErmöglicht")}</h2>
+          letterSpacing:"-0.02em" }}>Gemeinsam ermöglicht</h2>
         {finanziert.length > 0 && (
           <span onClick={() => setShowAll(true)}
             style={{ fontSize:11, color:T.teal, fontWeight: 600, cursor:"pointer",
             flexShrink:0, marginLeft:8, WebkitTapHighlightColor:"transparent" }}>
             {/* transp.projekte = echte Gesamtzahl (SSOT, ungecappt) —
                 finanziert-Liste ist auf 8 Vorschau-Einträge limitiert */}
-            {t("impact.alleAnsehen", { count: transp?.projekte || finanziert.length })}
+            Alle {transp?.projekte || finanziert.length} ansehen →
           </span>
         )}
       </div>
@@ -2524,7 +2497,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
         onPressItem={(p) => { setShowAll(false); onOpenProject(p); }}
       />
       <p style={{ margin:"0 0 14px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-        {t("impact.echteProjekte")}
+        Echte Projekte. Echte Wirkung. Durch euch.
       </p>
 
       {/* Transparenz-Zahlen */}
@@ -2532,9 +2505,9 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr",
           gap:10, marginBottom:20 }}>
           {[
-            { emoji:"💰", val:fmtEur(transp.eur),  label:t("impact.inProjekteGeflossen") },
-            { emoji:"📋", val:transp.projekte,       label:t("impact.projekteFinanziert")   },
-            { emoji:"👥", val:transp.menschen,       label:t("impact.unterstuetzerAktiv")    },
+            { emoji:"💰", val:fmtEur(transp.eur),  label:"in Projekte geflossen" },
+            { emoji:"📋", val:transp.projekte,       label:"Projekte finanziert"   },
+            { emoji:"👥", val:transp.menschen,       label:"Unterstützer aktiv"    },
           ].map((st, i) => (
             <div key={i} style={{
               background:T.surfaceHi, borderRadius:16, padding:"14px 10px",
@@ -2558,13 +2531,13 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
         }}>
           <div style={{ fontSize:32, marginBottom:10, textAlign:"center" }}>💚</div>
           <div style={{ fontSize:14, fontWeight: 600, color:T.ink, marginBottom:10, textAlign:"center" }}>
-            {t("impact.erstenProjekte")}
+            Die ersten Projekte werden bald gemeinsam finanziert.
           </div>
           {/* Beispiel-Wirkungskarten (Vorschau wie es aussehen wird) */}
           {[
-            { name: t("impact.repairCafe"), month: t("impact.repairCafeMonth"),
+            { name:"Repair Café Altona", month:"März 2026",
               lines:["340 Geräte repariert","120 Menschen geholfen","18 Ehrenamtliche aktiv"], icon:"🔧" },
-            { name: t("impact.musikVerbindet"), month: t("impact.musikMonth"),
+            { name:"Musik verbindet", month:"Februar 2026",
               lines:["42 Kinder erhalten Unterricht","3 neue Kurse gestartet","Selbstvertrauen gestärkt"], icon:"🎵" },
           ].map((ex, ei) => (
             <div key={ei} style={{
@@ -2576,7 +2549,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
                 <span style={{ fontSize:20 }}>{ex.icon}</span>
                 <div>
                   <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>{ex.name}</div>
-                  <div style={{ fontSize:10, color:T.muted }}>{t("impact.finanziertIm", { month: ex.month })}</div>
+                  <div style={{ fontSize:10, color:T.muted }}>Finanziert im {ex.month} · Beispiel</div>
                 </div>
               </div>
               {ex.lines.map((l, li) => (
@@ -2589,7 +2562,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
           ))}
           <p style={{ fontSize:11, color:T.muted, lineHeight:1.6, margin:"10px 0 0",
             textAlign:"center" }}>
-            {t("impact.soAussehen")}
+            So sehen finanzierte Wirkungsprojekte später aus.
           </p>
         </div>
       ) : (
@@ -2621,7 +2594,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
                     marginBottom:1 }}>{p.name}</div>
                   {p.month && (
                     <div style={{ fontSize:10, color:T.muted }}>
-                      {t("impact.finanziertIm", { month: fmtMonth(t, p.month?.slice(0,7)) })}
+                      Finanziert {fmtMonth(p.month?.slice(0,7))}
                     </div>
                   )}
                 </div>
@@ -2636,7 +2609,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
                   ))
                   : (
                     <div style={{ fontSize:12, fontWeight: 600, color:T.teal, lineHeight:1.4 }}>
-                      {t("impact.gemeinsamErmöglichtKurz")}
+                      Gemeinsam ermöglicht
                       {p.awarded_eur > 0 && (
                         <span style={{ fontSize:10, color:T.muted, fontWeight:500,
                           marginLeft:6 }}>
@@ -2659,7 +2632,6 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
 // 6. HERZENSPROJEKT — EMOTIONAL
 // ════════════════════════════════════════════════════════════════
 function HerzensprojektEmotional({ onPropose }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding:"20px 16px 0" }}>
       <div style={{
@@ -2673,13 +2645,13 @@ function HerzensprojektEmotional({ onPropose }) {
           animation:"ipBreath 5s ease-in-out infinite" }}>💚</div>
 
         <h2 style={{ margin:"0 0 10px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em" }}>{t("impact.hastHerzensprojekt")}</h2>
+          letterSpacing:"-0.022em" }}>Hast du ein Herzensprojekt?</h2>
 
         <p style={{ fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 8px" }}>
-          {t("impact.kennstEtwas")}
+          Kennst du etwas, das unsere Welt besser machen könnte?
         </p>
         <p style={{ fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300, margin:"0 auto 24px" }}>
-          {t("impact.reicheEin")}
+          Reiche dein Projekt ein und lass die Community mitentscheiden.
         </p>
 
         <button onClick={onPropose} className="ip-p" style={{
@@ -2691,17 +2663,17 @@ function HerzensprojektEmotional({ onPropose }) {
           letterSpacing:"-0.01em",
         }}>
           <HUIImpactIcon size={18} style={{color:"rgba(14,196,184,0.6)"}} />
-          {t("impact.herzensprojektEinreichen")}
+          Herzensprojekt einreichen
         </button>
 
         {/* Vertrauenselemente */}
         <div style={{ display:"flex", flexWrap:"wrap", justifyContent:"center",
           gap:8, marginTop:18 }}>
           {[
-            t("impact.bewerbungKostenlos"),
-            t("impact.dauer5Min"),
-            t("impact.keinProjektLeer2"),
-            t("impact.pruefungHUI"),
+            "✓ Bewerbung kostenlos",
+            "✓ Dauer ~5 Minuten",
+            "✓ Kein Projekt geht leer aus",
+            "✓ Prüfung durch HUI-Team",
           ].map((item, i) => (
             <div key={i} style={{
               display:"inline-flex", alignItems:"center",
@@ -2720,7 +2692,6 @@ function HerzensprojektEmotional({ onPropose }) {
 // 7. LIVE-TICKER (kompakt)
 // ════════════════════════════════════════════════════════════════
 function LiveTicker({ activities }) {
-  const { t } = useTranslation();
   const { openCreatorProfile } = useProfileLauncher();
   return (
     <div style={{ padding:"16px 16px 0" }}>
@@ -2728,7 +2699,7 @@ function LiveTicker({ activities }) {
         <div style={{ width:7, height:7, borderRadius:"50%", background:T.teal,
           animation:"ipPulse 1.4s ease-in-out infinite" }}/>
         <h3 style={{ margin:0, fontSize:14, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.01em" }}>{t("impact.liveAktivitaeten")}</h3>
+          letterSpacing:"-0.01em" }}>Live-Aktivitäten im Impact Pool</h3>
       </div>
 
       <div style={{ background:T.surfaceHi, borderRadius:20,
@@ -2763,7 +2734,7 @@ function LiveTicker({ activities }) {
               <div style={{ fontSize:12, color:T.ink, lineHeight:1.4,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                 {act.type === "completed" ? (
-                  <><b>{act.proj}</b> {t("impact.vollstaendigFinanziert")}</>
+                  <><b>{act.proj}</b> wurde vollständig finanziert 🎉</>
                 ) : (
                   <>
                     {act.user_id
@@ -2772,7 +2743,7 @@ function LiveTicker({ activities }) {
                           style={{ cursor:"pointer", textDecoration:"none" }}
                         >{act.user}</b>
                       : <b>{act.user}</b>
-                    } {t("impact.mit1StimmeUnterstuetzt", { proj: act.proj })}
+                    } hat <b>{act.proj}</b> mit 1 Stimme unterstützt
                   </>
                 )}
               </div>
@@ -2789,7 +2760,6 @@ function LiveTicker({ activities }) {
 // 8b. IMPACT-POOL VERTEILUNGS-TICKER (ganz unten, max 5, 2026-08-22)
 // ════════════════════════════════════════════════════════════════
 function PoolTransparenzTicker({ items }) {
-  const { t } = useTranslation();
   if (!items?.length) return null;
   return (
     <div style={{ padding:"28px 16px 0" }}>
@@ -2797,7 +2767,7 @@ function PoolTransparenzTicker({ items }) {
         <div style={{ width:7, height:7, borderRadius:"50%", background:T.teal,
           animation:"ipPulse 1.4s ease-in-out infinite" }}/>
         <h3 style={{ margin:0, fontSize:14, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.01em" }}>{t("impact.verteilungenPool")}</h3>
+          letterSpacing:"-0.01em" }}>Verteilungen aus dem Impact-Pool</h3>
       </div>
 
       <div style={{ background:T.surfaceHi, borderRadius:20,
@@ -2818,8 +2788,8 @@ function PoolTransparenzTicker({ items }) {
               <div style={{ fontSize:12, color:T.ink, lineHeight:1.4,
                 overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                 <b>{fmtEur(it.amount)}</b> {it.proj
-                  ? <>{t("impact.verteiltFuer", { proj: it.proj })}</>
-                  : <>{t("impact.eingezahltPool")}</>
+                  ? <>wurden für „<b>{it.proj}</b>" verteilt</>
+                  : <>wurden gerade in den Impact-Pool eingezahlt</>
                 }
               </div>
             </div>
@@ -2828,7 +2798,7 @@ function PoolTransparenzTicker({ items }) {
         ))}
       </div>
       <p style={{ fontSize:10.5, color:T.muted, margin:"10px 4px 0", lineHeight:1.5 }}>
-        {t("impact.transparentAnonym")}
+        Vollständig transparent & anonymisiert — keine Namen, nur Beträge.
       </p>
     </div>
   );
@@ -2838,18 +2808,17 @@ function PoolTransparenzTicker({ items }) {
 // 9. FONDS-AUFTEILUNG — KOMPAKT (ganz unten)
 // ════════════════════════════════════════════════════════════════
 function FondsAufteilungKompakt({ pool }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding:"28px 16px 0" }}>
       <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight: 600, color:T.ink,
-        letterSpacing:"-0.015em" }}>{t("impact.soWirdPoolGenutzt")}</h3>
+        letterSpacing:"-0.015em" }}>So wird der Pool genutzt</h3>
 
       <div style={{ background:T.surfaceHi, borderRadius:20, overflow:"hidden",
         boxShadow:S.card, border:`1px solid ${T.line}` }}>
-        {getPoolSlices(t).map((sl, i) => (
+        {POOL_SLICES.map((sl, i) => (
           <div key={i} style={{
             display:"flex", alignItems:"center", gap:12, padding:"13px 16px",
-            borderBottom: i < getPoolSlices(t).length-1 ? `1px solid ${T.line}` : "none",
+            borderBottom: i < POOL_SLICES.length-1 ? `1px solid ${T.line}` : "none",
           }}>
             <div style={{ width:8, height:8, borderRadius:2,
               background:sl.color, flexShrink:0 }}/>
@@ -2875,13 +2844,12 @@ function FondsAufteilungKompakt({ pool }) {
 // LETZTE AUSZAHLUNG (footer-nah, kompakt)
 // ════════════════════════════════════════════════════════════════
 function LetzteAuszahlung({ payout, others }) {
-  const { t } = useTranslation();
   if (!payout?.project) return null;
 
   return (
     <div style={{ padding:"28px 16px 0" }}>
       <h3 style={{ margin:"0 0 14px", fontSize:15, fontWeight: 600, color:T.ink,
-        letterSpacing:"-0.015em" }}>{t("impact.letzteAuszahlung")}</h3>
+        letterSpacing:"-0.015em" }}>Letzte Auszahlung</h3>
 
       <div style={{ background:T.surfaceHi, borderRadius:20, padding:"16px 16px",
         boxShadow:S.card, border:`1px solid ${T.line}` }}>
@@ -2893,14 +2861,14 @@ function LetzteAuszahlung({ payout, others }) {
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontSize:9, color:T.gold, fontWeight: 600,
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:2 }}>
-              {t("impact.gewinner", { month: fmtMonth(t, payout.month) })}
+              GEWINNER {fmtMonth(payout.month)}
             </div>
             <div style={{ fontSize:14, fontWeight: 600, color:T.ink,
               overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
               {payout.project.name}
             </div>
             <div style={{ fontSize:13, color:T.teal, fontWeight: 600 }}>
-              {fmtEur(payout.winnerAmount)} {t("impact.ausgezahlt")}
+              {fmtEur(payout.winnerAmount)} wurden ausgezahlt
             </div>
           </div>
         </div>
@@ -2910,7 +2878,7 @@ function LetzteAuszahlung({ payout, others }) {
           <div>
             <div style={{ fontSize:10, fontWeight: 600, color:T.muted,
               letterSpacing:"0.08em", textTransform:"uppercase", marginBottom:8 }}>
-              {t("impact.zusaetzlichVerteilt")}
+              Zusätzlich verteilt
             </div>
             {others.slice(0,4).map((o,i) => (
               <div key={o.id} style={{ display:"flex", justifyContent:"space-between",
@@ -2924,7 +2892,7 @@ function LetzteAuszahlung({ payout, others }) {
             ))}
             {others.length > 4 && (
               <div style={{ fontSize:10, color:T.muted, marginTop:6 }}>
-                {t("impact.undWeitere", { count: others.length-4 })}
+                … und {others.length-4} weitere Projekte
               </div>
             )}
           </div>
@@ -2941,7 +2909,6 @@ function LetzteAuszahlung({ payout, others }) {
 // HUI INFO SHEET — wiederverwendbar, Escape + Outside-click + Slide
 // ════════════════════════════════════════════════════════════════
 function InfoSheet({ modal, onClose }) {
-  const { t } = useTranslation();
   // Escape schließt
   React.useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -2986,17 +2953,17 @@ function InfoSheet({ modal, onClose }) {
   const CONTENT = {
     // ── Neues Haupt-Modal ────────────────────────────────────────
     leeraus: {
-      title: t("impact.leerausTitle"),
-      subtitle: t("impact.leerausSub"),
+      title: "❤️ Warum geht kein Projekt leer aus?",
+      subtitle: "Die Community entscheidet nur, welches Projekt zuerst verwirklicht wird. Nicht welches gewinnt und welches verliert.",
       body: (
         <>
           {/* Haupttext */}
           {[
-            t("impact.leerausP1"),
-            t("impact.leerausP2"),
-            t("impact.leerausP3"),
-            t("impact.leerausP4"),
-            t("impact.leerausP5"),
+            "Bei HUI gewinnt zwar jeden Monat ein Projekt die Abstimmung und erhält seine komplette Wunschsumme.",
+            "Die übrigen Projekte gehen jedoch nicht leer aus.",
+            "Der verbleibende Community-Anteil des Impact Pools wird auf alle anderen zugelassenen Projekte verteilt.",
+            "Dadurch wächst jedes Projekt Monat für Monat weiter.",
+            "So entsteht kein Alles-oder-Nichts-System.",
           ].map((text, i) => (
             <p key={i} style={{
               margin:"0 0 12px", fontSize:14, color:T.ink2, lineHeight:1.72,
@@ -3009,9 +2976,9 @@ function InfoSheet({ modal, onClose }) {
             borderRadius:16, padding:"16px 18px", marginBottom:16,
           }}>
             {[
-              { icon:"🩷", text: t("impact.leerausK1") },
-              { icon:"📦", text: t("impact.leerausK2") },
-              { icon:"🎯", text: t("impact.leerausK3") },
+              { icon:"🩷", text:"Jede Stimme erzeugt Wirkung." },
+              { icon:"📦", text:"Jedes Projekt erhält Unterstützung." },
+              { icon:"🎯", text:"Früher oder später erreicht jedes Projekt sein Ziel." },
             ].map((item, i) => (
               <div key={i} style={{
                 display:"flex", alignItems:"center", gap:12,
@@ -3034,13 +3001,13 @@ function InfoSheet({ modal, onClose }) {
           }}>
             <div style={{ fontSize:24, marginBottom:8 }}>💚</div>
             <p style={{ margin:"0 0 4px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-              {t("impact.deshalbGilt")}
+              Deshalb gilt bei HUI:
             </p>
             <div style={{
               fontSize:17, fontWeight: 600, color:T.teal,
               letterSpacing:"-0.018em", lineHeight:1.3,
             }}>
-              t("impact.heroSub2")
+              "Kein Projekt geht leer aus."
             </div>
           </div>
         </>
@@ -3049,20 +3016,21 @@ function InfoSheet({ modal, onClose }) {
 
     // ── Zyklus-Modal (unverändert) ───────────────────────────────
     cycle: {
-      title: t("impact.cycleTitle"),
-      subtitle: t("impact.cycleSub"),
+      title: "So funktioniert der Impact Pool",
+      subtitle: "Transparent, fair, jeden Monat neu.",
       body: (
         <>
           <p style={{ color:T.ink2, lineHeight:1.75, fontSize:14, margin:"0 0 12px" }}>
-            {t("impact.cycleP1")}{" "}
-            <b>{t("impact.cycleP1b")}</b> {t("impact.cycleP1c")}
+            Jede Buchung auf HUI erzeugt eine Provision.{" "}
+            <b>6% des Umsatzes</b> fließen direkt in den Impact Pool — automatisch, jeden Monat.
           </p>
           <p style={{ color:T.ink2, lineHeight:1.75, fontSize:14, margin:"0 0 12px" }}>
-            {t("impact.cycleP2")}
+            Das HUI-Team prüft Bewerbungen, nominiert drei Projekte und die Community stimmt ab.
           </p>
           <p style={{ color:T.ink2, lineHeight:1.75, fontSize:14, margin:0 }}>
-            {t("impact.cycleP3")}{" "}
-            <b style={{ color:T.teal }}>{t("impact.heroSub2")}</b>
+            Das Siegerprojekt erhält seine volle Wunschsumme. Der Restbetrag wird automatisch
+            auf alle anderen verteilt.{" "}
+            <b style={{ color:T.teal }}>Kein Projekt geht leer aus.</b>
           </p>
         </>
       ),
@@ -3070,17 +3038,17 @@ function InfoSheet({ modal, onClose }) {
 
     // ── Vote-Modal (Fallback, bleibt erhalten) ───────────────────
     vote: {
-      title: t("impact.voteTitle"),
+      title: "So funktioniert die Abstimmung",
       subtitle: null,
       body: (
         <>
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {[
-              { icon:"🎨", text: t("impact.voteI1") },
-              { icon:"👤", text: t("impact.voteI2") },
-              { icon:"📅", text: t("impact.voteI3") },
-              { icon:"🏆", text: t("impact.voteI4") },
-              { icon:"🌱", text: t("impact.voteI5") },
+              { icon:"🎨", text:"Nur Talente können abstimmen: 1 Stimme pro Monat" },
+              { icon:"👤", text:"Basis-Nutzer haben kein Stimmrecht" },
+              { icon:"📅", text:"Stimmen verfallen am Monatsende — sie addieren sich nicht" },
+              { icon:"🏆", text:"Projekt mit den meisten Stimmen erhält die volle Wunschsumme" },
+              { icon:"🌱", text:"Restbetrag geht fair an alle anderen Projekte" },
             ].map((item,i) => (
               <div key={i} style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
                 <span style={{ fontSize:20, flexShrink:0 }}>{item.icon}</span>
@@ -3130,7 +3098,7 @@ function InfoSheet({ modal, onClose }) {
         <button
           onClick={onClose}
           className="ip-p"
-          aria-label={t("impact.schliessen")}
+          aria-label="Schließen"
           style={{
             // FIX (2026-08-23): absolute top:16 ignorierte die Safe-Area —
             // gleiches Maß wie Header-Top-Padding.
@@ -3194,7 +3162,7 @@ function InfoSheet({ modal, onClose }) {
         }}
         onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
         onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-        >{t("impact.verstanden")}</button>
+        >Verstanden</button>
       </div>
     </div>,
     document.body
