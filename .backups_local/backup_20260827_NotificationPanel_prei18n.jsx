@@ -51,10 +51,7 @@ function fmtTime(iso) {
 }
 
 // ── Universelles Inline-Modal (kein createPortal!) ────────────────────────────
-function InlineModal({ onClose, icon, title, subtitle, accentColor = "#0EC4B8", children, btnLabel }) {
-  const { t } = useTranslation();
-  const resolvedBtnLabel = btnLabel || t("notif.understood");
-  if (!btnLabel) btnLabel = t("notif.understood");
+function InlineModal({ onClose, icon, title, subtitle, accentColor = "#0EC4B8", children, btnLabel = "Verstanden" }) {
   return (
     <div
       onClick={onClose}
@@ -99,46 +96,63 @@ function InlineModal({ onClose, icon, title, subtitle, accentColor = "#0EC4B8", 
 }
 
 // ── NotifCard ────────────────────────────────────────────────────────────────
-function getMetaMap(t) {
-  return {
-  work_sensitive:         { emoji:"⚠️", label:t("notif.metaLabel.workSensitive")        },
-  work_deleted:           { emoji:"🗑", label:t("notif.metaLabel.workDeleted")          },
-  meldung_aufgehoben:     { emoji:"✅", label:t("notif.metaLabel.meldungAufgehoben")     },
-  new_follower:           { emoji:<HUIProfilIcon size={18}/>, label:t("notif.metaLabel.newFollower")         },
-  new_booking:            { emoji:"📅", label:t("notif.metaLabel.newBooking")           },
+const META = {
+  work_approved:          { emoji:"✅", label:"Werk freigegeben"      },
+  work_rejected:          { emoji:"❌", label:"Werk abgelehnt"         },
+  content_rejected:       { emoji:"❌", label:"Inhalt abgelehnt"       },
+  experience_approved:    { emoji:"✅", label:"Erlebnis freigegeben"   },
+  moment_removed:         { emoji:"🗑", label:"Moment entfernt"         },
+  moment_reported:        { emoji:"⚠️", label:"Moment gemeldet"         },
+  moment_reported_removed:{ emoji:"🚫", label:"Moment entfernt (Meldungen)" },
+  moment_updated:         { emoji:"✏️", label:"Moment aktualisiert"     },
+  talent_updated:         { emoji:"✏️", label:"Talent aktualisiert"     },
+  experience_updated:     { emoji:"✏️", label:"Erlebnis aktualisiert"  },
+  project_approved:       { emoji:"✅", label:"Projekt freigegeben"     },
+  project_updated:        { emoji:"✏️", label:"Projekt aktualisiert"   },
+  experience_rejected:    { emoji:"❌", label:"Erlebnis abgelehnt"     },
+  project_rejected:       { emoji:"❌", label:"Projekt abgelehnt"      },
+  impact_project_approved:{ emoji:"💚", label:"Herzensprojekt angenommen" },
+  impact_project_rejected:{ emoji:"💔", label:"Herzensprojekt abgelehnt" },
+  admin_broadcast:        { emoji:"📢", label:"Nachricht vom Admin"    },
+  broadcast:              { emoji:"📢", label:"Nachricht vom Admin"    },
+  support_ticket_reply:   { emoji:"🎧", label:"Support hat geantwortet"},
+  support_ticket:         { emoji:"🎧", label:"Support-Nachricht"      },
+  work_sensitive:         { emoji:"⚠️", label:"Inhalt gemeldet"        },
+  work_deleted:           { emoji:"🗑", label:"Werk entfernt"          },
+  meldung_aufgehoben:     { emoji:"✅", label:"Meldung aufgehoben"     },
+  new_follower:           { emoji:<HUIProfilIcon size={18}/>, label:"Neuer Follower"         },
+  new_booking:            { emoji:"📅", label:"Neue Buchung"           },
   // RESONANZ-BUCHUNG-001 (2026-08-08): Talent- + Erlebnis-Buchungen
-  talent_booking_paid:        { emoji:"📅", label:t("notif.metaLabel.talentBookingPaid")        },
-  talent_booking_confirmed:   { emoji:"📅", label:t("notif.metaLabel.talentBookingConfirmed")   },
-  talent_booking_cancelled:   { emoji:"⚠️", label:t("notif.metaLabel.talentBookingCancelled")   },
-  experience_booking_paid:      { emoji:"🌿", label:t("notif.metaLabel.experienceBookingPaid")      },
-  experience_booking_confirmed: { emoji:"🌿", label:t("notif.metaLabel.experienceBookingConfirmed") },
-  experience_booking_cancelled: { emoji:"⚠️", label:t("notif.metaLabel.experienceBookingCancelled") },
-  new_order:              { emoji:"🎨", label:t("notif.metaLabel.newOrder")        },
+  talent_booking_paid:        { emoji:"📅", label:"Neue Buchung"        },
+  talent_booking_confirmed:   { emoji:"📅", label:"Buchung bestätigt"   },
+  talent_booking_cancelled:   { emoji:"⚠️", label:"Buchung storniert"   },
+  experience_booking_paid:      { emoji:"🌿", label:"Neue Buchung"      },
+  experience_booking_confirmed: { emoji:"🌿", label:"Buchung bestätigt" },
+  experience_booking_cancelled: { emoji:"⚠️", label:"Buchung storniert" },
+  new_order:              { emoji:"🎨", label:"Neue Bestellung"        },
   // MERKEN.6 (2026-07-08): zusammengefasste Merken-Digests (taeglich/
   // woechentlich), NIE eine Notification pro einzelnem Speichervorgang.
-  save_digest:            { emoji:"🔖", label:t("notif.metaLabel.saveDigest") },
+  save_digest:            { emoji:"🔖", label:"Gemerkt-Zusammenfassung" },
   // KOMMENTAR.1 (2026-07-09): Kommentar/Antwort auf eigenen Beitrag.
-  comment:                { emoji:"💬", label:t("notif.metaLabel.comment")        },
-  comment_reply:          { emoji:"💬", label:t("notif.metaLabel.commentReply") },
+  comment:                { emoji:"💬", label:"Neuer Kommentar"        },
+  comment_reply:          { emoji:"💬", label:"Antwort auf deinen Kommentar" },
   // RESONANZ.3 (2026-07-16): Resonanz auf eigenen Beitrag.
-  resonanz:               { emoji:<HUIHeartIcon size={18}/>,            label:t("notif.metaLabel.resonanz")               },
-  like:                   { emoji:"✦",  label:t("notif.metaLabel.like")       },
+  resonanz:               { emoji:<HUIHeartIcon size={18}/>,            label:"Resonanz"               },
+  like:                   { emoji:"✦",  label:"Gefällt jemandem"       },
   // RESONANZ.5 (2026-07-30): Save + Share Notifications
-  save:                   { emoji:"🔖", label:t("notif.metaLabel.save")    },
-  share:                  { emoji:"↗",  label:t("notif.metaLabel.share")        },
-  order_confirmed:        { emoji:"✓",   label:t("notif.metaLabel.orderConfirmed")     },
-  impact_project_submitted:{ emoji:"💚",  label:t("notif.metaLabel.impactProjectSubmitted")  },
-  impact_project_deleted:  { emoji:"🗑",  label:t("notif.metaLabel.impactProjectDeleted")     },
-  impact_project_completed:{ emoji:"💚",  label:t("notif.metaLabel.impactProjectCompleted")           },
-  work_flagged:            { emoji:"⚠️", label:t("notif.metaLabel.workFlagged")              },
-  content_deleted:         { emoji:"🗑",  label:t("notif.metaLabel.contentDeleted")             },
-  content_approved:        { emoji:"✅",  label:t("notif.metaLabel.contentApproved")          },
-    default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:t("notif.metaLabel.notification")       },
-  };
-}
+  save:                   { emoji:"🔖", label:"Beitrag gespeichert"    },
+  share:                  { emoji:"↗",  label:"Beitrag geteilt"        },
+  order_confirmed:        { emoji:"✓",   label:"Unterstützung bestätigt"     },
+  impact_project_submitted:{ emoji:"💚",  label:"Herzensprojekt eingereicht"  },
+  impact_project_deleted:  { emoji:"🗑",  label:"Herzensprojekt entfernt"     },
+  impact_project_completed:{ emoji:"💚",  label:"Projekt finanziert"           },
+  work_flagged:            { emoji:"⚠️", label:"Inhalt gemeldet"              },
+  content_deleted:         { emoji:"🗑",  label:"Inhalt gelöscht"             },
+  content_approved:        { emoji:"✅",  label:"Inhalt freigegeben"          },
+    default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:"Benachrichtigung"       },
+};
 
-function getMeta(type, t) { const m = getMetaMap(t); return m[type] || m.default; }
-
+function getMeta(type) { return META[type] || META.default; }
 
 function parseMeta(raw) {
   if (!raw) return {};
@@ -155,9 +169,8 @@ function parseMeta(raw) {
 
 // ── Universal Detail-Modal ────────────────────────────────────────────────────
 function DetailModal({ n, onClose, onAction }) {
-  const { t } = useTranslation();
   const md = parseMeta(n.metadata);
-  const meta = getMeta(n.type, t);
+  const meta = getMeta(n.type);
   // BELEG-006 (2026-08-14): Beleg-Vorschau nach Speichern -- ersetzt das automatische
   // Share-Sheet, siehe BelegViewerModal.jsx fuer die Begruendung.
   const [receiptPreview, setReceiptPreview] = useState(null);
@@ -187,11 +200,11 @@ function DetailModal({ n, onClose, onAction }) {
       const typeMap = {
         talent_rejected:         { label:"Talent",           emoji:"⭐" },
       };
-      const tm = typeMap[t] || { label:t("notif.meta.entry"), emoji:"📋" };
+      const tm = typeMap[t] || { label:"Eintrag", emoji:"📋" };
       const reason = md.rejection_reason || md.reason
         || (n.body?.match(/Grund[:：]\s*(.+)/s)?.[1]?.trim())
-        || n.body || t("notif.meta.noReason");
-      const entryTitle = md.entry_title || md.project_name || md.werk_title || t("notif.meta.yourEntry", {type: tm.label});
+        || n.body || "(Kein Grund angegeben)";
+      const entryTitle = md.entry_title || md.project_name || md.werk_title || `Dein ${tm.label}`;
       // entity_type-Mapping: impact_project_rejected → "project"
       const rejectedEntityType = n.entity_type === "impact_project" ? "project" : (n.entity_type || null);
       // Werk/Erlebnis/Talent: nur wenn entity_type=work|experience|talent (nicht gelöscht)
@@ -199,15 +212,15 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#DC2626",
         headerIcon: "❌",
-        headerTitle: t("notif.meta.entryRejected", {type: tm.label}),
+        headerTitle: `${tm.label} abgelehnt`,
         headerSubtitle: `„${entryTitle}"`,
         blocks: [
-          { type:"label-text", label:t("notif.meta.adminMessage"), text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
-          { type:"info", text: t("notif.meta.reviseResubmit") },
+          { type:"label-text", label:"Nachricht vom Admin", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"info", text: "Du kannst den Eintrag überarbeiten und erneut einreichen." },
         ],
         entityId:   canPreviewRejected ? (n.entity_id || md.werk_id || null) : null,
         entityType: canPreviewRejected ? rejectedEntityType : null,
-        actionLabel: canPreviewRejected ? t("notif.meta.entryViewAction", {type: tm.label}) : null,
+        actionLabel: canPreviewRejected ? `${tm.label} ansehen →` : null,
       };
     }
 
@@ -218,7 +231,7 @@ function DetailModal({ n, onClose, onAction }) {
       };
       const am = approvalMap[t] || { label:"Inhalt", emoji:"✅" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || n.title || `Dein ${am.label}`;
-      const msg = md.message || md.admin_note || n.body || t("notif.meta.congrats");
+      const msg = md.message || md.admin_note || n.body || "Herzlichen Glückwunsch!";
       // entity_type-Mapping für openRef: impact_project_approved → "project"
       const approvedEntityType = n.entity_type === "impact_project" ? "project" : (n.entity_type || null);
       return {
@@ -274,8 +287,8 @@ function DetailModal({ n, onClose, onAction }) {
       const shareType  = md.post_type || md.entity_type || n.entity_type || "";
       const typeLabel  = {
         work:"Werk", talent:"Talent-Angebot", moment:"Beitrag", beitrag:"Beitrag",
-        experience:t("notif.meta.experience"), project:t("notif.meta.project"), event:t("notif.meta.event"),
-      }[shareType] || t("notif.meta.content");
+        experience:"Erlebnis", project:"Impact-Projekt", event:"Veranstaltung",
+      }[shareType] || "Inhalt";
       // Unterscheide: hat diese Notif entity_id? → Autor-Sicht (Beitrag geteilt)
       //               ohne entity_id → Empfänger-Sicht (jemand schickt dir was)
       const isAuthorView = !!(n.entity_id || md.post_id);
@@ -283,27 +296,27 @@ function DetailModal({ n, onClose, onAction }) {
         return {
           accentColor: "#0EC4B8",
           headerIcon: "↗",
-          headerTitle: n.title || t("notif.meta.someoneShared"),
+          headerTitle: n.title || "Jemand hat deinen Beitrag geteilt",
           headerSubtitle: sharePost ? `„${sharePost}"` : null,
           blocks: [],
           entityId:   n.entity_id || md.post_id || null,
           entityType: n.entity_type || md.post_type || null,
-          actionLabel: t("notif.meta.openAction", {type: typeLabel}),
+          actionLabel: `${typeLabel} öffnen →`,
         };
       }
       // Legacy: Empfänger-Sicht
-      const senderName = md.sender_name || t("notif.meta.someone");
-      const contentTitle = sharePost || n.body || t("notif.meta.contentGeneric");
+      const senderName = md.sender_name || "Jemand";
+      const contentTitle = sharePost || n.body || "Einen Inhalt";
       return {
         accentColor: "#0EC4B8",
         headerIcon: "↗",
-        headerTitle: t("notif.meta.showContent", {sender: senderName}),
+        headerTitle: `${senderName} möchte dir was zeigen`,
         headerSubtitle: typeLabel ? `${typeLabel}: „${contentTitle}"` : contentTitle,
         blocks: [
           md.message && { type:"label-text", label:"Nachricht", text: md.message, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ].filter(Boolean),
         actionUrl: n.action_url || md.entity_url || null,
-        actionLabel: t("notif.meta.viewAction", {type: typeLabel || t("notif.meta.content")}),
+        actionLabel: `${typeLabel || "Inhalt"} ansehen →`,
         entityId:   n.entity_id   || md.entity_id   || null,
         entityType: n.entity_type || md.entity_type || shareType || null,
       };
@@ -317,7 +330,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Inhalt gemeldet",
         headerSubtitle: md.entry_title || n.title || null,
         blocks: [
-          { type:"label-text", label:t("notif.meta.details"), text: md.reason || n.body || t("notif.meta.contentReported"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+          { type:"label-text", label:"Details", text: md.reason || n.body || "Dein Inhalt wurde gemeldet und wird geprüft.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
         ],
       };
     }
@@ -372,7 +385,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#22C55E",
         headerIcon: isTalent ? "📅" : "🌿",
-        headerTitle: isSellerView ? t("notif.meta.newBookingSeller") : t("notif.meta.bookingConfirmed2"),
+        headerTitle: isSellerView ? "Neue Buchung 🎉" : "Buchung bestätigt ✓",
         headerSubtitle: `„${offerTitle}"`,
         blocks: [
           { type:"stat", label: isSellerView ? "Gebucht von" : "Gebucht bei", value: otherUserLabel },
@@ -439,7 +452,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✓",
-        headerTitle: n.title || t("notif.meta.paymentConfirmed"),
+        headerTitle: n.title || "Zahlung bestätigt",
         headerSubtitle: null,
         blocks: [
           amount && { type:"stat", label:"Betrag", value: amount },
@@ -477,7 +490,7 @@ function DetailModal({ n, onClose, onAction }) {
         ].filter(Boolean),
         entityId:   cmEntityId,
         entityType: cmEntityType,
-        actionLabel: t("notif.meta.openAction", {type: typeLabel}),
+        actionLabel: `${typeLabel} öffnen →`,
       };
     }
 
@@ -494,7 +507,7 @@ function DetailModal({ n, onClose, onAction }) {
         blocks: [],
         entityId:   n.entity_id   || md.post_id   || null,
         entityType: n.entity_type || md.post_type || null,
-        actionLabel: t("notif.meta.openAction", {type: typeLabel}),
+        actionLabel: `${typeLabel} öffnen →`,
       };
     }
 
@@ -512,7 +525,7 @@ function DetailModal({ n, onClose, onAction }) {
         blocks: [],
         entityId:   n.entity_id || md.post_id || null,
         entityType: n.entity_type || md.post_type || null,
-        actionLabel: t("notif.meta.openAction", {type: typeLabel}),
+        actionLabel: `${typeLabel} öffnen →`,
       };
     }
 
@@ -538,7 +551,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✓",
-        headerTitle: n.title || t("notif.meta.supportConfirmed"),
+        headerTitle: n.title || "Unterstützung bestätigt ✓",
         headerSubtitle: offerTitle ? `„${offerTitle}"` : null,
         blocks: [
           { type:"stat", label:"Gekauft bei", value: sellerName },
@@ -576,12 +589,12 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#22C55E",
         headerIcon: "💚",
-        headerTitle: n.title || t("notif.meta.projectFunded"),
+        headerTitle: n.title || "Projekt vollständig finanziert!",
         headerSubtitle: `„${projectName}"`,
         blocks: [
           funded && { type:"stat", label:"Erreicht", value: funded },
           goal && { type:"stat", label:"Ziel", value: goal },
-          { type:"info", text: t("notif.meta.projectFundedBody") },
+          { type:"info", text: "Herzlichen Glückwunsch! Dein Herzensprojekt hat sein Finanzierungsziel erreicht." },
         ].filter(Boolean),
         entityId: md.project_id || n.entity_id || null,
         entityType: "project",
@@ -598,7 +611,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Herzensprojekt eingereicht",
         headerSubtitle: `„${projectName}"`,
         blocks: [
-          { type:"label-text", label:t("notif.meta.status"), text: n.body || t("notif.meta.adminReview"), color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+          { type:"label-text", label:"Status", text: n.body || "Ein Admin prüft dein Projekt und meldet sich bei dir.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ],
         actionUrl: n.action_url || "/impact",
         actionLabel: "Zum Impactbereich →",
@@ -630,7 +643,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Inhalt gemeldet",
         headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
         blocks: [
-          { type:"label-text", label:t("notif.meta.details"), text: n.body || t("notif.meta.contentReported"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+          { type:"label-text", label:"Details", text: n.body || "Dein Inhalt wurde gemeldet und wird geprüft.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
         ],
       };
     }
@@ -642,7 +655,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#DC2626",
         headerIcon: "🗑",
-        headerTitle: t("notif.meta.contentDeleted2", {type: entityLabel}),
+        headerTitle: `${entityLabel} gelöscht`,
         headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
         blocks: [
           { type:"label-text", label:"Details", text: md.reason || n.body || "Dein Inhalt wurde entfernt.", color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
@@ -660,7 +673,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Moment entfernt",
         headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
         blocks: [
-          { type:"label-text", label:t("notif.meta.adminReason"), text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"label-text", label:"Begründung des Admins", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
           { type:"info", text: "Bei Fragen wende dich bitte an den Support." },
         ],
       };
@@ -675,8 +688,8 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Moment gemeldet",
         headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
         blocks: [
-          { type:"label-text", label:t("notif.meta.hint"), text: n.body || t("notif.meta.momentReported"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
-          { type:"info", text: t("notif.meta.noActionNeeded") },
+          { type:"label-text", label:"Hinweis", text: n.body || "Dein Moment wurde von einem Nutzer gemeldet und wird geprüft.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+          { type:"info", text: "Sollte dein Moment gegen keine Richtlinien verstoßen, ist keine Aktion nötig." },
         ],
       };
     }
@@ -745,7 +758,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: n.title || "Zahlung freigegeben — Bankdaten fehlen",
         headerSubtitle: null,
         blocks: [
-          { type:"label-text", label:t("notif.meta.message"), text: n.body || t("notif.meta.bankDataHint"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
+          { type:"label-text", label:"Nachricht", text: n.body || "Bitte hinterlege deine Bankdaten in den Einstellungen, damit wir dir dein Geld überweisen können.", color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
         ],
         bankdatenLink: true,
       };
@@ -759,7 +772,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: n.title || "Zahlung freigegeben ✓",
         headerSubtitle: null,
         blocks: [
-          { type:"label-text", label:t("notif.meta.details"), text: n.body || t("notif.meta.payoutReleased"), color:"#22C55E", bg:"rgba(34,197,94,0.06)", border:"rgba(34,197,94,0.22)" },
+          { type:"label-text", label:"Details", text: n.body || "Der Käufer hat den Erhalt bestätigt. Die Auszahlung wurde freigegeben und überwiesen.", color:"#22C55E", bg:"rgba(34,197,94,0.06)", border:"rgba(34,197,94,0.22)" },
         ],
       };
     }
@@ -1009,11 +1022,10 @@ function DetailModal({ n, onClose, onAction }) {
 // ── NotifCard ──────────────────────────────────────────────────────────────
 // Jede Karte öffnet beim Klick das universelle DetailModal.
 function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
-  const { t } = useTranslation();
   const { openCreatorProfile } = useProfileLauncher();
   const [open, setOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const meta = getMeta(n.type, t);
+  const meta = getMeta(n.type);
 
   const handleOpen = (e) => {
     e?.stopPropagation?.();
@@ -1127,7 +1139,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
                       display:"inline-flex", alignItems:"center", gap:3,
                     }}
                   >
-                    {t("notif.deleteBtn")}
+                    ✕ Löschen
                   </button>
                 )}
                 {/* Pfeil-Indikator */}
@@ -1156,19 +1168,19 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
               boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
-            <div style={{ fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8 }}>{t("notif.deleteConfirmTitle")}</div>
+            <div style={{ fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8 }}>Nachricht löschen?</div>
             <div style={{ fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5 }}>
-              {t("notif.deleteConfirmBody")}
+              Diese Benachrichtigung wird dauerhaft entfernt.
             </div>
             <div style={{ display:"flex", gap:10 }}>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 style={{ flex:1, padding:"12px", borderRadius:99, background:"rgba(26,26,24,0.07)", border:"none", color:"#1a1a18", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}
-              >{t("notif.cancel")}</button>
+              >Abbrechen</button>
               <button
                 onClick={() => { setShowDeleteConfirm(false); onDelete?.(n.id); }}
                 style={{ flex:1, padding:"12px", borderRadius:99, background:"#DC2626", border:"none", color:"#fff", fontSize:13, fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}
-              >{t("notif.delete")}</button>
+              >Löschen</button>
             </div>
           </div>
         </div>
@@ -1179,7 +1191,6 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
 
 // ── NotificationPanel (Side-Drawer) ────────────────────────────────────────
 export default function NotificationPanel({ userId, onClose, onUnreadChange, onAction = () => {} }) {
-  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "NotificationPanel");
   const [notifs,  setNotifs]  = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1296,10 +1307,10 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
   };
 
   const TABS = [
-    { key:"all",          label:t("notif.tab.all")          },
-    { key:"buchungen",    label:t("notif.tab.buchungen")     },
-    { key:"kauf_verkauf", label:t("notif.tab.kaufVerkauf")},
-    { key:"informativ",   label:t("notif.tab.informativ")    },
+    { key:"all",          label:"Alle"          },
+    { key:"buchungen",    label:"Buchungen"     },
+    { key:"kauf_verkauf", label:"Kauf & Verkauf"},
+    { key:"informativ",   label:"Informativ"    },
   ];
 
   const visible = notifs.filter(TAB_FILTERS[tab] || (() => true));
@@ -1329,7 +1340,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
             <HUIBenachrichtigungIcon size={20} />
-            <span style={{ fontSize:17, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{t("notif.center")}</span>
+            <span style={{ fontSize:17, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Resonanzzentrum</span>
             {unreadCount > 0 && (
               <span style={{ background:T.teal, color:"white", borderRadius:T.r99, padding:"2px 8px", fontSize:11, fontWeight: 600 }}>{unreadCount}</span>
             )}
@@ -1370,7 +1381,7 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
               padding:"4px 10px", borderRadius:99,
               border:`1px solid ${T.tealMid}`,
             }}>
-              {t("notif.markAllRead")}
+              Alle gelesen ✓
             </button>
           </div>
         )}
@@ -1378,11 +1389,11 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         {/* Liste */}
         <div style={{ flex:1, overflowY:"auto", padding:"12px 16px 24px" }}>
           {loading ? (
-            <div style={{ textAlign:"center", padding:"40px 0", color:T.inkFaint, fontSize:13 }}>{t("notif.loading")}</div>
+            <div style={{ textAlign:"center", padding:"40px 0", color:T.inkFaint, fontSize:13 }}>Lädt…</div>
           ) : visible.length === 0 ? (
             <div style={{ textAlign:"center", padding:"48px 0" }}>
               <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIBenachrichtigungIcon size={36}/></div>
-              <div style={{ fontSize:14, color:T.inkFaint }}>{t("notif.empty")}</div>
+              <div style={{ fontSize:14, color:T.inkFaint }}>Keine Benachrichtigungen</div>
             </div>
           ) : (
             visible.map(n => (

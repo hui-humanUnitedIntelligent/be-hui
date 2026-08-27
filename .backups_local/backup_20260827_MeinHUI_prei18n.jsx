@@ -14,7 +14,6 @@ import { APP_VERSION } from "../version";
 import { optimizeAvatar } from "../lib/perfUtils.js";
 import { useHuiActions, A } from "../core/hui.actions.js";
 import { useOrbGrowthStage, getOrbStageImage } from "../hooks/useOrbGrowthStage.js";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 // ─────────────────────────────────────────────────────────────────
 // DESIGN TOKENS (gleiche wie v5.0)
@@ -128,7 +127,6 @@ function FadeUp({ delay = 0, children, style }) {
 // DATA HOOK — Lädt echte Nutzer-Daten
 // ─────────────────────────────────────────────────────────────────
 function useWirkungsraumData(profile) {
-  const { t } = useTranslation();
   const [data, setData] = useState({
     loading: true,
     daysSince: 0,
@@ -163,11 +161,11 @@ function useWirkungsraumData(profile) {
     weekActivity: { connections: 0, works: 0, orders: 0 },
     // NEU: Grundpfeiler-Statistiken
     pillarStats: {
-      verbinden: { count: 0, label: t("meinhui.stats.connections"), sub: t("meinhui.stats.connectionsSub") },
-      unterstuetzen: { count: 0, label: t("meinhui.stats.support"), sub: t("meinhui.stats.supportSub") },
-      erschaffen: { count: 0, label: t("meinhui.stats.works"), sub: t("meinhui.stats.worksSub") },
-      wertschoepfen: { count: 0, label: t("meinhui.stats.sales"), sub: t("meinhui.stats.salesSub") },
-      impact: { count: 0, label: t("meinhui.stats.impact"), sub: t("meinhui.stats.impactSub") },
+      verbinden: { count: 0, label: "Verbindungen", sub: "aktive Begegnungen" },
+      unterstuetzen: { count: 0, label: "Unterstützungen", sub: "gegebener Halt" },
+      erschaffen: { count: 0, label: "Werke", sub: "erschaffen" },
+      wertschoepfen: { count: 0, label: "Verkäufe", sub: "Wert geschaffen" },
+      impact: { count: 0, label: "Impact", sub: "Menschen erreicht" },
     },
   });
 
@@ -372,7 +370,7 @@ function useWirkungsraumData(profile) {
                 color = T.teal; bg = T.tealSoft; border = "rgba(13,196,181,0.13)";
                 break;
               case "talent_booking_paid":
-                icon = "📅"; label = t("meinhui.activity.bookingConfirmed", {title: md.offer_title || t("meinhui.pillar.create.label")});
+                icon = "📅"; label = `Buchung bestätigt: ${md.offer_title || "Talent"}`;
                 color = T.gold; bg = T.goldSoft; border = "rgba(212,149,42,0.13)";
                 break;
               case "new_follower":
@@ -381,7 +379,7 @@ function useWirkungsraumData(profile) {
                 color = T.teal; bg = T.tealSoft; border = "rgba(13,196,181,0.13)";
                 break;
               case "work_published":
-                icon = "✏️"; label = t("meinhui.activity.workPublished");
+                icon = "✏️"; label = `Du hast ein Werk veröffentlicht`;
                 color = T.sage; bg = T.sageSoft; border = "rgba(92,168,122,0.13)";
                 break;
               case "impact_project_completed":
@@ -397,7 +395,7 @@ function useWirkungsraumData(profile) {
                 color = T.gold; bg = T.goldSoft; border = "rgba(212,149,42,0.13)";
                 break;
               default:
-                icon = "♡"; label = n.type || t("meinhui.activity.default");
+                icon = "♡"; label = n.type || "Aktivität";
             }
             return { icon, label, time: timeStr, color, bg, border };
           });
@@ -405,9 +403,9 @@ function useWirkungsraumData(profile) {
         // Grundpfeiler-Statistiken berechnen
         const pillarStats = {
           verbinden: { count: (fc?.[0]?.followers ?? 0) + (fc?.[0]?.following ?? 0), label: "Verbindungen", sub: "aktive Begegnungen" },
-          unterstuetzen: { count: commentsCount || 0, label: t("meinhui.stats.contributions"), sub: t("meinhui.stats.contributionsSub") },
+          unterstuetzen: { count: commentsCount || 0, label: "Beiträge", sub: "Halt gegeben" },
           erschaffen: { count: worksCount || 0, label: "Werke", sub: "erschaffen" },
-          wertschoepfen: { count: salesCount || 0, label: t("meinhui.stats.sales"), sub: t("meinhui.stats.salesSub") },
+          wertschoepfen: { count: salesCount || 0, label: "Verkäufe", sub: "Wert geschaffen" },
           impact: { count: reachCount || 0, label: "Menschen", sub: "erreicht" },
         };
 
@@ -469,9 +467,8 @@ function useWirkungsraumData(profile) {
 // PROFILE HEADER
 // ─────────────────────────────────────────────────────────────────
 function ProfileHeader({ profile, onClose, delay }) {
-  const { t } = useTranslation();
   const avatarUrl = optimizeAvatar(profile?.avatar_url);
-  const name = profile?.display_name || profile?.full_name || profile?.username || t("meinhui.welcomeBack");
+  const name = profile?.display_name || profile?.full_name || profile?.username || "Nutzer";
   return (
     <FadeUp delay={delay}>
       <div style={{
@@ -492,13 +489,13 @@ function ProfileHeader({ profile, onClose, delay }) {
               {name}
             </div>
             <div style={{ fontFamily: FONT, fontSize: 12, color: T.inkSoft, lineHeight: 1.2 }}>
-              {t("meinhui.welcomeBack")}
+              Willkommen zurück
             </div>
           </div>
         </div>
         <button
           onClick={onClose}
-          aria-label={t("meinhui.close")}
+          aria-label="Schließen"
           style={{
             width: 36, height: 36, borderRadius: "50%",
             border: "none", background: T.creamDeep, cursor: "pointer",
@@ -530,7 +527,6 @@ const LEAVES = [
 // ORB HERO — zentraler Orb mit Atmosphäre (Original-Layout, echte Daten)
 // ─────────────────────────────────────────────────────────────────
 function OrbHero({ data, profile, coreDelay, infoDelay }) {
-  const { t } = useTranslation();
   const { stage: orbStage } = useOrbGrowthStage(profile?.id || null);
   const orbStageImg = getOrbStageImage(orbStage);
   return (
@@ -636,7 +632,7 @@ function OrbHero({ data, profile, coreDelay, infoDelay }) {
           lineHeight: 1.6, color: T.inkSoft, margin: "0 0 14px",
           letterSpacing: "0.005em",
         }}>
-          {t("meinhui.tagline")}
+          Dein Blatt wächst durch das, was du für andere bewirkst.
         </p>
         <div style={{ color: T.coral, fontSize: 15, opacity: 0.75 }}>♡</div>
       </FadeUp>
@@ -648,8 +644,8 @@ function OrbHero({ data, profile, coreDelay, infoDelay }) {
         zIndex: 2,
       }}>
         {[
-          { icon: "🌱", label: t("meinhui.journey.intro"), sub: data.loading ? "…" : t("meinhui.label.sinceDays", {count: data.daysSince}), glow: T.sageSoft },
-          { icon: "🔥", label: t("meinhui.label.impactSown"), sub: data.loading ? "…" : t("meinhui.label.impulsesCount", {count: data.worksCount + data.ordersCount + data.bookingsCount}), glow: "rgba(244,115,85,0.08)" },
+          { icon: "🌱", label: "Deine Reise", sub: data.loading ? "…" : `seit ${data.daysSince} Tagen`, glow: T.sageSoft },
+          { icon: "🔥", label: "Impact gesät", sub: data.loading ? "…" : `${data.worksCount + data.ordersCount + data.bookingsCount} Impulse`, glow: "rgba(244,115,85,0.08)" },
           { icon: "👥", label: "Verbindungen", sub: data.loading ? "…" : `${data.followers} Menschen`, glow: T.tealSoft },
         ].map((s, i) => (
           <FadeUp key={i} delay={infoDelay}>
@@ -692,50 +688,43 @@ function OrbHero({ data, profile, coreDelay, infoDelay }) {
 // ─────────────────────────────────────────────────────────────────
 // GRUNDPFEILER
 // ─────────────────────────────────────────────────────────────────
-function getPillars(t) {
-  return [
+const PILLARS = [
   {
-    key: "connect",
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
-    label: t("meinhui.pillar.connect.label"),
-    text: t("meinhui.pillar.connect.text"),
+    label: "Verbinden",
+    text: "Du baust Brücken und schaffst echte Begegnungen.",
     accent: T.teal, bg: T.tealPale, border: "rgba(13,196,181,0.16)", glow: "rgba(13,196,181,0.14)",
-    detail: t("meinhui.pillar.connect.detail"),
+    detail: "Du baust Brücken und schaffst echte Begegnungen. Jede Verbindung ist eine Tür zu einer neuen Perspektive. Menschen, die du triffst, bereichern deinen Weg und du bereicherst ihren.",
   },
   {
-    key: "support",
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>,
-    label: t("meinhui.pillar.support.label"),
-    text: t("meinhui.pillar.support.text"),
+    label: "Unterstützen",
+    text: "Du stärkst andere und gibst Halt, wo er gebraucht wird.",
     accent: T.sage, bg: T.sagePale, border: "rgba(92,168,122,0.18)", glow: "rgba(92,168,122,0.14)",
-    detail: t("meinhui.pillar.support.detail"),
+    detail: "Du stärkst andere und gibst Halt, wo er gebraucht wird. Unterstützung ist nicht nur Hilfe — sie ist Anerkennung. Wenn du anderen Halt gibst, wächst auch deine eigene Kraft.",
   },
   {
-    key: "create",
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
-    label: t("meinhui.pillar.create.label"),
-    text: t("meinhui.pillar.create.text"),
+    label: "Erschaffen",
+    text: "Du bringst Ideen in die Welt und schaffst Neues.",
     accent: T.coral, bg: "rgba(244,115,85,0.06)", border: "rgba(244,115,85,0.15)", glow: "rgba(244,115,85,0.12)",
-    detail: t("meinhui.pillar.create.detail"),
+    detail: "Du bringst Ideen in die Welt und schaffst Neues. Ersaffen bedeutet, etwas sichtbar zu machen, das vorher unsichtbar war. Jedes Werk ist ein Stück von dir, das weiterlebt.",
   },
   {
-    key: "value",
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="8" r="4"/><path d="M12 2v2m0 8v2m4-6h2M2 8h2m12.95 4.95 1.41 1.41M4.64 4.64l1.41 1.41M19.36 4.64l-1.41 1.41M6.05 12.95l-1.41 1.41"/></svg>,
-    label: t("meinhui.pillar.value.label"),
-    text: t("meinhui.pillar.value.text"),
+    label: "Wertschöpfen",
+    text: "Du schaffst echten Wert für Menschen und Projekte.",
     accent: T.gold, bg: T.goldPale, border: "rgba(212,149,42,0.18)", glow: "rgba(212,149,42,0.12)",
-    detail: t("meinhui.pillar.value.detail"),
+    detail: "Du schaffst echten Wert für Menschen und Projekte. Wertschöpfung ist mehr als Geld — es ist die Wirkung, die entsteht, wenn du deine Fähigkeiten für andere einsetzt.",
   },
   {
-    key: "impact",
     icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
-    label: t("meinhui.pillar.impact.label"),
-    text: t("meinhui.pillar.impact.text"),
+    label: "Impact",
+    text: "Du hinterlässt Spuren, die die Welt verbessern.",
     accent: T.purple, bg: T.purplePale, border: "rgba(123,94,167,0.16)", glow: "rgba(123,94,167,0.12)",
-    detail: t("meinhui.pillar.impact.detail"),
+    detail: "Du hinterlässt Spuren, die die Welt verbessern. Impact ist nicht messbar in Zahlen allein — er zeigt sich in den Menschen, die du berührt hast.",
   },
-  ];
-}
+];
 
 // Feste einheitliche Höhe für alle Grundpfeiler-Kacheln (unabhängig von Textlänge)
 const PILLAR_CARD_HEIGHT = 182;
@@ -798,8 +787,6 @@ function PillarCard({ pillar, index, baseDelay, onClick }) {
 }
 
 function Pillars({ delay, onOpenSub }) {
-  const { t } = useTranslation();
-  const PILLARS = getPillars(t);
   return (
     <div style={{ padding: "0 0 0 20px" }}>
       <FadeUp delay={delay}>
@@ -808,7 +795,7 @@ function Pillars({ delay, onOpenSub }) {
           paddingRight: 20, marginBottom: 14,
         }}>
           <div style={{ fontFamily: FONT, fontSize: 16, fontWeight: 600, color: T.ink, letterSpacing: "-0.015em" }}>
-            {t("meinhui.yourPillars")}
+            Deine Grundpfeiler
           </div>
         </div>
       </FadeUp>
@@ -830,29 +817,28 @@ function Pillars({ delay, onOpenSub }) {
 // REISE (Journey)
 // ─────────────────────────────────────────────────────────────────
 function Journey({ delay, data, onOpenSub }) {
-  const { t } = useTranslation();
   const totalImpulses = data.worksCount + data.ordersCount + data.bookingsCount;
   const items = [
-    { emoji: "🌱", label: t("meinhui.journey.today"),
+    { emoji: "🌱", label: "Heute",
       text: data.todayActivity.works > 0 || data.todayActivity.connections > 0
-        ? t("meinhui.journey.today.active", {impulses: data.todayActivity.works + data.todayActivity.orders, connections: data.todayActivity.connections})
-        : t("meinhui.journey.today.idle"),
+        ? `${data.todayActivity.works + data.todayActivity.orders} Impulse heute, ${data.todayActivity.connections} neue Verbindung${data.todayActivity.connections === 1 ? "" : "en"}.`
+        : "Kleine Impulse setzen Großes in Gang.",
       color: T.teal, subKey: "today" },
-    { emoji: "🤝", label: t("meinhui.journey.week"),
-      text: t("meinhui.journey.week.text", {count: data.newConnectionsThisWeek}),
+    { emoji: "🤝", label: "Diese Woche",
+      text: `Du hast ${data.newConnectionsThisWeek} neue Verbindung${data.newConnectionsThisWeek === 1 ? "" : "en"}.`,
       color: T.sage, subKey: "week" },
-    { emoji: "✨", label: t("meinhui.journey.month"),
+    { emoji: "✨", label: "Diesen Monat",
       text: data.worksThisMonth > 0
-        ? t("meinhui.journey.month.works", {works: data.worksThisMonth, connections: data.newConnectionsThisMonth})
+        ? `${data.worksThisMonth} Werk${data.worksThisMonth === 1 ? "" : "e"} veröffentlicht, ${data.newConnectionsThisMonth} neue Verbindung${data.newConnectionsThisMonth === 1 ? "" : "en"}.`
         : data.newConnectionsThisMonth > 0
-          ? t("meinhui.journey.month.connections", {count: data.newConnectionsThisMonth})
-          : t("meinhui.journey.month.idle"),
+          ? `${data.newConnectionsThisMonth} neue Verbindung${data.newConnectionsThisMonth === 1 ? "" : "en"} diesen Monat.`
+          : "Ein Projekt, das dir am Herzen liegt, wächst.",
       color: T.coral, subKey: "month" },
-    { emoji: "🌅", label: t("meinhui.journey.year"),
-      text: t("meinhui.journey.year.text", {impulses: data.worksThisYear + data.ordersThisYear + data.bookingsThisYear, connections: data.connectionsThisYear, projects: data.impactProjectsThisYear}),
+    { emoji: "🌅", label: "Dieses Jahr",
+      text: `${data.worksThisYear + data.ordersThisYear + data.bookingsThisYear} Impulse, ${data.connectionsThisYear} neue Verbindungen, ${data.impactProjectsThisYear} Projekt${data.impactProjectsThisYear === 1 ? "" : "e"}.`,
       color: T.gold, subKey: "year" },
-    { emoji: "🌳", label: t("meinhui.journey.since"),
-      text: t("meinhui.journey.since.text", {impulses: totalImpulses, followers: data.followers, days: data.daysSince}),
+    { emoji: "🌳", label: "Seit Beginn",
+      text: `${totalImpulses} Impulse gesät, ${data.followers} Mensch${data.followers === 1 ? "" : "en"} verbunden, ${data.daysSince} Tage unterwegs.`,
       color: T.purple, subKey: "beginning" },
   ];
   return (
@@ -916,7 +902,6 @@ function Journey({ delay, data, onOpenSub }) {
 // IMPACT-MOMENTE
 // ─────────────────────────────────────────────────────────────────
 function ImpactMoments({ delay, data, onOpenSub }) {
-  const { t } = useTranslation();
   const moments = data.moments.length > 0 ? data.moments : [
     { icon: "🌱", label: "Dein Weg beginnt", time: "heute", color: T.teal, bg: T.tealSoft, border: "rgba(13,196,181,0.13)" },
   ];
@@ -985,15 +970,14 @@ function ImpactMoments({ delay, data, onOpenSub }) {
 const STATS_CARD_HEIGHT = 118;
 
 function StatsGrid({ delay, data, onOpenSub }) {
-  const { t } = useTranslation();
   const totalImpulses = data.worksCount + data.ordersCount + data.bookingsCount;
   const yearImpulses = data.worksThisYear + data.ordersThisYear + data.bookingsThisYear;
   const monthImpulses = data.worksThisMonth + data.ordersThisMonth + data.bookingsThisMonth;
   const todayImpulses = data.todayActivity.works + data.todayActivity.orders + data.todayActivity.bookings;
   const stats = [
-    { label: t("meinhui.stats.connections"), value: data.followers, sub: t("meinhui.stats.impactSub"), icon: "👥", color: T.teal, bg: T.tealPale, key: "connections" },
-    { label: t("meinhui.label.impulses"), value: totalImpulses, sub: t("meinhui.label.impulsesSub"), icon: "🔥", color: T.coral, bg: "rgba(244,115,85,0.06)", key: "impulses" },
-    { label: t("meinhui.journey.since"), value: data.daysSince, sub: t("meinhui.label.days"), icon: "🌱", color: T.sage, bg: T.sagePale, key: "beginning" },
+    { label: "Verbindungen", value: data.followers, sub: "Menschen", icon: "👥", color: T.teal, bg: T.tealPale, key: "connections" },
+    { label: "Impulse", value: totalImpulses, sub: "gesät", icon: "🔥", color: T.coral, bg: "rgba(244,115,85,0.06)", key: "impulses" },
+    { label: "Seit Beginn", value: data.daysSince, sub: "Tage", icon: "🌱", color: T.sage, bg: T.sagePale, key: "beginning" },
     { label: "Dieses Jahr", value: yearImpulses, sub: yearImpulses === 1 ? "Impuls" : "Impulse", icon: "🌅", color: T.gold, bg: T.goldPale, key: "year" },
     { label: "Diesen Monat", value: monthImpulses, sub: monthImpulses === 1 ? "Impuls" : "Impulse", icon: "✨", color: T.purple, bg: T.purplePale, key: "month" },
     { label: "Heute", value: todayImpulses, sub: todayImpulses === 1 ? "Impuls" : "Impulse", icon: "☀️", color: T.teal, bg: T.tealPale, key: "today" },
@@ -1054,7 +1038,6 @@ function StatsGrid({ delay, data, onOpenSub }) {
 // SUB-MODAL — Generisches Portal-Modal für alle Kategorien
 // ─────────────────────────────────────────────────────────────────
 function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) {
-  const { t } = useTranslation();
   return createPortal(
     <div style={{
       position: "fixed", inset: 0, zIndex: 10600,
@@ -1092,7 +1075,7 @@ function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) 
           </div>
         </div>
         <button onClick={onClose}
-          aria-label={t("meinhui.close")}
+          aria-label="Schließen"
           style={{
             width: 36, height: 36, borderRadius: "50%",
             border: "none", background: T.creamDeep, cursor: "pointer",
@@ -1140,39 +1123,38 @@ function SubModal({ title, subtitle, icon, accent, onClose, onMore, children }) 
 // SUB-MODAL CONTENTS
 // ─────────────────────────────────────────────────────────────────
 function PillarsDetail({ pillar, data }) {
-  const { t } = useTranslation();
   // Hole passenden Statistik-Wert zum Grundpfeiler
   let statRows = [];
-  if (pillar.key === "connect" && data) {
+  if (pillar.label === "Verbinden" && data) {
     statRows = [
-      { label: t("meinhui.label.connectionsTotal"), value: data.followers },
-      { label: t("meinhui.label.youFollow"), value: data.following },
-      { label: t("meinhui.label.newThisWeek"), value: data.newConnectionsThisWeek },
+      { label: "Verbindungen gesamt", value: data.followers },
+      { label: "Du folgst", value: data.following },
+      { label: "Neue diese Woche", value: data.newConnectionsThisWeek },
     ];
-  } else if (pillar.key === "support" && data) {
+  } else if (pillar.label === "Unterstützen" && data) {
     statRows = [
-      { label: t("meinhui.label.projectsSupported"), value: data.projectsCount },
-      { label: t("meinhui.label.purchasesMade"), value: data.ordersCount },
-      { label: t("meinhui.label.bookingsMade"), value: data.bookingsCount },
+      { label: "Projekte unterstützt", value: data.projectsCount },
+      { label: "Käufe getätigt", value: data.ordersCount },
+      { label: "Buchungen getätigt", value: data.bookingsCount },
     ];
-  } else if (pillar.key === "create" && data) {
+  } else if (pillar.label === "Erschaffen" && data) {
     statRows = [
-      { label: t("meinhui.label.worksPublished"), value: data.worksCount },
-      { label: t("meinhui.label.thisYear"), value: data.worksThisYear || 0 },
-      { label: t("meinhui.label.thisMonth"), value: data.worksThisMonth || 0 },
+      { label: "Werke veröffentlicht", value: data.worksCount },
+      { label: "Dieses Jahr", value: data.worksThisYear || 0 },
+      { label: "Diesen Monat", value: data.worksThisMonth || 0 },
     ];
-  } else if (pillar.key === "value" && data) {
+  } else if (pillar.label === "Wertschöpfen" && data) {
     statRows = [
-      { label: t("meinhui.label.worksTotal"), value: data.worksCount },
-      { label: t("meinhui.label.purchasesTotal"), value: data.ordersCount },
-      { label: t("meinhui.label.bookingsTotal"), value: data.bookingsCount },
+      { label: "Werke gesamt", value: data.worksCount },
+      { label: "Käufe gesamt", value: data.ordersCount },
+      { label: "Buchungen gesamt", value: data.bookingsCount },
       { label: "Impact", value: `${data.impactEur} €` },
     ];
-  } else if (pillar.key === "impact" && data) {
+  } else if (pillar.label === "Impact" && data) {
     statRows = [
-      { label: t("meinhui.label.projectsSupported"), value: data.projectsCount },
-      { label: t("meinhui.label.thisYear"), value: data.impactProjectsThisYear || 0 },
-      { label: t("meinhui.label.impactValue"), value: `${data.impactEur} €` },
+      { label: "Projekte unterstützt", value: data.projectsCount },
+      { label: "Dieses Jahr", value: data.impactProjectsThisYear || 0 },
+      { label: "Impact Wert", value: `${data.impactEur} €` },
     ];
   }
   return (
@@ -1216,7 +1198,6 @@ function PillarsDetail({ pillar, data }) {
 }
 
 function JourneyDetail({ item, data }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding: 20 }}>
       <div style={{
@@ -1247,30 +1228,30 @@ function JourneyDetail({ item, data }) {
       }}>
         {item.subKey === "beginning" && (
           <>
-            <div style={detailRow}>{t("meinhui.label.memberSince")}: <b>{data.daysSince} {t("meinhui.label.days")}</b></div>
-            <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksCount}</b></div>
-            <div style={detailRow}>{t("meinhui.stats.connections")}: <b>{data.followers}</b></div>
+            <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
+            <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+            <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
             <div style={detailRow}>Du folgst: <b>{data.following}</b> Menschen</div>
-            <div style={detailRow}>{t("meinhui.label.purchasesMade")}: <b>{data.ordersCount}</b></div>
-            <div style={detailRow}>{t("meinhui.label.bookingsMade")}: <b>{data.bookingsCount}</b></div>
-            <div style={detailRow}>{t("meinhui.label.projectsSupported")}: <b>{data.projectsCount}</b></div>
+            <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
+            <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
+            <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
             <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
           </>
         )}
         {item.subKey === "year" && (
           <>
             <div style={detailRow}>Jahr: <b>{new Date().getFullYear()}</b></div>
-            <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksThisYear}</b></div>
-            <div style={detailRow}>{t("meinhui.label.purchasesMade")}: <b>{data.ordersThisYear}</b></div>
-            <div style={detailRow}>{t("meinhui.label.bookingsMade")}: <b>{data.bookingsThisYear}</b></div>
+            <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisYear}</b></div>
+            <div style={detailRow}>Käufe getätigt: <b>{data.ordersThisYear}</b></div>
+            <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsThisYear}</b></div>
             <div style={detailRow}>Neue Verbindungen: <b>{data.connectionsThisYear}</b></div>
-            <div style={detailRow}>{t("meinhui.label.projectsSupported")}: <b>{data.impactProjectsThisYear}</b></div>
+            <div style={detailRow}>Projekte unterstützt: <b>{data.impactProjectsThisYear}</b></div>
           </>
         )}
         {item.subKey === "month" && (
           <>
             <div style={detailRow}>Monat: <b>{new Date().toLocaleDateString("de-DE", { month: "long" })}</b></div>
-            <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksThisMonth}</b></div>
+            <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisMonth}</b></div>
             <div style={detailRow}>Neue Verbindungen: <b>{data.newConnectionsThisMonth}</b></div>
           </>
         )}
@@ -1296,7 +1277,6 @@ const detailRow = {
 };
 
 function MomentsDetail({ data }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding: 20 }}>
       {data.moments.length === 0 ? (
@@ -1333,7 +1313,6 @@ function MomentsDetail({ data }) {
 }
 
 function ConnectionsDetail({ data }) {
-  const { t } = useTranslation();
   return (
     <div style={{ padding: 20 }}>
       <div style={{
@@ -1383,7 +1362,6 @@ function ConnectionsDetail({ data }) {
 }
 
 function ImpulsesDetail({ data }) {
-  const { t } = useTranslation();
   const total = data.worksCount + data.ordersCount + data.bookingsCount;
   const yearTotal = data.worksThisYear + data.ordersThisYear + data.bookingsThisYear;
   const monthTotal = data.worksThisMonth + data.ordersThisMonth + data.bookingsThisMonth;
@@ -1398,16 +1376,16 @@ function ImpulsesDetail({ data }) {
           {total}
         </div>
         <div style={{ fontFamily: FONT, fontSize: 14, color: T.inkSoft }}>
-          {t("meinhui.label.impulsesSown")}
+          Impulse gesät
         </div>
       </div>
       <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "0 0 10px" }}>
-        {t("meinhui.label.breakdown")}
+        Aufschlüsselung
       </div>
-      <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksCount}</b></div>
-      <div style={detailRow}>{t("meinhui.label.purchasesMade")}: <b>{data.ordersCount}</b></div>
-      <div style={detailRow}>{t("meinhui.label.bookingsMade")}: <b>{data.bookingsCount}</b></div>
-      <div style={detailRow}>{t("meinhui.label.projectsSupported")}: <b>{data.projectsCount}</b></div>
+      <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+      <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
+      <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
+      <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
       <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "16px 0 10px" }}>
         Zeitlich
       </div>
@@ -1451,7 +1429,6 @@ function ImpulsesDetail({ data }) {
 // explizit vom Dispatcher (subModal.key), damit die Detail-Zeilen unabhaengig
 // von der Datenform IMMER korrekt befuellt werden.
 function GenericStatDetail({ item, data, statKey }) {
-  const { t } = useTranslation();
   const icon = item.icon || item.emoji || "✨";
   const hasValue = item.value !== undefined && item.value !== null && item.value !== "";
   return (
@@ -1478,30 +1455,30 @@ function GenericStatDetail({ item, data, statKey }) {
       </div>
       {(statKey === "beginning") && (
         <>
-          <div style={detailRow}>{t("meinhui.label.memberSince")}: <b>{data.daysSince} {t("meinhui.label.days")}</b></div>
-          <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksCount}</b></div>
-          <div style={detailRow}>{t("meinhui.stats.connections")}: <b>{data.followers}</b></div>
+          <div style={detailRow}>Mitglied seit: <b>{data.daysSince} Tagen</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksCount}</b></div>
+          <div style={detailRow}>Verbindungen: <b>{data.followers}</b></div>
           <div style={detailRow}>Du folgst: <b>{data.following}</b> Menschen</div>
-          <div style={detailRow}>{t("meinhui.label.purchasesMade")}: <b>{data.ordersCount}</b></div>
-          <div style={detailRow}>{t("meinhui.label.bookingsMade")}: <b>{data.bookingsCount}</b></div>
-          <div style={detailRow}>{t("meinhui.label.projectsSupported")}: <b>{data.projectsCount}</b></div>
+          <div style={detailRow}>Käufe getätigt: <b>{data.ordersCount}</b></div>
+          <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsCount}</b></div>
+          <div style={detailRow}>Projekte unterstützt: <b>{data.projectsCount}</b></div>
           <div style={detailRow}>Impact: <b>{data.impactEur} €</b></div>
         </>
       )}
       {(statKey === "year") && (
         <>
           <div style={detailRow}>Jahr: <b>{new Date().getFullYear()}</b></div>
-          <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksThisYear}</b></div>
-          <div style={detailRow}>{t("meinhui.label.purchasesMade")}: <b>{data.ordersThisYear}</b></div>
-          <div style={detailRow}>{t("meinhui.label.bookingsMade")}: <b>{data.bookingsThisYear}</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisYear}</b></div>
+          <div style={detailRow}>Käufe getätigt: <b>{data.ordersThisYear}</b></div>
+          <div style={detailRow}>Buchungen getätigt: <b>{data.bookingsThisYear}</b></div>
           <div style={detailRow}>Neue Verbindungen: <b>{data.connectionsThisYear}</b></div>
-          <div style={detailRow}>{t("meinhui.label.projectsSupported")}: <b>{data.impactProjectsThisYear}</b></div>
+          <div style={detailRow}>Projekte unterstützt: <b>{data.impactProjectsThisYear}</b></div>
         </>
       )}
       {(statKey === "month") && (
         <>
           <div style={detailRow}>Monat: <b>{new Date().toLocaleDateString("de-DE", { month: "long" })}</b></div>
-          <div style={detailRow}>{t("meinhui.label.worksPublished")}: <b>{data.worksThisMonth}</b></div>
+          <div style={detailRow}>Werke veröffentlicht: <b>{data.worksThisMonth}</b></div>
           <div style={detailRow}>Neue Verbindungen: <b>{data.newConnectionsThisMonth}</b></div>
         </>
       )}
@@ -1519,20 +1496,18 @@ function GenericStatDetail({ item, data, statKey }) {
 // ─────────────────────────────────────────────────────────────────
 // SUB-MODAL CONFIG — Maps sub-key to title/icon/accent/page-link
 // ─────────────────────────────────────────────────────────────────
-function getSubModalConfig(t) {
-  return {
-  pillars:    { title: t("meinhui.yourPillars"),       icon: "🏛️", accent: T.teal,   page: null },
-  journey:    { title: t("meinhui.journey.intro"),    icon: "🧭", accent: T.sage,   page: null },
-  moments:    { title: t("meinhui.label.impulsesSown"), icon: "✨", accent: T.purple, page: null },
-  connections:{ title: t("meinhui.stats.connections"), icon: "👥", accent: T.teal,   page: "discover" },
-  impulses:   { title: t("meinhui.label.impulses"),   icon: "🔥", accent: T.coral,  page: null },
-  beginning:  { title: t("meinhui.journey.since"),    icon: "🌳", accent: T.sage,   page: null },
-  year:       { title: t("meinhui.journey.year"),     icon: "🌅", accent: T.gold,   page: null },
-  month:      { title: t("meinhui.journey.month"),    icon: "✨", accent: T.purple, page: null },
-  today:      { title: t("meinhui.journey.today"),    icon: "☀️", accent: T.teal,   page: null },
-  week:       { title: t("meinhui.journey.week"),     icon: "🤝", accent: T.sage,   page: null },
-  };
-}
+const SUB_MODAL_CONFIG = {
+  pillars:    { title: "Grundpfeiler",       icon: "🏛️", accent: T.teal,   page: null },
+  journey:    { title: "Reise",              icon: "🧭", accent: T.sage,   page: null },
+  moments:    { title: "Impact-Momente",     icon: "✨", accent: T.purple, page: null },
+  connections:{ title: "Verbindungen",        icon: "👥", accent: T.teal,   page: "discover" },
+  impulses:   { title: "Impulse",            icon: "🔥", accent: T.coral,  page: null },
+  beginning:  { title: "Seit Beginn",         icon: "🌳", accent: T.sage,   page: null },
+  year:       { title: "Dieses Jahr",         icon: "🌅", accent: T.gold,   page: null },
+  month:      { title: "Diesen Monat",        icon: "✨", accent: T.purple, page: null },
+  today:      { title: "Heute",               icon: "☀️", accent: T.teal,   page: null },
+  week:       { title: "Diese Woche",         icon: "🤝", accent: T.sage,   page: null },
+};
 
 // ─────────────────────────────────────────────────────────────────
 // SHELL — MeinHUI v6.0
@@ -1545,7 +1520,6 @@ export default function MeinHUI({
   onNotif,
   onSettings,
 }) {
-  const { t } = useTranslation();
   const scrollRef = useRef(null);
   const [entered, setEntered] = useState(false);
   const [subModal, setSubModal] = useState(null); // { key, data }
@@ -1617,7 +1591,7 @@ export default function MeinHUI({
   // Sub-modal rendering
   let subModalContent = null;
   if (subModal) {
-    const cfg = getSubModalConfig(t)[subModal.key];
+    const cfg = SUB_MODAL_CONFIG[subModal.key];
     if (cfg) {
       const item = subModal.item;
       let content = null;
@@ -1635,13 +1609,13 @@ export default function MeinHUI({
             content = (
               <div style={{ padding: 20 }}>
                 <p style={{ fontFamily: FONT, fontSize: 15, color: T.inkMid, lineHeight: 1.7, marginBottom: 16 }}>
-                  {t("meinhui.journey.intro")}
+                  Deine Reise bei HUI zeigt, wie sich deine Wirkung über Zeit entwickelt. Jeder Schritt, jede Verbindung und jeder Impuls formt deinen einzigartigen Weg.
                 </p>
-                <div style={detailRow}>{t("meinhui.label.daysSince")}: <b>{wirkData.daysSince}</b></div>
-                <div style={detailRow}>{t("meinhui.stats.works")}: <b>{wirkData.worksCount}</b></div>
-                <div style={detailRow}>{t("meinhui.stats.connections")}: <b>{wirkData.followers}</b></div>
+                <div style={detailRow}>Tage seit Beginn: <b>{wirkData.daysSince}</b></div>
+                <div style={detailRow}>Werke: <b>{wirkData.worksCount}</b></div>
+                <div style={detailRow}>Verbindungen: <b>{wirkData.followers}</b></div>
                 <div style={detailRow}>Du folgst: <b>{wirkData.following}</b></div>
-                <div style={detailRow}>{t("meinhui.label.purchases")}: <b>{wirkData.ordersCount}</b></div>
+                <div style={detailRow}>Käufe: <b>{wirkData.ordersCount}</b></div>
                 <div style={detailRow}>Buchungen: <b>{wirkData.bookingsCount}</b></div>
                 <div style={detailRow}>Impulse gesamt: <b>{wirkData.worksCount + wirkData.ordersCount + wirkData.bookingsCount}</b></div>
                 <div style={detailRow}>Projekte: <b>{wirkData.projectsCount}</b></div>
@@ -1689,7 +1663,7 @@ export default function MeinHUI({
               </div>
               <div style={detailRow}>Neue diese Woche: <b>{wirkData.newConnectionsThisWeek}</b></div>
               <div style={detailRow}>Neue diesen Monat: <b>{wirkData.newConnectionsThisMonth}</b></div>
-              <div style={detailRow}>{t("meinhui.label.connectionsTotal")}: <b>{wirkData.followers}</b></div>
+              <div style={detailRow}>Verbindungen gesamt: <b>{wirkData.followers}</b></div>
               {wirkData.recentConnections.length > 0 && (
                 <>
                   <div style={{ fontFamily: FONT, fontSize: 13, fontWeight: 600, color: T.ink, margin: "16px 0 10px" }}>
