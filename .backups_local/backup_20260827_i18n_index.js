@@ -11,9 +11,8 @@ import es from './es.js';
 import it from './it.js';
 import tr from './tr.js';
 import pt from './pt.js';
-import sq from './sq.js';
 
-const translations = { de, en, fr, es, it, tr, pt, sq };
+const translations = { de, en, fr, es, it, tr, pt };
 
 export function t(key, lang = 'de') {
   const val = translations[lang]?.[key] ?? translations['de']?.[key];
@@ -31,7 +30,7 @@ export function t(key, lang = 'de') {
   return val;
 }
 
-export const SUPPORTED_LANGS = ['de', 'en', 'fr', 'es', 'it', 'tr', 'pt', 'sq'];
+export const SUPPORTED_LANGS = ['de', 'en', 'fr', 'es', 'it', 'tr', 'pt'];
 
 export const LANG_LABELS = {
   de: 'Deutsch',
@@ -40,13 +39,12 @@ export const LANG_LABELS = {
   es: 'Español',
   it: 'Italiano',
   tr: 'Türkçe',
-  pt: 'Português',
-  sq: 'Shqip'
+  pt: 'Português'
 };
 
 export const LANG_FLAGS = {
   de: '🇩🇪', en: '🇬🇧', fr: '🇫🇷',
-  es: '🇪🇸', it: '🇮🇹', tr: '🇹🇷', pt: '🇵🇹', sq: '🇦🇱'
+  es: '🇪🇸', it: '🇮🇹', tr: '🇹🇷', pt: '🇵🇹'
 };
 
 // Systemsprache erkennen — Browser und OS
