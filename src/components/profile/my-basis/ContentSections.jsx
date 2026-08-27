@@ -11,8 +11,10 @@ import { optimizeCard } from "../../../lib/perfUtils.js";
 import { DraftActionSheet, ItemActionChoiceSheet, DeleteWerkConfirm, DeleteTalentConfirm } from "./ActionSheets.jsx";
 import { T } from "./constants.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTalent = () => {} }) {
+  const { t } = useTranslation();
   const [confirmTalent, setConfirmTalent] = React.useState(null);
   const [choiceTalent, setChoiceTalent] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
   const { openRef } = useContentPreview();
@@ -42,10 +44,10 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
       if (!countErr && count > 0) {
         console.warn(`Talent Hard-Delete blockiert — ${count} bestehende Buchung(en) gefunden. Fallback Soft-Delete.`);
         await supabase.from("talents").update({ status: "deleted" }).eq("id", t.id);
-        toast.success("Talent wurde gelöscht (Buchungsdaten geschützt).", { duration: 3000 });
+        toast.success(t("cs.toast.talentDeletedProtected"), { duration: 3000 });
       } else {
         await deleteTalent(t.id);
-        toast.success("Talent wurde unwiderruflich gelöscht.", { duration: 3000 });
+        toast.success(t("cs.toast.talentDeleted"), { duration: 3000 });
       }
       onDeleteTalent(t.id);
     } catch(e) { console.error("Talent-Angebot löschen:", e); }
@@ -62,7 +64,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
     )}
     {choiceTalent && (
       <ItemActionChoiceSheet
-        label="Talent"
+        label={t("cs.label.talent")}
         onEdit={() => { const t = choiceTalent; setChoiceTalent(null); onTalentWizard?.(t); }}
         onView={() => { const t = choiceTalent; setChoiceTalent(null); openRef({ type:"talent", id:t.id }); }}
         onDelete={() => { const t = choiceTalent; setChoiceTalent(null); setConfirmTalent(t); }}
@@ -77,7 +79,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
             const isApproved = t.status === "approved";
             const isPending  = t.status === "pending";
             const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
-            const badgeText  = isApproved ? "✅ Live" : isPending ? "⏳ Prüfung" : "❌ Abgelehnt";
+            const badgeText  = isApproved ? t("cs.badge.live") : isPending ? t("cs.badge.pruefung") : t("cs.badge.abgelehnt");
             const cover = Array.isArray(t.images) && t.images[0]?.url;
             return (
               <div key={t.id || i}
@@ -153,7 +155,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
           background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
           display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
         }}>+</span>
-        Talent-Angebot hinzufügen
+        {t("cs.addTalent")}
       </button>
     </div>
     </>
@@ -161,6 +163,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
 }
 
 export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {} }) {
+  const { t } = useTranslation();
   const [confirmWork, setConfirmWork] = React.useState(null);
   const [choiceWork, setChoiceWork] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
   const [draftWork, setDraftWork] = React.useState(null); // DRAFT-ACTION (2026-08-20)
@@ -189,9 +192,9 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
       if (error) {
         console.warn("Werk Hard-Delete blockiert (vermutlich bestehende Bestellung/Buchung) — Fallback Soft-Delete:", error);
         await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
-        toast.success("Werk wurde gelöscht (Bestelldaten geschützt).", { duration: 3000 });
+        toast.success(t("cs.toast.werkDeletedProtected"), { duration: 3000 });
       } else {
-        toast.success("Werk wurde unwiderruflich gelöscht.", { duration: 3000 });
+        toast.success(t("cs.toast.werkDeleted"), { duration: 3000 });
       }
       onDeleteWerk(w.id);
     } catch(e) { console.error("Werk löschen:", e); }
@@ -211,11 +214,11 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
         updated_at: new Date().toISOString(),
       }).eq("id", w.id);
       if (error) throw error;
-      toast.success("Werk wurde zur Veröffentlichung eingereicht.", { duration: 3000 });
+      toast.success(t("cs.toast.werkSubmitted"), { duration: 3000 });
       onDeleteWerk(); // triggert reload im Parent
     } catch(e) {
       console.error("Draft publish:", e);
-      toast.error("Konnte nicht eingereicht werden.", { duration: 3000 });
+      toast.error(t("cs.toast.submitFailed"), { duration: 3000 });
     }
   };
 
@@ -267,9 +270,9 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
               : isPending  ? "rgba(234,179,8,0.92)"
               : isDraft    ? "rgba(120,120,128,0.85)"
               : "rgba(255,80,80,0.92)";
-            const badgeText  = isApproved ? "✅ Live"
-              : isPending  ? "⏳ Prüfung"
-              : isDraft    ? "📝 Entwurf"
+            const badgeText  = isApproved ? t("cs.badge.live")
+              : isPending  ? t("cs.badge.pruefung")
+              : isDraft    ? t("cs.badge.entwurf")
               : "❌ Abgelehnt";
             return (
               <div key={w.id || i}
@@ -335,7 +338,7 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
           background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
           display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
         }}>+</span>
-        Werk hinzufügen
+        {t("cs.addWerk")}
       </button>
     </div>
     </>
@@ -343,6 +346,7 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
 }
 
 export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErlebnis = () => {} }) {
+  const { t } = useTranslation();
   const [confirmExp, setConfirmExp] = React.useState(null);
   const [choiceExp, setChoiceExp] = React.useState(null); // ITEM-ACTION-CHOICE (2026-08-16)
   const [draftExp, setDraftExp] = React.useState(null); // DRAFT-ACTION-FIX (2026-08-20, Michael-Report)
@@ -366,11 +370,11 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
         updated_at: new Date().toISOString(),
       }).eq("id", exp.id);
       if (error) throw error;
-      toast.success("Erlebnis wurde zur Veröffentlichung eingereicht.", { duration: 3000 });
+      toast.success(t("cs.toast.expSubmitted"), { duration: 3000 });
       onDeleteErlebnis(); // triggert reload im Parent (identisch zu Werke-Muster)
     } catch(e) {
       console.error("Draft publish (Erlebnis):", e);
-      toast.error("Konnte nicht eingereicht werden.", { duration: 3000 });
+      toast.error(t("cs.toast.submitFailed"), { duration: 3000 });
     }
   };
 
@@ -389,13 +393,13 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
       // → Realtime triggert Admin-Dashboard, Zeile verschwindet dort sofort
       const { error } = await supabase.from(table).delete().eq("id", exp.id);
       if (!error) {
-        toast.success("Erlebnis wurde unwiderruflich gelöscht.", { duration: 3000 });
+        toast.success(t("cs.toast.expDeleted"), { duration: 3000 });
         onDeleteErlebnis(exp.id);
       } else {
         console.error("Erlebnis löschen:", error);
         // Fallback: soft-delete wenn Hard-Delete nicht erlaubt (RLS)
         await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
-        toast.success("Erlebnis wurde gelöscht.", { duration: 3000 });
+        toast.success(t("cs.toast.expDeletedSoft"), { duration: 3000 });
         onDeleteErlebnis(exp.id);
       }
     } catch(e) { console.error("Erlebnis löschen:", e); }
@@ -421,10 +425,10 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
         }}>
           <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
           <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
-            Erlebnis unwiderruflich löschen?
+            {t("cs.delete.expTitle")}
           </div>
           <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-            <strong>„{confirmExp.title || 'Dieses Erlebnis'}"</strong> wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.
+            <strong>{t("cs.delete.expBody", { title: confirmExp.title || t("cs.delete.expFallback") })}</strong>
           </div>
           <button onClick={handleConfirmDelete} style={{
             width:"100%", padding:"12px", borderRadius:99,
@@ -432,7 +436,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
             fontSize:14, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", marginBottom:8,
           }}>
-            Ja, endgültig löschen
+            {t("cs.delete.confirm")}
           </button>
           <button onClick={() => setConfirmExp(null)} style={{
             width:"100%", padding:"12px", borderRadius:99,
@@ -447,7 +451,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
     )}
     {draftExp && (
       <DraftActionSheet
-        label="Erlebnis"
+        label={t("cs.label.erlebnis")}
         onPublish={() => { const exp = draftExp; setDraftExp(null); publishDraftExp(exp); }}
         onEdit={() => { const exp = draftExp; setDraftExp(null); onErlebnisWizard?.(exp); }}
         onDelete={() => { const exp = draftExp; setDraftExp(null); setConfirmExp(exp); }}
@@ -456,7 +460,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
     )}
     {choiceExp && (
       <ItemActionChoiceSheet
-        label="Erlebnis"
+        label={t("cs.label.erlebnis")}
         onEdit={() => { const exp = choiceExp; setChoiceExp(null); onErlebnisWizard?.(exp); }}
         onView={() => {
           const exp = choiceExp; setChoiceExp(null);
@@ -468,7 +472,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>Momente, die mein Wirken zeigen.</div>
+      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>{t("cs.momentsHint")}</div>
 
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
         gap:10, marginBottom:12 }}>
@@ -497,9 +501,9 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
                   ? "rgba(255,80,80,0.92)"
                   : "rgba(14,196,184,0.92)";
           const badgeText  = isApproved
-            ? "✅ Live"
+            ? t("cs.badge.live")
             : isPending
-              ? "⏳ Prüfung"
+              ? t("cs.badge.pruefung")
               : isDraft
                 ? "📝 Entwurf"
                 : isRejected
@@ -572,7 +576,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
                     background:"rgba(0,0,0,0.72)", color:"#fff",
                     fontSize:8, fontWeight: 600, padding:"2px 7px",
                     borderRadius:20, letterSpacing:"0.3px",
-                  }}>Anpassen</span>
+                  }}>{t("cs.badge.anpassen")}</span>
                 </div>
               )}
             </div>
@@ -580,7 +584,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
         })}
       </div>
     </div>
-    {/* ── Add-Button — EXAKT identisch zu "+ Werk hinzufügen" ── */}
+    {/* ── Add-Button — EXAKT identisch zu "+ {t("cs.addWerk")}" ── */}
     <div style={{ padding:`0 ${T.px}px` }}>
       <button className="mbp-press-light" onClick={() => onErlebnisWizard?.()} style={{
         display:"flex", alignItems:"center", gap:8,
@@ -595,7 +599,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
           background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
           display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
         }}>+</span>
-        Erlebnis &amp; Projekte hinzufügen
+        {t("cs.addErlebnis")}
       </button>
     </div>
     </>

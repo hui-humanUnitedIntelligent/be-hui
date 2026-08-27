@@ -20,6 +20,7 @@ import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import BankdatenModal from "../settings/BankdatenModal.jsx";
 
 // ── Design-Tokens ─────────────────────────────────────────────
@@ -50,21 +51,25 @@ const EXP_TYPEN = [
 ];
 
 // ── Preis-Bezugsgrößen ────────────────────────────────────────
-const PREIS_PRO = [
-  { id:"Teilnehmer", label:"Teilnehmer", sub:"z. B. pro Person" },
-  { id:"Ticket",     label:"Ticket",     sub:"z. B. pro Ticket" },
-  { id:"Stunde",     label:"Stunde",     sub:"z. B. pro Stunde" },
-  { id:"Tag",        label:"Tag",        sub:"z. B. pro Tag"    },
-  { id:"Kurs",       label:"Kurs",       sub:"z. B. pro Kurs"   },
-  { id:"Gruppe",     label:"Gruppe",     sub:"z. B. pro Gruppe" },
-  { id:"Monat",      label:"Monat",      sub:"z. B. pro Monat"  },
-];
+function getPreisPro(t) {
+  return [
+  { id:"Teilnehmer", label:t("ew.pp.teilnehmer"), sub:t("ew.pp.teilnehmer.sub") },
+  { id:"Ticket",     label:t("ew.pp.ticket"),     sub:t("ew.pp.ticket.sub") },
+  { id:"Stunde",     label:t("ew.pp.stunde"),     sub:t("ew.pp.stunde.sub") },
+  { id:"Tag",        label:t("ew.pp.tag"),        sub:t("ew.pp.tag.sub") },
+  { id:"Kurs",       label:t("ew.pp.kurs"),       sub:t("ew.pp.kurs.sub") },
+  { id:"Gruppe",     label:t("ew.pp.gruppe"),     sub:t("ew.pp.gruppe.sub") },
+  { id:"Monat",      label:t("ew.pp.monat"),      sub:t("ew.pp.monat.sub") },
+  ];
+}
 
-const SICHTBARKEIT = [
-  { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar im HUI-Feed und Talent-Profil." },
-  { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk." },
-  { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich sichtbar." },
-];
+function getSichtbarkeit(t) {
+  return [
+  { id:"public",      icon:"🌍", label:t("ew.sichtbar.public"),      sub:t("ew.sichtbar.public.sub") },
+  { id:"connections", icon:"🔗", label:t("ew.sichtbar.connections"), sub:t("ew.sichtbar.connections.sub") },
+  { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:t("ew.sichtbar.private"), sub:t("ew.sichtbar.private.sub") },
+  ];
+}
 
 // ══════════════════════════════════════════════════════════════
 // Basis-Bausteine
@@ -243,6 +248,7 @@ function SichtCard({ active, item, onClick }) {
 
 // Ja/Nein Toggle-Pill
 function JaNeinPill({ value, onChange }) {
+  const { t } = useTranslation();
   return (
     <div style={{ display: "flex", gap: 10 }}>
       {[true, false].map(v => (
@@ -258,7 +264,7 @@ function JaNeinPill({ value, onChange }) {
             cursor: "pointer", touchAction: "manipulation", transition: "all .14s",
           }}
         >
-          {v ? "Ja" : "Nein"}
+          {v ? t("ew.s3.ja") : t("ew.s3.nein")}
         </div>
       ))}
     </div>
@@ -267,7 +273,8 @@ function JaNeinPill({ value, onChange }) {
 
 // ── Fortschrittsbalken oben ───────────────────────────────────
 function ProgressBar({ step, total }) {
-  const LABELS = ["Basis", "Wann & Wo", "Teilnahme", "Veröffentlichen"];
+  const { t } = useTranslation();
+  const LABELS = [t("ew.progress.basis"), t("ew.progress.wann"), t("ew.progress.teilnahme"), t("ew.progress.veroeff")];
   return (
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 0, padding: "0 8px" }}>
       {Array.from({ length: total }, (_, i) => {
@@ -312,6 +319,7 @@ function ProgressBar({ step, total }) {
 
 // ── Top Bar ───────────────────────────────────────────────────
 function TopBar({ onClose, step, total, isEdit }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: "max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 14px", background: C.white, borderBottom: `1px solid ${C.border}` }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
@@ -335,6 +343,7 @@ function TopBar({ onClose, step, total, isEdit }) {
 // Titel · Typ · Kurzbeschreibung · Titelbild
 // ══════════════════════════════════════════════════════════════
 function S1({ data, onChange, userId }) {
+  const { t } = useTranslation();
   const [upl, setUpl] = useState(false);
   const ref = useRef(null);
   const imgs = data.images || [];
@@ -432,16 +441,16 @@ function S1({ data, onChange, userId }) {
 
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Basis</div>
-      <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Erzähl kurz, worum es geht.</div>
+      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>{t("ew.s1.title")}</div>
+      <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>{t("ew.s1.sub")}</div>
 
       {/* Titel */}
-      <Field label="Titel" req>
-        <TextInput value={data.title || ""} onChange={v => onChange({ title: v })} placeholder="Aquarell Workshop für Anfänger" maxLen={80}/>
+      <Field label={t("ew.s1.label.titel")} req>
+        <TextInput value={data.title || ""} onChange={v => onChange({ title: v })} placeholder={t("ew.s1.ph.titel")} maxLen={80}/>
       </Field>
 
       {/* Typ — 3-spaltige Chip-Kacheln */}
-      <Field label="Typ" req>
+      <Field label={t("ew.s1.label.typ")} req>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
           {EXP_TYPEN.map(et => (
             <TypChip
@@ -456,11 +465,11 @@ function S1({ data, onChange, userId }) {
       </Field>
 
       {/* Kurzbeschreibung */}
-      <Field label="Kurzbeschreibung" req>
+      <Field label={t("ew.s1.label.kurz")} req>
         <TextArea
           value={data.caption || ""}
           onChange={v => onChange({ caption: v })}
-          placeholder="Lerne die Grundlagen der Aquarellmalerei in entspannter Atmosphäre…"
+          placeholder={t("ew.s1.ph.kurz")}
           maxLen={250}
           rows={4}
         />
@@ -507,7 +516,7 @@ function S1({ data, onChange, userId }) {
               <>
                 <div style={{ fontSize: 28, color: C.teal, lineHeight: 1 }}>📷</div>
                 <div style={{ fontSize: 13, fontWeight: 600, color: C.teal }}>Bild hochladen</div>
-                <div style={{ fontSize: 11.5, color: C.inkFade }}>Tippe um ein Foto auszuwählen</div>
+                <div style={{ fontSize: 11.5, color: C.inkFade }}>{t("ew.s1.tapPhoto")}</div>
               </>
             )}
           </div>
@@ -565,7 +574,7 @@ function S1({ data, onChange, userId }) {
               }}
             >
               {uplGallery ? (
-                <div style={{ fontSize: 10.5, color: C.teal, fontWeight: 600, textAlign: "center" }}>Lädt…</div>
+                <div style={{ fontSize: 10.5, color: C.teal, fontWeight: 600, textAlign: "center" }}>{t("ew.s1.loading")}</div>
               ) : (
                 <>
                   <div style={{ fontSize: 22, color: C.teal, lineHeight: 1 }}>+</div>
@@ -576,7 +585,7 @@ function S1({ data, onChange, userId }) {
           )}
         </div>
         <div style={{ fontSize: 11.5, color: C.inkFade, marginTop: 8, lineHeight: 1.4 }}>
-          Werden zusätzlich zum Titelbild in einer Galerie im Home-Feed angezeigt. Bilder max 5MB · Videos max 25MB.
+          {t("ew.s1.gallery.hint")}
         </div>
         <input ref={galleryRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={uploadGallery}/>
       </Field>
@@ -589,13 +598,14 @@ function S1({ data, onChange, userId }) {
 // Datum · Beginn · Ende · Ort · Vor Ort / Online
 // ══════════════════════════════════════════════════════════════
 function S2({ data, onChange, onPickLocation }) {
+  const { t } = useTranslation();
   return (
     <div>
       <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Wann & Wo</div>
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Wann und wo findet das Erlebnis statt?</div>
 
       {/* Datum */}
-      <Field label="Datum" req>
+      <Field label={t("ew.s2.label.datum")} req>
         <div style={{ position: "relative" }}>
           <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIKalenderIcon size={16}/></span>
           <input
@@ -611,7 +621,7 @@ function S2({ data, onChange, onPickLocation }) {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 18 }}>
         {/* Beginn */}
         <div>
-          <Label text="Beginn" req/>
+          <Label text={t("ew.s2.label.beginn")} req/>
           <div style={{ position: "relative" }}>
             <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 15, color: C.inkFade, pointerEvents: "none" }}>🕐</span>
             <input
@@ -624,7 +634,7 @@ function S2({ data, onChange, onPickLocation }) {
         </div>
         {/* Ende */}
         <div>
-          <Label text="Ende" hint="optional"/>
+          <Label text={t("ew.s2.label.ende")} hint={t("ew.s2.ende.hint")}/>
           <div style={{ position: "relative" }}>
             <span style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", fontSize: 15, color: C.inkFade, pointerEvents: "none" }}>🕐</span>
             <input
@@ -638,24 +648,24 @@ function S2({ data, onChange, onPickLocation }) {
       </div>
 
       {/* Ort */}
-      <Field label="Ort" req hint="Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ.">
+      <Field label={t("ew.s2.label.ort")} req hint={t("ew.s2.ort.hint")}>
         <div style={{ position: "relative" }}>
           <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none", zIndex:1 }}><HUILocationIcon size={16}/></span>
           <LocationAutocompleteInput
             value={data.location_text || ""}
             onChange={v => onChange({ location_text: v })}
             onPick={onPickLocation}
-            placeholder="KunstRaum HUI, Wien"
+            placeholder={t("ew.s2.ph.ort")}
             style={{ ...INP_BASE, paddingLeft: 46 }}
           />
         </div>
       </Field>
 
       {/* Online oder Vor Ort */}
-      <Field label="Online oder Vor Ort" req>
+      <Field label={t("ew.s2.label.format")} req>
         <div style={{ display: "flex", gap: 10 }}>
-          <FormatPill active={data.format === "vor_ort"} label="Vor Ort" icon={<HUIVorOrtIcon size={16}/>} onClick={() => onChange({ format: "vor_ort" })}/>
-          <FormatPill active={data.format === "online"}  label="Online"  icon={<HUIOnlineIcon size={16}/>} onClick={() => onChange({ format: "online"  })}/>
+          <FormatPill active={data.format === "vor_ort"} label={t("ew.s2.format.vorort")} icon={<HUIVorOrtIcon size={16}/>} onClick={() => onChange({ format: "vor_ort" })}/>
+          <FormatPill active={data.format === "online"}  label={t("ew.s2.format.online")}  icon={<HUIOnlineIcon size={16}/>} onClick={() => onChange({ format: "online"  })}/>
         </div>
       </Field>
     </div>
@@ -667,6 +677,8 @@ function S2({ data, onChange, onPickLocation }) {
 // Preis · Währung · Preis gilt pro · Teilnehmerzahl · Anmeldung
 // ══════════════════════════════════════════════════════════════
 function S3({ data, onChange }) {
+  const { t } = useTranslation();
+  const preisPro = getPreisPro(t);
   // WÄHRUNG-FIX (2026-08-20, Michael-Screenshot): Erlebnisse werden systemweit
   // ausschließlich in EUR abgerechnet (Stripe-Konfiguration, Balanced-Growth-v1
   // Gebührenmodell rechnet zentral in EUR). Die CHF/USD-Auswahl täuschte eine
@@ -676,11 +688,11 @@ function S3({ data, onChange }) {
 
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Teilnahme</div>
-      <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>Details zur Teilnahme und zum Preis.</div>
+      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>{t("ew.s3.title")}</div>
+      <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>{t("ew.s3.sub")}</div>
 
       {/* Preis — großer Input */}
-      <Field label="Preis" req>
+      <Field label={t("ew.s3.label.preis")} req>
         <div style={{ position: "relative" }}>
           <span style={{
             position: "absolute", left: 18, top: "50%", transform: "translateY(-50%)",
@@ -705,9 +717,9 @@ function S3({ data, onChange }) {
       </Field>
 
       {/* Preis gilt pro — vertikale Radio-Liste */}
-      <Field label="Preis gilt pro" req>
+      <Field label={t("ew.s3.label.pro")} req>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {PREIS_PRO.map(pp => (
+          {preisPro.map(pp => (
             <PreisProCard
               key={pp.id}
               active={data.price_per === pp.id}
@@ -728,7 +740,7 @@ function S3({ data, onChange }) {
       </Field>
 
       {/* Max. Teilnehmerzahl */}
-      <Field label="Maximale Teilnehmerzahl" hint="optional">
+      <Field label={t("ew.s3.label.maxTeiln")} hint={t("ew.s3.maxTeiln.hint")}>
         <div style={{ position: "relative" }}>
           <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIPersonenIcon size={18}/></span>
           <input
@@ -743,7 +755,7 @@ function S3({ data, onChange }) {
       </Field>
 
       {/* Anmeldung erforderlich */}
-      <Field label="Anmeldung erforderlich?">
+      <Field label={t("ew.s3.label.anmeldung")}>
         <JaNeinPill
           value={data.registration_required ?? false}
           onChange={v => onChange({ registration_required: v })}
@@ -758,6 +770,8 @@ function S3({ data, onChange }) {
 // Summary · Sichtbarkeit · Veröffentlichen-Button (im Footer)
 // ══════════════════════════════════════════════════════════════
 function S4({ data, onChange, saving }) {
+  const { t } = useTranslation();
+  const sichtbarkeit = getSichtbarkeit(t);
   const cover   = data.images?.[0]?.url;
   const typeObj = EXP_TYPEN.find(t => t.id === data.experience_type);
 
@@ -786,15 +800,15 @@ function S4({ data, onChange, saving }) {
     fmtDate(data.date) && { icon:<HUIKalenderIcon size={14}/>, text: fmtDate(data.date) },
     timeRange          && { icon:<HUIZeitIcon size={14}/>, text: timeRange },
     data.location_text && { icon:<HUILocationIcon size={14}/>, text: data.location_text },
-    data.max_participants && { icon:<HUIPersonenIcon size={14}/>, text: `Max. ${data.max_participants} Teilnehmende` },
+    data.max_participants && { icon:<HUIPersonenIcon size={14}/>, text: t("ew.s4.maxTeiln", { count: data.max_participants }) },
     preisAnzeige       && { icon:<HUIEuroIcon size={14}/>, text: preisAnzeige },
-    data.registration_required && { icon:<HUIEinladungIcon size={14}/>, text: "Anmeldung erforderlich" },
+    data.registration_required && { icon:<HUIEinladungIcon size={14}/>, text: t("ew.s4.anmeldung") },
   ].filter(Boolean);
 
   return (
     <div>
-      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>Veröffentlichen</div>
-      <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 20, lineHeight: 1.5 }}>Fast geschafft! Prüfe deine Angaben.</div>
+      <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>{t("ew.s4.title")}</div>
+      <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 20, lineHeight: 1.5 }}>{t("ew.s4.sub")}</div>
 
       {/* Summary-Karte */}
       <div style={{ borderRadius: 16, overflow: "hidden", border: `1.5px solid ${C.border}`, background: C.white, marginBottom: 24, boxShadow: "0 2px 16px rgba(26,26,24,0.07)" }}>
@@ -816,7 +830,7 @@ function S4({ data, onChange, saving }) {
           )}
           {/* Titel */}
           <div style={{ fontSize: 18, fontWeight: 600, color: C.ink, lineHeight: 1.3, marginBottom: 12 }}>
-            {data.title || "Kein Titel"}
+            {data.title || t("ew.s4.noTitle")}
           </div>
           {/* Summary-Rows */}
           {summaryRows.length > 0 && (
@@ -836,7 +850,7 @@ function S4({ data, onChange, saving }) {
       <div style={{ marginBottom: 20 }}>
         <Label text="Sichtbarkeit" req/>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {SICHTBARKEIT.map(s => (
+          {sichtbarkeit.map(s => (
             <SichtCard key={s.id} active={data.visibility === s.id} item={s} onClick={() => onChange({ visibility: s.id })}/>
           ))}
         </div>
@@ -855,6 +869,7 @@ function S4({ data, onChange, saving }) {
 // WIZARD ROOT
 // ══════════════════════════════════════════════════════════════
 export default function ExperienceWizard({ userId, existingExp = null, onClose, onSaved }) {
+  const { t } = useTranslation();
   // BANK-GATE-001 (2026-08-21, Michele-Report — siehe WerkWizard fuer Begruendung):
   // Bankdaten-Pruefung JETZT beim Oeffnen des Wizards statt erst beim finalen
   // Speichern -- verhindert Datenverlust durch komplettes Neu-Ausfuellen.
@@ -967,7 +982,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         const { data: bankCheck } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
         if (!bankCheck?.has_bank_details) {
           setSaving(false);
-          setSaveError("Bitte hinterlege zuerst deine Bankdaten in den Einstellungen (Account & Sicherheit → Bankdaten), damit wir dir Auszahlungen überweisen können.");
+          setSaveError(t("ew.save.bankError"));
           setTimeout(() => setSaveError(null), 6000);
           return;
         }
@@ -1064,7 +1079,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       const { data: refreshed } = await supabase.auth.refreshSession();
       if (!refreshed?.session?.access_token) {
         setSaving(false);
-        setSaveError("Sitzung abgelaufen — bitte abmelden und neu anmelden.");
+        setSaveError(t("ew.save.sessionExpired"));
         setTimeout(() => setSaveError(null), 8000);
         return;
       }
@@ -1080,8 +1095,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       console.error("[EXPERIENCE INSERT ERROR]", error);
       const isRLS = error.code === "42501" || /row-level security/i.test(error.message || "");
       setSaveError(isRLS
-        ? "Sitzung abgelaufen — bitte abmelden und neu anmelden."
-        : (error.message || "Speichern fehlgeschlagen"));
+        ? t("ew.save.sessionExpired")
+        : (error.message || t("ew.save.failed")));
       setTimeout(() => setSaveError(null), isRLS ? 8000 : 6000);
       return;
     }
@@ -1092,7 +1107,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     onSaved?.(saved);
     // pending_review: kurze Bestätigung, dann schließen
     if (saved?.status === "pending_review") {
-      setSaveError(isRejectedUpdate ? "✅ Update eingereicht! Der Admin wird deine Änderung prüfen." : "✅ Eingereicht! Das Erlebnis wird geprüft und dann freigegeben.");
+      setSaveError(isRejectedUpdate ? t("ew.save.updateOk") : t("ew.save.submitOk"));
       setTimeout(() => { setSaveError(null); onClose?.(); }, 2500);
     } else {
       onClose?.();
@@ -1116,17 +1131,16 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       <div data-hui-kbd-self-managed style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:C.white, borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ width:28 }}/>
-          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>Bankdaten benötigt</div>
+          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>{t("ew.bank.required")}</div>
           <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
             <span style={{ fontSize:14, color:C.ink }}>×</span>
           </button>
         </div>
         <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px 28px", textAlign:"center", gap:14 }}>
           <div style={{ fontSize:44 }}>🏦</div>
-          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>Bankdaten fehlen noch</div>
+          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>{t("ew.bank.missing")}</div>
           <div style={{ fontSize:14, color:C.inkMid, lineHeight:1.5 }}>
-            Bevor du ein Erlebnis veröffentlichen kannst, brauchen wir deine Bankverbindung — sonst können wir dir Auszahlungen aus Buchungen nicht überweisen.
-            Trag sie jetzt kurz ein, dann geht's direkt weiter mit deinem Erlebnis.
+            {t("ew.bank.body")}
           </div>
         </div>
         <div style={{ padding:"0 20px calc(20px + env(safe-area-inset-bottom, 0px))" }}>
@@ -1232,7 +1246,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
             borderRadius: 14, fontSize: 15, fontWeight: 600,
             color: C.inkMid, cursor: "pointer",
             fontFamily: "inherit", touchAction: "manipulation",
-          }}>← Zurück</button>
+          }}>{t("ew.btn.back")}</button>
         ) : (
           <button onClick={onClose} style={{
             flex: 1, padding: "16px",
@@ -1240,7 +1254,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
             borderRadius: 14, fontSize: 15, fontWeight: 600,
             color: C.inkMid, cursor: "pointer",
             fontFamily: "inherit", touchAction: "manipulation",
-          }}>Abbrechen</button>
+          }}>{t("ew.btn.cancel")}</button>
         )}
 
         {/* Weiter */}
@@ -1270,7 +1284,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
               color: C.inkMid, cursor: saving ? "not-allowed" : "pointer",
               fontFamily: "inherit", touchAction: "manipulation",
             }}>
-              {saving ? "…" : "Entwurf"}
+              {saving ? "…" : t("ew.btn.draft")}
             </button>
             <button
               onClick={() => save("pending_review")}
@@ -1287,7 +1301,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
                 letterSpacing: 0.2,
               }}
             >
-              {saving ? "Wird eingereicht…" : (existingExp?.approval_status === "rejected" ? "Anpassen & erneut einreichen ✨" : "Zur Prüfung einreichen ✨")}
+              {saving ? t("ew.btn.submitting") : (existingExp?.approval_status === "rejected" ? t("ew.btn.resubmit") : t("ew.btn.publish"))}
             </button>
           </>
         )}
