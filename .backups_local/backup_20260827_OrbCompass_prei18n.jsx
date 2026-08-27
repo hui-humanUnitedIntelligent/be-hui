@@ -7,7 +7,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import HuiMomentSheet   from "./HuiMomentSheet.jsx";
 import GemeinschaftsFlow from "./GemeinschaftsFlow.jsx";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 const HUI_LOGO = '/assets/brand/hui-logo.png'; // Branding update — lokales Asset
 
@@ -21,11 +20,9 @@ const D = {
 };
 
 // ── Worlds — richer sphere gradients, more depth per identity ────
-// i18n: getWorlds takes t as parameter (module-level function)
-function getWorlds(t) {
-  return [
+const WORLDS = [
   {
-    id: "natur", label: t("orbCompass.worldNatur"), emoji: "🌿", deg: 270,
+    id: "natur", label: "Natur", emoji: "🌿", deg: 270,
     // More organic depth: bright center, verdant mid, deep forest edge
     sphereGrad: "radial-gradient(circle at 36% 30%, rgba(210,245,185,0.98) 0%, rgba(120,195,105,0.92) 38%, rgba(55,138,62,0.88) 68%, rgba(35,100,42,0.82) 100%)",
     sphereGlow: "rgba(72,172,80,0.60)",
@@ -35,7 +32,7 @@ function getWorlds(t) {
     floatDur: 4.6, floatDelay: 0.0,
   },
   {
-    id: "kreativitaet", label: t("orbCompass.worldKreativitaet"), emoji: "🎨", deg: 342,
+    id: "kreativitaet", label: "Kreativität", emoji: "🎨", deg: 342,
     // Warm coral energy: bright warm highlight, rich coral mid, deep crimson edge
     sphereGrad: "radial-gradient(circle at 36% 30%, rgba(255,225,205,0.98) 0%, rgba(248,152,118,0.92) 38%, rgba(218,82,55,0.88) 68%, rgba(185,52,35,0.82) 100%)",
     sphereGlow: "rgba(228,90,58,0.60)",
@@ -44,7 +41,7 @@ function getWorlds(t) {
     floatDur: 4.9, floatDelay: 0.5,
   },
   {
-    id: "tiere", label: t("orbCompass.worldTiere"), emoji: "🐾", deg: 54,
+    id: "tiere", label: "Tiere", emoji: "🐾", deg: 54,
     // Soft organic teal: nature calm
     sphereGrad: "radial-gradient(circle at 36% 30%, rgba(195,245,240,0.98) 0%, rgba(85,205,195,0.92) 38%, rgba(28,148,138,0.88) 68%, rgba(15,108,100,0.82) 100%)",
     sphereGlow: "rgba(38,172,162,0.56)",
@@ -53,7 +50,7 @@ function getWorlds(t) {
     floatDur: 5.2, floatDelay: 1.0,
   },
   {
-    id: "wirkung", label: t("orbCompass.worldWirkung"), emoji: "🌍", deg: 126,
+    id: "wirkung", label: "Wirkung", emoji: "🌍", deg: 126,
     // Deep hopeful blue: teal-blue, depth, future
     sphereGrad: "radial-gradient(circle at 36% 30%, rgba(195,225,252,0.98) 0%, rgba(95,162,228,0.92) 38%, rgba(42,98,195,0.88) 68%, rgba(22,65,158,0.82) 100%)",
     sphereGlow: "rgba(52,112,205,0.56)",
@@ -62,7 +59,7 @@ function getWorlds(t) {
     floatDur: 4.8, floatDelay: 1.5,
   },
   {
-    id: "gemeinschaft", label: t("orbCompass.worldGemeinschaft"), emoji: "🤝", deg: 198,
+    id: "gemeinschaft", label: "Gemeinschaft", emoji: "🤝", deg: 198,
     // Warm amber gold: human warmth, inviting
     sphereGrad: "radial-gradient(circle at 36% 30%, rgba(255,238,198,0.98) 0%, rgba(248,185,82,0.92) 38%, rgba(218,138,28,0.88) 68%, rgba(185,105,15,0.82) 100%)",
     sphereGlow: "rgba(228,152,35,0.58)",
@@ -70,8 +67,7 @@ function getWorlds(t) {
     innerHighlight: "rgba(255,220,138,0.48)",
     floatDur: 5.0, floatDelay: 0.8,
   },
-  ];
-}
+];
 
 function polar(deg, r) {
   const rad = (deg - 90) * Math.PI / 180;
@@ -233,7 +229,6 @@ function GlassSphere({ world, size, animDelay }) {
 
 // ═══════════════════════════════════════════════════════════════════
 export default function OrbCompass({ visible, isTalent = false, onClose, onWorldSelect }) {
-  const { t } = useTranslation();
   const [phase,  setPhase]  = useState("hidden");
   const [logoOk,     setLogoOk]     = useState(false);
   const [showMoment,      setShowMoment]      = useState(false);
@@ -306,7 +301,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
         <button
           className="oatm-x"
           onClick={close}
-          aria-label={t("orbCompass.close")}
+          aria-label="Schließen"
           style={{
             position: "absolute",
             top: "max(52px,calc(44px + max(var(--hui-safe-top, 0px), env(safe-area-inset-top,0px))))",
@@ -336,7 +331,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             // Subtle text depth
             textShadow:    "0 1px 0 rgba(255,255,255,0.60)",
           }}>
-            {t("orbCompass.titleLine1")}<br/>{t("orbCompass.titleLine2")}
+            Wonach suchst<br/>du heute?
           </h1>
           <p style={{
             fontSize:   Math.min(15, vw * 0.037),
@@ -346,7 +341,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             fontWeight: 400,
             letterSpacing: "0.005em",
           }}>
-            {t("orbCompass.subtitleLine1")}<br/>{t("orbCompass.subtitleLine2")}
+            Entdecke die Welt,<br/>die dich heute bewegt.
           </p>
         </div>
 
@@ -401,7 +396,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             />
 
             {/* Spokes — barely visible, organic feel */}
-            {getWorlds(t).map(w => {
+            {WORLDS.map(w => {
               const near = polar(w.deg, r2 * 0.88);
               const far  = polar(w.deg, r1 * 0.87);
               return (
@@ -416,7 +411,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             })}
 
             {/* Outer ring dots — glowing white pearls */}
-            {getWorlds(t).map((w, i) => {
+            {WORLDS.map((w, i) => {
               const p = polar(w.deg, r1);
               return (
                 <g key={w.id + "-dot"}>
@@ -440,7 +435,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             })}
 
             {/* Inner ring dots — tiny, very soft */}
-            {getWorlds(t).map(w => {
+            {WORLDS.map(w => {
               const p = polar(w.deg, r2);
               return (
                 <circle key={w.id + "-idot"}
@@ -478,7 +473,7 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
           }}/>
 
           {/* ── World Nodes — identical positions ─────── */}
-          {getWorlds(t).map((w, i) => {
+          {WORLDS.map((w, i) => {
             const pos = polar(w.deg, R);
             return (
               <div
@@ -638,9 +633,9 @@ export default function OrbCompass({ visible, isTalent = false, onClose, onWorld
             fontSize: 13.5, color: D.inkSoft, lineHeight: 1.72,
             margin: 0, fontWeight: 400,
           }}>
-            {t("orbCompass.hintLine1")}<br/>{t("orbCompass.hintLine2")}<br/>
-            <strong style={{ color: D.teal, fontWeight: 600 }}>{t("orbCompass.hintHuiMoment")}</strong><br/>
-            {t("orbCompass.hintLine3")}
+            In die Mitte tippen,<br/>um einen<br/>
+            <strong style={{ color: D.teal, fontWeight: 600 }}>HUI-Moment</strong><br/>
+            zu teilen
           </p>
         </div>
 
@@ -692,7 +687,6 @@ const OrbLockedDialogCSS = `
 `;
 
 function OrbLockedDialog({ onJoin, onClose }) {
-  const { t } = useTranslation();
   return (
     <>
       <style>{OrbLockedDialogCSS}</style>
@@ -754,7 +748,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
           lineHeight: 1.25,
           margin: "0 0 14px",
         }}>
-          {t("orbLocked.titleLine1")}<br/>{t("orbLocked.titleLine2")}
+          Der HUI-Orb wartet<br/>auf dich ✨
         </h3>
 
         {/* Text */}
@@ -764,9 +758,11 @@ function OrbLockedDialog({ onJoin, onClose }) {
           color: "rgba(26,53,48,0.62)",
           margin: "0 0 24px",
         }}>
-          {t("orbLocked.body1")}
+          Mit dem HUI-Orb teilen Talente und Wirker ihre Werke,
+          Erlebnisse, Momente und ihre Wirkung mit der Gemeinschaft.
           <br/><br/>
-          {t("orbLocked.body2")}
+          Werde Teil der Gemeinschaft und schalte den HUI-Orb
+          für dein Profil frei.
         </p>
 
         {/* Primär-Button */}
@@ -792,7 +788,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
           onTouchStart={e => { e.currentTarget.style.transform = "scale(0.97)"; }}
           onTouchEnd={e   => { e.currentTarget.style.transform = "scale(1)"; }}
         >
-          {t("orbLocked.join")}
+          Mitglied der Gemeinschaft werden ✨
         </button>
 
         {/* Sekundär-Button */}
@@ -813,7 +809,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
             touchAction: "manipulation",
           }}
         >
-          {t("orbLocked.later")}
+          Später
         </button>
       </div>
     </>
