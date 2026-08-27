@@ -210,14 +210,7 @@ export class GlobalAppBoundary extends React.Component {
   }
 
   handleRetry() {
-    const count = Number(sessionStorage.getItem('_hui_app_crash_retry_count') || 0);
-    if (count < 3) {
-      sessionStorage.setItem('_hui_app_crash_retry_count', String(count + 1));
-      window.location.reload();
-    } else {
-      // Nach 3 Reloads: nur noch State zurücksetzen, kein weiterer Reload (Loop-Schutz)
-      this.setState(s => ({ error: null, retryCount: s.retryCount + 1 }));
-    }
+    this.setState(s => ({ error: null, retryCount: s.retryCount + 1 }));
   }
 
   render() {
@@ -264,7 +257,7 @@ export class RouteBoundary extends React.Component {
       <RouteFallback
         fallbackTitle={this.props.fallbackTitle}
         errorMsg={this.state.error?.message || ''}
-        onRetry={() => window.location.reload()}
+        onRetry={() => this.setState({ error: null })}
       />
     );
   }
