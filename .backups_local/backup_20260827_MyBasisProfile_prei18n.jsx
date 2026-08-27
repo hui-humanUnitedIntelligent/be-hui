@@ -44,7 +44,6 @@ import { HUIAnsichtIcon, HUISettingsIcon,
 import { useContentPreview } from "../context/ContentPreviewContext.jsx";
 import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 // ── Extracted sub-components ────────────────────────────────────
 import { T, CSS } from "../components/profile/my-basis/constants.js";
@@ -54,7 +53,6 @@ import { TalentWerdenBanner } from "../components/profile/my-basis/Misc.jsx";
 
 export default function MyBasisProfile({ onClose, profileId }) {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   // AuthContext: eigenen Profile-Cache nach Uploads aktualisieren
   const _auth = useAuth() || {};
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
@@ -608,7 +606,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           boxShadow:"0 4px 20px rgba(0,0,0,0.3)",
           textAlign:"center", lineHeight:1.5,
         }}>
-          {t("profile.speicherFehler")} {saveErrMsg}
+          ⚠️ Speicher-Fehler: {saveErrMsg}
         </div>
       ) : null}
 
@@ -624,7 +622,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           backdropFilter:"blur(2px)",
           transition:"all .2s ease",
         }}>
-          {saveOk ? t("profile.gespeichert") : t("profile.speichert")}
+          {saveOk ? "✓ Gespeichert" : "Speichert…"}
         </div>
       )}
 
@@ -638,12 +636,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <div>
           <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em",
             lineHeight:1.15 }}>
-            {profile?.is_talent ? t("profile.meinTalentProfil") : t("profile.meinProfil")}
+            {profile?.is_talent ? "Mein Talent-Profil ✨" : "Mein Profil 🌿"}
           </div>
           <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
             {profile?.is_talent
-              ? t("profile.gestalteTalentProfil")
-              : t("profile.gestalteProfil")}
+              ? "Gestalte dein Talent-Profil, wie es dich und dein Wirken zeigt."
+              : "Gestalte dein Profil so, wie du bist."}
           </div>
         </div>
         {/* Header-Buttons: Icon-Only — Bookmark 👁️ ⚙️ */}
@@ -651,8 +649,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <button
             className="mbp-press-light"
             onClick={() => { setShowPublicPreview(false); setShowSettings(false); setShowMerken(true); }}
-            title={t("profile.gemerkt")}
-            aria-label={t("profile.gemerkteInhalte")}
+            title="Gemerkt"
+            aria-label="Gemerkte Inhalte"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -670,8 +668,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 window.__HUI_OPEN_PROFILE__(profile.id);
               }
             }}
-            title={t("profile.profilAnsehen")}
-            aria-label={t("profile.profilAnsehen")}
+            title="Profil ansehen"
+            aria-label="Profil ansehen"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -682,8 +680,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <button
             className="mbp-press-light"
             onClick={() => { setShowMerken(false); setShowPublicPreview(false); setShowSettings(true); }}
-            title={t("profile.einstellungen")}
-            aria-label={t("profile.einstellungen")}
+            title="Einstellungen"
+            aria-label="Einstellungen"
             style={{
               width:34, height:34, borderRadius:"50%",
               background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`,
@@ -931,7 +929,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
               <span style={{ display:"flex", color:"#1A1A2E" }}><HUIBookmarkIcon size={18} /></span>
               <span style={{ fontSize:15, fontWeight: 600, color:"#1A1A2E", letterSpacing:"-0.02em" }}>
-                {t("profile.gemerkteInhalte")}
+                Gemerkte Inhalte
               </span>
             </div>
             <button
@@ -942,7 +940,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 fontSize:12, fontWeight: 600, color:"rgba(26,26,46,0.55)",
                 cursor:"pointer", touchAction:"manipulation",
               }}
-            >{t("profile.schliessen")}</button>
+            >✕ Schließen</button>
           </div>
           {/* Content */}
           <div style={{ padding:"16px" }}>
@@ -977,18 +975,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
       {/* ── WIZARD RENDERS (BUGFIX 2026-08-26: fehlten nach Refactor 35ca88f2) ── */}
       {showWerkWizard && profile?.id && createPortal(
-        <Suspense fallback={
-          <div style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            padding:'24px',
-            color:'rgba(255,255,255,0.4)',
-            fontSize:'14px'
-          }}>
-            {t('common.loading')}
-          </div>
-        }>
+        <Suspense fallback={null}>
           <WerkWizard
             userId={profile.id}
             existingWork={editingWerk}
@@ -1000,18 +987,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
 
       {showTalentWizard && profile?.id && createPortal(
-        <Suspense fallback={
-          <div style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            padding:'24px',
-            color:'rgba(255,255,255,0.4)',
-            fontSize:'14px'
-          }}>
-            {t('common.loading')}
-          </div>
-        }>
+        <Suspense fallback={null}>
           <TalentAngebotWizard
             userId={profile.id}
             existingTalent={editingTalent}
@@ -1023,18 +999,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
 
       {showExpWizard && profile?.id && createPortal(
-        <Suspense fallback={
-          <div style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            padding:'24px',
-            color:'rgba(255,255,255,0.4)',
-            fontSize:'14px'
-          }}>
-            {t('common.loading')}
-          </div>
-        }>
+        <Suspense fallback={null}>
           <ExperienceWizard
             userId={profile.id}
             existingExp={editingExp}
