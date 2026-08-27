@@ -24,13 +24,15 @@ const C = {
 
 // Werktypen: ausschließlich echte Werke
 // Dienstleistungen/Workshops/Kurse → separater "Angebote"-Bereich (geplant)
-const WERK_TYPEN = [
-  { id:"original",  icon:"🖼️",  label:"Originalwerk",         sub:"Unikat – einmalig vorhanden." },
-  { id:"druck",     icon:"🖨️",  label:"Druck / Reproduktion",  sub:"Reproduzierbar in Auflage." },
-  { id:"digital",   icon:"💻",  label:"Digitales Werk",        sub:"Datei zum Download." },
-];
-const MATERIALIEN = ["Acryl","Öl","Aquarell","Holz","Keramik","Textil","Digital","Metall","Papier","Sonstiges"];
-const KATEGORIEN  = ["Malerei","Fotografie","Skulptur","Illustration","Design","Musik","Literatur","Performance","Handwerk","Sonstiges"];
+function getWerkTypen(t) {
+  return [
+  { id:"original",  icon:"🖼️",  label:t("ww.typ.original"),         sub:t("ww.typ.original.sub") },
+  { id:"druck",     icon:"🖨️",  label:t("ww.typ.druck"),  sub:t("ww.typ.druck.sub") },
+  { id:"digital",   icon:"💻",  label:t("ww.typ.digital"),        sub:t("ww.typ.digital.sub") },
+  ];
+}
+function getMaterialien(t) { return t("ww.materialien").split(","); }
+function getKategorien(t) { return t("ww.kategorien").split(","); }
 
 // ── Bausteine ─────────────────────────────────────────────────
 function ProgressBar({ step = 1, total = 6 }) {
@@ -59,11 +61,12 @@ function ProgressBar({ step = 1, total = 6 }) {
 }
 
 function TopBar({ onClose = () => {}, step = 1, total = 6 }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}` }}>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <button onClick={() => onClose?.()} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>Abbrechen</button>
-        <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>Werk bearbeiten</div>
+        <button onClick={() => onClose?.()} style={{ background:"none", border:"none", padding:0, fontSize:13, fontWeight:600, color:C.inkMid, cursor:"pointer", touchAction:"manipulation" }}>{t("ww.btn.cancel")}</button>
+        <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>{t("ww.title.edit")}</div>
         <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
           <span style={{ fontSize:14, color:C.ink }}>×</span>
         </button>
@@ -130,11 +133,12 @@ function FTA({ label, req, value, onChange, placeholder, maxLen, rows=3 }) {
 }
 
 function FSel({ label, req, value, onChange, options }) {
+  const { t } = useTranslation();
   return (
     <div style={{ marginBottom:14 }}>
       {label&&<Lbl text={label} req={req}/>}
       <select value={value} onChange={e=>onChange(e.target.value)} style={{ ...INP, backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230EC4B8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`, backgroundRepeat:"no-repeat", backgroundPosition:"right 14px center", paddingRight:38 }}>
-        <option value="">Bitte wählen…</option>
+        <option value="">{t("ww.select.placeholder")}</option>
         {options.map(o=><option key={o} value={o}>{o}</option>)}
       </select>
     </div>
@@ -172,6 +176,7 @@ function RCard({ active, icon, label, sub, onClick }) {
 // Bis zu 10 Bilder/Videos, 5MB Bilder, 25MB Videos (Michael-Vorgabe).
 // ══════════════════════════════════════════════════════════════
 function S1({ data, onChange, userId, onNext }) {
+  const { t } = useTranslation();
   const [upl, setUpl] = useState(false);
   const imgs = data.images || [];
 
@@ -215,9 +220,9 @@ function S1({ data, onChange, userId, onNext }) {
 
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Bilder & Videos</div>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>{t("ww.title.images")}</div>
       <div style={{ fontSize:13, color:C.inkMid, marginBottom:16, lineHeight:1.5 }}>
-        Füge bis zu 10 Bilder oder Videos hinzu. Das erste Bild wird als Titelbild verwendet.
+        {t("ww.hint.images")}
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, marginBottom:12 }}>
         {imgs.map((img, idx) => {
@@ -258,7 +263,7 @@ function S1({ data, onChange, userId, onNext }) {
           }} role="button" tabIndex={0}>
             {upl ? <div style={{ fontSize:12, color:C.teal, fontWeight:600 }}>…</div> : <>
               <div style={{ fontSize:22, color:C.teal, fontWeight:300, lineHeight:1 }}>+</div>
-              <div style={{ fontSize:9, color:C.teal, fontWeight:600, textAlign:"center", lineHeight:1.4 }}>Bild/Video<br/>hinzufügen</div>
+              <div style={{ fontSize:9, color:C.teal, fontWeight:600, textAlign:"center", lineHeight:1.4 }}>{t("ww.addImage")}</div>
             </>}
           </div>
         )}
@@ -273,29 +278,30 @@ function S1({ data, onChange, userId, onNext }) {
         if (accepted.length) handleFilesChange(accepted);
         if (fileRef.current) fileRef.current.value = "";
       }}/>
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={imgs.length === 0} />}
+      {onNext && <PBtn label={t("ww.btn.next")} onClick={onNext} disabled={imgs.length === 0} />}
     </div>
   );
 }
 
 // Screen 2 – Basisinformationen
 function S2({ data, onChange, onNext }) {
+  const { t } = useTranslation();
   const [ti, setTi] = useState("");
   const tags=data.tags||[];
   function addTag() { const t=ti.trim(); if (!t||tags.includes(t)){setTi("");return;} onChange({ tags:[...tags,t] }); setTi(""); }
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>Basisinformationen</div>
-      <FI label="Titel des Werks" req value={data.title||""} onChange={v=>onChange({title:v})} placeholder="z. B. Wellen der Ruhe" maxLen={80}/>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>{t("ww.title.basics")}</div>
+      <FI label={t("ww.field.title")} req value={data.title||""} onChange={v=>onChange({title:v})} placeholder={t("ww.ph.title")} maxLen={80}/>
       {/* KURZBESCHREIBUNG-REMOVED-FIX (2026-08-07): Feld auf Nutzerwunsch entfernt --
           Titel + Detaillierte Beschreibung reichen aus. `data.shortDesc` bleibt im
           Formular-State/Payload erhalten (mappt weiterhin auf DB-Spalte "caption"),
           damit bestehende Werke mit vorhandenem caption-Wert beim Bearbeiten NICHT
           stillschweigend geloescht werden -- lediglich das Eingabefeld verschwindet. */}
-      <FTA label="Detaillierte Beschreibung" value={data.description||""} onChange={v=>onChange({description:v})} placeholder="Dieses Werk steht für Bewegung, Freiheit und innere Balance…" maxLen={1000} rows={4}/>
-      <FSel label="Kategorie" req value={data.category||""} onChange={v=>onChange({category:v})} options={KATEGORIEN}/>
+      <FTA label={t("ww.field.description")} value={data.description||""} onChange={v=>onChange({description:v})} placeholder={t("ww.ph.description")} maxLen={1000} rows={4}/>
+      <FSel label={t("ww.field.category")} req value={data.category||""} onChange={v=>onChange({category:v})} options={getKategorien(t)}/>
       <div style={{ marginBottom:14 }}>
-        <Lbl text="Tags"/>
+        <Lbl text={t("ww.field.tags")}/>
         <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:8 }}>
           {tags.map(tag=>(
             <div key={tag} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px", borderRadius:99, background:"rgba(14,196,184,0.10)", border:"1.5px solid rgba(14,196,184,0.28)", fontSize:12.5, fontWeight:600, color:C.teal }}>
@@ -305,11 +311,11 @@ function S2({ data, onChange, onNext }) {
           ))}
         </div>
         <div style={{ display:"flex", gap:8 }}>
-          <input value={ti} onChange={e=>setTi(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(e.preventDefault(),addTag())} placeholder="+ Tag hinzufügen" style={{ flex:1, padding:"9px 13px", borderRadius:99, border:"1.5px dashed rgba(14,196,184,0.35)", outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"transparent" }}/>
+          <input value={ti} onChange={e=>setTi(e.target.value)} onKeyDown={e=>e.key==="Enter"&&(e.preventDefault(),addTag())} placeholder={t("ww.ph.tag")} style={{ flex:1, padding:"9px 13px", borderRadius:99, border:"1.5px dashed rgba(14,196,184,0.35)", outline:"none", fontSize:13, fontFamily:"inherit", color:C.ink, background:"transparent" }}/>
           {ti&&<button onClick={addTag} style={{ background:C.teal, border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight: 600, color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>}
         </div>
       </div>
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.title?.trim()||!data.category}/>}
+      {onNext && <PBtn label={t("ww.btn.next")} onClick={onNext} disabled={!data.title?.trim()||!data.category}/>}
     </div>
   );
 }
@@ -321,15 +327,17 @@ function S2({ data, onChange, onNext }) {
 // unbegrenzt (Download). Speist is_unique/stock_total/stock_available
 // in public.works (bereits vorhanden, bislang nur mit DB-Defaults belegt).
 function S3({ data, onChange, onNext }) {
+  const { t } = useTranslation();
+  const werkTypen = getWerkTypen(t);
   const isDruck = data.werktyp === "druck";
   const stockNum = parseInt(data.stockCount, 10);
   const stockValid = Number.isInteger(stockNum) && stockNum >= 1;
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Werktyp</div>
-      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>Wähle die Art deines Werks.</div>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>{t("ww.title.werktyp")}</div>
+      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>{t("ww.hint.werktyp")}</div>
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
-        {WERK_TYPEN.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
+        {werkTypen.map(wt=><RCard key={wt.id} active={data.werktyp===wt.id} icon={wt.icon} label={wt.label} sub={wt.sub} onClick={()=>onChange({werktyp:wt.id})}/>)}
       </div>
 
       {/* ── Stückanzahl (STOCK-WIZARD-002) ── */}
@@ -342,26 +350,26 @@ function S3({ data, onChange, onNext }) {
         }}>
           <span style={{ fontSize:18, flexShrink:0 }}>1️⃣</span>
           <div style={{ fontSize:12.5, color:C.inkMid }}>
-            <strong style={{ color:C.ink, fontWeight:600 }}>Unikat</strong> — genau 1 Stück verfügbar.
+            <strong style={{ color:C.ink, fontWeight:600 }}>{t("ww.unicat")}</strong> — {t("ww.unicat.sub")}
           </div>
         </div>
       )}
 
       {isDruck && (
         <div style={{ marginBottom:20, animation:"wfFadeStep 0.2s ease both" }}>
-          <Lbl text="Anzahl Stück" req/>
+          <Lbl text={t("ww.field.stock")} req/>
           <input
             type="number" min="1" step="1" inputMode="numeric"
             value={data.stockCount||""}
             onChange={e=>onChange({stockCount:e.target.value})}
-            placeholder="z.B. 10"
+            placeholder={t("ww.ph.stock")}
             style={{
               ...INP,
               borderColor: data.stockCount ? C.teal : "rgba(26,26,24,0.10)",
             }}
           />
           <div style={{ fontSize:11.5, color:C.inkFade, marginTop:6 }}>
-            Der Bestand wird im Feed angezeigt und bei jedem Kauf automatisch reduziert.
+            {t("ww.hint.stock")}
           </div>
         </div>
       )}
@@ -375,18 +383,19 @@ function S3({ data, onChange, onNext }) {
         }}>
           <span style={{ fontSize:18, flexShrink:0 }}>♾️</span>
           <div style={{ fontSize:12.5, color:C.inkMid }}>
-            <strong style={{ color:C.ink, fontWeight:600 }}>Unbegrenzt</strong> — als Download beliebig oft verfügbar.
+            <strong style={{ color:C.ink, fontWeight:600 }}>{t("ww.unlimited")}</strong> — {t("ww.unlimited.sub")}
           </div>
         </div>
       )}
 
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.werktyp || (isDruck && !stockValid)}/>}
+      {onNext && <PBtn label={t("ww.btn.next")} onClick={onNext} disabled={!data.werktyp || (isDruck && !stockValid)}/>}
     </div>
   );
 }
 
 // Screen 4 – Preis & Verkauf
 function S4({ data, onChange, onNext }) {
+  const { t } = useTranslation();
   // VERFUEGBARKEIT-VEREINFACHT (2026-08-20, Michael-Report): "Reserviert"/
   // "Verkauft" ergaben in diesem Erstellungs-Schritt keinen Sinn -- beide
   // Werte mappten ohnehin schon vorher 1:1 auf dasselbe for_sale=false
@@ -395,17 +404,17 @@ function S4({ data, onChange, onNext }) {
   // Option, die tatsaechlich zum Erstellungs-Kontext passt: individuell
   // gefertigte Werke (z.B. Moebel), die erst NACH einer Anfrage entstehen.
   const VERF=[
-    { id:"available",  label:"Verfügbar zum Kauf",       sub:"Interessenten können direkt anfragen." },
-    { id:"on_request",  label:"Auf Anfrage hergestellt",  sub:"Wird erst nach Bestellung individuell gefertigt." },
+    { id:"available",  label:t("ww.avail.available"),       sub:t("ww.avail.available.sub") },
+    { id:"on_request",  label:t("ww.avail.onrequest"),  sub:t("ww.avail.onrequest.sub") },
   ];
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:6 }}>Preis & Verkauf</div>
-      <div style={{ fontSize:13, color:C.inkFade, marginBottom:20 }}>Festpreis in Euro</div>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:6 }}>{t("ww.title.price")}</div>
+      <div style={{ fontSize:13, color:C.inkFade, marginBottom:20 }}>{t("ww.hint.price")}</div>
 
       {/* ── PREIS: volle Breite, große Schrift ── */}
       <div style={{ marginBottom:20 }}>
-        <Lbl text="Preis (EUR)" req/>
+        <Lbl text={t("ww.field.price")} req/>
         <div style={{ position:"relative" }}>
           <span style={{
             position:"absolute", left:16, top:"50%", transform:"translateY(-50%)",
@@ -436,14 +445,14 @@ function S4({ data, onChange, onNext }) {
         </div>
         {data.price && (
           <div style={{ marginTop:6, fontSize:12, color:C.inkFade, paddingLeft:4 }}>
-            + ggf. Versandkosten
+            {t("ww.hint.shippingCost")}
           </div>
         )}
       </div>
 
       {/* ── VERFÜGBARKEIT ── */}
       <div style={{ marginBottom:8 }}>
-        <Lbl text="Verfügbarkeit" req/>
+        <Lbl text={t("ww.field.availability")} req/>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           {VERF.map(v=>(
             <RCard key={v.id} active={data.availability===v.id}
@@ -453,25 +462,26 @@ function S4({ data, onChange, onNext }) {
         </div>
       </div>
 
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.price||!data.availability}/>}
+      {onNext && <PBtn label={t("ww.btn.next")} onClick={onNext} disabled={!data.price||!data.availability}/>}
     </div>
   );
 }
 
 // Screen 5 – Versand & Abholung
 function S5({ data, onChange, onNext, onPickLocation }) {
-  const NAT=["DHL Standard","DHL Express","Hermes","DPD","Selbst verpackt"];
-  const INT=["DHL International","FedEx","UPS","Auf Anfrage"];
+  const { t } = useTranslation();
+  const NAT=t("ww.nat").split(",");
+  const INT=t("ww.int").split(",");
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>Versand & Abholung</div>
-      <Toggle label="Versand möglich" value={!!data.versand} onChange={v=>onChange({versand:v})}/>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:16 }}>{t("ww.title.shipping")}</div>
+      <Toggle label={t("ww.toggle.shipping")} value={!!data.versand} onChange={v=>onChange({versand:v})}/>
       {data.versand&&(
         <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 4px", marginBottom:12 }}>
-          <FSel label="Versand national" value={data.versandNational||""} onChange={v=>onChange({versandNational:v})} options={NAT}/>
-          <FSel label="Versand international" value={data.versandInternational||""} onChange={v=>onChange({versandInternational:v})} options={INT}/>
+          <FSel label={t("ww.field.shippingNational")} value={data.versandNational||""} onChange={v=>onChange({versandNational:v})} options={NAT}/>
+          <FSel label={t("ww.field.shippingInternational")} value={data.versandInternational||""} onChange={v=>onChange({versandInternational:v})} options={INT}/>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:10 }}>
-            {[["Versandkosten","versandkosten"],["Kostenfrei ab","versandFrei"]].map(([lbl,key])=>(
+            {[[t("ww.field.shippingCost"),"versandkosten"],[t("ww.field.shippingFree"),"versandFrei"]].map(([lbl,key])=>(
               <div key={key}>
                 <div style={{ fontSize:11, fontWeight:600, color:C.inkMid, marginBottom:5 }}>{lbl}</div>
                 <div style={{ position:"relative" }}>
@@ -483,16 +493,16 @@ function S5({ data, onChange, onNext, onPickLocation }) {
           </div>
         </div>
       )}
-      <Toggle label="Abholung möglich" value={!!data.abholung} onChange={v=>onChange({abholung:v})}/>
+      <Toggle label={t("ww.toggle.pickup")} value={!!data.abholung} onChange={v=>onChange({abholung:v})}/>
       {data.abholung&&(
         <div style={{ background:"rgba(14,196,184,0.04)", border:"1.5px solid rgba(14,196,184,0.15)", borderRadius:14, padding:"14px 14px 6px", marginBottom:12 }}>
           <div style={{ marginBottom:14 }}>
-            <Lbl text="Standort für Abholung"/>
+            <Lbl text={t("ww.field.pickupLocation")}/>
             <LocationAutocompleteInput
               value={data.abholort||""}
               onChange={v=>onChange({abholort:v})}
               onPick={onPickLocation}
-              placeholder="z. B. Freiburg im Breisgau, Deutschland"
+              placeholder={t("ww.ph.pickupLocation")}
               style={INP}
             />
           </div>
@@ -500,47 +510,48 @@ function S5({ data, onChange, onNext, onPickLocation }) {
       )}
       {!data.versand&&!data.abholung&&(
         <div style={{ padding:"12px 14px", borderRadius:12, background:"rgba(239,68,68,0.06)", border:"1.5px solid rgba(239,68,68,0.15)", fontSize:12.5, color:"rgba(239,68,68,0.8)", marginBottom:12 }}>
-          Mindestens eine Option muss aktiviert sein.
+          {t("ww.warn.minOption")}
         </div>
       )}
-      {onNext && <PBtn label="Weiter" onClick={onNext} disabled={!data.versand&&!data.abholung}/>}
+      {onNext && <PBtn label={t("ww.btn.next")} onClick={onNext} disabled={!data.versand&&!data.abholung}/>}
     </div>
   );
 }
 
 // Screen 6 – Sichtbarkeit & Speichern
 function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
+  const { t } = useTranslation();
   const SICHT=[
-    { id:"public",      icon:"🌍", label:"Öffentlich",   sub:"Sichtbar in deinem Talent-Profil und ggf. im HUI-Marktplatz." },
-    { id:"connections", icon:"🔗", label:"Verbindungen", sub:"Nur für Menschen in deinem Netzwerk sichtbar." },
-    { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich sichtbar." },
+    { id:"public",      icon:"🌍", label:t("ww.vis.public"),   sub:t("ww.vis.public.sub") },
+    { id:"connections", icon:"🔗", label:t("ww.vis.connections"), sub:t("ww.vis.connections.sub") },
+    { id:"private",     icon:<HUIPrivatIcon size={16}/>, label:t("ww.vis.private"),       sub:t("ww.vis.private.sub") },
   ];
   const cover=data.images?.[0]?.url;
   const ps=data.price?`${formatNumberDE(parseFloat(data.price), {minimumFractionDigits:2})} ${data.currency||"€"}`:"—";
   return (
     <div>
-      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>Sichtbarkeit</div>
-      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>Wer kann dieses Werk sehen?</div>
+      <div style={{ fontSize:20, fontWeight: 600, color:C.ink, marginBottom:4 }}>{t("ww.title.visibility")}</div>
+      <div style={{ fontSize:13, color:C.inkMid, marginBottom:16 }}>{t("ww.hint.visibility")}</div>
       <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:20 }}>
         {SICHT.map(s=><RCard key={s.id} active={(data.sichtbarkeit||"public")===s.id} icon={s.icon} label={s.label} sub={s.sub} onClick={()=>onChange({sichtbarkeit:s.id})}/>)}
       </div>
       <div style={{ background:"#fff", border:`1.5px solid ${C.border}`, borderRadius:16, padding:14, marginBottom:20 }}>
-        <div style={{ fontSize:12, fontWeight: 600, color:C.inkMid, marginBottom:12 }}>Zusammenfassung</div>
+        <div style={{ fontSize:12, fontWeight: 600, color:C.inkMid, marginBottom:12 }}>{t("ww.title.summary")}</div>
         <div style={{ display:"flex", gap:12, alignItems:"flex-start" }}>
           {cover&&<img loading="lazy" decoding="async" src={cover} alt="" style={{ width:64, height:64, borderRadius:10, objectFit:"cover", flexShrink:0 }}/>}
           <div>
             <div style={{ fontSize:14, fontWeight: 600, color:C.ink, marginBottom:2 }}>{data.title||"—"}</div>
             <div style={{ fontSize:14, fontWeight: 600, color:C.teal, marginBottom:6 }}>{ps}</div>
             <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-              {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>Verfügbar</span>}
-              {data.availability==="on_request"&&<span style={{ fontSize:11, fontWeight:600, color:C.teal, display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:C.teal, display:"inline-block" }}/>Auf Anfrage</span>}
-              {data.versand&&<span style={{display:"flex",alignItems:"center",gap:3, fontSize:11, fontWeight:600, color:C.inkMid}}><HUIVersandIcon size={11}/>Versand möglich</span>}
-              {data.abholung&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>🤝 Abholung möglich</span>}
+              {data.availability==="available"&&<span style={{ fontSize:11, fontWeight:600, color:"#22c55e", display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:"#22c55e", display:"inline-block" }}/>{t("ww.badge.available")}</span>}
+              {data.availability==="on_request"&&<span style={{ fontSize:11, fontWeight:600, color:C.teal, display:"flex", alignItems:"center", gap:4 }}><span style={{ width:6, height:6, borderRadius:"50%", background:C.teal, display:"inline-block" }}/>{t("ww.badge.onrequest")}</span>}
+              {data.versand&&<span style={{display:"flex",alignItems:"center",gap:3, fontSize:11, fontWeight:600, color:C.inkMid}}><HUIVersandIcon size={11}/>{t("ww.badge.shipping")}</span>}
+              {data.abholung&&<span style={{ fontSize:11, fontWeight:600, color:C.inkMid }}>{t("ww.badge.pickup")}</span>}
             </div>
           </div>
         </div>
       </div>
-      {!hideButtons && <><PBtn label="Zur Prüfung einreichen" onClick={onSave} loading={saving}/><SBtn label="Entwurf speichern" onClick={onDraft}/></>}
+      {!hideButtons && <><PBtn label={t("ww.btn.submit")} onClick={onSave} loading={saving}/><SBtn label={t("ww.btn.draft")} onClick={onDraft}/></>}
     </div>
   );
 }
@@ -549,6 +560,7 @@ function S6({ data, onChange, onSave, onDraft, saving, hideButtons=false }) {
 // WIZARD ROOT
 // ══════════════════════════════════════════════════════════════
 export default function WerkWizard({ userId, existingWork=null, onClose = () => {}, onSaved = () => {} }) {
+  const { t } = useTranslation();
   // BANK-GATE-001 (2026-08-21, Michele-Report): Bankdaten-Pruefung passierte
   // bisher NUR beim finalen Speichern (Schritt 6) -- Nutzer fuellte den
   // gesamten 6-Schritte-Wizard aus, verlor beim Fehlschlag alle Eingaben und
@@ -638,7 +650,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         const { data: bankCheck } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
         if (!bankCheck?.has_bank_details) {
           setSaving(false);
-          setSaveError("Bitte hinterlege zuerst deine Bankdaten in den Einstellungen (Account & Sicherheit → Bankdaten), damit wir dir Auszahlungen überweisen können.");
+          setSaveError(t("ww.bank.error"));
           return;
         }
       } catch (e) {
@@ -907,22 +919,21 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       <div data-hui-kbd-self-managed style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ width:28 }}/>
-          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>Bankdaten benötigt</div>
+          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>{t("ww.bank.title")}</div>
           <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
             <span style={{ fontSize:14, color:C.ink }}>×</span>
           </button>
         </div>
         <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px 28px", textAlign:"center", gap:14 }}>
           <div style={{ fontSize:44 }}>🏦</div>
-          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>Bankdaten fehlen noch</div>
+          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>{t("ww.bank.missing")}</div>
           <div style={{ fontSize:14, color:C.inkMid, lineHeight:1.5 }}>
-            Bevor du ein Werk veröffentlichen kannst, brauchen wir deine Bankverbindung — sonst können wir dir Auszahlungen aus Verkäufen nicht überweisen.
-            Trag sie jetzt kurz ein, dann geht's direkt weiter mit deinem Werk.
+            {t("ww.bank.body")}
           </div>
         </div>
         <div style={{ padding:"0 20px calc(20px + env(safe-area-inset-bottom, 0px))" }}>
-          <PBtn label="Bankdaten jetzt hinterlegen" onClick={() => setShowBankModal(true)}/>
-          <SBtn label="Abbrechen" onClick={() => onClose?.()}/>
+          <PBtn label={t("ww.bank.btn")} onClick={() => setShowBankModal(true)}/>
+          <SBtn label={t("ww.btn.cancel")} onClick={() => onClose?.()}/>
         </div>
         {showBankModal && (
           <BankdatenModal
@@ -1020,7 +1031,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
             borderRadius:14, fontSize:14, fontWeight: 600,
             color:C.inkMid, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
-          }}>← Zurück</button>
+          }}>{t("ww.btn.back")}</button>
         ) : (
           <button onClick={onClose} style={{
             flex:1, padding:"15px",
@@ -1028,7 +1039,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
             borderRadius:14, fontSize:14, fontWeight: 600,
             color:C.inkMid, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
-          }}>Abbrechen</button>
+          }}>{t("ww.btn.cancel")}</button>
         )}
 
         {/* Weiter / Speichern */}
@@ -1058,7 +1069,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
             cursor:saving?"not-allowed":"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>
-            {saving?"Wird eingereicht…":"Zur Prüfung einreichen"}
+            {saving?t("ww.btn.submitting"):t("ww.btn.submit")}
           </button>
         )}
       </div>

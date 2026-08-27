@@ -26,6 +26,7 @@ import { HUI } from "../design/hui.design.js";
 import {
   MOOD_TAG_OPTIONS, ENERGY_LEVELS, SOCIAL_ENERGY_OPTIONS
 } from "../lib/moodUtils";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ── Tokens ─────────────────────────────────────────────────────── */
 const C = {
@@ -36,15 +37,15 @@ const C = {
 };
 
 /* ── Config (unverändert) ────────────────────────────────────────── */
-const WERK_CATS  = ["Kunst","Musik","Fotografie","Design","Handwerk","Mode","Digital","Sonstiges"];
-const ERLE_CATS  = ["Workshop","Coaching","Kunstkurs","Musikunterricht","Tour","Yoga","Healing","Kreativsession"];
-const PRICE_ARTS = [
-  {value:"stunde",  label:"pro Stunde"},
-  {value:"session", label:"pro Session"},
-  {value:"tag",     label:"pro Tag"},
-  {value:"fest",    label:"Festpreis"},
-];
-const LANGS = ["Deutsch","Englisch","Französisch","Spanisch","Andere"];
+function getWerkCats(t) { return t("hcf.werkCats").split(","); }
+function getErleCats(t) { return t("hcf.erleCats").split(","); }
+function getPriceArts(t) { return [
+  {value:"stunde",  label:t("hcf.priceArt.stunde")},
+  {value:"session", label:t("hcf.priceArt.session")},
+  {value:"tag",     label:t("hcf.priceArt.tag")},
+  {value:"fest",    label:t("hcf.priceArt.fest")},
+]; }
+function getLangs(t) { return t("hcf.langs").split(","); }
 
 /* ── CSS ─────────────────────────────────────────────────────────── */
 const CSS = `
@@ -246,6 +247,7 @@ function CollapseSection({ title, icon, defaultOpen = false, children, accent = 
    Keine Kategorien, keine Preise, keine Konfiguration
 ══════════════════════════════════════════════════════════════════ */
 function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null }) {
+  const { t } = useTranslation();
   // Draft Persistence — overlebt Overlay-Close
   const [draft, setDraft, clearDraft] = useDraftPersist("moment-create", {
     caption: "", moodTags: [], location: "", visibility: "public"
@@ -275,13 +277,13 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
 
   const MOODS = [
     { key:"ruhig",        label:"🌿 Ruhig" },
-    { key:"gluecklich",   label:"☀️ Glücklich" },
+    { key:"gluecklich",   label:t("hcf.moods.gluecklich") },
     { key:"inspirierend", label:"💡 Inspirierend" },
     { key:"kreativ",      label:"🎨 Kreativ" },
     { key:"frei",         label:"🦋 Frei" },
     { key:"dankbar",      label:"🙏 Dankbar" },
     { key:"abenteuer",    label:"🌍 Abenteuer" },
-    { key:"energiegeladen",label:"⚡ Energie" },
+    { key:"energiegeladen",label:t("hcf.moods.energie") },
     { key:"tief",         label:"🌊 Tief" },
     { key:"gemeinschaft", label:"🤝 Gemeinschaft" },
   ];
@@ -367,10 +369,10 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
         }}>✨</div>
         <div style={{ textAlign:"center", animation:"hcf2-fade .4s .3s both" }}>
           <div style={{ fontSize:22, fontWeight: 600, color:C.ink, marginBottom:6 }}>
-            Dein Moment ist live!
+            {t("hcf.moment.live")}
           </div>
           <div style={{ fontSize:14, color:C.muted }}>
-            Alle können ihn jetzt sehen ✦
+            {t("hcf.moment.live.sub")}
           </div>
         </div>
       </div>
@@ -401,9 +403,9 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
             {forcedType === "werk" ? <HUIWerkeIcon size={18}/> : forcedType === "erlebnis" ? <HUIErlebnisIcon size={18}/> : <HUIImpactIcon size={18}/>}
           </span>
           <span style={{ fontWeight: 600, fontSize:16, color:C.ink, letterSpacing:-.3 }}>
-            {forcedType === "werk" ? "Bild für dein Werk"
-              : forcedType === "erlebnis" ? "Bild für dein Erlebnis"
-              : "Moment"}
+            {forcedType === "werk" ? t("hcf.header.werk")
+              : forcedType === "erlebnis" ? t("hcf.header.erlebnis")
+              : t("hcf.header.moment")}
           </span>
         </div>
         <div style={{ width:34 }}/>
@@ -567,7 +569,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
             className="hcf2-input"
             rows={3}
             maxLength={280}
-            placeholder="Was möchtest du teilen? ✨"
+            placeholder={t("hcf.ph.caption")}
             value={caption}
             disabled={loading}
             onChange={e => setCaption(e.target.value)}
@@ -705,11 +707,11 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
                 border:"2.5px solid rgba(255,255,255,0.3)",
                 borderTop:"2.5px solid white",
                 animation:"hcf2-spin .7s linear infinite", flexShrink:0,
-              }}/> Wird geteilt…</>
-            : canPost ? (forcedType === "werk" ? "🎨  Bild wählen & weiter"
-                : forcedType === "erlebnis" ? "Bild wählen & weiter"
-                : "✨  Moment veröffentlichen")
-            : "Foto oder Video wählen"
+              }}/> {t("hcf.btn.loading")}</>
+            : canPost ? (forcedType === "werk" ? t("hcf.btn.werkNext")
+                : forcedType === "erlebnis" ? t("hcf.btn.erlebnisNext")
+                : t("hcf.btn.momentPublish"))
+            : t("hcf.btn.pickMedia")
           }
         </button>
 
@@ -719,7 +721,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
             textAlign:"center", marginTop:12, fontSize:12.5, color:C.muted,
             animation:"hcf2-fade .3s .2s both",
           }}>
-            Möchtest du mehr?{" "}
+            {t("hcf.askMore")}{" "}
             <button
               onClick={() => {
                 const mediaObj = { file, preview, isVid, caption, location, visibility };
@@ -743,6 +745,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
    HUI denkt mit. Sanfte Suggestions, keine harte Entscheidung.
 ══════════════════════════════════════════════════════════════════ */
 function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
+  const { t } = useTranslation();
   // Einfache Heuristik: kein echter AI-Call — rule-based aus Dateiname/Typ
   const suggestion = media.isVid ? "story" : "moment";  // erweiterbar
 
@@ -796,10 +799,10 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
         </button>
         <div>
           <div style={{ fontSize:17, fontWeight: 600, color:C.ink, letterSpacing:-.3 }}>
-            Was soll daraus werden?
+            {t("hcf.suggestTitle")}
           </div>
           <div style={{ fontSize:12.5, color:C.muted, marginTop:1 }}>
-            Du kannst das später noch ändern
+            {t("hcf.suggestSub")}
           </div>
         </div>
       </div>
@@ -883,6 +886,7 @@ function ScreenSuggestion({ media, onBack, onPublishDirect, onDeepen }) {
    Progressive — erst das Minimum, alles weitere aufklappbar
 ══════════════════════════════════════════════════════════════════ */
 function ScreenWerk({ media, onBack, onPublish, loading, error }) {
+  const { t } = useTranslation();
   const [title,    setTitle]    = useState("");
   const [price,    setPrice]    = useState("");
   const [forSale,  setForSale]  = useState(true);
@@ -963,7 +967,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
         <div className="hcf2-field" style={{ marginBottom:12 }}>
           <div className="hcf2-field-label">Titel *</div>
           <input className="hcf2-input"
-            placeholder="Wie heißt dein Werk?"
+            placeholder={t("hcf.werk.ph.title")}
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
@@ -1001,7 +1005,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Kategorie</div>
             <div className="hcf2-pill-row">
-              {(WERK_CATS || []).filter(Boolean).map(c => (
+              {(getWerkCats(t) || []).filter(Boolean).map(c => (
                 <Pill key={c} label={c} selected={cat===c} color={C.teal}
                   onClick={() => setCat(c===cat ? "" : c)}/>
               ))}
@@ -1018,9 +1022,9 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
               </div>
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 <Toggle checked={shipping} onChange={setShipping}
-                  label="Versand möglich" color={C.coral}/>
+                  label={t("hcf.werk.shipping")} color={C.coral}/>
                 <Toggle checked={pickup} onChange={setPickup}
-                  label="Abholung möglich" color={C.coral}/>
+                  label={t("hcf.werk.pickup")} color={C.coral}/>
               </div>
               {(shipping || pickup) && (
                 <div className="hcf2-field hcf2-animate-fade" style={{ marginTop:10 }}>
@@ -1033,7 +1037,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             </CollapseSection>
           )}
 
-          <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
+          <CollapseSection title={t("hcf.werk.atmosphere")} icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
             <div style={{ marginBottom:12 }}>
               <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
                 textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
@@ -1089,8 +1093,8 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
             boxShadow: canPublish && !loading ? "0 4px 22px rgba(255,138,107,0.32)" : "none",
           }}>
           {loading
-            ? <span style={{ animation:"hcf2-pulse 1s ease infinite" }}>Wird veröffentlicht…</span>
-            : "Werk veröffentlichen 🎨"}
+            ? <span style={{ animation:"hcf2-pulse 1s ease infinite" }}>{t("hcf.werk.publishing")}</span>
+            : t("hcf.werk.publish")}
         </button>
       </div>
     </div>
@@ -1101,6 +1105,7 @@ function ScreenWerk({ media, onBack, onPublish, loading, error }) {
    SCREEN 4 — ERLEBNIS DETAILS
 ══════════════════════════════════════════════════════════════════ */
 function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
+  const { t } = useTranslation();
   const [title,   setTitle]   = useState("");
   const [price,   setPrice]   = useState("");
   const [priceArt,setPriceArt]= useState("session");
@@ -1183,7 +1188,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
         <div className="hcf2-field" style={{ marginBottom:12 }}>
           <div className="hcf2-field-label">Titel *</div>
           <input className="hcf2-input"
-            placeholder="Wie heißt dein Erlebnis?"
+            placeholder={t("hcf.erlebnis.ph.title")}
             value={title}
             onChange={e => setTitle(e.target.value)}/>
         </div>
@@ -1194,9 +1199,9 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
             textTransform:"uppercase", letterSpacing:0.5 }}>Format</div>
           <div className="hcf2-pill-row">
             {[
-              { v:"online",   l:"💻 Online" },
-              { v:"vor-ort",  l:"📍 Vor Ort" },
-              { v:"hybrid",   l:"🔀 Hybrid" },
+              { v:"online",   l:t("hcf.erlebnis.online") },
+              { v:"vor-ort",  l:t("hcf.erlebnis.vorOrt") },
+              { v:"hybrid",   l:t("hcf.erlebnis.hybrid") },
             ].map(o => (
               <Pill key={o.v} label={o.l} selected={format===o.v}
                 color={C.purple}
@@ -1220,7 +1225,7 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
               value={priceArt}
               onChange={e => setPriceArt(e.target.value)}
               style={{ appearance:"none", WebkitAppearance:"none" }}>
-              {PRICE_ARTS.map(a => (
+              {(getPriceArts(t)).map(a => (
                 <option key={a.value} value={a.value}>{a.label}</option>
               ))}
             </select>
@@ -1228,17 +1233,17 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
         </div>
 
         {/* Optionale Sektionen */}
-        <CollapseSection title="Beschreibung & Kategorie" icon={<HUISchreibenIcon size={16}/>} accent={C.purple}>
+        <CollapseSection title={t("hcf.erlebnis.descCat")} icon={<HUISchreibenIcon size={16}/>} accent={C.purple}>
           <div className="hcf2-field" style={{ marginBottom:12 }}>
             <textarea className="hcf2-input" rows={3}
-              placeholder="Was erwartet die Teilnehmer?"
+              placeholder={t("hcf.erlebnis.ph.desc")}
               value={desc}
               onChange={e => setDesc(e.target.value)}/>
           </div>
           <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
             textTransform:"uppercase", letterSpacing:0.5 }}>Kategorie</div>
           <div className="hcf2-pill-row">
-            {(ERLE_CATS || []).filter(Boolean).map(c => (
+            {(getErleCats(t) || []).filter(Boolean).map(c => (
               <Pill key={c} label={c} selected={cat===c} color={C.purple}
                 onClick={() => setCat(c===cat?"":c)}/>
             ))}
@@ -1267,22 +1272,22 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
             </div>
           </div>
           <div className="hcf2-field">
-            <div className="hcf2-field-label">Verfügbare Tage</div>
-            <input className="hcf2-input" placeholder="z.B. Mo–Fr, Wochenende"
+            <div className="hcf2-field-label">{t("hcf.erlebnis.days")}</div>
+            <input className="hcf2-input" placeholder={t("hcf.erlebnis.ph.days")}
               value={days} onChange={e => setDays(e.target.value)}/>
           </div>
         </CollapseSection>
 
         <CollapseSection title="Sprache" icon={<HUISpracheIcon size={16}/>} accent={C.teal}>
           <div className="hcf2-pill-row">
-            {(LANGS||[]).filter(l=>l&&l.key).map(l => (
+            {(getLangs(t)||[]).filter(l=>l&&l.key).map(l => (
               <Pill key={l} label={l} selected={lang===l} color={C.teal}
                 onClick={() => setLang(l)}/>
             ))}
           </div>
         </CollapseSection>
 
-        <CollapseSection title="Atmosphäre & Stimmung" icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
+        <CollapseSection title={t("hcf.werk.atmosphere")} icon={<HUIStimmungIcon size={16}/>} accent={C.purple}>
           <div style={{ marginBottom:12 }}>
             <div style={{ fontSize:12, fontWeight: 600, color:C.muted, marginBottom:8,
               textTransform:"uppercase", letterSpacing:0.5 }}>Mood Tags</div>
@@ -1335,8 +1340,8 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
             boxShadow: canPublish && !loading ? "0 4px 22px rgba(167,139,250,0.32)" : "none",
           }}>
           {loading
-            ? <span style={{ animation:"hcf2-pulse 1s ease infinite" }}>Wird veröffentlicht…</span>
-            : "Erlebnis veröffentlichen"}
+            ? <span style={{ animation:"hcf2-pulse 1s ease infinite" }}>{t("hcf.erlebnis.publishing")}</span>
+            : t("hcf.erlebnis.publish")}
         </button>
       </div>
     </div>
@@ -1347,10 +1352,11 @@ function ScreenErlebnis({ media, onBack, onPublish, loading, error }) {
    SCREEN 5 — DONE
 ══════════════════════════════════════════════════════════════════ */
 function ScreenDone({ type }) {
+  const { t } = useTranslation();
   const MAP = {
-    moment:   { emoji:"✨", title:"Geteilt!", sub:"Dein Moment ist jetzt live." },
-    werk:     { emoji:"🎨", title:"Werk live!", sub:"Andere können es jetzt entdecken." },
-    erlebnis: { emoji:<HUIErlebnisIcon size={32}/>, title:"Erlebnis live!", sub:"Buchungen können jetzt eingehen." },
+    moment:   { emoji:"✨", title:t("hcf.done.moment.title"), sub:t("hcf.done.moment.sub") },
+    werk:     { emoji:"🎨", title:t("hcf.done.werk.title"), sub:t("hcf.done.werk.sub") },
+    erlebnis: { emoji:<HUIErlebnisIcon size={32}/>, title:t("hcf.done.erlebnis.title"), sub:t("hcf.done.erlebnis.sub") },
   };
   const d = MAP[type] || MAP.moment;
 
@@ -1380,11 +1386,12 @@ function ScreenDone({ type }) {
    Moment | Werk | Erlebnis | Story
 ══════════════════════════════════════════════════════════════════ */
 function ScreenTypeSelector({ onClose, onSelect }) {
+  const { t } = useTranslation();
   const TYPES = [
     {
       key:   "moment",
       emoji: "✨",
-      label: "Moment",
+      label: t("hcf.header.moment"),
       sub:   "Schneller spontaner Post",
       grad:  `linear-gradient(135deg, rgba(22,215,197,0.12) 0%, rgba(22,215,197,0.04) 100%)`,
       accent: HUI.COLOR.teal,
@@ -1393,8 +1400,8 @@ function ScreenTypeSelector({ onClose, onSelect }) {
     {
       key:   "werk",
       emoji: "🎨",
-      label: "Werk",
-      sub:   "Produkt · Kunst · Portfolio",
+      label: t("hcf.type.werk"),
+      sub:   t("hcf.type.werk.sub"),
       grad:  `linear-gradient(135deg, rgba(255,138,107,0.12) 0%, rgba(255,138,107,0.04) 100%)`,
       accent: HUI.COLOR.coral,
       border: "rgba(255,138,107,0.25)",
@@ -1402,8 +1409,8 @@ function ScreenTypeSelector({ onClose, onSelect }) {
     {
       key:   "erlebnis",
       emoji: <HUIErlebnisIcon size={32}/>,
-      label: "Erlebnis",
-      sub:   "Event · Workshop · Session",
+      label: t("hcf.type.erlebnis"),
+      sub:   t("hcf.type.erlebnis.sub"),
       grad:  `linear-gradient(135deg, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.04) 100%)`,
       accent: HUI.COLOR.gold,
       border: "rgba(245,166,35,0.25)",
@@ -1411,8 +1418,8 @@ function ScreenTypeSelector({ onClose, onSelect }) {
     {
       key:   "story",
       emoji: "📖",
-      label: "Story",
-      sub:   "Temporär · Tagesbericht",
+      label: t("hcf.type.story"),
+      sub:   t("hcf.type.story.sub"),
       grad:  `linear-gradient(135deg, rgba(167,139,250,0.12) 0%, rgba(167,139,250,0.04) 100%)`,
       accent: HUI.COLOR.violetLight,
       border: "rgba(167,139,250,0.25)",
@@ -1439,7 +1446,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
         </button>
         <div style={{ textAlign:"center" }}>
           <div style={{ fontWeight: 600, fontSize:17, color:C.ink, letterSpacing:-.4 }}>
-            Was möchtest du teilen?
+            {t("hcf.title.share")}
           </div>
         </div>
         <div style={{ width:34 }}/>
@@ -1454,7 +1461,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
           marginBottom:24, lineHeight:1.5,
           animation:"hcf2-fade .35s ease both",
         }}>
-          Wähle einen Typ — dann geht es los ✦
+          {t("hcf.tagline")}
         </div>
 
         {/* ── Type Cards ── */}
@@ -1533,6 +1540,7 @@ function ScreenTypeSelector({ onClose, onSelect }) {
    handlePublish: EXAKT gleich wie vorher — kein Datenmodell-Break
 ══════════════════════════════════════════════════════════════════ */
 export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   // Screen: "select" | "moment" | "suggestion" | "werk" | "erlebnis" | "story" | "done"
@@ -1645,7 +1653,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       setTimeout(() => { onSuccess?.(); onClose?.(); }, 2200);
     } catch(err) {
       console.error("[HUI Publish] ERROR:", err.message, err);
-      setError(err.message || "Fehler beim Veröffentlichen.");
+      setError(err.message || t("hcf.error.publish"));
       setLoading(false);
     }
   }
@@ -1682,7 +1690,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
     } catch(err) {
       // (moment error handled below)
       console.error("[HUI Moment] ERROR:", err.message, err);
-      setError(err.message || "Fehler beim Veröffentlichen.");
+      setError(err.message || t("hcf.error.publish"));
       setLoading(false);
     }
   }
