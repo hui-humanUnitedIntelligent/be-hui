@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 import { HUI } from "../design/hui.design.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ══════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -28,12 +29,13 @@ const C = {
    STIMMUNGS-SYSTEM
    Jede Stimmung hat eigene Farbe, Ambient, Speed
 ══════════════════════════════════════════════════════ */
-const MOODS = [
+function getMoods(t) {
+  return [
   {
     key:"ruhe",
     emoji:"🧘",
-    label:"Ich suche Ruhe",
-    sub:"Stille. Zentrierung. Ankommen.",
+    label:t("hm.mood.ruhe.label"),
+    sub:t("hm.mood.ruhe.sub"),
     color:"#6B9FD4",
     glow:"rgba(107,159,212,0.18)",
     grad:"linear-gradient(135deg, rgba(107,159,212,0.12), rgba(22,215,197,0.06))",
@@ -43,8 +45,8 @@ const MOODS = [
   {
     key:"inspiration",
     emoji:"✨",
-    label:"Ich brauche Inspiration",
-    sub:"Neues entdecken. Kreativ werden.",
+    label:t("hm.mood.inspiration.label"),
+    sub:t("hm.mood.inspiration.sub"),
     color:HUI.COLOR.gold,
     glow:"rgba(245,166,35,0.20)",
     grad:"linear-gradient(135deg, rgba(245,166,35,0.12), rgba(255,138,107,0.06))",
@@ -54,8 +56,8 @@ const MOODS = [
   {
     key:"gemeinschaft",
     emoji:"🤝",
-    label:"Ich möchte Menschen treffen",
-    sub:"Echte Gespräche. Neue Verbindungen.",
+    label:t("hm.mood.gemeinschaft.label"),
+    sub:t("hm.mood.gemeinschaft.sub"),
     color:HUI.COLOR.coral,
     glow:"rgba(255,138,107,0.20)",
     grad:"linear-gradient(135deg, rgba(255,138,107,0.12), rgba(245,166,35,0.06))",
@@ -65,8 +67,8 @@ const MOODS = [
   {
     key:"kreativitaet",
     emoji:"🎨",
-    label:"Ich will kreativ werden",
-    sub:"Werkzeuge. Talente. Workshops.",
+    label:t("hm.mood.kreativitaet.label"),
+    sub:t("hm.mood.kreativitaet.sub"),
     color:HUI.COLOR.violetLight,
     glow:"rgba(167,139,250,0.20)",
     grad:"linear-gradient(135deg, rgba(167,139,250,0.12), rgba(22,215,197,0.06))",
@@ -76,8 +78,8 @@ const MOODS = [
   {
     key:"abenteuer",
     emoji:"🗺️",
-    label:"Ich suche ein Erlebnis",
-    sub:"Aktiv sein. Etwas erleben. Raus.",
+    label:t("hm.mood.abenteuer.label"),
+    sub:t("hm.mood.abenteuer.sub"),
     color:"#3DB87A",
     glow:"rgba(61,184,122,0.20)",
     grad:"linear-gradient(135deg, rgba(61,184,122,0.12), rgba(22,215,197,0.08))",
@@ -87,8 +89,8 @@ const MOODS = [
   {
     key:"ueberraschung",
     emoji:"🎲",
-    label:"Überrasch mich",
-    sub:"Ich bin offen für alles.",
+    label:t("hm.mood.ueberraschung.label"),
+    sub:t("hm.mood.ueberraschung.sub"),
     color:HUI.COLOR.teal,
     glow:"rgba(22,215,197,0.22)",
     grad:"linear-gradient(135deg, rgba(22,215,197,0.12), rgba(167,139,250,0.08))",
@@ -97,6 +99,7 @@ const MOODS = [
     isSurprise:true,
   },
 ];
+}
 
 /* ══════════════════════════════════════════════════════
    CSS
@@ -149,6 +152,7 @@ const CSS = `
    SEARCHING VIEW — immersive Transition
 ══════════════════════════════════════════════════════ */
 function SearchingView({ mood }) {
+  const { t } = useTranslation();
   const color = mood?.color || HUI.COLOR.teal;
   const glow  = mood?.glow  || "rgba(22,215,197,0.22)";
   const animSpeed = mood?.speed === "slow" ? 3.5 : mood?.speed === "fast" ? 1.8 : 2.5;
@@ -180,11 +184,11 @@ function SearchingView({ mood }) {
       {/* Text */}
       <div style={{ fontSize:18, fontWeight: 600, color:HUI.COLOR.ink,
         letterSpacing:-0.4, marginBottom:10, textAlign:"center" }}>
-        HUI kuratiert gerade…
+        {t("hm.searching.title")}
       </div>
       <div style={{ fontSize:13, color:"#888", lineHeight:1.65,
         textAlign:"center", maxWidth:240, marginBottom:30 }}>
-        {mood ? `Passend zu: „${mood.label}"` : "Einen Moment bitte"}
+        {mood ? t("hm.searching.moodMatch", { label: mood.label }) : t("hm.searching.fallback")}
       </div>
       {/* Dots */}
       <div style={{ display:"flex", gap:8 }}>
@@ -202,9 +206,10 @@ function SearchingView({ mood }) {
    RESULT CARD — cinematic
 ══════════════════════════════════════════════════════ */
 function ResultCard({ item, idx, onOpen, moodColor }) {
+  const { t } = useTranslation();
   const isWirker = item.type === "wirker" || item.type === "profile";
   const isWerk   = item.type === "work"   || item.type === "werk";
-  const tag      = isWirker ? "Talent" : isWerk ? "Werk" : "Erlebnis";
+  const tag      = isWirker ? t("hm.tag.talent") : isWerk ? t("hm.tag.werk") : t("hm.tag.erlebnis");
   const tagColor = isWirker ? HUI.COLOR.teal : isWerk ? HUI.COLOR.gold : HUI.COLOR.coral;
   const img      = item.avatar_url || item.cover_url || item.img ||
     "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80";
@@ -304,6 +309,8 @@ function Skeleton() {
    MAIN COMPONENT
 ══════════════════════════════════════════════════════ */
 export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
+  const { t } = useTranslation();
+  const MOODS = getMoods(t);
   const [step,      setStep]      = useState("mood");
   const [mood,      setMood]      = useState(null);
   const [results,   setResults]   = useState([]);
@@ -515,16 +522,16 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                 <div>
                   <div style={{ fontWeight: 600, fontSize:17, color:HUI.COLOR.ink,
                     letterSpacing:-0.4, lineHeight:1.1 }}>
-                    {step === "mood"      ? "HUI Match"            :
-                     step === "searching" ? "Einen Moment…"        :
-                     step === "surprise"  ? "Überraschung"         :
-                     mood ? mood.label.replace("Ich suche ", "").replace("Ich ", "").replace("Überrasch mich", "Überraschung") : "Entdeckungen"}
+                    {step === "mood"      ? t("hm.header.match")            :
+                     step === "searching" ? t("hm.header.moment")        :
+                     step === "surprise"  ? t("hm.header.surprise")         :
+                     mood ? mood.label : t("hm.header.discoveries")}
                   </div>
                   <div style={{ fontSize:11, color:"#888", marginTop:2 }}>
-                    {step === "mood"      ? "Wie fühlst du dich heute?"           :
-                     step === "searching" ? "HUI kuratiert passende Entdeckungen…" :
-                     step === "surprise"  ? "Zufällig kuratiert für dich"         :
-                     `${results.length} kuratierte Treffer`}
+                    {step === "mood"      ? t("hm.header.moodSub")           :
+                     step === "searching" ? t("hm.header.searchingSub") :
+                     step === "surprise"  ? t("hm.header.surpriseSub")         :
+                     t("hm.header.resultsSub", { count: results.length })}
                   </div>
                 </div>
               </div>
@@ -549,11 +556,11 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                   <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUITalentIcon size={28}/></div>
                   <div style={{ fontSize:21, fontWeight: 600, color:HUI.COLOR.ink,
                     letterSpacing:-0.5, lineHeight:1.2, marginBottom:8 }}>
-                    Wie fühlst du dich heute?
+                    {t("hm.intro.title")}
                   </div>
                   <div style={{ fontSize:13, color:"#888", lineHeight:1.65,
                     maxWidth:255, margin:"0 auto" }}>
-                    HUI findet passende Menschen, Werke und Erlebnisse — abgestimmt auf deine Stimmung.
+                    {t("hm.intro.sub")}
                   </div>
                 </div>
 
@@ -631,17 +638,17 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                   <div style={{ textAlign:"center", padding:"52px 24px" }}>
                     <div style={{ marginBottom:14, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={36}/></div>
                     <div style={{ fontSize:16, fontWeight: 600, color:HUI.COLOR.ink,
-                      marginBottom:8 }}>Noch keine Treffer</div>
+                      marginBottom:8 }}>{t("hm.results.empty")}</div>
                     <div style={{ fontSize:13, color:"#888", marginBottom:20,
                       lineHeight:1.6 }}>
-                      Probiere eine andere Stimmung aus.
+                      {t("hm.results.emptySub")}
                     </div>
                     <button className="hmo-tap" onClick={goBack}
                       style={{ padding:"12px 26px", borderRadius:50,
                         background:`linear-gradient(135deg,${moodColor},${moodColor}99)`,
                         border:"none", color:"white", fontSize:13, fontWeight: 600,
                         boxShadow:`0 4px 16px ${moodGlow}` }}>
-                      Andere Stimmung wählen
+                      {t("hm.results.chooseMood")}
                     </button>
                   </div>
                 ) : (
@@ -658,7 +665,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                           <div style={{ fontSize:12, fontWeight: 600, color:HUI.COLOR.ink,
                             letterSpacing:-0.1 }}>{mood.label}</div>
                           <div style={{ fontSize:11, color:"#888" }}>
-                            {results.length} kuratierte Entdeckungen
+                            {t("hm.results.recap", { count: results.length })}
                           </div>
                         </div>
                         <span style={{ fontSize:12, color:`${moodColor}99`,
@@ -685,7 +692,7 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                           background:`linear-gradient(135deg,${moodColor},${moodColor}99)`,
                           border:"none", color:"white", fontSize:13, fontWeight: 600,
                           boxShadow:`0 4px 16px ${moodGlow}` }}>
-                        🔄 Neu kuratieren
+                        {t("hm.results.recurate")}
                       </button>
                     </div>
                   </>
@@ -702,10 +709,10 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                       <div style={{ fontSize:30, marginBottom:8 }}>🎲</div>
                       <div style={{ fontSize:16, fontWeight: 600, color:HUI.COLOR.ink,
                         letterSpacing:-0.3, marginBottom:6 }}>
-                        Frische Entdeckungen für dich
+                        {t("hm.surprise.title")}
                       </div>
                       <div style={{ fontSize:12.5, color:"#888", lineHeight:1.6 }}>
-                        Zufällig kuratiert — vielleicht genau das Richtige.
+                        {t("hm.surprise.sub")}
                       </div>
                     </div>
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
@@ -721,14 +728,14 @@ export default function HuiMatchOverlay({ onClose, onView, onMoodSelect }) {
                           background:"rgba(0,0,0,0.055)",
                           border:"1.5px solid rgba(0,0,0,0.07)",
                           color:HUI.COLOR.ink2, fontSize:13, fontWeight: 600 }}>
-                        Stimmung wählen
+                        {t("hm.surprise.chooseMood")}
                       </button>
                       <button className="hmo-tap" onClick={doSurprise}
                         style={{ flex:1.5, padding:"12px", borderRadius:50,
                           background:"linear-gradient(135deg,#F5A623,#FF8A6B)",
                           border:"none", color:"white", fontSize:13, fontWeight: 600,
                           boxShadow:"0 4px 16px rgba(245,166,35,0.28)" }}>
-                        🔄 Nochmal überraschen
+                        {t("hm.surprise.again")}
                       </button>
                     </div>
                   </>

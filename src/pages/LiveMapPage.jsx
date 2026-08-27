@@ -1,6 +1,7 @@
 // LiveMapPage.jsx — HUI Discovery v7 · 3D Globe Edition
 // GLOB-CAM-001: Vollständige Erde immer sichtbar · Sanfter Fokus bei Klick
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "../hooks/useTranslation.js";
 import { HUI } from "../design/hui.design.js";
 
 /* ── FARBEN ─────────────────────────────────────── */
@@ -160,9 +161,9 @@ const TYPE_COLOR = {
   werk:       C.gold,
   impact:     C.green,
 };
-const TYPE_LABEL = {
-  wirker:"Wirker·in", experience:"Erlebnis", werk:"Werk", impact:"Impact"
-};
+function getTypeLabel(t) {
+  return { wirker:t("lm.type.wirker"), experience:t("lm.type.experience"), werk:t("lm.type.werk"), impact:t("lm.type.impact") };
+}
 
 /* ── GLOBE RENDERING (WebGL-freies Canvas mit Spherical Projection) ── */
 // GLOB-CAM-001: FOV-Kamera — Radius so berechnet dass 100% der Erde sichtbar
@@ -462,16 +463,22 @@ function hitTest(mx, my, pinPositions) {
 }
 
 /* ── FILTER-TYPEN ────────────────────────────────────── */
-const FTYPES = [
-  { key:"alle",       label:"Alle" },
-  { key:"wirker",     label:"Wirker·innen" },
-  { key:"experience", label:"Erlebnisse" },
-  { key:"werk",       label:"Werke" },
-  { key:"impact",     label:"Impact" },
-];
+function getFtypes(t) {
+  return [
+  { key:"alle",       label:t("lm.filter.alle") },
+  { key:"wirker",     label:t("lm.filter.wirker") },
+  { key:"experience", label:t("lm.filter.experience") },
+  { key:"werk",       label:t("lm.filter.werk") },
+  { key:"impact",     label:t("lm.filter.impact") },
+  ];
+}
 
 /* ── INFO-KARTE (rechte Seite) ────────────────────────── */
 function InfoCard({ pin, onClose, onView }) {
+  const { t } = useTranslation();
+  const TYPE_LABEL = getTypeLabel(t);
+  const CITY_MAP = { "München":t("lm.city.munich"), "Hamburg":t("lm.city.hamburg"), "Berlin":t("lm.city.berlin"), "Paris":t("lm.city.paris"), "Rom":t("lm.city.rome"), "Barcelona":t("lm.city.barcelona"), "Tokio":t("lm.city.tokyo"), "Nairobi":t("lm.city.nairobi"), "São Paulo":t("lm.city.saopaulo"), "New York":t("lm.city.newyork"), "Sydney":t("lm.city.sydney") };
+  const COUNTRY_MAP = { "Deutschland":t("lm.country.de"), "Frankreich":t("lm.country.fr"), "Italien":t("lm.country.it"), "Spanien":t("lm.country.es"), "Japan":t("lm.country.jp"), "Kenia":t("lm.country.ke"), "Brasilien":t("lm.country.br"), "USA":t("lm.country.us"), "Australien":t("lm.country.au") };
   if (!pin) return null;
   const isW   = pin.type === "wirker";
   const isE   = pin.type === "experience";
@@ -534,18 +541,18 @@ function InfoCard({ pin, onClose, onView }) {
 
       {/* Inhalt */}
       <div style={{ flex:1, overflowY:"auto", padding:"32px 16px 16px" }} className="lm-scroll">
-        <div style={{ fontSize:15, fontWeight: 600, color:C.ink, marginBottom:2 }}>{pin.name}</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:C.ink, marginBottom:2 }}>{t(`lm.pin.${pin.id}.name`)}</div>
         {(pin.talent || pin.creator) && (
           <div style={{ fontSize:12, color:col, fontWeight:600, marginBottom:4 }}>
-            {pin.talent || pin.creator}
+            {t(`lm.pin.${pin.id}.talent`) || t(`lm.pin.${pin.id}.creator`)}
           </div>
         )}
         <div style={{ fontSize:12, color:"rgba(26,26,46,0.5)", marginBottom:10 }}>
-          📍 {pin.city}, {pin.country}
+          📍 {CITY_MAP[pin.city] || pin.city}, {COUNTRY_MAP[pin.country] || pin.country}
         </div>
         {pin.bio && (
           <p style={{ fontSize:13, color:"rgba(26,26,46,0.7)", lineHeight:1.5, margin:"0 0 12px" }}>
-            {pin.bio}
+            {t(`lm.pin.${pin.id}.bio`)}
           </p>
         )}
 
@@ -554,11 +561,11 @@ function InfoCard({ pin, onClose, onView }) {
           <div style={{ display:"flex", gap:12, marginBottom:12 }}>
             <div style={{ textAlign:"center" }}>
               <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>{pin.recs}</div>
-              <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>Empfehlungen</div>
+              <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>{t("lm.recs")}</div>
             </div>
             <div style={{ textAlign:"center" }}>
               <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>{pin.hourly} €/h</div>
-              <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>Stundensatz</div>
+              <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>{t("lm.hourly")}</div>
             </div>
             <div style={{ textAlign:"center" }}>
               <div style={{
@@ -566,7 +573,7 @@ function InfoCard({ pin, onClose, onView }) {
                 color: pin.available ? C.green : "rgba(26,26,46,0.35)",
                 background: pin.available ? "rgba(61,184,122,0.1)" : "rgba(0,0,0,0.05)",
                 padding:"4px 8px", borderRadius:8,
-              }}>{pin.available ? "✓ Verfügbar" : "Ausgebucht"}</div>
+              }}>{pin.available ? t("lm.available") : t("lm.booked")}</div>
             </div>
           </div>
         )}
@@ -582,7 +589,7 @@ function InfoCard({ pin, onClose, onView }) {
             )}
             {pin.category && (
               <div style={{ fontSize:11, color:col, background:`${col}18`, padding:"3px 8px", borderRadius:8 }}>
-                {pin.category}
+                {t(`lm.pin.${pin.id}.category`)}
               </div>
             )}
           </div>
@@ -591,7 +598,7 @@ function InfoCard({ pin, onClose, onView }) {
           <div style={{ marginBottom:12 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
               <span style={{ fontSize:12, fontWeight: 600, color:C.ink }}>{pin.raised?.toLocaleString("de")} €</span>
-              <span style={{ fontSize:12, color:"rgba(26,26,46,0.4)" }}>Ziel: {pin.goal?.toLocaleString("de")} €</span>
+              <span style={{ fontSize:12, color:"rgba(26,26,46,0.4)" }}>{t("lm.goal", { amount: pin.goal?.toLocaleString("de") })}</span>
             </div>
             <div style={{ height:6, borderRadius:3, background:"rgba(0,0,0,0.07)", overflow:"hidden" }}>
               <div style={{
@@ -600,7 +607,7 @@ function InfoCard({ pin, onClose, onView }) {
                 background:`linear-gradient(90deg,${C.green},${C.teal})`,
               }}/>
             </div>
-            <div style={{ fontSize:11, color:C.green, fontWeight:600, marginTop:4 }}>{prog}% erreicht</div>
+            <div style={{ fontSize:11, color:C.green, fontWeight:600, marginTop:4 }}>{t("lm.progress", { percent: prog })}</div>
           </div>
         )}
       </div>
@@ -615,7 +622,7 @@ function InfoCard({ pin, onClose, onView }) {
             fontSize:14, fontWeight: 600, cursor:"pointer",
           }}
         >
-          {isW ? "Profil ansehen" : isE ? "Erlebnis buchen" : isWk ? "Werk ansehen" : "Projekt ansehen"}
+          {isW ? t("lm.cta.profile") : isE ? t("lm.cta.experience") : isWk ? t("lm.cta.werk") : t("lm.cta.impact")}
         </button>
       </div>
     </div>
@@ -626,6 +633,8 @@ function InfoCard({ pin, onClose, onView }) {
    MAIN — LiveMapPage
 ════════════════════════════════════════════════════ */
 export default function LiveMapPage({ onView, onClose, fullscreen }) {
+  const { t } = useTranslation();
+  const FTYPES = getFtypes(t);
   const canvasRef   = useRef(null);
   const stateRef    = useRef({
     rotY: 0.18,       // Startet über Europa/Atlantik
@@ -821,10 +830,10 @@ export default function LiveMapPage({ onView, onClose, fullscreen }) {
         }}>
           <div>
             <div style={{ fontSize:16, fontWeight: 600, color:"#fff", letterSpacing:-0.3 }}>
-              HUI Welt
+              {t("lm.header.title")}
             </div>
             <div style={{ fontSize:11, color:"rgba(255,255,255,0.5)" }}>
-              {PINS.length} Mitglieder · {PINS.filter(p=>p.type==="impact").length} Projekte
+              {t("lm.header.stats", { members: PINS.length, projects: PINS.filter(p=>p.type==="impact").length })}
             </div>
           </div>
           {onClose && (
@@ -867,7 +876,7 @@ export default function LiveMapPage({ onView, onClose, fullscreen }) {
               <div key={type} style={{ display:"flex", alignItems:"center", gap:6 }}>
                 <div style={{ width:8, height:8, borderRadius:4, background:col, flexShrink:0 }}/>
                 <span style={{ fontSize:10, color:"rgba(255,255,255,0.55)", fontWeight:500 }}>
-                  {TYPE_LABEL[type]}
+                  {getTypeLabel(t)[type]}
                 </span>
               </div>
             ))}
@@ -882,7 +891,7 @@ export default function LiveMapPage({ onView, onClose, fullscreen }) {
             textAlign:"right", lineHeight:1.4, zIndex:20,
             pointerEvents:"none",
           }}>
-            Tippe auf einen Punkt<br/>zum Öffnen · Ziehen zum Drehen
+            {t("lm.hint.tap")}
           </div>
         )}
 
