@@ -18,7 +18,6 @@ import SupportPage             from "../../pages/studio/SupportPage.jsx";
 import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -106,7 +105,6 @@ function StudioRow({ icon, label, badge, onPress, last = false, labelColor }) {
 
 export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "HuiStudio");
-  const { t } = useTranslation();
   const { signOut } = useAuth() || {};
   const [mounted,      setMounted]      = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -172,11 +170,11 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
           fontSize:13, fontWeight:600, color:T.teal,
           fontFamily:"inherit", touchAction:"manipulation",
           display:"flex", alignItems:"center", gap:4,
-        }}>{t("studio.back")}</button>
+        }}>‹ Zurück</button>
         <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em" }}>
-          {t("studio.title")}
+          EINSTELLUNGEN.
         </div>
-        <div style={{ fontSize:13, color:T.inkFaint, marginTop:2 }}>{t("studio.subtitle")}</div>
+        <div style={{ fontSize:13, color:T.inkFaint, marginTop:2 }}>HUI-Account.</div>
       </div>
 
       {/* ── SCROLL-INHALT ─────────────────────────────────────── */}
@@ -194,13 +192,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
             boxShadow:T.card, marginBottom:20,
           }}>
             <div style={{ fontSize:12, fontWeight: 600, color:T.teal, letterSpacing:"0.06em", marginBottom:10 }}>
-              {t("studio.introBadge")}
+              EINSTELLUNGEN – Nur für dich
             </div>
             <div style={{ fontSize:18, fontWeight: 600, color:T.ink, lineHeight:1.25, marginBottom:6 }}>
-              {t("studio.introTitle1")}<br/>{t("studio.introTitle2")}
+              Deine Einstellungen<br/>und dein HUI-Account
             </div>
             <div style={{ fontSize:13, color:T.inkSoft, lineHeight:1.6 }}>
-              {t("studio.introText")}
+              Verwalte deinen Account, Sicherheit und Support.
             </div>
           </div>
         </div>
@@ -210,18 +208,18 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
             jetzt bewusst nur noch "Einstellungen" (PROFIL-DRAWER-REDESIGN-003, 2026-07-06). */}
 
         {/* ── Account & Einstellungen ────────────────────── */}
-        <StudioSection label={t("studio.accountSection")}>
-          <StudioRow icon={<HUIProfilIcon size={18}/>} label={t("studio.profilBearbeiten")}  onPress={handleEditProfile} />
-          <StudioRow icon={<HUIVerifIcon size={18}/>} label={t("studio.verifizierung")}
-            badge={isVerified ? t("studio.verifiziertAktiv") : undefined} onPress={() => setShowVerifCS(true)} />
-          <StudioRow icon={<HUISicherheitIcon size={18}/>} label={t("studio.sicherheitPasswort")} onPress={() => setShowSicherheit(true)} />
-          <StudioRow icon={<HUIMitgliedIcon size={18}/>} label={t("studio.mitgliedschaft")}
-            badge={isTalent ? t("studio.huiTalent") : t("studio.huiMitglied")}
+        <StudioSection label="Account & Einstellungen">
+          <StudioRow icon={<HUIProfilIcon size={18}/>} label="Profil bearbeiten"  onPress={handleEditProfile} />
+          <StudioRow icon={<HUIVerifIcon size={18}/>} label="Verifizierung"
+            badge={isVerified ? "✓ Aktiv" : undefined} onPress={() => setShowVerifCS(true)} />
+          <StudioRow icon={<HUISicherheitIcon size={18}/>} label="Sicherheit & Passwort" onPress={() => setShowSicherheit(true)} />
+          <StudioRow icon={<HUIMitgliedIcon size={18}/>} label="Mitgliedschaft"
+            badge={isTalent ? "HUI-Talent" : "HUI-Mitglied"}
             onPress={() => setShowMitgliedschaftCS(true)} />
-          <StudioRow icon={<HUISupportIcon size={18}/>} label={t("studio.support")} onPress={() => setShowSupport(true)} />
-          <StudioRow icon={<HUITicketIcon size={18}/>} label={t("studio.meineTickets")} onPress={() => setShowMeineTickets(true)} />
+          <StudioRow icon={<HUISupportIcon size={18}/>} label="Support" onPress={() => setShowSupport(true)} />
+          <StudioRow icon={<HUITicketIcon size={18}/>} label="Meine Tickets" onPress={() => setShowMeineTickets(true)} />
           <StudioRow
-            icon={<HUIAbmeldenIcon size={18}/>} label={t("studio.abmelden")}
+            icon={<HUIAbmeldenIcon size={18}/>} label="Abmelden"
             labelColor="#DC2626"
             onPress={() => setShowLogoutConfirm(true)}
             last
@@ -238,8 +236,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
           }}>
             <HUISicherheitIcon size={22} style={{flexShrink:0}} />
             <div>
-              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>{t("studio.studioPrivat")}</div>
-              <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>{t("studio.nurZugriff")}</div>
+              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Dein Studio ist privat.</div>
+              <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>Nur du hast hier Zugriff.</div>
             </div>
           </div>
         </div>
@@ -313,21 +311,21 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
                 fontSize:11, fontWeight: 600, letterSpacing:"0.18em",
                 color:"#F59E0B", marginBottom:10, position:"relative",
               }}>
-                {t("studio.comingSoon")}
+                COMING SOON
               </div>
 
               <div style={{
                 fontSize:22, fontWeight: 600, color:"#FFFFFF",
                 letterSpacing:"-0.02em", marginBottom:8, position:"relative",
               }}>
-                {t("studio.verifizierungTitle")}
+                Verifizierung
               </div>
 
               <div style={{
                 fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.55,
                 maxWidth:260, margin:"0 auto", position:"relative",
               }}>
-                {t("studio.verifizierungText")}
+                Wir arbeiten daran, deinen Account sicher zu verifizieren. Dieses Feature wird bald verfügbar sein.
               </div>
 
               {/* Absperrband unten */}
@@ -351,7 +349,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
                   WebkitTapHighlightColor:"transparent",
                 }}
               >
-                {t("studio.schliessen")}
+                Schließen
               </button>
             </div>
           </div>
@@ -407,16 +405,16 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
               <div style={{
                 fontSize:11, fontWeight: 600, letterSpacing:"0.18em",
                 color:"#F59E0B", marginBottom:10, position:"relative",
-              }}>{t("studio.comingSoon")}</div>
+              }}>COMING SOON</div>
               <div style={{
                 fontSize:22, fontWeight: 600, color:"#FFFFFF",
                 letterSpacing:"-0.02em", marginBottom:8, position:"relative",
-              }}>{t("studio.mitgliedschaftTitle")}</div>
+              }}>Mitgliedschaft</div>
               <div style={{
                 fontSize:13, color:"rgba(255,255,255,0.55)", lineHeight:1.55,
                 maxWidth:260, margin:"0 auto", position:"relative",
               }}>
-                {t("studio.mitgliedschaftText")}
+                Hier kannst du bald deine Mitgliedschaft verwalten und upgraden. Wir arbeiten mit Hochdruck daran.
               </div>
               <div style={{
                 position:"absolute", bottom:0, left:0, right:0, height:8,
@@ -432,7 +430,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
                   color:"rgba(26,26,24,0.55)", fontSize:14, fontWeight: 600,
                   fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
                 }}
-              >{t("studio.schliessen")}</button>
+              >Schließen</button>
             </div>
           </div>
         </div>,
@@ -494,10 +492,10 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
               fontSize:17, fontWeight: 600, color:"#1A1A18",
               letterSpacing:"-0.02em", marginBottom:8,
             }}>
-              {t("studio.abmeldenTitle")}
+              Abmelden?
             </div>
             <div style={{ fontSize:13, color:"rgba(26,26,24,0.52)", lineHeight:1.55, marginBottom:24 }}>
-              {t("studio.abmeldenText")}
+              Du wirst aus deinem HUI-Account abgemeldet. Deine Daten bleiben sicher gespeichert.
             </div>
 
             {/* Buttons */}
@@ -515,8 +513,8 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
               }}
             >
               {loggingOut
-                ? <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> {t("studio.wirdAbgemeldet")}</>
-                : t("studio.jaAbmelden")
+                ? <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> Wird abgemeldet…</>
+                : "🚪 Ja, abmelden"
               }
             </button>
             <button
@@ -530,7 +528,7 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
                 fontFamily:"inherit",
               }}
             >
-              {t("studio.abbrechen")}
+              Abbrechen
             </button>
           </div>
         </div>,
