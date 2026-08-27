@@ -15,7 +15,6 @@ import { supabase } from "../../../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processFileSelection } from "../../../lib/uploadUtils.js";
 import { useAuth }   from "../../../lib/AuthContext.jsx";
 import { formatNumberDE } from "../../../lib/formatters.js";
-import { useTranslation } from "../../../hooks/useTranslation.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -33,18 +32,16 @@ const S = {
 };
 
 // ── Kategorien ────────────────────────────────────────────────
-function getKategorien(t) {
-  return [
-  { id:"bildung",      emoji:"📚", label: t("impact.katBildung")       },
-  { id:"umwelt",       emoji:"🌿", label: t("impact.katUmwelt")        },
-  { id:"gesundheit",   emoji:"💊", label: t("impact.katGesundheit")    },
-  { id:"gemeinschaft", emoji:"🤝", label: t("impact.katGemeinschaft")  },
-  { id:"tiere",        emoji:"🐾", label: t("impact.katTiere")         },
-  { id:"kultur",       emoji:"🎨", label: t("impact.katKultur")        },
-  { id:"soziales",     emoji:"❤️", label: t("impact.katSoziales")      },
-  { id:"sonstiges",    emoji:"✨", label: t("impact.katSonstiges")     },
-  ];
-}
+const KATEGORIEN = [
+  { id:"bildung",      emoji:"📚", label:"Bildung"       },
+  { id:"umwelt",       emoji:"🌿", label:"Umwelt"        },
+  { id:"gesundheit",   emoji:"💊", label:"Gesundheit"    },
+  { id:"gemeinschaft", emoji:"🤝", label:"Gemeinschaft"  },
+  { id:"tiere",        emoji:"🐾", label:"Tiere"         },
+  { id:"kultur",       emoji:"🎨", label:"Kultur"        },
+  { id:"soziales",     emoji:"❤️", label:"Soziales"      },
+  { id:"sonstiges",    emoji:"✨", label:"Sonstiges"     },
+];
 
 // ── HUI-Fit-Score Berechnung (0–100) ──────────────────────────
 function calcHuiFitScore(form) {
@@ -317,9 +314,7 @@ function StepWrap({ step, total, onBack, onClose, label, children }) {
 }
 
 // ── CTA Button ────────────────────────────────────────────────
-function NextBtn({ label, onClick, disabled, loading }) {
-  const { t } = useTranslation();
-  const defaultLabel = label || t("impact.nextDefault");
+function NextBtn({ label="Weiter →", onClick, disabled, loading }) {
   return (
     <button className="hui-next" onClick={() => !disabled && !loading && onClick?.()}
       style={{
@@ -338,98 +333,94 @@ function NextBtn({ label, onClick, disabled, loading }) {
         ? <span style={{ width:22, height:22, border:`3px solid rgba(255,255,255,0.3)`,
             borderTopColor:"#fff", borderRadius:"50%",
             animation:"ifSpin 0.7s linear infinite", display:"inline-block" }}/>
-        : defaultLabel}
+        : label}
     </button>
   );
 }
 
 // ═══ STEP 1–6 (unverändert) ═══════════════════════════════════
 function Step1({ form, update, onNext, onBack, onClose }) {
-  const { t } = useTranslation();
   const ok = (form.name || "").trim().length >= 3;
   return (
-    <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label={t("impact.step1Label")}>
+    <StepWrap step={0} total={7} onBack={onBack} onClose={onClose} label="Schritt 1 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={28}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.025em", lineHeight:1.2 }}>{t("impact.step1Title")}</h2>
+          letterSpacing:"-0.025em", lineHeight:1.2 }}>Wie heißt dein Projekt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          {t("impact.step1Desc")}
+          Gib deinem Herzensprojekt einen Namen. Der Name ist das Erste, was die Community sieht.
         </p>
         <input className="hui-input" type="text"
-          placeholder={t("impact.step1Placeholder")}
+          placeholder="z. B. Gemüsegarten für die Nachbarschaft"
           value={form.name || ""} onChange={e => update({ name: e.target.value })}
           maxLength={80} autoFocus />
         <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
           {(form.name||"").length} / 80</div>
-        <NextBtn onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
       </div>
     </StepWrap>
   );
 }
 
 function Step2({ form, update, onNext, onBack, onClose }) {
-  const { t } = useTranslation();
   const ok = (form.satz || "").trim().length >= 15;
   return (
-    <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label={t("impact.step2Label")}>
+    <StepWrap step={1} total={7} onBack={onBack} onClose={onClose} label="Schritt 2 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIChatIcon size={28}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step2Title")}</h2>
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Beschreibe dein Projekt in einem Satz.</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
           Was ist die Kernidee? Klar und verständlich — als würdest du es einem Freund erklären.
         </p>
         <textarea className="hui-input hui-textarea"
-          placeholder={t("impact.step2Placeholder")}
+          placeholder="z. B. Wir legen einen kostenlosen Gemüsegarten für alle Bewohner unseres Viertels an."
           value={form.satz || ""} onChange={e => update({ satz: e.target.value })}
           maxLength={200} rows={4} />
         <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
           {(form.satz||"").length} / 200</div>
-        <NextBtn onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
       </div>
     </StepWrap>
   );
 }
 
 function Step3({ form, update, onNext, onBack, onClose }) {
-  const { t } = useTranslation();
   const ok = (form.problem || "").trim().length >= 20;
   return (
-    <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label={t("impact.step3Label")}>
+    <StepWrap step={2} total={7} onBack={onBack} onClose={onClose} label="Schritt 3 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🎯</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step3Title")}</h2>
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Welches Problem löst dein Projekt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          {t("impact.step3Desc")}
+          Was ist die eigentliche Herausforderung, die dein Projekt angeht?
         </p>
         <textarea className="hui-input hui-textarea"
-          placeholder={t("impact.step3Placeholder")}
+          placeholder="z. B. In unserem Viertel gibt es kaum Grünflächen. Kinder haben keinen Zugang zu Natur."
           value={form.problem || ""} onChange={e => update({ problem: e.target.value })}
           maxLength={400} rows={5} />
         <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
           {(form.problem||"").length} / 400</div>
-        <NextBtn onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
       </div>
     </StepWrap>
   );
 }
 
 function Step4({ form, update, onNext, onBack, onClose }) {
-  const { t } = useTranslation();
   const ok = !!form.kategorie;
   return (
-    <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label={t("impact.step4Label")}>
+    <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label="Schritt 4 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🤝</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step4Title")}</h2>
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Wer profitiert davon?</h2>
         <p style={{ margin:"0 0 24px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          {t("impact.step4Desc")}
+          Wähle den Bereich, der am besten zu deinem Projekt passt.
         </p>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:24 }}>
-          {getKategorien(t).map(k => {
+          {KATEGORIEN.map(k => {
             const sel = form.kategorie === k.id;
             return (
               <button key={k.id} className="hui-chip" onClick={() => update({ kategorie: k.id })}
@@ -448,31 +439,30 @@ function Step4({ form, update, onNext, onBack, onClose }) {
             );
           })}
         </div>
-        <NextBtn onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
       </div>
     </StepWrap>
   );
 }
 
 function Step5({ form, update, onNext, onBack, onClose }) {
-  const { t } = useTranslation();
   const ok = (form.umsetzung || "").trim().length >= 20;
   return (
-    <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label={t("impact.step5Label")}>
+    <StepWrap step={4} total={7} onBack={onBack} onClose={onClose} label="Schritt 5 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🚀</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step5Title")}</h2>
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Was wird konkret umgesetzt?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          {t("impact.step5Desc")}
+          Was würde konkret mit der Förderung passieren? Je konkreter, desto besser.
         </p>
         <textarea className="hui-input hui-textarea"
-          placeholder={t("impact.step5Placeholder")}
+          placeholder="z. B. Wir kaufen Hochbeete, Erde und Saatgut. Wir organisieren monatliche Gartentage."
           value={form.umsetzung || ""} onChange={e => update({ umsetzung: e.target.value })}
           maxLength={500} rows={5} />
         <div style={{ fontSize:11, color:T.ink3, textAlign:"right", marginTop:6, marginBottom:28 }}>
           {(form.umsetzung||"").length} / 500</div>
-        <NextBtn onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
       </div>
     </StepWrap>
   );
@@ -480,7 +470,6 @@ function Step5({ form, update, onNext, onBack, onClose }) {
 
 // ═══ STEP 5b — MEILENSTEINE (zwischen "Was wird umgesetzt" und "Fördersumme") ═══
 function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) {
-  const { t } = useTranslation();
   const [uploadingIdx, setUploadingIdx] = useState(null);
   const fileRefs = React.useRef({});
 
@@ -539,13 +528,13 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
   const ok = validCount >= 1;
 
   return (
-    <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label={t("impact.step6Label")}>
+    <StepWrap step={5} total={7} onBack={onBack} onClose={onClose} label="Schritt 6 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>🏁</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step6Title")}</h2>
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Meilensteine definieren</h2>
         <p style={{ margin:"0 0 20px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          {t("impact.step6Desc")}
+          Welche konkreten Etappen planst du? Lege mindestens einen Meilenstein an (maximal 5).
         </p>
 
         <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:20, overflowY:"auto", maxHeight:380 }}>
@@ -562,7 +551,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                   fontSize:11, fontWeight: 600, flexShrink:0 }}>{i + 1}</div>
                 <input
                   className="hui-input"
-                  placeholder={t("impact.milestoneTitlePlaceholder", {n: i + 1})}
+                  placeholder={`Meilenstein ${i + 1} — Titel (Pflichtfeld)`}
                   value={m.title}
                   onChange={e => updateMilestone(i, { title: e.target.value })}
                   maxLength={80}
@@ -580,7 +569,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
               {/* Zeile 2: Beschreibung (optional) */}
               <textarea
                 className="hui-input hui-textarea"
-                placeholder={t("impact.milestoneDescPlaceholder")}
+                placeholder="Beschreibung (optional)"
                 value={m.description}
                 onChange={e => updateMilestone(i, { description: e.target.value })}
                 rows={2}
@@ -594,7 +583,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
               <div style={{ marginBottom:10 }}>
                 <div style={{ fontSize:11, fontWeight: 600, color:T.teal,
                   letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
-                  {t("impact.milestonePlannedDate")}
+                  Geplante Umsetzung
                 </div>
                 <input
                   className="hui-input"
@@ -609,7 +598,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
               <div>
                 <div style={{ fontSize:11, fontWeight: 600, color:T.ink3,
                   letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4 }}>
-                  {t("impact.milestoneMediaLabel")} <span style={{ color:T.ink4, fontWeight:400 }}>{t("impact.milestoneMediaOptional")}</span>
+                  Bild / Video <span style={{ color:T.ink4, fontWeight:400 }}>(optional, max. 2)</span>
                 </div>
 
                 {/* Schon hochgeladene Medien */}
@@ -656,7 +645,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
                         display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                       }}
                     >
-                      {uploadingIdx === i ? t("impact.milestoneUpload") : t("impact.milestoneAddMedia")}
+                      {uploadingIdx === i ? "⏳ Lädt hoch…" : "📎 Bild/Video hinzufügen"}
                     </button>
                     <input
                       ref={el => { fileRefs.current[i] = el; }}
@@ -691,7 +680,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
           </div>
         )}
 
-        <NextBtn onClick={onNext} disabled={!ok} />
+        <NextBtn label="Weiter →" onClick={onNext} disabled={!ok} />
       </div>
     </StepWrap>
   );
@@ -701,19 +690,18 @@ function Step6({ form, update, onNext, onBack, onClose }) {
   const raw = (form.foerder || "").replace(/\D/g,"");
   const val = raw ? parseInt(raw, 10) : 0;
   const ok  = val >= 100 && val <= 50000;
-  const { t } = useTranslation();
   const fmtDisplay = (str) => {
     const n = str.replace(/\D/g,"");
     return n ?formatNumberDE(parseInt(n,10)) : "";
   };
   return (
-    <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label={t("impact.step7Label")}>
+    <StepWrap step={6} total={7} onBack={onBack} onClose={onClose} label="Schritt 7 von 7">
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
         <div style={{ fontSize:28, marginBottom:10 }}>💶</div>
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step7Title")}</h2>
+          letterSpacing:"-0.022em", lineHeight:1.2 }}>Welche Fördersumme wünschst du dir?</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          {t("impact.step7Desc")}
+          Wie viel Euro würde dein Projekt benötigen, um vollständig umgesetzt zu werden?
         </p>
         <div style={{ position:"relative", marginBottom:10 }}>
           <span style={{ position:"absolute", left:18, top:"50%", transform:"translateY(-50%)",
@@ -725,7 +713,7 @@ function Step6({ form, update, onNext, onBack, onClose }) {
         </div>
         {(form.foerder && !ok) && (
           <div style={{ fontSize:12, color:T.coral, marginBottom:12 }}>
-            {val < 100 ? t("impact.fundingMinError") : t("impact.fundingMaxError")}
+            {val < 100 ? "Bitte mindestens €100 angeben." : "Maximal €50.000 pro Bewerbung möglich."}
           </div>
         )}
         <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:28 }}>
@@ -737,9 +725,9 @@ function Step6({ form, update, onNext, onBack, onClose }) {
               €{formatNumberDE(v)}</button>
           ))}
         </div>
-        <NextBtn label={t("impact.aiCheckBtn")} onClick={onNext} disabled={!ok} />
+        <NextBtn label="KI-Prüfung starten →" onClick={onNext} disabled={!ok} />
         <p style={{ margin:"10px 0 0", textAlign:"center", fontSize:11, color:T.ink3 }}>
-          {t("impact.fundingFooter")}
+          ✓ Bewerbung kostenlos · ✓ Dauer ~2 Min. · ✓ Kein Projekt geht leer aus
         </p>
       </div>
     </StepWrap>
@@ -748,15 +736,14 @@ function Step6({ form, update, onNext, onBack, onClose }) {
 
 // ═══ KI-PRÜFUNG — Ladescreen (erweitert: HUI-Fit-Score) ══════
 function AIPruefung({ form, onResult }) {
-  const { t } = useTranslation();
   const [phase, setPhase] = useState(0);
   const PHASEN = [
-    { icon:"🔍", text: t("impact.aiPhase1")        },
-    { icon:"🤝", text: t("impact.aiPhase2")           },
-    { icon:<HUISettingsIcon size={14}/>, text: t("impact.aiPhase3")     },
-    { icon:<HUISicherheitIcon size={14}/>, text: t("impact.aiPhase4")},
-    { icon:"💚", text: t("impact.aiPhase5")    },
-    { icon:"✨", text: t("impact.aiPhase6")          },
+    { icon:"🔍", text:"Wirkung analysieren …"        },
+    { icon:"🤝", text:"Gemeinwohl prüfen …"           },
+    { icon:<HUISettingsIcon size={14}/>, text:"Umsetzbarkeit bewerten …"     },
+    { icon:<HUISicherheitIcon size={14}/>, text:"Vertrauenswürdigkeit prüfen …"},
+    { icon:"💚", text:"HUI-Fit-Score berechnen …"    },
+    { icon:"✨", text:"Ergebnis berechnen …"          },
   ];
   useEffect(() => {
     let idx = 0;
@@ -782,8 +769,8 @@ function AIPruefung({ form, onResult }) {
         boxShadow:`0 0 0 12px ${T.teal}12`,
         animation:"ifGlow 2s ease-in-out infinite" }}>🧠</div>
       <h3 style={{ margin:"0 0 6px", fontSize:20, fontWeight: 600, color:T.ink,
-        letterSpacing:"-0.02em" }}>{t("impact.aiTitle")}</h3>
-      <p style={{ margin:"0 0 28px", fontSize:13, color:T.ink2 }}>{t("impact.aiSubtitle")}</p>
+        letterSpacing:"-0.02em" }}>HUI-KI prüft dein Projekt</h3>
+      <p style={{ margin:"0 0 28px", fontSize:13, color:T.ink2 }}>Einen Moment bitte …</p>
       <div style={{ width:"100%", maxWidth:280, height:5, borderRadius:99,
         background:T.line, marginBottom:16, overflow:"hidden" }}>
         <div style={{ height:"100%", borderRadius:99, width:`${pct}%`,
@@ -797,7 +784,7 @@ function AIPruefung({ form, onResult }) {
       </div>
       <div style={{ marginTop:32, display:"flex", flexDirection:"column",
         gap:10, width:"100%", maxWidth:280 }}>
-        {[t("impact.aiProgress1"),t("impact.aiProgress2"),t("impact.aiProgress3"),t("impact.aiProgress4"),t("impact.aiProgress5")].map((k,i) => (
+        {["Wirkung","Gemeinwohl","Umsetzbarkeit","Vertrauenswürdigkeit","HUI-Fit-Score"].map((k,i) => (
           <div key={i} style={{ display:"flex", alignItems:"center", gap:10,
             opacity: phase > i ? 1 : 0.28, transition:"opacity 0.4s ease" }}>
             <div style={{ width:20, height:20, borderRadius:"50%",
@@ -817,15 +804,14 @@ function AIPruefung({ form, onResult }) {
 
 // ═══ HUI-FIT-SCORE ANZEIGE ════════════════════════════════════
 function FitScoreBar({ score }) {
-  const { t } = useTranslation();
   const color = score >= 80 ? T.teal : score >= 60 ? T.gold : T.coral;
-  const label = score >= 80 ? t("impact.fitExcellent") : score >= 60 ? t("impact.fitGood") : t("impact.fitLow");
+  const label = score >= 80 ? "Hervorragend" : score >= 60 ? "Gut geeignet" : "Zu gering";
   return (
     <div style={{ background:`${color}08`, border:`1px solid ${color}22`,
       borderRadius:16, padding:"14px 16px", marginBottom:16 }}>
       <div style={{ display:"flex", justifyContent:"space-between",
         alignItems:"center", marginBottom:8 }}>
-        <span style={{ fontSize:12, fontWeight: 600, color:T.ink }}>{t("impact.fitScoreLabel")}</span>
+        <span style={{ fontSize:12, fontWeight: 600, color:T.ink }}>HUI-Fit-Score</span>
         <div style={{ display:"flex", alignItems:"baseline", gap:4 }}>
           <span style={{ fontSize:22, fontWeight: 600, color }}>{score}</span>
           <span style={{ fontSize:12, color:T.ink3 }}>/100</span>
@@ -841,33 +827,30 @@ function FitScoreBar({ score }) {
       <div style={{ display:"flex", justifyContent:"space-between",
         fontSize:11, color }}>
         <span style={{ fontWeight: 600 }}>{label}</span>
-        {score >= 80 && <span>{t("impact.fitDirectRoute")}</span>}
-        {score >= 60 && score < 80 && <span>{t("impact.fitManualRoute")}</span>}
+        {score >= 80 && <span>→ Direkte Weiterleitung</span>}
+        {score >= 60 && score < 80 && <span>→ Manuelle Prüfung</span>}
       </div>
     </div>
   );
 }
 
 // ═══ WIRKUNGSNETZWERK-ZUSTIMMUNG (Step 8) ════════════════════
-function getWirkungsnetzChecks(t) {
-  return [
-  t("impact.wnCheck1"),
-  t("impact.wnCheck2"),
-  t("impact.wnCheck3"),
-  t("impact.wnCheck4"),
-  ];
-}
+const WIRKUNGSNETZ_CHECKS = [
+  "Ich bin damit einverstanden, dass mein Projekt bei einer Förderung als offizielles HUI-Impact-Projekt veröffentlicht wird.",
+  "Ich bin damit einverstanden, dass HUI über die Entwicklung und Wirkung meines Projekts berichten darf.",
+  "Ich verpflichte mich, die Förderung durch HUI auf angemessene Weise sichtbar zu machen (z. B. Website, Social Media, Flyer, Veranstaltungen oder Projektkommunikation).",
+  "Ich bin bereit, nach einer Förderung kurze Wirkungsnachweise bereitzustellen (Fotos, Updates oder Berichte).",
+];
 
 function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
-  const { t } = useTranslation();
-  const allChecked = getWirkungsnetzChecks(t).every((_, i) => checks[i]);
+  const allChecked = WIRKUNGSNETZ_CHECKS.every((_, i) => checks[i]);
   return (
     <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
       {/* Header */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
         padding:"16px 20px 14px", flexShrink:0, borderBottom:`1px solid ${T.line}` }}>
         <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>
-          {t("impact.wnHeader")}
+          Teil des HUI-Wirkungsnetzwerks
         </div>
         <button onClick={onClose} style={{ width:32, height:32, borderRadius:"50%",
           background:"rgba(20,20,34,0.06)", border:"none", cursor:"pointer",
@@ -886,22 +869,24 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
           <div style={{ fontSize:18, marginBottom:10 }}>🌍</div>
           <div style={{ fontSize:15, fontWeight: 600, color:T.ink,
             marginBottom:8, letterSpacing:"-0.018em" }}>
-            {t("impact.wnIntroTitle")}
+            Gemeinsam Wirkung sichtbar machen
           </div>
           <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>
-            {t("impact.wnIntro1")}
+            HUI fördert nicht nur Projekte. HUI verbindet Menschen, Ideen und echte Veränderung.
           </p>
           <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>
-            {t("impact.wnIntro2")}
+            Jedes geförderte Projekt wird Teil des <b style={{ color:T.teal }}>HUI-Wirkungsnetzwerks</b> und
+            hilft dabei zu zeigen, was gemeinsam möglich ist.
           </p>
           <p style={{ margin:0, fontSize:13, color:T.ink2, lineHeight:1.7 }}>
-            {t("impact.wnIntro3")}
+            Deshalb bitten wir alle geförderten Projekte, ihre Wirkung sichtbar zu machen
+            und die Unterstützung durch HUI transparent zu kommunizieren.
           </p>
         </div>
 
         {/* Checkboxen */}
         <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:24 }}>
-          {getWirkungsnetzChecks(t).map((text, i) => (
+          {WIRKUNGSNETZ_CHECKS.map((text, i) => (
             <label key={i} className="hui-cb" style={{
               display:"flex", alignItems:"flex-start", gap:12,
               background: checks[i] ? `${T.teal}08` : T.surfaceHi,
@@ -940,7 +925,7 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
             transition:"all 0.2s ease",
             marginBottom:8,
           }}>
-          {allChecked ? t("impact.wnConfirm") : t("impact.wnConfirmDisabled")}
+          {allChecked ? "Jetzt einreichen ✓" : "Alle Punkte bestätigen"}
         </button>
         <p style={{ margin:0, textAlign:"center", fontSize:11, color:T.ink3 }}>
           ✓ Kostenlos · ✓ Kein Risiko · ✓ Kein Projekt geht leer aus
@@ -953,7 +938,6 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
 // ═══ ERGEBNIS: GEEIGNET (mit FitScore + Netzwerk-Button) ═════
 function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
   const score = aiRes?.score || 0;
-  const { t } = useTranslation();
   const isManual = aiRes?.routing === "manuell";
   return (
     <div style={{ flex:1, display:"flex", flexDirection:"column",
@@ -968,17 +952,17 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
           borderRadius:99, padding:"5px 16px", fontSize:11, fontWeight: 600,
           color: isManual ? T.gold : T.teal, letterSpacing:"0.07em", marginBottom:12,
         }}>
-          {isManual ? t("impact.egBadgeManual") : t("impact.egBadgeDirect")}
+          {isManual ? "MANUELLE PRÜFUNG" : "DIREKTE WEITERLEITUNG"}
         </div>
         <h2 style={{ margin:"0 0 8px", fontSize:21, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.25 }}>
-          {t("impact.egTitle")}
+          Dein Projekt sieht vielversprechend aus! 🎉
         </h2>
         <p style={{ margin:0, fontSize:13, color:T.ink2, lineHeight:1.65 }}>
           <b style={{ color:T.ink }}>{form.name}</b> wird{" "}
           {isManual
-            ? t("impact.egManualText")
-            : t("impact.egDirectText")}
+            ? "zur manuellen Prüfung an das HUI-Team weitergeleitet."
+            : "direkt an das HUI-Team weitergeleitet."}
         </p>
       </div>
 
@@ -993,10 +977,10 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
           Deine Bewerbung
         </div>
         {[
-          { label:t("impact.egSumProject"),      val:form.name },
-          { label:t("impact.egSumDesc"), val:form.satz },
-          { label:t("impact.egSumCategory"),    val:getKategorien(t).find(k=>k.id===form.kategorie)?.label },
-          { label:t("impact.egSumFunding"), val:`€${formatNumberDE(parseInt(form.foerder||0))}` },
+          { label:"Projekt",      val:form.name },
+          { label:"Beschreibung", val:form.satz },
+          { label:"Kategorie",    val:KATEGORIEN.find(k=>k.id===form.kategorie)?.label },
+          { label:"Förderwunsch", val:`€${formatNumberDE(parseInt(form.foerder||0))}` },
         ].map((r,i) => (
           <div key={i} style={{ display:"flex", gap:10, padding:"6px 0",
             borderBottom: i < 3 ? `1px solid ${T.teal}10` : "none" }}>
@@ -1011,7 +995,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:8,
-      }}>{t("impact.egButton")}</button>
+      }}>Weiter → Wirkungsnetzwerk</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>Abbrechen</button>
     </div>
@@ -1020,7 +1004,6 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
 
 // ═══ ERGEBNIS: NICHT GEEIGNET ════════════════════════════════
 function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
-  const { t } = useTranslation();
   const score = aiRes?.score || 0;
   const grund = aiRes?.grund || "zu_vage";
 
@@ -1048,77 +1031,83 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
     saveFailure();
   }, []); // eslint-disable-line
   const TEXTE = {
+    // Persönlicher Nutzen / private Anschaffung
     persoenlich: {
       emoji:   "🚫",
-      badge:   t("impact.rejPersonalBadge"),
-      titel:   t("impact.rejPersonalTitle"),
-      erkl:    t("impact.rejPersonalErkl"),
-      hinweis: t("impact.rejPersonalHinweis"),
-      tipp:    t("impact.rejPersonalTipp"),
+      badge:   "PERSÖNLICHER NUTZEN",
+      titel:   "Dieses Projekt ist nicht für den HUI Impact Pool geeignet.",
+      erkl:    "HUI fördert ausschließlich Projekte mit gemeinwohlorientierter Wirkung — für Gemeinschaft, Umwelt, Bildung, Gesundheit oder Kultur.",
+      hinweis: "Projekte, die überwiegend dem persönlichen Nutzen dienen (Anschaffungen, Schulden, Reisen etc.), können leider nicht berücksichtigt werden.",
+      tipp:    "Hast du ein Projektidee, die anderen Menschen hilft? Dann probiere es erneut!",
     },
+    // Kommerziell / nicht HUI-konform
     kommerziell: {
       emoji:   "💼",
-      badge:   t("impact.rejCommercialBadge"),
-      titel:   t("impact.rejCommercialTitle"),
-      erkl:    t("impact.rejCommercialErkl"),
-      hinweis: t("impact.rejCommercialHinweis"),
-      tipp:    t("impact.rejCommercialTipp"),
+      badge:   "KOMMERZIELLES PROJEKT",
+      titel:   "Kommerzielle Projekte passen nicht zu HUI.",
+      erkl:    "Der HUI Impact Pool ist kein Investitions- oder Startup-Förderprogramm. Er ist für Herzensprojekte mit echtem gesellschaftlichem Mehrwert.",
+      hinweis: "Projekte mit Gewinnabsicht, Marketing-Zwecken oder politischem Charakter können nicht aufgenommen werden.",
+      tipp:    "Wenn dein Projekt einen echten sozialen Zweck hat, beschreibe diesen klar — dann ist ein neuer Versuch möglich.",
     },
+    // Beschreibung zu kurz
     zu_kurz: {
       emoji:   <HUISchreibenIcon size={16}/>,
-      badge:   t("impact.rejShortBadge"),
-      titel:   t("impact.rejShortTitle"),
-      erkl:    t("impact.rejShortErkl"),
-      hinweis: t("impact.rejShortHinweis"),
-      tipp:    t("impact.rejShortTipp"),
+      badge:   "ZU WENIG INFORMATIONEN",
+      titel:   "Bitte beschreibe dein Projekt ausführlicher.",
+      erkl:    "Das HUI-Team braucht genügend Details, um dein Projekt fair beurteilen zu können.",
+      hinweis: "Fülle besonders diese Felder ausführlicher aus: Kurzbeschreibung, Problem & Lösung, Umsetzung.",
+      tipp:    "Je konkreter du beschreibst, wer profitiert und wie — desto besser deine Chancen!",
     },
+    // Zu vage / allgemeine Formulierungen
     zu_vage: {
       emoji:   "🔍",
-      badge:   t("impact.rejVagueBadge"),
-      titel:   t("impact.rejVagueTitle"),
-      erkl:    t("impact.rejVagueErkl"),
-      hinweis: t("impact.rejVagueHinweis"),
-      tipp:    t("impact.rejVagueTipp"),
+      badge:   "NICHT GEEIGNET FÜR HUI",
+      titel:   "Dein Projekt braucht noch mehr Profil.",
+      erkl:    "Die Beschreibung ist noch zu allgemein für eine Wirkungsbeurteilung.",
+      hinweis: "Beschreibe konkret: Wer profitiert? Was genau wird umgesetzt? Welche Wirkung entsteht?",
+      tipp:    "Vermeide vage Formulierungen. Echte Zahlen, Orte und Zielgruppen stärken deinen Score.",
     },
+    // Kein HUI-Bezug erkennbar
     kein_hui_bezug: {
       emoji:   "🎯",
-      badge:   t("impact.rejNoHuiBadge"),
-      titel:   t("impact.rejNoHuiTitle"),
-      erkl:    t("impact.rejNoHuiErkl"),
-      hinweis: t("impact.rejNoHuiHinweis"),
-      tipp:    t("impact.rejNoHuiTipp"),
+      badge:   "KEIN HUI-BEZUG",
+      titel:   "Dein Projekt passt noch nicht zu HUI.",
+      erkl:    "Die Beschreibung lässt keinen klaren Bezug zu den HUI-Förderbereichen erkennen.",
+      hinweis: "HUI fördert: Bildung, Umwelt, Gemeinschaft, Gesundheit, Kultur, Tierschutz & soziale Projekte.",
+      tipp:    "Wenn dein Projekt in einen dieser Bereiche fällt — beschreibe das explizit und versuche es nochmal.",
     },
+    // Legacy-Kompatibilität
     red_flag: {
       emoji:   "🚫",
-      badge:   t("impact.rejRedFlagBadge"),
-      titel:   t("impact.rejRedFlagTitle"),
-      erkl:    t("impact.rejRedFlagErkl"),
-      hinweis: t("impact.rejRedFlagHinweis"),
-      tipp:    t("impact.rejRedFlagTipp"),
+      badge:   "NICHT GEEIGNET FÜR HUI",
+      titel:   "Dieses Projekt passt leider nicht zu HUI.",
+      erkl:    "Der HUI Impact Pool ist ausschließlich für Projekte mit messbarer positiver Wirkung für Gemeinschaft, Umwelt, Bildung, Gesundheit oder Kultur.",
+      hinweis: "Eigennützige Projekte, Konsumwünsche oder private Anschaffungen können nicht berücksichtigt werden.",
+      tipp:    "Hast du eine Idee, die anderen Menschen hilft? Probiere es erneut!",
     },
   };
-  const rej = TEXTE[grund] || TEXTE.zu_vage;
+  const t = TEXTE[grund] || TEXTE.zu_vage;
   return (
     <div style={{ flex:1, display:"flex", flexDirection:"column",
       padding:"28px 22px 22px", animation:"ifShake 0.4s ease both, ifFadeIn 0.3s ease both",
       overflowY:"auto" }}>
       <div style={{ textAlign:"center", marginBottom:20 }}>
-        <div style={{ fontSize:48, marginBottom:12 }}>{rej.emoji || "🔍"}</div>
+        <div style={{ fontSize:48, marginBottom:12 }}>{t.emoji || "🔍"}</div>
         <div style={{ display:"inline-block", background:`${T.coral}12`,
           border:`1px solid ${T.coral}28`, borderRadius:99,
           padding:"5px 16px", fontSize:11, fontWeight: 600,
           color:T.coral, letterSpacing:"0.07em", marginBottom:12 }}>
-          {rej.badge || t("impact.rejBadgeFallback")}
+          {t.badge || "NICHT GEEIGNET FÜR HUI"}
         </div>
         <h2 style={{ margin:"0 0 10px", fontSize:19, fontWeight: 600, color:T.ink,
-          letterSpacing:"-0.02em", lineHeight:1.3 }}>{rej.titel}</h2>
-        <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{rej.erkl}</p>
-        <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{rej.hinweis}</p>
-        {rej.tipp && (
+          letterSpacing:"-0.02em", lineHeight:1.3 }}>{t.titel}</h2>
+        <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.erkl}</p>
+        <p style={{ margin:"0 0 8px", fontSize:13, color:T.ink2, lineHeight:1.7 }}>{t.hinweis}</p>
+        {t.tipp && (
           <div style={{ marginTop:10, padding:"10px 14px", background:`${T.teal}0A`,
             border:`1px solid ${T.teal}20`, borderRadius:12,
             fontSize:12, color:T.teal, lineHeight:1.6, textAlign:"left" }}>
-            💡 <strong>{t("impact.rejTipLabel")}</strong> {rej.tipp}
+            💡 <strong>Tipp:</strong> {t.tipp}
           </div>
         )}
       </div>
@@ -1129,15 +1118,15 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
       <div style={{ background:`${T.teal}07`, border:`1px solid ${T.teal}16`,
         borderRadius:14, padding:"14px 16px", marginBottom:20 }}>
         <div style={{ fontSize:12, fontWeight: 600, color:T.teal, marginBottom:8 }}>
-          {t('impact.rejWhatFits')}
+          Was zu HUI passt:
         </div>
-        {[t("impact.rejFit1"),
-          t("impact.rejFit2"),
-          t("impact.rejFit3"),
-          t("impact.rejFit4"),
-          t("impact.rejFit5"),
-          t("impact.rejFit6"),
-          t("impact.rejFit7"),
+        {["📚 Bildungsinitiativen & Wissensprojekte",
+          "🌿 Umwelt-, Klima- & Naturschutzprojekte",
+          "🤝 Gemeinschafts- & Soziale Projekte",
+          "💊 Gesundheits- & Pflegeprojekte",
+          "🎨 Kulturelle & gesellschaftliche Initiativen",
+          "🐾 Tierschutz- & Tierwohlprojekte",
+          "🌍 Inklusion & gesellschaftliche Teilhabe",
         ].map((item,i) => (
           <div key={i} style={{ fontSize:13, color:T.ink2, padding:"3px 0", lineHeight:1.5 }}>{item}</div>
         ))}
@@ -1148,9 +1137,9 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:8,
-      }}>{t("impact.rejRetry")}</button>
+      }}>Nochmal versuchen</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
-        fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>{t("impact.rejClose")}</button>
+        fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>Schließen</button>
     </div>
   );
 }
@@ -1164,7 +1153,6 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
 // zu window.__HUI_OPEN_TALENT_FLOW umleiten -- hier bewusst EXPLIZIT
 // mit Erklaerung, wie vom Nutzer gewuenscht).
 function TalentRequiredNotice({ onClose }) {
-  const { t } = useTranslation();
   const handleUpgrade = useCallback(() => {
     onClose?.();
     if (typeof window.__HUI_OPEN_TALENT_FLOW === "function") {
@@ -1181,31 +1169,33 @@ function TalentRequiredNotice({ onClose }) {
         filter:`drop-shadow(0 4px 20px ${T.teal}40)` }}>💚</div>
       <h2 style={{ margin:"0 0 10px", fontSize:21, fontWeight: 600,
         color:T.ink, letterSpacing:"-0.022em", maxWidth:290 }}>
-        {t("impact.trnTitle")}
+        Herzensprojekte sind Talenten vorbehalten
       </h2>
       <p style={{ margin:"0 0 6px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300 }}>
-        {t("impact.trnP1")}
+        Nur HUI-Talente können aktuell ein Herzensprojekt einreichen — so
+        stellen wir sicher, dass jedes Projekt von einer verifizierten
+        Person betreut wird.
       </p>
       <p style={{ margin:"0 0 26px", fontSize:14, color:T.ink2, lineHeight:1.7, maxWidth:300 }}>
-        {t("impact.trnP2")}
+        Du kannst dein Konto jederzeit in deinem Profil zum Talent-Konto
+        hochstufen — danach kannst du dein Projekt einreichen.
       </p>
       <button onClick={handleUpgrade} style={{ padding:"14px 32px", borderRadius:18,
         border:"none", background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:S.btn(T.teal), marginBottom:12 }}>
-        {t("impact.trnUpgrade")}
+        Jetzt Talent werden
       </button>
       <button onClick={onClose} style={{ padding:"10px 20px", borderRadius:14,
         border:"none", background:"transparent",
         color:T.ink3, fontSize:13, fontWeight: 600, cursor:"pointer" }}>
-        {t("impact.trnClose")}
+        Schließen
       </button>
     </div>
   );
 }
 
 function SuccessScreen({ onClose }) {
-  const { t } = useTranslation();
   return (
     <div style={{ flex:1, display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"center", padding:"40px 28px",
@@ -1214,15 +1204,16 @@ function SuccessScreen({ onClose }) {
       <div style={{ fontSize:60, marginBottom:20,
         filter:`drop-shadow(0 4px 20px ${T.teal}50)` }}>💚</div>
       <h2 style={{ margin:"0 0 10px", fontSize:24, fontWeight: 600,
-        color:T.ink, letterSpacing:"-0.025em" }}>{t("impact.ssTitle")}</h2>
+        color:T.ink, letterSpacing:"-0.025em" }}>Bewerbung eingereicht!</h2>
       <p style={{ margin:"0 0 28px", fontSize:15, color:T.ink2,
         lineHeight:1.7, maxWidth:300 }}>
-        {t("impact.ssDesc")}
+        Das HUI-Team prüft dein Herzensprojekt und meldet sich bald.
+        Danke, dass du Wirkung schaffen möchtest. 🌍
       </p>
       <div style={{ background:`${T.teal}10`, border:`1px solid ${T.teal}22`,
         borderRadius:16, padding:"14px 20px", maxWidth:280, marginBottom:28 }}>
-        {[t("impact.ssLine1"),t("impact.ssLine2"),
-          t("impact.ssLine3"),t("impact.ssLine4"),
+        {["✓ Bewerbung erhalten","✓ KI-Prüfung bestanden",
+          "✓ HUI-Team wurde informiert","✓ Teil des HUI-Wirkungsnetzwerks 🌍",
         ].map((line,i) => (
           <div key={i} style={{ fontSize:13, fontWeight: 600, color:T.teal, padding:"3px 0" }}>{line}</div>
         ))}
@@ -1230,7 +1221,7 @@ function SuccessScreen({ onClose }) {
       <button onClick={onClose} style={{ padding:"14px 36px", borderRadius:18,
         border:"none", background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
-        boxShadow:S.btn(T.teal) }}>{t("impact.ssButton")}</button>
+        boxShadow:S.btn(T.teal) }}>Super ✓</button>
     </div>
   );
 }
@@ -1238,15 +1229,14 @@ function SuccessScreen({ onClose }) {
 
 // ═══ PERSÖNLICHE ANGABEN (Step 7.5) ══════════════════════════
 function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
-  const { t } = useTranslation();
   // T ist global definiert (Design Tokens oben in der Datei)
   const [errors, setErrors] = useState({});
 
   const fields = [
-    { key:"standort",  label: t("impact.paFieldStandort"),  placeholder: t("impact.paPlaceholderStandort"),  type:"text" },
-    { key:"email",     label: t("impact.paFieldEmail"),     placeholder: t("impact.paPlaceholderEmail"),     type:"email" },
-    { key:"name",      label: t("impact.paFieldName"),     placeholder: t("impact.paPlaceholderName"),      type:"text" },
-    { key:"telefon",   label: t("impact.paFieldTelefon"),  placeholder: t("impact.paPlaceholderTelefon"),  type:"tel" },
+    { key:"standort",  label:"Standort",        placeholder:"z. B. Berlin, Bayern, Österreich", type:"text" },
+    { key:"email",     label:"Kontakt E-Mail",   placeholder:"deine@email.de",                   type:"email" },
+    { key:"name",      label:"Kontakt Name",     placeholder:"Vor- und Nachname",                type:"text" },
+    { key:"telefon",   label:"Kontakt Telefon",  placeholder:"z. B. +49 170 1234567",            type:"tel" },
   ];
 
   const validate = () => {
@@ -1269,10 +1259,11 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
       <div style={{ textAlign:"center", marginBottom:24 }}>
         <div style={{ marginBottom:8, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIDateiIcon size={36}/></div>
         <div style={{ fontSize:20, fontWeight: 600, color:T.ink, marginBottom:6 }}>
-          {t("impact.paTitle")}
+          Persönliche Angaben
         </div>
         <div style={{ fontSize:13, color:T.ink3, lineHeight:1.5 }}>
-          {t("impact.paDesc")}
+          Damit das HUI-Team dich kontaktieren kann, benötigen wir noch ein paar Angaben.
+          Alle Felder sind Pflichtfelder.
         </div>
       </div>
 
@@ -1298,7 +1289,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
             />
             {errors[f.key] && (
               <div style={{ fontSize:11, color:"#FF6B6B", marginTop:4 }}>
-                {t("impact.paFieldRequired")}
+                Dieses Feld ist erforderlich.
               </div>
             )}
           </div>
@@ -1311,7 +1302,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
         background:`linear-gradient(135deg,${T.teal},${T.tealL})`,
         color:"#fff", fontSize:15, fontWeight: 600, cursor:"pointer",
         boxShadow:`0 6px 24px ${T.teal}40`, marginBottom:8,
-      }}>{t("impact.egButton")}</button>
+      }}>Weiter → Wirkungsnetzwerk</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px",
         display:"block", width:"100%", textAlign:"center" }}>Abbrechen</button>
@@ -1324,7 +1315,6 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
 // STEP 10 — Medien & Dateien (Titelbild Pflicht + Zusatzmaterial)
 // ═══════════════════════════════════════════════════════════════
 function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, onWeiter, onClose, userId }) {
-  const { t } = useTranslation();
   const [coverUploading,  setCoverUploading]  = React.useState(false);
   const [extrasUploading, setExtrasUploading] = React.useState(false);
   const [coverErr,        setCoverErr]        = React.useState(null);
@@ -1338,7 +1328,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
     // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
     const maxBytes = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     if (file.size > maxBytes) {
-      setCoverErr(file.type.startsWith("video/") ? t("impact.errorVideoMax", {max: UPLOAD_LIMITS.MAX_VIDEO_MB}) : t("impact.errorImageMax", {max: UPLOAD_LIMITS.MAX_IMAGE_MB}));
+      setCoverErr(file.type.startsWith("video/") ? `Video max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB` : `Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`);
       return;
     }
     setCoverUploading(true); setCoverErr(null);
@@ -1354,7 +1344,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         .getPublicUrl(path);
       setCoverUrl(urlData.publicUrl);
     } catch (e) {
-      setCoverErr(t("impact.muUploadError") + (e.message || t("impact.muUnknownError")));
+      setCoverErr("Upload fehlgeschlagen: " + (e.message || "Unbekannter Fehler"));
     }
     setCoverUploading(false);
   };
@@ -1426,10 +1416,10 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         {/* ── Titelbild ─────────────────────────────────── */}
         <div style={{ marginBottom:20 }}>
           <div style={{ fontSize:12, fontWeight: 600, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
-            {t('impact.muCoverLabel')} <span style={{ color:T.coral }}>{t('impact.muCoverRequired')}</span>
+            TITELBILD <span style={{ color:T.coral }}>*</span>
           </div>
           <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
-            {t("impact.muCoverDesc")}
+            So wird dein Projekt später im Impact Pool angezeigt. (Pflichtfeld)
           </div>
 
           {coverUrl ? (
@@ -1463,7 +1453,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
                 {coverUploading ? "…" : <HUIFotoIcon size={18}/>}
               </div>
               <div style={{ fontSize:13, fontWeight: 600, color: coverUploading ? T.ink3 : T.teal }}>
-                {coverUploading ? t("impact.muCoverUploading") : t("impact.muCoverUpload")}
+                {coverUploading ? "Wird hochgeladen…" : "Titelbild auswählen"}
               </div>
               <div style={{ fontSize:11, color:T.ink3, marginTop:4 }}>
                 JPG, PNG, WebP — empfohlen 1200×800px
@@ -1498,7 +1488,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
               color:T.violet, fontSize:13, fontWeight: 600, fontFamily:"inherit",
             }}
           >
-            {extrasUploading ? t("impact.muExtrasUploading") : t("impact.muExtrasUpload")}
+            {extrasUploading ? "⏳ Lädt hoch…" : "📎 Dateien hinzufügen (Mehrfach möglich)"}
           </button>
           <input ref={extrasRef} type="file" multiple style={{ display:"none" }}
             accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
@@ -1570,13 +1560,13 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
             transition:"all 0.2s",
           }}
         >
-          {canContinue ? t("impact.muButton") : t("impact.muCoverMissing")}
+          {canContinue ? "Weiter → Wirkungsnetzwerk" : "Titelbild fehlt"}
         </button>
         <div style={{ textAlign:"center", marginTop:10 }}>
           <button onClick={onClose} style={{
             background:"none", border:"none", color:T.ink3,
             fontSize:12, cursor:"pointer", fontFamily:"inherit",
-          }}>{t("impact.muAbort")}</button>
+          }}>Abbrechen</button>
         </div>
       </div>
     </div>
@@ -1586,7 +1576,6 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 // ═══ HAUPT-ORCHESTRATOR ═══════════════════════════════════════
 // Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 7.5(=9) = Persönliche Angaben, 8 = Wirkungsnetzwerk
 export default function ImpactFlow({ onClose }) {
-  const { t } = useTranslation();
   const { user, isBaseUser } = useAuth();
   const [step,    setStep]    = useState(0);
   const [aiRes,   setAiRes]   = useState(null);
@@ -1594,7 +1583,7 @@ export default function ImpactFlow({ onClose }) {
   const [done,    setDone]    = useState(false);
   const [error,   setError]   = useState(null);
   const [netChecks, setNetChecks] = useState(
-    getWirkungsnetzChecks(t).map(() => false)
+    WIRKUNGSNETZ_CHECKS.map(() => false)
   );
 
   const [form, setForm] = useState({
@@ -1698,7 +1687,7 @@ export default function ImpactFlow({ onClose }) {
 
       setDone(true);
     } catch(e) {
-      setError(e.message || t("impact.ifErrorSubmit"));
+      setError(e.message || "Fehler beim Absenden");
       setSaving(false);
     }
   }, [user, form, aiRes, kontakt, coverUrl, attachments, milestones]);
