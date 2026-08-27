@@ -2,21 +2,19 @@ import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const PURPLE = "#7264D6";
 const INK    = "#1A1A2E";
 const INK3   = "rgba(26,26,46,0.42)";
 
 export default function EventContent({ item, onProfile, onReaction, onShare }) {
-  const { t } = useTranslation();
   if (!item) return null;
   const { open } = useContentPreview(); // OPEN.1 2026-07-08
 
   const title    = item.title || item.text || "";
   const desc     = item._raw?.description || item._raw?.caption || null;
   const isLive   = item.isLive;
-  const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + (t("feed.oclock") ? " " + t("feed.oclock") : "") : null;
+  const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : null;
   let dateStr = null;
   if (item._raw?.date) {
     try {
@@ -32,7 +30,7 @@ export default function EventContent({ item, onProfile, onReaction, onShare }) {
   const badgeColor  = isLive ? "#EF4444" : PURPLE;
   const badgeBg     = isLive ? "rgba(239,68,68,0.10)" : "rgba(114,100,214,0.10)";
   const badgeBorder = isLive ? "rgba(239,68,68,0.22)" : "rgba(114,100,214,0.22)";
-  const badgeLabel  = isLive ? t("feed.badgeLive") : t("feed.badgeEvent");
+  const badgeLabel  = isLive ? "🔴 LIVE" : "EVENT";
 
   return (
     <BaseFeedCard item={item} onProfile={onProfile} onReaction={onReaction} onShare={onShare}

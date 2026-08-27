@@ -2,14 +2,12 @@ import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
 const INK3 = "rgba(26,26,46,0.42)";
 
 export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
-  const { t } = useTranslation();
   if (!item) return null;
   const { open } = useContentPreview(); // OPEN.1 2026-07-08 -- Karte oeffnet jetzt Vorschau statt nichts zu tun
 
@@ -19,7 +17,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
   // existiert. In dem Fall wäre desc identisch mit title → Dopplung. Skip desc.
   const desc        = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
   const category    = item._raw?.category || null;
-  const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + (t("feed.oclock") ? " " + t("feed.oclock") : "") : (item.duration || null);
+  const timeDisplay = item.timeStart ? item.timeStart.slice(0,5) + " Uhr" : (item.duration || null);
   // Datumsformatierung: "24. Juni"
   let dateStr = null;
   if (item._raw?.date) {
@@ -58,7 +56,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
           border:"1px solid rgba(13,196,181,0.22)",
           borderRadius:99, padding:"3px 9px",
           letterSpacing:0.2, whiteSpace:"nowrap",
-        }}>{t("feed.badgeErlelnis")}</span>
+        }}>ERLEBNIS</span>
         {title ? (
           <span style={{
             fontSize:15, fontWeight: 600, color:INK,
@@ -83,7 +81,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
               background: stockAvail > 0 ? "rgba(245,166,35,0.08)" : "rgba(26,26,46,0.05)",
               border:"1px solid rgba(245,166,35,0.18)",
               borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-            }}>{t("feed.slotsAvailable", {avail: stockAvail, total: stockTotal})}</span>
+            }}>{stockAvail} von {stockTotal} Plätzen</span>
           </div>
         );
       })()}
@@ -107,7 +105,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M7 1C4 1 1.5 3.5 1.5 7C1.5 10.5 4 13 7 13C10 13 12.5 10.5 12.5 7C12.5 3.5 10 1 7 1ZM6 10L3.5 7.5L4.5 6.5L6 8L9.5 4.5L10.5 5.5L6 10Z" fill="white"/>
             </svg>
-            {t("feed.participate")}
+            Teilnehmen
           </button>
         </div>
       )}

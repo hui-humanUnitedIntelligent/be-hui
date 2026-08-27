@@ -2,7 +2,6 @@ import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CORAL  = "#F47355";
 const ORANGE = "#F05A28";
@@ -17,7 +16,6 @@ function formatPrice(val) {
 }
 
 export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {
-  const { t } = useTranslation();
   if (!item) return null;
 
   const title    = item.title || item.text || "";
@@ -75,7 +73,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           border:"1px solid rgba(244,115,85,0.22)",
           borderRadius:99, padding:"3px 9px",
           letterSpacing:0.2, whiteSpace:"nowrap",
-        }}>{t("feed.badgeWerk")}</span>
+        }}>WERK</span>
         {/* Titel */}
         {title ? (
           <span style={{
@@ -100,7 +98,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
                 border: "1px solid rgba(13,196,181,0.18)",
                 borderRadius: 99, padding: "3px 9px",
                 whiteSpace: "nowrap", display: "inline-block", marginBottom: 6,
-              }}>{t("feed.variantsAvailable", {count: variants.length})}</div>
+              }}>{variants.length} Varianten verfügbar</div>
               {variants.map((v, i) => (
                 <div key={v.id || i} style={{
                   fontSize: 11.5, color: "rgba(26,26,46,0.55)",
@@ -111,7 +109,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
                   <span style={{
                     color: v.stock_available > 0 ? TEAL : "rgba(26,26,46,0.35)",
                     fontWeight: 600,
-                  }}>{t("feed.stockAvailable", {avail: v.stock_available, total: v.stock_total})}</span>
+                  }}>{v.stock_available} von {v.stock_total} verfügbar</span>
                   {v.price != null && v.price > 0 && (
                     <>
                       <span style={{ color: "rgba(26,26,46,0.35)" }}>·</span>
@@ -142,7 +140,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
                 background: stockAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
                 border:"1px solid rgba(13,196,181,0.18)",
                 borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-              }}>{t("feed.stockAvailable", {avail: stockAvail, total: stockTotal})}</span>
+              }}>{stockAvail} von {stockTotal} verfügbar</span>
             </div>
           );
         }
@@ -154,7 +152,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
               background: stockAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
               border:"1px solid rgba(13,196,181,0.18)",
               borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
-            }}>{t("feed.stockAvailable", {avail: stockAvail, total: stockTotal})}</span>
+            }}>{stockAvail} von {stockTotal} verfügbar</span>
           </div>
         );
       })()}
@@ -180,7 +178,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M7 1C4 1 1.5 3.5 1.5 7C1.5 10.5 4 13 7 13C10 13 12.5 10.5 12.5 7C12.5 3.5 10 1 7 1ZM6 10L3.5 7.5L4.5 6.5L6 8L9.5 4.5L10.5 5.5L6 10Z" fill="white"/>
               </svg>
-              {priceStr ? `${priceStr}  ${t("feed.buy")}` : t("feed.buy")}
+              {priceStr ? `${priceStr}  Kaufen` : "Kaufen"}
             </button>
           )}
 
@@ -193,7 +191,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
               border:"1px solid rgba(26,26,46,0.12)",
               borderRadius:99, padding:"5px 12px",
               whiteSpace:"nowrap",
-            }}>{t("feed.sold")}</span>
+            }}>Verkauft</span>
           )}
         </div>
       )}

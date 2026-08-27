@@ -9,7 +9,6 @@ import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import ReportReasonModal from "../../components/shared/ReportReasonModal.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Farben (identisch zu WorkContent / ExperienceContent) ────
 const TEAL       = "#0DC4B5";
@@ -22,12 +21,11 @@ const INK3       = "rgba(26,26,46,0.42)";
 // Finger-Icon: "Ich melde das" — Stroke 2px/round wie alle anderen Feed-Icons
 const CORAL = "#C47A65";
 function XIcon({ size = 24 }) {
-  const { t } = useTranslation();
   // X-Icon ("Melden") — Stroke 2.1px, gleicher Stil wie Heart/Chat/Share/Bookmark
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
       stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"
-      aria-label={t("feed.reportAria")}
+      aria-label="Melden"
     >
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
@@ -36,7 +34,7 @@ function XIcon({ size = 24 }) {
 }
 
 // ── Badge-Mapping: type × moment_source → Label + Farbe ──────
-function getMomentBadge(raw, t) {
+function getMomentBadge(raw) {
   // moment_type: der ursprüngliche beitraege.type (video/foto/gedanke) —
   // raw.type ist nach der Feed-Normalisierung immer "moment" (Top-Level-
   // Klassifizierung für die Card-Auswahl), siehe normalizeMomentRow() in
@@ -48,7 +46,7 @@ function getMomentBadge(raw, t) {
   // Galerie-Quelle → "Bild-Moment" (unabhängig von type)
   if (source === "galerie") {
     return {
-      label:  t("feed.momentBadgeBild"),
+      label:  "Bild-Moment",
       color:  "#8E44C8",
       bg:     "rgba(142,68,200,0.10)",
       border: "rgba(142,68,200,0.22)",
@@ -57,7 +55,7 @@ function getMomentBadge(raw, t) {
 
   if (type === "video" || source === "video") {
     return {
-      label:  t("feed.momentBadgeVideo"),
+      label:  "Video-Moment",
       color:  "#E6A817",
       bg:     "rgba(230,168,23,0.10)",
       border: "rgba(230,168,23,0.22)",
@@ -66,7 +64,7 @@ function getMomentBadge(raw, t) {
 
   if (type === "foto" || source === "foto") {
     return {
-      label:  t("feed.momentBadgeFoto"),
+      label:  "Foto-Moment",
       color:  TEAL,
       bg:     TEAL_SOFT,
       border: TEAL_BORD,
@@ -92,7 +90,6 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   // -> "Minified React error #310" ("Kurzer Aussetzer"-Screen), reproduzierbar
   // beim Antippen eines Moment-Bildes im Feed. Jetzt: alle Hooks vor dem
   // fruehen return.
-  const { t } = useTranslation();
   const { open }  = useContentPreview();
   const navigate = useNavigate();
   const { user }  = useAuth(); // FIX (2026-08-08): AuthContext-SSOT statt eigenem
@@ -173,7 +170,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
 
   const raw       = item._raw || {};
   const caption   = item.text || item.title || raw.caption || "";
-  const badge     = getMomentBadge(raw, t);
+  const badge     = getMomentBadge(raw);
   // SYSTEMNACHRICHT-FIX (2026-08-13): Bei Admin-Broadcasts soll der volle
   // Text sichtbar sein (kein Abschneiden nach 3 Zeilen) -- caption ist hier
   // durch die unifiedNormalizer.js-Erweiterung bereits Titel+Inhalt kombiniert.
@@ -211,7 +208,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           pointerEvents: "none",
           letterSpacing: "0.2px",
         }}>
-          {t("feed.reported")}
+          Gemeldet
         </span>
       )}
     </div>
@@ -282,7 +279,7 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
           fontWeight: 400,
           letterSpacing: "-0.01em",
         }}>
-          {t("feed.systemProjectText")}
+          Das ist die Kraft von HUI: Wenn viele zusammenhalten, wird aus einer Idee Wirklichkeit. Entdecke im Impact-Bereich, welches Projekt du als Nächstes unterstützen möchtest.
         </p>
       )}
       {/* MOMENT-CONNECT Feed-Button entfernt (2026-08-26, Michael-Vorgabe) — VerbindenModal.jsx selbst unveraendert, weiterhin ueber Profilseiten erreichbar */}
