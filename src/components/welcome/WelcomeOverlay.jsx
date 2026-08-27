@@ -4,7 +4,7 @@
 // Kein Eingriff in Auth, Routing oder bestehende Komponenten.
 //
 // ERWEITERUNG (2026-08-23, Michael): Empfangsbereich um Regeln/Sicherheit/
-// Altersfreigabe/Beta-Hinweise + "Die fünf Grundbereiche von HUI" ergänzt.
+// Altersfreigabe/Beta-Hinweise + "{t("wo.areas.title")}" ergänzt.
 // NICHTS Bestehendes wurde entfernt oder verändert — nur ergänzt.
 // Neuer `mode`-Prop ("full" | "rulesOnly") erlaubt Wiederverwendung derselben
 // Komponente für bestehende Nutzer (einmal pro App-Update, siehe
@@ -15,6 +15,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { emit } from '../../lib/events/index.js';
+import { useTranslation } from '../../hooks/useTranslation.js';
 
 const TEAL   = "#0DC4B5";
 const TEAL2  = "#09A89A";
@@ -25,56 +26,62 @@ const CORAL  = "#F47355";
 // Welcome-Persistenz: ausschließlich über src/lib/welcomePersistence.js
 
 // ── Feature-Zeilen ──────────────────────────────────────────────
-const FEATURES = [
+function getFeatures(t) {
+  return [
   {
     icon: "🤝",
     bg: "rgba(13,196,181,0.10)",
-    title: "Menschen kennenlernen",
-    sub:   "Verbinde dich mit inspirierenden Menschen.",
+    title: t("wo.feat.people.title"),
+    sub:   t("wo.feat.people.sub"),
   },
   {
     icon: "🎨",
     bg: "rgba(212,149,42,0.10)",
-    title: "Talente entdecken",
-    sub:   "Lass dich von einzigartigen Talenten begeistern.",
+    title: t("wo.feat.talente.title"),
+    sub:   t("wo.feat.talente.sub"),
   },
   {
     icon: "🛍",
     bg: "rgba(149,113,244,0.10)",
-    title: "Werke kaufen",
-    sub:   "Unterstütze Kreative und kaufe ihre Werke.",
+    title: t("wo.feat.werke.title"),
+    sub:   t("wo.feat.werke.sub"),
   },
   {
     icon: "🎟",
     bg: "rgba(13,196,181,0.10)",
-    title: "Erlebnisse buchen",
-    sub:   "Buche besondere Erlebnisse und Aktivitäten.",
+    title: t("wo.feat.erlebnisse.title"),
+    sub:   t("wo.feat.erlebnisse.sub"),
   },
   {
     icon: "🌍",
     bg: "rgba(99,184,99,0.10)",
-    title: "Projekte mit Wirkung unterstützen",
-    sub:   "Sei Teil von Projekten, die unsere Welt verbessern.",
+    title: t("wo.feat.impact.title"),
+    sub:   t("wo.feat.impact.sub"),
   },
-];
+  ];
+}
 
 // ── NEU (2026-08-23): Wichtige Hinweise ──────────────────────────
-const RULES_ITEMS = [
-  { icon: "🔞", text: "HUI ist ein sicherer Ort für Menschen ab 16 Jahren." },
-  { icon: "🚫", text: "Rassismus, Sexismus, Gewalt oder diskriminierende Inhalte sind streng verboten." },
-  { icon: "⚠️", text: "Wiederholte Verstöße führen zur Blockierung bis hin zur vollständigen Löschung des Accounts." },
-  { icon: "🧪", text: "Die App befindet sich aktuell in der Betaphase: Fehler, Bugs und Darstellungsprobleme können auftreten." },
-  { icon: "🌱", text: "Wir entwickeln HUI kontinuierlich weiter, um dir die beste Erfahrung zu bieten." },
-];
+function getRulesItems(t) {
+  return [
+  { icon: "🔞", text: t("wo.rules.age") },
+  { icon: "🚫", text: t("wo.rules.discrimination") },
+  { icon: "⚠️", text: t("wo.rules.violation") },
+  { icon: "🧪", text: t("wo.rules.beta") },
+  { icon: "🌱", text: t("wo.rules.growth") },
+  ];
+}
 
-// ── NEU (2026-08-23): Die fünf Grundbereiche von HUI ─────────────
-const CORE_AREAS = [
-  { icon: "🛍", bg: "rgba(149,113,244,0.10)", title: "Werke",      sub: "Kreative Arbeiten entdecken und kaufen." },
-  { icon: "🎨", bg: "rgba(212,149,42,0.10)",  title: "Talente",    sub: "Menschen mit besonderen Fähigkeiten finden und buchen." },
-  { icon: "🎟", bg: "rgba(13,196,181,0.10)",  title: "Erlebnisse", sub: "Aktivitäten und besondere Momente erleben." },
-  { icon: "📸", bg: "rgba(244,115,85,0.10)",  title: "Momente",    sub: "Persönliche Eindrücke teilen." },
-  { icon: "🌍", bg: "rgba(99,184,99,0.10)",   title: "Impact",     sub: "Projekte unterstützen, die echte Wirkung erzeugen." },
-];
+// ── NEU (2026-08-23): {t("wo.areas.title")} ─────────────
+function getCoreAreas(t) {
+  return [
+  { icon: "🛍", bg: "rgba(149,113,244,0.10)", title: t("wo.area.werke.title"),      sub: t("wo.area.werke.sub") },
+  { icon: "🎨", bg: "rgba(212,149,42,0.10)",  title: t("wo.area.talente.title"),    sub: t("wo.area.talente.sub") },
+  { icon: "🎟", bg: "rgba(13,196,181,0.10)",  title: t("wo.area.erlebnisse.title"), sub: t("wo.area.erlebnisse.sub") },
+  { icon: "📸", bg: "rgba(244,115,85,0.10)",  title: t("wo.area.momente.title"),    sub: t("wo.area.momente.sub") },
+  { icon: "🌍", bg: "rgba(99,184,99,0.10)",   title: t("wo.area.impact.title"),     sub: t("wo.area.impact.sub") },
+  ];
+}
 
 // ── Haupt-Komponente ─────────────────────────────────────────────
 // mode="full"      → komplette Willkommens-Erfahrung für neue Nutzer
@@ -84,6 +91,10 @@ const CORE_AREAS = [
 //                     Abschnitte (einmal pro App-Update, siehe
 //                     AppEntryController.jsx)
 export default function WelcomeOverlay({ onDone, mode = "full" }) {
+  const { t } = useTranslation();
+  const features = getFeatures(t);
+  const rulesItems = getRulesItems(t);
+  const coreAreas = getCoreAreas(t);
   const [closing, setClosing] = useState(false);
   const { user } = useAuth();
   const actorId = user?.id || null;
@@ -250,9 +261,9 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                 lineHeight:    1.2,
               }}>
                 {isRulesOnly ? (
-                  <>Neu bei <span style={{ color: TEAL }}>HUI</span></>
+                  <>{t("wo.headline.new")} <span style={{ color: TEAL }}>HUI</span></>
                 ) : (
-                  <>Willkommen bei{" "}<span style={{ color: TEAL }}>HUI</span></>
+                  <>{t("wo.headline.welcome")}{" "}<span style={{ color: TEAL }}>HUI</span></>
                 )}
               </h1>
 
@@ -280,7 +291,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   color:      INK,
                   letterSpacing: "-0.01em",
                 }}>
-                  Schön, dass du da bist.
+                  {t("wo.intro.greeting")}
                 </p>
                 <p style={{
                   fontSize:     14,
@@ -290,8 +301,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   maxWidth:     280,
                   margin:       "0 auto",
                 }}>
-                  HUI ist ein Ort für Menschen, die gemeinsam Werte schaffen,
-                  Talente entdecken und echte Verbindungen aufbauen möchten.
+                  {t("wo.intro.body")}
                 </p>
               </div>
             )}
@@ -306,8 +316,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   maxWidth:     280,
                   margin:       "0 auto",
                 }}>
-                  Wir haben HUI weiterentwickelt — hier die wichtigsten
-                  Hinweise für dich, kurz zusammengefasst.
+                  {t("wo.rulesOnly.body")}
                 </p>
               </div>
             )}
@@ -334,10 +343,10 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                 letterSpacing: "-0.01em", marginBottom: 7,
               }}>
                 <span style={{ fontSize: 16 }}>🔒</span>
-                Wichtige Hinweise für die Nutzung von HUI
+                {t("wo.rules.title")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {RULES_ITEMS.map((r, i) => (
+                {rulesItems.map((r, i) => (
                   <div key={i} style={{ display: "flex", gap: 6, alignItems: "flex-start" }}>
                     <span style={{ fontSize: 14, flexShrink: 0, marginTop: 1, lineHeight: 1.4 }}>{r.icon}</span>
                     <span style={{ fontSize: 13, color: INK2, lineHeight: 1.5, letterSpacing: "-0.002em" }}>
@@ -349,7 +358,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
             </div>
 
             {/* ══════════════════════════════════════════════════════
-                NEU (2026-08-23): Die fünf Grundbereiche von HUI —
+                NEU (2026-08-23): {t("wo.areas.title")} —
                 Ergänzung unterhalb der Regeln, wie von Michael
                 gefordert. Bestehende Feature-Liste bleibt unverändert
                 erhalten (siehe weiter unten).
@@ -361,10 +370,10 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                 textAlign: isRulesOnly ? "center" : "left",
                 paddingLeft: isRulesOnly ? 0 : 2,
               }}>
-                Die fünf Grundbereiche von HUI
+                {t("wo.areas.title")}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {CORE_AREAS.map((f, i) => (
+                {coreAreas.map((f, i) => (
                   <div
                     key={i}
                     className="hui-welcome-feature"
@@ -428,7 +437,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   lineHeight:   1.45,
                   letterSpacing: "-0.005em",
                 }}>
-                  Jede Begegnung kann etwas verändern.
+                  {t("wo.quote")}
                 </p>
                 <p style={{
                   margin:       "0",
@@ -437,7 +446,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   color:        TEAL2,
                   letterSpacing: "-0.008em",
                 }}>
-                  Vielleicht beginnt deine genau heute.{" "}
+                  {t("wo.quote.today")}{" "}
                   <span style={{ fontSize: 13 }}>🌿</span>
                 </p>
               </div>
@@ -479,12 +488,12 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
               {isRulesOnly ? (
                 <>
                   <span style={{ fontSize: 15 }}>✓</span>
-                  Verstanden, weiter zu HUI
+                  {t("wo.btn.understood")}
                 </>
               ) : (
                 <>
                   <span style={{ fontSize: 15 }}>✨</span>
-                  HUI entdecken
+                  {t("wo.btn.discover")}
                 </>
               )}
             </button>

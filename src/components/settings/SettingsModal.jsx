@@ -18,6 +18,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { getOTAStatus, checkForUpdate } from "../../lib/otaUpdate.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
 const T = {
@@ -77,13 +78,14 @@ function Row({ label, children, last }) {
 }
 
 function SaveRow({ onSave, saving, saved, error }) {
+  const { t } = useTranslation();
   return (
     <div style={{ display:"flex", alignItems:"center", gap:10, marginTop:10 }}>
       <button onClick={onSave} disabled={saving}
         style={{ ...btnPrimary, opacity:saving?0.6:1 }}>
-        {saving?"Speichere…":"Speichern"}
+        {saving?t("sm.saving"):t("sm.save")}
       </button>
-      {saved && <span style={{ fontSize:12, color:T.teal, fontWeight:600 }}>✓ Gespeichert</span>}
+      {saved && <span style={{ fontSize:12, color:T.teal, fontWeight:600 }}>{t("sm.saved")}</span>}
       {error && <span style={{ fontSize:12, color:T.danger }}>{error}</span>}
     </div>
   );
@@ -118,6 +120,7 @@ function NavItem({ icon, label, onClick = () => {}, danger = false, last = false
 
 // ── Block: Name ───────────────────────────────────────────────
 function NameBlock({ profile = {}, onProfileUpdate = () => {} }) {
+  const { t } = useTranslation();
   // profiles-Tabelle hat keine first_name/last_name — nur full_name + display_name.
   // Wir splitten full_name beim Laden und schreiben beim Speichern beides zurück.
   const _parts = (profile?.full_name || profile?.display_name || "").split(" ");
@@ -142,16 +145,16 @@ function NameBlock({ profile = {}, onProfileUpdate = () => {} }) {
   };
 
   return (
-    <Row label="Name" last>
+    <Row label={t("sm.name")} last>
       <div style={{ display:"flex", gap:8, marginBottom:4 }}>
         <input value={first} onChange={e=>setFirst(e.target.value)}
-          placeholder="Vorname" style={inp}
+          placeholder={t("sm.ph.firstname")} style={inp}
           name="given-name" type="text" autoComplete="given-name"
           autoCorrect="on" autoCapitalize="words" inputMode="text"
           onFocus={e=>e.target.style.borderColor=T.teal}
           onBlur={e=>e.target.style.borderColor=T.border}/>
         <input value={last} onChange={e=>setLast(e.target.value)}
-          placeholder="Nachname" style={inp}
+          placeholder={t("sm.ph.lastname")} style={inp}
           name="family-name" type="text" autoComplete="family-name"
           autoCorrect="on" autoCapitalize="words" inputMode="text"
           onFocus={e=>e.target.style.borderColor=T.teal}
@@ -164,6 +167,7 @@ function NameBlock({ profile = {}, onProfileUpdate = () => {} }) {
 
 // ── Block: E-Mail ─────────────────────────────────────────────
 function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
+  const { t } = useTranslation();
   // email direkt aus Supabase Auth holen
   const [email, setEmail] = useState(profile?.email || "");
   const [saving, setSaving] = useState(false);
@@ -173,7 +177,7 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
   const save = async () => {
     if (!profile?.id) return;
     setSaving(true); setError(null); setSaved(false);
-    if (!email.includes("@")) { setError("Ungültige E-Mail"); setSaving(false); return; }
+    if (!email.includes("@")) { setError(t("sm.email.invalid")); setSaving(false); return; }
     // BUGFIX 2026-08-15 (gleiche Klasse wie EmailChangeBlock/LoginPage.jsx signUp()):
     // emailRedirectTo ergänzt — ohne diese Option faellt Supabase auf den
     // site_url-Fallback (Marketing-Landingpage) zurueck statt auf /auth/callback.
@@ -188,15 +192,15 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
   };
 
   return (
-    <Row label="E-Mail-Adresse">
+    <Row label={t("sm.email.label")}>
       <input value={email} onChange={e=>setEmail(e.target.value)}
-        placeholder="neue@email.de" type="email" style={inp}
+        placeholder={t("sm.email.ph")} type="email" style={inp}
         name="email" autoComplete="email" autoCorrect="off" autoCapitalize="none"
         inputMode="email"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       {saved && <div style={{ fontSize:12, color:T.teal, marginTop:6 }}>
-        ✓ Bestätigungs-Mail verschickt — bitte bestätigen.</div>}
+        {t("sm.email.confirm")}</div>}
       <SaveRow onSave={save} saving={saving} saved={false} error={error}/>
     </Row>
   );
@@ -205,6 +209,7 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
 
 // ── Block: Passwort ───────────────────────────────────────────
 function PasswordBlock() {
+  const { t } = useTranslation();
   const [next,    setNext]    = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving,  setSaving]  = useState(false);
@@ -213,8 +218,8 @@ function PasswordBlock() {
 
   const save = async () => {
     setError(null); setSaved(false);
-    if (next.length < 8) { setError("Mindestens 8 Zeichen"); return; }
-    if (next !== confirm)  { setError("Passwörter stimmen nicht überein"); return; }
+    if (next.length < 8) { setError(t("sm.pw.tooShort")); return; }
+    if (next !== confirm)  { setError(t("sm.pw.mismatch")); return; }
     setSaving(true);
     const { error:err } = await supabase.auth.updateUser({ password:next });
     setSaving(false);
@@ -224,16 +229,16 @@ function PasswordBlock() {
   };
 
   return (
-    <Row label="Neues Passwort" last>
+    <Row label={t("sm.pw.label")} last>
       <input value={next} onChange={e=>setNext(e.target.value)}
-        placeholder="Neues Passwort (min. 8 Zeichen)" type="password"
+        placeholder={t("sm.pw.ph.new")} type="password"
         style={{ ...inp, marginBottom:8 }}
         name="new-password" autoComplete="new-password" autoCorrect="off"
         autoCapitalize="none" inputMode="text"
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <input value={confirm} onChange={e=>setConfirm(e.target.value)}
-        placeholder="Passwort bestätigen" type="password" style={inp}
+        placeholder={t("sm.pw.ph.confirm")} type="password" style={inp}
         name="confirm-new-password" autoComplete="new-password" autoCorrect="off"
         autoCapitalize="none" inputMode="text"
         onFocus={e=>e.target.style.borderColor=T.teal}
@@ -241,7 +246,7 @@ function PasswordBlock() {
       <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
       {saved && (
         <div style={{ marginTop:8, fontSize:12, color:T.teal, lineHeight:1.4 }}>
-          ✅ Passwort geändert. Wir haben dir zur Sicherheit eine Bestätigungs-E-Mail gesendet.
+          {t("sm.pw.success")}
         </div>
       )}
     </Row>
@@ -250,6 +255,7 @@ function PasswordBlock() {
 
 // ── Block: E-Mail ändern ─────────────────────────────────────
 function EmailChangeBlock({ profile, onProfileUpdate }) {
+  const { t } = useTranslation();
   // supabase ist modul-importiert (oben in Datei), nicht aus useAuth
   const [oldEmail, setOldEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -260,7 +266,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
   const save = async () => {
     setError(null); setSaved(false);
     if (!oldEmail.trim()) { setError("Bitte aktuelle E-Mail eingeben"); return; }
-    if (!newEmail.includes("@")) { setError("Ungültige neue E-Mail-Adresse"); return; }
+    if (!newEmail.includes("@")) { setError(t("sm.emailChange.invalid")); return; }
     setSaving(true);
     try {
       // BUGFIX 2026-08-15: Root Cause war profiles.email — diese DB-Spalte war für
@@ -271,10 +277,10 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
       // getUser()) ist SSOT für die aktuelle Login-E-Mail — NIE die denormalisierte
       // profiles.email-Kopie zur Validierung heranziehen, die veralten/NULL sein kann.
       const { data: liveUser, error: liveErr } = await supabase.auth.getUser();
-      if (liveErr || !liveUser?.user?.email) throw new Error("Aktuelle Sitzung konnte nicht geprüft werden. Bitte neu einloggen.");
+      if (liveErr || !liveUser?.user?.email) throw new Error(t("sm.emailChange.session"));
       const currentEmail = liveUser.user.email;
       if (oldEmail.trim().toLowerCase() !== currentEmail.toLowerCase()) {
-        throw new Error("Aktuelle E-Mail stimmt nicht überein");
+        throw new Error(t("sm.emailChange.mismatch"));
       }
       if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
         throw new Error("Neue E-Mail ist identisch mit der aktuellen");
@@ -298,16 +304,16 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
       setSaved(true); setOldEmail(""); setNewEmail("");
       setTimeout(() => setSaved(false), 8000);
     } catch(e) {
-      setError(e.message || "Fehler beim Ändern der E-Mail");
+      setError(e.message || t("sm.emailChange.error"));
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <Row label="Aktuelle E-Mail">
+    <Row label={t("sm.emailChange.current")}>
       <input value={oldEmail} onChange={e=>setOldEmail(e.target.value)}
-        placeholder="Deine aktuelle E-Mail" type="email"
+        placeholder={t("sm.emailChange.ph.current")} type="email"
         style={{ ...inp, marginBottom:8 }}
         name="email" autoComplete="email" autoCorrect="off" autoCapitalize="none"
         inputMode="email"
@@ -322,9 +328,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
       <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
       {saved && (
         <div style={{ marginTop:8, fontSize:12, color:T.teal, lineHeight:1.4 }}>
-          ✅ Bestätigungs-Link an deine neue E-Mail-Adresse gesendet. Bitte bestätige
-          dort — erst danach wird die neue E-Mail zu deinem Login. Du erhältst
-          zusätzlich eine Benachrichtigung, sobald die Änderung abgeschlossen ist.
+          {t("sm.emailChange.success")}
         </div>
       )}
     </Row>
@@ -332,13 +336,17 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Block: Privatsphäre ───────────────────────────────────────
-const VISIBILITY_OPTIONS = [
-  { value:"public",      label:"🌍 Öffentlich",        desc:"Jeder kann dein Profil sehen" },
-  { value:"connections", label:"🤝 Verbindungen",      desc:"Nur Verbindungen sehen dein Profil" },
-  { value:"private",     label:"🔒 Privat",            desc:"Nur du siehst dein Profil" },
-];
+function getVisibilityOptions(t) {
+  return [
+  { value:"public",      label:t("sm.visibility.public"),        desc:t("sm.visibility.public.desc") },
+  { value:"connections", label:t("sm.visibility.connections"),      desc:t("sm.visibility.connections.desc") },
+  { value:"private",     label:t("sm.visibility.private"),            desc:t("sm.visibility.private.desc") },
+  ];
+}
 
 function PrivacyBlock({ profile, onProfileUpdate }) {
+  const { t } = useTranslation();
+  const VISIBILITY_OPTIONS = getVisibilityOptions(t);
   const current = profile?.profile_modules?.visibility || "public";
   const [vis,    setVis]    = useState(current);
   const [saving, setSaving] = useState(false);
@@ -359,7 +367,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
   };
 
   return (
-    <Row label="Profil-Sichtbarkeit" last>
+    <Row label={t("sm.visibility.label")} last>
       {VISIBILITY_OPTIONS.map(opt => (
         <button key={opt.value} onClick={() => setVis(opt.value)}
           style={{ width:"100%", display:"flex", alignItems:"center", gap:12,
@@ -383,6 +391,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 
 // ── Haupt-Komponente ─────────────────────────────────────────
 export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false }) {
+  const { t } = useTranslation();
   useModalRegistration(true, onClose, "SettingsModal");
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};
@@ -442,10 +451,10 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
   // Titel je nach View
   const titles = {
-    main:     "Einstellungen",
-    contact:  "📬 Persönliche Daten",
-    security: "Email & Passwort",
-    privacy:  "🕵️ Privatsphäre",
+    main:     t("sm.title.main"),
+    contact:  t("sm.title.contact"),
+    security: t("sm.title.security"),
+    privacy:  t("sm.title.privacy"),
   };
 
   return createPortal(
@@ -463,7 +472,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               {view==="main" && <HUISettingsIcon size={16}/>}
               <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>
-                {titles[view] || "Einstellungen"}
+                {titles[view] || t("sm.title.main")}
               </div>
             </div>
           </div>
@@ -479,17 +488,17 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           {view === "main" && (<>
 
             {/* Push-Notifications */}
-            <Section title="Benachrichtigungen" icon={<HUISettingsIcon size={16}/>}>
+            <Section title={t("sm.section.notifications")} icon={<HUISettingsIcon size={16}/>}>
               <PushNotificationBlock/>
             </Section>
 
             {/* Ein Block: Profil bearbeiten / Sicherheit / Abmelden */}
-            <Section title="Account & Sicherheit" icon={<HUIProfilIcon size={16}/>}>
-              <NavItem icon={<HUIProfilIcon size={16}/>} label="Profil bearbeiten"
+            <Section title={t("sm.section.account")} icon={<HUIProfilIcon size={16}/>}>
+              <NavItem icon={<HUIProfilIcon size={16}/>} label={t("sm.nav.editProfile")}
                 onClick={() => onEditProfile?.()}/>
               <NavItem
                 icon={<HUIFinanzIcon size={16}/>}
-                label="Bankdaten"
+                label={t("sm.nav.bankdata")}
                 onClick={() => setShowBankdaten(true)}
                 right={bankStatus?.has_bank_details ? (
                   <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
@@ -501,15 +510,15 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                   </span>
                 )}
               />
-              <NavItem icon={<HUISicherheitIcon size={16}/>} label="Email & Passwort"
+              <NavItem icon={<HUISicherheitIcon size={16}/>} label={t("sm.nav.emailPw")}
                 onClick={() => setView("security")}/>
-              <NavItem icon={<HUIKontaktIcon size={16}/>} label="Support & Hilfe"
+              <NavItem icon={<HUIKontaktIcon size={16}/>} label={t("sm.nav.support")}
                 onClick={() => setView("support")}/>
-              <NavItem icon={<HUIMailIcon size={16}/>} label="Meine Tickets"
+              <NavItem icon={<HUIMailIcon size={16}/>} label={t("sm.nav.tickets")}
                 onClick={() => setView("tickets")}/>
-              <NavItem icon={<HUISettingsIcon size={16}/>} label="Tutorial erneut ansehen"
+              <NavItem icon={<HUISettingsIcon size={16}/>} label={t("sm.nav.tutorial")}
                 onClick={() => setShowTutorialConfirm(true)}/>
-              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label="Abmelden"
+              <NavItem icon={<HUIAbmeldenIcon size={16}/>} label={t("sm.nav.logout")}
                 onClick={logout} danger last/>
             </Section>
 
@@ -562,13 +571,13 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 textAlign:"center", fontFamily:"Inter, sans-serif",
               }}>
                 <h2 style={{ fontSize:20, fontWeight:700, color:"#1A1A18", margin:"0 0 10px" }}>
-                  Tutorial erneut ansehen
+                  {t("sm.tutorial.title")}
                 </h2>
                 <p style={{ fontSize:15, fontWeight:600, color:"#1A1A18", margin:"0 0 4px", lineHeight:1.45 }}>
-                  Möchtest du das komplette HUI-Tutorial erneut sehen?
+                  {t("sm.tutorial.body")}
                 </p>
                 <p style={{ fontSize:13, fontWeight:400, color:"rgba(26,26,24,0.6)", margin:"0 0 20px", lineHeight:1.45 }}>
-                  Alle Schritte werden von vornen durchgespielt.
+                  {t("sm.tutorial.hint")}
                 </p>
                 <div style={{ display:"flex", gap:10 }}>
                   <button
@@ -581,7 +590,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                       cursor:"pointer", touchAction:"manipulation",
                       WebkitTapHighlightColor:"transparent",
                     }}
-                  >Nein</button>
+                  >{t("sm.tutorial.no")}</button>
                   <button
                     onClick={() => {
                       setShowTutorialConfirm(false);
@@ -600,7 +609,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                       boxShadow:"0 2px 12px rgba(22,215,197,0.35)",
                       touchAction:"manipulation", WebkitTapHighlightColor:"transparent",
                     }}
-                  >Ja</button>
+                  >{t("sm.tutorial.yes")}</button>
                 </div>
               </div>
             </div>,
@@ -609,17 +618,17 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ VERIFIZIERUNG ══════════════════════════════════ */}
           {view === "verification" && (<>
-            <Section title="Verifizierung" icon={<HUIVerifIcon size={16}/>}>
+            <Section title={t("sm.verification.title")} icon={<HUIVerifIcon size={16}/>}>
               <div style={{padding:"14px 16px"}}>
                 <div style={{fontSize:13,color:"#555",lineHeight:1.65}}>
-                  Die Identitäts-Verifizierung ist in Kürze verfügbar. Damit stärkst du das Vertrauen in deiner HUI-Gemeinschaft.
+                  {t("sm.verification.body")}
                 </div>
                 <div style={{
                   marginTop:14, padding:"10px 14px", borderRadius:10,
                   background:"rgba(14,196,184,0.07)", border:"1px solid rgba(14,196,184,0.2)",
                   fontSize:12, color:"#0EC4B8", fontWeight:600,
                 }}>
-                  🔜 Bald verfügbar
+                  {t("sm.verification.soon")}
                 </div>
               </div>
             </Section>
@@ -686,17 +695,17 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           )}
 
           {view === "security" && (<>
-            <Section title="Passwort ändern" icon={<HUISicherheitIcon size={16}/>}>
+            <Section title={t("sm.pw.section")} icon={<HUISicherheitIcon size={16}/>}>
               <PasswordBlock/>
             </Section>
-            <Section title="E-Mail ändern" icon={<HUIMailIcon size={16}/>}>
+            <Section title={t("sm.emailChange.section")} icon={<HUIMailIcon size={16}/>}>
               <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           </>)}
 
           {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
           {view === "privacy" && (
-            <Section title="Profil-Sichtbarkeit" icon={<HUIDatenschutzIcon size={16}/>}>
+            <Section title={t("sm.visibility.label")} icon={<HUIDatenschutzIcon size={16}/>}>
               <PrivacyBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           )}
@@ -712,6 +721,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 // OTAUpdateSection — "Nach Updates suchen" Button (2026-08-08)
 // ═══════════════════════════════════════════════════════════════
 function OTAUpdateSection() {
+  const { t } = useTranslation();
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState(null);
   const [status, setStatus] = useState(null);
@@ -750,7 +760,7 @@ function OTAUpdateSection() {
           transition: "opacity .15s",
         }}
       >
-        {checking ? "Suche nach Updates…" : "Nach Updates suchen"}
+        {checking ? t("sm.ota.checking") : t("sm.ota.check")}
       </button>
       {result?.available && (
         <div style={{
@@ -758,7 +768,7 @@ function OTAUpdateSection() {
           background: "rgba(13,196,181,0.08)", fontSize: 12,
           color: "#0DC4B5", lineHeight: 1.5, textAlign: "center",
         }}>
-          {result.message || ("Update v" + result.latest + " verfügbar — wird beim nächsten Start aktiv.")}
+          {result.message || t("sm.ota.available", { latest: result.latest })}
         </div>
       )}
       {result && !result.available && !result.error && (
@@ -767,7 +777,7 @@ function OTAUpdateSection() {
           background: "rgba(26,26,24,0.04)", fontSize: 12,
           color: "rgba(26,26,24,0.45)", textAlign: "center",
         }}>
-          Aktuellste Version installiert (v{result.current})
+          {t("sm.ota.latest", { current: result.current })}
         </div>
       )}
       {result?.error && (
@@ -776,7 +786,7 @@ function OTAUpdateSection() {
           background: "rgba(244,115,85,0.06)", fontSize: 12,
           color: "#F47355", textAlign: "center",
         }}>
-          Update-Check fehlgeschlagen: {result.error}
+          {t("sm.ota.failed", { error: result.error })}
         </div>
       )}
     </div>
