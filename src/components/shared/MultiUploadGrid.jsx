@@ -37,6 +37,7 @@ export default function MultiUploadGrid({
   maxFiles = UPLOAD_LIMITS.MAX_FILES,
   allowDocuments = false,
 }) {
+  const { t } = useTranslation();
   const inputRef = useRef(null);
 
   const handleSelect = useCallback((e) => {

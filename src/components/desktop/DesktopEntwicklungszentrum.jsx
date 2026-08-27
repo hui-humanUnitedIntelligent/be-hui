@@ -57,11 +57,11 @@ const C = {
 };
 
 const NAV_ITEMS = [
-  { key: 'overview',   label: t("common.overview") },
+  { key: 'overview',   label: 'Übersicht' },
   { key: 'freigaben',  label: 'Freigaben' },
   { key: 'begleitung', label: 'Begleitung' },
   { key: 'meldungen',  label: 'Meldungen' },
-  { key: 'aktivitaet', label: t("desk.activity") },
+  { key: 'aktivitaet', label: 'Aktivität' },
 ];
 
 export default function DesktopEntwicklungszentrum() {

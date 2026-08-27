@@ -24,7 +24,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 const MONTH_NAMES = [
-  "Januar", "Februar", t("cal.march"), "April", "Mai", "Juni",
+  "Januar", "Februar", "März", "April", "Mai", "Juni",
   "Juli", "August", "September", "Oktober", "November", "Dezember",
 ];
 
@@ -58,6 +58,7 @@ export default function AvailabilityCalendar({
   maxDate = null,              // optional harte Obergrenze (Buchungsfenster-Ende)
   disabled = false,
 }) {
+  const { t } = useTranslation();
   const min = minDate || todayIso();
   const initial = useMemo(() => {
     const ref = (mode === "book" && selectedDate) ? selectedDate : min;

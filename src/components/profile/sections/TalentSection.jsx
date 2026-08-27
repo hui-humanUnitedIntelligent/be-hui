@@ -41,6 +41,7 @@ function normalizeSkills(raw) {
 }
 
 export function TalentSection({ profile, isOwner = false, loading = false, onChange, noPadding = false }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowSheet(false));
   // skills_final aus useProfileData bevorzugen, Fallback auf profile.skills
   const skills = normalizeSkills(profile?.skills_final ?? profile?.skills ?? []);

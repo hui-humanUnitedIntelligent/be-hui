@@ -120,6 +120,7 @@ export function ErlebnisseSection({
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-erlebnisse/>

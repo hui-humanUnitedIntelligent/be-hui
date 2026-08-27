@@ -16,6 +16,7 @@ import { useTranslation } from "../hooks/useTranslation.js";
 // postType: "post"|"work"|"experience"|"invitation"
 // authorId: who created the post (for notifications)
 export function useSingleReaction(postId, postType = "post", authorId = null, postSnapshot = null) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [counts,   setCounts]   = useState({ like:0, inspire:0, save:0, total:0 });
   const [myTypes,  setMyTypes]  = useState(new Set()); // which types current user has set

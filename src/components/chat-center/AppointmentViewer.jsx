@@ -19,7 +19,7 @@ const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, mu
 
 const STATUS_LABELS = {
   pending_payment: "Ausstehend",
-  confirmed:        t("common.confirmed"),
+  confirmed:        "Bestätigt",
   completed:        "Abgeschlossen",
   cancelled:        "Storniert",
   holding:          "In Treuhand",
@@ -28,7 +28,7 @@ const STATUS_LABELS = {
   pending:          "Ausstehend",
   shipped:          "Versendet",
   delivered:        "Geliefert",
-  executed:         t("appt.completed"),
+  executed:         "Abgeschlossen",
 };
 
 function formatDateDE(dateStr) {
@@ -38,6 +38,7 @@ function formatDateDE(dateStr) {
 }
 
 export default function AppointmentViewer({ otherUserId, otherName = "", onClose = () => {} }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);

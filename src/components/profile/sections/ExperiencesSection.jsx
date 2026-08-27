@@ -64,6 +64,7 @@ export function ExperiencesSection({
   onAddExperience = null,
   onShowAll       = null,
 }) {
+  const { t } = useTranslation();
   const { open: openPreview } = useContentPreview();
   const visible = isOwner
     ? experiences

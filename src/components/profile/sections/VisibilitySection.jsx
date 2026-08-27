@@ -27,7 +27,7 @@ const T = {
 const OPTIONS = [
   { key:"public",      icon:"🌍", label:"Öffentlich",   sub:"Für alle sichtbar" },
   { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:"Verbindungen", sub:"Nur für deine Verbindungen" },
-  { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:t("vis.onlyYou") },
+  { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur du" },
 ];
 
 export function VisibilitySection({
@@ -36,6 +36,7 @@ export function VisibilitySection({
   loading    = false,
   onSave     = null,   // (visibility: string) => void
 }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowSheet(false));
   const [showSheet, setShowSheet] = useState(false);
   useModalRegistration(showSheet, () => setShowSheet(false), "VisibilitySection-Sheet");

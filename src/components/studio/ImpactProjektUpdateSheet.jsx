@@ -63,6 +63,7 @@ function fmtDisplayDate(iso) {
 
 // ── Komponente ────────────────────────────────────────────────────
 export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose, onSubmitted = () => {} }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ImpactProjektUpdateSheet");
   const [title,       setTitle]       = useState("");

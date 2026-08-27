@@ -65,6 +65,7 @@ export function InteressenSection({ interests, onChange }) {
 // ══════════════════════════════════════════════════════════════
 
 export function MomentThumb({ m, onRemove }) {
+  const { t } = useTranslation();
   const [loaded,  setLoaded]  = useState(false);
   const [broken,  setBroken]  = useState(false);
   return (
@@ -107,6 +108,7 @@ export function OffenFuerSection({ openFor, onChange }) {
   const display = current.length ? OPEN_FOR_ALL.filter(t=>current.includes(t.label)) : OPEN_FOR_ALL.slice(0,4);
 
   const toggle = (label) => {
+    const { t } = useTranslation();
     if (current.includes(label)) onChange(current.filter(x=>x!==label));
     else onChange([...current, label]);
   };

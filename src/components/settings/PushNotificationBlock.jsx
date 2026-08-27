@@ -10,7 +10,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CATEGORIES = [
   { key: "push_buchungen",    apiKey: "buchungen",    label: "Buchungen",      hint: "Termine, die du gebucht hast oder bei dir gebucht wurden" },
-  { key: "push_kauf_verkauf", apiKey: "kauf_verkauf", label: "Kauf & Verkauf", hint: t("push.ordersSales") },
+  { key: "push_kauf_verkauf", apiKey: "kauf_verkauf", label: "Kauf & Verkauf", hint: "Bestellungen und Verkaeufe" },
   { key: "push_informativ",   apiKey: "informativ",   label: "Informativ",     hint: "Kommentare, Freigaben, Team-Nachrichten und mehr" },
 ];
 

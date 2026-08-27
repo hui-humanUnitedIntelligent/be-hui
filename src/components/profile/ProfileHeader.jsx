@@ -54,6 +54,7 @@ export function ProfileHeader({
   onEditAvatar = null,
   onEditCover  = null,
 }) {
+  const { t } = useTranslation();
   const [coverLoaded,     setCoverLoaded]     = useState(false);
   const [avatarLoaded,    setAvatarLoaded]    = useState(false);
   const coverImgRef  = useRef(null);

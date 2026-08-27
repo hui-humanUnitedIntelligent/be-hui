@@ -24,6 +24,7 @@ export function LocationSection({
   isOwner  = false,
   loading  = false,
 }) {
+  const { t } = useTranslation();
   const profileId = profile?.id || null;
   const { locations, loading: locLoading, addLocation, deleteLocation } = useProfileLocations(profileId);
 

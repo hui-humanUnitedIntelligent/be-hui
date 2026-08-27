@@ -39,8 +39,9 @@ const D = {
  */
 export default function LocationAutocompleteInput({
   value = "", onChange = () => {}, onPick = () => {}, disabled = false,
-  placeholder = t("locinput.placeholder"), style = {}, onKeyDown = null,
+  placeholder = "Standort suchen", style = {}, onKeyDown = null,
 }) {
+  const { t } = useTranslation();
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);
   const [open, setOpen] = useState(false);

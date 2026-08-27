@@ -310,7 +310,7 @@ export function AuthProvider({ children }) {
 
   const noopAsync = async (methodName) => ({
     data: null,
-    error: new Error('[HUI Auth] ' + methodName + ' t("auth.notAvailable")')
+    error: new Error('[HUI Auth] ' + methodName + " — not available")
   });
 
   const signInWithGoogle = useCallback(async () => {

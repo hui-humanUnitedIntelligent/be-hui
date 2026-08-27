@@ -16,7 +16,7 @@ import { getFlowCategoryOptions } from "../../../lib/categories.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const EXAMPLES = [
-  t("ecs.exampleTitle"),
+  "Beispieltitel",
   "Meditationsabende",
   "Portrait Fotografie",
   "3D Design Mentoring",
@@ -90,6 +90,7 @@ function MediaGallery({ files, onRemove, onAdd }) {
 export function ExperienceCreateStep({
   form, mediaFiles, onFormChange, onMediaChange, onNext,
 }) {
+  const { t } = useTranslation();
   const photoRef = useRef();
   const videoRef = useRef();
   const fileRef  = useRef();

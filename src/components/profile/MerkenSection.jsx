@@ -71,7 +71,7 @@ const TYPE_ICON_COMPONENT = (type) => {
 // Filter-Tabs (Auftrag: Alle / Beiträge / Werke / Erlebnisse / Projekte)
 const FILTERS = [
   { key: "all",        label: "Alle",       types: null },
-  { key: "post",       label: t("merken.posts"),   types: ["post", "beitrag"] },
+  { key: "post",       label: "Beiträge",   types: ["post", "beitrag"] },
   { key: "work",       label: "Werke",      types: ["work"] },
   { key: "experience", label: "Erlebnisse", types: ["experience", "event"] },
   { key: "talent",     label: "Talente",    types: ["talent"] },
@@ -79,6 +79,7 @@ const FILTERS = [
 ];
 
 export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover = () => {}, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { user }          = useAuth();
   const { openRef }       = useContentPreview();
   const [items,    setItems]    = React.useState([]);

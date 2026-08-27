@@ -82,7 +82,7 @@ const STATUS_META = {
   completed:  { label: "Abgeschlossen", color: T.green,  bg: T.greenSoft  },
   released:   { label: "Abgeschlossen", color: T.green,  bg: T.greenSoft  },
   paid:       { label: "Bezahlt",       color: T.green,  bg: T.greenSoft  },
-  confirmed:  { label: t("common.confirmed"),     color: T.teal,   bg: T.tealSoft   },
+  confirmed:  { label: "Bestätigt",     color: T.teal,   bg: T.tealSoft   },
   pending:    { label: "Ausstehend",    color: T.amber,  bg: T.amberSoft  },
   cancelled:  { label: "Storniert",     color: T.coral,  bg: T.coralSoft  },
   refunded:   { label: "Erstattet",     color: T.coral,  bg: T.coralSoft  },

@@ -21,6 +21,7 @@ const MAX_FILE_SIZE_VIDEO = 25 * 1024 * 1024;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_VIDEO; // kompatibel mit bestehendem Code
 
 export default function BugReportModal({ open = false, onClose = () => {}, user = null }) {
+  const { t } = useTranslation();
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);

@@ -9,6 +9,7 @@ import { formatDateDE, formatNumberDE } from "../../../lib/formatters.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
+  const { t } = useTranslation();
   const { openGallery } = useImageGallery();
   const [projects, setProjects] = React.useState([]);
   const [loading, setLoading] = React.useState(true);

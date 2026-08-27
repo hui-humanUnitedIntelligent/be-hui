@@ -330,6 +330,7 @@ function SkillsCard({ profile = {}, loading = false }) {
 
 // ── Fehler-View ────────────────────────────────────────────────────
 function ErrorView({ onClose = () => {} }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:10500, background:T.bg,

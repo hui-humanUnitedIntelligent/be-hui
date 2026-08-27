@@ -26,6 +26,7 @@ function SectionTitle({ title }) {
 }
 
 export function AboutSection({ profile, isOwner = false, loading = false, onSave }) {
+  const { t } = useTranslation();
   const bio = profile?.bio || "";
   const [editing, setEditing] = useState(false);
   const [draft,   setDraft]   = useState(bio);

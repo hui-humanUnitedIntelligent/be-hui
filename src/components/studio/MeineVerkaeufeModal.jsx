@@ -42,6 +42,7 @@ function fmtDate(iso) {
 }
 
 export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, onClose, "MeineVerkaeufeModal");
   const { sales, totalEarned, loading } = useMySales(profile?.id);

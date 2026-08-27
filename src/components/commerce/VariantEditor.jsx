@@ -36,6 +36,7 @@ export default function VariantEditor({ variants = [], onChange = () => {} }) {
   }
 
   function removeVariant(idx) {
+    const { t } = useTranslation();
     onChange(variants.filter((_, i) => i !== idx));
   }
 

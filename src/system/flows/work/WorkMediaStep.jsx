@@ -115,6 +115,7 @@ function MediaGallery({ files, onRemove, onAdd }) {
 
 /* ── Step 1 Hauptkomponente ──────────────────────────────────── */
 export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, onNext }) {
+  const { t } = useTranslation();
   const photoRef = useRef();
   const videoRef = useRef();
   const fileRef  = useRef();

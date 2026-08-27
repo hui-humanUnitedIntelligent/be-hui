@@ -64,7 +64,7 @@ const CONTENT_TYPES = [
     icon:    "🎨",
     label:   "Werk",
     sub:     "Kunst · Design · Portfolio",
-    desc:    t("cts.yourCreation"),
+    desc:    "Deine Kreation",
     color:   HUI.COLOR.coral,
     glow:    "rgba(251,146,60,0.15)",
     border:  "rgba(251,146,60,0.22)",

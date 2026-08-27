@@ -95,14 +95,14 @@ function StudioIcon({ name }) {
 const NAV_GROUPS = [
   // Mitglied — immer sichtbar
   { label: 'Mitglied', items: [
-    { key: 'overview', icon: 'overview', label: t("common.overview") },
+    { key: 'overview', icon: 'overview', label: 'Übersicht' },
     { key: 'community', icon: 'community', label: 'Community' },
   ]},
   // Talent-Bereiche — nur sichtbar bei Talent-Verantwortung
   { label: 'Werkzeug', talentOnly: true, items: [
     { key: 'content', icon: 'content', label: 'Werke & Inhalte' },
     { key: 'orders', icon: 'orders', label: 'Zusammenarbeit' },
-    { key: 'availability', icon: 'availability', label: t("common.availability") },
+    { key: 'availability', icon: 'availability', label: 'Verfügbarkeit' },
   ]},
   // V7.5 Phase 7: Wirkung — ein ruhiger Spiegel, kein Analytics-Dashboard
   { label: 'Wirkung', talentOnly: true, items: [
@@ -122,7 +122,7 @@ const NAV_GROUPS = [
     { key: 'entwicklung', icon: 'entwicklung', label: 'Entwicklungszentrum' },
   ]},
   // Persönliches — immer sichtbar
-  { label: t("desk.personal"), items: [
+  { label: 'Persönliches', items: [
     { key: 'support', icon: 'support', label: 'Support' },
     { key: 'settings', icon: 'settings', label: 'Einstellungen' },
   ]},

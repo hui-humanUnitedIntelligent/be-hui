@@ -12,6 +12,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 const TEAL = '#16D7C5'
 
 export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess = () => {} }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "BuyerConfirmSheet");
   useWizardBodyLock()
