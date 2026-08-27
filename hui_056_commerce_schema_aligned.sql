@@ -1,3 +1,5 @@
+SELECT 'HUI_056_RUNNING' AS marker;
+
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- ENTWICKLUNGSSTAND — 056 bleibt erhalten; Produktion: hui_057_commerce_schema_final.sql
 -- ═══════════════════════════════════════════════════════════════════════════════
