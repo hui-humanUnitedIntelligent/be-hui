@@ -7,7 +7,6 @@ import { HUILogoWordmark } from '../components/brand/HUILogo.jsx';
 import NutzungsbedingungenModal from '../components/auth/NutzungsbedingungenModal.jsx';
 import EmailVerificationModal from '../components/auth/EmailVerificationModal.jsx';
 import { getAuthRedirectUrl } from '../lib/platform.js';
-import { useTranslation } from '../hooks/useTranslation.js';
 
 // ── Design Tokens ───────────────────────────────────────────────
 const T = {
@@ -336,7 +335,6 @@ function SuccessMessage({ msg }) {
 // HAUPT-EXPORT
 // ═══════════════════════════════════════════════════════════════════
 export default function LoginPage() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation(); // DEEPLINK.1 (2026-07-09) — Rueckweg nach Login
 
@@ -409,21 +407,21 @@ export default function LoginPage() {
   function clearMessages() { setErr(''); setSuccess(''); setEmailBlocked(false); }
 
   function translateError(msg = '') {
-    if (msg.includes('Invalid login credentials')) return t("auth.credentialsMismatch");
-    if (msg.includes('Email not confirmed'))        return t("auth.confirmEmailFirst2");
+    if (msg.includes('Invalid login credentials')) return 'E-Mail oder Passwort stimmen nicht überein.';
+    if (msg.includes('Email not confirmed'))        return 'Bitte bestätige zuerst deine E-Mail.';
     if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user_already_exists'))
                                                      return 'Diese E-Mail-Adresse wird bereits verwendet. Bitte logge dich ein oder nutze Passwort-Wiederherstellung.';
     if (msg.includes('Password should be'))         return 'Das Passwort muss mindestens 6 Zeichen haben.';
     if (msg.includes('rate limit'))                 return 'Zu viele Versuche — bitte kurz warten.';
-    if (msg.toLowerCase().includes('banned'))         return t('auth.accountUnderReview');
-    return msg || t("auth.genericError");
+    if (msg.toLowerCase().includes('banned'))         return 'Dein Konto wird von einem Admin geprüft. Bei Fragen: support@be-hui.com';
+    return msg || 'Ein Fehler ist aufgetreten.';
   }
 
   // ── Auth Actions ──────────────────────────────────────────────
 
   async function handleLogin(e) {
     e.preventDefault(); clearMessages();
-    if (!email || !pw) { setErr(t("auth.enterEmailPassword")); return; }
+    if (!email || !pw) { setErr('Bitte E-Mail und Passwort eingeben.'); return; }
     setLoading(true);
 
     const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password: pw });
@@ -456,7 +454,7 @@ export default function LoginPage() {
       if (prof?.blocked === true) {
         await supabase.auth.signOut();
         setLoading(false);
-        setErr(t("auth.accountBlocked"));
+        setErr("Dein Konto wurde blockiert und wird von unserem Team geprüft.");
         return;
       }
     }
@@ -495,12 +493,17 @@ export default function LoginPage() {
     }
     if (age < 16) {
       setErr(''); // Normale Fehlermeldung ausblenden
-      setAgeError(t("auth.ageError", {age}));
+      setAgeError(`Du bist ${age} Jahre alt. HUI ist eine Plattform für Personen ab 16 Jahren. ` +
+        `Warum? HUI umfasst kreative Werke, Talente, Erlebnisse und Finanztransaktionen (Escrow, Stripe). ` +
+        `Für Minderjährige gelten besondere rechtliche Schutzvorschriften — ` +
+        `Verträge, Zahlungen und Datenverarbeitung erfordern in der Regel die Zustimmung der Erziehungsberechtigten ` +
+        `oder sind für unter 16-Jährige gesetzlich ausgeschlossen. ` +
+        `Wir freuen uns auf dich, wenn du 16 geworden bist!`);
       return;
     }
     setAgeError('');
 
-    if (!email || !pw || !username) { setErr(t("auth.fillAllFields2")); return; }
+    if (!email || !pw || !username) { setErr('Bitte alle Felder ausfüllen.'); return; }
     setLoading(true);
 
     // Username-Verfügbarkeit prüfen
@@ -510,7 +513,7 @@ export default function LoginPage() {
       .eq('username', username)
       .maybeSingle();
     if (existingUser) {
-      setErr(t("auth.usernameTaken"));
+      setErr('Dieser Benutzername ist bereits vergeben. Bitte wähle einen anderen.');
       setLoading(false);
       return;
     }
@@ -530,7 +533,7 @@ export default function LoginPage() {
     if (emailCheckErr) {
       // RPC-Fehler → sicherheitshalber blockieren (fail-closed)
       console.warn('[HUI Register] rpc_check_email_exists error:', emailCheckErr?.message);
-      setErr(t("auth.emailCheckFailed"));
+      setErr('E-Mail-Prüfung fehlgeschlagen. Bitte versuche es erneut.');
       setLoading(false);
       return;
     }
@@ -637,20 +640,20 @@ export default function LoginPage() {
         <div style={{ marginBottom: 36 }}>
           <div style={{ fontWeight: 600, fontSize: 42, color: T.white, letterSpacing: -1.8,
             lineHeight: 1.1, marginBottom: 16 }}>
-            {t("auth.connectPeople")}<br/>{t("auth.withPeople")}<br/>
-            <span style={{ color: T.teal }}> {t("auth.whoCreate")} </span>
+            Verbinde dich<br/>mit Menschen,<br/>
+            <span style={{ color: T.teal }}>die wirken.</span>
           </div>
           <div style={{ fontSize: 16, color: 'rgba(255,255,255,0.68)', lineHeight: 1.7, maxWidth: 320 }}>
-            {t("auth.quietNetwork")}<br/>{t("auth.realCollaboration")}
+            Ein ruhiges kreatives Netzwerk<br/>für echte Zusammenarbeit.
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <PrimaryBtn onClick={() => setMode('register')}>
-            {t('auth.joinHUI')}
+            Werde Teil von HUI
           </PrimaryBtn>
           <GhostBtn onClick={() => setMode('login')}>
-            {t('auth.alreadyMember')}
+            Ich bin bereits dabei
           </GhostBtn>
         </div>
 
@@ -673,24 +676,24 @@ export default function LoginPage() {
 
   const COPY = {
     login: {
-      headline: t('auth.loginHeadline'),
-      sub:      t('auth.loginSub'),
-      cta:      t('auth.loginCta'),
-      switch:   t('auth.loginSwitch'),
+      headline: 'Schön, dass du wieder da bist.',
+      sub:      'Dein kreativer Raum wartet auf dich.',
+      cta:      'Einloggen',
+      switch:   'Noch kein Konto? Werde Teil von HUI →',
       switchMode: 'register',
     },
     register: {
-      headline: t('auth.registerHeadline'),
-      sub:      t('auth.registerSub'),
-      cta:      t('auth.registerCta'),
-      switch:   t('auth.registerSwitch'),
+      headline: 'Werde Teil eines ruhigen\nkreativen Netzwerks.',
+      sub:      'Verbinde dich mit Menschen, die wirken.',
+      cta:      'Konto erstellen',
+      switch:   'Bereits dabei? Einloggen →',
       switchMode: 'login',
     },
     forgot: {
-      headline: t('auth.forgotHeadline'),
-      sub:      t('auth.forgotSub'),
-      cta:      t('auth.forgotCta'),
-      switch:   t('auth.forgotSwitch'),
+      headline: 'Manchmal hilft\nein neuer Anfang.',
+      sub:      'Wir senden dir einen Link zum Zurücksetzen.',
+      cta:      'Link senden',
+      switch:   'Zurück zum Login →',
       switchMode: 'login',
     },
   };
@@ -718,7 +721,7 @@ export default function LoginPage() {
           style={{ alignSelf: 'flex-start', background: 'none', border: 'none', cursor: 'pointer',
             color: T.muted, fontSize: 14, fontFamily: 'inherit', padding: '4px 0', marginBottom: 8,
             display: 'flex', alignItems: 'center', gap: 6 }}>
-          {t('auth.back')}
+          ← Zurück
         </button>
 
         {}
@@ -797,10 +800,10 @@ export default function LoginPage() {
                       cursor: 'pointer',
                     }}
                   >
-                    <option value="" disabled style={{ background: '#1a1a1a', color: '#999' }}>{t("auth.salutation")}</option>
-                    <option value="Herr" style={{ background: '#1a1a1a', color: '#fff' }}>{t("auth.mr")}</option>
-                    <option value="Frau" style={{ background: '#1a1a1a', color: '#fff' }}>{t("auth.mrs")}</option>
-                    <option value="Divers" style={{ background: '#1a1a1a', color: '#fff' }}>{t("auth.diverse")}</option>
+                    <option value="" disabled style={{ background: '#1a1a1a', color: '#999' }}>Anrede *</option>
+                    <option value="Herr" style={{ background: '#1a1a1a', color: '#fff' }}>Herr</option>
+                    <option value="Frau" style={{ background: '#1a1a1a', color: '#fff' }}>Frau</option>
+                    <option value="Divers" style={{ background: '#1a1a1a', color: '#fff' }}>Divers</option>
                   </select>
                   <svg style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
                     width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2">
@@ -813,7 +816,7 @@ export default function LoginPage() {
                   type="text"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
-                  placeholder={t("auth.firstname")}
+                  placeholder="Vorname *"
                   autoComplete="given-name"
                   autoCapitalize="words"
                   autoCorrect="on"
@@ -825,7 +828,7 @@ export default function LoginPage() {
                   type="text"
                   value={lastName}
                   onChange={e => setLastName(e.target.value)}
-                  placeholder={t("auth.lastname")}
+                  placeholder="Nachname *"
                   autoComplete="family-name"
                   autoCapitalize="words"
                   autoCorrect="on"
@@ -841,7 +844,7 @@ export default function LoginPage() {
                     setUsername(v);
                     setUsernameErr('');
                   }}
-                  placeholder={t("auth.usernamePlaceholder")}
+                  placeholder="Benutzername * (z.B. max_muster)"
                   autoComplete="username"
                   required
                   rightSlot={
@@ -901,7 +904,7 @@ export default function LoginPage() {
                       fontSize: 14, color: 'rgba(255,255,255,0.38)', pointerEvents: 'none',
                       fontFamily: 'inherit',
                     }}>
-                      {t('auth.birthdate')}
+                      Geburtsdatum *
                     </span>
                   )}
                 </div>
@@ -931,7 +934,7 @@ export default function LoginPage() {
               type="email"
               value={email}
               onChange={e => { setEmail(e.target.value); clearMessages(); }}
-              placeholder={t("auth.emailAddress")}
+              placeholder="E-Mail-Adresse *"
               autoComplete="email"
             />
 
@@ -942,7 +945,7 @@ export default function LoginPage() {
                 type={showPw ? 'text' : 'password'}
                 value={pw}
                 onChange={e => { setPw(e.target.value); clearMessages(); }}
-                placeholder={t("auth.passwordReq")}
+                placeholder="Passwort *"
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 rightSlot={
                   <button type="button" onClick={() => setShowPw(v => !v)}
@@ -962,7 +965,7 @@ export default function LoginPage() {
                 type={showPw2 ? 'text' : 'password'}
                 value={pw2}
                 onChange={e => { setPw2(e.target.value); clearMessages(); }}
-                placeholder={t("auth.passwordRepeat")}
+                placeholder="Passwort wiederholen *"
                 autoComplete="new-password"
                 rightSlot={
                   <button type="button" onClick={() => setShowPw2(v => !v)}
@@ -988,7 +991,7 @@ export default function LoginPage() {
             {}
             <div style={{ marginTop: 2 }}>
               <PrimaryBtn type="submit" loading={loading} disabled={loading}>
-                {loading ? t("auth.pleaseWait") : copy.cta}
+                {loading ? 'Bitte warten…' : copy.cta}
               </PrimaryBtn>
             </div>
 
@@ -998,7 +1001,7 @@ export default function LoginPage() {
                 <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
                     fontSize: 13, color: T.muted, fontFamily: 'inherit' }}>
-                  {t('auth.forgotPassword')}
+                  Passwort vergessen?
                 </button>
               </div>
             )}
@@ -1011,7 +1014,7 @@ export default function LoginPage() {
                 <button type="button" onClick={() => { clearMessages(); setMode('forgot'); }}
                   style={{ background: 'none', border: 'none', cursor: 'pointer',
                     fontSize: 13, color: T.teal, fontFamily: 'inherit', fontWeight: 600 }}>
-                  {t('auth.forgotPassword')}
+                  Passwort vergessen?
                 </button>
               </div>
             )}
@@ -1031,7 +1034,7 @@ export default function LoginPage() {
         {}
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', lineHeight: 1.8 }}>
-            {t('auth.termsAgree')}{' '}
+            Mit der Registrierung stimmst du den{' '}
             <span
               role="link"
               tabIndex={0}
@@ -1043,9 +1046,9 @@ export default function LoginPage() {
                 color: 'rgba(255,255,255,0.42)',
               }}
             >
-              {t('auth.terms')}
+              Nutzungsbedingungen
             </span>{' '}
-            {t('auth.termsTo')}
+            zu.
           </div>
         </div>
       </div>

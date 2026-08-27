@@ -16,7 +16,6 @@ import React, { useState, createContext, useContext, useCallback } from "react";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -43,7 +42,6 @@ function injectCSS() {
 
 // ── Auth Modal ────────────────────────────────────────────────
 function AuthModal({ action, onClose, onConfirm }) {
-  const { t } = useTranslation();
   injectCSS();
   const { signIn, signUp } = useAuth();
   const [mode,   setMode]  = useState("prompt"); // prompt | login | signup
@@ -56,16 +54,16 @@ function AuthModal({ action, onClose, onConfirm }) {
 
   async function handleSignIn(e) {
     e.preventDefault();
-    if (!email || !pw) { setErr(t("auth.fillAllFields")); return; }
+    if (!email || !pw) { setErr("Bitte alle Felder ausfüllen"); return; }
     setBusy(true); setErr(null);
     const { error } = await signIn(email, pw);
     setBusy(false);
     if (error) {
       setErr(
-        error.message?.includes("Invalid login") ? t("auth.invalidCredentials") :
-        error.message?.includes("Email not confirmed") ? t("auth.confirmEmailFirst") :
-        error.message?.includes("network") ? t("auth.networkError") :
-        error.message || t("auth.loginFailed")
+        error.message?.includes("Invalid login") ? "E-Mail oder Passwort falsch" :
+        error.message?.includes("Email not confirmed") ? "Bitte bestätige zuerst deine E-Mail" :
+        error.message?.includes("network") ? "Netzwerkfehler — bitte versuche es erneut" :
+        error.message || "Anmeldung fehlgeschlagen"
       );
       return;
     }
@@ -75,16 +73,16 @@ function AuthModal({ action, onClose, onConfirm }) {
 
   async function handleSignUp(e) {
     e.preventDefault();
-    if (!email || !pw || !name) { setErr(t("auth.fillAllFields")); return; }
-    if (pw.length < 8) { setErr(t("auth.passwordMin8Error")); return; }
+    if (!email || !pw || !name) { setErr("Bitte alle Felder ausfüllen"); return; }
+    if (pw.length < 8) { setErr("Passwort muss mindestens 8 Zeichen haben"); return; }
     setBusy(true); setErr(null);
     const { error, data: signUpData } = await signUp(email, pw, name);
     setBusy(false);
     if (error) {
       setErr(
-        error.message?.includes("already registered") ? t("auth.emailAlreadyRegistered") :
-        error.message?.includes("network") ? t("auth.networkError") :
-        error.message || t("auth.signupFailed")
+        error.message?.includes("already registered") ? "Diese E-Mail ist bereits registriert" :
+        error.message?.includes("network") ? "Netzwerkfehler — bitte versuche es erneut" :
+        error.message || "Registrierung fehlgeschlagen"
       );
       return;
     }
@@ -137,10 +135,10 @@ function AuthModal({ action, onClose, onConfirm }) {
             <div style={{textAlign:"center",marginBottom:24}}>
               <div style={{fontSize:32,marginBottom:12}}>✦</div>
               <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8,letterSpacing:-0.4}}>
-                {action ? t("auth.needAccount", {action}) : t("auth.pleaseLogin")}
+                {action ? `Um ${action}, brauchst du ein Konto` : "Bitte melde dich an"}
               </div>
               <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.6}}>
-                {t("auth.joinCommunity")}
+                Werde Teil von HUI — einer Gemeinschaft echter kreativer Menschen.
               </div>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -170,19 +168,19 @@ function AuthModal({ action, onClose, onConfirm }) {
         {mode === "login" && (
           <>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}> {t("auth.welcomeBack")} </div>
+              <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}>Willkommen zurück</div>
               <div style={{fontSize:13,color:"rgba(26,26,46,0.45)",marginTop:4}}>
-                {t("auth.loginWithEmail")}
+                Melde dich mit deiner E-Mail an
               </div>
             </div>
             <form onSubmit={handleSignIn} style={{display:"flex",flexDirection:"column",gap:12}}>
               <input type="email" name="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder={t("auth.emailPlaceholder")} autoComplete="email" autoCorrect="off" autoCapitalize="none"
+                placeholder="E-Mail" autoComplete="email" autoCorrect="off" autoCapitalize="none"
                 inputMode="email" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               <input type="password" name="current-password" value={pw} onChange={e=>setPw(e.target.value)}
-                placeholder={t("auth.passwordPlaceholder")} autoComplete="current-password" autoCorrect="off" autoCapitalize="none"
+                placeholder="Passwort" autoComplete="current-password" autoCorrect="off" autoCapitalize="none"
                 inputMode="text" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
@@ -212,24 +210,24 @@ function AuthModal({ action, onClose, onConfirm }) {
         {mode === "signup" && (
           <>
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}> {t("auth.joinNow")} </div>
+              <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}>Jetzt beitreten</div>
               <div style={{fontSize:13,color:"rgba(26,26,46,0.45)",marginTop:4}}>
-                {t("auth.freeQuick")}
+                Kostenlos und in unter einer Minute
               </div>
             </div>
             <form onSubmit={handleSignUp} style={{display:"flex",flexDirection:"column",gap:12}}>
               <input type="text" name="name" value={name} onChange={e=>setName(e.target.value)}
-                placeholder={t("auth.yourName")} autoComplete="name" autoCorrect="on" autoCapitalize="words"
+                placeholder="Dein Name" autoComplete="name" autoCorrect="on" autoCapitalize="words"
                 inputMode="text" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               <input type="email" name="email" value={email} onChange={e=>setEmail(e.target.value)}
-                placeholder={t("auth.emailPlaceholder")} autoComplete="email" autoCorrect="off" autoCapitalize="none"
+                placeholder="E-Mail" autoComplete="email" autoCorrect="off" autoCapitalize="none"
                 inputMode="email" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
               <input type="password" name="new-password" value={pw} onChange={e=>setPw(e.target.value)}
-                placeholder={t("auth.passwordMin8")} autoComplete="new-password" autoCorrect="off" autoCapitalize="none"
+                placeholder="Passwort (min. 8 Zeichen)" autoComplete="new-password" autoCorrect="off" autoCapitalize="none"
                 inputMode="text" style={inputStyle}
                 onFocus={e=>e.target.style.borderColor=TEAL}
                 onBlur={e=>e.target.style.borderColor="rgba(26,26,46,0.12)"}/>
@@ -252,10 +250,10 @@ function AuthModal({ action, onClose, onConfirm }) {
         {mode === "verify" && (
           <div style={{textAlign:"center",padding:"12px 0"}}>
             <div style={{marginBottom:16, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)"}}><HUIMailIcon size={48}/></div>
-            <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8}}> {t("auth.confirmEmail")} </div>
+            <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8}}>E-Mail bestätigen</div>
             <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.7}}>
-              {t("auth.verificationSent")}<br/>
-              {t("auth.checkInbox")}
+              Wir haben dir einen Link geschickt.<br/>
+              Bitte schaue in deinem Posteingang nach.
             </div>
             <button onClick={onClose} style={{
               marginTop:24,padding:"13px 28px",borderRadius:18,border:"none",
