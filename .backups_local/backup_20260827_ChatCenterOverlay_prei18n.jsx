@@ -17,7 +17,6 @@ import AppointmentViewer from "./AppointmentViewer.jsx";
 import PeopleSearch from "../discovery/PeopleSearch.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 import { registerModal } from "../../lib/backButtonRegistry.js";
 
 const C = { teal: HUI.COLOR.teal, teal2: HUI.COLOR.tealDeep, ink: HUI.COLOR.ink, muted: "rgba(80,80,80,0.50)" };
@@ -52,7 +51,6 @@ function ComposeBtn({ onClick = () => {} }) {
 
 /* ── LIST PANEL ── */
 function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose, pendingRecipient, onOpenPending, connections, onOpenProfile }) {
-  const { t } = useTranslation();
   const [search, setSearch] = React.useState("");
   // iOS tap-through guard: ignoriere clicks auf ← in den ersten 400ms nach Mount
   const mountedAt = React.useRef(Date.now());
@@ -91,10 +89,10 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           }}>←</button>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, letterSpacing: -0.5 }}>
-              {t("chat.title")}
+              Nachrichten
             </div>
             <div style={{ fontSize: 12, color: C.muted, marginTop: 1 }}>
-              {t("chat.subtitle")}
+              Echte Gespräche. Echte Verbindung.
             </div>
           </div>
           <ComposeBtn onClick={onCompose}/>
@@ -148,10 +146,10 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
             </div>
             <div style={{ flex:1 }}>
               <div style={{ fontSize:13.5, fontWeight: 600, color:"#1a1a18" }}>
-                {t("chat.startConversationWith", { name: pendingRecipient.display_name || t("chat.thisTalent") })}
+                Gespräch mit {pendingRecipient.display_name || "diesem Talent"} beginnen
               </div>
               <div style={{ fontSize:12, color:"rgba(80,80,80,0.6)", marginTop:2 }}>
-                {t("chat.tapToWrite")}
+                Tippe hier um direkt zu schreiben →
               </div>
             </div>
           </div>
@@ -183,7 +181,6 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
 
   const { openCreatorProfile } = useProfileLauncher();
   const { user } = useAuth();
-  const { t } = useTranslation();
 
   const { chats: rawChats, loading } = useChatList("cco");
   // Lokal geschlossene Chats (bis nächstem Reload)
@@ -247,7 +244,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
           setActiveConv({
             id:           match.id,
             user_id:      initialRecipient.id           || null,
-            name:         getFullDisplayName(initialRecipient) || t("profile.wirkerDefault"),
+            name:         getFullDisplayName(initialRecipient) || "Creator",
             avatar_url:   initialRecipient.avatar_url   || null,
             talent:       initialRecipient.talent        || null,
             has_talent_profile: initialRecipient.has_talent_profile || false,
@@ -293,7 +290,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
           setActiveConv({
             id:           match.id,
             user_id:      pendingRecipient.id           || null,
-            name:         getFullDisplayName(pendingRecipient) || t("profile.wirkerDefault"),
+            name:         getFullDisplayName(pendingRecipient) || "Creator",
             avatar_url:   pendingRecipient.avatar_url   || null,
             talent:       pendingRecipient.talent        || null,
             has_talent_profile: pendingRecipient.has_talent_profile || false,
@@ -317,7 +314,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
     setActiveConv({
       id:                 realId,
       user_id:            other.id || rawConv.user_id || null,
-      name:               getFullDisplayName(rawConv.other_profile) || rawConv.name || t("chat.conversation"),
+      name:               getFullDisplayName(rawConv.other_profile) || rawConv.name || "Gespräch",
       avatar_url:         rawConv.avatar_url || other.avatar_url || null,
       talent:             rawConv.talent || (other.focus_type && other.focus_type !== "public" ? other.focus_type : null) || null,
       has_talent_profile: other.has_talent_profile || rawConv.has_talent_profile || false,
@@ -360,7 +357,7 @@ if (loadingConv && !activeConv) {
             margin: "0 auto 12px",
           }}/>
           <style>{`@keyframes hui-spin { to { transform: rotate(360deg); } }`}</style>
-          <div style={{ fontSize: 13, color: "#999" }}>{t("chat.preparingConnection")}</div>
+          <div style={{ fontSize: 13, color: "#999" }}>Verbindung wird vorbereitet…</div>
         </div>
       </div>
     );

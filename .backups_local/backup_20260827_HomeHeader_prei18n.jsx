@@ -14,8 +14,6 @@ import WerkeKorbHeaderButton from "./WerkeKorbHeaderButton.jsx"; // KORB-HEADER-
 import MoodSheet          from "../mood/MoodSheet.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
-import { useTranslation } from "../../../hooks/useTranslation.js";
-import LangSwitcher from "../../LangSwitcher.jsx";
 
 export default function HomeHeader({
   activeMood,
@@ -33,7 +31,6 @@ export default function HomeHeader({
 }) {
   const [showMood, setShowMood] = React.useState(false);
   const actions = useHuiActions();
-  const { t } = useTranslation();
 
   const mc  = activeMood?.color || "#16D7C5";
   const has = !!activeMood;
@@ -67,28 +64,6 @@ export default function HomeHeader({
         touchAction:"manipulation",
       }}>
         <div style={{ height:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))" }}/>
-
-        {/* i18n — LangSwitcher: klein, dezent, oben rechts */}
-        <div style={{
-          position:"absolute",
-          top:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))",
-          right:8,
-          zIndex:70,
-        }}>
-          <LangSwitcher selectStyle={{
-            background:"transparent",
-            border:"1px solid rgba(26,53,48,0.12)",
-            borderRadius:6,
-            color:"rgba(26,53,48,0.55)",
-            padding:"2px 6px",
-            fontSize:10,
-            fontWeight:500,
-            cursor:"pointer",
-            appearance:"none",
-            WebkitAppearance:"none",
-            outline:"none",
-          }} />
-        </div>
 
         <div style={{
           // ROOT-CAUSE-FIX (2026-07-06, Lars -- "Discovery-Panel rechts offen"):

@@ -10,7 +10,6 @@
  * Parts:
  *   • SVG background with organic center notch
  *   • HUI Logo (static, centered — replaces former growth Orb)
-import { useTranslation } from "../../../hooks/useTranslation.js";
  *   • Four nav entries (Entdecken, Home, Impact, Profil)
  *   • Safe area
  *   • Own layout container
@@ -177,7 +176,6 @@ export default function HUIBottomNavigation({
   const isHidden    = wizardOpen;
   const isOrbActive = !creatorOpen && (tab === "orb" || orbActive);
   const actions     = useHuiActions();
-  const { t } = useTranslation();
 
   const sharedVis = {
     opacity: navDrift ? navDrift.opacity : (isHidden ? 0 : 1),
@@ -205,17 +203,7 @@ export default function HUIBottomNavigation({
     // No-op — Logo ist rein dekorativ
   }
 
-  const navItems = (NAV_ITEMS || [])
-    .map(validateNavItem)
-    .filter(Boolean)
-    .map(item => {
-      // i18n: Tab-Labels übersetzen — Key-Mapping: feed→home, creator→profile, orb→myHui
-      const i18nKey = item.key === "feed" ? "home"
-        : item.key === "creator" ? "profile"
-        : item.key === "orb" ? "myHui"
-        : item.key;
-      return { ...item, label: t(`nav.${i18nKey}`) || item.label };
-    });
+  const navItems = (NAV_ITEMS || []).map(validateNavItem).filter(Boolean);
 
   return (
     <nav

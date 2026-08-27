@@ -13,7 +13,6 @@ import { useAuth }       from "../../lib/AuthContext.jsx";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
 import { supabase } from "../../lib/supabaseClient.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}
@@ -22,7 +21,6 @@ const CSS = `
 
 // ── Delivery Action Bar ──────────────────────────────────────────
 function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }) {
-  const { t } = useTranslation();
   const [busy, setBusy] = React.useState(false);
 
   // Wer ist der Verkäufer? Derjenige, der das Werk/Talent/Erlebnis anbietet.
@@ -45,7 +43,7 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     const res = await markSellerShipped(chatId, userId);
     setBusy(false);
     if (res?.ok) {
-      logChatEvent(chatId, "chat_message_sent", userId, { system_message: t("chat.sellerShippedLog") });
+      logChatEvent(chatId, "chat_message_sent", userId, { system_message: "Verkäufer: Versendet" });
       onRefresh?.();
     }
   }
@@ -56,7 +54,7 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     const res = await markBuyerReceived(chatId, userId);
     setBusy(false);
     if (res?.ok) {
-      logChatEvent(chatId, "chat_message_sent", userId, { system_message: t("chat.buyerReceivedLog") });
+      logChatEvent(chatId, "chat_message_sent", userId, { system_message: "Käufer: Ware erhalten" });
       onRefresh?.();
     }
   }
@@ -95,10 +93,10 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     return (
       <div style={{ padding: "10px 14px 4px", display: "flex", gap: 8 }}>
         <button onClick={handleShip} disabled={busy} className="ppp-press" style={outlineBtn}>
-          {t("chat.markShipped")}
+          📦 Als versendet markieren
         </button>
         <button onClick={handleReceive} disabled={busy} className="ppp-press" style={tealBtn}>
-          {t("chat.markReceived")}
+          ✅ Ware erhalten
         </button>
       </div>
     );
@@ -109,10 +107,10 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     return (
       <div style={{ padding: "10px 14px 4px", display: "flex", gap: 8 }}>
         <div style={{ ...btnStyle, cursor: "default", background: "rgba(13,196,181,0.08)", color: "#0AA89B" }}>
-          {t("chat.shippedStatus")}
+          📦 Versendet
         </div>
         <button onClick={handleReceive} disabled={busy} className="ppp-press" style={tealBtn}>
-          {t("chat.markReceived")}
+          ✅ Ware erhalten
         </button>
       </div>
     );
@@ -123,14 +121,14 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     return (
       <div style={{ padding: "10px 14px 4px" }}>
         <div style={{ fontSize: 11.5, color: "rgba(80,80,80,0.55)", textAlign: "center", marginBottom: 8 }}>
-          {t("chat.ratePrompt")}
+          Wie war deine Erfahrung? Bitte bewerte den Kauf.
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => handleRate("recommend")} disabled={busy} className="ppp-press" style={tealBtn}>
-            {t("chat.recommend")}
+            👍 Empfehlen
           </button>
           <button onClick={() => handleRate("not_recommend")} disabled={busy} className="ppp-press" style={redBtn}>
-            {t("chat.notRecommend")}
+            👎 Nicht empfehlen
           </button>
         </div>
       </div>
@@ -145,7 +143,7 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
         display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
         fontSize: 12, color: "rgba(226,87,76,0.75)", textAlign: "center",
       }}>
-        <span>{t("chat.chatStaysOpen")}</span>
+        <span>⚠ Chat bleibt offen bis eine Einigung erzielt wurde.</span>
       </div>
     );
   }
@@ -155,7 +153,6 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
 
 // ── Closed Info Bar ──────────────────────────────────────────────
 function ClosedInfoBar() {
-  const { t } = useTranslation();
   return (
     <div style={{
       padding: "12px 16px",
@@ -169,14 +166,13 @@ function ClosedInfoBar() {
         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>
-      <span>{t("chat.closedInfo")}</span>
+      <span>Dieser Chat ist geschlossen. Schreiben ist nicht mehr möglich.</span>
     </div>
   );
 }
 
 export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
   const { user } = useAuth();
-  const { t } = useTranslation();
   const kbdInset = useKeyboardInset();
 
   const rawId      = conv?.id ?? null;
@@ -257,8 +253,8 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
               color:"rgba(80,80,80,0.42)", maxWidth:220,
             }}>
               {delivery.booking_type
-                ? <>{t("chat.emptyBooking")}<br/><span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>{t("chat.emptyBookingSub")}</span></>
-                : <>{t("chat.firstWords")}<br/><span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>{t("chat.writeSomething")}</span></>
+                ? <>Chat für eure Transaktion.<br/><span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>Stellt Versand & Absprachen hier klar.</span></>
+                : <>Erste Worte.<br/><span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>Schreib etwas Echtes.</span></>
               }
             </div>
           </div>

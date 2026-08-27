@@ -8,22 +8,19 @@ import { HUIImpactIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
 import ConversationCard from "./ConversationCard.jsx";
 import { HUI } from "../../design/hui.design.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
 
 
-// i18n: Konstanten-Array → Funktion die t als Parameter nimmt
-const getSectionLabels = (t) => [
-  { key:"alle",       label: t("chat.filterAll")       },
-  { key:"buchungen",  label: t("chat.filterBookings")  },
-  { key:"kreativ",    label: t("chat.filterCreative")  },
-  { key:"community",  label: t("chat.filterCommunity") },
+const SECTION_LABELS = [
+  { key:"alle",       label:"Alle"               },
+  { key:"buchungen",  label:"Buchungen"           },
+  { key:"kreativ",    label:"Kreative Gespr\u00e4che" },
+  { key:"community",  label:"Community"           },
 ];
 
 /* ── Section Header ── */
 function SectionHead({ title, onMore }) {
-  const { t } = useTranslation();
   return (
     <div style={{
       display:"flex", justifyContent:"space-between", alignItems:"center",
@@ -35,7 +32,7 @@ function SectionHead({ title, onMore }) {
           border:"none", background:"none", color:C.teal,
           fontSize:12, fontWeight:600, cursor:"pointer", padding:0,
           display:"flex", alignItems:"center", gap:3,
-        }}>{t("chat.filterAll")} <span style={{fontSize:11}}>›</span></button>
+        }}>Alle <span style={{fontSize:11}}>›</span></button>
       )}
     </div>
   );
@@ -75,7 +72,6 @@ function ConnectionBubbles({ people, onOpenProfile = () => {} }) {
 
 /* ── Impact Card (Screenshot: Gemeinsam Wirkung schaffen) ── */
 function ImpactCard({ onDiscover = () => {} }) {
-  const { t } = useTranslation();
   return (
     <div style={{
       borderRadius:20, overflow:"hidden",
@@ -89,10 +85,10 @@ function ImpactCard({ onDiscover = () => {} }) {
     }}>
       <div style={{ flex:1 }}>
         <div style={{ fontSize:16, fontWeight: 600, color:C.ink, marginBottom:6 }}>
-          {t("chat.impactCardTitle")}
+          Gemeinsam Wirkung schaffen
         </div>
         <div style={{ fontSize:13, color:C.muted, lineHeight:1.6, marginBottom:14 }}>
-          {t("chat.impactCardText")}
+          Jedes Gespräch kann der Anfang von etwas Großem sein.
         </div>
         <button onClick={() => onDiscover?.()} style={{
           padding:"9px 18px", borderRadius:99,
@@ -101,7 +97,7 @@ function ImpactCard({ onDiscover = () => {} }) {
           cursor:"pointer",
           boxShadow:`0 4px 12px rgba(22,215,197,0.30)`,
           WebkitTapHighlightColor:"transparent",
-        }}>{t("chat.discoverPeople")}</button>
+        }}>Menschen entdecken</button>
       </div>
       <div style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIImpactIcon size={48}/></div>
     </div>
@@ -112,8 +108,6 @@ function ImpactCard({ onDiscover = () => {} }) {
 export default function ConversationList({ chats, loading, onOpen, onDiscover, connections = [], onOpenProfile = () => {}, search = "" }) {
   if (import.meta.env.DEV) {
   }
-  const { t } = useTranslation();
-  const sectionLabels = getSectionLabels(t);
   const [activeFilter, setActiveFilter] = useState("alle");
 
   // Nur echte Daten — kein Mock-Fallback
@@ -157,7 +151,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
         display:"flex", gap:8, overflowX:"auto",
         padding:"4px 0 16px", WebkitOverflowScrolling:"touch",
       }}>
-        {(sectionLabels||[]).filter(s=>s&&s.key).map(s => {
+        {(SECTION_LABELS||[]).filter(s=>s&&s.key).map(s => {
           const on = activeFilter === s.key;
           return (
             <button key={s.key} onClick={() => setActiveFilter(s.key)} style={{
@@ -175,10 +169,10 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
       </div>
 
       {/* Aktive Gespräche */}
-      <SectionHead title={t("chat.activeConversations")}/>
+      <SectionHead title="Aktive Gespräche"/>
       {loading ? (
         <div style={{ padding:"24px 0", textAlign:"center", color:C.muted, fontSize:13 }}>
-          {t("chat.loadingShort")}
+          Laden\u2026
         </div>
       ) : (chats?.length === 0 || (q && activeConvs.length === 0 && bookingConvs.length === 0 && filteredClosed.length === 0)) ? (
         /* Phase 23: Echter Empty State — keine Mock-Gespräche */
@@ -194,10 +188,10 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
             color:"rgba(14,196,184,0.5)",
           }}><HUIChatIcon size={40}/></div>
           <p style={{ margin:0, fontSize:15, fontWeight:600, color:C.ink, letterSpacing:-0.2 }}>
-            {t("chat.emptyTitle")}
+            Dieser Raum sammelt noch Resonanz.
           </p>
           <p style={{ margin:0, fontSize:13, color:C.muted, maxWidth:220, lineHeight:1.6 }}>
-            {t("chat.emptyText")}
+            Entdecke Menschen, deren Werk dich berührt — und beginne ein Gespräch.
           </p>
           {onDiscover && (
             <button
@@ -210,7 +204,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
                 WebkitTapHighlightColor:"transparent",
               }}
             >
-              {t("chat.discoverPeopleArrow")}
+              Menschen entdecken →
             </button>
           )}
         </div>
@@ -223,7 +217,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
       {/* Buchungsanfragen */}
       {bookingConvs.length > 0 && (
         <>
-          <SectionHead title={t("chat.bookingRequests")} onMore={() => {}}/>
+          <SectionHead title="Buchungsanfragen" onMore={() => {}}/>
           {(bookingConvs || []).filter(c => c && c.id).map(c => (
             <ConversationCard key={c.id} conv={c} onPress={onOpen}/>
           ))}
@@ -233,7 +227,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
       {/* Abgeschlossene Gespräche — grau markiert, noch sichtbar */}
       {filteredClosed.length > 0 && (
         <>
-          <SectionHead title={t("chat.closedConversations")}/>
+          <SectionHead title="Abgeschlossene Gespräche"/>
           {filteredClosed.map(c => (
             <ConversationCard key={c.id} conv={c} onPress={onOpen} isClosed={true}/>
           ))}
@@ -243,7 +237,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
       {/* Neueste Verbindungen */}
       {connections.length > 0 && (
         <>
-          <SectionHead title={t("chat.newConnections")} onMore={() => {}}/>
+          <SectionHead title="Neueste Verbindungen" onMore={() => {}}/>
           <ConnectionBubbles people={connections} onOpenProfile={onOpenProfile}/>
         </>
       )}
