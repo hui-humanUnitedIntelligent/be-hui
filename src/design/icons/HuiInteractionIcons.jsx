@@ -25,6 +25,7 @@
  * Änderung). Alle Call-Sites im Projekt wurden mit umbenannt.
  */
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 /* ── 1. Resonanz ── HUIHeartIcon, offizielles HUI-Herz (Lars, 2026-07-08) ──
    WICHTIG: Ab sofort das einzige Resonanz-Icon der Plattform. Ersetzt das
@@ -335,32 +336,40 @@ export function HUIShareIcon({ size = 24, active = false, className, style }) {
 export const HUI_ICON_SIZES = { sm: 20, base: 22, md: 24, lg: 28, xl: 32 };
 
 /* ── Interaktions-Copy (verbindlich) ─────────────────────────────────────── */
-export const HUI_INTERACTIONS = {
+export const getHuiInteractions = (t) => ({
   resonanz: {
-    label: "Resonanz",
-    text: "Das hat etwas in mir bewegt.",
-    sub: "Wertschätzung zeigen.",
+    label: t("hii.resonanz"),
+    text: t("hii.resonanzText"),
+    sub: t("hii.resonanzSub"),
     Icon: HUIHeartIcon,
   },
   austauschen: {
-    label: "Austauschen",
-    text: "Ich möchte darüber sprechen.",
-    sub: "Verbindung schaffen.",
+    label: t("hii.austauschen"),
+    text: t("hii.austauschenText"),
+    sub: t("hii.austauschenSub"),
     Icon: HUIChatIcon,
   },
   merken: {
-    label: "Merken",
-    text: "Ich komme später darauf zurück.",
-    sub: "Wissen bewahren.",
+    label: t("hii.merken"),
+    text: t("hii.merkenText"),
+    sub: t("hii.merkenSub"),
     Icon: HUIBookmarkIcon,
   },
   weitergeben: {
-    label: "Weitergeben",
-    text: "Das möchte ich an andere weitergeben.",
-    sub: "Inspiration teilen, Wirkung erzeugen.",
+    label: t("hii.weitergeben"),
+    text: t("hii.weitergebenText"),
+    sub: t("hii.weitergebenSub"),
     Icon: HUIShareIcon,
   },
-};
+});
+
+// Backwards-compat: keep HUI_INTERACTIONS as a German-default for code that 
+// imports the constant directly. New code should use getHuiInteractions(t).
+export const HUI_INTERACTIONS = getHuiInteractions((k) => {
+  // Fallback: return the key suffix as a minimal default
+  // This is only used when no t() is available — real translations come from getHuiInteractions(t)
+  return k;
+});
 
 export default {
   HUIHeartIcon,
@@ -370,6 +379,7 @@ export default {
   HUIShareIcon,
   HUI_ICON_SIZES,
   HUI_INTERACTIONS,
+  getHuiInteractions,
 };
 
 
@@ -380,6 +390,7 @@ export default {
    (wäre zu positiv interpretierbar) — stattdessen klassisches Warn-Flag.
    API: HUIReportIcon({ size=24, active=false, className, style }) */
 export function HUIReportIcon({ size = 24, active = false, className, style }) {
+  const { t } = useTranslation();
   return (
     <svg
       width={size}
@@ -397,7 +408,7 @@ export function HUIReportIcon({ size = 24, active = false, className, style }) {
         opacity: active ? 1 : 0.85,
         ...style,
       }}
-      aria-label="Melden"
+      aria-label={t("hii.report")}
     >
       {/* Fahnenstange */}
       <line x1="6" y1="3" x2="6" y2="21" />

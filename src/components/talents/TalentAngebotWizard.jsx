@@ -28,6 +28,7 @@ import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { HUI } from "../../design/hui.design.js";
 import BankdatenModal from "../settings/BankdatenModal.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   teal: HUI.COLOR.teal, tealD: HUI.COLOR.tealDeep, ink: HUI.COLOR.inkStudio, inkMid: "rgba(26,26,24,0.55)",
@@ -35,7 +36,7 @@ const C = {
 };
 
 const TOTAL = 6;
-const STEP_TITLES = ["Basisdaten", "Preis", "Ort", "Datum & Zeiten", "Kapazität", "Bilder"];
+const getStepTitles = (t) => [t("taw.step1"), t("taw.step2"), t("taw.step3"), t("taw.step4"), t("taw.step5"), t("taw.step6")];
 
 const INP = {
   width: "100%", boxSizing: "border-box", padding: "13px 15px", borderRadius: 12,
@@ -77,12 +78,13 @@ function ProgressBar({ step, total }) {
   );
 }
 
-function TopBar({ onClose, step, total, isEdit }) {
+function TopBar({ onClose, step, total, isEdit, stepTitles }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: "max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background: "#fff", borderBottom: `1px solid ${C.border}` }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <button onClick={onClose} style={{ background: "none", border: "none", padding: 0, fontSize: 13, fontWeight: 600, color: C.inkMid, cursor: "pointer", touchAction: "manipulation" }}>Abbrechen</button>
-        <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{isEdit ? "Angebot bearbeiten" : "Neues Talent-Angebot"} · {STEP_TITLES[step - 1]}</div>
+        <button onClick={onClose} style={{ background: "none", border: "none", padding: 0, fontSize: 13, fontWeight: 600, color: C.inkMid, cursor: "pointer", touchAction: "manipulation" }}>{t("taw.cancel")}</button>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{isEdit ? t("taw.editTitle") : t("taw.newTitle")} · {stepTitles[step - 1]}</div>
         <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(26,26,24,0.07)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", touchAction: "manipulation" }}>
           <span style={{ fontSize: 14, color: C.ink }}>×</span>
         </button>
@@ -93,12 +95,13 @@ function TopBar({ onClose, step, total, isEdit }) {
 }
 
 function PBtn({ label, onClick, disabled, loading }) {
+  const { t } = useTranslation();
   return (
     <button onClick={onClick} disabled={disabled || loading} style={{
       width: "100%", padding: "15px", background: (disabled || loading) ? "rgba(14,196,184,0.32)" : `linear-gradient(135deg,${C.teal},${C.tealD})`,
       border: "none", borderRadius: 14, color: "#fff", fontSize: 15, fontWeight: 600,
       cursor: (disabled || loading) ? "not-allowed" : "pointer", fontFamily: "inherit", touchAction: "manipulation",
-    }}>{loading ? "Wird gespeichert…" : label}</button>
+    }}>{loading ? t("taw.saving") : label}</button>
   );
 }
 
@@ -119,6 +122,8 @@ function Chip({ active, children, onClick, disabled }) {
 }
 
 export default function TalentAngebotWizard({ userId, existingTalent = null, onClose, onSaved }) {
+  const { t } = useTranslation();
+  const STEP_TITLES = getStepTitles(t);
   // BANK-GATE-001 (2026-08-21, Michele-Report — siehe WerkWizard fuer Begruendung):
   // Bankdaten-Pruefung JETZT beim Oeffnen des Wizards statt erst beim finalen
   // Speichern in Schritt 6 -- verhindert Datenverlust durch komplettes Neu-
@@ -257,7 +262,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
   async function handleSave() {
     if (!title.trim() || !category) {
-      setError("Titel und Kategorie sind erforderlich."); setStep(1); return;
+      setError(t("taw.errorTitleCat")); setStep(1); return;
     }
     setSaving(true); setError(null);
 
@@ -309,7 +314,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       const { data: bankCheck } = await supabase.rpc("rpc_get_ambassador_bank_status", { p_ambassador_id: userId });
       if (!bankCheck?.has_bank_details) {
         setSaving(false);
-        setError("Bitte hinterlege zuerst deine Bankdaten (Einstellungen → Bankdaten), damit wir dir Auszahlungen überweisen können.");
+        setError(t("taw.errorBank"));
         return;
       }
     } catch (e) {
@@ -322,7 +327,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       const { data: refreshed } = await supabase.auth.refreshSession();
       if (!refreshed?.session?.access_token) {
         setSaving(false);
-        setError("Sitzung abgelaufen — bitte abmelden und neu anmelden.");
+        setError(t("taw.errorSession"));
         return;
       }
     }
@@ -340,8 +345,8 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       console.error("[SAVE TALENT] DB-ERROR:", saveErr.message, "| code:", saveErr.code);
       const isRLS = saveErr.code === "42501" || /row-level security/i.test(saveErr.message || "");
       setError(isRLS
-        ? "Sitzung abgelaufen — bitte abmelden und neu anmelden."
-        : (saveErr.message || "Speichern fehlgeschlagen."));
+        ? t("taw.errorSession")
+        : (saveErr.message || t("taw.errorSave")));
       return;
     }
     // FIX (2026-08-13): Talent-Angebot postet in 'talents' -> triggert
@@ -370,22 +375,21 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       <div data-hui-kbd-self-managed style={{ position:"fixed", inset:0, zIndex:10500, background:C.cream, display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) 20px 12px", background:"#fff", borderBottom:`1px solid ${C.border}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <span style={{ width:28 }}/>
-          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>Bankdaten benötigt</div>
+          <div style={{ fontSize:14, fontWeight:600, color:C.ink }}>{t("taw.bankNeeded")}</div>
           <button onClick={() => onClose?.()} style={{ width:28, height:28, borderRadius:"50%", background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", touchAction:"manipulation" }}>
             <span style={{ fontSize:14, color:C.ink }}>×</span>
           </button>
         </div>
         <div style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"20px 28px", textAlign:"center", gap:14 }}>
           <div style={{ fontSize:44 }}>🏦</div>
-          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>Bankdaten fehlen noch</div>
+          <div style={{ fontSize:17, fontWeight:600, color:C.ink }}>{t("taw.bankMissing")}</div>
           <div style={{ fontSize:14, color:C.inkMid, lineHeight:1.5 }}>
-            Bevor du ein Talent-Angebot veröffentlichen kannst, brauchen wir deine Bankverbindung — sonst können wir dir Auszahlungen aus Buchungen nicht überweisen.
-            Trag sie jetzt kurz ein, dann geht's direkt weiter mit deinem Angebot.
+            {t("taw.bankDesc")}
           </div>
         </div>
         <div style={{ padding:"0 20px calc(20px + env(safe-area-inset-bottom, 0px))" }}>
-          <PBtn label="Bankdaten jetzt hinterlegen" onClick={() => setShowBankModal(true)}/>
-          <SBtn label="Abbrechen" onClick={() => onClose?.()}/>
+          <PBtn label={t("taw.bankAdd")} onClick={() => setShowBankModal(true)}/>
+          <SBtn label={t("taw.cancel")} onClick={() => onClose?.()}/>
         </div>
         {showBankModal && (
           <BankdatenModal
@@ -408,39 +412,39 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       display: "flex", flexDirection: "column",
       transition: "bottom .15s ease-out",
     }}>
-      <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={isEdit}/>
+      <TopBar onClose={onClose} step={step} total={TOTAL} isEdit={isEdit} stepTitles={STEP_TITLES}/>
 
       <div className="hui-scroll" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "18px 20px" }}>
         {isApproved && (
           <div style={{ background: "rgba(14,196,184,0.10)", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 14 }}>
-            ✅ Dieses Angebot ist bereits freigegeben und live. Änderungen sind erst nach Rückzug/Ablehnung wieder möglich.
+            {t("taw.approvedNotice")}
           </div>
         )}
         {wasRejected && existingTalent?.rejection_reason && (
           <div style={{ background: "rgba(255,80,80,0.10)", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#d13a3a", marginBottom: 14, lineHeight: 1.5 }}>
-            ❌ Abgelehnt: {existingTalent.rejection_reason}<br/>
-            <span style={{ fontWeight: 600 }}>Beim Speichern wird es erneut zur Prüfung eingereicht.</span>
+            {t("taw.rejectedPrefix")}{existingTalent.rejection_reason}<br/>
+            <span style={{ fontWeight: 600 }}>{t("taw.rejectedSuffix")}</span>
           </div>
         )}
 
         {/* ── SCHRITT 1: Basisdaten ─────────────────────────────── */}
         {step === 1 && (
           <>
-            <Lbl text="Titel" req/>
+            <Lbl text={t("taw.titleLabel")} req/>
             <input value={title} onChange={e => setTitle(e.target.value)} disabled={locked}
-              placeholder="z.B. Aquarell-Portraits nach Foto"
+              placeholder={t("taw.titlePlaceholder")}
               style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
 
-            <Lbl text="Kategorie" req/>
+            <Lbl text={t("taw.categoryLabel")} req/>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
               {TALENT_KATEGORIEN.map(k => (
                 <Chip key={k} active={category === k} disabled={locked} onClick={() => setCategory(k)}>{k}</Chip>
               ))}
             </div>
 
-            <Lbl text="Beschreibung"/>
+            <Lbl text={t("taw.descLabel")}/>
             <textarea value={description} onChange={e => setDescription(e.target.value)} disabled={locked}
-              placeholder="Beschreibe dein Angebot..." rows={5}
+              placeholder={t("taw.descPlaceholder")} rows={5}
               style={{ ...INP, marginBottom: 14, resize: "vertical", background: locked ? "#f5f5f3" : "#fff" }}/>
           </>
         )}
@@ -448,24 +452,24 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 2: Preis ──────────────────────────────────── */}
         {step === 2 && (
           <>
-            <Lbl text="Preis pro Stunde (€)" hint="Wird erst nach Freigabe öffentlich sichtbar."/>
+            <Lbl text={t("taw.priceHour")} hint={t("taw.priceHourHint")}/>
             <input type="number" min="0" step="0.5" value={pricePerHour} disabled={locked}
-              onChange={e => setPricePerHour(e.target.value)} placeholder="z.B. 45"
+              onChange={e => setPricePerHour(e.target.value)} placeholder={t("taw.titlePlaceholder")}
               style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
 
-            <Lbl text="Preis pro Termin/Session (€)" hint="Optional — z.B. Pauschalpreis statt Stundensatz."/>
+            <Lbl text={t("taw.priceSession")} hint={t("taw.priceSessionHint")}/>
             <input type="number" min="0" step="0.5" value={pricePerSession} disabled={locked}
-              onChange={e => setPricePerSession(e.target.value)} placeholder="z.B. 120"
+              onChange={e => setPricePerSession(e.target.value)} placeholder="—"
               style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
 
-            <div style={{ fontSize: 11, color: C.inkFade }}>Währung: EUR</div>
+            <div style={{ fontSize: 11, color: C.inkFade }}>{t("taw.currency")}</div>
           </>
         )}
 
         {/* ── SCHRITT 3: Ort ────────────────────────────────────── */}
         {step === 3 && (
           <>
-            <Lbl text="Art des Angebots"/>
+            <Lbl text={t("taw.locationType")}/>
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
               {TALENT_LOCATION_TYPES.map(o => (
                 <Chip key={o.value} active={locationType === o.value} disabled={locked} onClick={() => setLocationType(o.value)}>{o.label}</Chip>
@@ -480,34 +484,34 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                     zu verstehen ist: fester Auftrittsort vs. Ausgangsort fuer
                     den Radius. Hint-Text gekuerzt (redundante Frage entfernt,
                     Beispiel mit korrektem Umlaut "Sänger" behalten). */}
-                <Lbl text="Hausbesuche" hint="(z.B. Sänger bei Feiern, Handwerker beim Kunden)"/>
+                <Lbl text={t("taw.homeVisits")} hint={t("taw.homeVisitsHint")}/>
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
-                  <Chip active={offersHomeVisits} disabled={locked} onClick={() => { setOffersHomeVisits(true); setLocationNotes(""); }}>Ja, ich komme zum Kunden</Chip>
-                  <Chip active={!offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(false)}>Nein, fester Ort</Chip>
+                  <Chip active={offersHomeVisits} disabled={locked} onClick={() => { setOffersHomeVisits(true); setLocationNotes(""); }}>{t("taw.homeVisitYes")}</Chip>
+                  <Chip active={!offersHomeVisits} disabled={locked} onClick={() => setOffersHomeVisits(false)}>{t("taw.homeVisitNo")}</Chip>
                 </div>
 
                 {offersHomeVisits && (
                   <>
-                    <Lbl text="Aktionsradius (km)" hint="Wie weit reist du von deinem Standort aus zum Kunden?"/>
+                    <Lbl text={t("taw.radius")} hint={t("taw.radiusHint")}/>
                     <input type="number" min="0" step="1" value={homeVisitRadiusKm} disabled={locked}
                       onChange={e => setHomeVisitRadiusKm(e.target.value)} placeholder="z.B. 30"
                       style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
                   </>
                 )}
 
-                <Lbl text="Adresse / Ort" hint={offersHomeVisits ? "Dein Ausgangsort — von hier aus berechnet sich dein Aktionsradius." : "Tippen fuer Vorschlaege, z.B. Ortsname oder PLZ."}/>
+                <Lbl text={t("taw.addressLabel")} hint={offersHomeVisits ? t("taw.addressHint") : null}/>
                 <LocationAutocompleteInput
                   value={locationAddress}
                   onChange={v => { setLocationAddress(v); setPickedGeo(null); }}
                   onPick={place => { setLocationAddress(place.label); setPickedGeo({ lat: place.lat, lng: place.lng }); }}
                   disabled={locked}
-                  placeholder="Straße, Ort"
+                  placeholder={t("taw.addressPlaceholder")}
                   style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}
                 />
 
                 {!offersHomeVisits && (
                   <>
-                    <Lbl text="Karten-Link (optional)"/>
+                    <Lbl text={t("taw.mapLink")}/>
                     <input value={mapLink} onChange={e => setMapLink(e.target.value)} disabled={locked}
                       placeholder="https://maps.google.com/..." style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
 
@@ -517,7 +521,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                         Talent zum Kunden, der seine eigene Adresse kennt, daher hier
                         entfernt. Deshalb innerhalb desselben !offersHomeVisits-Blocks wie
                         der Karten-Link. */}
-                    <Lbl text="Hinweise zum Ort (optional)"/>
+                    <Lbl text={t("taw.locationNotes")}/>
                     <textarea value={locationNotes} onChange={e => setLocationNotes(e.target.value)} disabled={locked}
                       placeholder="z.B. Parkplatz vorhanden, 2. Stock ohne Aufzug..." rows={3}
                       style={{ ...INP, marginBottom: 14, resize: "vertical", background: locked ? "#f5f5f3" : "#fff" }}/>
@@ -536,7 +540,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                 angezeigt wird (bei "frei" entfaellt er) -- deshalb logisch
                 zuerst getroffen werden, bevor der Kalender/Hinweis-Block
                 folgt. */}
-            <Lbl text="Wiederholung"/>
+            <Lbl text={t("taw.recurring")}/>
             <div style={{ display: "flex", gap: 6, marginBottom: 14, flexWrap: "wrap" }}>
               {TALENT_RECURRING_OPTIONS.map(o => (
                 <Chip key={o.value || "none"} active={recurring === o.value} disabled={locked} onClick={() => {
@@ -553,11 +557,11 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             {recurring === "frei" ? (
               <div style={{ background: "rgba(14,196,184,0.08)", border: `1.5px solid rgba(14,196,184,0.25)`,
                 borderRadius: 12, padding: "12px 14px", marginBottom: 14, fontSize: 12.5, color: C.inkMid, lineHeight: 1.5 }}>
-                Bei <strong style={{ color: C.teal }}>Freie Buchung</strong> entfällt die Terminauswahl hier — der Kunde wählt sein Wunschdatum direkt beim Buchen. Du bekommst danach eine Buchungsanfrage mit dem gewünschten Datum.
+                {t("taw.freeBookingNotice", { default: "" })}
               </div>
             ) : (
               <>
-                <Lbl text="Verfügbare Termine (optional)" hint="Im Kalender antippen, um Termine hinzuzufügen oder zu entfernen."/>
+                <Lbl text={t("taw.availableDates")} hint={t("taw.availableDatesHint")}/>
                 <div style={{
                   background: "#fff", border: `1.5px solid ${C.border}`, borderRadius: 14,
                   padding: "14px 12px", marginBottom: 12,
@@ -583,7 +587,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
               </>
             )}
 
-            <Lbl text="Zeitfenster (optional)"/>
+            <Lbl text={t("taw.timeSlots")}/>
             <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
               <input type="time" value={slotStart} onChange={e => setSlotStart(e.target.value)} disabled={locked}
                 style={{ ...INP, flex: 1, background: locked ? "#f5f5f3" : "#fff" }}/>
@@ -606,7 +610,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
               </div>
             )}
 
-            <Lbl text="Dauer (Minuten, optional)"/>
+            <Lbl text={t("taw.duration")}/>
             <input type="number" min="0" step="5" value={durationMinutes} disabled={locked}
               onChange={e => setDurationMinutes(e.target.value)} placeholder="z.B. 60"
               style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
@@ -616,7 +620,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 5: Kapazität & Buchbarkeit ────────────────── */}
         {step === 5 && (
           <>
-            <Lbl text="Buchungsart"/>
+            <Lbl text={t("taw.bookingType")}/>
             <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
               {TALENT_BOOKING_TYPES.map(o => (
                 <Chip key={o.value} active={bookingType === o.value} disabled={locked} onClick={() => setBookingType(o.value)}>{o.label}</Chip>
@@ -626,19 +630,19 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             {bookingType === "gruppe" && (
               <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
                 <div style={{ flex: 1 }}>
-                  <Lbl text="Min. Teilnehmer"/>
+                  <Lbl text={t("taw.minParticipants")}/>
                   <input type="number" min="1" value={minParticipants} disabled={locked}
                     onChange={e => setMinParticipants(e.target.value)} style={{ ...INP, background: locked ? "#f5f5f3" : "#fff" }}/>
                 </div>
                 <div style={{ flex: 1 }}>
-                  <Lbl text="Max. Teilnehmer"/>
+                  <Lbl text={t("taw.maxParticipants")}/>
                   <input type="number" min="1" value={maxParticipants} disabled={locked}
                     onChange={e => setMaxParticipants(e.target.value)} style={{ ...INP, background: locked ? "#f5f5f3" : "#fff" }}/>
                 </div>
               </div>
             )}
 
-            <Lbl text="Buchungszeitraum (optional)" hint="In welchem Zeitraum kann dieses Angebot gebucht werden?"/>
+            <Lbl text={t("taw.bookingWindow")} hint={t("taw.bookingWindowHint")}/>
             <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
               <input type="date" value={windowStart} disabled={locked} onChange={e => setWindowStart(e.target.value)}
                 style={{ ...INP, flex: 1, background: locked ? "#f5f5f3" : "#fff" }}/>
@@ -651,7 +655,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 6: Bilder ─────────────────────────────────── */}
         {step === 6 && (
           <>
-            <Lbl text="Bilder & Videos (bis zu 10)"/>
+            <Lbl text={t("taw.mediaLabel")}/>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 14 }}>
               {images.map((img, idx) => (
                 <div key={idx} style={{ position: "relative", aspectRatio: "1", borderRadius: 12, overflow: "hidden", background: "#e8e4df", border: `1.5px solid ${C.border}` }}>
@@ -676,7 +680,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
                   alignItems: "center", justifyContent: "center", cursor: uploading ? "not-allowed" : "pointer", gap: 4,
                 }}>
                   {uploading ? <div style={{ fontSize: 12, color: C.teal }}>…</div> : (
-                    <><div style={{ fontSize: 20, color: C.teal, fontWeight: 300 }}>+</div><div style={{ fontSize: 9, color: C.teal, fontWeight: 600 }}>Bild/Video</div></>
+                    <><div style={{ fontSize: 20, color: C.teal, fontWeight: 300 }}>+</div><div style={{ fontSize: 9, color: C.teal, fontWeight: 600 }}>{t("taw.mediaAdd")}</div></>
                   )}
                 </div>
               )}
@@ -694,16 +698,16 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       {!locked && (
         <div style={{ padding: "12px 20px max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
           {isLast ? (
-            <PBtn label={isEdit ? "Änderungen speichern" : "Zur Prüfung einreichen"} onClick={handleSave} loading={saving} disabled={uploading}/>
+            <PBtn label={isEdit ? t("taw.saveChanges") : t("taw.submit")} onClick={handleSave} loading={saving} disabled={uploading}/>
           ) : (
-            <PBtn label="Weiter" onClick={() => canNext() && setStep(s => Math.min(TOTAL, s + 1))} disabled={!canNext()}/>
+            <PBtn label={t("taw.next")} onClick={() => canNext() && setStep(s => Math.min(TOTAL, s + 1))} disabled={!canNext()}/>
           )}
-          {step > 1 && <SBtn label="Zurück" onClick={() => setStep(s => Math.max(1, s - 1))}/>}
+          {step > 1 && <SBtn label={t("taw.back")} onClick={() => setStep(s => Math.max(1, s - 1))}/>}
         </div>
       )}
       {locked && (
         <div style={{ padding: "12px 20px max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))", background: "#fff", borderTop: `1px solid ${C.border}` }}>
-          <SBtn label="Schließen" onClick={onClose}/>
+          <SBtn label={t("taw.close")} onClick={onClose}/>
         </div>
       )}
     </div>,
