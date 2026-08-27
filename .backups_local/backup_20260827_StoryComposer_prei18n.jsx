@@ -9,7 +9,6 @@ import { supabase } from "../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../lib/uploadUtils.js";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 const T = {
   teal:HUI.COLOR.teal, tealGlow:"rgba(22,215,197,.32)", tealBg:"rgba(22,215,197,.1)",
@@ -28,20 +27,18 @@ const GRADIENTS = [
   {id:"g6",css:"linear-gradient(135deg,#F9F7F4,#E8E4DF)"},
 ];
 
-function getMoods(t) {
-  return [
-  {k:"inspired", e:"✨", l: t("story.moodInspired")},
-  {k:"creative", e:"🎨", l: t("story.moodCreative")},
-  {k:"onthego",  e:"🚀", l: t("story.moodOnthego")},
-  {k:"makingof", e:"🛠️", l: t("story.moodMakingof")},
-  {k:"today",    e:"🌅", l: t("story.moodToday")},
-  {k:"live",     e:"⚡️", l: t("story.moodLive")},
-  ];
-}
+const MOODS = [
+  {k:"inspired", e:"✨",l:"Inspiriert"},
+  {k:"creative", e:"🎨",l:"Kreativ"},
+  {k:"onthego",  e:"🚀",l:"Unterwegs"},
+  {k:"makingof", e:"🛠️",l:"Making of"},
+  {k:"today",    e:"🌅",l:"Heute"},
+  {k:"live",     e:"⚡️",l:"Live"},
+];
 
 // Friendly error messages
-function friendlyError(err, t) {
-  const raw = err?.message || err?.error_description || JSON.stringify(err) || String(err) || t("story.unknownError");
+function friendlyError(err) {
+  const raw = err?.message || err?.error_description || JSON.stringify(err) || String(err) || "Unbekannter Fehler";
   const code = err?.code || err?.statusCode || "";
   return `${raw}${code ? " ["+code+"]" : ""}`;
 }
@@ -59,7 +56,6 @@ const CSS = `
 `;
 
 export default function StoryComposer({ onClose, onSuccess }) {
-  const { t } = useTranslation();
   const { user, profile, canCreate, isBaseUser } = useAuth();
 
   // Phase 4C: Permission Guard — BasisUser kann keine Stories erstellen
@@ -95,7 +91,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
     const isVid = file.type.startsWith("video/") || /\.(mp4|mov|m4v)$/i.test(file.name);
     const maxBytes = isVid ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     if (file.size > maxBytes) {
-      setError(isVid ? t("story.errorVideoMax", {max: UPLOAD_LIMITS.MAX_VIDEO_MB}) : t("story.errorImageMax", {max: UPLOAD_LIMITS.MAX_IMAGE_MB}));
+      setError(isVid ? `Video max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB` : `Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`);
       return;
     }
     setError(null);
@@ -134,8 +130,8 @@ export default function StoryComposer({ onClose, onSuccess }) {
   }
 
   async function publish() {
-    if (!user) { setError(t("story.notLoggedIn")); return; }
-    if (!supabase) { setError(t("story.supabaseError")); return; }
+    if (!user) { setError("Nicht angemeldet. Bitte neu anmelden."); return; }
+    if (!supabase) { setError("Supabase nicht verbunden. VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY prüfen."); return; }
     setUploading(true); setError(null); setUploadPct(0);
 
     try {
@@ -200,7 +196,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
     } catch(e) {
       console.error("[StoryComposer] publish error:", e);
-      setError(friendlyError(e, t));
+      setError(friendlyError(e));
     } finally {
       setUploading(false);
     }
@@ -218,10 +214,10 @@ export default function StoryComposer({ onClose, onSuccess }) {
       <div style={{textAlign:"center",color:"white",padding:"24px"}}>
         <div style={{fontSize:64,marginBottom:16,animation:"scPop .5s both"}}>⚡️</div>
         <h2 style={{margin:"0 0 8px",fontSize:28,fontWeight: 600,letterSpacing:"-.5px"}}>
-          {t("story.successTitle")}
+          Story ist live!
         </h2>
         <p style={{margin:0,opacity:.85,fontSize:15}}>
-          {saveHighlight ? t("story.successHighlight") : t("story.successTemporary")}
+          {saveHighlight ? "Als Highlight gespeichert ✦" : "Verschwindet in 24 Stunden"}
         </p>
       </div>
     </div>
@@ -262,17 +258,17 @@ export default function StoryComposer({ onClose, onSuccess }) {
               📸
             </div>
             <p style={{margin:"0 0 4px",fontSize:15,fontWeight:600}}>
-              {t("story.addPhotoVideo")}
+              Foto oder Video hinzufügen
             </p>
             <p style={{margin:0,fontSize:12,opacity:.65}}>
-              {t("story.orTap")}
+              oder einfach tippen…
             </p>
           </div>
         )}
 
         {/* Text overlay textarea */}
         <textarea value={text} onChange={e=>setText(e.target.value)}
-          placeholder={mediaPreview ? t("story.placeholderWithMedia") : t("story.placeholderNoMedia")}
+          placeholder={mediaPreview ? "Text hinzufügen…" : "Was bewegst du gerade?"}
           maxLength={150}
           onClick={e=>e.stopPropagation()}
           style={{
@@ -307,7 +303,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
                 border:"1px solid rgba(255,255,255,.4)",
                 background:"rgba(0,0,0,.4)",color:"white",
                 fontSize:12,fontWeight:600,backdropFilter:"blur(8px)"}}>
-              {t("story.remove")}
+              Entfernen
             </button>
           )}
           <button className="sc-tap"
@@ -325,7 +321,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
           padding:"12px 16px 14px",
           display:"flex",gap:8,overflowX:"auto",
           background:"linear-gradient(transparent,rgba(0,0,0,.5))"}}>
-          {getMoods(t).filter(m=>m&&m.key).map(m=>(
+          {(MOODS||[]).filter(m=>m&&m.key).map(m=>(
             <button key={m.k} className="sc-tap"
               onClick={e=>{e.stopPropagation();setMood(p=>p===m.k?null:m.k);}}
               style={{flexShrink:0,padding:"6px 12px",borderRadius:999,
@@ -348,11 +344,11 @@ export default function StoryComposer({ onClose, onSuccess }) {
         {panel==="settings" ? (
           <div style={{animation:"scUp .2s both"}}>
             <p style={{margin:"0 0 12px",fontSize:11,fontWeight: 600,
-              color:T.muted,letterSpacing:.6}}>{t('story.settings')}</p>
+              color:T.muted,letterSpacing:.6}}>EINSTELLUNGEN</p>
 
             {/* Visibility */}
             <div style={{display:"flex",gap:8,marginBottom:12}}>
-              {[{v:"public",l:t("story.visibilityPublic")},{v:"followers",l:t("story.visibilityFollowers")},{v:"friends",l:t("story.visibilityFriends")}].map(opt=>(
+              {[{v:"public",l:"Öffentlich"},{v:"followers",l:"Follower"},{v:"friends",l:"Freunde"}].map(opt=>(
                 <button key={opt.v} className="sc-tap"
                   onClick={()=>setVisibility(opt.v)}
                   style={{flex:1,padding:"10px 4px",borderRadius:12,border:"none",
@@ -368,8 +364,8 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
             {/* Toggles */}
             {[
-              {label:t("story.allowComments"),val:allowComments,set:setAllowComments},
-              {label:t("story.saveHighlightLabel"),val:saveHighlight,set:setSaveHighlight},
+              {label:"Kommentare erlauben",val:allowComments,set:setAllowComments},
+              {label:"Als Highlight speichern",val:saveHighlight,set:setSaveHighlight},
             ].map(row=>(
               <div key={row.label} className="sc-tap"
                 onClick={()=>row.set(p=>!p)}
@@ -425,13 +421,13 @@ export default function StoryComposer({ onClose, onSuccess }) {
               <div style={{padding:"12px 14px",borderRadius:14,
                 background:"rgba(255,80,80,.12)",border:"1px solid rgba(255,80,80,.3)",
                 fontSize:13,color:"#FF8A8A",lineHeight:1.5}}>
-                <div style={{fontWeight: 600,marginBottom:4, display:"flex", alignItems:"center", gap:4}}><HUIWarnIcon size={16}/>{t("story.ups")}</div>
+                <div style={{fontWeight: 600,marginBottom:4, display:"flex", alignItems:"center", gap:4}}><HUIWarnIcon size={16}/>Ups.</div>
                 <div>{error}</div>
                 <button className="sc-tap" onClick={publish}
                   style={{marginTop:8,padding:"6px 14px",borderRadius:10,border:"none",
                     background:"rgba(255,255,255,.15)",color:"white",
                     fontSize:12,fontWeight: 600,cursor:"pointer"}}>
-                  {t("story.retry")}
+                  Nochmal versuchen
                 </button>
               </div>
             )}
@@ -455,9 +451,9 @@ export default function StoryComposer({ onClose, onSuccess }) {
                     border:"2.5px solid rgba(255,255,255,.3)",
                     borderTop:"2.5px solid white",
                     animation:"scSpin .8s linear infinite"}}/>
-                  {uploadPct<70?t("story.uploading"):t("story.creating")}
+                  {uploadPct<70?"Lädt hoch…":"Story erstellen…"}
                 </>
-              ) : t("story.publish")}
+              ) : "⚡️ Story posten"}
             </button>
           </div>
         )}
