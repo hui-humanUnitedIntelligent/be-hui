@@ -3563,4 +3563,12 @@ export default {
   'wkf.changeAddress': 'Adresse ändern',
   'wkf.werkKaufTitle': 'Werk-Kauf',
 
+  'legal.title': 'Nutzungsbedingungen',
+  'legal.subtitle': 'HUI-App · Stand August 2026',
+  'legal.close': 'Schließen',
+  'legal.intro': 'Diese Nutzungsbedingungen regeln die Nutzung der HUI-App. Die Bedingungen der öffentlichen Website (be-hui.com) gelten gesondert.',
+  'legal.copyright': '© 2026 HUI — Human United Intelligence',
+  'legal.draftNotice': 'Entwurf — zur rechtlichen Prüfung durch die Trägervereine',
+  'legal.deOnlyNotice': 'Die Nutzungsbedingungen sind derzeit nur auf Deutsch verfügbar. Eine professionelle Übersetzung wird folgen.',
+
 };

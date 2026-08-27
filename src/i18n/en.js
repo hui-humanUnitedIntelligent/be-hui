@@ -3571,4 +3571,12 @@ export default {
   'wkf.changeAddress': 'Change address',
   'wkf.werkKaufTitle': 'Purchase Work',
 
+  'legal.title': 'Terms of Use',
+  'legal.subtitle': 'HUI App · As of August 2026',
+  'legal.close': 'Close',
+  'legal.intro': 'These terms of use govern the use of the HUI App. The terms of the public website (be-hui.com) apply separately.',
+  'legal.copyright': '© 2026 HUI — Human United Intelligence',
+  'legal.draftNotice': 'Draft — subject to legal review by the supporting organizations',
+  'legal.deOnlyNotice': 'The terms of use are currently available in German only. A professional translation will follow.',
+
 };

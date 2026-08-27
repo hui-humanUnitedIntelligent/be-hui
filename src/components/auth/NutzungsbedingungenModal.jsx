@@ -2,9 +2,14 @@
 // In-App Anzeige der HUI-App-Nutzungsbedingungen.
 // Wird vom Login-Screen aus geöffnet (klickbarer "Nutzungsbedingungen"-Link).
 // Entworfen 2026-08-15 — rechtliche Pruefung durch Trägervereine steht aus.
+//
+// i18n: UI-Elemente werden übersetzt. Rechtstexte (SECTIONS) bleiben
+// auf Deutsch — professionelle Übersetzung erforderlich, nicht KI.
+// Bei non-DE Sprache wird ein Hinweis angezeigt statt der Rechtstexte.
 
 import React from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   teal: "#0DC4B5",
@@ -17,6 +22,12 @@ const T = {
   border: "rgba(255,255,255,0.08)",
 };
 
+// ── Rechtstexte — DEUTSCH ONLY ────────────────────────────────────
+// Rechtliche Texte brauchen professionelle Übersetzung, nicht KI.
+// Diese Texte bleiben hardcoded auf Deutsch und werden nur bei
+// lang === 'de' angezeigt. Bei anderen Sprachen wird ein Hinweis
+// eingeblendet (legal.deOnlyNotice).
+// ──────────────────────────────────────────────────────────────────
 const SECTIONS = [
   {
     title: "1. Geltungsbereich",
@@ -200,6 +211,7 @@ const SECTIONS = [
 ];
 
 export default function NutzungsbedingungenModal({ open = false, onClose = () => {} }) {
+  const { t, lang } = useTranslation();
   if (!open) return null;
 
   return createPortal(
@@ -242,10 +254,10 @@ export default function NutzungsbedingungenModal({ open = false, onClose = () =>
         }}>
           <div>
             <div style={{ fontSize: 17, fontWeight: 600, color: T.white, letterSpacing: -0.3 }}>
-              Nutzungsbedingungen
+              {t("legal.title")}
             </div>
             <div style={{ fontSize: 11, color: T.muted2, marginTop: 2 }}>
-              HUI-App · Stand August 2026
+              {t("legal.subtitle")}
             </div>
           </div>
           <button
@@ -263,7 +275,7 @@ export default function NutzungsbedingungenModal({ open = false, onClose = () =>
               justifyContent: "center",
               flexShrink: 0,
             }}
-            aria-label="Schließen"
+            aria-label={t("legal.close")}
           >
             ✕
           </button>
@@ -276,42 +288,54 @@ export default function NutzungsbedingungenModal({ open = false, onClose = () =>
           WebkitOverflowScrolling: "touch",
           flex: 1,
         }}>
-          <div style={{ fontSize: 12, color: T.muted2, marginBottom: 16, lineHeight: 1.5 }}>
-            Diese Nutzungsbedingungen regeln die Nutzung der HUI-App. Die Bedingungen der öffentlichen Website (be-hui.com) gelten gesondert.
-          </div>
-
-          {SECTIONS.map((sec, i) => (
-            <div key={i} style={{ marginBottom: 18 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.teal2, marginBottom: 8 }}>
-                {sec.title}
+          {lang !== "de" ? (
+            /* Non-DE: Hinweis statt Rechtstext */
+            <div style={{
+              fontSize: 13, color: T.muted, lineHeight: 1.6,
+              padding: "24px 0", textAlign: "center",
+            }}>
+              {t("legal.deOnlyNotice")}
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 12, color: T.muted2, marginBottom: 16, lineHeight: 1.5 }}>
+                {t("legal.intro")}
               </div>
-              {sec.items?.map((item, j) => (
-                <div key={j} style={{ fontSize: 12.5, color: T.muted, lineHeight: 1.6, marginBottom: 4, paddingLeft: 10 }}>
-                  • {item}
-                </div>
-              ))}
-              {sec.subs?.map((sub, k) => (
-                <div key={k} style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 4 }}>
-                    {sub.h}
+
+              {SECTIONS.map((sec, i) => (
+                <div key={i} style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: T.teal2, marginBottom: 8 }}>
+                    {sec.title}
                   </div>
-                  {sub.items?.map((item, l) => (
-                    <div key={l} style={{ fontSize: 12, color: T.muted, lineHeight: 1.6, marginBottom: 3, paddingLeft: 10 }}>
+                  {sec.items?.map((item, j) => (
+                    <div key={j} style={{ fontSize: 12.5, color: T.muted, lineHeight: 1.6, marginBottom: 4, paddingLeft: 10 }}>
                       • {item}
+                    </div>
+                  ))}
+                  {sec.subs?.map((sub, k) => (
+                    <div key={k} style={{ marginBottom: 10 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 4 }}>
+                        {sub.h}
+                      </div>
+                      {sub.items?.map((item, l) => (
+                        <div key={l} style={{ fontSize: 12, color: T.muted, lineHeight: 1.6, marginBottom: 3, paddingLeft: 10 }}>
+                          • {item}
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
               ))}
-            </div>
-          ))}
+            </>
+          )}
 
           <div style={{
             fontSize: 11, color: T.muted2, textAlign: "center",
             paddingTop: 16, borderTop: `1px solid ${T.border}`,
             lineHeight: 1.5,
           }}>
-            © 2026 HUI — Human United Intelligence<br/>
-            Entwurf — zur rechtlichen Prüfung durch die Trägervereine
+            {t("legal.copyright")}<br/>
+            {t("legal.draftNotice")}
           </div>
         </div>
       </div>

@@ -3570,4 +3570,12 @@ export default {
   'wkf.changeAddress': 'Cambiar dirección',
   'wkf.werkKaufTitle': 'Comprar obra',
 
+  'legal.title': 'Condiciones de uso',
+  'legal.subtitle': 'App HUI · Agosto 2026',
+  'legal.close': 'Cerrar',
+  'legal.intro': 'Estas condiciones de uso rigen el uso de la aplicación HUI. Las condiciones del sitio web público (be-hui.com) se aplican por separado.',
+  'legal.copyright': '© 2026 HUI — Human United Intelligence',
+  'legal.draftNotice': 'Borrador — sujeto a revisión legal por las organizaciones de apoyo',
+  'legal.deOnlyNotice': 'Las condiciones de uso están disponibles únicamente en alemán. Una traducción profesional seguirá.',
+
 };

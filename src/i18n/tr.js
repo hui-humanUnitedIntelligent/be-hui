@@ -3570,4 +3570,12 @@ export default {
   'wkf.changeAddress': 'Adresi değiştir',
   'wkf.werkKaufTitle': 'Eser satın al',
 
+  'legal.title': 'Kullanım koşulları',
+  'legal.subtitle': 'HUI Uygulaması · Ağustos 2026',
+  'legal.close': 'Kapat',
+  'legal.intro': 'Bu kullanım koşulları, HUI Uygulamasının kullanımını düzenler. Genel web sitesi (be-hui.com) koşulları ayrı olarak uygulanır.',
+  'legal.copyright': '© 2026 HUI — Human United Intelligence',
+  'legal.draftNotice': 'Taslak — destekleyen kuruluşlar tarafından yasal incelemeye tabidir',
+  'legal.deOnlyNotice': 'Kullanım koşulları şu anda yalnızca Almanca olarak mevcuttur. Profesyonel çeviri takip edecektir.',
+
 };
