@@ -14,7 +14,6 @@ import StepThreePreview       from "./StepThreePreview.jsx";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { supabase }          from "../../lib/supabaseClient.js";
 import { HUI } from "../../design/hui.design.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED",
@@ -100,17 +99,14 @@ function Atmosphere({ step }) {
 }
 
 /* ── Step Titel ── */
-function getStepMeta(t) {
-  return {
-  1: { emoji:"✨", hint: t("connectionCreate.step1Hint") },
-  2: { emoji:"📝", hint: t("connectionCreate.step2Hint") },
-  3: { emoji:"🌟", hint: t("connectionCreate.step3Hint") },
-  };
-}
+const STEP_META = {
+  1: { emoji:"✨", hint:"W\u00e4hle einen Moment" },
+  2: { emoji:"\uD83D\uDCDD", hint:"Gib deiner Verbindung Form" },
+  3: { emoji:"\uD83C\uDF1F", hint:"Bereit zum Teilen" },
+};
 
 /* ── Floating Navigation (sticky unten) ── */
 function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false }) {
-  const { t } = useTranslation();
   return (
     <div style={{
       position:"sticky", bottom:0, zIndex:10, flexShrink:0,
@@ -135,7 +131,7 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false
         }}
         onTouchStart={e=>e.currentTarget.style.transform="scale(0.96)"}
         onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}
-        >← {t("connectionCreate.back")}</button>
+        >← Zurück</button>
       ) : (
         <div style={{ flex:"none", width:10 }}/>
       )}
@@ -173,9 +169,9 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false
               border:"2.5px solid rgba(255,255,255,0.35)",
               borderTopColor:"white",
               animation:"floatnav-spin 0.7s linear infinite",
-            }}/> {t("connectionCreate.publishing")}</>
+            }}/> Wird veröffentlicht…</>
           ) : (
-            <>{t("connectionCreate.publish")}
+            <>Verbindung veröffentlichen
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
                   stroke="white" strokeWidth="2.2" strokeLinecap="round"/>
@@ -183,7 +179,7 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false
             </>
           )
         ) : (
-          <>{t("connectionCreate.next")} <span style={{fontSize:17}}>→</span></>
+          <>Weiter <span style={{fontSize:17}}>→</span></>
         )}
       </button>
     </div>
@@ -195,7 +191,6 @@ function FloatingNav({ step, canNext, onBack, onNext, isLast, publishing = false
 ══════════════════════════════════════════════════════════════════ */
 export default function ConnectionCreatePage({ onClose, onPublish }) {
   const { user } = useAuth();
-  const { t } = useTranslation();
 
   const [step,       setStep]       = useState(1);
   const [animDir,    setAnimDir]    = useState("in");
@@ -249,7 +244,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       const payload = {
         user_id:          user.id,
         type:             formData.type             || "kollab",
-        title:            (formData.title     || "").trim() || t("connectionCreate.newConnection"),
+        title:            (formData.title     || "").trim() || "Neue Verbindung",
         description:      (formData.description|| "").trim() || null,
         date:             formData.date             || null,
         time:             formData.time             || null,
@@ -310,7 +305,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
     step === 2 ? formData.title?.trim().length > 1 :
     true;
 
-  const meta = getStepMeta(t)[step];
+  const meta = STEP_META[step];
 
   /* ── Erfolgs-Screen ─────────────────────────────────────────────────── */
   if (done) return (
@@ -337,13 +332,13 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
       <div style={{
         fontSize:22, fontWeight: 600, color:C.ink,
         letterSpacing:-0.5, marginBottom:10,
-      }}>{t("connectionCreate.successTitle")}</div>
+      }}>Verbindung veröffentlicht</div>
       {/* Subtext */}
       <div style={{
         fontSize:14, color:C.muted, lineHeight:1.6,
         maxWidth:260, marginBottom:36,
       }}>
-        {t("connectionCreate.successSub")}
+        Deine Anfrage ist raus. Andere können sie jetzt entdecken und sich melden.
       </div>
       {/* Fertig-Button */}
       <button
@@ -357,7 +352,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
           WebkitTapHighlightColor:"transparent",
           boxShadow:"0 6px 20px rgba(139,92,246,0.30)",
         }}
-      >{t("connectionCreate.done")}</button>
+      >Fertig</button>
     </div>
   );
 
@@ -403,7 +398,7 @@ export default function ConnectionCreatePage({ onClose, onPublish }) {
               fontSize:15.5, fontWeight: 600, color:C.ink, letterSpacing:-0.3,
             }}>
               <span style={{ marginRight:5 }}>{meta.emoji}</span>
-              {t("connectionCreate.newConnection")}
+              Neue Verbindung
             </div>
             <div style={{ fontSize:11.5, color:C.muted, marginTop:2 }}>
               {meta.hint}
