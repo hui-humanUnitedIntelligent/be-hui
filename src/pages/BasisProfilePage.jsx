@@ -4,7 +4,7 @@ import { makeChunkReload } from "../lib/chunkReload.js";
 import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 // src/pages/BasisProfilePage.jsx — HUI BasisUser Public Profile v2
-// "Öffentliches Profil 🌿 — Lerne mich kennen."
+// "Öffentliches Profil 🌿 — {t("bpp.getToKnowMe")}"
 // ════════════════════════════════════════════════════════════════
 // Screenshot-exact rebuild — May 2026
 // Structure:
@@ -28,6 +28,7 @@ import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.
 // SettingsModal direkt importiert (kein lazy/Suspense — verhindert Blank-Page/Klick-Bug)
 // HuiStudio direkt importiert (kein lazy/Suspense)
 import { supabase }   from "../lib/supabaseClient.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 // Sprint F.5.3: kanonische Sections
 import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
 import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
@@ -88,20 +89,20 @@ const delay = (n, i) => ({ animationDelay: `${i * n}ms` });
 const FB_COVER = "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200&q=80";
 const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
 
-const DEFAULT_INTERESTS = [
-  { icon:"🌿", label:"Natur"        },
-  { icon:"🎵", label:"Musik"        },
-  { icon:"☕", label:"Begegnungen"  },
-  { icon:"🧘", label:"Ruhe"         },
-  { icon:"🐾", label:"Tiere"        },
-  { icon:"✨", label:"Kreativität"  },
+const getDefaultInterests = (t) => [
+  { icon:"🌿", label: t("bpp.interestNature")        },
+  { icon:"🎵", label: t("bpp.interestMusic")        },
+  { icon:"☕", label: t("bpp.interestEncounters")  },
+  { icon:"🧘", label: t("bpp.interestCalm")         },
+  { icon:"🐾", label: t("bpp.interestAnimals")        },
+  { icon:"✨", label: t("bpp.interestCreativity")  },
 ];
 
-const DEFAULT_OPEN_FOR = [
-  { icon:"🌲", label:"Naturgruppen"     },
-  { icon:"🎵", label:"Musikabende"      },
-  { icon:"☕", label:"Café & Gespräche" },
-  { icon:"🧘", label:"Achtsamkeit"      },
+const getDefaultOpenFor = (t) => [
+  { icon:"🌲", label: t("bpp.openNatureGroups")     },
+  { icon:"🎵", label: t("bpp.openMusicNights")      },
+  { icon:"☕", label: t("bpp.openCafeTalks") },
+  { icon:"🧘", label: t("bpp.openMindfulness")      },
 ];
 
 
@@ -139,6 +140,7 @@ function Sheet({ onClose, children }) {
 // HEADER — sticky nav bar: ‹ · "Öffentliches Profil 🌿" · ···
 // ══════════════════════════════════════════════════════════════════
 function NavBar({ onBack, isOwner = false, onSettings }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -159,10 +161,10 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:16, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em",
           display:"flex", alignItems:"center", gap:6, justifyContent:"center" }}>
-          <span style={{display:"flex",alignItems:"center",gap:5}}>Öffentliches Profil<HUIImpactIcon size={15} style={{color:"rgba(14,196,184,0.7)"}}/></span>
+          <span style={{display:"flex",alignItems:"center",gap:5}}>{t("bpp.publicProfile")}<HUIImpactIcon size={15} style={{color:"rgba(14,196,184,0.7)"}}/></span>
         </div>
         <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:400, marginTop:1 }}>
-          Lerne mich kennen.
+          {t("bpp.getToKnowMe")}
         </div>
       </div>
 
@@ -200,6 +202,8 @@ function NavBar({ onBack, isOwner = false, onSettings }) {
 // INTERESTS — 2-row, 3-col soft pill grid (exact to screenshot)
 // ══════════════════════════════════════════════════════════════════
 function InterestsGrid({ profile, loading }) {
+  const { t } = useTranslation();
+  const DEFAULT_INTERESTS = getDefaultInterests(t);
   const rawInterests = a(profile?.skills); // Persistiert via skills-Spalte
   const tags = rawInterests.length
     ? DEFAULT_INTERESTS.filter(t => rawInterests.includes(t.label))
@@ -232,20 +236,22 @@ function InterestsGrid({ profile, loading }) {
 
 
 function OffenFuerSection({ profile, loading }) {
+  const { t } = useTranslation();
   const [showMore, setShowMore] = useState(false);
+  const DEFAULT_OPEN_FOR = getDefaultOpenFor(t);
   const tags = DEFAULT_OPEN_FOR;
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
       {/* Section header */}
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Offen für Begegnungen</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{t("bpp.openForEncounters")}</div>
         <button className="bpp-press-light" onClick={()=>setShowMore(true)} style={{
           background:"none", border:"none", padding:0,
           fontSize:12, color:T.teal, fontWeight: 600,
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           display:"flex", alignItems:"center", gap:3,
-        }}>Mehr erfahren ›</button>
+        }}>{t("bpp.moreInfo")}</button>
       </div>
 
       {loading ? (
@@ -273,17 +279,17 @@ function OffenFuerSection({ profile, loading }) {
             fontSize:13, fontWeight:600, color:T.inkSoft,
             cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           }}>
-            <span>+</span> Weiteres
+            <span>+</span> {t("bpp.more")}
           </button>
         </div>
       )}
 
       {showMore && (
         <Sheet onClose={()=>setShowMore(false)}>
-          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>☕ Offen für Begegnungen</div>
+          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>☕ {t("bpp.openForEncounters")}</div>
           <div style={{ fontSize:13.5, color:T.inkSoft, marginBottom:20, lineHeight:1.65,
             fontFamily:"Georgia,serif", fontStyle:"italic" }}>
-            Diese Person freut sich über echte Begegnungen in diesen Bereichen.
+            {t("bpp.openForSheetDesc")}
           </div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
             {[...DEFAULT_OPEN_FOR, {icon:"🌍",label:"Reisen"}, {icon:"🎨",label:"Kunst & Kultur"}].map((t,i)=>(
@@ -353,6 +359,7 @@ function SocialContextBar({ loading, followCounts }) {
 // ROOT
 // ══════════════════════════════════════════════════════════════════
 export default function BasisProfilePage({ profileId, onClose, publicView = false }) {
+  const { t } = useTranslation();
   // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
   const { user, setProfile: setAuthProfile } = useAuth();
   const resolvedId = profileId || user?.id;
@@ -422,7 +429,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     if (!profile?.id || !setShowChat) return;
     setChatRecipient?.({
       id:           profile.id,
-      display_name: profile.display_name || profile.username || "Mitglied",
+      display_name: profile.display_name || profile.username || t("bpp.member"),
       avatar_url:   profile.avatar_url || null,
     });
     if (onClose) onClose();   // Profil zuerst schließen
@@ -490,9 +497,9 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
           }}
         >←</button>
         <div style={{ fontSize:40 }}>🔍</div>
-        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>Profil nicht verfügbar</div>
+        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>{t("bpp.profileUnavailable")}</div>
         <div style={{ fontSize:13, color:"#6B7280", textAlign:"center", maxWidth:260 }}>
-          Dieses Profil konnte nicht geladen werden.
+          {t("bpp.profileLoadFailed")}
         </div>
       </div>
     );
@@ -642,10 +649,10 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                 <HUIImpactIcon size={22} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
                 <div>
                   <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-                    Mein HUI
+                    {t("bpp.myHUI")}
                   </div>
                   <div style={{ fontSize:11.5, color:T.inkFaint, marginTop:1 }}>
-                    Verwalte dein Profil und deine Einstellungen
+                    {t("bpp.manageProfile")}
                   </div>
                 </div>
               </div>
@@ -662,7 +669,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                   boxShadow:"0 4px 14px rgba(14,196,184,0.25)",
                 }}>
                   <HUISettingsIcon size={20} />
-                  <span style={{ fontSize:11.5, fontWeight: 600, color:"white" }}>Einstellungen</span>
+                  <span style={{ fontSize:11.5, fontWeight: 600, color:"white" }}>{t("bpp.settings")}</span>
                 </button>
 
                 {/* HUI Studio */}
@@ -675,7 +682,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
                   boxShadow:T.card,
                 }}>
                   <span style={{ fontSize:20 }}>🎛️</span>
-                  <span style={{ fontSize:11.5, fontWeight: 600, color:T.ink }}>HUI Studio</span>
+                  <span style={{ fontSize:11.5, fontWeight: 600, color:T.ink }}>{t("bpp.huiStudio")}</span>
                 </button>
               </div>
 
