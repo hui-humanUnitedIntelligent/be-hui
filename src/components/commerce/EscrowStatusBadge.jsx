@@ -1,4 +1,5 @@
 // EscrowStatusBadge — zeigt Escrow-Status visuell
+import { useTranslation } from '../../hooks/useTranslation.js';
 export default function EscrowStatusBadge({ escrowStatus = 'none', deliveryStatus = 'pending', size = 'sm' }) {
   const { t } = useTranslation();
   const configs = {

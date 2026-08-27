@@ -1,18 +1,19 @@
 // EscrowStatusBadge — zeigt Escrow-Status visuell
 export default function EscrowStatusBadge({ escrowStatus = 'none', deliveryStatus = 'pending', size = 'sm' }) {
+  const { t } = useTranslation();
   const configs = {
     none:     { label: 'Keine Treuhand',         color: '#8B8FA8', bg: 'rgba(139,143,168,0.1)' },
     holding:  { label: 'Bezahlt – blockiert',  color: '#FF8A6B', bg: 'rgba(255,138,107,0.12)' },
     released: { label: 'Freigegeben',          color: '#16D7C5', bg: 'rgba(22,215,197,0.12)' },
-    disputed: { label: 'In Prüfung',           color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
+    disputed: { label: t("escrow.disputed"),           color: '#F59E0B', bg: 'rgba(245,158,11,0.12)' },
     refunded: { label: 'Erstattet',            color: '#E83A3A', bg: 'rgba(232,58,58,0.12)' },
   }
   const deliveryConfigs = {
     pending:   { label: 'Warte auf Lieferung' },
     shipped:   { label: 'Versendet' },
-    executed:  { label: 'Ausgeführt' },
+    executed:  { label: t("escrow.executed") },
     delivered: { label: 'Geliefert' },
-    confirmed: { label: 'Bestätigt' },
+    confirmed: { label: t("escrow.confirmed") },
     disputed:  { label: 'Auszahlungsantrag gestellt' },
   }
   const c = configs[escrowStatus] || configs.none

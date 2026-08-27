@@ -1,3 +1,4 @@
+import { useTranslation } from '../../hooks/useTranslation.js';
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import {
   HUIWarnIcon, HUIImpactIcon, HUISupportIcon, HUINachrichtIcon,
