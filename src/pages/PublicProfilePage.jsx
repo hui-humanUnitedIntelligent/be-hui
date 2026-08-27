@@ -38,6 +38,7 @@ import { RecommendationsSection } from "../components/profile/sections/Recommend
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 // UNTERSTÜTZEN-BUTTON TEMPORÄR VERSTECKT (2026-08-18, Michael-Request):
 // Code/State/SupportFlow bleiben vollständig erhalten (no-regression-protection.md) —
@@ -91,7 +92,7 @@ function Skel({ w, h=14, r=8 }) {
 
 // ── Rollen-Badge ──────────────────────────────────────────────────
 // ── NavBar ────────────────────────────────────────────────────────
-function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
+function NavBar({ onBack = () => {}, title = t("ppp.publicProfile") }) {
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -347,7 +348,7 @@ function ErrorView({ onClose = () => {} }) {
         background:T.teal, border:"none", color:"#fff",
         fontWeight: 600, fontSize:14, cursor:"pointer",
         boxShadow:T.glow, fontFamily:"inherit",
-      }}>Zurück</button>
+      }}>{t("common.back")}</button>
     </div>
   );
 }

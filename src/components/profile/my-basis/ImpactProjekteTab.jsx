@@ -6,6 +6,7 @@ import { useImageGallery } from "../../../context/ImageGalleryContext.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { HUISchreibenIcon } from "../../../design/icons/HuiSystemIcons.jsx";
 import { formatDateDE, formatNumberDE } from "../../../lib/formatters.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const { openGallery } = useImageGallery();
@@ -51,7 +52,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   };
 
   const saveEditUpdate = async (updateId) => {
-    if (!editTitle.trim()) { setEditError("Überschrift darf nicht leer sein."); return; }
+    if (!editTitle.trim()) { setEditError(t("ipt.titleEmpty")); return; }
     setSavingEdit(true);
     setEditError(null);
     const { error } = await supabase
@@ -131,7 +132,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           const isApproved = proj.status === "approved";
           const isRejected = proj.status === "rejected";
           const badgeBg = isApproved ? "rgba(14,196,184,0.92)" : isRejected ? "rgba(255,80,80,0.92)" : "rgba(234,179,8,0.92)";
-          const badgeText = isApproved ? "✅ Bewilligt" : isRejected ? "❌ Abgelehnt" : "⏳ Prüfung";
+          const badgeText = isApproved ? "✅ Bewilligt" : isRejected ? "❌ Abgelehnt" : t("common.inReview");
           const borderCol = isApproved ? "#0EC4B8" : isRejected ? "#ff5050" : "#D4A800";
           return (
             <div key={proj.id || i}
@@ -197,7 +198,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               color: selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12",
               background: (selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12") + "15",
             }}>
-              {selected.status==="approved" ? "✅ Bewilligt" : selected.status==="rejected" ? "❌ Abgelehnt" : "⏳ In Prüfung"}
+              {selected.status==="approved" ? "✅ Bewilligt" : selected.status==="rejected" ? "❌ Abgelehnt" : t("common.inReview")}
             </span>
           </div>
           {selected.short_desc && (
@@ -269,7 +270,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                             value={editTitle}
                             onChange={e => setEditTitle(e.target.value)}
                             maxLength={120}
-                            placeholder="Überschrift"
+                            placeholder={t("ipt.title")}
                             style={{
                               width:"100%", padding:"7px 10px", marginBottom:6,
                               borderRadius:8, border:"1px solid rgba(0,0,0,0.12)",

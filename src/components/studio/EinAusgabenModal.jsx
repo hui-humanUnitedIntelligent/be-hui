@@ -13,6 +13,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens ──────────────────────────────────────────────────
 const T = {
@@ -81,7 +82,7 @@ const STATUS_META = {
   completed:  { label: "Abgeschlossen", color: T.green,  bg: T.greenSoft  },
   released:   { label: "Abgeschlossen", color: T.green,  bg: T.greenSoft  },
   paid:       { label: "Bezahlt",       color: T.green,  bg: T.greenSoft  },
-  confirmed:  { label: "Bestätigt",     color: T.teal,   bg: T.tealSoft   },
+  confirmed:  { label: t("common.confirmed"),     color: T.teal,   bg: T.tealSoft   },
   pending:    { label: "Ausstehend",    color: T.amber,  bg: T.amberSoft  },
   cancelled:  { label: "Storniert",     color: T.coral,  bg: T.coralSoft  },
   refunded:   { label: "Erstattet",     color: T.coral,  bg: T.coralSoft  },
@@ -92,6 +93,7 @@ function getStatus(s) {
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function EinAusgabenModal({ profile, onClose }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "EinAusgabenModal");
   const [tab,      setTab]      = useState("ausgaben"); // "ausgaben" | "einnahmen"
@@ -469,7 +471,7 @@ export default function EinAusgabenModal({ profile, onClose }) {
               title={tab === "einnahmen" ? "Noch keine Einnahmen" : "Noch keine Ausgaben"}
               desc={tab === "einnahmen"
                 ? "Sobald du etwas verkaufst oder eine Buchung abgeschlossen wird, erscheint es hier."
-                : "Käufe, Buchungen und Bestellungen erscheinen hier."}
+                : t("ea.emptyPurchases")}
             />
           )}
 

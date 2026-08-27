@@ -6,6 +6,7 @@ import { getPlaceImage } from "../../lib/placeImage.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -136,6 +137,7 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
 }
 
 export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPerson, onPressWork, onPressExperience }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "OrteAllModal");
   const [search, setSearch]       = useState("");
@@ -225,7 +227,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
                 </div>
                 <div style={{ fontSize:11.5, color:T.inkFaint }}>
                   {showDetail
-                    ? `${detailItems.length} ${detailItems.length === 1 ? "Eintrag" : "Einträge"} in ${selectedPlace}`
+                    ? `${detailItems.length} ${detailItems.length === 1 ? "Eintrag" : t("common.entries")} in ${selectedPlace}`
                     : "Echte Orte aus HUI-Profilen, Werken & Erlebnissen"}
                 </div>
               </div>

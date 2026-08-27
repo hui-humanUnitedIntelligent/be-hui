@@ -16,6 +16,7 @@ import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -103,7 +104,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
   // ── Submit ───────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!title.trim()) { setError("Bitte gib eine Überschrift ein."); return; }
+    if (!title.trim()) { setError(t("ipu.titlePrompt")); return; }
     if (!projectId)    { setError("Projekt-ID fehlt."); return; }
     if (!authorId)     { setError("Du musst angemeldet sein."); return; }
 

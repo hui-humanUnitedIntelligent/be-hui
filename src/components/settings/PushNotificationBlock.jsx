@@ -6,10 +6,11 @@
 import { useState, useEffect } from "react";
 import { loadPushSettingsFull, setPushEnabled, setPushCategory } from "../../lib/pushNotificationService.js";
 import { Capacitor } from "@capacitor/core";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CATEGORIES = [
   { key: "push_buchungen",    apiKey: "buchungen",    label: "Buchungen",      hint: "Termine, die du gebucht hast oder bei dir gebucht wurden" },
-  { key: "push_kauf_verkauf", apiKey: "kauf_verkauf", label: "Kauf & Verkauf", hint: "Bestellungen, Verkäufe und Unterstützungen" },
+  { key: "push_kauf_verkauf", apiKey: "kauf_verkauf", label: "Kauf & Verkauf", hint: t("push.ordersSales") },
   { key: "push_informativ",   apiKey: "informativ",   label: "Informativ",     hint: "Kommentare, Freigaben, Team-Nachrichten und mehr" },
 ];
 
@@ -45,6 +46,7 @@ function CategoryToggle({ label, hint, value, disabled, onChange }) {
 }
 
 export default function PushNotificationBlock() {
+  const { t } = useTranslation();
   const [enabled, setEnabled] = useState(false);
   const [categories, setCategories] = useState({ push_buchungen: true, push_kauf_verkauf: true, push_informativ: true });
   const [loading, setLoading] = useState(true);
@@ -109,7 +111,7 @@ export default function PushNotificationBlock() {
           }}>
             {isNative
               ? enabled
-                ? "Du erhältst Benachrichtigungen für neue Nachrichten, Verbindungen und Aktivitäten."
+                ? t("push.notifDesc")
                 : "Aktiviere Push, um über neue Aktivitäten informiert zu werden."
               : "Push-Benachrichtigungen sind nur in der HUI-App verfügbar."}
           </div>

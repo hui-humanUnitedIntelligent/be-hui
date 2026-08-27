@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", bgSheet:"#FDFCFB",
@@ -26,7 +27,7 @@ const T = {
 const OPTIONS = [
   { key:"public",      icon:"🌍", label:"Öffentlich",   sub:"Für alle sichtbar" },
   { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:"Verbindungen", sub:"Nur für deine Verbindungen" },
-  { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur für dich" },
+  { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:t("vis.onlyYou") },
 ];
 
 export function VisibilitySection({

@@ -20,6 +20,7 @@ import { SearchService } from '../../services/db.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 import DesktopNotificationFlyout from './DesktopNotificationFlyout.jsx';
 import DesktopKalenderFlyout from './DesktopKalenderFlyout.jsx';
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Avatar Dropdown ──────────────────────────────────────────────────────────
 function AvatarDropdown({ profile, onNavigate, onLogout, onClose }) {
@@ -59,7 +60,7 @@ function SearchDropdown({ results, loading, onSelect, onClose }) {
       <div className="hd-dropdown-backdrop" onClick={onClose} />
       <div className="hd-search-dropdown">
         {loading ? (
-          <div className="hd-search-status">Suche läuft…</div>
+          <div className="hd-search-status">{t("common.searching")}</div>
         ) : total === 0 ? (
           <div className="hd-search-status">Keine Ergebnisse gefunden.</div>
         ) : (
@@ -120,6 +121,7 @@ function CalendarIcon() {
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
 export default function DesktopHeader({ onCommandPalette, chatOpen, onChatChange, chatUnread = 0 }) {
+  const { t } = useTranslation();
   usePerfMount('DesktopHeader');
   const navigate = useNavigate();
   const { profile, logout } = useAuth();

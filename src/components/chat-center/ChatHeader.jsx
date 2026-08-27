@@ -7,11 +7,13 @@ import React, { useState } from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatPresence } from "../../lib/usePresence.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
-  const name           = getFullDisplayName(conv?.other_profile) || conv?.name || "Gespräch";
+  const { t } = useTranslation();
+  const name           = getFullDisplayName(conv?.other_profile) || conv?.name || t("chat.conversation");
   const rawTalent      = conv?.talent || conv?.type || null;
   const talent         = (rawTalent && rawTalent !== "public") ? rawTalent : null;
   const mood           = conv?.mood   || "Gerade kreativ im Studio";
@@ -159,7 +161,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
                 textAlign:"left", fontSize:14, color:"rgba(220,60,60,0.8)", cursor:"pointer",
                 WebkitTapHighlightColor:"transparent",
               }}
-            >✕ Löschen</button>
+            >{t("common.delete")}</button>
           </div>
         )}
 
@@ -176,11 +178,11 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
             <div style={{
               fontSize:13.5, color:C.ink, fontWeight:600,
               marginBottom:6, lineHeight:1.4,
-            }}>Chat unwiderruflich löschen?</div>
+            }}>{t("chat.deleteConfirm")}</div>
             <div style={{
               fontSize:12, color:C.muted, lineHeight:1.5,
               marginBottom:14,
-            }}>Alle Nachrichten werden entfernt und können nicht wiederhergestellt werden.</div>
+            }}>{t("chat.deleteWarning")}</div>
             <div style={{ display:"flex", gap:8 }}>
               <button
                 onClick={() => { setConfirmDelete(false); setMenuOpen(false); }}

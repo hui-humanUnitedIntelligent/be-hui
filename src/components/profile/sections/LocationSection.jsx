@@ -9,6 +9,7 @@ import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect } from "react";
 import { useProfileLocations } from "../../../hooks/useProfileLocations.js";
 import { searchPlaces } from "../../../lib/geocoding.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bgCard:"#FFFFFF", ink:"#1A1A18", inkSoft:"#4A4A45", inkFaint:"#8C8C85",
@@ -104,7 +105,7 @@ export function LocationSection({
                 </span>
                 {loc.is_primary && locations.length > 1 && (
                   <span style={{ fontSize:9, fontWeight: 600, color:T.teal, background:T.tealSoft,
-                    padding:"2px 6px", borderRadius:T.r99, flexShrink:0 }}>Primär</span>
+                    padding:"2px 6px", borderRadius:T.r99, flexShrink:0 }}>{t("loc.primary")}</span>
                 )}
                 {isOwner && (
                   confirmDelete === loc.id ? (
@@ -141,7 +142,7 @@ export function LocationSection({
                 borderRadius:T.r12, background:"rgba(26,26,24,0.03)", border:`1px solid ${T.border}`,
                 cursor:"pointer", width:"100%", fontFamily:"inherit" }}>
               <HUILocationIcon size={14} style={{flexShrink:0, color:"rgba(14,196,184,0.6)"}} />
-              <span style={{ fontSize:11.5, color:T.inkFaint }}>Standort hinzufügen</span>
+              <span style={{ fontSize:11.5, color:T.inkFaint }}>{t("loc.addLocation")}</span>
             </button>
           ) : (
             <div style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 8px",

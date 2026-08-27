@@ -5,6 +5,7 @@ import { isProfileTalent } from './profileUtils.js';
 import { clearMemoryStore } from "./intelligence/persistence/interactionMemoryStore.js";
 import { getAuthRedirectUrl } from "./platform.js";
 import { FIELDS, PROFILE_FIELDS } from "./perfUtils";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 const AuthContext = createContext(null);
 
@@ -309,7 +310,7 @@ export function AuthProvider({ children }) {
 
   const noopAsync = async (methodName) => ({
     data: null,
-    error: new Error('[HUI Auth] ' + methodName + ' nicht verfügbar')
+    error: new Error('[HUI Auth] ' + methodName + ' t("auth.notAvailable")')
   });
 
   const signInWithGoogle = useCallback(async () => {

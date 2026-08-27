@@ -415,7 +415,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   die "Interessen & Werte"-Sektion (InteressenSection.jsx). Bearbeitung
                   dort im eigenen Profil, nicht hier. */}
 
-              {/* "Verfügbarkeit" entfernt 2026-08-07 — Duplikat der bereits live
+              {/* t("common.availability") entfernt 2026-08-07 — Duplikat der bereits live
                   funktionierenden AvailabilitySection.jsx (profiles.is_available),
                   direkt im eigenen Profil (MyBasisProfile.jsx/TalentProfilePage.jsx)
                   editierbar. Ein Speichern hier hätte denselben Wert nur redundant

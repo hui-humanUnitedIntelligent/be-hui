@@ -1,5 +1,5 @@
 // GemeinsamErmoeglichtAllModal.jsx — "Alle X ansehen" für abgeschlossene
-// Impact-Projekte (Gemeinsam ermöglicht-Sektion in ImpactPage).
+// Impact-Projekte ({t("gem.communityEnabled")}-Sektion in ImpactPage).
 // Gleiches UI-Muster wie WerkeAllModal / TalenteAllModal / ProjekteAllModal
 // (Portal, zIndex 10500, 2-spaltiges Grid, Suche + Sortierung, Infinite Scroll).
 import { createPortal } from "react-dom";
@@ -9,6 +9,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE, formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -43,7 +44,7 @@ function FundedProjectCardItem({ p, onPress }) {
           position:"absolute", top:8, left:8,
           background:"linear-gradient(135deg,#10B981,#059669)", color:"#fff", borderRadius:99,
           fontSize:9.5, fontWeight:600, padding:"2px 8px"
-        }}>Vollständig finanziert</div>
+        }}>{t("gem.fullyFunded")}</div>
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
         <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:2,
@@ -64,6 +65,7 @@ function FundedProjectCardItem({ p, onPress }) {
 }
 
 export default function GemeinsamErmoeglichtAllModal({ isOpen, onClose, onPressItem }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "GemeinsamErmoeglichtAllModal");
   const [items, setItems]       = useState([]);

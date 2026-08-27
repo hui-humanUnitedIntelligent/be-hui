@@ -11,6 +11,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { APP_VERSION } from "../../version.js";
 import BugIcon from "./BugIcon.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const MAX_FILES = 10;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "video/mp4"];
@@ -135,7 +136,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
           description: description.trim(),
           status: "offen",
           category: "Fehlermeldung",
-          source: "Bug-Käfer",
+          source: t("bug.title"),
         })
         .select("id")
         .single();
@@ -249,7 +250,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
           </div>
           <button
             onClick={handleClose}
-            aria-label="Schließen"
+            aria-label={t("common.close")}
             style={{
               width: 32, height: 32, borderRadius: "50%",
               border: "none", background: "rgba(0,0,0,0.06)",
@@ -296,7 +297,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                 fontSize: 14, fontWeight: 600, fontFamily: "Inter, sans-serif",
                 cursor: "pointer",
               }}
-            >Schließen</button>
+            >{t("common.close")}</button>
           </div>
         ) : (
           /* Form */
@@ -312,7 +313,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
               <textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                placeholder="Was ist passiert? Wo? Wann? Schreibe so genau wie möglich…"
+                placeholder={t("bug.placeholder")}
                 rows={5}
                 style={{
                   width: "100%", padding: "12px 14px", borderRadius: 12,

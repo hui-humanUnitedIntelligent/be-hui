@@ -13,6 +13,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -40,6 +41,7 @@ async function sendNotification(userId, type, title, body, actionUrl) {
 }
 
 export default function StudioFreigaben() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subTab, setSubTab] = useState('pending');
@@ -219,7 +221,7 @@ export default function StudioFreigaben() {
         <div style={{
           padding: '24px', borderRadius: 16, background: C.white, border: `1px solid ${C.border}`,
           fontSize: 14, color: C.muted, textAlign: 'center',
-        }}>Alles erledigt. Danke für deine Sorgfalt.</div>
+        }}>{t("sf.allDone")}</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {items.map(item => (

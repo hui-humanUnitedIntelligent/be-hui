@@ -8,10 +8,12 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant"];
 
 export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuccess }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "ImpactUpdateSheet");
   const [title, setTitle] = React.useState("");
   const [content, setContent] = React.useState("");
@@ -277,7 +279,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
               fontFamily: "inherit",
             }}
           >
-            {saving ? "⏳ Wird gespeichert..." : "✅ Update veröffentlichen"}
+            {saving ? "⏳ Wird gespeichert..." : t("ius.publishUpdate")}
           </button>
         </div>
       </div>

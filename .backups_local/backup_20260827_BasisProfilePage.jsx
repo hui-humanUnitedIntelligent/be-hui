@@ -1,0 +1,738 @@
+import React, { Suspense } from "react";
+import { makeChunkReload } from "../lib/chunkReload.js";
+
+import { HUIChatIcon } from '../design/icons/HuiInteractionIcons.jsx';
+import { HUIImpactIcon, HUISettingsIcon, HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
+// src/pages/BasisProfilePage.jsx — HUI BasisUser Public Profile v2
+// "Öffentliches Profil 🌿 — {t("bpp.getToKnowMe")}"
+// ════════════════════════════════════════════════════════════════
+// Screenshot-exact rebuild — May 2026
+// Structure:
+//   Header (back + title + menu)
+//   Cinematic cover + floating avatar
+//   Name + location + openness status
+//   Bio (italic, centered)
+//   Interests grid (2-row, 3-col pills)
+//   Momente (horizontal cinematic thumbnails)
+//   Offen für Begegnungen (capsules + Weiteres)
+//   Sichtbarkeit (lock + text + "Mehr erfahren" pill)
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
+//   Social context bar (Verbindungen · Begegnungen · Momente)
+// ════════════════════════════════════════════════════════════════
+
+import { useState, useEffect, useCallback } from 'react';
+import { useProfileData } from "../hooks/useProfileData.js";
+import { useAuth }   from "../lib/AuthContext.jsx";
+import { useHome }   from "../components/home/HomeShell.jsx";
+import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
+// SettingsModal direkt importiert (kein lazy/Suspense — verhindert Blank-Page/Klick-Bug)
+// HuiStudio direkt importiert (kein lazy/Suspense)
+import { supabase }   from "../lib/supabaseClient.js";
+import { useTranslation } from "../hooks/useTranslation.js";
+// Sprint F.5.3: kanonische Sections
+import { AboutSection }           from "../components/profile/sections/AboutSection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
+// OrbSignatur lazy — verhindert Blockierung des BasisProfilePage-Renders (89K-Chunk)
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import SettingsModal from "../components/settings/SettingsModal.jsx";
+import HuiStudio from "../components/studio/HuiStudio.jsx";
+
+// ── Tokens ───────────────────────────────────────────────────────
+const T = {
+  bg:       "#F7F5F0",
+  bgCard:   "#FFFFFF",
+  bgSheet:  "rgba(252,251,248,0.98)",
+  teal:     "#0EC4B8",
+  tealSoft: "rgba(14,196,184,0.10)",
+  tealMid:  "rgba(14,196,184,0.22)",
+  ink:      "#1A1A18",
+  inkSoft:  "rgba(26,26,24,0.52)",
+  inkFaint: "rgba(26,26,24,0.28)",
+  border:   "rgba(26,26,24,0.08)",
+  borderMid:"rgba(26,26,24,0.13)",
+  px: 20,
+  r12:12, r16:16, r20:20, r24:24, r99:99,
+  card:  "0 1px 8px rgba(26,26,24,0.07), 0 1px 2px rgba(26,26,24,0.04)",
+  sheet: "0 -10px 40px rgba(26,26,24,0.10)",
+};
+
+const CSS = `
+  .bpp-root { background:${T.bg}; font-family:Inter,sans-serif; color:${T.ink}; }
+  .bpp-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .bpp-scroll::-webkit-scrollbar { display:none; }
+  .bpp-hscroll { overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .bpp-hscroll::-webkit-scrollbar { display:none; }
+  @keyframes bpp-fade-up  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes bpp-slide-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  @keyframes bpp-shimmer  { from{background-position:-200% 0} to{background-position:200% 0} }
+  .bpp-skeleton {
+    background:linear-gradient(90deg,rgba(26,26,24,.05) 25%,rgba(26,26,24,.09) 50%,rgba(26,26,24,.05) 75%);
+    background-size:200% 100%; animation:bpp-shimmer 1.4s ease-in-out infinite; border-radius:8px;
+  }
+  .bpp-press { transition:transform .12s cubic-bezier(.22,1,.36,1),opacity .12s ease; }
+  .bpp-press:active { transform:scale(0.94); opacity:0.75; }
+  .bpp-press-light { transition:transform .14s ease,opacity .14s ease; }
+  .bpp-press-light:active { transform:scale(0.97); opacity:0.82; }
+  .bpp-in { animation:bpp-fade-up .45s ease both; }
+  .bpp-sheet { animation:bpp-slide-up .28s cubic-bezier(.22,1,.36,1) both; }
+`;
+
+const s  = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
+const a  = (v) => Array.isArray(v) ? v : [];
+const delay = (n, i) => ({ animationDelay: `${i * n}ms` });
+
+const FB_COVER = "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1200&q=80";
+const FB_AVT   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80";
+
+const getDefaultInterests = (t) => [
+  { icon:"🌿", label: t("bpp.interestNature")        },
+  { icon:"🎵", label: t("bpp.interestMusic")        },
+  { icon:"☕", label: t("bpp.interestEncounters")  },
+  { icon:"🧘", label: t("bpp.interestCalm")         },
+  { icon:"🐾", label: t("bpp.interestAnimals")        },
+  { icon:"✨", label: t("bpp.interestCreativity")  },
+];
+
+const getDefaultOpenFor = (t) => [
+  { icon:"🌲", label: t("bpp.openNatureGroups")     },
+  { icon:"🎵", label: t("bpp.openMusicNights")      },
+  { icon:"☕", label: t("bpp.openCafeTalks") },
+  { icon:"🧘", label: t("bpp.openMindfulness")      },
+];
+
+
+// ── Atoms ────────────────────────────────────────────────────────
+function Gap({ h=16 }) { return <div style={{ height:h }}/>; }
+function Divider({ mx=T.px }) {
+  return <div style={{ height:1, background:T.border, margin:`0 ${mx}px` }}/>;
+}
+
+function Skeleton({ w, h, r=8, style={} }) {
+  return <div className="bpp-skeleton" style={{ width:w, height:h, borderRadius:r, flexShrink:0, ...style }}/>;
+}
+
+// ── Sheet overlay ─────────────────────────────────────────────────
+function Sheet({ onClose, children }) {
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
+      background:"rgba(26,26,24,0.4)", display:"flex", alignItems:"flex-end",
+    }}>
+      <div className="bpp-sheet" onClick={e=>e.stopPropagation()} style={{
+        width:"100%", background:T.bgSheet,
+        borderRadius:`${T.r24}px ${T.r24}px 0 0`,
+        padding:"20px 20px max(36px,calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
+        boxShadow:T.sheet, maxHeight:"78vh", overflowY:"auto",
+      }}>
+        <div style={{width:36,height:4,borderRadius:99,background:T.borderMid,margin:"0 auto 20px"}}/>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// HEADER — sticky nav bar: ‹ · "Öffentliches Profil 🌿" · ···
+// ══════════════════════════════════════════════════════════════════
+function NavBar({ onBack, isOwner = false, onSettings }) {
+  const { t } = useTranslation();
+  return (
+    <div style={{
+      display:"flex", alignItems:"center", justifyContent:"space-between",
+      // SAFE-AREA-TOP-FIX (2026-08-10): 3-Ebenen-Fallback wie NAV_SAFE_BOTTOM_CSS
+      padding:`max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) ${T.px}px 10px`,
+      background:T.bg,
+    }}>
+      {/* Back */}
+      <button className="bpp-press" onClick={onBack} style={{
+        width:36, height:36, borderRadius:"50%",
+        background:T.bgCard, border:`1px solid ${T.border}`,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        fontSize:16, cursor:"pointer", touchAction:"manipulation",
+        boxShadow:T.card, color:T.ink,
+      }}>‹</button>
+
+      {/* Title */}
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontSize:16, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em",
+          display:"flex", alignItems:"center", gap:6, justifyContent:"center" }}>
+          <span style={{display:"flex",alignItems:"center",gap:5}}>{t("bpp.publicProfile")}<HUIImpactIcon size={15} style={{color:"rgba(14,196,184,0.7)"}}/></span>
+        </div>
+        <div style={{ fontSize:11.5, color:T.inkFaint, fontWeight:400, marginTop:1 }}>
+          {t("bpp.getToKnowMe")}
+        </div>
+      </div>
+
+      {/* Rechts: ⚙️ für Owner, ··· für Besucher */}
+      {isOwner ? (
+        <button className="bpp-press" onClick={onSettings} style={{
+          width:36, height:36, borderRadius:"50%",
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:17, cursor:"pointer", touchAction:"manipulation",
+          boxShadow:T.card, color:T.ink,
+        }}><HUISettingsIcon size={17}/></button>
+      ) : (
+        <button className="bpp-press-light" style={{
+          width:36, height:36, borderRadius:"50%",
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:18, cursor:"pointer", touchAction:"manipulation",
+          boxShadow:T.card, color:T.ink, letterSpacing:"1px",
+        }}>···</button>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// CINEMATIC HERO — full-width cover + floating centered avatar
+// ══════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════
+// IDENTITY — name + location + openness + bio
+// ══════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════
+// INTERESTS — 2-row, 3-col soft pill grid (exact to screenshot)
+// ══════════════════════════════════════════════════════════════════
+function InterestsGrid({ profile, loading }) {
+  const { t } = useTranslation();
+  const DEFAULT_INTERESTS = getDefaultInterests(t);
+  const rawInterests = a(profile?.skills); // Persistiert via skills-Spalte
+  const tags = rawInterests.length
+    ? DEFAULT_INTERESTS.filter(t => rawInterests.includes(t.label))
+    : DEFAULT_INTERESTS;
+
+  if (loading) {
+    return (
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, padding:`0 ${T.px}px` }}>
+        {[0,1,2,3,4,5].map(i=><Skeleton key={i} w="100%" h={42} r={T.r99}/>)}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8, padding:`0 ${T.px}px` }}>
+      {tags.map((t, i) => (
+        <div key={i} className="bpp-press-light bpp-in" style={{ ...delay(60, i),
+          display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          padding:"11px 12px", borderRadius:T.r99,
+          background:T.bgCard, border:`1px solid ${T.border}`,
+          fontSize:13, fontWeight:600, color:T.ink,
+          boxShadow:T.card, cursor:"default",
+        }}>
+          <span style={{fontSize:15}}>{t.icon}</span>{t.label}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
+function OffenFuerSection({ profile, loading }) {
+  const { t } = useTranslation();
+  const [showMore, setShowMore] = useState(false);
+  const DEFAULT_OPEN_FOR = getDefaultOpenFor(t);
+  const tags = DEFAULT_OPEN_FOR;
+
+  return (
+    <div style={{ padding:`0 ${T.px}px` }}>
+      {/* Section header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{t("bpp.openForEncounters")}</div>
+        <button className="bpp-press-light" onClick={()=>setShowMore(true)} style={{
+          background:"none", border:"none", padding:0,
+          fontSize:12, color:T.teal, fontWeight: 600,
+          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          display:"flex", alignItems:"center", gap:3,
+        }}>{t("bpp.moreInfo")}</button>
+      </div>
+
+      {loading ? (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {[0,1,2,3].map(i=><Skeleton key={i} w={130} h={40} r={T.r99}/>)}
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+          {tags.map((t, i) => (
+            <div key={i} className="bpp-press-light bpp-in" style={{ ...delay(60, i),
+              display:"inline-flex", alignItems:"center", gap:7,
+              padding:"10px 16px", borderRadius:T.r99,
+              background:T.bgCard, border:`1px solid ${T.border}`,
+              fontSize:13, fontWeight:600, color:T.ink,
+              boxShadow:T.card, cursor:"default",
+            }}>
+              <span style={{fontSize:14}}>{t.icon}</span>{t.label}
+            </div>
+          ))}
+          {/* Weiteres pill */}
+          <button className="bpp-press-light" onClick={()=>setShowMore(true)} style={{
+            display:"inline-flex", alignItems:"center", gap:6,
+            padding:"10px 16px", borderRadius:T.r99,
+            background:"transparent", border:`1px dashed ${T.borderMid}`,
+            fontSize:13, fontWeight:600, color:T.inkSoft,
+            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          }}>
+            <span>+</span> {t("bpp.more")}
+          </button>
+        </div>
+      )}
+
+      {showMore && (
+        <Sheet onClose={()=>setShowMore(false)}>
+          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>☕ {t("bpp.openForEncounters")}</div>
+          <div style={{ fontSize:13.5, color:T.inkSoft, marginBottom:20, lineHeight:1.65,
+            fontFamily:"Georgia,serif", fontStyle:"italic" }}>
+            {t("bpp.openForSheetDesc")}
+          </div>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
+            {[...DEFAULT_OPEN_FOR, {icon:"🌍",label:"Reisen"}, {icon:"🎨",label:"Kunst & Kultur"}].map((t,i)=>(
+              <div key={i} style={{
+                display:"inline-flex", alignItems:"center", gap:7,
+                padding:"10px 16px", borderRadius:T.r99,
+                background:T.bgCard, border:`1px solid ${T.border}`,
+                fontSize:13, fontWeight:600, color:T.ink, boxShadow:T.card,
+              }}>
+                <span style={{fontSize:14}}>{t.icon}</span>{t.label}
+              </div>
+            ))}
+          </div>
+        </Sheet>
+      )}
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+// SOCIAL CONTEXT BAR — 3 soft columns: Verbindungen · Begegnungen · Momente
+// ══════════════════════════════════════════════════════════════════
+function SocialContextBar({ loading, followCounts }) {
+  // P4: Nur echte Daten — hardcoded Begegnungen/Momente entfernt
+  const stats = [
+    { icon:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Followers" },
+    { icon:"🤝", value: loading ? "–" : String(followCounts?.following ?? 0), label:"Folgt"     },
+  ];
+
+  return (
+    <div style={{
+      display:"grid", gridTemplateColumns:"repeat(3,1fr)",
+      background:T.bgCard, borderRadius:T.r20,
+      border:`1px solid ${T.border}`, margin:`0 ${T.px}px`,
+      boxShadow:T.card, overflow:"hidden",
+    }}>
+      {stats.map((st, i) => (
+        <div key={i} style={{
+          display:"flex", flexDirection:"column", alignItems:"center",
+          padding:"16px 8px",
+          borderRight: i < stats.length-1 ? `1px solid ${T.border}` : "none",
+        }}>
+          {loading ? (
+            <>
+              <Skeleton w={32} h={20} r={6} style={{ marginBottom:6 }}/>
+              <Skeleton w={48} h={12} r={4}/>
+            </>
+          ) : (
+            <>
+              <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:4 }}>
+                <span style={{ fontSize:16 }}>{st.icon}</span>
+                <span style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.03em" }}>{st.value}</span>
+              </div>
+              <span style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", lineHeight:1.35, fontWeight:400 }}>
+                {st.label}
+              </span>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ROOT
+// ══════════════════════════════════════════════════════════════════
+export default function BasisProfilePage({ profileId, onClose, publicView = false }) {
+  const { t } = useTranslation();
+  // Sprint F.5.2: eigener Loader → useProfileData (identisch zu TalentProfilePage)
+  const { user, setProfile: setAuthProfile } = useAuth();
+  const resolvedId = profileId || user?.id;
+
+  const {
+    profile,
+    moments,
+    recommendations,
+    followCounts,
+    loading,
+    loadingLazy,
+    loadLazy,
+    reload,
+  } = useProfileData(resolvedId);
+
+  // Owner-spezifische States
+  const [mounted,      setMounted]      = useState(false);
+  const [lazyLoaded,   setLazyLoaded]   = useState(false);
+  const [showSettings,    setShowSettings]    = useState(false);
+  const [showProfilEdit, setShowProfilEdit]   = useState(false);
+  const [showStudio,   setShowStudio]   = useState(false);
+
+  // isOwner: true wenn das eigene Profil angesehen wird
+
+  // Avatar/Cover-Update → AuthContext sofort + reload
+  const handleAvatarChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
+  const handleCoverChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
+  const isOwner = !publicView && (!!user?.id && (resolvedId === user.id));
+
+  useEffect(()=>{ const t=setTimeout(()=>setMounted(true),8); return()=>clearTimeout(t); },[]);
+
+  // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
+  useEffect(() => {
+    if (profile && !lazyLoaded) {
+      setLazyLoaded(true);
+      loadLazy();
+    }
+  }, [profile, lazyLoaded, loadLazy]);
+
+  // SADB: recommendation_profile_viewed
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase.from("commerce_events").insert({
+      event_type: "recommendation_profile_viewed",
+      actor_type: "user",
+      payload: { profile_owner_id: profile.id },
+    }).then(() => {});
+  }, [profile?.id]);
+
+  const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
+
+  // P3: Chat-Einstieg — Profil schließen DANN Chat öffnen
+  const { setShowChat, setChatRecipient } = useHome() || {};
+  const handleOpenChat = useCallback(() => {
+    if (!profile?.id || !setShowChat) return;
+    setChatRecipient?.({
+      id:           profile.id,
+      display_name: profile.display_name || profile.username || t("bpp.member"),
+      avatar_url:   profile.avatar_url || null,
+    });
+    if (onClose) onClose();   // Profil zuerst schließen
+    setShowChat(true);        // Dann Chat öffnen
+  }, [profile, setChatRecipient, setShowChat, onClose]);
+
+  // ── Sprint F.5.3 / F.9G.1: onSave-Handler + error-check ──
+  const handleBioSave = useCallback(async (bio) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ bio, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleBioSave:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  const handleLocationSave = useCallback(async (locationStr) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ location: locationStr, location_label: locationStr, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleLocationSave:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  const handleAvailabilitySave = useCallback(async (isAvailable) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleAvailabilitySave:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  // Sichtbarkeit — schreibt direkt in profiles.focus_type (Sprint F.9G.1)
+  const handleVisibilitySave = useCallback(async (visibility) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ focus_type: visibility, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleVisibilitySave:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  // Kein Blocking-Spinner mehr — Profil rendert sofort mit Skeleton
+  // Phase 1 (profile=null, loading=true) → CanonicalProfileHeader zeigt Skeleton
+  // Phase 2 (profile geladen) → Sections sichtbar
+
+  // Fehler-Guard: Profil konnte nicht geladen werden (gelöscht, Timeout, etc.)
+  // Aber nur wenn loading MAL true war (d.h. ein Load-Versuch stattfand)
+  // loading ist initial true (useProfileData) → dieser Guard feuert erst NACH dem Load
+  if (!loading && !profile) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"#F9F7F4",
+        display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center", gap:12,
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            position:"absolute", top:16, left:16,
+            background:"none", border:"none", fontSize:24, cursor:"pointer", color:"#6B7280",
+          }}
+        >←</button>
+        <div style={{ fontSize:40 }}>🔍</div>
+        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>{t("bpp.profileUnavailable")}</div>
+        <div style={{ fontSize:13, color:"#6B7280", textAlign:"center", maxWidth:260 }}>
+          {t("bpp.profileLoadFailed")}
+        </div>
+      </div>
+    );
+  }
+
+    return (
+    <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
+        <div className="bpp-root" style={{
+      position:"fixed", top:0, left:0, right:0,
+      bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
+      zIndex:10500, /* Portal-escaped: über allem (Portal Fix 2026-07-29). bottom sichert Navbar-Freiraum */
+      display:"flex", flexDirection:"column",
+      opacity:mounted?1:0,
+      transform:mounted?"none":"translateY(6px)",
+      transition:"opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1)",
+    }}>
+      <style>{CSS}</style>
+
+      {/* Sticky header */}
+      <NavBar onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
+
+      {/* P3: Chat-Button — nur für Besucher (nicht für Owner selbst) */}
+      {profile && !loading && !isOwner && (
+        <div style={{ position:"absolute", top:12, right:52, zIndex:10001 }}>
+          <button
+            className="bpp-press"
+            onClick={handleOpenChat}
+            style={{
+              width:38, height:38, borderRadius:"50%",
+              background:"#0EC4B8", border:"none", cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              boxShadow:"0 2px 10px rgba(14,196,184,0.35)",
+              touchAction:"manipulation",
+            }}
+          ><HUIChatIcon size={17}/></button>
+        </div>
+      )}
+
+      {/* Scrollable body */}
+      <div className="bpp-scroll" style={{ flex:1, overflowY:"auto", willChange:"transform", overscrollBehavior:"contain",
+        paddingBottom:"max(40px,calc(28px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))" }}>
+
+        {/* 1. Kanonischer ProfileHeader (Sprint F.9D) */}
+        <CanonicalProfileHeader
+          profile={profile}
+          isOwner={isOwner}
+          isTalent={!!profile?.is_talent}
+          loading={loading}
+          followCounts={followCounts}
+          onEditAvatar={handleAvatarChange}
+          onEditCover={handleCoverChange}
+        />
+        {resolvedId && (
+        <OrbSignatur profileId={resolvedId} />
+        )}
+        <Gap h={16}/>
+
+        {/* 3. Über dich — kanonisch (Sprint F.5.3) */}
+        <AboutSection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleBioSave}
+          />
+        <Gap h={16}/>
+
+        {/* Kundenstimmen — direkt unter Bio */}
+        <RecommendationsSection
+            recommendations={recommendations}
+            isOwner={isOwner}
+            loading={loadingLazy}
+            onShowAll={null}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+          />
+        <Gap h={24}/>
+
+        {/* 4. Interessen-Grid (Basis-spezifisch, skills als Display-Tags) */}
+        <InterestsGrid profile={profile} loading={loading}/>
+        <Gap h={28}/>
+
+        {/* 5. Momente — kanonisch MomentsSection (Sprint F.5.3) */}
+        <MomentsSection
+            moments={moments}
+            isOwner={isOwner}
+            loading={loadingLazy}
+          />
+        <Gap h={28}/>
+
+        {/* 6. Offen für Begegnungen (Basis-spezifisch, hardcoded Tags) */}
+        <OffenFuerSection profile={profile} loading={loading}/>
+        <Gap h={28}/>
+
+
+
+        {/* 8. Standort — kanonisch (Sprint F.5.3) */}
+        <LocationSection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleLocationSave}
+          />
+        <Gap h={20}/>
+
+        {/* 9. Sichtbarkeit — kanonisch VisibilitySection (Sprint F.9G.1: onSave) */}
+        <VisibilitySection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleVisibilitySave}
+          />
+        <Gap h={24}/>
+
+
+
+        {/* Verbinden + Folgen — nur für Fremdprofile */}
+        {!isOwner && (
+          <ProfileRelationButtons
+            profileId={resolvedId || profile?.id}
+            currentUserId={user?.id}
+            profile={profile}
+            onClose={onClose}
+          />
+        )}
+
+        {/* 11. Social context bar (Basis-spezifisch, followCounts) */}
+        <SocialContextBar loading={loading} followCounts={followCounts}/>
+        <Gap h={24}/>
+
+        {/* 8. "Mein HUI" — nur für Owner sichtbar */}
+        {isOwner && (
+          <div style={{ padding:`0 ${T.px}px`, marginBottom:32 }}>
+            {/* Divider */}
+            <div style={{ height:1, background:T.border, marginBottom:24 }}/>
+
+            {/* CTA-Karte */}
+            <div style={{
+              background:T.bgCard,
+              borderRadius:T.r20,
+              border:`1px solid ${T.border}`,
+              boxShadow:T.card,
+              padding:"20px",
+              display:"flex", flexDirection:"column", gap:14,
+            }}>
+              {/* Titel */}
+              <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                <HUIImpactIcon size={22} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
+                <div>
+                  <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+                    {t("bpp.myHUI")}
+                  </div>
+                  <div style={{ fontSize:11.5, color:T.inkFaint, marginTop:1 }}>
+                    {t("bpp.manageProfile")}
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons-Reihe */}
+              <div style={{ display:"flex", gap:10 }}>
+                {/* Profil bearbeiten → SettingsModal */}
+                <button className="bpp-press" onClick={() => setShowSettings(true)} style={{
+                  flex:1, padding:"12px 10px", borderRadius:T.r16,
+                  background:`linear-gradient(135deg,#0EC4B8,#0DBBAF)`,
+                  border:"none", cursor:"pointer", touchAction:"manipulation",
+                  fontFamily:"inherit",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                  boxShadow:"0 4px 14px rgba(14,196,184,0.25)",
+                }}>
+                  <HUISettingsIcon size={20} />
+                  <span style={{ fontSize:11.5, fontWeight: 600, color:"white" }}>{t("bpp.settings")}</span>
+                </button>
+
+                {/* HUI Studio */}
+                <button className="bpp-press" onClick={() => setShowStudio(true)} style={{
+                  flex:1, padding:"12px 10px", borderRadius:T.r16,
+                  background:T.bgCard, border:`1.5px solid ${T.border}`,
+                  cursor:"pointer", touchAction:"manipulation",
+                  fontFamily:"inherit",
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+                  boxShadow:T.card,
+                }}>
+                  <span style={{ fontSize:20 }}>🎛️</span>
+                  <span style={{ fontSize:11.5, fontWeight: 600, color:T.ink }}>{t("bpp.huiStudio")}</span>
+                </button>
+              </div>
+
+              {/* Hinweis */}
+              <div style={{
+                display:"flex", alignItems:"center", gap:8,
+                padding:"10px 14px", borderRadius:T.r12,
+                background:"rgba(14,196,184,0.06)",
+                border:`1px solid rgba(14,196,184,0.15)`,
+              }}>
+                <HUISicherheitIcon size={14} style={{flexShrink:0}} />
+                <span style={{ fontSize:11.5, color:T.inkSoft, lineHeight:1.45 }}>
+                  So sieht dein Profil für andere aus. Bearbeite es über Einstellungen.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* ── Modals (nur Owner) ─────────────────────────────────── */}
+      {isOwner && showSettings && (
+        <SettingsModal
+            profile={profile}
+            onClose={() => setShowSettings(false)}
+            onEditProfile={() => {
+              setShowSettings(false);
+              setShowProfilEdit(true);
+            }}
+            onSave={(updated) => {
+              reload();           // Sprint F.5.2: reload statt lokales setProfile
+              setShowSettings(false);
+            }}
+          />
+        )}
+            {isOwner && showProfilEdit && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilEdit(false)}
+          onProfileUpdate={() => { reload(); setShowProfilEdit(false); }}
+        />
+      )}
+      {isOwner && showStudio && (
+        <HuiStudio
+            profile={profile}
+            onClose={() => setShowStudio(false)}
+          />
+        )}
+    </div>
+    </Suspense>
+  );
+}

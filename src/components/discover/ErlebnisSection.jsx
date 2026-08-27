@@ -8,6 +8,7 @@ import { HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIco
 import { optimizeCard } from "../../lib/perfUtils.js";
 import { HUIHeartIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { LocationRadiusRow } from "./TalentSection.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -123,7 +124,7 @@ export function ErlebnisseSection({
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-erlebnisse/>
       <SectionHead
-        title="Erlebnisse für dich"
+        title={t("erl.forYou")}
         sub="Workshops, Treffen, Kurse & besondere Momente."
         action="Alle Erlebnisse"
         onAction={onSectionAction}
@@ -146,7 +147,7 @@ export function ErlebnisseSection({
                 </div>
               ))
             : erlebnisse.length === 0
-            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Erlebnisse in deiner Nähe.</div>
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>{t("erl.emptyNearby")}</div>
             : erlebnisse.map((e, i) => <ErlebnisCardM key={e.id} erlebnis={e} delay={i*35+delay} onPress={onPress} />)
           }
         </div>

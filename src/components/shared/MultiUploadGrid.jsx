@@ -2,7 +2,7 @@
 // ══════════════════════════════════════════════════════════════════════
 // UNIVERSELLES MULTI-UPLOAD-GRID (2026-08-20, Michael-Vorgabe)
 // Zeigt bis zu 10 ausgewählte Bilder/Videos als Thumbnail-Grid mit
-// Remove-Buttons + "Hinzufügen"-Kachel. Wird überall in der App
+// Remove-Buttons + t("common.add")-Kachel. Wird überall in der App
 // eingesetzt wo Uploads stattfinden — Wizards, Momente, Bug-Report, etc.
 //
 // Design: 3-spaltiges Grid, quadratische Tiles, HUI-Design-System.
@@ -10,6 +10,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import React, { useRef, useCallback } from "react";
 import { UPLOAD_LIMITS, isVideoFile, isImageFile, processFileSelection } from "../../lib/uploadUtils.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL = "#0EC4B8";
 const CORAL = "#FF6F61";

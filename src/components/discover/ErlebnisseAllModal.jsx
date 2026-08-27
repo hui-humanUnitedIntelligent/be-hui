@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -93,6 +94,7 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
 }
 
 export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "ErlebnisseAllModal");
   const { openCreatorProfile } = useProfileLauncher();
@@ -201,7 +203,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Erlebnisse für dich</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("erl.forYou")}</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Workshops, Treffen, Kurse & mehr</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>

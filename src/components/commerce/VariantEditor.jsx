@@ -2,6 +2,7 @@
 // VARIANTS-001: Reusable variant editor for works, experiences, talents
 // Additive — only shows when user explicitly adds variants
 import React, { useState } from "react";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -52,7 +53,7 @@ export default function VariantEditor({ variants = [], onChange = () => {} }) {
           justifyContent: "center", gap: 8, marginTop: 12,
         }}
       >
-        <span style={{ fontSize: 18 }}>＋</span> Varianten hinzufügen
+        <span style={{ fontSize: 18 }}>＋</span> {t("variant.add")}
       </button>
     );
   }
@@ -121,7 +122,7 @@ export default function VariantEditor({ variants = [], onChange = () => {} }) {
             type="text"
             name={`variant-name-${v.id}`}
             autoComplete="off"
-            placeholder="Name (z.B. Größe M, Edition Gold, Digital)"
+            placeholder={t("variant.namePlaceholder")}
             value={v.name}
             onChange={(e) => updateVariant(idx, "name", e.target.value)}
             style={{
@@ -191,7 +192,7 @@ export default function VariantEditor({ variants = [], onChange = () => {} }) {
             border: `1px solid ${BORDER}`, background: "transparent",
             color: INK, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
           }}
-        >Keine Varianten — schließen</button>
+        >{t("variant.empty")}</button>
       )}
     </div>
   );

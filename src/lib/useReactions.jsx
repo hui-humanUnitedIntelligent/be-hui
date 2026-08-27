@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase }   from "./supabaseClient.js";
 import { useAuth }    from "./AuthContext.jsx";
 import { createNotification } from "./notificationService.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 // ── useSingleReaction ─────────────────────────────────────────
 // postId: uuid of the post/work/experience
@@ -149,7 +150,7 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
               recipientId: authorId,
               senderId:    user.id,
               type:        "resonanz",
-              title:       "Jemand lässt sich von dir inspirieren",
+              title:       t("react.inspired"),
               body:        _body,
               entityId:    postId,
               entityType:  postType,

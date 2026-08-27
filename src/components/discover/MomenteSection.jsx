@@ -7,6 +7,7 @@ import { HUILogo } from "../brand/HUILogo.jsx";
 import { HUIAnsichtIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { HUIHeartIcon, HUIChatIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -100,7 +101,7 @@ export function MomenteSection({ momente=[], loading, delay=0, view='cards', onP
                 </div>
               ))
             : momente.length === 0
-            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Momente in deiner Nähe.</div>
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>{t("mom.emptyNearby")}</div>
             : momente.map((m, i) => <MomentCard key={m.id} moment={m} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
           }
         </div>

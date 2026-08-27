@@ -1,0 +1,406 @@
+// src/components/profile/ProfileHeader.jsx
+// ══════════════════════════════════════════════════════════════════════
+// UNIFIED PROFILE HEADER — Sprint B (Redesign: luftig / offen / 2026-07-19)
+// ══════════════════════════════════════════════════════════════════════
+
+import {
+  HUILocationIcon, HUITalentIcon, HUIImpactIcon,
+  HUILinkIcon,
+} from '../../design/icons/HuiSystemIcons.jsx';
+import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
+import { UPLOAD_LIMITS, MAX_IMAGE_BYTES } from "../../lib/uploadUtils.js";
+import {
+  FB_COVER, FB_AVATAR,
+  sv,
+  handleAvatarUpload, handleCoverUpload,
+} from "../../lib/profileMedia.js";
+import { optimizeCover, optimizeAvatar } from "../../lib/perfUtils.js";
+
+const FB_AVT = FB_AVATAR;
+
+// Design-Tokens (inline)
+const T = {
+  bg:       "#F7F5F0",
+  ink:      "#1A1A18",
+  inkSoft:  "#4A4A45",
+  inkFaint: "#8C8C85",
+  teal:     "#0EC4B8",
+  tealMid:  "rgba(14,196,184,0.30)",
+  tealSoft: "rgba(14,196,184,0.10)",
+  border:   "rgba(26,26,18,0.09)",
+};
+
+function Sk({ w, h, r = 8 }) {
+  return (
+    <div style={{
+      width: w, height: h, borderRadius: r, flexShrink: 0,
+      background: "linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+      backgroundSize: "200% 100%",
+      animation: "ph-shimmer 1.4s ease-in-out infinite",
+    }}/>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// ProfileHeader
+// ══════════════════════════════════════════════════════════════════════
+export function ProfileHeader({
+  profile      = null,
+  isOwner      = false,
+  isTalent     = false,
+  loading      = false,
+  followCounts = { followers: 0, following: 0 },
+  onEditAvatar = null,
+  onEditCover  = null,
+}) {
+  const [coverLoaded,     setCoverLoaded]     = useState(false);
+  const [avatarLoaded,    setAvatarLoaded]    = useState(false);
+  const coverImgRef  = useRef(null);
+  const avatarImgRef = useRef(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [coverUploading,  setCoverUploading]  = useState(false);
+
+  const avatarInputRef = useRef(null);
+  const coverInputRef  = useRef(null);
+
+  const cover    = optimizeCover(sv(profile?.header_img, FB_COVER));
+  const avatar   = optimizeAvatar(sv(profile?.avatar_url, FB_AVT));
+
+  // ── HEADER-IMG-DELAY-FIX (2026-08-07) ─────────────────────────────
+  // Root Cause: Cover/Avatar starteten immer bei opacity:0 und faded
+  // über 1,1s (Cover) / 0,5s (Avatar) ein — dadurch war der dunkelgrün/
+  // türkise Gradient-Hintergrund des Cover-Containers bis zu 1-1,5s lang
+  // sichtbar, selbst wenn das Bild bereits im Browser-Cache lag (z.B.
+  // bei jedem erneuten Öffnen desselben Profils).
+  // Fix: (1) Browser-Preload-Hint für Cover+Avatar sobald die URL bekannt
+  // ist -> Bild ist meist schon im Cache bevor <img> überhaupt gerendert
+  // wird. (2) Beim Mount/Update wird img.complete synchron geprüft
+  // (useLayoutEffect) -> wenn bereits geladen (Cache-Hit), wird der
+  // Loaded-State SOFORT ohne Fade-Transition gesetzt. (3) Die Fade-Dauer
+  // für echte Netzwerk-Ladevorgänge wurde von 1,1s/0,5s auf 0,25s/0,2s
+  // reduziert -- lang genug für einen sanften Übergang, kurz genug um
+  // nicht mehr als "Verzögerung" wahrgenommen zu werden.
+  useEffect(() => {
+    if (!cover) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as  = "image";
+    link.href = cover;
+    document.head.appendChild(link);
+    return () => { document.head.removeChild(link); };
+  }, [cover]);
+
+  useEffect(() => {
+    if (!avatar) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as  = "image";
+    link.href = avatar;
+    document.head.appendChild(link);
+    return () => { document.head.removeChild(link); };
+  }, [avatar]);
+
+  // Cache-Hit-Erkennung: wenn das <img>-Element bereits vollständig
+  // geladen ist (naturalWidth>0), sofort ohne Fade anzeigen -- das
+  // onLoad-Event feuert bei bereits gecachten Bildern oft zu spät oder
+  // inkonsistent zwischen Browsern, was die gefühlte Verzögerung erklärt.
+  useLayoutEffect(() => {
+    if (coverImgRef.current?.complete && coverImgRef.current?.naturalWidth > 0) {
+      setCoverLoaded(true);
+    }
+  }, [cover]);
+
+  useLayoutEffect(() => {
+    if (avatarImgRef.current?.complete && avatarImgRef.current?.naturalWidth > 0) {
+      setAvatarLoaded(true);
+    }
+  }, [avatar]);
+  const name     = sv(profile?.full_name || profile?.display_name || profile?.username, "–");
+  const username = sv(profile?.username);
+  const location = sv(profile?.location_final || profile?.location);
+  const website  = sv(profile?.website);
+  const email    = sv(profile?.email);
+
+  const isTalentResolved = isTalent || profile?.is_talent === true;
+  const isSuperadmin     = ["admin","superadmin","super_admin"].includes(profile?.role);
+
+  // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
+  const badgeLabel = isSuperadmin ? "Superadmin" : isTalentResolved ? "HUI-Talent" : "Basis-Nutzer";
+
+  const handleAvatarFile = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_IMAGE_BYTES) { alert(`Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return; }
+    handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading });
+  }, [profile?.id, onEditAvatar]);
+
+  const handleCoverFile = useCallback((e) => {
+    const file = e.target.files?.[0];
+    if (file && file.size > MAX_IMAGE_BYTES) { alert(`Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return; }
+    handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onEditCover, setUploading: setCoverUploading });
+  }, [profile?.id, onEditCover]);
+
+  return (
+    <>
+      <style>{`
+        @keyframes ph-shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .ph-press { -webkit-tap-highlight-color: transparent; transition: opacity .12s ease; }
+        .ph-press:active { opacity: 0.65; }
+      `}</style>
+
+      <input ref={coverInputRef}  type="file" accept="image/*"
+        style={{ display:"none" }} onChange={handleCoverFile}  />
+      <input ref={avatarInputRef} type="file" accept="image/*"
+        style={{ display:"none" }} onChange={handleAvatarFile} />
+
+      {/* ── COVER ──────────────────────────────────────────────────── */}
+      <div style={{
+        position:"relative", width:"100%", height:200, overflow:"hidden",
+        background:"linear-gradient(160deg,#1A3530 0%,#2A5548 50%,#0EC4B8 100%)",
+      }}>
+        {loading ? (
+          <div style={{
+            position:"absolute", inset:0,
+            background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+            backgroundSize:"200% 100%",
+            animation:"ph-shimmer 1.4s ease-in-out infinite",
+          }}/>
+        ) : (
+          <img
+            ref={coverImgRef}
+            src={cover} alt="" loading="eager" decoding="async" fetchpriority="high"
+            onLoad={() => setCoverLoaded(true)}
+            onError={() => setCoverLoaded(true)}
+            style={{
+              width:"100%", height:"100%", objectFit:"cover", display:"block",
+              opacity: coverLoaded ? 0.88 : 0, transition:"opacity 0.25s ease",
+            }}
+          />
+        )}
+        {/* Gradient-Fade unten */}
+        <div style={{
+          position:"absolute", inset:0,
+          background:"linear-gradient(to bottom,transparent 35%,rgba(247,245,240,0.85) 100%)",
+          pointerEvents:"none",
+        }}/>
+
+        {/* Cover-Kamera (Owner only) */}
+        {isOwner && !loading && (
+          <button className="ph-press" onClick={() => coverInputRef.current?.click()}
+            style={{
+              position:"absolute", top:14, left:14, zIndex:20,
+              width:34, height:34, borderRadius:"50%",
+              background:"rgba(0,0,0,0.40)", backdropFilter:"blur(6px)", WebkitBackdropFilter:"blur(6px)",
+              border:"none", cursor:"pointer", touchAction:"manipulation",
+              display:"flex", alignItems:"center", justifyContent:"center", fontSize:14,
+            }}
+            aria-label="Cover ändern"
+          >
+            {coverUploading ? "⏳" : "📷"}
+          </button>
+        )}
+      </div>
+
+      {/* ── IDENTITY BLOCK ─────────────────────────────────────── */}
+      {/* AIRLY-006: Zwei Spalten
+           Links:  Avatar → Badge → Follower
+           Rechts: Name → @nick → Ort                             */}
+      <div style={{ background: T.bg, padding:"0 16px 20px" }}>
+
+        <div style={{
+          display:"flex", alignItems:"stretch", gap:14,
+          marginTop:-52,
+        }}>
+
+          {/* ══ LINKE SPALTE: Avatar + Badge + Follower ══ */}
+          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0, justifyContent:"space-between" }}>
+
+            {/* Avatar */}
+            <div style={{ position:"relative" }}>
+              <div style={{
+                width:100, height:100, borderRadius:"50%",
+                border:"4px solid white",
+                boxShadow:"0 4px 20px rgba(0,0,0,0.15)",
+                overflow:"hidden", background:T.bg, position:"relative",
+              }}>
+                {(loading || !avatarLoaded) && (
+                  <div style={{
+                    position:"absolute", inset:0, borderRadius:"50%",
+                    background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
+                    backgroundSize:"200% 100%",
+                    animation:"ph-shimmer 1.4s ease-in-out infinite",
+                  }}/>
+                )}
+                {!loading && (
+                  <img
+                    ref={avatarImgRef}
+                    src={avatar} alt={name} loading="eager" decoding="async" fetchpriority="high"
+                    onLoad={() => setAvatarLoaded(true)}
+                    onError={() => setAvatarLoaded(true)}
+                    style={{
+                      width:"100%", height:"100%", objectFit:"cover",
+                      opacity: avatarLoaded ? 1 : 0, transition:"opacity 0.2s ease",
+                    }}
+                  />
+                )}
+              </div>
+              {/* Avatar-Kamera (Owner only) */}
+              {isOwner && !loading && (
+                <button className="ph-press" onClick={() => avatarInputRef.current?.click()}
+                  style={{
+                    position:"absolute", bottom:4, right:4,
+                    width:28, height:28, borderRadius:"50%",
+                    background: avatarUploading ? "rgba(26,26,24,0.5)" : T.teal,
+                    border:"2.5px solid white",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontSize:13, cursor:"pointer", touchAction:"manipulation",
+                    boxShadow:"0 2px 8px rgba(14,196,184,0.35)", zIndex:10,
+                  }}
+                  aria-label="Avatar ändern"
+                >
+                  {avatarUploading ? "⏳" : "📷"}
+                </button>
+              )}
+            </div>
+
+            {/* Badge — unter Avatar, immer zentriert */}
+            <div style={{ marginTop:10, display:"flex", justifyContent:"center" }}>
+              {loading ? <Sk w={96} h={26} r={99}/> : (
+                <div style={{
+                  display:"inline-flex", alignItems:"center", gap:5,
+                  background: isSuperadmin
+                    ? "rgba(90,50,200,0.08)"
+                    : isTalentResolved ? "rgba(14,196,184,0.10)" : "rgba(14,196,184,0.07)",
+                  border: isSuperadmin
+                    ? "1.5px solid rgba(90,50,200,0.28)"
+                    : `1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
+                  borderRadius:99, padding:"5px 11px",
+                  fontSize:11, fontWeight: 600,
+                  color: isSuperadmin ? "#5A32C8" : "#0AADA3",
+                  whiteSpace:"nowrap",
+                }}>
+                  {isSuperadmin ? (
+                    /* Superadmin: kleines ✦ Symbol + Label */
+                    <span style={{
+                      display:"inline-flex", alignItems:"center", justifyContent:"center",
+                      width:14, height:14, borderRadius:"50%",
+                      background:"rgba(90,50,200,0.15)", fontSize:9, lineHeight:1,
+                      color:"#5A32C8", fontWeight: 600, flexShrink:0,
+                    }}>✦</span>
+                  ) : (
+                    <span style={{display:"flex",alignItems:"center"}}>
+                      {isTalentResolved ? <HUITalentIcon size={13}/> : <HUIImpactIcon size={13}/>}
+                    </span>
+                  )}
+                  <span>{badgeLabel}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Follower — unter Badge. IMMER sichtbar (auch bei 0), damit die
+                Zahlen als soziales Signal erkennbar bleiben (Michael-Request
+                CHAT-LOGIK-v2, 2026-08-22: "Followerliste wieder einbauen"). */}
+            {!loading && (
+              <div style={{
+                display:"flex", gap:10, marginTop:7,
+                fontSize:12, color:T.inkFaint,
+              }}>
+                <span>
+                  <strong style={{ color:T.ink, fontWeight: 600 }}>
+                    {followCounts.followers ?? 0}
+                  </strong>{" "}Follower
+                </span>
+                <span>
+                  <strong style={{ color:T.ink, fontWeight: 600 }}>
+                    {followCounts.following ?? 0}
+                  </strong>{" "}folgt
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* ══ RECHTE SPALTE: Name + @nick oben | Kontaktdaten unten ══ */}
+          <div style={{
+            flex:1, minWidth:0,
+            paddingTop:58, paddingLeft: isSuperadmin ? 10 : 4,
+            display:"flex", flexDirection:"column",
+            justifyContent:"space-between",
+            /* Unterkante Kontakt = Unterkante Follower auf linker Seite */
+          }}>
+
+            {/* Oberer Block: Name (oben) + @username (darunter, gestapelt) */}
+            <div>
+              {loading ? <Sk w={130} h={22} r={6}/> : (
+                <div style={{
+                  display:"flex", flexDirection:"column",
+                  gap:2,
+                }}>
+                  <span style={{
+                    fontSize:19, fontWeight: 600, color:T.ink,
+                    letterSpacing:"-0.025em", lineHeight:1.2,
+                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>
+                    {name}
+                  </span>
+                  {username && (
+                    <span style={{
+                      fontSize:12.5, color:T.inkFaint, fontWeight:400,
+                      lineHeight:1.2,
+                    }}>
+                      @{username}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Unterer Block: Ort + Website + Telefon — bündig mit Follower-Unterkante */}
+            {!loading && (location || website) && (
+              <div style={{ display:"flex", flexDirection:"column", gap:3, marginTop:6 }}>
+                {location && (
+                  <div style={{
+                    display:"flex", alignItems:"center", gap:4,
+                    fontSize:12, color:T.inkSoft,
+                  }}>
+                    <span style={{ fontSize:13, flexShrink:0 }}>📍</span>
+                    <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {location}
+                    </span>
+                  </div>
+                )}
+                {website && (
+                  <div style={{ display:"flex", alignItems:"center", gap:5, fontSize:12 }}>
+                    <span style={{ fontSize:13 }}>🔗</span>
+                    <a href={website.startsWith("http") ? website : "https://"+website}
+                      target="_blank" rel="noopener noreferrer"
+                      style={{ color:T.teal, textDecoration:"none", overflow:"hidden",
+                        textOverflow:"ellipsis", whiteSpace:"nowrap", fontWeight:500 }}>
+                      {website.replace(/^https?:\/\//, "")}
+                    </a>
+                  </div>
+                )}
+                
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// DEMO — alle Zustände in einer Übersicht (Verifikation Sprint B)
+// Wird nicht in Produktion genutzt.
+// ══════════════════════════════════════════════════════════════════════
+
+const DEMO_TALENT = {
+  id: "demo-t1", display_name: "Lena Hartmann", username: "lena.hartmann",
+  bio: "Ich erschaffe Räume, die Menschen verbinden. Fotografie, Klang und stille Momente.",
+  avatar_url:   "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=300&q=80",
+  header_img:   "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=80",
+  location_final: "München, Bayern",
+  is_talent:    true,
+};

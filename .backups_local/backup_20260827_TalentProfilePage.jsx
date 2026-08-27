@@ -1,0 +1,1636 @@
+// src/pages/TalentProfilePage.jsx — HUI Öffentliches Wirkerprofil v2
+// "Hier wirkt ein Mensch aktiv in der Gemeinschaft."
+// ════════════════════════════════════════════════════════════════
+// Architektur:
+//   1. Header (Nav: Zurück, Öffentliches Profil, Teilen)
+//   3. ActionButtons (Verbinden, Nachricht)
+//   4. SchwerpunktKarte (auto-ermittelt aus works/experiences/interests)
+//   5. QuickStats (Verbindungen, Begegnungen, Momente, Projekte, Menschen)
+//   7. NaechsteErlebnisse (nur wenn zukünftige Termine vorhanden)
+//   9. Momente (beitraege)
+//  10. AbschlussBar (Verbinden, Nachricht, Einladung)
+// ════════════════════════════════════════════════════════════════
+
+import { makeChunkReload } from "../lib/chunkReload.js";
+import {
+  HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIKalenderIcon,
+  HUILocationIcon,
+} from '../design/icons/HuiSystemIcons.jsx';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
+
+import { createPortal } from "react-dom";
+import { supabase } from "../lib/supabaseClient.js";
+import { useAuth }  from "../lib/AuthContext.jsx";
+import { notifyWatcher } from "../lib/notificationService.js";
+import { useHome }       from "../components/home/HomeShell.jsx";
+// SettingsModal direkt importiert (kein lazy/Suspense — verhindert Blank-Page/Klick-Bug)
+// HuiStudio direkt importiert (kein lazy/Suspense)
+// Shared loading spinner for wizard Suspense fallbacks
+const WIZARD_LOADING = (
+  <div style={{position:"fixed",inset:0,zIndex:10500,background:"rgba(26,26,24,0.5)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{width:36,height:36,border:"3px solid rgba(255,255,255,0.3)",borderTopColor:"#0EC4B8",borderRadius:"50%",animation:"spin 0.8s linear infinite"}} />
+  </div>
+);
+
+import WerkWizard from "../components/works/WerkWizard.jsx";
+import SettingsModal from "../components/settings/SettingsModal.jsx";
+import HuiStudio from "../components/studio/HuiStudio.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
+// Sprint D: Datenlayer
+import { useProfileData } from "../hooks/useProfileData.js";
+import ProfileRelationButtons from "../components/shared/ProfileRelationButtons.jsx";
+// Sprint D: Unified Sections (Sprint C)
+import { ProfileHeader }           from "../components/profile/ProfileHeader.jsx";
+import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { TalentSection }          from "../components/profile/sections/TalentSection.jsx";
+import { WorksSection }           from "../components/profile/sections/WorksSection.jsx";
+import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
+import { ExperiencesSection }     from "../components/profile/sections/ExperiencesSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { AvailabilitySection }    from "../components/profile/sections/AvailabilitySection.jsx";
+import { LocationSection }        from "../components/profile/sections/LocationSection.jsx";
+import { VisibilitySection }      from "../components/profile/sections/VisibilitySection.jsx";
+import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
+// OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import SupportFlow from "../components/economy/SupportFlow.jsx";
+import { useTranslation } from "../hooks/useTranslation.js";
+
+// ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
+const T = {
+  bg:        "#F7F5F0",
+  bgCard:    "#FFFFFF",
+  bgSheet:   "rgba(252,251,248,0.98)",
+  teal:      "#0EC4B8",
+  tealDeep:  "#0AADA3",
+  tealSoft:  "rgba(14,196,184,0.10)",
+  tealMid:   "rgba(14,196,184,0.22)",
+  coral:     "#FF6B52",
+  ink:       "#1A1A18",
+  inkSoft:   "rgba(26,26,24,0.52)",
+  inkFaint:  "rgba(26,26,24,0.28)",
+  border:    "rgba(26,26,24,0.08)",
+  borderMid: "rgba(26,26,24,0.13)",
+  px: 20,
+  r12:12, r16:16, r20:20, r24:24, r99:99,
+  card:  "0 1px 8px rgba(26,26,24,0.07), 0 1px 2px rgba(26,26,24,0.04)",
+  cardMd:"0 2px 16px rgba(26,26,24,0.09), 0 1px 4px rgba(26,26,24,0.05)",
+  glow:  "0 4px 18px rgba(14,196,184,0.26)",
+  sheet: "0 -10px 40px rgba(26,26,24,0.10)",
+};
+
+const CSS = `
+  .tpp-root{background:${T.bg};font-family:Inter,sans-serif;color:${T.ink};}
+  .tpp-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tpp-scroll::-webkit-scrollbar{display:none;}
+  .tpp-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px;}
+  .tpp-hscroll::-webkit-scrollbar{display:none;}
+  @keyframes tpp-fade-in{from{opacity:0}to{opacity:1}}
+  @keyframes tpp-fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes tpp-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  @keyframes tpp-shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+  .tpp-skeleton{background:linear-gradient(90deg,rgba(26,26,24,.05) 25%,rgba(26,26,24,.09) 50%,rgba(26,26,24,.05) 75%);background-size:200% 100%;animation:tpp-shimmer 1.4s ease-in-out infinite;border-radius:8px;}
+  .tpp-press{transition:transform .12s cubic-bezier(.22,1,.36,1),opacity .12s ease;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+  .tpp-press:active{transform:scale(0.94);opacity:0.75;}
+  .tpp-press-light{transition:transform .14s ease,opacity .14s ease;}
+  .tpp-press-light:active{transform:scale(0.97);opacity:0.82;}
+  .tpp-in{animation:tpp-fade-up .45s ease both;}
+  .tpp-wirken-card{background:${T.bgCard};border-radius:16px;overflow:hidden;box-shadow:${T.card};flex-shrink:0;cursor:pointer;}
+  .tpp-wirken-card:active{transform:scale(0.97);opacity:0.88;transition:transform .12s ease,opacity .12s ease;}
+  .tpp-stat-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+  .tpp-moment-img{border-radius:12px;object-fit:cover;width:100%;aspect-ratio:1;display:block;}
+  .tpp-badge-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:99px;font-size:12px;font-weight:600;}
+`;
+
+
+// ══════════════════════════════════════════════════════════════
+// BEZIEHUNGSMODELL — 4 natürliche Stufen
+// ──────────────────────────────────────────────────────────────
+// STUFE 1: Entdecken  — Profil frei ansehen (immer)
+// STUFE 2: Im Blick   — profile_watchlist INSERT/DELETE
+// STUFE 3: Verbinden  — profile_relations INSERT (pending)
+// STUFE 4: Austausch  — Nachricht senden (erst nach accepted)
+// ══════════════════════════════════════════════════════════════
+
+// Liest den aktuellen Beziehungsstatus zur profileId
+// Gibt: { watching, relationStatus, loading }
+function useRelationship(profileId, currentUserId) {
+  const [state,      setState]      = React.useState({
+    watching:       false,
+    relationStatus: null,
+    loading:        true,
+  });
+  // refreshKey: increment → Effect erneut ausführen → DB neu lesen
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!profileId || !currentUserId || profileId === currentUserId) {
+      setState({ watching: false, relationStatus: null, loading: false });
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setState(s => ({ ...s, loading: true }));
+      try {
+        const [watchRes, relRes] = await Promise.all([
+          supabase
+            .from("profile_watchlist")
+            .select("id")
+            .eq("watcher_id", currentUserId)
+            .eq("profile_id", profileId)
+            .maybeSingle(),
+          supabase
+            .from("profile_relations")
+            .select("id, status")
+            .or(`requester_id.eq.${currentUserId},target_id.eq.${currentUserId}`)
+            .or(`target_id.eq.${profileId},requester_id.eq.${profileId}`)
+            .maybeSingle(),
+        ]);
+        if (cancelled) return;
+
+        if (watchRes.error) console.error("[RELATIONSHIP] watchlist query error:", watchRes.error);
+        if (relRes.error)   console.error("[RELATIONSHIP] relations query error:", relRes.error);
+
+        const nextState = {
+          watching:       !!watchRes.data,
+          relationStatus: relRes.data?.status ?? null,
+          loading:        false,
+        };
+        setState(nextState);
+      } catch(e) {
+        if (cancelled) return;
+        console.warn("[useRelationship] exception:", e);
+        setState({ watching: false, relationStatus: null, loading: false });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [profileId, currentUserId, refreshKey]);
+
+  const refetch = React.useCallback(() => {
+    setRefreshKey(k => k + 1);
+  }, []);
+
+  return { ...state, refetch };
+}
+
+// Intentions für den Verbindungsdialog
+function getIntentions(t) {
+  return [
+  { key:"work",        emoji:"🎨", label:t("tpp.intention.work") },
+  { key:"experience",  emoji:"✨", label:t("tpp.intention.experience") },
+  { key:"exchange",    emoji:"☕", label:t("tpp.intention.exchange") },
+  { key:"create",      emoji:"🌍", label:t("tpp.intention.create") },
+  { key:"other",       emoji:"💬", label:t("tpp.intention.other") },
+  ];
+}
+
+const CSS_DIALOG = `
+  @keyframes tpp-dialog-in{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+  .tpp-dialog-overlay{position:fixed;inset:0;z-index:10000;background:rgba(26,26,24,0.55);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;}
+  .tpp-dialog-sheet{background:#FEFCF9;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:28px 20px 40px;animation:tpp-dialog-in .28s cubic-bezier(.22,1,.36,1);}
+  .tpp-intent-btn{width:100%;padding:13px 16px;border-radius:12px;border:1.5px solid rgba(26,26,24,0.10);background:#fff;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:600;color:#1A1A18;cursor:pointer;font-family:inherit;text-align:left;transition:all .15s ease;touch-action:manipulation;}
+  .tpp-intent-btn.selected{border-color:#0EC4B8;background:rgba(14,196,184,0.08);}
+  .tpp-intent-btn:active{transform:scale(0.97);}
+  .tpp-msg-input{width:100%;border:1.5px solid rgba(26,26,24,0.12);border-radius:12px;padding:12px 14px;font-size:14px;font-family:inherit;color:#1A1A18;background:#fff;resize:none;outline:none;box-sizing:border-box;transition:border-color .15s ease;}
+  .tpp-msg-input:focus{border-color:#0EC4B8;}
+`;
+
+// ── Verbindungsdialog (Stufe 3) ────────────────────────────────
+function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
+  const { t } = useTranslation();
+  const intentions = getIntentions(t);
+  const name = s(profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
+  const [intention,   setIntention]   = React.useState(null);
+  const [message,     setMessage]     = React.useState("");
+  const [sending,     setSending]     = React.useState(false);
+  const [sent,        setSent]        = React.useState(false);
+
+
+  async function sendRequest() {
+    if (!intention || sending) return;
+    setSending(true);
+    try {
+      const { error } = await supabase
+        .from("profile_relations")
+        .insert({
+          requester_id: currentUserId,
+          target_id:    profile.id,
+          intention,
+          message:      message.trim() || null,
+          status:       "pending",
+        });
+      if (error) {
+        console.error("[VerbindungsDialog] insert error:", error.message);
+        setSending(false);
+        return;
+      }
+      setSent(true);
+      setTimeout(() => { onSuccess?.(); onClose?.(); }, 1800);
+    } catch(e) {
+      console.warn("[VerbindungsDialog] exception:", e);
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="tpp-dialog-overlay" onClick={e => { if(e.target===e.currentTarget) onClose?.(); }} role="button" tabIndex={0}>
+      <style>{CSS_DIALOG}</style>
+      <div className="tpp-dialog-sheet">
+        {/* Handle */}
+        <div style={{width:36,height:4,borderRadius:2,background:"rgba(26,26,24,0.12)",margin:"0 auto 24px"}}/>
+
+        {sent ? (
+          // Bestätigung
+          <div style={{textAlign:"center",padding:"20px 0 8px"}}>
+            <div style={{fontSize:44,marginBottom:14}}><span className="hui-emoji">🤝</span></div>
+            <div style={{fontSize:18,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
+              {t("tpp.dialog.sent.title")}
+            </div>
+            <div style={{fontSize:14,color:"rgba(26,26,24,0.52)",lineHeight:1.55,maxWidth:260,margin:"0 auto"}}>
+              {t("tpp.dialog.sent.body", { name })}
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Titel */}
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:17,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:6}}>
+                {t("tpp.dialog.title")}
+              </div>
+              <div style={{fontSize:13,color:"rgba(26,26,24,0.50)",lineHeight:1.5}}>
+                {t("tpp.dialog.body", { name })}
+              </div>
+            </div>
+
+            {/* Intentions */}
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:18}}>
+              {INTENTIONS.map(int => (
+                <button key={int.key}
+                  className={`tpp-intent-btn${intention===int.key?" selected":""}`}
+                  onClick={() => setIntention(int.key)}>
+                  <span style={{fontSize:18,flexShrink:0}}>{int.emoji}</span>
+                  <span>{int.label}</span>
+                  {intention===int.key && (
+                    <span style={{marginLeft:"auto",color:"#0EC4B8",fontSize:16}}>✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Optionale Nachricht */}
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:600,color:"rgba(26,26,24,0.45)",marginBottom:8,letterSpacing:"0.04em"}}>
+                {t("tpp.dialog.msgLabel")}
+              </div>
+              <textarea
+                className="tpp-msg-input"
+                rows={3}
+                placeholder={t("tpp.dialog.msgPlaceholder")}
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                maxLength={300}
+              />
+              <div style={{fontSize:11,color:"rgba(26,26,24,0.3)",textAlign:"right",marginTop:4}}>
+                {message.length}/300
+              </div>
+            </div>
+
+            {/* Senden */}
+            <button
+              className="tpp-press"
+              disabled={!intention || sending}
+              onClick={sendRequest}
+              style={{
+                width:"100%", padding:"15px 16px",
+                background: intention
+                  ? `linear-gradient(135deg,#0EC4B8,#0AADA3)`
+                  : "rgba(26,26,24,0.08)",
+                color: intention ? "#fff" : "rgba(26,26,24,0.30)",
+                border:"none", borderRadius:99,
+                fontSize:15, fontWeight: 600,
+                cursor: intention ? "pointer" : "not-allowed",
+                fontFamily:"inherit",
+                boxShadow: intention ? "0 4px 18px rgba(14,196,184,0.28)" : "none",
+                touchAction:"manipulation",
+                transition:"all .2s ease",
+              }}>
+              {sending ? t("tpp.dialog.sending") : t("tpp.dialog.send")}
+            </button>
+
+            {/* Abbrechen */}
+            <button onClick={onClose}
+              style={{
+                width:"100%", marginTop:10, padding:"12px",
+                background:"none", border:"none",
+                fontSize:14, color:"rgba(26,26,24,0.42)",
+                cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+              }}>
+              Abbrechen
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// ── Helpers ────────────────────────────────────────────────────
+const s  = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
+const a  = (v) => Array.isArray(v) ? v : [];
+const dl = (i) => ({ animationDelay:`${i*60}ms` });
+// ── Schwerpunkt-Logik ──────────────────────────────────────────
+function detectSchwerpunkt(profile, works, experiences, t) {
+  const interests = a(profile?.dna_tags || profile?.skills); // interests nicht in DB → dna_tags/skills
+  const wCount = works.length;
+  const eCount = experiences.length;
+
+  // Keywords in interests
+  const hasKw = (...kws) => kws.some(k => interests.some(i => i.toLowerCase().includes(k)));
+
+  if (hasKw("gemeinschaft","verbindung","netzwerk","mensch")) {
+    return { icon:<HUITalentIcon size={24}/>, title:t("tpp.schwerpunkt.gemeinschaft.title"), desc:t("tpp.schwerpunkt.gemeinschaft.desc") };
+  }
+  if (hasKw("musik","klang","sound","sing")) {
+    return { icon:"🎵", title:t("tpp.schwerpunkt.musik.title"), desc:t("tpp.schwerpunkt.musik.desc") };
+  }
+  if (hasKw("malen","kunst","kreativ","design","illustr","bild")) {
+    return { icon:<HUIWerkeIcon size={24}/>, title:t("tpp.schwerpunkt.kunst.title"), desc:t("tpp.schwerpunkt.kunst.desc") };
+  }
+  if (hasKw("wissen","lehr","bildung","coach","kurs","workshop")) {
+    return { icon:"📚", title:t("tpp.schwerpunkt.wissen.title"), desc:t("tpp.schwerpunkt.wissen.desc") };
+  }
+  if (hasKw("natur","wald","pflanz","ökolog","nachhaltig","umwelt")) {
+    return { icon:<HUIImpactIcon size={24}/>, title:t("tpp.schwerpunkt.natur.title"), desc:t("tpp.schwerpunkt.natur.desc") };
+  }
+  if (hasKw("tier","hund","katze","pferd","wildtier")) {
+    return { icon:"🐾", title:t("tpp.schwerpunkt.tier.title"), desc:t("tpp.schwerpunkt.tier.desc") };
+  }
+
+  // Fallback nach Content-Typ
+  if (wCount > eCount && wCount > 0) {
+    return { icon:<HUIWerkeIcon size={24}/>, title:t("tpp.schwerpunkt.schaffende.title"), desc:t("tpp.schwerpunkt.schaffende.desc") };
+  }
+  if (eCount > wCount && eCount > 0) {
+    return { icon:<HUIErlebnisIcon size={24}/>, title:t("tpp.schwerpunkt.erlebnis.title"), desc:t("tpp.schwerpunkt.erlebnis.desc") };
+  }
+  if (wCount > 0 && eCount > 0) {
+    return { icon:<HUIImpactIcon size={24}/>, title:t("tpp.schwerpunkt.vielseitig.title"), desc:t("tpp.schwerpunkt.vielseitig.desc") };
+  }
+
+  return { icon:"🤝", title:t("tpp.schwerpunkt.fallback.title"), desc:t("tpp.schwerpunkt.fallback.desc") };
+}
+
+// ── Atoms ─────────────────────────────────────────────────────
+function Gap({ h=16 }) { return <div style={{height:h}}/>; }
+function Sk({ w, h, r=8, style={} }) {
+  return <div className="tpp-skeleton" style={{width:w,height:h,borderRadius:r,flexShrink:0,...style}}/>;
+}
+function SectionHead({ icon, title, subtitle, cta, onCta }) {
+  return (
+    <div style={{padding:`0 ${T.px}px`,marginBottom:12}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+        <div>
+          <div style={{fontSize:15,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6}}>
+            {icon && <span style={{fontSize:15}}>{icon}</span>}
+            {title}
+          </div>
+          {subtitle && (
+            <div style={{fontSize:12,color:T.inkFaint,marginTop:3,lineHeight:1.4}}>{subtitle}</div>
+          )}
+        </div>
+        {cta && (
+          <button className="tpp-press-light" onClick={onCta}
+            style={{background:"none",border:"none",padding:0,fontSize:12,color:T.teal,fontWeight: 600,cursor:"pointer",touchAction:"manipulation",fontFamily:"inherit",flexShrink:0,marginLeft:8}}>
+            {cta} ›
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 1. HEADER
+// ══════════════════════════════════════════════════════════════
+function Header({ onBack, isOwner, onSettings }) {
+  const { t } = useTranslation();
+  return (
+    // SAFE-AREA-TOP-FIX (2026-08-10): 3-Ebenen-Fallback wie NAV_SAFE_BOTTOM_CSS
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) ${T.px}px 10px`,background:T.bg,position:"sticky",top:0,zIndex:10}}>
+      <button className="tpp-press" onClick={onBack}
+        style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink}}>
+        ‹
+      </button>
+      <div style={{textAlign:"center"}}>
+        <div style={{fontSize:15,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
+          {t("tpp.header.title")} <span style={{fontSize:14}}>✨</span>
+        </div>
+        <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:400,marginTop:1}}>
+          {t("tpp.header.sub")}
+        </div>
+      </div>
+      {isOwner ? (
+        <button className="tpp-press" onClick={onSettings}
+          style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink}}>
+          ⚙️
+        </button>
+      ) : (
+        <button className="tpp-press-light"
+          style={{width:36,height:36,borderRadius:"50%",background:T.bgCard,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,cursor:"pointer",touchAction:"manipulation",boxShadow:T.card,color:T.ink,letterSpacing:"2px"}}>
+          ···
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 2. CINEMATIC HERO — Banner + Avatar + Identity
+// ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// KOMPASS ACTION SHEET
+// ══════════════════════════════════════════════════════════════
+function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport = () => {} }) {
+  const { t } = useTranslation();
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"rgba(26,26,24,0.45)",
+        display:"flex", alignItems:"flex-end",
+        WebkitTapHighlightColor:"transparent",
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width:"100%",
+          background:"#FFFBF8",
+          borderRadius:"22px 22px 0 0",
+          padding:"24px 20px max(28px,calc(16px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
+          boxShadow:"0 -8px 40px rgba(26,26,24,0.18)",
+          fontFamily:"Inter,sans-serif",
+        }}
+      >
+        <div style={{
+          width:36, height:4, borderRadius:2,
+          background:"rgba(26,26,24,0.12)",
+          margin:"0 auto 18px",
+        }}/>
+        <div style={{fontSize:15, fontWeight: 600, color:"rgba(26,26,24,0.55)", marginBottom:18, textAlign:"center"}}>
+          {profile?.display_name || t("tpp.kompass.creator")}
+        </div>
+        <button
+          onClick={() => { onWatch?.(); onClose(); }}
+          style={{
+            width:"100%", padding:"15px 18px",
+            background: isWatching ? "rgba(255,138,107,0.07)" : "rgba(22,215,197,0.07)",
+            border: isWatching
+              ? "1.5px solid rgba(255,138,107,0.22)"
+              : "1.5px solid rgba(22,215,197,0.22)",
+            borderRadius:14, cursor:"pointer", fontFamily:"inherit",
+            display:"flex", alignItems:"center", gap:12,
+            marginBottom:10, touchAction:"manipulation",
+          }}
+        >
+          <span style={{fontSize:20}}>{isWatching ? "\uD83D\uDC41" : "\uD83C\uDF31"}</span>
+          <div style={{textAlign:"left"}}>
+            <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
+              {isWatching ? t("tpp.kompass.unwatch") : t("tpp.kompass.watch")}
+            </div>
+            <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
+              {isWatching
+                ? t("tpp.kompass.unwatchDesc")
+                : t("tpp.kompass.watchDesc")}
+            </div>
+          </div>
+        </button>
+        <button
+          onClick={() => { onSupport?.(); onClose(); }}
+          style={{
+            width:"100%", padding:"15px 18px",
+            background:"rgba(255,138,107,0.07)",
+            border:"1.5px solid rgba(255,138,107,0.22)",
+            borderRadius:14, cursor:"pointer", fontFamily:"inherit",
+            display:"flex", alignItems:"center", gap:12,
+            marginBottom:10, touchAction:"manipulation",
+          }}
+        >
+          <span style={{fontSize:20}}>{"\u2764"}</span>
+          <div style={{textAlign:"left"}}>
+            <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
+              {t("tpp.kompass.support")}
+            </div>
+            <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
+              {t("tpp.kompass.supportDesc")}
+            </div>
+          </div>
+        </button>
+        <button
+          onClick={onClose}
+          style={{
+            width:"100%", padding:"14px",
+            background:"rgba(26,26,24,0.05)",
+            border:"none", borderRadius:14,
+            fontSize:14, fontWeight:600, color:"rgba(26,26,24,0.55)",
+            cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
+          }}
+        >
+          {t("tpp.kompass.cancel")}
+        </button>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 3. ACTION BUTTONS (Verbinden, Nachricht)
+// ══════════════════════════════════════════════════════════════
+function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKompass }) {
+  const { t } = useTranslation();
+  const rel = useRelationship(profile?.id, currentUserId);
+  const { authProfile } = useAuth();
+  const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
+  useModalRegistration(showVerbindungsDialog, () => setShowVerbindungsDialog(false), "TalentProfilePage-VerbindungsDialog");
+  const [watchingLocal,         setWatchingLocal]         = React.useState(null);
+  const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
+  const _toggleRunning = React.useRef(false);
+
+  async function toggleWatch() {
+    if (_toggleRunning.current) return;
+    _toggleRunning.current = true;
+    setTimeout(() => { _toggleRunning.current = false; }, 800);
+    if (!currentUserId || !profile?.id || loading || rel.loading) return;
+
+    const next = !isWatching;
+    setWatchingLocal(next);
+    if (next) {
+      const { error } = await supabase
+        .from("profile_watchlist")
+        .insert({ watcher_id: currentUserId, profile_id: profile.id })
+        .select("id").single();
+      if (error) { setWatchingLocal(null); return; }
+      // Notification an Profilinhaber — non-blocking, bestehender Service
+      notifyWatcher({
+        watcherId:   currentUserId,
+        profileId:   profile.id,
+        watcherName: authProfile?.display_name || "Jemand",
+      }).catch(() => {});
+      rel.refetch();
+    } else {
+      const { error } = await supabase
+        .from("profile_watchlist")
+        .delete()
+        .eq("watcher_id", currentUserId)
+        .eq("profile_id", profile.id);
+      if (error) { setWatchingLocal(null); return; }
+      rel.refetch();
+    }
+  }
+
+  if (loading || rel.loading) {
+    return (
+      <div style={{display:"flex",gap:10}}>
+        <div className="tpp-skeleton" style={{flex:1,height:48,borderRadius:T.r99}}/>
+        <div className="tpp-skeleton" style={{width:48,height:48,borderRadius:"50%"}}/>
+      </div>
+    );
+  }
+
+  const isAccepted = rel.relationStatus === "accepted";
+  const isPending  = rel.relationStatus === "pending";
+  const isDeclined = rel.relationStatus === "declined";
+
+  return (
+    <>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        <div style={{display:"flex",gap:10}}>
+
+          {/* Primär-Button */}
+          {isAccepted ? (
+            <button className="tpp-press" onClick={onOpenChat} style={{
+              flex:1, padding:"13px 16px",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              color:"#fff", border:"none", borderRadius:T.r99,
+              fontSize:14, fontWeight: 600, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:T.glow,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+              touchAction:"manipulation",
+            }}>
+              💬 Nachricht senden
+            </button>
+
+          ) : isPending ? (
+            <button disabled style={{
+              flex:1, padding:"13px 16px",
+              background:"rgba(14,196,184,0.10)",
+              color:T.teal, border:`1.5px solid ${T.teal}`,
+              borderRadius:T.r99, fontSize:14, fontWeight: 600,
+              fontFamily:"inherit", cursor:"default",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            }}>
+              <span className="hui-emoji">🌿</span> {t("tpp.dialog.sent.title")}
+            </button>
+
+          ) : isDeclined ? (
+            <button disabled style={{
+              flex:1, padding:"13px 16px",
+              background:"transparent", color:"rgba(26,26,24,0.30)",
+              border:`1.5px solid rgba(26,26,24,0.08)`,
+              borderRadius:T.r99, fontSize:13, fontWeight:600,
+              fontFamily:"inherit", cursor:"default",
+              display:"flex", alignItems:"center", justifyContent:"center",
+            }}>
+              {t("tpp.relation.impossible")}
+            </button>
+
+          ) : isWatching ? (
+            // STUFE 2 → Verbinden
+            <button className="tpp-press" onClick={() => setShowVerbindungsDialog(true)} style={{
+              flex:1, padding:"13px 16px",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              color:"#fff", border:"none", borderRadius:T.r99,
+              fontSize:14, fontWeight: 600, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:T.glow,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+              touchAction:"manipulation",
+            }}>
+              <span className="hui-emoji">🤝</span> Verbinden
+            </button>
+
+          ) : (
+            // STUFE 1 → Im Blick behalten
+            <button className="tpp-press" onClick={toggleWatch} style={{
+              flex:1, padding:"13px 16px",
+              background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+              color:"#fff", border:"none", borderRadius:T.r99,
+              fontSize:14, fontWeight: 600, cursor:"pointer",
+              fontFamily:"inherit", boxShadow:T.glow,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+              touchAction:"manipulation",
+            }}>
+              <span className="hui-emoji">🌱</span> Im Blick behalten
+            </button>
+          )}
+
+          {/* Kompass-Button */}
+          <button
+            className="tpp-press-light"
+            onClick={() => onOpenKompass({ isWatching, toggleWatch })}
+            style={{
+              width:46, height:46,
+              background:"#FFFFFF",
+              border:`1.5px solid ${T.borderMid}`,
+              borderRadius:"50%", cursor:"pointer", fontSize:22,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              flexShrink:0,
+              boxShadow:"0 2px 12px rgba(26,26,24,0.10), 0 1px 3px rgba(26,26,24,0.06)",
+              touchAction:"manipulation",
+              color:T.teal,
+            }}
+            aria-label="Weitere Optionen"
+          >
+            🧭
+          </button>
+        </div>
+
+        {/* Untertext: Beobachter-Status */}
+        {isWatching && !isAccepted && (
+          <div style={{
+            textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
+            letterSpacing:"0.01em",
+          }}>
+            {t("tpp.watch.title")}
+          </div>
+        )}
+      </div>
+
+      {showVerbindungsDialog && (
+        <VerbindungsDialog
+          profile={profile}
+          currentUserId={currentUserId}
+          onClose={() => setShowVerbindungsDialog(false)}
+          onSuccess={() => { setShowVerbindungsDialog(false); rel.refetch(); }}
+        />
+      )}
+    </>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// 4. SCHWERPUNKT-KARTE + QUICK-STATS
+// ══════════════════════════════════════════════════════════════
+function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, followCounts }) {
+  const { t } = useTranslation();
+  const sp = useMemo(
+    () => detectSchwerpunkt(profile, works, experiences, t),
+    [profile, works, experiences]
+  );
+
+  // ── Live-Stats: alle Werte kommen aus echten DB-Abfragen (kein fake Fallback) ──
+  const stats = [
+    { emoji:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:t("tpp.stats.followers") },
+    { emoji:"🤝", value: loading ? "–" : String(experiences.length), label:t("tpp.stats.encounters") },
+    { emoji:"💬", value: loading ? "–" : String(moments.length), label:t("tpp.stats.moments") },
+    { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length), label:t("tpp.stats.projects") },
+    { emoji:"🌿", value: loading ? "–" : (profile?.impact_eur ?? 0) > 0 ? "€\u202f" + Math.round(profile.impact_eur) : "–", label:t("tpp.stats.impact") },
+  ];
+
+  return (
+    <div style={{
+      margin:`0 ${T.px}px`,
+      background:T.bgCard,
+      borderRadius:T.r20,
+      boxShadow:T.cardMd,
+      overflow:"hidden",
+    }}>
+      {/* Schwerpunkt */}
+      <div style={{
+        padding:"16px 16px 14px",
+        borderBottom:`1px solid ${T.border}`,
+        display:"flex", gap:14, alignItems:"flex-start",
+      }}>
+        <div style={{
+          width:44, height:44, borderRadius:12, flexShrink:0,
+          background:`linear-gradient(135deg,${T.tealSoft},rgba(14,196,184,0.18))`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:22,
+        }}>
+          {loading ? "✨" : sp.icon}
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          {loading
+            ? <><Sk w={150} h={16} r={5} style={{marginBottom:6}}/><Sk w="100%" h={12} r={4}/></>
+            : <>
+                <div style={{fontSize:14,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",marginBottom:4}}>{sp.title}</div>
+                <div style={{fontSize:12.5,lineHeight:1.55,color:T.inkSoft}}>{sp.desc}</div>
+              </>
+          }
+        </div>
+      </div>
+
+      {/* Quick Stats */}
+      <div style={{display:"flex",padding:"12px 8px"}}>
+        {stats.map((st, i) => (
+          <div key={i} className="tpp-stat-item">
+            <div style={{fontSize:13,marginBottom:1}}>{st.emoji}</div>
+            <div style={{fontSize:16,fontWeight: 600,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</div>
+            <div style={{fontSize:10,color:T.inkFaint,lineHeight:1.35,textAlign:"center"}}>{st.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+// ══════════════════════════════════════════════════════════════
+// 6. NÄCHSTE ERLEBNISSE — nur wenn zukünftige Termine vorhanden
+// ══════════════════════════════════════════════════════════════
+function NaechsteErlebnisseSection({ experiences, loading }) {
+  const { t } = useTranslation();
+  const upcoming = useMemo(() => {
+    const now = new Date();
+    return experiences
+      .filter(e => e.date && new Date(e.date) > now && ["published","active","approved"].includes(e.status))
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+      .slice(0, 4);
+  }, [experiences]);
+
+  // Nicht rendern wenn keine zukünftigen Termine
+  if (!loading && upcoming.length === 0) return null;
+
+  const fmtDate = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      return {
+        month: d.toLocaleString("de-AT", {month:"short"}).toUpperCase(),
+        day:   d.getDate(),
+        time:  d.toLocaleString("de-AT", {weekday:"short", hour:"2-digit", minute:"2-digit"}),
+      };
+    } catch { return { month:"JUN", day:"?", time:"" }; }
+  };
+
+  return (
+    <div>
+      <SectionHead
+        icon={<HUIKalenderIcon size={28}/>}
+        title={t("tpp.section.upcoming")}
+        subtitle={t("tpp.section.upcoming.sub")}
+      />
+
+      <div style={{padding:`0 ${T.px}px`,display:"flex",flexDirection:"column",gap:10}}>
+        {loading
+          ? Array.from({length:3}).map((_,i) => (
+              <div key={i} style={{background:T.bgCard,borderRadius:T.r16,padding:14,boxShadow:T.card,display:"flex",gap:12}}>
+                <Sk w={44} h={52} r={10}/>
+                <div style={{flex:1}}>
+                  <Sk w={160} h={14} r={5} style={{marginBottom:6}}/>
+                  <Sk w={120} h={11} r={4} style={{marginBottom:4}}/>
+                  <Sk w={90}  h={11} r={4}/>
+                </div>
+              </div>
+            ))
+          : upcoming.map((exp, i) => {
+              const dt = fmtDate(exp.date);
+              return (
+                <div key={exp.id || i} className="tpp-in tpp-press-light" style={{...dl(i),
+                  background:T.bgCard, borderRadius:T.r16, padding:14,
+                  boxShadow:T.card, display:"flex", gap:12, alignItems:"flex-start",
+                  cursor:"pointer",
+                }}>
+                  {/* Datum-Block */}
+                  <div style={{
+                    width:44,minWidth:44,background:T.tealSoft,borderRadius:10,
+                    padding:"6px 4px",textAlign:"center",
+                  }}>
+                    <div style={{fontSize:9,fontWeight: 600,color:T.teal,letterSpacing:"0.08em"}}>{dt.month}</div>
+                    <div style={{fontSize:20,fontWeight: 600,color:T.ink,lineHeight:1.1}}>{dt.day}</div>
+                  </div>
+                  {/* Info */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13.5,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",marginBottom:4,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {s(exp.title, "Erlebnis")}
+                    </div>
+                    {dt.time && (
+                      <div style={{fontSize:11.5,color:T.inkSoft,display:"flex",alignItems:"center",gap:4,marginBottom:3}}>
+                        <span>🕐</span> {dt.time}
+                      </div>
+                    )}
+                    {exp.location_text && (
+                      <div style={{fontSize:11.5,color:T.inkSoft,display:"flex",alignItems:"center",gap:4}}>
+                        <span style={{display:"flex",alignItems:"center",gap:3}}><HUILocationIcon size={13}/>{exp.location_text}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+        }
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 8. MOMENTE — beitraege
+// ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// 9. ABSCHLUSS-BAR
+// ══════════════════════════════════════════════════════════════
+function AbschlussBar({ profile, loading }) {
+  const { t } = useTranslation();
+  const name = s(profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
+
+  return (
+    <div style={{
+      margin:`0 ${T.px}px`,
+      background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+      borderRadius:T.r20,
+      padding:"22px 20px",
+      display:"flex",
+      alignItems:"center",
+      gap:16,
+    }}>
+      <div style={{
+        width:52,height:52,borderRadius:"50%",
+        background:"rgba(255,255,255,0.22)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:24,flexShrink:0,
+      }}><span className="hui-emoji">🤝</span></div>
+      <div style={{flex:1}}>
+        <div style={{fontSize:14,fontWeight: 600,color:"#fff",marginBottom:4,lineHeight:1.3}}>
+          {t("tpp.abschluss.title")}
+        </div>
+        <div style={{fontSize:12,color:"rgba(255,255,255,0.80)"}}>
+          {t("tpp.abschluss.sub")}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
+  const { t } = useTranslation();
+  const rel = useRelationship(profile?.id, currentUserId);
+  const { authProfile } = useAuth();
+  const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
+  const [watchingLocal, setWatchingLocal] = React.useState(null);
+  const isWatching = watchingLocal !== null ? watchingLocal : rel.watching;
+  const _toggleRunning = React.useRef(false);
+
+  async function toggleWatch() {
+    if (_toggleRunning.current) return;
+    _toggleRunning.current = true;
+    setTimeout(() => { _toggleRunning.current = false; }, 800);
+    if (!currentUserId || !profile?.id || rel.loading) return;
+
+    const next = !isWatching;
+    setWatchingLocal(next);
+    if (next) {
+      const { error } = await supabase
+        .from("profile_watchlist")
+        .insert({ watcher_id: currentUserId, profile_id: profile.id })
+        .select("id").single();
+      if (error) { setWatchingLocal(null); return; }
+      // Notification an Profilinhaber — non-blocking, bestehender Service
+      notifyWatcher({
+        watcherId:   currentUserId,
+        profileId:   profile.id,
+        watcherName: authProfile?.display_name || "Jemand",
+      }).catch(() => {});
+      rel.refetch();
+    } else {
+      const { error } = await supabase
+        .from("profile_watchlist")
+        .delete()
+        .eq("watcher_id", currentUserId)
+        .eq("profile_id", profile.id);
+      if (error) { setWatchingLocal(null); return; }
+      rel.refetch();
+    }
+  }
+
+  // Stufe bestimmen
+  const isAccepted = rel.relationStatus === "accepted";
+  const isPending  = rel.relationStatus === "pending";
+  const isDeclined = rel.relationStatus === "declined";
+
+  return (
+    <>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+
+        {/* ── Primär-Button ── */}
+        {isAccepted ? (
+          <button className="tpp-press" onClick={onOpenChat} style={{
+            width:"100%", padding:"14px 16px",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:T.r99,
+            fontSize:14.5, fontWeight: 600, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:T.glow,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            touchAction:"manipulation",
+          }}>
+            💬 Nachricht senden
+          </button>
+
+        ) : isPending ? (
+          <button disabled style={{
+            width:"100%", padding:"14px 16px",
+            background:"rgba(14,196,184,0.10)",
+            color:T.teal, border:`1.5px solid ${T.teal}`,
+            borderRadius:T.r99, fontSize:14, fontWeight: 600,
+            fontFamily:"inherit", cursor:"default",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+          }}>
+            <span className="hui-emoji">🌿</span> {t("tpp.dialog.sent.title")}
+          </button>
+
+        ) : isDeclined ? (
+          <button disabled style={{
+            width:"100%", padding:"14px 16px",
+            background:"transparent", color:"rgba(26,26,24,0.30)",
+            border:`1.5px solid rgba(26,26,24,0.08)`,
+            borderRadius:T.r99, fontSize:13, fontWeight:600,
+            fontFamily:"inherit", cursor:"default",
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            {t("tpp.relation.impossible")}
+          </button>
+
+        ) : isWatching ? (
+          // STUFE 2 → Verbinden
+          <button className="tpp-press" onClick={() => setShowVerbindungsDialog(true)} style={{
+            width:"100%", padding:"14px 16px",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:T.r99,
+            fontSize:14.5, fontWeight: 600, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:T.glow,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            touchAction:"manipulation",
+          }}>
+            <span className="hui-emoji">🤝</span> Verbinden
+          </button>
+
+        ) : (
+          // STUFE 1 → Im Blick behalten
+          <button className="tpp-press" onClick={toggleWatch} style={{
+            width:"100%", padding:"14px 16px",
+            background:`linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+            color:"#fff", border:"none", borderRadius:T.r99,
+            fontSize:14.5, fontWeight: 600, cursor:"pointer",
+            fontFamily:"inherit", boxShadow:T.glow,
+            display:"flex", alignItems:"center", justifyContent:"center", gap:7,
+            touchAction:"manipulation",
+          }}>
+            <span className="hui-emoji">🌱</span> Im Blick behalten
+          </button>
+        )}
+
+        {/* ── Untertext: Beobachter-Status ── */}
+        {isWatching && !isAccepted && (
+          <div style={{
+            textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
+            letterSpacing:"0.01em",
+          }}>
+            {t("tpp.watch.title")}
+          </div>
+        )}
+      </div>
+
+      {showVerbindungsDialog && (
+        <VerbindungsDialog
+          profile={profile}
+          currentUserId={currentUserId}
+          onClose={() => setShowVerbindungsDialog(false)}
+          onSuccess={() => { setShowVerbindungsDialog(false); rel.refetch(); }}
+        />
+      )}
+    </>
+  );
+}
+
+
+// ══════════════════════════════════════════════════════════════
+// MEINE TALENTE & ANGEBOTE — Skill-Pills aus profile.skills
+// ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame TalentSection (src/components/profile/sections/TalentSection.jsx)
+
+// ══════════════════════════════════════════════════════════════
+// MEINE WERKE — horizontaler Scroller, Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame WorksSection (src/components/profile/sections/WorksSection.jsx)
+
+// ══════════════════════════════════════════════════════════════
+// ERLEBNISSE & PROJEKTE — Screenshot-exakt mit Labels
+// ══════════════════════════════════════════════════════════════
+const CAT_MAP = {
+  workshop:"Workshop", kurs:"Workshop", malen:"Workshop",
+  event:"Event", festival:"Event", konzert:"Event",
+  ausstellung:"Ausstellung", galerie:"Ausstellung",
+  projekt:"Projekt", community:"Projekt",
+};
+// LEGACY — Ersetzt durch gemeinsame ExperiencesSection (src/components/profile/sections/ExperiencesSection.jsx)
+
+// ══════════════════════════════════════════════════════════════
+// KUNDENSTIMMEN — horizontaler Scroller, Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame RecommendationsSection (src/components/profile/sections/RecommendationsSection.jsx)
+
+// ══════════════════════════════════════════════════════════════
+// VERFÜGBARKEIT + STANDORT — 2-Spalten, Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch AvailabilitySection + LocationSection (src/components/profile/sections/)
+
+// ══════════════════════════════════════════════════════════════
+// SICHTBARKEIT — Screenshot-exakt
+// ══════════════════════════════════════════════════════════════
+// LEGACY — Ersetzt durch gemeinsame VisibilitySection (src/components/profile/sections/VisibilitySection.jsx)
+
+// ══════════════════════════════════════════════════════════════
+// SOCIAL CONTEXT BAR — 3 Spalten: Verbindungen · Begegnungen · Momente
+// ══════════════════════════════════════════════════════════════
+function SocialContextBarTalent({ followCounts, experiences, moments, loading }) {
+  const { t } = useTranslation();
+  // Live-Werte: keine fake Multiplikatoren/Fallbacks
+  const stats = [
+    { icon:"👥", value: loading?"–":String(followCounts?.followers??0), label:"Verbindungen"   },
+    { icon:"❤️", value: loading?"–":String(experiences.length),         label:"Gem. Begegnungen" },
+    { icon:"💬", value: loading?"–":String(moments.length),             label:"Gem. Momente"  },
+  ];
+  return (
+    <div style={{
+      display:"grid",gridTemplateColumns:"repeat(3,1fr)",
+      background:T.bgCard,borderRadius:T.r20,
+      border:`1px solid ${T.border}`,margin:`0 ${T.px}px`,
+      boxShadow:T.card,overflow:"hidden",
+    }}>
+      {stats.map((st,i)=>(
+        <div key={i} style={{
+          display:"flex",flexDirection:"column",alignItems:"center",
+          padding:"16px 8px",
+          borderRight:i<2?`1px solid ${T.border}`:"none",
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4}}>
+            <span style={{fontSize:16}}>{st.icon}</span>
+            <span style={{fontSize:18,fontWeight: 600,color:T.ink,letterSpacing:"-0.03em"}}>{st.value}</span>
+          </div>
+          <span style={{fontSize:10.5,color:T.inkFaint,lineHeight:1.35,textAlign:"center"}}>{st.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// HAUPT-KOMPONENTE — Sprint D
+// Datenlayer: useProfileData() statt lokaler Queries
+// Header: ProfileHeader (unified)
+// Sections: gemeinsame Sprint-C-Komponenten
+// ══════════════════════════════════════════════════════════════
+export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
+  const { t } = useTranslation();
+  useModalRegistration(true, () => onClose?.(), "TalentProfilePage");
+  const { user, setProfile: setAuthProfile } = useAuth();
+
+  // ── Sprint D: Datenlayer via useProfileData ─────────────────
+  const {
+    profile,
+    wirkerProfile,
+    works,
+    worksSaleStatus,
+    experiences,
+    recommendations,
+    moments,
+    followCounts,
+    loading,
+    loadingLazy,
+    loadLazy,
+    error,
+    reload,
+  } = useProfileData(profileId);
+
+  // ── Lokale UI-States (kein Datenlayer) ──────────────────────
+  const [mounted,           setMounted]           = useState(false);
+  const [lazyLoaded,        setLazyLoaded]        = useState(false);
+  const [showKompassSheet,  setShowKompassSheet]  = useState(false);
+  useModalRegistration(showKompassSheet, () => setShowKompassSheet(false), "TalentProfilePage-Kompass");
+  const [showSupport,       setShowSupport]       = useState(false);
+  const [kompassWatchLocal, setKompassWatchLocal] = useState(null);
+  const [showSettings,      setShowSettings]      = useState(false);
+  const [showProfilEdit,    setShowProfilEdit]    = useState(false);
+  const [showStudio,        setShowStudio]        = useState(false);
+  const [showWerkWizard,   setShowWerkWizard]   = useState(false);
+
+  const [editingWerk,     setEditingWerk]     = useState(null);
+  const [showExpWizard,   setShowExpWizard]   = useState(false);
+  const [editingExp,      setEditingExp]      = useState(null);
+  const kompassToggleRef = React.useRef(() => {});
+
+  // FIX 2026-08-26: isOwner MUSS vor dem useEffect deklariert werden, der es
+  // im Dependency-Array referenziert — sonst TDZ-Verletzung → ReferenceError
+  // → RouteBoundary fängt ab → "Seite konnte nicht geladen werden" auf /profile/:username
+  const isOwner = !publicView && (!!user?.id && (profileId === user.id || (!profileId && !!user.id)));
+
+  // PRELOAD: Wizard-Chunks preloaden sobald Owner das Profil öffnet
+  useEffect(() => {
+    if (isOwner) {
+      import("../components/works/WerkWizard.jsx").catch(() => {});
+      import("../components/experiences/ExperienceWizard.jsx").catch(() => {});
+    }
+  }, [isOwner]);
+
+  // Mount-Animation
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 30);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Lazy-Content laden sobald Phase 1 (Profil) fertig ist
+  useEffect(() => {
+    if (profile && !lazyLoaded) {
+      setLazyLoaded(true);
+      loadLazy();
+    }
+  }, [profile, lazyLoaded, loadLazy]);
+
+  // SADB: recommendation_profile_viewed
+  useEffect(() => {
+    if (!profile?.id) return;
+    supabase.from("commerce_events").insert({
+      event_type: "recommendation_profile_viewed",
+      actor_type: "user",
+      payload: { profile_owner_id: profile.id },
+    }).then(() => {});
+  }, [profile?.id]);
+
+  // ── Sprint F.9G.4: Realtime — Admin-Freigabe (works + experiences) ──
+  // Nur UPDATE: wenn Admin status → published/approved setzt, sofort sichtbar.
+  // DELETE bewusst ausgelassen (Skalierungsrisiko, kein primärer UX-Flow).
+  useEffect(() => {
+    if (!profileId) return;
+    // Realtime-Dedupe-Schutz (2026-07-08, systemweit, siehe useProfileLocations.js):
+    // existierenden Channel fuer diesen Topic wiederverwenden statt erneut zu
+    // subscriben -- verhindert "cannot add postgres_changes callbacks ... after
+    // subscribe()" bei gleichzeitigen Mounts fuer denselben Topic.
+    const topic = "ttp:works-exps:" + profileId;
+    const existing = supabase.getChannels().find(c => c.topic === `realtime:${topic}`);
+    let ch = existing;
+    let createdHere = false;
+    if (!existing) {
+      ch = supabase
+        .channel(topic)
+        // works: INSERT + UPDATE + DELETE → Stats immer aktuell
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "works",
+          filter: "user_id=eq." + profileId,
+        }, () => reload())
+        // experiences: INSERT + UPDATE + DELETE
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "experiences",
+          filter: "user_id=eq." + profileId,
+        }, () => reload())
+        // momente: INSERT + DELETE → Momente-Zähler live
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "momente",
+          filter: "user_id=eq." + profileId,
+        }, () => reload())
+        // follower: wenn jemand folgt/entfolgt → Follower-Zähler live
+        .on("postgres_changes", {
+          event: "*", schema: "public", table: "followers",
+          filter: "following_id=eq." + profileId,
+        }, () => reload())
+        .subscribe();
+      createdHere = true;
+    }
+    return () => { if (createdHere) supabase.removeChannel(ch); };
+  }, [profileId, reload]);
+
+  const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
+
+  // Chat via CCO (identisch zu bisheriger Logik)
+  const { setShowChat, setChatRecipient } = useHome() || {};
+  const handleOpenChat = useCallback(() => {
+    if (!profile?.id) return;
+    setChatRecipient({
+      id:           profile.id,
+      display_name: profile.display_name || profile.username || "Talent",
+      avatar_url:   profile.avatar_url || null,
+    });
+    if (onClose) onClose();   // Profil zuerst schließen
+    setShowChat(true);        // Dann Chat öffnen
+  }, [profile, setChatRecipient, setShowChat, onClose]);
+
+  // Avatar/Cover-Update → sofortiger AuthContext-Update + reload
+  // Sprint F.4D.1: setAuthProfile sofort aufrufen — kein Reload nötig
+  const handleAvatarChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
+  const handleCoverChange = useCallback((url) => {
+    if (url && setAuthProfile) {
+      setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    }
+    reload();
+  }, [reload, setAuthProfile]);
+
+  // Verfügbarkeit — schreibt direkt in profiles.is_available (Sprint F.3A / F.9G.1: error-check)
+  const handleAvailabilityChange = useCallback(async (isAvailable) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ is_available: isAvailable, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleAvailabilityChange:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  // Standort — schreibt direkt in profiles.location (Sprint F.3B — einzige Wahrheitsquelle)
+  // Standort error-check (Sprint F.9G.1)
+  const handleLocationChange = useCallback(async (locationStr) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ location: locationStr, location_label: locationStr, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleLocationChange:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  // Talente/Skills — schreibt direkt in profiles.skills (Sprint F.3C — einzige Wahrheitsquelle)
+  // labels: string[] — z.B. ["Malerei", "Fotografie"]
+  // Debounced reload: mehrere schnelle Toggle-Klicks = nur ein reload am Ende
+  const _skillsReloadTimer = React.useRef(null);
+  const handleSkillsChange = useCallback(async (labels) => {
+    if (!user?.id) return;
+    // Optimistisches Update — sofort sichtbar ohne Warten auf reload
+    // (Profile-Objekt im Hook wird beim reload() aktualisiert)
+    const { error } = await supabase.from("profiles")
+      .update({ skills: labels, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleSkillsChange:", error.message); return; }
+    // Reload debounced: 400ms nach letztem Toggle
+    clearTimeout(_skillsReloadTimer.current);
+    _skillsReloadTimer.current = setTimeout(() => reload(), 400);
+  }, [user?.id, reload]);
+
+  // Sichtbarkeit — schreibt direkt in profiles.focus_type (Sprint F.9G.1)
+  const handleVisibilityChange = useCallback(async (visibility) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from("profiles")
+      .update({ focus_type: visibility, updated_at: new Date().toISOString() })
+      .eq("id", user.id);
+    if (error) { console.error("handleVisibilityChange:", error.message); return; }
+    reload();
+  }, [user?.id, reload]);
+
+  // Loading-Guard (nach allen Hooks — Rules of Hooks konform)
+  if (loading && !profile) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"#F9F7F4",
+        display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:16,
+      }}>
+        <button onClick={onClose} style={{
+          position:"absolute", top:16, left:16,
+          background:"none", border:"none", fontSize:22, cursor:"pointer", color:"#6B7280",
+        }}>←</button>
+        <div style={{
+          width:36, height:36, borderRadius:"50%",
+          border:"3px solid rgba(13,196,181,0.15)",
+          borderTopColor:"#0DC4B5",
+          animation:"spin 0.75s linear infinite",
+        }}/>
+        <div style={{ fontSize:12, color:"#9CA3AF" }}>Profil wird geladen…</div>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    );
+  }
+
+  // Fehler-Guard: Profil konnte nicht geladen werden
+  if (!loading && !profile) {
+    return (
+      <div style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"#F9F7F4",
+        display:"flex", flexDirection:"column",
+        alignItems:"center", justifyContent:"center", gap:12,
+      }}>
+        <button
+          onClick={onClose}
+          style={{
+            position:"absolute", top:16, left:16,
+            background:"none", border:"none", fontSize:24, cursor:"pointer", color:"#6B7280",
+          }}
+        >←</button>
+        <div style={{ fontSize:40 }}>🔍</div>
+        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>{t("tpp.profileUnavailable")}</div>
+        <div style={{ fontSize:13, color:"#6B7280", textAlign:"center", maxWidth:260 }}>
+          Dieses Profil konnte nicht geladen werden.
+        </div>
+      </div>
+    );
+  }
+
+    return (
+    <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
+        <div className="tpp-root" style={{
+      position:"fixed", top:0, left:0, right:0,
+      bottom: publicView ? 0 : NAV_CLEARANCE_CSS,
+      zIndex:9500, /* <BottomNav(10000) — Root endet vor Navbar */
+      display:"flex", flexDirection:"column",
+      opacity:mounted?1:0,
+      transform:mounted?"none":"translateY(14px)",
+      transition:"opacity .35s ease, transform .35s cubic-bezier(.22,1,.36,1)",
+    }}>
+      <style>{CSS}</style>
+
+      {/* ── Sticky Header (unverändert) ──────────────────────── */}
+      <Header onBack={handleBack} isOwner={isOwner} onSettings={() => setShowSettings(true)}/>
+
+      {/* ── Scrollable Content ───────────────────────────────── */}
+      <div className="tpp-scroll" style={{
+        flex:1, overflowY:"auto", touchAction:"pan-y", willChange:"transform", overscrollBehavior:"contain",
+        paddingBottom:"max(40px,calc(28px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
+      }}>
+
+        {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}
+        <ProfileHeader
+          profile={profile}
+          isOwner={isOwner}
+          isTalent={profile?.is_talent === true}
+          loading={loading}
+          followCounts={followCounts}
+          onEditAvatar={handleAvatarChange}
+          onEditCover={handleCoverChange}
+        />
+
+        {profileId && (
+        <OrbSignatur profileId={profileId} />
+        )}
+
+        {/* ── Verbinden + Folgen — nur für Fremdprofile ── */}
+        {!isOwner && (
+          <ProfileRelationButtons
+            profileId={profileId || profile?.id}
+            currentUserId={user?.id}
+            profile={profile}
+            onClose={onClose}
+          />
+        )}
+        <Gap h={8}/>
+
+        {/* ── 3. Schwerpunkt + Stats (unverändert) ─────────── */}
+        <SchwerpunktStatsBlock
+          profile={profile} works={works} experiences={experiences}
+          moments={moments} loading={loading} followCounts={followCounts}
+        />
+        <Gap h={16}/>
+
+        {/* ── Kundenstimmen — direkt unter Bio/Stats ── */}
+        <RecommendationsSection
+            recommendations={recommendations}
+            isOwner={isOwner}
+            loading={loading}
+            onShowAll={() => {}}
+            profileOwnerId={profile?.id || ""}
+            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+          />
+        <Gap h={28}/>
+
+        {/* ── 5. Nächste Erlebnisse (unverändert) ──────────── */}
+        <NaechsteErlebnisseSection experiences={experiences} loading={loading}/>
+        <Gap h={28}/>
+        {/* ── 7. Talente & Angebote → TalentSection (Skills-Chips) ── */}
+        <TalentSection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onChange={handleSkillsChange}
+          />
+        <Gap h={16}/>
+
+        {/* ── 7b. Talent-Angebote (talents-Tabelle, approved) ── */}
+        {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
+          <>
+            <div style={{ padding:"0 16px", marginBottom:8 }}>
+              <div style={{ fontSize:15, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.01em" }}>
+                Talent-Angebote
+              </div>
+            </div>
+            <div style={{ padding:"0 16px" }}>
+              <PublicTalentOffersSection profileId={profileId}/>
+            </div>
+          </>
+        )}
+        <Gap h={28}/>
+
+        {/* ── 8. Werke → WorksSection ──────────────────────── */}
+        <WorksSection
+            works={works}
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            saleStatus={worksSaleStatus}
+            onShowAll={() => {}}
+            onAddWork={isOwner ? () => { setEditingWerk(null); setShowWerkWizard(true); } : null}
+          />
+        <Gap h={28}/>
+
+        {/* ── 9. Erlebnisse → ExperiencesSection ───────────── */}
+        <ExperiencesSection
+            experiences={experiences}
+            isOwner={isOwner}
+            loading={loading}
+            onShowAll={() => {}}
+            onAddExperience={isOwner ? () => { setEditingExp(null); setShowExpWizard(true); } : null}
+          />
+        <Gap h={28}/>
+
+
+
+
+
+        {/* ── 12. Standort → LocationSection ───────────────── */}
+        <LocationSection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleLocationChange}
+          />
+        <Gap h={12}/>
+
+        {/* ── 13. Sichtbarkeit → VisibilitySection ─────────── */}
+        <VisibilitySection
+            profile={profile}
+            isOwner={isOwner}
+            loading={loading}
+            onSave={handleVisibilityChange}
+          />
+        <Gap h={24}/>
+
+        {/* ── 14. Momente → MomentsSection (Sprint C) ──────── */}
+        <MomentsSection
+            moments={moments}
+            isOwner={isOwner}
+            loading={loading}
+          />
+        <Gap h={24}/>
+
+        {/* ── 15. Social Context Bar (unverändert) ─────────── */}
+        <SocialContextBarTalent
+          followCounts={followCounts}
+          experiences={experiences}
+          moments={moments}
+          loading={loading}
+        />
+        <Gap h={24}/>
+
+        {/* ── 16. Abschluss — nur Besucher ─────────────────── */}
+        {!isOwner && (
+          <>
+            <AbschlussBar profile={profile} loading={loading}/>
+            <Gap h={16}/>
+            <ProfileRelationButtons
+              profileId={profileId || profile?.id}
+              currentUserId={user?.id}
+              profile={profile}
+              onClose={onClose}
+            />
+          </>
+        )}
+        <Gap h={40}/>
+      </div>
+
+      {/* ── Kompass Sheet ────────────────────────────────────── */}
+      {showKompassSheet && (
+        <KompassActionSheet
+          profile={profile}
+          isWatching={kompassWatchLocal}
+          onWatch={kompassToggleRef.current}
+          onClose={() => setShowKompassSheet(false)}
+          onSupport={() => setShowSupport(true)}
+        />
+      )}
+
+      {/* ── Support Flow ─────────────────────────────────────── */}
+      {showSupport && profile?.id && (
+        <SupportFlow
+          creator={profile}
+          visible={showSupport}
+          onClose={() => setShowSupport(false)}
+          sourceType="profile"
+          sourceId={profile.id}
+        />
+      )}
+
+      {/* ── Owner Modals ─────────────────────────────────────── */}
+      {isOwner && showSettings && (
+        <SettingsModal
+            profile={profile}
+            onClose={() => setShowSettings(false)}
+            onEditProfile={() => {
+              setShowSettings(false);
+              setShowProfilEdit(true);
+            }}
+            onSave={(updated) => {
+              reload();
+              setShowSettings(false);
+            }}
+          />
+        )}
+      {isOwner && showProfilEdit && (
+        <ProfilBearbeitenModal
+          profile={profile}
+          onClose={() => setShowProfilEdit(false)}
+          onProfileUpdate={() => { reload(); setShowProfilEdit(false); }}
+        />
+      )}
+      {isOwner && showStudio && (
+        <HuiStudio
+            profile={profile}
+            onClose={() => setShowStudio(false)}
+          />
+        )}
+
+      {/* WERK WIZARD */}
+      {isOwner && showWerkWizard && profile?.id && (
+        <WerkWizard
+          userId={profile.id}
+          existingWork={editingWerk}
+          onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
+          onSaved={(werk) => {
+            setShowWerkWizard(false); setEditingWerk(null);
+            reload();
+          }}
+        />
+      )}
+
+      {/* EXPERIENCE WIZARD */}
+      {isOwner && showExpWizard && profile?.id && (
+        <ExperienceWizard
+          userId={profile.id}
+          existingExp={editingExp}
+          onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
+          onSaved={(exp) => {
+            setShowExpWizard(false); setEditingExp(null);
+            reload();
+          }}
+        />
+      )}
+    </div>
+    </Suspense>
+  );
+}

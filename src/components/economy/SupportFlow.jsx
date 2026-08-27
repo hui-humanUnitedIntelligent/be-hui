@@ -23,6 +23,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import { IMPACT_RATE } from "../commerce/commerceUtils.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg:"#FAFAF8", ink:"#1A1A2E", soft:"rgba(26,26,46,0.55)",
@@ -44,6 +45,7 @@ function injectCSS() {
 }
 
 export default function SupportFlow({ creator, visible, onClose, sourceType="profile", sourceId=null }) {
+  const { t } = useTranslation();
   injectCSS();
   const { user } = useAuth();
   const [amount, setAmount] = useState(5);
@@ -64,7 +66,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
   async function handleSupport() {
     if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
     if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
-    if (user.id === creatorId) { setErrMsg("Du kannst dich nicht selbst unterstützen."); setPhase("error"); return; }
+    if (user.id === creatorId) { setErrMsg(t("sup.cantSelf")); setPhase("error"); return; }
     if (!finalAmount || finalAmount < 0.50) { setErrMsg("Mindestbetrag 0,50 €."); setPhase("error"); return; }
 
     setPhase("loading");
@@ -97,7 +99,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
 
       if (!res.ok || result.error) {
         const msg = result.code === "STRIPE_NOT_CONFIGURED"
-          ? "Stripe ist noch nicht konfiguriert. Bitte später versuchen."
+          ? t("sup.stripeNotConfigured")
           : (result.error || "Zahlung konnte nicht gestartet werden.");
         setErrMsg(msg);
         setPhase("error");
@@ -212,7 +214,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Persönliche Nachricht (optional)…"
+                placeholder={t("sup.messagePlaceholder")}
                 maxLength={300}
                 style={{
                   width: "100%", minHeight: 70, padding: "12px 14px",

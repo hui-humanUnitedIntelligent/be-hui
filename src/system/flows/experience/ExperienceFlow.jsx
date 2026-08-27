@@ -15,6 +15,7 @@ import { ExperiencePublishStep } from "./ExperiencePublishStep.jsx";
 import { supabase }              from "../../../lib/supabaseClient.js";
 import { useAuth }               from "../../../lib/AuthContext.jsx";
 import { publishExperience }      from "../../../lib/factories/experienceContract.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 /* ── Design Tokens (identisch zu WorkFlow / WT) ─────────────── */
 export const ET = {
@@ -98,6 +99,7 @@ export function ExpHeader({ step, onBack, onClose }) {
 
 /* ── Haupt-Flow ─────────────────────────────────────────────── */
 export default function ExperienceFlow({ onClose }) {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const [step,   setStep]   = useState(0);
   const [saving, setSaving] = useState(false);
@@ -165,7 +167,7 @@ export default function ExperienceFlow({ onClose }) {
       setDone(true);
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
-      setError(e.message || "Fehler beim Veröffentlichen");
+      setError(e.message || t("inv.errorPublish"));
     } finally { setSaving(false); }
   }, [user, form, mediaFiles, onClose]);
 

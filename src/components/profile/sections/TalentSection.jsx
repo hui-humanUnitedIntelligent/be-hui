@@ -10,6 +10,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -95,7 +96,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
               fontSize:11, fontWeight:600, color:T.inkSoft,
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>
-              <span style={{ fontSize:16 }}>+</span> Talente hinzufügen
+              <span style={{ fontSize:16 }}>+</span> {t("ts.addTalents")}
             </button>
           ) : (
             <div style={{
@@ -128,7 +129,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
                 fontSize:11, fontWeight:600, color:T.inkSoft,
                 cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
               }}>
-                <span style={{ fontSize:14 }}>+</span> Weiteres hinzufügen
+                <span style={{ fontSize:14 }}>+</span> {t("common.addMore")}
               </button>
             )}
           </>

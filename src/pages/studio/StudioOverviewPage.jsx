@@ -21,6 +21,7 @@ import React from 'react';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   teal:    HUI.COLOR.tealStudio,
@@ -33,6 +34,7 @@ const C = {
 };
 
 export default function StudioOverviewPage({ onNavigate }) {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const isTalent = isProfileTalent(profile);
   const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
@@ -108,7 +110,7 @@ export default function StudioOverviewPage({ onNavigate }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <QuickCard
             label="Einstellungen"
-            hint="Konto und Präferenzen"
+            hint={t("so.accountPrefs")}
             onClick={() => onNavigate?.('settings')}
           />
           <QuickCard

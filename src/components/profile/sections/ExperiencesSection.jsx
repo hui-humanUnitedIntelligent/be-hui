@@ -11,6 +11,7 @@ import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { formatDateDE } from "../../../lib/formatters.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -169,7 +170,7 @@ export function ExperiencesSection({
                 <span style={{ fontSize:20, color:T.inkFaint }}>+</span>
               </button>
               <div style={{ fontSize:10.5, color:T.inkFaint, textAlign:"center", marginTop:4, lineHeight:1.3 }}>
-                Erlebnis<br/>hinzufügen
+                Erlebnis<br/>{t("exp.addExperience")}
               </div>
             </div>
           )}

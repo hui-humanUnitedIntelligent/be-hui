@@ -50,7 +50,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
         toast.success(t("cs.toast.talentDeleted"), { duration: 3000 });
       }
       onDeleteTalent(t.id);
-    } catch(e) { console.error("Talent-Angebot löschen:", e); }
+    } catch(e) { console.error(t("cs.deleteTalent"), e); }
   };
 
   return (
@@ -197,7 +197,7 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
         toast.success(t("cs.toast.werkDeleted"), { duration: 3000 });
       }
       onDeleteWerk(w.id);
-    } catch(e) { console.error("Werk löschen:", e); }
+    } catch(e) { console.error(t("cs.deleteWork"), e); }
   };
 
   // DRAFT-PUBLISH (2026-08-20): Entwurf zur Prüfung einreichen — setzt
@@ -396,7 +396,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
         toast.success(t("cs.toast.expDeleted"), { duration: 3000 });
         onDeleteErlebnis(exp.id);
       } else {
-        console.error("Erlebnis löschen:", error);
+        console.error(t("cs.deleteExperience"), error);
         // Fallback: soft-delete wenn Hard-Delete nicht erlaubt (RLS)
         await supabase.from(table).update({ status: "deleted" }).eq("id", exp.id);
         toast.success(t("cs.toast.expDeletedSoft"), { duration: 3000 });

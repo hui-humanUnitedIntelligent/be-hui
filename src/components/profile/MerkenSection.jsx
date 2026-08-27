@@ -26,6 +26,7 @@ import { formatDateDE } from "../../lib/formatters.js";
 import { normalizeWorkRow, normalizeExperienceRow, normalizeMomentRow }
                           from "../../system/feed/unifiedNormalizer.js";
 
+import { useTranslation } from "../../hooks/useTranslation.js";
 // Identische Werte wie BaseFeedCard.jsx (Feed-Karten) -- Lars-Vorgabe:
 // "dieselbe Formsprache wie alle anderen HUI Cards".
 const T = {
@@ -70,7 +71,7 @@ const TYPE_ICON_COMPONENT = (type) => {
 // Filter-Tabs (Auftrag: Alle / Beiträge / Werke / Erlebnisse / Projekte)
 const FILTERS = [
   { key: "all",        label: "Alle",       types: null },
-  { key: "post",       label: "Beiträge",   types: ["post", "beitrag"] },
+  { key: "post",       label: t("merken.posts"),   types: ["post", "beitrag"] },
   { key: "work",       label: "Werke",      types: ["work"] },
   { key: "experience", label: "Erlebnisse", types: ["experience", "event"] },
   { key: "talent",     label: "Talente",    types: ["talent"] },

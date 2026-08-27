@@ -748,7 +748,7 @@ function ImpactProjectCard({ app, onAddUpdate, onMilestoneUpdate, onDelete }) {
     return () => { dead2 = true; };
   }, [app.id]);
 
-  // ── Löschen-Handler (2026-08-19) ───────────────────────────────
+  // ── {t("common.delete")}-Handler (2026-08-19) ───────────────────────────────
   // Soft-Delete: status='deleted' — schützt Voting-Historie (impact_votes)
   // und Meilensteine (impact_milestones). Projekt verschwindet sofort aus
   // Discover/Impact/Feed (alle filtern status != 'deleted').

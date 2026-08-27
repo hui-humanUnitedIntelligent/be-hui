@@ -2,15 +2,17 @@
 // Runder Gold/Coral Button der das MoodSheet öffnet
 
 import React from "react";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export default function MoodOrbButton({ activeMood, isOpen, onToggle }) {
+  const { t } = useTranslation();
   const mc  = activeMood?.color || null;
   const has = !!activeMood;
 
   return (
     <button
       onClick={onToggle}
-      aria-label="Stimmung wählen"
+      aria-label={t("mood.choose")}
       style={{
         flexShrink:0, width:38, height:38, borderRadius:"50%",
         background: has

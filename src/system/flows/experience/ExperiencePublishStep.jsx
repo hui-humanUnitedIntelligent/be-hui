@@ -8,6 +8,7 @@ import {
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import React from "react";
 import { ET } from "./ExperienceTokens.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 /* ── Sichtbarkeits-Cards ────────────────────────────────────── */
 function VisibilityCard({ icon, label, sub, active, onClick }) {
@@ -216,7 +217,7 @@ export function ExperiencePublishStep({
 
       {/* ── Sichtbarkeit ── */}
       <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-        <VisibilityCard icon={<HUIGlobeIcon size={18}/>} label="Offen" sub="Für alle erlebbar"
+        <VisibilityCard icon={<HUIGlobeIcon size={18}/>} label="Offen" sub={t("eps.forAll")}
           active={form.visibility==="public"}
           onClick={() => onFormChange({ visibility:"public" })}/>
         <VisibilityCard icon={<HUIGemeinschaftIcon size={18}/>} label="Gemeinschaft" sub="Im Resonanzraum"
@@ -270,7 +271,7 @@ export function ExperiencePublishStep({
             Wird veröffentlicht…
           </span>
         ) : (
-          "Erlebnis öffnen ❖"
+          t("eps.openExperience")
         )}
       </button>
 

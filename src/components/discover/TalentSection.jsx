@@ -8,6 +8,7 @@ import { HUITalentIcon, HUILocationIcon, HUIAnsichtIcon } from "../../design/ico
 import { optimizeCard } from "../../lib/perfUtils.js";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { radiusLabel } from "../../hooks/useRadiusFilter.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -237,7 +238,7 @@ export function TalenteSection({
                 </div>
               ))
             : talente.length === 0
-            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Talente in deiner Nähe.</div>
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>{t("tal.emptyNearby")}</div>
             : talente.map((t, i) => <TalentCardM key={t.id} talent={t} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
           }
         </div>

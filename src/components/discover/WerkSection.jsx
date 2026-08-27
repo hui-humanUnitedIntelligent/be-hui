@@ -9,6 +9,7 @@ import { optimizeCard } from "../../lib/perfUtils.js";
 import { HUIHeartIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { LocationRadiusRow } from "./TalentSection.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -125,7 +126,7 @@ export function WerkeSection({
                 </div>
               ))
             : werke.length === 0
-            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Werke in deiner Nähe.</div>
+            ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>{t("werk.emptyNearby")}</div>
             : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
           }
         </div>

@@ -12,6 +12,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -31,6 +32,7 @@ function relativeTime(dateStr) {
 }
 
 export default function StudioAktivitaet() {
+  const { t } = useTranslation();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,9 +109,9 @@ export default function StudioAktivitaet() {
       </p>
 
       {loading ? (
-        <p style={{ color: C.muted, fontSize: 14 }}>Lade Aktivitäten…</p>
+        <p style={{ color: C.muted, fontSize: 14 }}>{t("sa.loadingActivities")}</p>
       ) : activities.length === 0 ? (
-        <p style={{ color: C.muted, fontSize: 14 }}>Noch keine Aktivitäten erfasst.</p>
+        <p style={{ color: C.muted, fontSize: 14 }}>{t("sa.noActivities")}</p>
       ) : (
         <div style={{ position: 'relative', paddingLeft: 20 }}>
           {/* Timeline line */}

@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { T, a, ALL_INTERESTS, OPEN_FOR_ALL } from "./constants.js";
 import { SectionRow, Sheet, InterestPill } from "./atoms.jsx";
 import { HUILogo } from "../../brand/HUILogo.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function InteressenSection({ interests, onChange }) {
   const [showEdit, setShowEdit] = useState(false);
@@ -77,7 +78,7 @@ export function MomentThumb({ m, onRemove }) {
           background:"rgba(26,26,24,0.06)", gap:4 }}>
           <HUILogo size={32} style={{opacity:0.55}} />
           <span style={{fontSize:9, color:"rgba(26,26,24,0.35)", textAlign:"center",
-            padding:"0 6px", lineHeight:1.4}}>Bild nicht verfügbar</span>
+            padding:"0 6px", lineHeight:1.4}}>{t("ps.imageUnavailable")}</span>
         </div>
       ) : (
         <img loading="lazy" decoding="async" src={m.img} alt="" onLoad={()=>setLoaded(true)} onError={()=>{ setLoaded(true); setBroken(true); }}
@@ -112,7 +113,7 @@ export function OffenFuerSection({ openFor, onChange }) {
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
-      <SectionRow title="Offen für Begegnungen" sub="Wofür bist du offen? Was interessiert dich?"/>
+      <SectionRow title={t("ps.openForEncounters")} sub={t("ps.openForWhat")}/>
       <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
         {display.map((t,i)=>(
           <div key={i} style={{
@@ -132,13 +133,13 @@ export function OffenFuerSection({ openFor, onChange }) {
           fontSize:13, fontWeight:600, color:T.inkSoft,
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
         }}>
-          <span style={{fontSize:14}}>+</span> Weiteres hinzufügen
+          <span style={{fontSize:14}}>+</span> {t("common.addMore")}
         </button>
       </div>
 
       {showEdit && (
         <Sheet onClose={()=>setShowEdit(false)}>
-          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>Offen für Begegnungen</div>
+          <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>{t("ps.openForEncounters")}</div>
           <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>Was interessiert dich gerade?</div>
           <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
             {OPEN_FOR_ALL.map((t,i)=>(

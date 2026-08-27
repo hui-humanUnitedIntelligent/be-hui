@@ -16,6 +16,7 @@ import { WorkDetailsStep } from "./WorkDetailsStep.jsx";
 import { WorkPublishStep } from "./WorkPublishStep.jsx";
 import { supabase }        from "../../../lib/supabaseClient.js";
 import { useAuth }         from "../../../lib/AuthContext.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 /* ── Design Tokens ──────────────────────────────────────────── */
 export const WT = {
@@ -94,6 +95,7 @@ export function WorkHeader({ step, onBack, onClose }) {
 
 /* ── Haupt-Flow ─────────────────────────────────────────────── */
 export default function WorkFlow({ onClose }) {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const [step,    setStep]    = useState(0);
   const [saving,  setSaving]  = useState(false);
@@ -111,7 +113,7 @@ export default function WorkFlow({ onClose }) {
     shipping:     false,
     shippingCost: "",
     shippingTime: "3–5 Werktage",
-    shippingCountries: "Deutschland, Österreich, Schweiz",
+    shippingCountries: t("wf.regions"),
     // Details
     category:     "",
     fileFormat:   "",
@@ -227,10 +229,10 @@ export default function WorkFlow({ onClose }) {
       }
       console.info("[HUI_REALITY] work published ✓", workData?.id, workData);
       setDone(true);
-      setSuccessMsg?.("✅ Werk eingereicht! Es wird geprüft und bald freigeschaltet.");
+      setSuccessMsg?.(t("wf.submitted"));
       setTimeout(() => onClose?.(), 2200);
     } catch(e) {
-      setError(e.message || "Fehler beim Veröffentlichen");
+      setError(e.message || t("inv.errorPublish"));
     } finally {
       setSaving(false);
     }
@@ -254,7 +256,7 @@ export default function WorkFlow({ onClose }) {
           animation:"wfPop 0.55s cubic-bezier(0.34,1.4,0.64,1) both",
         }}>✨</div>
         <div style={{ fontSize:22, fontWeight: 600, color:"#fff",
-          letterSpacing:-0.5 }}>Werk veröffentlicht!</div>
+          letterSpacing:-0.5 }}>{t("wf.published")}</div>
         <div style={{ fontSize:14, color:"rgba(255,255,255,0.75)" }}>
           Deine Community sieht es jetzt.
         </div>

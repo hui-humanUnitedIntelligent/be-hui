@@ -12,6 +12,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { formatNumberDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -20,6 +21,7 @@ const C = {
 };
 
 export default function StudioMeldungen() {
+  const { t } = useTranslation();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(null);
@@ -54,7 +56,7 @@ export default function StudioMeldungen() {
     if (error) {
       setToast({ text: 'Aktion fehlgeschlagen.', type: 'error' });
     } else {
-      setToast({ text: 'Meldung als überprüft markiert.', type: 'success' });
+      setToast({ text: t("sm.markReviewed"), type: 'success' });
       setReports(prev => prev.filter(r => r.id !== reportId));
     }
     setBusy(null);
@@ -98,7 +100,7 @@ export default function StudioMeldungen() {
                   <div style={{ fontWeight: 500, marginBottom: 4 }}>
                     {r.comment.author?.display_name || r.comment.author?.username || 'Unbekannt'}
                   </div>
-                  <div style={{ color: C.muted }}>{r.comment.content || 'Inhalt nicht verfügbar'}</div>
+                  <div style={{ color: C.muted }}>{r.comment.content || t("sm.contentUnavailable")}</div>
                 </div>
               )}
 
@@ -114,7 +116,7 @@ export default function StudioMeldungen() {
                     padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer',
                     background: C.teal, color: '#fff', fontSize: 13, fontWeight: 600,
                     opacity: busy === r.id ? 0.6 : 1,
-                  }}>Als überprüft markieren</button>
+                  }}>{t("sm.markAsReviewed")}</button>
                 <button
                   onClick={() => markReviewed(r.id)} disabled={busy === r.id}
                   style={{

@@ -13,9 +13,10 @@ import { processFileSelection, UPLOAD_LIMITS } from "../../../lib/uploadUtils.js
 // src/lib/categories.js, FLOW_ORDER.experience) -- keine sichtbare Aenderung
 // fuer Nutzer, kein Datenformat-Wechsel fuer experiences.category.
 import { getFlowCategoryOptions } from "../../../lib/categories.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const EXAMPLES = [
-  "Gitarrenunterricht für Anfänger",
+  t("ecs.exampleTitle"),
   "Meditationsabende",
   "Portrait Fotografie",
   "3D Design Mentoring",
@@ -157,7 +158,7 @@ export function ExperienceCreateStep({
         </label>
         <input
           style={EInput}
-          placeholder="z.B. Gitarrenunterricht für Anfänger"
+          placeholder={t("ecs.titlePlaceholder")}
           value={form.title}
           maxLength={80}
           onChange={e => onFormChange({ title: e.target.value })}
@@ -226,10 +227,10 @@ export function ExperienceCreateStep({
       {/* ── Medien ── */}
       <div style={{ marginBottom:22 }}>
         <div style={{ fontSize:14, fontWeight: 600, color:ET.ink,
-          marginBottom:12 }}>Medien hinzufügen</div>
+          marginBottom:12 }}>{t("common.addMedia")}</div>
 
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
-          <MediaBtn icon={<HUIFotoIcon size={18}/>} label="Foto hinzufügen"
+          <MediaBtn icon={<HUIFotoIcon size={18}/>} label={t("common.addPhoto")}
             color={ET.teal} bg="rgba(10,191,184,0.05)"
             onClick={() => photoRef.current?.click()} />
           <MediaBtn icon={<HUIVideoIcon size={18}/>} label="Video hinzufügen"

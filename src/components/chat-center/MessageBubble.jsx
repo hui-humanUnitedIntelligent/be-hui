@@ -8,6 +8,7 @@ import { HUI } from "../../design/hui.design.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatTimeDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Emoji-Reaktionsleiste (Long-Press) ──
 const QUICK_EMOJIS = ["❤️", "😂", "👍", "🔥", "😮", "🙏", "👏", "💪"];
@@ -374,6 +375,7 @@ function ReactionBadges({ msg = {}, own = false }) {
 
 // ── Haupt-Bubble ──
 export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
+  const { t } = useTranslation();
   const own = msg.own === true;
   const [modal, setModal] = useState(null); // { x, y } | null
   const [reactionAnchor, setReactionAnchor] = useState(null); // DOMRect-Snapshot | null
@@ -507,7 +509,7 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
               }}/>
             )}
             {isDeleted ? (
-              <span style={{ position:"relative" }}>Diese Nachricht wurde gelöscht.</span>
+              <span style={{ position:"relative" }}>{t("chat.deleted")}</span>
             ) : (
               <div style={{ position:"relative" }}>
                 <MediaContent msg={msg} own={own}/>

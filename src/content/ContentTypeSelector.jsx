@@ -9,6 +9,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { HUI } from "../design/hui.design.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ── Design ─────────────────────────────────────────────────── */
 const T = {
@@ -63,7 +64,7 @@ const CONTENT_TYPES = [
     icon:    "🎨",
     label:   "Werk",
     sub:     "Kunst · Design · Portfolio",
-    desc:    "Deine Schöpfung verdient einen Raum.",
+    desc:    t("cts.yourCreation"),
     color:   HUI.COLOR.coral,
     glow:    "rgba(251,146,60,0.15)",
     border:  "rgba(251,146,60,0.22)",
@@ -169,6 +170,7 @@ function TypeCard({ type, idx, onSelect }) {
 
 /* ── Main Component ─────────────────────────────────────────── */
 export default function ContentTypeSelector({ onSelect, onClose, visible = true }) {
+  const { t } = useTranslation();
   const overlayRef = useRef(null);
 
   // Close on backdrop tap

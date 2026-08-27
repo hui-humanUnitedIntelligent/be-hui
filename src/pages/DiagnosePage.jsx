@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { formatNumberDE } from "../lib/formatters.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -45,6 +46,7 @@ const C = {
 };
 
 export default function DiagnosePage() {
+  const { t } = useTranslation();
   const [results, setResults]   = useState({});
   const [schema,  setSchema]    = useState({});
   const [running, setRunning]   = useState(false);
@@ -454,7 +456,7 @@ export default function DiagnosePage() {
         style={{ padding:'12px 24px', borderRadius:10, background:'#16D7C5',
           border:'none', color:'#0f172a', fontWeight: 600, fontSize:13,
           cursor: running?'default':'pointer', fontFamily:'inherit' }}>
-        {running ? 'Audit läuft…' : '🔄 Audit nochmal ausführen'}
+        {running ? t("diag.auditRunning") : t("diag.rerunAudit")}
       </button>
 
       <div style={{ marginTop:16, padding:'12px 16px', background:'rgba(22,215,197,.07)',

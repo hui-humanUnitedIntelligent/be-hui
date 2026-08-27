@@ -1,10 +1,11 @@
 // src/components/profile/sections/AboutSection.jsx
 // ══════════════════════════════════════════════════════════════════════
-// ABOUT SECTION — "Über dich" / Bio
+// ABOUT SECTION — t("about.aboutYou") / Bio
 // Owner: Inline-Edit mit Char-Counter
 // Visitor: Read-only, italic. Empty-State statt null.
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState } from "react";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -85,7 +86,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
                 lineHeight:1.68, resize:"none", fontFamily:"inherit", fontStyle:"italic",
                 boxSizing:"border-box",
               }}
-              placeholder="Erzähl etwas über dich…"
+              placeholder={t("about.placeholder")}
             />
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginTop:6 }}>
               <span style={{ fontSize:11, color:T.inkFaint }}>{draft.length} / {MAX_BIO}</span>

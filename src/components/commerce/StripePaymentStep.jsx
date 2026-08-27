@@ -14,6 +14,7 @@ import {
 import { STRIPE_APPEARANCE, COMMERCE_CONFIG } from "../../services/commerceEngine.js";
 import { C, haptic } from "../commerce/commerceUtils.js";
 import stripePublishableKey from "../../config/stripe-publishable-key.json";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function resolveStripeKey(publishableKey) {
   return publishableKey
@@ -230,7 +231,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          {processing ? "Wird verarbeitet…" : "Jetzt unterstützen"}
+          {processing ? "Wird verarbeitet…" : t("stripe.supportNow")}
         </button>
         <div style={{
           textAlign: "center", marginTop: 10, fontSize: 11,
@@ -259,6 +260,7 @@ export default function StripePaymentStep({
   onBack,
   hideHeader = false,  // C2.1: Header wird vom UnterstutzenFlow gesteuert
 }) {
+  const { t } = useTranslation();
   const stripeKey = resolveStripeKey(publishableKey);
   const stripePromise = useMemo(
     () => (stripeKey ? loadStripe(stripeKey) : null),

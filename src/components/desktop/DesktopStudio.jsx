@@ -47,6 +47,7 @@ import ProjektreisenPage from '../../pages/studio/ProjektreisenPage.jsx';
 import WirkungPage from '../../pages/studio/WirkungPage.jsx';
 import CommunityPage from '../../pages/studio/CommunityPage.jsx';
 import KontoSettingsPage from '../../pages/studio/KontoSettingsPage.jsx';
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function StudioIcon({ name }) {
   const paths = {
@@ -94,14 +95,14 @@ function StudioIcon({ name }) {
 const NAV_GROUPS = [
   // Mitglied — immer sichtbar
   { label: 'Mitglied', items: [
-    { key: 'overview', icon: 'overview', label: 'Übersicht' },
+    { key: 'overview', icon: 'overview', label: t("common.overview") },
     { key: 'community', icon: 'community', label: 'Community' },
   ]},
   // Talent-Bereiche — nur sichtbar bei Talent-Verantwortung
   { label: 'Werkzeug', talentOnly: true, items: [
     { key: 'content', icon: 'content', label: 'Werke & Inhalte' },
     { key: 'orders', icon: 'orders', label: 'Zusammenarbeit' },
-    { key: 'availability', icon: 'availability', label: 'Verfügbarkeit' },
+    { key: 'availability', icon: 'availability', label: t("common.availability") },
   ]},
   // V7.5 Phase 7: Wirkung — ein ruhiger Spiegel, kein Analytics-Dashboard
   { label: 'Wirkung', talentOnly: true, items: [
@@ -121,7 +122,7 @@ const NAV_GROUPS = [
     { key: 'entwicklung', icon: 'entwicklung', label: 'Entwicklungszentrum' },
   ]},
   // Persönliches — immer sichtbar
-  { label: 'Persönliches', items: [
+  { label: t("desk.personal"), items: [
     { key: 'support', icon: 'support', label: 'Support' },
     { key: 'settings', icon: 'settings', label: 'Einstellungen' },
   ]},
@@ -154,6 +155,7 @@ function renderSubPage(activeTool, handleBack, onNavigate) {
 
 
 export default function DesktopStudio() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { section } = useParams();
   const { profile, user } = useAuth();

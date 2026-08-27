@@ -15,6 +15,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream:   HUI.COLOR.creamStudio,
@@ -27,6 +28,7 @@ const C = {
 };
 
 export default function EntwicklungszentrumOverview({ onNavigate }) {
+  const { t } = useTranslation();
   const [counts, setCounts] = useState({
     pendingWorks: 0,
     pendingExperiences: 0,
@@ -94,7 +96,7 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
             {totalPending > 0 && (
               <AttentionCard
                 count={totalPending}
-                label="Anträge und Inhalte warten auf Freigabe"
+                label={t("evo.pendingApprovals")}
                 onClick={() => onNavigate?.('begleitung')}
               />
             )}
@@ -143,7 +145,7 @@ export default function EntwicklungszentrumOverview({ onNavigate }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <QuickCard label="Menschen" hint="Begleiten und Verantwortungen vergeben" onClick={() => onNavigate?.('menschen')} />
           <QuickCard label="Begleitung" hint="Inhalte freigeben" onClick={() => onNavigate?.('begleitung')} />
-          <QuickCard label="Meldungen" hint="Kommentare prüfen" onClick={() => onNavigate?.('meldungen')} />
+          <QuickCard label="Meldungen" hint={t("evo.reviewComments")} onClick={() => onNavigate?.('meldungen')} />
         </div>
       </div>
     </div>

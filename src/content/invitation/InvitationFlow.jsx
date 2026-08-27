@@ -15,6 +15,7 @@ import { supabase }  from "../../lib/supabaseClient.js";
 import { useAuth }   from "../../lib/AuthContext.jsx";
 import { HUI }       from "../../design/hui.design.js";
 import { searchPlaces } from "../../lib/geocoding.js"; // Umkreissuche 2026-07-06 (068) -- wiederverwendet STANDORT-036
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 const V = {
@@ -235,7 +236,7 @@ function WoWannStep({ data, onChange, onNext, onBack }) {
         <button className="if-tap" onClick={onBack} style={{
           flex:1, padding:"14px", borderRadius:16, border:`1.5px solid rgba(139,92,246,0.15)`,
           background:"transparent", color:V.violet, fontSize:15, fontWeight:600, cursor:"pointer",
-        }}>← Zurück</button>
+        }}>{t("common.back")}</button>
         <button className="if-tap" onClick={onNext} style={{
           flex:2, padding:"14px", borderRadius:16, border:"none",
           background:`linear-gradient(135deg, ${V.violet} 0%, #6D28D9 100%)`,
@@ -362,6 +363,7 @@ function SuccessScreen({ onClose }) {
 
 /* ── Main Flow ──────────────────────────────────────────────── */
 export default function InvitationFlow({ onClose, visible = true }) {
+  const { t } = useTranslation();
   const { user, profile } = useAuth();
   const [step,       setStep]       = useState(0);
   const [data,       setData]       = useState({});
@@ -424,7 +426,7 @@ export default function InvitationFlow({ onClose, visible = true }) {
       setSuccess(true);
     } catch (err) {
       console.error("[InvitationFlow] publish error:", err);
-      setError(err.message || "Fehler beim Veröffentlichen");
+      setError(err.message || t("inv.errorPublish"));
     } finally {
       setPublishing(false);
     }

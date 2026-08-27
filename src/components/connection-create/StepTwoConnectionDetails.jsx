@@ -10,6 +10,7 @@ import {
 import React from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Farben ──────────────────────────────────────────────────────────
 const C = {
@@ -496,13 +497,13 @@ function AttachmentBar() {
   return (
     <div style={{ display:"flex", gap:9 }}>
       <button style={BtnS} onMouseEnter={hover} onMouseLeave={leave}>
-        <HUIFotoIcon size={16} style={{flexShrink:0}}/> Bild hinzufügen
+        <HUIFotoIcon size={16} style={{flexShrink:0}}/> {t("conn.addImage")}
       </button>
       <button style={BtnS} onMouseEnter={hover} onMouseLeave={leave}>
         Musik hinzufügen
       </button>
       <button style={BtnS} onMouseEnter={hover} onMouseLeave={leave}>
-        <HUILinkIcon size={16} style={{flexShrink:0}}/> Link hinzufügen
+        <HUILinkIcon size={16} style={{flexShrink:0}}/> {t("conn.addLink")}
       </button>
     </div>
   );
@@ -512,6 +513,7 @@ function AttachmentBar() {
 // HAUPT-EXPORT
 // ══════════════════════════════════════════════════════════════════
 export default function StepTwoConnectionDetails({ data, onChange }) {
+  const { t } = useTranslation();
   const set = (key, val) => onChange({ ...data, [key]: val });
 
   return (

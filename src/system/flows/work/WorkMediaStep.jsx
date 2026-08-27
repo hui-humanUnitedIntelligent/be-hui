@@ -7,6 +7,7 @@ import {
 import React, { useRef, useCallback } from "react";
 import { WT } from "./WorkTokens.js";
 import { processFileSelection, UPLOAD_LIMITS } from "../../../lib/uploadUtils.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 /* ── Shared Input Styles ─────────────────────────────────────── */
 const inputStyle = {
@@ -120,7 +121,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
 
   const canNext = form.title.trim().length > 0;
 
-  // ── Medien hinzufügen ────────────────────────────────────────
+  // ── {t("common.addMedia")} ────────────────────────────────────────
   const addFiles = useCallback((fileList, accept) => {
     // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos, max 10
     const { accepted } = processFileSelection(fileList, mediaFiles.length);
@@ -206,7 +207,7 @@ export function WorkMediaStep({ form, mediaFiles, onFormChange, onMediaChange, o
         <div style={{ display:"flex", gap:10, marginBottom:12 }}>
           <MediaButton
             icon={<HUIFotoIcon size={18}/>}
-            label="Foto hinzufügen"
+            label={t("common.addPhoto")}
             color={WT.teal}
             bgColor="rgba(10,191,184,0.06)"
             onClick={() => photoRef.current?.click()}

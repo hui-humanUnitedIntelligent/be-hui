@@ -11,6 +11,7 @@ import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 /* ── Tokens ── */
 const C = {
@@ -244,7 +245,7 @@ function StepCreate({ mode, data, onChange }) {
     // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
     const maxBytes = file.type.startsWith("video") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     if (file.size > maxBytes) {
-      console.warn("[TeilenFlow] Datei zu groß");
+      console.warn(t("teilen.fileTooLarge"));
       return;
     }
     const url  = URL.createObjectURL(file);
@@ -591,7 +592,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
             display:"flex", alignItems:"center", gap:18,
             borderTop:"1px solid rgba(0,0,0,.05)",
           }}>
-            {["❤️ Gefällt mir", "💬 Kommentieren", "↗️ Teilen"].map(a => (
+            {[t("teilen.like"), "💬 Kommentieren", "↗️ Teilen"].map(a => (
               <button
                 key={a}
                 type="button"
@@ -650,6 +651,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
    MAIN ORCHESTRATOR
 ══════════════════════════════════════════════════════════════ */
 export default function TeilenFlow({ onClose, onPublished, visible = true }) {
+  const { t } = useTranslation();
   const { user, profile, canCreate, isBaseUser } = useAuth();
 
   // Phase 4C: Permission Guard

@@ -44,6 +44,7 @@ import StudioBegleitung from '../../pages/studio/StudioBegleitung.jsx';
 import StudioMeldungen from '../../pages/studio/StudioMeldungen.jsx';
 import StudioAktivitaet from '../../pages/studio/StudioAktivitaet.jsx';
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream:   HUI.COLOR.creamStudio,
@@ -56,14 +57,15 @@ const C = {
 };
 
 const NAV_ITEMS = [
-  { key: 'overview',   label: 'Übersicht' },
+  { key: 'overview',   label: t("common.overview") },
   { key: 'freigaben',  label: 'Freigaben' },
   { key: 'begleitung', label: 'Begleitung' },
   { key: 'meldungen',  label: 'Meldungen' },
-  { key: 'aktivitaet', label: 'Aktivität' },
+  { key: 'aktivitaet', label: t("desk.activity") },
 ];
 
 export default function DesktopEntwicklungszentrum() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
 

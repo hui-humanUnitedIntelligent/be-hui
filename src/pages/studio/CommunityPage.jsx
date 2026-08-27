@@ -26,6 +26,7 @@ import { useAuth } from '../../lib/AuthContext.jsx';
 import { useChatList } from '../../lib/chatContext.js';
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -47,6 +48,7 @@ function relativeTime(dateStr) {
 }
 
 export default function CommunityPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   // useChatList übernimmt das korrekte Laden der chats-Tabelle inkl.
   // participant_ids, last_message, unread-count via chat_participants
@@ -195,7 +197,7 @@ export default function CommunityPage() {
         <>
           {/* ═══ Wer ist da ═══ */}
           {activeMembers.length > 0 && (
-            <Section title="Wer ist da" hint="Menschen, die kürzlich aktiv waren.">
+            <Section title="Wer ist da" hint={t("cm.recentlyActive")}>
               <div style={{
                 display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
                 gap: 12,
@@ -209,7 +211,7 @@ export default function CommunityPage() {
 
           {/* ═══ Gemeinsame Wirkung ═══ */}
           {recentSupports.length > 0 && (
-            <Section title="Was gemeinsam gewächst ist" hint="Menschen, die einander unterstützt haben.">
+            <Section title={t("cm.grewTogether")} hint="Menschen, die einander unterstützt haben.">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {recentSupports.map(s => (
                   <SupportMoment key={s.id} support={s} />

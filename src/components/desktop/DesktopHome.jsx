@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useDesktopData } from './DesktopDataContext.jsx';
 import { formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const UnifiedFeed = lazy(() => import('../../feed/UnifiedFeed.jsx'));
 
@@ -142,7 +143,7 @@ function ImpactHero({ impact, navigate }) {
       <div className="hero-body">
         <span className="hero-tag">Gemeinsame Wirkung</span>
         <h2 className="hero-title hero-impact-value">{impact.fmtTotal}</h2>
-        <p className="hero-desc">Von Menschen für Menschen. Jeder Beitrag zählt.</p>
+        <p className="hero-desc">{t("desk.fromPeople")}</p>
         <div className="hero-action">
           <button className="hero-btn">Impact ansehen →</button>
         </div>
@@ -153,6 +154,7 @@ function ImpactHero({ impact, navigate }) {
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
 export default function DesktopHome() {
+  const { t } = useTranslation();
   usePerfMount('DesktopHome');
   const navigate = useNavigate();
   const { profile } = useAuth();

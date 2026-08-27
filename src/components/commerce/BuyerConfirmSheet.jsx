@@ -7,6 +7,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL = '#16D7C5'
 
@@ -115,7 +116,7 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
                 color: '#fff', border: 'none', borderRadius: 14, padding: '13px 0',
                 fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
                 touchAction: 'manipulation' }}>
-              {loading ? 'Wird verarbeitet…' : '✓ Erhalt bestätigen & Zahlung freigeben'}
+              {loading ? 'Wird verarbeitet…' : t("buyer.confirmReceipt")}
             </button>
           </div>
         )}

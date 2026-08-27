@@ -18,6 +18,7 @@ import SellerPayoutRequestSheet from "../commerce/SellerPayoutRequestSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -131,7 +132,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
           {loading && (
             <div style={{ textAlign: "center", padding: "48px 0", color: T.inkSoft }}>
               <div style={{marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.6)"}}><HUIVerkaufIcon size={24}/></div>
-              <div style={{ fontSize: 14 }}>Verkäufe werden geladen…</div>
+              <div style={{ fontSize: 14 }}>{t("mv.loadingSales")}</div>
             </div>
           )}
 
@@ -209,7 +210,7 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
                             </button>
                           )}
                           {s.orders?.escrow_status === 'holding' && s.orders?.payout_requested_at && (
-                            <span style={{ fontSize:10, color:'#F59E0B', fontWeight:600 }}>In Prüfung</span>
+                            <span style={{ fontSize:10, color:'#F59E0B', fontWeight:600 }}>{t("common.inReview")}</span>
                           )}
                           {s.orders?.escrow_status === 'released' && (
                             <span style={{ fontSize:10, color:'#16D7C5', fontWeight:600 }}>✓ Freigegeben</span>

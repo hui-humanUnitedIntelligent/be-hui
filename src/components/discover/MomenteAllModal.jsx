@@ -6,6 +6,7 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { toast } from "../../lib/useToast.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -39,7 +40,7 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
     <div
       onClick={() => {
         if (blurred) {
-          toast.warn("Dieser Inhalt wird noch geprüft und ist vorübergehend nicht einsehbar.");
+          toast.warn(t("mom.underReview"));
           return;
         }
         onPress?.(m);
@@ -106,6 +107,7 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
 }
 
 export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
+  const { t } = useTranslation();
   // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
   const { open: openPreview } = useContentPreview();
   useWizardBodyLock(isOpen);
@@ -219,7 +221,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Momente aus deiner Nähe</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("mom.nearbyYou")}</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Echte Geschichten, gerade jetzt</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>

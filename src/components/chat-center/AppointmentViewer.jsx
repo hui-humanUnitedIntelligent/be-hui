@@ -13,12 +13,13 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
 import { exportAppointmentToCalendar } from "../../lib/calendarExport.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
 
 const STATUS_LABELS = {
   pending_payment: "Ausstehend",
-  confirmed:        "Bestätigt",
+  confirmed:        t("common.confirmed"),
   completed:        "Abgeschlossen",
   cancelled:        "Storniert",
   holding:          "In Treuhand",
@@ -27,7 +28,7 @@ const STATUS_LABELS = {
   pending:          "Ausstehend",
   shipped:          "Versendet",
   delivered:        "Geliefert",
-  executed:         "Durchgeführt",
+  executed:         t("appt.completed"),
 };
 
 function formatDateDE(dateStr) {
@@ -295,7 +296,7 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
             <div style={{
               fontSize:15.5, fontWeight:600, color:C.ink,
               marginBottom:6, lineHeight:1.4,
-            }}>Termin zum Kalender hinzufügen?</div>
+            }}>{t("appt.addToCalendar")}</div>
             <div style={{
               fontSize:13, color:C.muted, lineHeight:1.55,
               marginBottom:6,

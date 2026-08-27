@@ -12,6 +12,7 @@ import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../lib/useNotifications.jsx';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const NOTIF_STYLE = {
   like:     { color: '#F47355', icon: <path d="M10 17l-5.2-5.2a3.4 3.4 0 0 1 4.8-4.8l.4.4.4-.4a3.4 3.4 0 0 1 4.8 4.8L10 17z" /> },
@@ -33,6 +34,7 @@ function NotifIcon({ type }) {
 }
 
 export default function DesktopNotificationFlyout({ onClose }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { items, unread, loading, markRead, markAllRead, deleteNotif } = useNotifications();
 
@@ -50,7 +52,7 @@ export default function DesktopNotificationFlyout({ onClose }) {
         <div className="fly-header">
           <h3>Benachrichtigungen</h3>
           {unread > 0 && <button className="notif-mark-all" onClick={markAllRead}>Alle als gelesen</button>}
-          <button className="fly-close" onClick={onClose} aria-label="Schließen">
+          <button className="fly-close" onClick={onClose} aria-label={t("common.close")}>
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
           </button>
         </div>
@@ -68,7 +70,7 @@ export default function DesktopNotificationFlyout({ onClose }) {
                   {item.body && <span className="notif-text">{item.body}</span>}
                   <span className="notif-time">{item.time_ago || ''}</span>
                 </div>
-                <button className="notif-delete" onClick={(e) => { e.stopPropagation(); deleteNotif(item.id); }} aria-label="Löschen">
+                <button className="notif-delete" onClick={(e) => { e.stopPropagation(); deleteNotif(item.id); }} aria-label={t("common.delete")}>
                   <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
                 </button>
               </div>

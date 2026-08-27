@@ -19,6 +19,7 @@
 // ══════════════════════════════════════════════════════════════════════
 import React, { useState, useRef, useEffect } from "react";
 import { searchPlaces } from "../../lib/geocoding.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const D = {
   teal: "#0EC4B8",
@@ -38,7 +39,7 @@ const D = {
  */
 export default function LocationAutocompleteInput({
   value = "", onChange = () => {}, onPick = () => {}, disabled = false,
-  placeholder = "Straße, Ort", style = {}, onKeyDown = null,
+  placeholder = t("locinput.placeholder"), style = {}, onKeyDown = null,
 }) {
   const [suggestions, setSuggestions] = useState([]);
   const [searching, setSearching] = useState(false);

@@ -19,6 +19,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDesktopData } from './DesktopDataContext.jsx';
 import { formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function Divider() {
   return <div className="wr-divider" />;
@@ -34,6 +35,7 @@ function formatDate(iso) {
 }
 
 export default function DesktopRightPanel() {
+  const { t } = useTranslation();
   usePerfMount('DesktopRightPanel');
   const navigate = useNavigate();
   const { impact, activity, discover, bookings } = useDesktopData();
@@ -47,7 +49,7 @@ export default function DesktopRightPanel() {
   const recentItems = (activity.items || []).slice(0, 3);
   const previewWorks = (discover.works || []).slice(0, 3);
 
-  // Persönlicher Puls — ehrlich formuliert, nur aus echten Daten
+  // {t("desk.personalPulse")} — ehrlich formuliert, nur aus echten Daten
   const openCount = upcoming.length + (bookings.asCustomer || []).filter(b => b.status === 'pending').length;
   const pulseText = openCount === 0
     ? 'Alles ruhig.'
@@ -81,7 +83,7 @@ export default function DesktopRightPanel() {
             recentItems.length > 0 ? (
               <div className="wr-list">
                 {recentItems.map((item, i) => (
-                  <p key={i} className="wr-text">{item.label || item.title || 'Neue Aktivität'}</p>
+                  <p key={i} className="wr-text">{item.label || item.title || t("desk.newActivity")}</p>
                 ))}
               </div>
             ) : <p className="wr-empty">Noch keine Resonanz heute.</p>
@@ -90,7 +92,7 @@ export default function DesktopRightPanel() {
 
         <Divider />
 
-        {/* ── Heute möglich ────────────────────────────────────────── */}
+        {/* ── {t("desk.todayPossible")} ────────────────────────────────────────── */}
         <section className="wr-section">
           <h4 className="wr-label">Heute möglich</h4>
           {discover.loading ? <Shimmer /> : (

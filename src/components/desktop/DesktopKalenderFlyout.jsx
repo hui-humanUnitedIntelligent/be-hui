@@ -17,6 +17,7 @@ import React from 'react';
 import { useDesktopData } from './DesktopDataContext.jsx';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 import { formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function formatDate(iso) {
   if (!iso) return '';
@@ -25,6 +26,7 @@ function formatDate(iso) {
 }
 
 export default function DesktopKalenderFlyout({ onClose }) {
+  const { t } = useTranslation();
   // P0: Buchungen aus DesktopDataContext (bereits geladen, kein doppelter Query)
   const { bookings } = useDesktopData();
   const { asCustomer, asSeller, loading } = bookings;
@@ -43,7 +45,7 @@ export default function DesktopKalenderFlyout({ onClose }) {
       <div className="fly-panel">
         <div className="fly-header">
           <h3>Kalender</h3>
-          <button className="fly-close" onClick={onClose} aria-label="Schließen">
+          <button className="fly-close" onClick={onClose} aria-label={t("common.close")}>
             <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M5 5l10 10M15 5L5 15" />
             </svg>
