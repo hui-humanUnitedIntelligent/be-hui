@@ -12,7 +12,6 @@ import { supabase }          from "../lib/supabaseClient.js";
 import { getCreatorSummary, bookingService, supportService, salesService }
   from "../services/creatorEconomy.js";
 import { HUILogo } from "../components/brand/HUILogo.jsx";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 // ── Design ───────────────────────────────────────────────────────────
 const T = {
@@ -29,15 +28,13 @@ const T = {
   r:       24,
 };
 
-function getTabs(t) {
-  return [
-  { id:"overview",    label: t("creatorDashboard.tabOverview"),     icon:"✦" },
-  { id:"bookings",    label: t("creatorDashboard.tabBookings"),      icon:"📅" },
-  { id:"sales",       label: t("creatorDashboard.tabSales"),       icon:"🎨" },
-  { id:"supports",    label: t("creatorDashboard.tabSupports"),  icon:"💫" },
-  { id:"analytics",   label: t("creatorDashboard.tabAnalytics"),      icon:"📊" },
-  ];
-}
+const TABS = [
+  { id:"overview",    label:"Übersicht",     icon:"✦" },
+  { id:"bookings",    label:"Buchungen",      icon:"📅" },
+  { id:"sales",       label:"Verkäufe",       icon:"🎨" },
+  { id:"supports",    label:"Unterstützung",  icon:"💫" },
+  { id:"analytics",   label:"Einblicke",      icon:"📊" },
+];
 
 let _css = false;
 function injectCSS() {
@@ -81,7 +78,6 @@ function StatCard({ label, value, sub, icon, color, delay=0, onClick }) {
 
 // ── Wallet Hero ──────────────────────────────────────────────────────
 function WalletHero({ wallet }) {
-  const { t } = useTranslation();
   const fmt = v => `€ ${parseFloat(v||0).toFixed(2)}`;
   return (
     <div style={{
@@ -99,19 +95,19 @@ function WalletHero({ wallet }) {
         background:"rgba(22,215,197,0.12)",filter:"blur(32px)",pointerEvents:"none"}}/>
       <div style={{position:"relative"}}>
         <div style={{fontSize:12,fontWeight:600,color:"rgba(255,255,255,0.45)",
-          letterSpacing:1.2,marginBottom:6}}>{t('creatorDashboard.walletTitle')}</div>
+          letterSpacing:1.2,marginBottom:6}}>DEIN GUTHABEN</div>
         <div style={{fontSize:42,fontWeight: 600,color:"white",letterSpacing:-1.5,lineHeight:1}}>
           {fmt(wallet?.balance)}
         </div>
         <div style={{display:"flex",gap:24,marginTop:18}}>
           <div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.40)",letterSpacing:0.4}}>{t('creatorDashboard.walletPending')}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.40)",letterSpacing:0.4}}>OFFEN</div>
             <div style={{fontSize:16,fontWeight: 600,color:"rgba(22,215,197,0.85)"}}>
               {fmt(wallet?.pending_balance)}
             </div>
           </div>
           <div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.40)",letterSpacing:0.4}}>{t('creatorDashboard.walletTotal')}</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.40)",letterSpacing:0.4}}>GESAMT</div>
             <div style={{fontSize:16,fontWeight: 600,color:"rgba(255,138,107,0.85)"}}>
               {fmt(wallet?.total_earned)}
             </div>
@@ -124,7 +120,6 @@ function WalletHero({ wallet }) {
 
 // ── Booking Card ─────────────────────────────────────────────────────
 function BookingCard({ booking, onUpdate }) {
-  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const status = booking?.booking_status;
   const statusColor = {
@@ -132,8 +127,8 @@ function BookingCard({ booking, onUpdate }) {
     completed:"rgba(26,26,46,0.07)", cancelled:"rgba(255,138,107,0.10)"
   }[status] || "rgba(26,26,46,0.07)";
   const statusText = {
-    pending: t("creatorDashboard.statusPending"), confirmed: t("creatorDashboard.statusConfirmed"),
-    completed: t("creatorDashboard.statusCompleted"), cancelled: t("creatorDashboard.statusCancelled")
+    pending:"Anfrage", confirmed:"Bestätigt",
+    completed:"Abgeschlossen", cancelled:"Abgesagt"
   }[status] || status;
 
   const handle = async (newStatus) => {
@@ -158,10 +153,10 @@ function BookingCard({ booking, onUpdate }) {
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:13.5,fontWeight: 600,color:T.ink,
             overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {booking?.guest?.display_name || t("creatorDashboard.guest")}
+            {booking?.guest?.display_name || "Gast"}
           </div>
           <div style={{fontSize:11,color:T.soft}}>
-            {booking?.experience?.title||t("creatorDashboard.experience")} · {booking?.seats||1} {t("creatorDashboard.seats")}
+            {booking?.experience?.title||"Erlebnis"} · {booking?.seats||1} Platz
           </div>
         </div>
         <div style={{padding:"4px 10px",borderRadius:20,background:statusColor,
@@ -211,7 +206,6 @@ function BookingCard({ booking, onUpdate }) {
 
 // ── Support Card ─────────────────────────────────────────────────────
 function SupportCard({ support }) {
-  const { t } = useTranslation();
   return (
     <div style={{background:T.card,borderRadius:20,padding:"14px 16px",
       border:`1px solid ${T.border}`,boxShadow:T.shadow,marginBottom:10,
@@ -226,7 +220,7 @@ function SupportCard({ support }) {
       </div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:13.5,fontWeight: 600,color:T.ink}}>
-          {support?.supporter?.display_name || t("creatorDashboard.someone")}
+          {support?.supporter?.display_name || "Jemand"}
         </div>
         {support?.message && (
           <div style={{fontSize:11,color:T.soft,marginTop:2,
@@ -244,16 +238,15 @@ function SupportCard({ support }) {
 
 // ── Analytics Overview ───────────────────────────────────────────────
 function AnalyticsView({ analytics }) {
-  const { t } = useTranslation();
   const items = [
-    { label: t("creatorDashboard.profileViews"),  value: analytics?.profile_views||0, icon:"👁", color:T.teal },
-    { label: t("creatorDashboard.storyViews"),    value: analytics?.story_views||0,   icon:"📖", color:T.coral },
-    { label: t("creatorDashboard.workViews"),   value: analytics?.work_views||0,    icon:"🎨", color:T.gold },
+    { label:"Profilaufrufe",  value: analytics?.profile_views||0, icon:"👁", color:T.teal },
+    { label:"Story Views",    value: analytics?.story_views||0,   icon:"📖", color:T.coral },
+    { label:"Werk-Aufrufe",   value: analytics?.work_views||0,    icon:"🎨", color:T.gold },
   ];
   return (
     <div style={{padding:"0 16px"}}>
       <div style={{fontSize:12,color:T.soft,marginBottom:14,fontWeight:500}}>
-        {t("creatorDashboard.last7Days")}
+        Letzte 7 Tage
       </div>
       {items.map((it,i) => (
         <div key={it.label} style={{display:"flex",alignItems:"center",gap:14,
@@ -267,9 +260,10 @@ function AnalyticsView({ analytics }) {
       ))}
       <div style={{marginTop:20,padding:"16px",borderRadius:18,
         background:"rgba(22,215,197,0.07)",border:`1px solid rgba(22,215,197,0.15)`}}>
-        <div style={{fontSize:12,color:T.teal,fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:4}}><HUISupportIcon size={12}/>{t("creatorDashboard.insight")}</div>
+        <div style={{fontSize:12,color:T.teal,fontWeight:600,marginBottom:4,display:"flex",alignItems:"center",gap:4}}><HUISupportIcon size={12}/>Einblick</div>
         <div style={{fontSize:13,color:T.soft,lineHeight:1.6}}>
-          {t("creatorDashboard.analyticsHint")}
+          Erweiterte Analytics kommen bald. Fokussiere dich jetzt auf echte Verbindungen —
+          das ist das Herz von HUI.
         </div>
       </div>
     </div>
@@ -293,7 +287,6 @@ function EmptyState({ icon, title, sub }) {
 // ════════════════════════════════════════════════════════════════════
 
 export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
-  const { t } = useTranslation();
   injectCSS();
   const { user, profile, isTalent } = useAuth();
   const [tab,       setTab]       = useState("overview");
@@ -342,9 +335,9 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
         flexShrink:0,
       }}>
         <div>
-          <div style={{fontSize:11,fontWeight:600,color:T.soft,letterSpacing:0.8}}>{t('creatorDashboard.talentStudio')}</div>
+          <div style={{fontSize:11,fontWeight:600,color:T.soft,letterSpacing:0.8}}>TALENT STUDIO</div>
           <div style={{fontSize:22,fontWeight: 600,color:T.ink,letterSpacing:-0.5}}>
-            {t("creatorDashboard.creativeSpace")}
+            Dein kreativer Raum
           </div>
         </div>
         <button className="cd-tap" onClick={onClose}
@@ -358,20 +351,20 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
         display:"flex",gap:6,padding:"16px 16px 0",
         overflowX:"auto",flexShrink:0,
       }}>
-        {getTabs(t).map(tabItem => (
-          <button key={tabItem.id} className="cd-tap" onClick={() => setTab(tabItem.id)}
+        {TABS.map(t => (
+          <button key={t.id} className="cd-tap" onClick={() => setTab(t.id)}
             style={{
               flexShrink:0,padding:"8px 16px",borderRadius:20,border:"none",
-              background: tab===tabItem.id
+              background: tab===t.id
                 ? `linear-gradient(135deg,${T.teal},${T.coral})`
                 : "rgba(26,26,46,0.07)",
-              color: tab===tabItem.id ? "white" : T.soft,
-              fontSize:13,fontWeight: tab===tabItem.id ? 600:500,
+              color: tab===t.id ? "white" : T.soft,
+              fontSize:13,fontWeight: tab===t.id ? 600:500,
               cursor:"pointer",fontFamily:"inherit",
               transition:"all 0.18s ease",
               whiteSpace:"nowrap",
             }}>
-            {tabItem.icon} {tabItem.label}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>
@@ -390,18 +383,18 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                 <WalletHero wallet={w}/>
                 {/* Stats Grid */}
                 <div style={{display:"flex",gap:10,padding:"0 16px",marginBottom:16}}>
-                  <StatCard icon={<HUIKalenderIcon size={18}/>} label={t("creatorDashboard.bookingsOpen")}
+                  <StatCard icon={<HUIKalenderIcon size={18}/>} label="Buchungen offen"
                     value={summary?.bookings?.pending||0}
                     color={T.gold} delay={0.05}
                     onClick={() => setTab("bookings")}/>
-                  <StatCard icon={<HUIImpactIcon size={18}/>} label={t("creatorDashboard.supports")}
+                  <StatCard icon={<HUIImpactIcon size={18}/>} label="Unterstützungen"
                     value={summary?.supports_30d?.count||0}
-                    sub={`€ ${parseFloat(summary?.supports_30d?.total||0).toFixed(0)} / ${t("creatorDashboard.30days")}`}
+                    sub={`€ ${parseFloat(summary?.supports_30d?.total||0).toFixed(0)} / 30 Tage`}
                     color={T.coral} delay={0.10}
                     onClick={() => setTab("supports")}/>
-                  <StatCard icon={<HUIWerkeIcon size={18}/>} label={t("creatorDashboard.sales")}
+                  <StatCard icon={<HUIWerkeIcon size={18}/>} label="Verkäufe"
                     value={summary?.sales_30d?.count||0}
-                    sub={`€ ${parseFloat(summary?.sales_30d?.total||0).toFixed(0)} / ${t("creatorDashboard.30days")}`}
+                    sub={`€ ${parseFloat(summary?.sales_30d?.total||0).toFixed(0)} / 30 Tage`}
                     color={T.teal} delay={0.15}
                     onClick={() => setTab("sales")}/>
                 </div>
@@ -409,13 +402,13 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                 <div style={{margin:"0 16px",background:T.card,borderRadius:T.r,
                   border:`1px solid ${T.border}`,boxShadow:T.shadow,padding:"16px"}}>
                   <div style={{fontSize:13,fontWeight: 600,color:T.ink,marginBottom:14}}>
-                    📊 {t("creatorDashboard.analyticsPreview")}
+                    📊 Einblicke — letzte 7 Tage
                   </div>
                   <div style={{display:"flex",gap:16}}>
                     {[
-                      {label:t("creatorDashboard.profileLabel"),v:summary?.analytics_7d?.profile_views||0,c:T.teal},
-                      {label:t("creatorDashboard.storiesLabel"),v:summary?.analytics_7d?.story_views||0,c:T.coral},
-                      {label:t("creatorDashboard.werkeLabel"),v:summary?.analytics_7d?.work_views||0,c:T.gold},
+                      {label:"Profil",v:summary?.analytics_7d?.profile_views||0,c:T.teal},
+                      {label:"Stories",v:summary?.analytics_7d?.story_views||0,c:T.coral},
+                      {label:"Werke",v:summary?.analytics_7d?.work_views||0,c:T.gold},
                     ].map(it => (
                       <div key={it.label} style={{flex:1,textAlign:"center",
                         padding:"12px 8px",borderRadius:16,background:"rgba(26,26,46,0.04)"}}>
@@ -435,8 +428,8 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
               <div style={{padding:"0 16px"}}>
                 {bookings.length === 0
                   ? <EmptyState icon={<HUIKalenderIcon size={36}/>}
-                      title={t("creatorDashboard.noBookingsTitle")}
-                      sub={t("creatorDashboard.noBookingsSub")}/>
+                      title="Keine Buchungen"
+                      sub="Sobald jemand eines deiner Erlebnisse bucht, siehst du es hier."/>
                   : bookings.map(b => (
                     <BookingCard key={b.id} booking={b} onUpdate={load}/>
                   ))
@@ -449,8 +442,8 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
               <div style={{padding:"0 16px"}}>
                 {supports.length === 0
                   ? <EmptyState icon={<HUIImpactIcon size={36}/>}
-                      title={t("creatorDashboard.noSupportsTitle")}
-                      sub={t("creatorDashboard.noSupportsSub")}/>
+                      title="Noch keine Unterstützungen"
+                      sub="Wenn jemand dich unterstützt, erscheint es hier. Sei präsent — die Gemeinschaft sieht dich."/>
                   : supports.map(s => <SupportCard key={s.id} support={s}/>)
                 }
               </div>
@@ -461,8 +454,8 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
               <div style={{padding:"0 16px"}}>
                 {sales.length === 0
                   ? <EmptyState icon={<HUIWerkeIcon size={36}/>}
-                      title={t("creatorDashboard.noSalesTitle")}
-                      sub={t("creatorDashboard.noSalesSub")}/>
+                      title="Noch keine Werkverkäufe"
+                      sub="Markiere deine Werke als käuflich, um hier Einnahmen zu sehen."/>
                   : sales.map(s => (
                     <div key={s.id} style={{background:T.card,borderRadius:20,
                       padding:"14px 16px",border:`1px solid ${T.border}`,
@@ -478,10 +471,10 @@ export default function CreatorDashboard({ visible, onClose, onOpenProfile }) {
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{fontSize:13.5,fontWeight: 600,color:T.ink,
                           overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                          {s?.work?.title||t("creatorDashboard.werk")}
+                          {s?.work?.title||"Werk"}
                         </div>
                         <div style={{fontSize:11,color:T.soft}}>
-                          {t("creatorDashboard.buyerPrefix")} {s?.buyer?.display_name||t("creatorDashboard.buyer")}
+                          von {s?.buyer?.display_name||"Käufer:in"}
                         </div>
                       </div>
                       <div style={{fontSize:16,fontWeight: 600,color:T.teal,flexShrink:0}}>
