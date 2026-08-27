@@ -5,6 +5,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from "react";
+import { useTranslation } from "../hooks/useTranslation.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 
 // ── Design Tokens ──────────────────────────────────────────────
@@ -170,11 +171,12 @@ function Stepper({ step, total }) {
 
 // ── Schritt 1: Willkommen ──────────────────────────────────────
 function Step1({ onNext, onClose }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding:`24px ${T.px}px 32px`, animation:"gf-fade-up .38s both" }}>
       <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:4 }}>
         <button onClick={onClose} className="gf-btn-secondary" style={{ padding:"6px 12px", fontSize:13 }}>
-          Schließen
+          {t("gf.close")}
         </button>
       </div>
       <Stepper step={0} total={4}/>
@@ -185,23 +187,18 @@ function Step1({ onNext, onClose }) {
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"20px 0 16px",
         }}>
-          Willkommen bei HUI 🌍
+          {t("gf.s1.title")}
         </h2>
         <p style={{
           fontSize:16, lineHeight:1.75, color:T.inkSoft,
           margin:0, maxWidth:300, marginLeft:"auto", marginRight:"auto",
         }}>
-          Hier begegnen sich Menschen,<br/>
-          die ihre Talente, Ideen und Erfahrungen<br/>
-          einbringen möchten.<br/>
-          <br/>
-          Gemeinsam schaffen wir Dinge,<br/>
-          die größer sind als wir selbst.
+          {t("gf.s1.body")}
         </p>
       </div>
       <div style={{ marginTop:36 }}>
         <button className="gf-btn-primary" onClick={onNext}>
-          Weiter →
+          {t("gf.next")}
         </button>
       </div>
     </div>
@@ -210,6 +207,7 @@ function Step1({ onNext, onClose }) {
 
 // ── Schritt 2: Dein Beitrag ────────────────────────────────────
 function Step2({ onNext, onBack }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding:`24px ${T.px}px 32px`, animation:"gf-fade-up .38s both" }}>
       <Stepper step={1} total={4}/>
@@ -220,30 +218,28 @@ function Step2({ onNext, onBack }) {
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"20px 0 16px",
         }}>
-          Dein Beitrag zählt ✨
+          {t("gf.s2.title")}
         </h2>
         <p style={{
           fontSize:16, lineHeight:1.75, color:T.inkSoft,
           margin:0, maxWidth:300, marginLeft:"auto", marginRight:"auto",
         }}>
-          Jeder Mensch besitzt Fähigkeiten,<br/>
-          Erfahrungen und Perspektiven,<br/>
-          die für andere wertvoll sein können.
+          {t("gf.s2.body")}
         </p>
         <p style={{
           fontSize:16, lineHeight:1.75,
           color:T.teal, fontWeight: 600,
           margin:"16px auto 0", maxWidth:280,
         }}>
-          Was du gibst,<br/>kann für andere ein Geschenk sein.
+          {t("gf.s2.highlight")}
         </p>
       </div>
       <div style={{ marginTop:36, display:"flex", flexDirection:"column", gap:10 }}>
         <button className="gf-btn-primary" onClick={onNext}>
-          Weiter →
+          {t("gf.next")}
         </button>
         <button className="gf-btn-secondary" onClick={onBack} style={{ textAlign:"center" }}>
-          ← Zurück
+          {t("gf.back")}
         </button>
       </div>
     </div>
@@ -251,16 +247,20 @@ function Step2({ onNext, onBack }) {
 }
 
 // ── Schritt 3: Gemeinsam Wirkung ───────────────────────────────
-const FEATURES = [
-  { icon:"🌟", label:"Talente sichtbar machen" },
-  { icon:"🎨", label:"Werke veröffentlichen" },
-  { icon:"✨", label:"Erlebnisse teilen" },
-  { icon:"🤝", label:"Menschen verbinden" },
-  { icon:"💚", label:"Projekte unterstützen" },
-  { icon:"🌱", label:"Teil einer werteorientierten Gemeinschaft sein" },
-];
+function getFeatures(t) {
+  return [
+  { icon:"🌟", label:t("gf.feat.talents") },
+  { icon:"🎨", label:t("gf.feat.werke") },
+  { icon:"✨", label:t("gf.feat.erlebnisse") },
+  { icon:"🤝", label:t("gf.feat.verbinden") },
+  { icon:"💚", label:t("gf.feat.projekte") },
+  { icon:"🌱", label:t("gf.feat.gemeinschaft") },
+  ];
+}
 
 function Step3({ onNext, onBack }) {
+  const { t } = useTranslation();
+  const FEATURES = getFeatures(t);
   return (
     <div style={{ padding:`24px ${T.px}px 32px`, animation:"gf-fade-up .38s both" }}>
       <Stepper step={2} total={4}/>
@@ -271,7 +271,7 @@ function Step3({ onNext, onBack }) {
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"20px 0 20px",
         }}>
-          Gemeinsam Wirkung entfalten 🤝
+          {t("gf.s3.title")}
         </h2>
       </div>
       <div style={{ margin:"0 0 20px" }}>
@@ -300,10 +300,10 @@ function Step3({ onNext, onBack }) {
       </p>
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
         <button className="gf-btn-primary" onClick={onNext}>
-          Weiter →
+          {t("gf.next")}
         </button>
         <button className="gf-btn-secondary" onClick={onBack} style={{ textAlign:"center" }}>
-          ← Zurück
+          {t("gf.back")}
         </button>
       </div>
     </div>
@@ -311,14 +311,18 @@ function Step3({ onNext, onBack }) {
 }
 
 // ── Schritt 4: Bestätigung ────────────────────────────────────
-const CHECKS = [
-  { id:"rules",    label:"Ich habe die ", link:"Gemeinschaftsregeln", suffix:" gelesen und akzeptiere sie." },
-  { id:"privacy",  label:"Ich habe die ", link:"Datenschutzerklärung", suffix:" gelesen und akzeptiere sie." },
-  { id:"terms",    label:"Ich habe die ", link:"Allgemeinen Geschäftsbedingungen", suffix:" gelesen und akzeptiere sie." },
-  { id:"intent",   label:"Ich möchte Teil der HUI-Gemeinschaft werden und mit meinem Wirken zu einer positiven Entwicklung beitragen. 💚", link:null, suffix:null },
-];
+function getChecks(t) {
+  return [
+  { id:"rules",    label:t("gf.s4.check.rules.pre"), link:t("gf.s4.check.rules.link"), suffix:t("gf.s4.check.rules.suffix") },
+  { id:"privacy",  label:t("gf.s4.check.privacy.pre"), link:t("gf.s4.check.privacy.link"), suffix:t("gf.s4.check.privacy.suffix") },
+  { id:"terms",    label:t("gf.s4.check.terms.pre"), link:t("gf.s4.check.terms.link"), suffix:t("gf.s4.check.terms.suffix") },
+  { id:"intent",   label:t("gf.s4.check.intent"), link:null, suffix:null },
+  ];
+}
 
 function Step4({ onBack, onConfirm, loading }) {
+  const { t } = useTranslation();
+  const CHECKS = getChecks(t);
   const [checked, setChecked] = useState({ rules:false, privacy:false, terms:false, intent:false });
   const allChecked = Object.values(checked).every(Boolean);
 
@@ -333,10 +337,10 @@ function Step4({ onBack, onConfirm, loading }) {
           letterSpacing:"-0.03em", lineHeight:1.2,
           margin:"0 0 8px",
         }}>
-          Mitgliedschaft bestätigen 💚
+          {t("gf.s4.title")}
         </h2>
         <p style={{ fontSize:13.5, color:T.inkFaint, margin:0 }}>
-          Bitte bestätige alle Punkte um fortzufahren.
+          {t("gf.s4.sub")}
         </p>
       </div>
 
@@ -370,7 +374,7 @@ function Step4({ onBack, onConfirm, loading }) {
       </div>
 
       <p style={{ fontSize:12, color:T.inkFaint, textAlign:"center", margin:"0 0 20px" }}>
-        Du kannst alle Dokumente jederzeit in deinem Profil einsehen.
+        {t("gf.s4.docs")}
       </p>
 
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -385,13 +389,13 @@ function Step4({ onBack, onConfirm, loading }) {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              Wird aktiviert…
+              {t("gf.s4.activating")}
             </span>
-          ) : "💚 Jetzt Mitglied werden"}
+          ) : t("gf.s4.confirm")}
         </button>
         {!loading && (
           <button className="gf-btn-secondary" onClick={onBack} style={{ textAlign:"center" }}>
-            ← Zurück
+            {t("gf.back")}
           </button>
         )}
       </div>
@@ -401,6 +405,7 @@ function Step4({ onBack, onConfirm, loading }) {
 
 // ── Erfolgsseite ───────────────────────────────────────────────
 function StepSuccess({ onOpenProfile }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       padding:`40px ${T.px}px 40px`,
@@ -421,22 +426,17 @@ function StepSuccess({ onOpenProfile }) {
         letterSpacing:"-0.03em", lineHeight:1.25,
         margin:"0 0 16px",
       }}>
-        Willkommen in der<br/>HUI-Gemeinschaft!
+        {t("gf.success.title")}
       </h2>
       <p style={{
         fontSize:15.5, lineHeight:1.75, color:T.inkSoft,
         margin:"0 0 32px", maxWidth:300,
         marginLeft:"auto", marginRight:"auto",
       }}>
-        Schön, dass du da bist.<br/>
-        Dein Gemeinschaftsprofil wurde aktiviert.<br/><br/>
-        Nun kannst du deine Talente, Werke,<br/>
-        Erlebnisse und Projekte mit anderen<br/>
-        Menschen teilen und gemeinsam<br/>
-        Gutes bewirken.
+        {t("gf.success.body")}
       </p>
       <button className="gf-btn-primary" onClick={onOpenProfile}>
-        Mein Gemeinschaftsprofil öffnen →
+        {t("gf.success.openProfile")}
       </button>
     </div>
   );
@@ -444,6 +444,7 @@ function StepSuccess({ onOpenProfile }) {
 
 // ── Haupt-Flow (gesteuert über step 0–4) ──────────────────────
 export default function GemeinschaftsFlow({ onClose, onComplete }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -460,14 +461,14 @@ export default function GemeinschaftsFlow({ onClose, onComplete }) {
     try {
       const result = await activateMembership?.();
       if (result?.error) {
-        setError("Aktivierung fehlgeschlagen. Bitte nochmal versuchen.");
+        setError(t("gf.error.activation"));
         setLoading(false);
         return;
       }
       await refreshProfile?.().catch(() => {});
       setStep(4); // Erfolgsseite
     } catch (e) {
-      setError("Verbindungsfehler. Bitte nochmal versuchen.");
+      setError(t("gf.error.connection"));
     } finally {
       setLoading(false);
     }

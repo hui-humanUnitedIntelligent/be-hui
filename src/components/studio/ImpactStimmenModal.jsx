@@ -17,6 +17,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens (identisch mit HuiStudio) ────────────────────────────────
 const T = {
@@ -94,6 +95,7 @@ function VoteButton({ index, used, loading, onClick }) {
 
 // ── Haupt-Modal ─────────────────────────────────────────────────────────────
 export default function ImpactStimmenModal({ profile, onClose, switchTab = null }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ImpactStimmenModal");
   // Sprint F.4C: einzige Wahrheitsquelle
@@ -187,19 +189,19 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
     if (!profile?.id || voting) return;
     // VOTING v2 (2026-08-22): Basis-User dürfen nicht abstimmen
     if (!isTalent) {
-      setErrorMsg("Nur Talente können abstimmen. Werde Talent, um mitzuentscheiden.");
+      setErrorMsg(t("is.err.talentOnly"));
       setTimeout(() => setErrorMsg(""), 3500);
       return;
     }
     // Prüfe ob bereits für dieses SPEZIFISCHE Projekt gestimmt wurde
     if (myVotes.some(v => v.project_id === projectId)) {
-      setErrorMsg("Du hast für dieses Projekt bereits gestimmt.");
+      setErrorMsg(t("is.err.alreadyVoted"));
       setTimeout(() => setErrorMsg(""), 3500);
       return;
     }
     // Prüfe ob alle Stimmen aufgebraucht
     if (myVotes.length >= maxVotes) {
-      setErrorMsg("Du hast diesen Monat alle Stimmen genutzt.");
+      setErrorMsg(t("is.err.allUsed"));
       setTimeout(() => setErrorMsg(""), 3500);
       return;
     }
@@ -214,15 +216,15 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
       if (error) throw error;
       // Kein separates impact_projects Update — impact_votes ist SSOT
 
-      setSuccessMsg("✅ Stimme abgegeben!");
+      setSuccessMsg(t("is.success"));
       setTimeout(() => setSuccessMsg(""), 2500);
       setShowPicker(false);
       await load();
     } catch (e) {
       console.error("[ImpactStimmen] vote:", e);
       setErrorMsg(e.message?.includes("duplicate") || e.code === "23505"
-        ? "Du hast für dieses Projekt bereits gestimmt."
-        : "Fehler beim Abstimmen – bitte nochmals versuchen.");
+        ? t("is.err.duplicate")
+        : t("is.err.failed"));
       setTimeout(() => setErrorMsg(""), 4000);
     } finally {
       setVoting(false);
@@ -358,14 +360,13 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               background: "rgba(255,255,255,0.07)",
             }} />
             <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
-              • HUI IMPACT POOL
+              • {t("is.title.pool")}
             </div>
             <div style={{ fontSize: 22, fontWeight: 600, color: "#fff", lineHeight: 1.2, marginBottom: 6 }}>
-              Deine Stimme<br />zählt.
+              {t("is.title.headline")}
             </div>
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 1.45 }}>
-              Jede Stimme bewegt echte Projekte.{"\n"}
-              Kein Projekt geht leer aus.
+              {t("is.title.sub")}
             </div>
           </div>
 
@@ -376,7 +377,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
             marginBottom: 16, boxShadow: T.card,
           }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 14 }}>
-              Deine Stimmen diesen Monat
+              {t("is.votesThisMonth")}
             </div>
 
             {/* Stimm-Buttons */}
@@ -389,11 +390,11 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     loading={voting}
                     onClick={() => {
                       if (availableProjects.length > 0) setShowPicker(true);
-                      else setErrorMsg("Keine aktiven Projekte verfügbar.");
+                      else setErrorMsg(t("is.noProjects"));
                     }}
                   />
                   <span style={{ fontSize: 11, color: T.inkFaint, fontWeight: 500 }}>
-                    {idx < usedCount ? "Vergeben" : "Verfügbar"}
+                    {idx < usedCount ? t("is.vergeben") : t("is.verfuegbar")}
                   </span>
                 </div>
               ))}
@@ -405,10 +406,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     padding: "10px 14px",
                   }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
-                      Alle Stimmen eingesetzt.
+                      {t("is.allUsed.title")}
                     </div>
                     <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 3 }}>
-                      Nächsten Monat gibt es neue.
+                      {t("is.allUsed.sub")}
                     </div>
                   </div>
                 ) : (
@@ -417,10 +418,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     border: `1px solid ${T.tealMid}`, padding: "10px 14px",
                   }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: T.teal }}>
-                      {freeCount} Stimme{freeCount !== 1 ? "n" : ""} verfügbar
+                      {t("is.free.count", { count: freeCount, n: freeCount !== 1 ? "n" : "" })}
                     </div>
                     <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 3 }}>
-                      Tippe auf das Stimmen-Icon zum Abstimmen
+                      {t("is.free.hint")}
                     </div>
                   </div>
                 )}
@@ -437,10 +438,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                 <HUIAwardIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#92700A" }}>
-                    Nur Talente können abstimmen
+                    {t("is.talentOnly.title")}
                   </div>
                   <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>
-                    Werde Talent, um jeden Monat 1 Stimme abzugeben und mitzuentscheiden.
+                    {t("is.talentOnly.sub")}
                   </div>
                 </div>
               </div>
@@ -455,7 +456,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
               marginBottom: 16, boxShadow: T.card,
             }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: T.ink, marginBottom: 14 }}>
-                Deine Stimme{votedProjects.length > 1 ? "n" : ""} diesen Monat
+                {t("is.myVotes", { n: votedProjects.length > 1 ? "n" : "" })}
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {votedProjects.map(proj => (
@@ -471,7 +472,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         {proj.name}
                       </div>
                       <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
-                        Stimme vergeben · zum Projekt →
+                        {t("is.voteGiven")}
                       </div>
                     </div>
                   </div>
@@ -584,7 +585,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     border: `1px solid rgba(13,196,181,0.18)`, padding: "14px 16px", marginBottom: 14 }}>
                     <div style={{ display: "flex", justifyContent: "space-between",
                       fontSize: 12, color: T.inkSoft, marginBottom: 6 }}>
-                      <span>Finanzierungsfortschritt</span>
+                      <span>{t("is.funding")}</span>
                       <span style={{ fontWeight: 600, color: T.teal }}>{pct}%</span>
                     </div>
                     <div style={{ height: 8, borderRadius: 99, background: "rgba(0,0,0,0.08)",
@@ -594,7 +595,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         transition: "width 1.2s ease", minWidth: pct > 0 ? 6 : 0 }} />
                     </div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
-                      €{formatNumberDE(funded, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} von €{formatNumberDE(goal)} finanziert
+                      {t("is.funded", { funded: formatNumberDE(funded, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), goal: formatNumberDE(goal) })}
                     </div>
                   </div>
                 ) : null;
@@ -611,14 +612,14 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                   <div style={{ fontSize: 18, fontWeight: 600, color: T.teal }}>
                     {detailProj.votes ?? 0}
                   </div>
-                  <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>Stimmen</div>
+                  <div style={{ fontSize: 11, color: T.inkSoft, marginTop: 2 }}>{t("is.votes")}</div>
                 </div>
                 {detailProj.contact_name && (
                   <div style={{
                     flex: 2, background: "rgba(26,26,24,0.04)", borderRadius: T.r12,
                     border: `1px solid ${T.border}`, padding: "10px 12px",
                   }}>
-                    <div style={{ fontSize: 11, color: T.inkFaint, marginBottom: 2 }}>Kontakt</div>
+                    <div style={{ fontSize: 11, color: T.inkFaint, marginBottom: 2 }}>{t("is.contact")}</div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>
                       {detailProj.contact_name}
                     </div>
@@ -639,12 +640,12 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     WebkitTapHighlightColor: "transparent",
                   }}
                 >
-                  Zum Projekt →
+                  {t("is.toProject")}
                 </button>
                 <button
                   onClick={() => {
                     if (votedProjectIds.has(detailProj.id)) {
-                      setErrorMsg("Du hast für dieses Projekt bereits gestimmt.");
+                      setErrorMsg(t("is.err.alreadyVoted"));
                       setTimeout(() => setErrorMsg(""), 3000);
                       setDetailProj(null);
                       return;
@@ -664,7 +665,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                     opacity: voting ? 0.65 : 1,
                   }}
                 >
-                  Jetzt wählen
+                  {t("is.choose")}
                 </button>
               </div>
             </div>
@@ -682,7 +683,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                 marginBottom: 14,
               }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
-                  Für welches Projekt?
+                  {t("is.whichProject")}
                 </div>
                 <button onClick={() => setShowPicker(false)} style={{
                   background: "none", border: "none", cursor: "pointer",
@@ -716,7 +717,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         {proj.name}
                       </div>
                       <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
-                        {proj.votes ?? 0} Stimmen bisher
+                        {t("is.votesCount", { count: proj.votes ?? 0 })}
                       </div>
                     </div>
 
@@ -750,13 +751,13 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
                         WebkitTapHighlightColor: "transparent",
                       }}
                     >
-                      Wählen
+                      {t("is.waehlen")}
                     </button>
                   </div>
                 ))}
                 {availableProjects.length === 0 && (
                   <div style={{ fontSize: 13, color: T.inkSoft, textAlign: "center", padding: "10px 0" }}>
-                    Keine weiteren Projekte verfügbar.
+                    {t("is.noMore")}
                   </div>
                 )}
               </div>
@@ -780,7 +781,7 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
             onMouseEnter={e => e.currentTarget.style.opacity = "0.88"}
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
-            Zum Impact Pool →
+            {t("is.toPool")}
           </button>
 
         </div>
