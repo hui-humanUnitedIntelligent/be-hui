@@ -20,8 +20,8 @@ const NAV_COMMANDS = [
   { id: 'nav-profile',  label: 'Mein Profil',  sub: 'Profil ansehen', action: '/profile/me', group: 'Navigation' },
 ];
 const ACTION_COMMANDS = [
-  { id: 'act-create', label: 'Werk erstellen', sub: t("dcmd.publishInStudio"), action: '/studio', group: 'Aktionen' },
-  { id: 'act-impact', label: t("dcmd.supportProject"), sub: 'Impact schaffen', action: '/impact', group: 'Aktionen' },
+  { id: 'act-create', label: 'Werk erstellen', sub: "Im Studio veröffentlichen", action: '/studio', group: 'Aktionen' },
+  { id: 'act-impact', label: "Projekt unterstützen", sub: 'Impact schaffen', action: '/impact', group: 'Aktionen' },
 ];
 
 export default function DesktopCommandPalette({ onClose }) {

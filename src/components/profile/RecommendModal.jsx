@@ -39,6 +39,7 @@ export default function RecommendModal({
   onSubmitted   = () => {},
 
 }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, onClose, "RecommendModal");
   const [text, setText]              = useState("");

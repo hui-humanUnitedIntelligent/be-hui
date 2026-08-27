@@ -44,6 +44,7 @@ function Row({ label, value }) {
 }
 
 export default function BelegViewerModal({ result, onClose = () => {} }) {
+  const { t } = useTranslation();
   const [downloading, setDownloading] = React.useState(false);
   const [sharing, setSharing] = React.useState(false);
 

@@ -11,6 +11,7 @@ const BORDER = "rgba(26,26,46,0.08)";
 const BG_SOFT = "rgba(22,215,197,0.04)";
 
 export default function VariantEditor({ variants = [], onChange = () => {} }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   function addVariant() {

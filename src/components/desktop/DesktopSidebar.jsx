@@ -62,7 +62,7 @@ const MAIN_ITEMS = [
 
 const WIRKUNG_ITEMS = [
   { key: 'projects',   label: 'Projekte',            icon: 'project',   route: '/impact' },
-  { key: 'supported',  label: t("dsidebar.supportedProjects"), icon: 'supported', route: '/impact' },
+  { key: 'supported',  label: "Unterstützte Projekte", icon: 'supported', route: '/impact' },
   { key: 'recommend',  label: 'Empfehlungen',        icon: 'recommend', route: '/profile/me' },
 ];
 

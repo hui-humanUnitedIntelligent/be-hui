@@ -134,6 +134,7 @@ function ResonanzHero({ activity, navigate }) {
 
 // ── Impact Moment ────────────────────────────────────────────────────────────────
 function ImpactHero({ impact, navigate }) {
+  const { t } = useTranslation();
   if (impact.loading || !impact.fmtTotal) return null;
   return (
     <div className="hero-card hero-card-impact" onClick={() => navigate('/impact')} role="button" tabIndex={0}>

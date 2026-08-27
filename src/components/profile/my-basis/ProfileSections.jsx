@@ -103,12 +103,12 @@ export function MomentThumb({ m, onRemove }) {
 // OFFEN FÜR BEGEGNUNGEN — Editable open-for capsules
 // ══════════════════════════════════════════════════════════════
 export function OffenFuerSection({ openFor, onChange }) {
+  const { t } = useTranslation();
   const [showEdit, setShowEdit] = useState(false);
   const current = a(openFor);
   const display = current.length ? OPEN_FOR_ALL.filter(t=>current.includes(t.label)) : OPEN_FOR_ALL.slice(0,4);
 
   const toggle = (label) => {
-    const { t } = useTranslation();
     if (current.includes(label)) onChange(current.filter(x=>x!==label));
     else onChange([...current, label]);
   };

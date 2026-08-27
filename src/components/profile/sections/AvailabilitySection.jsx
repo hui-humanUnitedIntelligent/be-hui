@@ -24,6 +24,7 @@ export function AvailabilitySection({
   loading    = false,
   onSave     = null,   // (isAvailable: boolean) => Promise<void>
 }) {
+  const { t } = useTranslation();
   // WAHRHEIT: profiles.is_available (boolean, default true)
   // focus_type ist NICHT die Wahrheitsquelle für Verfügbarkeit
   const isOpen = profile?.is_available !== false; // default true wenn nicht gesetzt

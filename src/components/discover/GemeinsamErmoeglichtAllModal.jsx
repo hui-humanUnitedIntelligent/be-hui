@@ -25,6 +25,7 @@ const SORT_OPTIONS = [
 ];
 
 function FundedProjectCardItem({ p, onPress }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   return (
     <div onClick={() => onPress?.(p)} style={{

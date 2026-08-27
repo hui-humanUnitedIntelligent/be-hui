@@ -32,6 +32,7 @@ const timeAgo = (iso) => {
 };
 
 function MomentCardItem({ m, onPress, onOpenProfile }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const likes = m.likes ?? 0;
   const comments = m.comments ?? 0;

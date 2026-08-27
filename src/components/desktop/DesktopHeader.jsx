@@ -55,6 +55,7 @@ function AvatarDropdown({ profile, onNavigate, onLogout, onClose }) {
 // ── Search Dropdown ───────────────────────────────────────────────────────────
 function SearchDropdown({ results, loading, onSelect, onClose }) {
   const total = (results.profiles?.length || 0) + (results.works?.length || 0) + (results.experiences?.length || 0);
+  const { t } = useTranslation();
   return (
     <>
       <div className="hd-dropdown-backdrop" onClick={onClose} />

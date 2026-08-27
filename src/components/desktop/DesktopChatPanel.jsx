@@ -51,6 +51,7 @@ function ChatList({ chats, activeChatId, onSelect, loading }) {
 }
 
 function ChatThread({ chatId, chat }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { messages, loading, sending, sendMessage } = useChatThread(chatId);
   const [input, setInput] = useState('');

@@ -49,6 +49,7 @@ const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
 
 export default function WerkKaufFlow({ werk, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user } = useAuth();
   useModalRegistration(true, onClose, "WerkKaufFlow");

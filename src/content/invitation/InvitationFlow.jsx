@@ -170,6 +170,7 @@ function WasStep({ data, onChange, onNext }) {
 
 /* ── Step 2: Wo & Wann? ─────────────────────────────────────── */
 function WoWannStep({ data, onChange, onNext, onBack }) {
+  const { t } = useTranslation();
   return (
     <div style={{ animation:"if-up .28s ease both" }}>
       <div style={{ marginBottom:20 }}>

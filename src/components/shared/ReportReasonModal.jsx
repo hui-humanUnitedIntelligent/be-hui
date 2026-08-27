@@ -23,7 +23,7 @@ export const REPORT_REASONS = [
   { key: "rassismus",            label: "Rassismus / Diskriminierung" },
   { key: "politik",              label: "Politik / Extremismus" },
   { key: "gewalt",               label: "Gewalt oder Bedrohung" },
-  { key: "belaestigung",         label: t("report.reasonHarassment") },
+  { key: "belaestigung",         label: "Belästigung" },
   { key: "spam",                 label: "Spam oder Werbung" },
   { key: "falschinformation",    label: "Falschinformation" },
   { key: "urheberrecht",         label: "Urheberrechtsverletzung" },
@@ -37,6 +37,7 @@ export default function ReportReasonModal({
   onSubmit = () => {},
   submitting = false,
 }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   // step: "confirm" → "categories"
   const [step, setStep] = useState("confirm");

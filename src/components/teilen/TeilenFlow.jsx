@@ -240,6 +240,7 @@ function StepCreate({ mode, data, onChange }) {
   const videoRef  = useRef(null);
 
   function handleFile(e) {
+  const { t } = useTranslation();
     const file = e.target.files?.[0];
     if (!file) return;
     // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
@@ -448,6 +449,7 @@ function StepCreate({ mode, data, onChange }) {
 
 /* ══ STEP 3 — Preview ══ */
 function StepPreview({ mode, data, profile, onPublish, publishing }) {
+  const { t } = useTranslation();
   const isStory = mode === "story";
   const name    = profile?.display_name || profile?.email?.split("@")[0] || "Du";
   const avatar  = profile?.avatar_url || null;

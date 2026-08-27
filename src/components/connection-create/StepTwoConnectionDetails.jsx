@@ -475,6 +475,7 @@ function OpennessRow({ value, onChange }) {
 
 // ── Attachment Bar ──────────────────────────────────────────────────
 function AttachmentBar() {
+  const { t } = useTranslation();
   const BtnS = {
     flex:1, display:"flex", alignItems:"center",
     justifyContent:"center", gap:6,

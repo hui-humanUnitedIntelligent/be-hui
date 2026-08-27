@@ -60,6 +60,7 @@ export default function VerbindenModal({
                          // als jedes Overlay, aus dem das Modal geöffnet wird
                          // (z.B. 15600 aus PostFullscreenView, das selbst 15000 ist)
 }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState(null);

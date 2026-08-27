@@ -10,6 +10,7 @@ import { formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function ProjektCard({ projekt, delay=0, onPress }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
   const cc = projekt.catColor || { bg:"rgba(34,197,94,0.12)", text:"#16A34A" };

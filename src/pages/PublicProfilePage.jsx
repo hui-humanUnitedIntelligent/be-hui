@@ -92,7 +92,7 @@ function Skel({ w, h=14, r=8 }) {
 
 // ── Rollen-Badge ──────────────────────────────────────────────────
 // ── NavBar ────────────────────────────────────────────────────────
-function NavBar({ onBack = () => {}, title = t("ppp.publicProfile") }) {
+function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
