@@ -28,7 +28,6 @@ import { countComments, getComments } from "../lib/commentsService.js";
 import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
 import FeedImpactTicker from "./FeedImpactTicker.jsx";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 // TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
 import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
@@ -41,20 +40,18 @@ import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf
    ═══════════════════════════════════════════════════════════════ */
 
 // ── Tageszeit-Begrüßung ─────────────────────────────────────────
-// i18n: Greeting takes t as parameter (module-level function)
-function getGreeting(t) {
+function getGreeting() {
   const h = new Date().getHours();
-  if (h >= 5 && h < 12)  return t("feed.greetingMorning");
-  if (h >= 12 && h < 17) return t("feed.greetingDay");
-  if (h >= 17 && h < 22) return t("feed.greetingEvening");
-  return t("feed.greetingNight");
+  if (h >= 5 && h < 12)  return "Guten Morgen";
+  if (h >= 12 && h < 17) return "Guten Tag";
+  if (h >= 17 && h < 22) return "Guten Abend";
+  return "Hallo";
 }
 
 // ── "Heute auf HUI" — Live-Stats (HEUTE.4-001) ──────────────────
 // 4 Kategorien: Werke, Talentangebote, Erlebnisse, Momente
 // Realtime: sofort aktuell wenn neues Item erscheint
 function useHeuteStats() {
-  const { t } = useTranslation();
   const [stats, setStats] = React.useState({
     works: 0, talents: 0, experiences: 0, moments: 0, liveText: "", isLive: false,
   });
@@ -86,8 +83,8 @@ function useHeuteStats() {
       const name = recentMember.data?.full_name || recentMember.data?.display_name || recentMember.data?.username || null;
       const city = recentMember.data?.location_label || null;
       const liveText = name
-        ? (city ? t("feed.memberJoinedWithCity", { name, city }) : t("feed.memberJoined", { name }))
-        : t("feed.newContent");
+        ? `${name}${city ? ` aus ${city}` : ""} ist HUI beigetreten`
+        : "Neue Inhalte erscheinen gerade";
 
       const w = worksRes.count   ?? 0;
       const t = talentsRes.count ?? 0;
@@ -142,8 +139,7 @@ function useHeuteStats() {
 
 // ── FeedWelcomeHeader ────────────────────────────────────────────
 function FeedWelcomeHeader({ currentUser }) {
-  const { t } = useTranslation();
-  const greeting = getGreeting(t);
+  const greeting = getGreeting();
   const firstName = currentUser?.display_name?.split(" ")[0]
     || currentUser?.username
     || null;
@@ -195,12 +191,12 @@ function FeedWelcomeHeader({ currentUser }) {
               fontSize: 14, lineHeight: 1.55,
               color: MUTED, fontWeight: 400,
             }}>
-              {t("feed.welcomePrefix")}{" "}
-              <span style={{ color: "#F5A623", fontWeight: 600 }}>{t("feed.welcomeMenschen")}</span>,{" "}
-              <span style={{ color: TEAL, fontWeight: 600 }}>{t("feed.welcomeIdeen")}</span>{" "}
-              {t("feed.welcomeAnd")}{" "}
-              <span style={{ color: CORAL, fontWeight: 600 }}>{t("feed.welcomeErlebnisse")}</span>{" "}
-              {t("feed.welcomeSuffix")}
+              Dein Zuhause wo{" "}
+              <span style={{ color: "#F5A623", fontWeight: 600 }}>Menschen</span>,{" "}
+              <span style={{ color: TEAL, fontWeight: 600 }}>Ideen</span>{" "}
+              und{" "}
+              <span style={{ color: CORAL, fontWeight: 600 }}>Erlebnisse</span>{" "}
+              dich inspirieren.
             </p>
           </div>
         </div>
@@ -231,7 +227,7 @@ function FeedWelcomeHeader({ currentUser }) {
               fontSize: 11,
             }}>📈</div>
             <span style={{ fontSize: 14, fontWeight: 600, color: INK, letterSpacing: -0.2 }}>
-              {t("feed.heuteTitle")}
+              Heute auf HUI
             </span>
           </div>
         </div>
@@ -247,10 +243,10 @@ function FeedWelcomeHeader({ currentUser }) {
           overflow: "hidden",
         }}>
           {[
-            { icon: "🌿", bg: "rgba(22,215,197,0.10)",  count: stats.works,       label: t("feed.newWorks")       },
-            { icon: "⭐", bg: "rgba(255,190,30,0.13)",   count: stats.talents,     label: t("feed.newTalents")     },
-            { icon: "🗓️", bg: "rgba(100,149,255,0.12)",  count: stats.experiences, label: t("feed.newExperiences") },
-            { icon: "💬", bg: "rgba(190,160,255,0.13)",  count: stats.moments,     label: t("feed.newMoments")     },
+            { icon: "🌿", bg: "rgba(22,215,197,0.10)",  count: stats.works,       label: "neue Werke"          },
+            { icon: "⭐", bg: "rgba(255,190,30,0.13)",   count: stats.talents,     label: "neue Talentangebote" },
+            { icon: "🗓️", bg: "rgba(100,149,255,0.12)",  count: stats.experiences, label: "neue Erlebnisse"     },
+            { icon: "💬", bg: "rgba(190,160,255,0.13)",  count: stats.moments,     label: "neue Momente"        },
           ].map((s, i) => (
             <div key={i} style={{
               background: "rgba(255,253,251,0.97)",
@@ -346,7 +342,6 @@ function getCardRhythm(idx) {
 
 /* ── Empty State ──────────────────────────────────────────────── */
 function EmptyFeed() {
-  const { t } = useTranslation();
   return (
     <div style={{
       padding: "48px 24px", textAlign: "center",
@@ -358,13 +353,13 @@ function EmptyFeed() {
         fontSize: 15, fontWeight: 600, color: "#1A1A2E",
         letterSpacing: -0.2,
       }}>
-        {t("feed.emptyTitle")}
+        Dein Feed erwacht gleich
       </div>
       <div style={{
         fontSize: 13, color: "rgba(26,26,46,0.45)",
         maxWidth: 220, lineHeight: 1.55,
       }}>
-        {t("feed.emptyText")}
+        Folge Menschen und teile Momente — dann lebt dieser Raum.
       </div>
     </div>
   );
@@ -400,7 +395,6 @@ class ReactionErrorBoundary extends React.Component {
 }
 
 function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemIndex, onDepth, onOpenComments }) {
-  const { t } = useTranslation();
   // Guard: item must be valid before calling any hook
   const postId   = item?.id    || "";
   const postType = item?.type  || "post";
@@ -506,8 +500,8 @@ function ReactionCardInner({ item, onProfile, onBook, onDetail, onShare, itemInd
     }
     if (!toggle) return;
     toggle(type);
-    const labels       = { like: t("feed.toastLike"), inspire: t("feed.toastInspire"), save: t("feed.toastSave") };
-    const removeLabels = { like: t("feed.toastLikeRemove"), inspire: t("feed.reactionInspireRemove"), save: t("feed.reactionSaveRemove") };
+    const labels       = { like:"Gefällt dir ✦", inspire:"Inspiriert dich ✨", save:"Gespeichert 🔖" };
+    const removeLabels = { like:"Gefällt dir nicht mehr", inspire:"Inspiration entfernt", save:"Entfernt" };
     const wasActive    = myTypes?.has?.(type);
     toast.info(wasActive ? (removeLabels[type] || type) : (labels[type] || type), { duration: 1800 });
   }, [toggle, myTypes, onOpenComments, postId, postType, authorId, item]);
@@ -568,7 +562,6 @@ function ReactionCard({ item, onProfile, onBook, onDetail, onShare, itemIndex, o
 }
 
 function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loadMore, hasMore, loadingMore, onDiscover, scrollContainerRef = null, onOpenComments }) {
-  const { t } = useTranslation();
   // VIRT-001 — Virtualisierter Feed mit @tanstack/react-virtual
   // Rendert nur Karten die im Viewport (+ 400px Margin) sichtbar sind.
   // Memory-Cleanup: Karten außerhalb DOM werden unmounted (overscan=3).
@@ -728,7 +721,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
           color: "rgba(13,196,181,0.5)",
           fontSize: 12, fontWeight: 500, letterSpacing: 0.2,
         }}>
-          {t("feed.loadingMore")}
+          Weitere Beiträge werden geladen …
         </div>
       )}
 
@@ -744,10 +737,10 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
         }}>
           <div style={{ fontSize: 16, color: "rgba(13,196,181,0.45)", letterSpacing: 2 }}>✦</div>
           <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(26,53,48,0.55)", letterSpacing: -0.1 }}>
-            {t("feed.endReached")}
+            Du hast das Ende erreicht
           </div>
           <div style={{ fontSize: 12, color: "rgba(26,53,48,0.35)", fontWeight: 400, lineHeight: 1.55, maxWidth: 240 }}>
-            {t("feed.endSubtext")}
+            Warte, bis neue Talente ihr Können präsentieren.
           </div>
         </div>
       )}
@@ -819,7 +812,6 @@ export default function UnifiedFeed({
   sort           = "newest", // "newest" | "oldest"
 }) {
   usePerfMount('UnifiedFeed');
-  const { t } = useTranslation();
   useEffect(() => {
     injectFeedCSS();
   }, []); // eslint-disable-line
@@ -1036,11 +1028,11 @@ export default function UnifiedFeed({
         typeFilter || (locationQuery && locationQuery.trim())) &&
        !streamLoading && displayItems.length === 0 && (
         <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
-          <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>{t("feed.noResults")}</div>
+          <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Keine Ergebnisse</div>
           <div style={{ fontSize:13 }}>
             {searchQuery
-              ? <>{t("feed.noResultsQuery", { query: searchQuery })}</>
-              : <>{t("feed.emptyFiltered")}</>
+              ? <>Für „{searchQuery}" wurde nichts im Feed gefunden.</>
+              : <>Keine Beiträge passen zu diesem Filter.</>
             }
           </div>
         </div>

@@ -19,7 +19,6 @@ import { useProfileId } from "../../hooks/useProfileId.js";
 import SupportFlow from "../../components/economy/SupportFlow.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 import { ExperiencesSection } from "../../components/profile/sections/ExperiencesSection.jsx";
 import { MomentsSection } from "../../components/profile/sections/MomentsSection.jsx";
@@ -75,16 +74,13 @@ function usePress() {
 // ═══════════════════════════════════════════════════════════════
 const HERO_IMG_FB = "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&q=85";
 const AVATAR_FB   = "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&q=80";
-// i18n: getDefaultTags takes t as parameter (module-level function)
-function getDefaultTags(t) {
-  return [
-    { icon: "🌿", label: t("visitor.tagAtelier")      },
-    { icon: "🌱", label: t("visitor.tagNatur")        },
-    { icon: "💡", label: t("visitor.tagKreativitat")  },
-    { icon: "✈️", label: t("visitor.tagReisen")       },
-    { icon: "👥", label: t("visitor.tagGemeinschaft")  },
-  ];
-}
+const DEFAULT_TAGS = [
+  { icon: "🌿", label: "Atelier"      },
+  { icon: "🌱", label: "Natur"        },
+  { icon: "💡", label: "Kreativität"  },
+  { icon: "✈️", label: "Reisen"       },
+  { icon: "👥", label: "Gemeinschaft" },
+];
 const LIVE_AVATARS = [
   "https://i.pravatar.cc/32?img=5",
   "https://i.pravatar.cc/32?img=10",
@@ -93,7 +89,6 @@ const LIVE_AVATARS = [
 ];
 
 function BookBtn({ onBook }) {
-  const { t } = useTranslation();
   const { pressed, bind } = usePress();
   return (
     <button {...bind} onClick={onBook} style={{
@@ -106,12 +101,11 @@ function BookBtn({ onBook }) {
       boxShadow:`0 4px 18px ${C.tealGlow}`,
       transition:"background .15s ease",
     }}>
-      <span style={{display:"flex",alignItems:"center",gap:4}}><HUITicketIcon size={15}/> {t("profile.bookExperience")}</span>
+      <span style={{display:"flex",alignItems:"center",gap:4}}><HUITicketIcon size={15}/> Erlebnis buchen</span>
     </button>
   );
 }
 function MsgBtn({ onChat }) {
-  const { t } = useTranslation();
   const { pressed, bind } = usePress();
   return (
     <button {...bind} onClick={onChat} style={{
@@ -123,7 +117,7 @@ function MsgBtn({ onChat }) {
       cursor:"pointer",touchAction:"manipulation",
       transition:"background .15s ease",
     }}>
-      <span style={{display:"flex",alignItems:"center",gap:4}}><HUIChatIcon size={14}/> {t("visitor.msgSend")}</span>
+      <span style={{display:"flex",alignItems:"center",gap:4}}><HUIChatIcon size={14}/> Nachricht senden</span>
     </button>
   );
 }
@@ -184,7 +178,6 @@ function useWatchlist(profileId, currentUserId) {
 }
 
 function FollowBtn({ followed, onFollow }) {
-  const { t } = useTranslation();
   const { pressed, bind } = usePress();
   return (
     <button {...bind} onClick={onFollow} style={{
@@ -198,13 +191,12 @@ function FollowBtn({ followed, onFollow }) {
       cursor:"pointer",touchAction:"manipulation",
       transition:"background .15s ease",
     }}>
-      <span style={{fontSize:14}}>🤍</span> {followed ? t("visitor.following") : t("visitor.follow")}
+      <span style={{fontSize:14}}>🤍</span> {followed ? "Gefolgt" : "Folgen"}
     </button>
   );
 }
 
 function SupportBtn({ onSupport }) {
-  const { t } = useTranslation();
   const { pressed, bind } = usePress();
   return (
     <button {...bind} onClick={onSupport} style={{
@@ -216,13 +208,12 @@ function SupportBtn({ onSupport }) {
       cursor:"pointer",touchAction:"manipulation",
       transition:"background .15s ease",
     }}>
-      <span style={{fontSize:14}}>✦</span> {t("visitor.support")}
+      <span style={{fontSize:14}}>✦</span> Unterstützen
     </button>
   );
 }
 
 function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserId }) {
-  const { t } = useTranslation();
   const heroActions = useHuiActions();
   const [mounted, setMounted] = useState(false);
   // Sprint F.9A: useWatchlist ersetzt useState(false)
@@ -235,7 +226,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
   const phil     = safeStr(profile?.bio);
   const tags     = safeArr(profile?.dna_tags || profile?.interests).length
     ? safeArr(profile?.interests || profile?.dna_tags).slice(0,5).map(t => ({ icon:"✦", label: typeof t === "string" ? t : t?.label || t }))
-    : getDefaultTags(t);
+    : DEFAULT_TAGS;
   const verified = !!profile?.verified;
   const liveCount = 31;
   const currentWork = safeStr(profile?.current_work);
@@ -328,7 +319,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
               }}>✦ CREATOR</div>
               <div style={{display:"flex",alignItems:"center",gap:5,color:"rgba(255,255,255,.75)",fontSize:10,fontWeight:600}}>
                 <div style={{width:7,height:7,borderRadius:"50%",background:"#22C55E",/* no animation */}}/>
-                {t("visitor.inAtelier")}
+                Gerade im Atelier
               </div>
             </div>
 
@@ -371,7 +362,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
                 fontSize:12,color:"rgba(255,255,255,.30)",
                 margin:"0 0 12px",lineHeight:1.5,
                 fontStyle:"italic",maxWidth:280,
-              }}>{t("visitor.noBio")}</p>
+              }}>Bio noch nicht hinzugefügt…</p>
             )}
 
             {/* Tags */}
@@ -380,7 +371,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
                 <span style={{
                   fontSize:10,color:"rgba(255,255,255,.28)",
                   fontStyle:"italic",
-                }}>{t("visitor.noInterests")}</span>
+                }}>Noch keine Interessen</span>
               ) : tags.map((t,i)=>(
                 <span key={i} style={{
                   background:"rgba(255,255,255,.09)",border:"1px solid rgba(255,255,255,.17)",
@@ -412,9 +403,9 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
             <div style={{
               fontSize:12,fontWeight: 600,color:"white",
               marginBottom:7,letterSpacing:"-.01em",
-            }}>{t("visitor.todayInAtelier")}</div>
+            }}>Heute im Atelier</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.65)",lineHeight:1.45,marginBottom:10}}>
-              {t("visitor.newWorkEmerging")}<br/>
+              Neues Werk entsteht<br/>
               <em style={{color:C.tealLight,fontStyle:"italic"}}>„{currentWork}"</em>
             </div>
             {/* Live avatars */}
@@ -431,7 +422,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
                 ))}
               </div>
               <span style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:600}}>
-                {t("visitor.liveCount", { count: liveCount })}
+                {liveCount} dabei
               </span>
             </div>
             <button
@@ -442,7 +433,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
                 paddingTop:6,borderTop:"1px solid rgba(255,255,255,.09)",
                 touchAction:"manipulation",fontFamily:"inherit",
               }}>
-              {t("visitor.enterAtelier")}
+              Atelier live betreten →
             </button>
           </div>
         </div>
@@ -454,16 +445,13 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
 // ═══════════════════════════════════════════════════════════════
 // 2. STATS STRIP
 // ═══════════════════════════════════════════════════════════════
-// i18n: getStatDefs takes t as parameter (module-level function)
-function getStatDefs(t) {
-  return [
-    { icon:"✨",  label: t("visitor.statExperiences"),     key:"bookings",    suffix:"",  prefix:""  },
-    { icon:"👥",  label: t("visitor.statPeopleResonate"),  key:"followers",   suffix:"",  prefix:""  },
-    { icon:"⭐",  label: t("visitor.statResonanceRating"), key:"rating",      suffix:"",  prefix:""  },
-    { icon:"🌿",  label: t("visitor.statTraces"),          key:"traces",      suffix:"K", prefix:""  },
-    { icon:"€",   label: t("visitor.statSharedImpact"),    key:"impact_eur",  suffix:"",  prefix:"€" },
-  ];
-}
+const STAT_DEFS = [
+  { icon:"✨",  label:"Erlebnisse\ngeteilt",      key:"bookings",    suffix:"",  prefix:""  },
+  { icon:"👥",  label:"Menschen\nresonieren",     key:"followers",   suffix:"",  prefix:""  },
+  { icon:"⭐",  label:"Resonanz\nBewertung",      key:"rating",      suffix:"",  prefix:""  },
+  { icon:"🌿",  label:"Spuren\nhinterlassen",     key:"traces",      suffix:"K", prefix:""  },
+  { icon:"€",   label:"Gemeinsame\nWirkung",      key:"impact_eur",  suffix:"",  prefix:"€" },
+];
 
 function AnimCounter({ target, prefix="", suffix="" }) {
   const [v, setV] = useState(0);
@@ -490,7 +478,6 @@ function AnimCounter({ target, prefix="", suffix="" }) {
 }
 
 function StatsStrip({ profile, wirkerProfile, followerCount = 0 }) {
-  const { t } = useTranslation();
   // Sprint F.9A: echte Daten statt Hardcoded Fallbacks (24, 4.8, 8950)
   const vals = {
     bookings:   safeNum(wirkerProfile?.booking_count, 0),
@@ -511,11 +498,11 @@ function StatsStrip({ profile, wirkerProfile, followerCount = 0 }) {
         display:"flex",justifyContent:"space-between",alignItems:"flex-start",
         gap:4,
       }}>
-        {getStatDefs(t).map((s,i) => (
+        {STAT_DEFS.map((s,i) => (
           <div key={i} style={{
             flex:"1 1 0",display:"flex",flexDirection:"column",alignItems:"center",
             gap:4,textAlign:"center",
-            borderRight:i<getStatDefs(t).length-1?"1px solid rgba(0,0,0,.06)":"none",
+            borderRight:i<STAT_DEFS.length-1?"1px solid rgba(0,0,0,.06)":"none",
             padding:"0 4px",
           }}>
             <div style={{fontSize:17,lineHeight:1}}>{s.icon}</div>
@@ -562,7 +549,6 @@ function Sparkline({ vals = [], color = C.teal }) {
 }
 
 function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
-  const { t } = useTranslation();
   const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
   const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
@@ -586,7 +572,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
         {/* LEFT: story */}
         <div>
           <div style={{fontSize:15,fontWeight: 600,color:C.ink,letterSpacing:"-.025em",marginBottom:10}}>
-            {t("visitor.aboutName", { name })}
+            Über {name}.
           </div>
           <p style={{
             fontSize:12,color:"rgba(30,30,30,.65)",lineHeight:1.65,
@@ -598,7 +584,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
               background:"none",border:"none",padding:0,
               fontSize:11,fontWeight: 600,color:C.teal,cursor:"pointer",touchAction:"manipulation",
               fontFamily:"inherit",
-            }}>{t("visitor.moreAboutJourney")}</button>
+            }}>Mehr über meine Reise →</button>
         </div>
 
         {/* CENTER: cinematic image */}
@@ -626,13 +612,13 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
         {/* RIGHT: Wirkung */}
         <div>
           <div style={{fontSize:14,fontWeight: 600,color:C.ink,letterSpacing:"-.02em",marginBottom:12}}>
-            {t("visitor.impactTitle")}
+            Wirkung, die wir gemeinsam schaffen
           </div>
           {[
-            {icon:"€",  label: t("visitor.sharedImpact"), val:`€${formatNumberDE(impact)}`},
-            {icon:"✦",  label: t("visitor.supportedProjects"), val:projects},
-            {icon:"👥", label: t("visitor.peopleGuided"),    val:humans},
-            {icon:"⭐", label: t("visitor.resonanceRating"),    val:rating},
+            {icon:"€",  label:"Gemeinsame Wirkung", val:`€${formatNumberDE(impact)}`},
+            {icon:"✦",  label:"Unterstützte Projekte", val:projects},
+            {icon:"👥", label:"Menschen begleitet",    val:humans},
+            {icon:"⭐", label:"Resonanz Bewertung",    val:rating},
           ].map((m,i)=>(
             <div key={i} style={{
               display:"flex",alignItems:"center",gap:8,
@@ -658,7 +644,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
             fontSize:11,fontWeight: 600,color:C.teal,cursor:"pointer",touchAction:"manipulation",display:"block",
           }}
             onClick={() => aboutActions[A.GO_IMPACT]?.()}
-          >{t("visitor.moreImpact")}</button>
+          >Mehr Wirkung ansehen →</button>
         </div>
       </div>
     </div>
@@ -666,18 +652,15 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 6. COMMUNITY / RESONANCE — "{t("visitor.peopleInResonance")}"
+// 6. COMMUNITY / RESONANCE — "Menschen in Resonanz"
 // ═══════════════════════════════════════════════════════════════
-// i18n: getSeedCommunity takes t as parameter (module-level function)
-function getSeedCommunity(t) {
-  return [
-    {id:"c1",name:"Mara",   role: t("visitor.communityRole1"),  time: t("visitor.communityTimeActive"), dot:"#22C55E",av:"https://i.pravatar.cc/40?img=1"},
-    {id:"c2",name:"Jonas",  role: t("visitor.communityRole2"),  time: t("visitor.communityTime12Min"),  dot:C.teal,   av:"https://i.pravatar.cc/40?img=3"},
-    {id:"c3",name:"Lea",    role: t("visitor.communityRole3"),  time: t("visitor.communityTime1H"),     dot:C.coral,  av:"https://i.pravatar.cc/40?img=5"},
-    {id:"c4",name:"Timo",   role: t("visitor.communityRole4"),  time: t("visitor.communityToday"),      dot:"#8B5CF6",av:"https://i.pravatar.cc/40?img=8"},
-    {id:"c5",name:"Anna",   role: t("visitor.communityRole5"),  time: t("visitor.communityToday"),      dot:"#F59E0B",av:"https://i.pravatar.cc/40?img=12"},
-  ];
-}
+const SEED_COMMUNITY = [
+  {id:"c1",name:"Mara",   role:"Hat am Atelier Workshop teilgenommen", time:"Gerade aktiv", dot:"#22C55E",av:"https://i.pravatar.cc/40?img=1"},
+  {id:"c2",name:"Jonas",  role:"1:1 Mentoring gebucht",               time:"Vor 12 Min.",  dot:C.teal,   av:"https://i.pravatar.cc/40?img=3"},
+  {id:"c3",name:"Lea",    role:"Hat diesen Moment geliebt",           time:"Vor 1 Std.",   dot:C.coral,  av:"https://i.pravatar.cc/40?img=5"},
+  {id:"c4",name:"Timo",   role:"Im Natur Retreat dabei",              time:"Heute",        dot:"#8B5CF6",av:"https://i.pravatar.cc/40?img=8"},
+  {id:"c5",name:"Anna",   role:"Neuer Follower",                      time:"Heute",        dot:"#F59E0B",av:"https://i.pravatar.cc/40?img=12"},
+];
 
 function ResonanceRow({ m }) {
   const rowActions = useHuiActions();
@@ -712,17 +695,16 @@ function ResonanceRow({ m }) {
 }
 
 function ResonanceCommunity({ community }) {
-  const { t } = useTranslation();
   const communityActions = useHuiActions();
   const { ref, style } = useEntry(80);
-  const members = safeArr(community).length ? safeArr(community) : getSeedCommunity(t);
+  const members = safeArr(community).length ? safeArr(community) : SEED_COMMUNITY;
   return (
     <div ref={ref} style={{ ...style, width:"100%", background:C.cream, padding:"22px 18px 24px" }}>
       <div style={{
         display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:14,
       }}>
         <div style={{fontSize:16,fontWeight: 600,color:C.ink,letterSpacing:"-.025em"}}>
-          {t("visitor.peopleInResonance")}
+          Menschen in Resonanz
         </div>
         <button
           onClick={() => communityActions[A.OPEN_COMMUNITY]?.({ view: "alle" })}
@@ -731,7 +713,7 @@ function ResonanceCommunity({ community }) {
             fontSize:11,color:C.teal,fontWeight: 600,cursor:"pointer",
             touchAction:"manipulation",fontFamily:"inherit",
           }}>
-          {t("visitor.viewAllPeople")}
+          Alle Menschen ansehen →
         </button>
       </div>
       <div style={{
@@ -748,18 +730,14 @@ function ResonanceCommunity({ community }) {
 // ═══════════════════════════════════════════════════════════════
 // 7. FOOTER VALUES
 // ═══════════════════════════════════════════════════════════════
-// i18n: getValues takes t as parameter (module-level function)
-function getValues(t) {
-  return [
-    {icon:"🌿",label: t("visitor.valueAuthentic"),  sub: t("visitor.valueAuthenticSub")},
-    {icon:"✨",label: t("visitor.valueInspiring"),  sub: t("visitor.valueInspiringSub")},
-    {icon:"👥",label: t("visitor.valueConnecting"), sub: t("visitor.valueConnectingSub")},
-    {icon:"🤍",label: t("visitor.valueMindful"),    sub: t("visitor.valueMindfulSub")},
-  ];
-}
+const VALUES = [
+  {icon:"🌿",label:"Authentisch",sub:"Echt & transparent"},
+  {icon:"✨",label:"Inspirierend",sub:"Kreativität wecken"},
+  {icon:"👥",label:"Verbindend", sub:"Gemeinschaft leben"},
+  {icon:"🤍",label:"Achtsam",    sub:"Mit Herz & Seele"},
+];
 
 function FooterValues() {
-  const { t } = useTranslation();
   const { ref, style } = useEntry(0);
   return (
     <div ref={ref} style={{
@@ -769,7 +747,7 @@ function FooterValues() {
       padding:"20px 12px 28px",
     }}>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
-        {getValues(t).map((v,i)=>(
+        {VALUES.map((v,i)=>(
           <div key={i} style={{textAlign:"center",padding:"10px 4px"}}>
             <div style={{fontSize:22,marginBottom:4}}>{v.icon}</div>
             <div style={{fontSize:10,fontWeight: 600,color:C.ink,letterSpacing:"-.01em"}}>{v.label}</div>
@@ -785,7 +763,6 @@ function FooterValues() {
 // FLOATING BOOK CTA — sticky bottom
 // ═══════════════════════════════════════════════════════════════
 function FloatingBookCTA({ onBook, profileName }) {
-  const { t } = useTranslation();
   const { pressed, bind } = usePress();
   return (
     <div style={{
@@ -807,7 +784,7 @@ function FloatingBookCTA({ onBook, profileName }) {
         transition:"background .15s ease,transform .15s ease",
         opacity:pressed?0.82:1,
       }}>
-        {t("profile.bookExperienceWith", { name: profileName || t("visitor.creator") })}
+        Erlebnis mit {profileName || "Creator"} buchen
       </button>
     </div>
   );
@@ -821,7 +798,6 @@ function FloatingBookCTA({ onBook, profileName }) {
 //      useProfileData(profileId) → eine Datenquelle für alle Profile
 // ────────────────────────────────────────────────────────────────────────────
 export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profileIdProp, onClose, onBook, onChat, _zIndex = 9500 }) {
-  const { t } = useTranslation();
   // Phase 4D: Support Flow State — MUSS VOR ALLEM ANDEREN STEHEN (Rules of Hooks)
   const [showSupport, setShowSupport] = React.useState(false);
 
@@ -878,7 +854,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       actions[A.OPEN_CHAT]({
         recipient: {
           id:           profile?.id || profile?.user_id,
-          display_name: profile?.display_name || profile?.name || t("visitor.creator"),
+          display_name: profile?.display_name || profile?.name || "Creator",
           avatar_url:   profile?.img || profile?.avatar_url || null,
           talent:       profile?.talent || null,
         },
@@ -894,7 +870,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
     setShowSupport(true);
   }, []);
 
-  // Guard: kein rawId oder profileId-Fehler → "{t("visitor.profileNotFound")}"
+  // Guard: kein rawId oder profileId-Fehler → "Profil nicht gefunden"
   if (!rawId || (!loading && !profile?.id && idError)) {
     return (
       <div style={{
@@ -906,16 +882,16 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
         <div style={{textAlign:"center",padding:32}}>
           <div style={{fontSize:32,marginBottom:12}}>✦</div>
           <div style={{fontSize:15,fontWeight:600,color:"#1A1A2E",marginBottom:6}}>
-            {t("visitor.profileNotFound")}
+            Profil nicht gefunden
           </div>
           <div style={{fontSize:13,color:"rgba(26,26,46,0.5)",marginBottom:20}}>
-            {t("visitor.creatorUnavailable")}
+            Dieser Creator ist gerade nicht erreichbar.
           </div>
           <button onClick={handleClose} style={{
             padding:"10px 22px",borderRadius:14,
             background:"#16D7C5",color:"white",
             border:"none",fontWeight: 600,fontSize:13,cursor:"pointer",
-          }}>{t("visitor.back")}</button>
+          }}>Zurück</button>
         </div>
       </div>
     );
