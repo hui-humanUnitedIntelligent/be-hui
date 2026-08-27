@@ -56,6 +56,7 @@ import { MomentsSection }         from "../components/profile/sections/MomentsSe
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 // ── Design Tokens (HUI-Standard, identisch zu BasisProfilePage) ─
 const T = {
@@ -175,13 +176,15 @@ function useRelationship(profileId, currentUserId) {
 }
 
 // Intentions für den Verbindungsdialog
-const INTENTIONS = [
-  { key:"work",        emoji:"🎨", label:"Ich interessiere mich für deine Arbeit" },
-  { key:"experience",  emoji:"✨", label:"Ich möchte an deinen Erlebnissen teilnehmen" },
-  { key:"exchange",    emoji:"☕", label:"Ich suche Austausch" },
-  { key:"create",      emoji:"🌍", label:"Ich möchte gemeinsam etwas bewirken" },
-  { key:"other",       emoji:"💬", label:"Eigene Nachricht" },
-];
+function getIntentions(t) {
+  return [
+  { key:"work",        emoji:"🎨", label:t("tpp.intention.work") },
+  { key:"experience",  emoji:"✨", label:t("tpp.intention.experience") },
+  { key:"exchange",    emoji:"☕", label:t("tpp.intention.exchange") },
+  { key:"create",      emoji:"🌍", label:t("tpp.intention.create") },
+  { key:"other",       emoji:"💬", label:t("tpp.intention.other") },
+  ];
+}
 
 const CSS_DIALOG = `
   @keyframes tpp-dialog-in{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
@@ -196,11 +199,14 @@ const CSS_DIALOG = `
 
 // ── Verbindungsdialog (Stufe 3) ────────────────────────────────
 function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
+  const { t } = useTranslation();
+  const intentions = getIntentions(t);
+  const name = s(profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
   const [intention,   setIntention]   = React.useState(null);
   const [message,     setMessage]     = React.useState("");
   const [sending,     setSending]     = React.useState(false);
   const [sent,        setSent]        = React.useState(false);
-  const name = s(profile?.display_name || profile?.username, "diesem Talent");
+
 
   async function sendRequest() {
     if (!intention || sending) return;
@@ -240,10 +246,10 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
           <div style={{textAlign:"center",padding:"20px 0 8px"}}>
             <div style={{fontSize:44,marginBottom:14}}><span className="hui-emoji">🤝</span></div>
             <div style={{fontSize:18,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
-              Anfrage gesendet
+              {t("tpp.dialog.sent.title")}
             </div>
             <div style={{fontSize:14,color:"rgba(26,26,24,0.52)",lineHeight:1.55,maxWidth:260,margin:"0 auto"}}>
-              {name} entscheidet in Ruhe, ob eine Verbindung entstehen soll.
+              {t("tpp.dialog.sent.body", { name })}
             </div>
           </div>
         ) : (
@@ -251,10 +257,10 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
             {/* Titel */}
             <div style={{marginBottom:20}}>
               <div style={{fontSize:17,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:6}}>
-                Warum möchtest du dich verbinden?
+                {t("tpp.dialog.title")}
               </div>
               <div style={{fontSize:13,color:"rgba(26,26,24,0.50)",lineHeight:1.5}}>
-                Deine Anfrage geht persönlich an {name}. Sie entscheiden, ob eine Verbindung entsteht.
+                {t("tpp.dialog.body", { name })}
               </div>
             </div>
 
@@ -276,12 +282,12 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
             {/* Optionale Nachricht */}
             <div style={{marginBottom:20}}>
               <div style={{fontSize:12,fontWeight:600,color:"rgba(26,26,24,0.45)",marginBottom:8,letterSpacing:"0.04em"}}>
-                PERSÖNLICHE NACHRICHT (OPTIONAL)
+                {t("tpp.dialog.msgLabel")}
               </div>
               <textarea
                 className="tpp-msg-input"
                 rows={3}
-                placeholder="Erzähl kurz, was dich bewegt…"
+                placeholder={t("tpp.dialog.msgPlaceholder")}
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 maxLength={300}
@@ -310,7 +316,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
                 touchAction:"manipulation",
                 transition:"all .2s ease",
               }}>
-              {sending ? "Wird gesendet…" : "🤝 Verbindungsanfrage senden"}
+              {sending ? t("tpp.dialog.sending") : t("tpp.dialog.send")}
             </button>
 
             {/* Abbrechen */}
@@ -337,7 +343,7 @@ const s  = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb);
 const a  = (v) => Array.isArray(v) ? v : [];
 const dl = (i) => ({ animationDelay:`${i*60}ms` });
 // ── Schwerpunkt-Logik ──────────────────────────────────────────
-function detectSchwerpunkt(profile, works, experiences) {
+function detectSchwerpunkt(profile, works, experiences, t) {
   const interests = a(profile?.dna_tags || profile?.skills); // interests nicht in DB → dna_tags/skills
   const wCount = works.length;
   const eCount = experiences.length;
@@ -346,36 +352,36 @@ function detectSchwerpunkt(profile, works, experiences) {
   const hasKw = (...kws) => kws.some(k => interests.some(i => i.toLowerCase().includes(k)));
 
   if (hasKw("gemeinschaft","verbindung","netzwerk","mensch")) {
-    return { icon:<HUITalentIcon size={24}/>, title:"Gemeinschaftsstifter·in", desc:"Ich bringe Menschen zusammen, um gemeinsam etwas Sinnvolles zu erschaffen." };
+    return { icon:<HUITalentIcon size={24}/>, title:t("tpp.schwerpunkt.gemeinschaft.title"), desc:t("tpp.schwerpunkt.gemeinschaft.desc") };
   }
   if (hasKw("musik","klang","sound","sing")) {
-    return { icon:"🎵", title:"Musikerin · Musikschaffende·r", desc:"Musik als Brücke zwischen Menschen und Momenten." };
+    return { icon:"🎵", title:t("tpp.schwerpunkt.musik.title"), desc:t("tpp.schwerpunkt.musik.desc") };
   }
   if (hasKw("malen","kunst","kreativ","design","illustr","bild")) {
-    return { icon:<HUIWerkeIcon size={24}/>, title:"Künstler·in", desc:"Ich erschaffe Werke, die das Unsichtbare sichtbar machen." };
+    return { icon:<HUIWerkeIcon size={24}/>, title:t("tpp.schwerpunkt.kunst.title"), desc:t("tpp.schwerpunkt.kunst.desc") };
   }
   if (hasKw("wissen","lehr","bildung","coach","kurs","workshop")) {
-    return { icon:"📚", title:"Wissensgeber·in", desc:"Ich teile Wissen und begleite Menschen in ihrer Entwicklung." };
+    return { icon:"📚", title:t("tpp.schwerpunkt.wissen.title"), desc:t("tpp.schwerpunkt.wissen.desc") };
   }
   if (hasKw("natur","wald","pflanz","ökolog","nachhaltig","umwelt")) {
-    return { icon:<HUIImpactIcon size={24}/>, title:"Naturverbunden·e", desc:"Ich wirke für eine Welt im Einklang mit der Natur." };
+    return { icon:<HUIImpactIcon size={24}/>, title:t("tpp.schwerpunkt.natur.title"), desc:t("tpp.schwerpunkt.natur.desc") };
   }
   if (hasKw("tier","hund","katze","pferd","wildtier")) {
-    return { icon:"🐾", title:"Tierliebhaber·in", desc:"Menschen und Tiere in Verbindung bringen." };
+    return { icon:"🐾", title:t("tpp.schwerpunkt.tier.title"), desc:t("tpp.schwerpunkt.tier.desc") };
   }
 
   // Fallback nach Content-Typ
   if (wCount > eCount && wCount > 0) {
-    return { icon:<HUIWerkeIcon size={24}/>, title:"Schaffende·r", desc:"Meine Werke sprechen für mich — jedes ein Stück meiner Welt." };
+    return { icon:<HUIWerkeIcon size={24}/>, title:t("tpp.schwerpunkt.schaffende.title"), desc:t("tpp.schwerpunkt.schaffende.desc") };
   }
   if (eCount > wCount && eCount > 0) {
-    return { icon:<HUIErlebnisIcon size={24}/>, title:"Erlebnis-Gestalter·in", desc:"Ich schaffe Räume für echte Begegnungen und gemeinsames Erleben." };
+    return { icon:<HUIErlebnisIcon size={24}/>, title:t("tpp.schwerpunkt.erlebnis.title"), desc:t("tpp.schwerpunkt.erlebnis.desc") };
   }
   if (wCount > 0 && eCount > 0) {
-    return { icon:<HUIImpactIcon size={24}/>, title:"Vielseitig Wirkende·r", desc:"Werke, Erlebnisse und Projekte — meine Wirkung ist vielschichtig." };
+    return { icon:<HUIImpactIcon size={24}/>, title:t("tpp.schwerpunkt.vielseitig.title"), desc:t("tpp.schwerpunkt.vielseitig.desc") };
   }
 
-  return { icon:"🤝", title:"Teil der Gemeinschaft", desc:"Aktiv dabei — gemeinsam gestalten wir eine bessere Welt." };
+  return { icon:"🤝", title:t("tpp.schwerpunkt.fallback.title"), desc:t("tpp.schwerpunkt.fallback.desc") };
 }
 
 // ── Atoms ─────────────────────────────────────────────────────
@@ -411,6 +417,7 @@ function SectionHead({ icon, title, subtitle, cta, onCta }) {
 // 1. HEADER
 // ══════════════════════════════════════════════════════════════
 function Header({ onBack, isOwner, onSettings }) {
+  const { t } = useTranslation();
   return (
     // SAFE-AREA-TOP-FIX (2026-08-10): 3-Ebenen-Fallback wie NAV_SAFE_BOTTOM_CSS
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:`max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)) ${T.px}px 10px`,background:T.bg,position:"sticky",top:0,zIndex:10}}>
@@ -420,10 +427,10 @@ function Header({ onBack, isOwner, onSettings }) {
       </button>
       <div style={{textAlign:"center"}}>
         <div style={{fontSize:15,fontWeight: 600,color:T.ink,letterSpacing:"-0.02em",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
-          Öffentliches Talent-Profil <span style={{fontSize:14}}>✨</span>
+          {t("tpp.header.title")} <span style={{fontSize:14}}>✨</span>
         </div>
         <div style={{fontSize:11.5,color:T.inkFaint,fontWeight:400,marginTop:1}}>
-          Entdecke meine Welt und meine Werke.
+          {t("tpp.header.sub")}
         </div>
       </div>
       {isOwner ? (
@@ -449,6 +456,7 @@ function Header({ onBack, isOwner, onSettings }) {
 // KOMPASS ACTION SHEET
 // ══════════════════════════════════════════════════════════════
 function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport = () => {} }) {
+  const { t } = useTranslation();
   return createPortal(
     <div
       onClick={onClose}
@@ -476,7 +484,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           margin:"0 auto 18px",
         }}/>
         <div style={{fontSize:15, fontWeight: 600, color:"rgba(26,26,24,0.55)", marginBottom:18, textAlign:"center"}}>
-          {profile?.display_name || "Creator"}
+          {profile?.display_name || t("tpp.kompass.creator")}
         </div>
         <button
           onClick={() => { onWatch?.(); onClose(); }}
@@ -494,12 +502,12 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           <span style={{fontSize:20}}>{isWatching ? "\uD83D\uDC41" : "\uD83C\uDF31"}</span>
           <div style={{textAlign:"left"}}>
             <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
-              {isWatching ? "Nicht mehr beobachten" : "Im Blick behalten"}
+              {isWatching ? t("tpp.kompass.unwatch") : t("tpp.kompass.watch")}
             </div>
             <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
               {isWatching
-                ? "Aus deiner Beobachtungsliste entfernen"
-                : "Werde benachrichtigt wenn sich etwas tut"}
+                ? t("tpp.kompass.unwatchDesc")
+                : t("tpp.kompass.watchDesc")}
             </div>
           </div>
         </button>
@@ -517,10 +525,10 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           <span style={{fontSize:20}}>{"\u2764"}</span>
           <div style={{textAlign:"left"}}>
             <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
-              Unterst\u00fctzen
+              {t("tpp.kompass.support")}
             </div>
             <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
-              Mit einer Spende unterst\u00fctzen
+              {t("tpp.kompass.supportDesc")}
             </div>
           </div>
         </button>
@@ -534,7 +542,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
             cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
           }}
         >
-          Abbrechen
+          {t("tpp.kompass.cancel")}
         </button>
       </div>
     </div>,
@@ -546,6 +554,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
 // 3. ACTION BUTTONS (Verbinden, Nachricht)
 // ══════════════════════════════════════════════════════════════
 function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKompass }) {
+  const { t } = useTranslation();
   const rel = useRelationship(profile?.id, currentUserId);
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
@@ -627,7 +636,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               fontFamily:"inherit", cursor:"default",
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             }}>
-              <span className="hui-emoji">🌿</span> Anfrage gesendet
+              <span className="hui-emoji">🌿</span> {t("tpp.dialog.sent.title")}
             </button>
 
           ) : isDeclined ? (
@@ -639,7 +648,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               fontFamily:"inherit", cursor:"default",
               display:"flex", alignItems:"center", justifyContent:"center",
             }}>
-              Verbindung nicht möglich
+              {t("tpp.relation.impossible")}
             </button>
 
           ) : isWatching ? (
@@ -698,7 +707,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
             textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
             letterSpacing:"0.01em",
           }}>
-            Du beobachtest das Wirken dieses Talents.
+            {t("tpp.watch.title")}
           </div>
         )}
       </div>
@@ -720,18 +729,19 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
 // 4. SCHWERPUNKT-KARTE + QUICK-STATS
 // ══════════════════════════════════════════════════════════════
 function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, followCounts }) {
+  const { t } = useTranslation();
   const sp = useMemo(
-    () => detectSchwerpunkt(profile, works, experiences),
+    () => detectSchwerpunkt(profile, works, experiences, t),
     [profile, works, experiences]
   );
 
   // ── Live-Stats: alle Werte kommen aus echten DB-Abfragen (kein fake Fallback) ──
   const stats = [
-    { emoji:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Follower" },
-    { emoji:"🤝", value: loading ? "–" : String(experiences.length), label:"Begegnungen" },
-    { emoji:"💬", value: loading ? "–" : String(moments.length), label:"Momente" },
-    { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length), label:"Projekte &\nInitiativen" },
-    { emoji:"🌿", value: loading ? "–" : (profile?.impact_eur ?? 0) > 0 ? "€\u202f" + Math.round(profile.impact_eur) : "–", label:"Gemeinsame\nWirkung" },
+    { emoji:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:t("tpp.stats.followers") },
+    { emoji:"🤝", value: loading ? "–" : String(experiences.length), label:t("tpp.stats.encounters") },
+    { emoji:"💬", value: loading ? "–" : String(moments.length), label:t("tpp.stats.moments") },
+    { emoji:"⭐", value: loading ? "–" : String(works.length + experiences.length), label:t("tpp.stats.projects") },
+    { emoji:"🌿", value: loading ? "–" : (profile?.impact_eur ?? 0) > 0 ? "€\u202f" + Math.round(profile.impact_eur) : "–", label:t("tpp.stats.impact") },
   ];
 
   return (
@@ -784,6 +794,7 @@ function SchwerpunktStatsBlock({ profile, works, experiences, moments, loading, 
 // 6. NÄCHSTE ERLEBNISSE — nur wenn zukünftige Termine vorhanden
 // ══════════════════════════════════════════════════════════════
 function NaechsteErlebnisseSection({ experiences, loading }) {
+  const { t } = useTranslation();
   const upcoming = useMemo(() => {
     const now = new Date();
     return experiences
@@ -810,8 +821,8 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
     <div>
       <SectionHead
         icon={<HUIKalenderIcon size={28}/>}
-        title="Nächste Erlebnisse"
-        subtitle="Offene Begegnungen und Veranstaltungen, zu denen du herzlich eingeladen bist."
+        title={t("tpp.section.upcoming")}
+        subtitle={t("tpp.section.upcoming.sub")}
       />
 
       <div style={{padding:`0 ${T.px}px`,display:"flex",flexDirection:"column",gap:10}}>
@@ -876,7 +887,9 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
 // 9. ABSCHLUSS-BAR
 // ══════════════════════════════════════════════════════════════
 function AbschlussBar({ profile, loading }) {
-  const name = s(profile?.display_name || profile?.username, "diesem Talent");
+  const { t } = useTranslation();
+  const name = s(profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
+
   return (
     <div style={{
       margin:`0 ${T.px}px`,
@@ -895,10 +908,10 @@ function AbschlussBar({ profile, loading }) {
       }}><span className="hui-emoji">🤝</span></div>
       <div style={{flex:1}}>
         <div style={{fontSize:14,fontWeight: 600,color:"#fff",marginBottom:4,lineHeight:1.3}}>
-          Lass uns gemeinsam die Welt ein Stück besser machen.
+          {t("tpp.abschluss.title")}
         </div>
         <div style={{fontSize:12,color:"rgba(255,255,255,0.80)"}}>
-          Verbinde dich, tausch dich aus und werde Teil unserer Gemeinschaft.
+          {t("tpp.abschluss.sub")}
         </div>
       </div>
     </div>
@@ -906,6 +919,7 @@ function AbschlussBar({ profile, loading }) {
 }
 
 function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
+  const { t } = useTranslation();
   const rel = useRelationship(profile?.id, currentUserId);
   const { authProfile } = useAuth();
   const [showVerbindungsDialog, setShowVerbindungsDialog] = React.useState(false);
@@ -977,7 +991,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             fontFamily:"inherit", cursor:"default",
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
           }}>
-            <span className="hui-emoji">🌿</span> Anfrage gesendet
+            <span className="hui-emoji">🌿</span> {t("tpp.dialog.sent.title")}
           </button>
 
         ) : isDeclined ? (
@@ -989,7 +1003,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             fontFamily:"inherit", cursor:"default",
             display:"flex", alignItems:"center", justifyContent:"center",
           }}>
-            Verbindung nicht möglich
+            {t("tpp.relation.impossible")}
           </button>
 
         ) : isWatching ? (
@@ -1027,7 +1041,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
             letterSpacing:"0.01em",
           }}>
-            Du beobachtest das Wirken dieses Talents.
+            {t("tpp.watch.title")}
           </div>
         )}
       </div>
@@ -1085,6 +1099,7 @@ const CAT_MAP = {
 // SOCIAL CONTEXT BAR — 3 Spalten: Verbindungen · Begegnungen · Momente
 // ══════════════════════════════════════════════════════════════
 function SocialContextBarTalent({ followCounts, experiences, moments, loading }) {
+  const { t } = useTranslation();
   // Live-Werte: keine fake Multiplikatoren/Fallbacks
   const stats = [
     { icon:"👥", value: loading?"–":String(followCounts?.followers??0), label:"Verbindungen"   },
@@ -1124,6 +1139,7 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 // Sections: gemeinsame Sprint-C-Komponenten
 // ══════════════════════════════════════════════════════════════
 export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "TalentProfilePage");
   const { user, setProfile: setAuthProfile } = useAuth();
 
@@ -1360,7 +1376,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           }}
         >←</button>
         <div style={{ fontSize:40 }}>🔍</div>
-        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>Profil nicht verfügbar</div>
+        <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>{t("tpp.profileUnavailable")}</div>
         <div style={{ fontSize:13, color:"#6B7280", textAlign:"center", maxWidth:260 }}>
           Dieses Profil konnte nicht geladen werden.
         </div>

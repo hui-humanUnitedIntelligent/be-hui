@@ -37,6 +37,7 @@ import {
 } from "../../lib/talentAvailability.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -57,6 +58,7 @@ function addDaysIso(days) {
 }
 
 export default function TalentBookingFlow({ talent, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   useWizardBodyLock();
   useModalRegistration(true, onClose, "TalentBookingFlow");
@@ -243,9 +245,9 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     // AKTIONSRADIUS-ENFORCE-001: Client-seitige Vorab-Pruefung fuer sofortiges
     // Feedback -- die eigentliche, nicht umgehbare Durchsetzung passiert
     // serverseitig in rpc_create_talent_booking (Client kann manipuliert werden).
-    if (isHomeVisit && homeVisitAddressMissing) return setErrMsg("Bitte gib deine Adresse an.");
+    if (isHomeVisit && homeVisitAddressMissing) return setErrMsg(t("tbf.detail.addressRequired"));
     if (isHomeVisit && homeVisitOutOfRange) {
-      return setErrMsg(`Deine Adresse liegt ${homeVisitDistanceKm?.toFixed(1)} km entfernt — außerhalb des Aktionsradius von ${talent.home_visit_radius_km} km.`);
+      return setErrMsg(t("tbf.radiusOutside", { distance: homeVisitDistanceKm?.toFixed(1), radius: talent.home_visit_radius_km }));
     }
 
     setSubmitting(true);
@@ -253,7 +255,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
-      if (!accessToken) throw new Error("Nicht eingeloggt.");
+      if (!accessToken) throw new Error(t("tbf.notLoggedIn"));
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const res = await fetch(`${supabaseUrl}/functions/v1/create-talent-booking-payment`, {
@@ -276,9 +278,9 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         // konkreten km-Angaben anreichern (server ist die Wahrheit, auch falls
         // die Client-Vorab-Pruefung aus irgendeinem Grund nicht griff).
         if (result?.code === "outside_radius" && result?.distance_km != null) {
-          throw new Error(`Deine Adresse liegt ${result.distance_km} km entfernt — außerhalb des Aktionsradius von ${result.radius_km} km.`);
+          throw new Error(t("tbf.radiusOutside", { distance: result.distance_km, radius: result.radius_km }));
         }
-        throw new Error(result.error || "Buchung fehlgeschlagen.");
+        throw new Error(result.error || t("tbf.bookingFailed"));
       }
       setClientSecret(result.clientSecret);
       setPublishableKey(result.publishableKey || null);
@@ -286,7 +288,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
       setAmountEur(result.amountEur);
       setStep("payment");
     } catch (e) {
-      setErrMsg(e?.message || "Buchung fehlgeschlagen. Bitte erneut versuchen.");
+      setErrMsg(e?.message || t("tbf.bookingFailedRetry"));
     } finally {
       setSubmitting(false);
     }
@@ -298,7 +300,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     // Format: "Buchung für [Talent-Titel] am [Datum] von [Kundenname]"
     try {
       // Kunden-Display-Namen laden
-      let customerName = user?.email?.split("@")[0] || "Ein Nutzer";
+      let customerName = user?.email?.split("@")[0] || t("tbf.notifDefaultName");
       const { data: custProf } = await supabase
         .from("profiles")
         .select("display_name, username")
@@ -314,14 +316,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         dateStr = formatDateDE(dt, { day: "numeric", month: "long" });
       } catch {}
 
-      const talentTitle = talent?.title || "Talent-Angebot";
+      const talentTitle = talent?.title || t("tbf.notifDefaultTitle");
       const timeStr = selectedSlot ? ` um ${selectedSlot.start}` : "";
 
       await supabase.from("notifications").insert({
         user_id:     talent.user_id,
         type:       "talent_booking",
-        title:      "Neue Buchung",
-        body:       `Buchung für "${talentTitle}" am ${dateStr}${timeStr} von ${customerName}.`,
+        title:      t("tbf.notifTitle"),
+        body:       t("tbf.notifBody", { title: talentTitle, date: dateStr, time: timeStr, name: customerName }),
         is_read:    false,
         read:       false,
         actor_id:   user.id,
@@ -409,7 +411,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
           }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
             <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
-              Buchung bestätigt!
+              {t("tbf.success.title")}
             </div>
             {/* Detaillierte Buchungsinfo */}
             <div style={{
@@ -421,36 +423,36 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               </div>
               {talent.author && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Anbieter:</span> {talent.author}
+                  <span style={{ fontWeight: 600 }}>{t("tbf.success.provider")}</span> {talent.author}
                 </div>
               )}
               {selectedDate && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Datum:</span> {fmtDate(selectedDate)}
+                  <span style={{ fontWeight: 600 }}>{t("tbf.success.date")}</span> {fmtDate(selectedDate)}
                 </div>
               )}
               {selectedSlot && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Uhrzeit:</span> {selectedSlot.start}–{selectedSlot.end}
+                  <span style={{ fontWeight: 600 }}>{t("tbf.success.time")}</span> {selectedSlot.start}–{selectedSlot.end}
                 </div>
               )}
               {participants > 1 && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Teilnehmer:</span> {participants}
+                  <span style={{ fontWeight: 600 }}>{t("tbf.success.participants")}</span> {participants}
                 </div>
               )}
               {amountEur > 0 && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Betrag:</span> {fmtEur(amountEur)}
+                  <span style={{ fontWeight: 600 }}>{t("tbf.success.amount")}</span> {fmtEur(amountEur)}
                 </div>
               )}
               {note.trim() && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Notiz:</span> {note.trim()}
+                  <span style={{ fontWeight: 600 }}>{t("tbf.success.note")}</span> {note.trim()}
                 </div>
               )}
               <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
-                Der Anbieter wurde benachrichtigt und wird dich kontaktieren.
+                {t("tbf.success.notified")}
               </div>
             </div>
             <button onClick={onClose} style={{
@@ -458,7 +460,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               color: "#fff", border: "none", borderRadius: 14, padding: "14px 0",
               fontSize: 15, fontWeight: 600, cursor: "pointer", touchAction: "manipulation",
             }}>
-              Schließen
+              {t("tbf.success.close")}
             </button>
             <button
               onClick={async () => {
@@ -503,7 +505,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   outline: "none", WebkitTapHighlightColor: "transparent",
                 }}
               >
-                Verkäufer kontaktieren
+                {t("tbf.success.contactProvider")}
               </button>
             )}
           </div>
@@ -524,10 +526,10 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
             }}>
               <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
-                Mit {talent.author || "dem Verkäufer"} chatten?
+                {t("tbf.chatConfirm.title", { name: talent.author || t("tbf.chatConfirm.defaultSellerName") })}
               </div>
               <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
-                Möchtest du wirklich eine Unterhaltung mit dem Verkäufer starten?
+                {t("tbf.chatConfirm.body")}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
                 <button
@@ -548,7 +550,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                     actions[A.OPEN_CHAT]?.({
                       recipient: {
                         id: talent.user_id,
-                        display_name: talent.author || "Verkäufer",
+                        display_name: talent.author || t("tbf.chatConfirm.defaultSeller"),
                         avatar_url: null,
                       },
                       source: S.SYSTEM,
@@ -604,14 +606,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: TEAL,
                   textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-                  Talent buchen
+                  {t("tbf.header.eyebrow")}
                 </div>
                 <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", lineHeight: 1.3 }}>
                   {talent.title}
                 </div>
                 {talent.author && (
                   <div style={{ fontSize: 13, color: "rgba(26,26,46,0.45)", marginTop: 3 }}>
-                    bei {talent.author}
+                    {t("tbf.detail.at", { name: talent.author })}
                   </div>
                 )}
               </div>
@@ -692,7 +694,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(26,26,46,0.07)",
                   }}>
-                    <span style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)" }}>Preis</span>
+                    <span style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)" }}>{t("tbf.detail.price")}</span>
                     <span style={{ fontSize: 17, fontWeight: 600, color: TEAL }}>{priceStr}</span>
                   </div>
                 )}
@@ -704,13 +706,13 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               {isHomeVisit && (
                 <div style={{ marginBottom: 18 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
-                    Deine Adresse — der Anbieter kommt zu dir
+                    {t("tbf.detail.yourAddress")}
                   </div>
                   <LocationAutocompleteInput
                     value={customerAddress}
                     onChange={(v) => { setCustomerAddress(v); setCustomerGeo(null); }}
                     onPick={(place) => { setCustomerAddress(place.label); setCustomerGeo({ lat: place.lat, lng: place.lng }); }}
-                    placeholder="Straße, Ort"
+                    placeholder={t("tbf.detail.phAddress")}
                     style={{
                       width: "100%", padding: "12px 14px", borderRadius: 14, fontSize: 14,
                       border: `1.5px solid ${homeVisitOutOfRange ? "rgba(232,58,58,0.4)" : "rgba(26,26,46,0.12)"}`,
@@ -719,7 +721,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   />
                   {talent.home_visit_radius_km != null && (
                     <div style={{ fontSize: 11.5, color: "rgba(26,26,46,0.45)", marginTop: 6 }}>
-                      Aktionsradius des Anbieters: {talent.home_visit_radius_km} km
+                      {t("tbf.detail.radius", { radius: talent.home_visit_radius_km })}
                     </div>
                   )}
                   {homeVisitDistanceKm != null && !homeVisitOutOfRange && (
@@ -727,7 +729,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       marginTop: 8, fontSize: 12.5, color: "rgba(0,150,136,1)",
                       background: "rgba(13,196,181,0.08)", borderRadius: 10, padding: "8px 12px",
                     }}>
-                      ✓ {homeVisitDistanceKm.toFixed(1)} km entfernt — innerhalb des Aktionsradius.
+                      {t("tbf.detail.within", { distance: homeVisitDistanceKm.toFixed(1) })}
                     </div>
                   )}
                   {homeVisitOutOfRange && (
@@ -735,7 +737,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       marginTop: 8, fontSize: 12.5, color: "#E83A3A",
                       background: "rgba(232,58,58,0.07)", borderRadius: 10, padding: "8px 12px",
                     }}>
-                      ✗ {homeVisitDistanceKm.toFixed(1)} km entfernt — außerhalb des Aktionsradius von {talent.home_visit_radius_km} km. Diese Buchung ist nicht möglich.
+                      {t("tbf.detail.outside", { distance: homeVisitDistanceKm.toFixed(1), radius: talent.home_visit_radius_km })}
                     </div>
                   )}
                 </div>
@@ -744,7 +746,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               {/* Termin / Kalender — immer als Monatskalender, niemals nur input[type=date] */}
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
-                  Termin wählen
+                  {t("tbf.detail.chooseDate")}
                 </div>
                 <div style={{
                   background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
@@ -821,7 +823,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       marginTop: 8, fontSize: 12.5, color: "rgba(232,58,58,0.85)",
                       background: "rgba(232,58,58,0.06)", borderRadius: 10, padding: "8px 12px",
                     }}>
-                      Für heute sind alle Zeiten bereits vorbei — bitte wähle einen anderen Tag.
+                      {t("tbf.detail.allSlotsPast")}
                     </div>
                   )}
                 </div>
@@ -830,7 +832,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               {/* Teilnehmer (Gruppenangebote) */}
               {isGruppe && (
                 <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>Teilnehmer</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>{t("tbf.detail.participants")}</div>
                   <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                     <button type="button"
                       onClick={() => setParticipants(p => Math.max(talent.min_participants || 1, p - 1))}
@@ -854,16 +856,16 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       }}>+</button>
                     {selectedDate && (
                       <span style={{ fontSize: 12, color: availLoading ? "rgba(26,26,46,0.35)" : (isFull ? "#E83A3A" : "rgba(26,26,46,0.45)"), marginLeft: 4 }}>
-                        {availLoading ? "prüfe Verfügbarkeit…" : isFull ? "ausgebucht" : (remaining != null && remaining !== Infinity ? `${remaining} Plätze frei` : "")}
+                        {availLoading ? t("tbf.detail.checkingAvail") : isFull ? t("tbf.detail.full") : (remaining != null && remaining !== Infinity ? t("tbf.detail.placesLeft", { count: remaining }) : "")}
                       </span>
                     )}
                   </div>
                   {/* Uhrzeit direkt bei Teilnehmer sichtbar (Michael-Vorgabe 2026-08-08) */}
                   {selectedDate && (
                     <div style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)", marginTop: 8 }}>
-                      Uhrzeit: {hasSlots
-                        ? (selectedSlot ? `${selectedSlot.start}–${selectedSlot.end} Uhr` : "bitte oben wählen")
-                        : "flexibel / ganztägig"}
+                      {t("tbf.detail.time")} {hasSlots
+                        ? (selectedSlot ? t("tbf.detail.timeSlot", { start: selectedSlot.start, end: selectedSlot.end }) : t("tbf.detail.timeSelect"))
+                        : t("tbf.detail.timeFlexible")}
                     </div>
                   )}
                 </div>
@@ -873,7 +875,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Nachricht an den Anbieter (optional)…"
+                placeholder={t("tbf.detail.notePlaceholder")}
                 rows={2}
                 style={{
                   width: "100%", resize: "none",
@@ -890,7 +892,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   padding: "12px 16px", borderRadius: 14, background: "rgba(255,138,107,0.08)",
                   border: "1px solid rgba(255,138,107,0.18)",
                 }}>
-                  <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Gesamt</span>
+                  <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>{t("tbf.detail.total")}</span>
                   <span style={{ fontSize: 20, fontWeight: 600, color: CORAL }}>{fmtEur(previewAmount)}</span>
                 </div>
               )}
@@ -920,7 +922,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 borderRadius: 14, padding: "13px 0", fontSize: 14, fontWeight: 600,
                 color: "rgba(26,26,46,0.55)", cursor: "pointer", touchAction: "manipulation",
               }}>
-                {saved ? "Gemerkt ✓" : "Merken"}
+                {saved ? t("tbf.detail.saved") : t("tbf.detail.save")}
               </button>
               <button
                 onClick={handleBuchen}
@@ -934,7 +936,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   touchAction: "manipulation",
                 }}
               >
-                {submitting ? "Wird vorbereitet…" : (isFull ? "Ausgebucht" : "Buchen")}
+                {submitting ? t("tbf.btn.preparing") : (isFull ? t("tbf.btn.soldOut") : t("tbf.btn.book"))}
               </button>
             </div>
           </>
