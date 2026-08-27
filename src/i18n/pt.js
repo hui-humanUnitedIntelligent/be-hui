@@ -1727,4 +1727,6 @@ export default {
   'studio.wirdAbgemeldet': 'Logging out…',
   'studio.jaAbmelden': '🚪 Yes, log out',
   'studio.abbrechen': 'Cancel',
+  'impact.bisher': 'até agora',
+  'impact.herzensprojektCategory': 'Projeto de coração',
 };

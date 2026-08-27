@@ -1727,4 +1727,6 @@ export default {
   'studio.wirdAbgemeldet': 'Logging out…',
   'studio.jaAbmelden': '🚪 Yes, log out',
   'studio.abbrechen': 'Cancel',
+  'impact.bisher': 'şimdiye kadar',
+  'impact.herzensprojektCategory': 'Kalp projesi',
 };

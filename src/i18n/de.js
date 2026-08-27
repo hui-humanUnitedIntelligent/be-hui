@@ -1720,4 +1720,6 @@ export default {
   'studio.wirdAbgemeldet': 'Wird abgemeldet…',
   'studio.jaAbmelden': '🚪 Ja, abmelden',
   'studio.abbrechen': 'Abbrechen',
+  'impact.bisher': 'bisher',
+  'impact.herzensprojektCategory': 'Herzensprojekt',
 };

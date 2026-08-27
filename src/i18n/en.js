@@ -1728,4 +1728,6 @@ export default {
   'studio.wirdAbgemeldet': 'Logging out…',
   'studio.jaAbmelden': '🚪 Yes, log out',
   'studio.abbrechen': 'Cancel',
+  'impact.bisher': 'so far',
+  'impact.herzensprojektCategory': 'Heart project',
 };

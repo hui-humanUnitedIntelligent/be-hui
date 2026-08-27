@@ -658,7 +658,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   {checking ? "…" : voteCount}
                 </span>
                 <span style={{ fontSize:12, color:"#888" }}>
-                  {voteCount === 1 ? t("impact.stimme") : t("impact.stimmenPlural")} {t("impact.stimmenBisher", { count: "" }).split(" ")[1]}
+                  {voteCount === 1 ? t("impact.stimme") : t("impact.stimmenPlural")} {t("impact.bisher")}
                 </span>
               </div>
               {currentUser?.id && userVotesLeft !== null && !voted && (
@@ -1391,7 +1391,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           : monthlyTop3.length > 0
             ? monthlyTop3.map(a => ({
                 id: a.id, name: a.project_name,
-                category: a.short_desc?.slice(0,20) || t("impact.weitereHerzens"),
+                category: a.short_desc?.slice(0,20) || t("impact.herzensprojektCategory"),
                 description: a.short_desc, icon: "💚", color: "#0DC4B5",
                 votes: a.vote_count || 0, awarded_eur: a.funding_goal || 0,
                 status: "approved",
