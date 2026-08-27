@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CORAL = "#C47A65";
 const INK   = "#1A1A2E";
@@ -22,7 +23,7 @@ export const REPORT_REASONS = [
   { key: "rassismus",            label: "Rassismus / Diskriminierung" },
   { key: "politik",              label: "Politik / Extremismus" },
   { key: "gewalt",               label: "Gewalt oder Bedrohung" },
-  { key: "belaestigung",         label: "Belästigung / Mobbing" },
+  { key: "belaestigung",         label: t("report.reasonHarassment") },
   { key: "spam",                 label: "Spam oder Werbung" },
   { key: "falschinformation",    label: "Falschinformation" },
   { key: "urheberrecht",         label: "Urheberrechtsverletzung" },

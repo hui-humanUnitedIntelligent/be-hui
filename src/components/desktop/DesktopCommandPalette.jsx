@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchService } from '../../services/db.js';
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const NAV_COMMANDS = [
   { id: 'nav-home',     label: 'Home',        sub: 'Der lebendige Raum', action: '/Home',     group: 'Navigation' },
@@ -19,11 +20,12 @@ const NAV_COMMANDS = [
   { id: 'nav-profile',  label: 'Mein Profil',  sub: 'Profil ansehen', action: '/profile/me', group: 'Navigation' },
 ];
 const ACTION_COMMANDS = [
-  { id: 'act-create', label: 'Werk erstellen', sub: 'Im Studio veröffentlichen', action: '/studio', group: 'Aktionen' },
-  { id: 'act-impact', label: 'Projekt unterstützen', sub: 'Impact schaffen', action: '/impact', group: 'Aktionen' },
+  { id: 'act-create', label: 'Werk erstellen', sub: t("dcmd.publishInStudio"), action: '/studio', group: 'Aktionen' },
+  { id: 'act-impact', label: t("dcmd.supportProject"), sub: 'Impact schaffen', action: '/impact', group: 'Aktionen' },
 ];
 
 export default function DesktopCommandPalette({ onClose }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ profiles: [], works: [], experiences: [] });
@@ -93,7 +95,7 @@ export default function DesktopCommandPalette({ onClose }) {
         </div>
         <div className="cmdk-list" ref={listRef}>
           {commands.length === 0 && query.trim().length >= 2 && !loading && <div className="cmdk-status">Keine Ergebnisse.</div>}
-          {loading && <div className="cmdk-status">Suche läuft…</div>}
+          {loading && <div className="cmdk-status">{t("dcmd.searching")}</div>}
           {commands.map((cmd, i) => {
             const showGroup = cmd.group !== lastGroup;
             lastGroup = cmd.group;

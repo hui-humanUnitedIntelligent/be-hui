@@ -3578,4 +3578,23 @@ export default {
   'legal.draftNotice': 'Bozza — soggetta a revisione legale da parte delle organizzazioni di supporto',
   'legal.deOnlyNotice': 'Le condizioni d\'uso sono attualmente disponibili solo in tedesco. Seguirà una traduzione professionale.',
 
+  'verb.errConnectFailed': 'Connessione non riuscita. Riprova più tardi.',
+  'report.reasonHarassment': 'Molestie / Bullismo',
+  'recommend.publish': 'Pubblica raccomandazione',
+  'receipt.pdfSaved': 'PDF salvato nei file dell\'app del tuo dispositivo:',
+  'escrow.disputed': 'In revisione',
+  'escrow.executed': 'Eseguito',
+  'escrow.confirmed': 'Confermato',
+  'dsidebar.supportedProjects': 'Progetti supportati',
+  'dcmd.publishInStudio': 'Pubblica nello Studio',
+  'dcmd.supportProject': 'Supporta progetto',
+  'dcmd.searching': 'Ricerca…',
+  'dchat.noMessages': 'Nessun messaggio ancora. Inizia la conversazione.',
+  'dchat.close': 'Chiudi',
+  'ota.updateAvailable': 'Nuovo aggiornamento disponibile',
+  'avail.title': 'Disponibilità',
+  'avail.openForRequests': 'Aperto a nuove richieste',
+  'proj.supportNow': 'Supporta ora',
+  'feed.transparentAnon': 'Trasparente e anonimizzato — nessun nome, solo importi.',
+
 };

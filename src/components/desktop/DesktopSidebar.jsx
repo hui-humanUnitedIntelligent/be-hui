@@ -21,6 +21,7 @@ import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Icons — konsistent 1.5px outline ─────────────────────────────────────────
 const PATHS = {
@@ -61,7 +62,7 @@ const MAIN_ITEMS = [
 
 const WIRKUNG_ITEMS = [
   { key: 'projects',   label: 'Projekte',            icon: 'project',   route: '/impact' },
-  { key: 'supported',  label: 'Unterstützte Projekte', icon: 'supported', route: '/impact' },
+  { key: 'supported',  label: t("dsidebar.supportedProjects"), icon: 'supported', route: '/impact' },
   { key: 'recommend',  label: 'Empfehlungen',        icon: 'recommend', route: '/profile/me' },
 ];
 
@@ -87,6 +88,7 @@ function NavItem({ item, active, badge, onClick }) {
 
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
 export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
+  const { t } = useTranslation();
   usePerfMount('DesktopSidebar');
   const navigate = useNavigate();
   const location = useLocation();

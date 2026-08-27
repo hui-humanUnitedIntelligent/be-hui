@@ -20,6 +20,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { createMomentChat } from "../../lib/chatContext.js";
 import { haptic } from "../commerce/commerceUtils.js";
 import { supabase } from "../../lib/supabaseClient.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Farben (Design System) ────────────────────────────────────
 const T = {
@@ -98,7 +99,7 @@ export default function VerbindenModal({
         onChatOpened?.(result);
         onClose?.();
       } else {
-        setError("Verbindung konnte nicht hergestellt werden. Bitte versuche es später erneut.");
+        setError(t("verb.errConnectFailed"));
       }
     } catch (e) {
       setError("Ein Fehler ist aufgetreten: " + (e?.message || "unbekannt"));

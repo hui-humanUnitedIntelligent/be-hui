@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 const TEAL = "#0DC4B5";
 const TEAL_L = "#16D7C5";
@@ -35,6 +36,7 @@ function fmtEur(n) {
 }
 
 export default function FeedImpactTicker() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,7 +140,7 @@ export default function FeedImpactTicker() {
           padding: "8px 16px 10px",
           fontSize: 10, color: MUTED, lineHeight: 1.5,
         }}>
-          Transparent & anonymisiert — keine Namen, nur Beträge.
+          {t("feed.transparentAnon")}
         </div>
       </div>
     </div>

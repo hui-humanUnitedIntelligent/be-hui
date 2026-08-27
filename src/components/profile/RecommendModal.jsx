@@ -13,6 +13,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { submitBuyerRating } from "../../lib/chatContext.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -338,7 +339,7 @@ export default function RecommendModal({
             opacity: submitting ? 0.6 : 1,
           }}
         >
-          {submitting ? "Wird gesendet…" : "Empfehlung veröffentlichen"}
+          {submitting ? "Wird gesendet…" : t("recommend.publish")}
         </button>
       </div>
     </div>,

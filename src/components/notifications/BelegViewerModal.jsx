@@ -27,6 +27,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { formatDateDE } from "../../lib/formatters.js";
 import { shareReceiptFile, downloadReceiptFile } from "../../lib/generateReceipt.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function Row({ label, value }) {
   if (!value) return null;
@@ -140,7 +141,7 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
           background: "rgba(0,0,0,0.03)", borderRadius: 10,
         }}>
           {native
-            ? <>PDF gespeichert in den App-Dateien deines Geräts:<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
+            ? <>{t("receipt.pdfSaved")}<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
             : <>PDF wurde in deinen Download-Ordner heruntergeladen:<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
           }
         </div>

@@ -18,6 +18,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { APP_VERSION } from "../../version.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const UPDATE_URL = "https://be-hui.vercel.app/app-version.json";
 const POPUP_DURATION_MS = 6000;
@@ -60,6 +61,7 @@ function compareVersions(a, b) {
 }
 
 export default function OTAUpdatePopup() {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const [closing, setClosing] = useState(false);
   const [version, setVersion] = useState(null);
@@ -188,7 +190,7 @@ export default function OTAUpdatePopup() {
           React.createElement("div", {
             style: { fontSize: 14, fontWeight: 600, lineHeight: 1.25, color: "#1A1D23" },
           },
-            "Neues Update verfügbar"
+            t("ota.updateAvailable")
           ),
           React.createElement("div", {
             style: { fontSize: 12, opacity: 0.62, lineHeight: 1.3, marginTop: 2, color: "#1A1D23" },

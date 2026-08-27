@@ -3578,4 +3578,23 @@ export default {
   'legal.draftNotice': 'Borrador — sujeto a revisión legal por las organizaciones de apoyo',
   'legal.deOnlyNotice': 'Las condiciones de uso están disponibles únicamente en alemán. Una traducción profesional seguirá.',
 
+  'verb.errConnectFailed': 'No se pudo establecer la conexión. Inténtalo más tarde.',
+  'report.reasonHarassment': 'Acoso / Bullying',
+  'recommend.publish': 'Publicar recomendación',
+  'receipt.pdfSaved': 'PDF guardado en los archivos de la aplicación de tu dispositivo:',
+  'escrow.disputed': 'En revisión',
+  'escrow.executed': 'Ejecutado',
+  'escrow.confirmed': 'Confirmado',
+  'dsidebar.supportedProjects': 'Proyectos apoyados',
+  'dcmd.publishInStudio': 'Publicar en el Studio',
+  'dcmd.supportProject': 'Apoyar proyecto',
+  'dcmd.searching': 'Buscando…',
+  'dchat.noMessages': 'Aún no hay mensajes. Inicia la conversación.',
+  'dchat.close': 'Cerrar',
+  'ota.updateAvailable': 'Nueva actualización disponible',
+  'avail.title': 'Disponibilidad',
+  'avail.openForRequests': 'Abierto a nuevas solicitudes',
+  'proj.supportNow': 'Apoyar ahora',
+  'feed.transparentAnon': 'Transparente y anonimizado — sin nombres, solo importes.',
+
 };

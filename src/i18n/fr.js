@@ -3579,4 +3579,23 @@ export default {
   'legal.draftNotice': 'Projet — soumis à l\'examen juridique par les organisations de soutien',
   'legal.deOnlyNotice': 'Les conditions d\'utilisation sont actuellement disponibles en allemand uniquement. Une traduction professionnelle suivra.',
 
+  'verb.errConnectFailed': 'La connexion n\'a pas pu être établie. Veuillez réessayer plus tard.',
+  'report.reasonHarassment': 'Harcèlement / Intimidation',
+  'recommend.publish': 'Publier la recommandation',
+  'receipt.pdfSaved': 'PDF enregistré dans les fichiers de l\'application de votre appareil :',
+  'escrow.disputed': 'En examen',
+  'escrow.executed': 'Exécuté',
+  'escrow.confirmed': 'Confirmé',
+  'dsidebar.supportedProjects': 'Projets soutenus',
+  'dcmd.publishInStudio': 'Publier dans le Studio',
+  'dcmd.supportProject': 'Soutenir un projet',
+  'dcmd.searching': 'Recherche…',
+  'dchat.noMessages': 'Pas encore de messages. Lance la conversation.',
+  'dchat.close': 'Fermer',
+  'ota.updateAvailable': 'Nouvelle mise à jour disponible',
+  'avail.title': 'Disponibilité',
+  'avail.openForRequests': 'Ouvert aux nouvelles demandes',
+  'proj.supportNow': 'Soutenir maintenant',
+  'feed.transparentAnon': 'Transparent et anonymisé — pas de noms, seulement des montants.',
+
 };

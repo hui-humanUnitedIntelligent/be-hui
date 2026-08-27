@@ -3571,4 +3571,23 @@ export default {
   'legal.draftNotice': 'Entwurf — zur rechtlichen Prüfung durch die Trägervereine',
   'legal.deOnlyNotice': 'Die Nutzungsbedingungen sind derzeit nur auf Deutsch verfügbar. Eine professionelle Übersetzung wird folgen.',
 
+  'verb.errConnectFailed': 'Verbindung konnte nicht hergestellt werden. Bitte versuche es später erneut.',
+  'report.reasonHarassment': 'Belästigung / Mobbing',
+  'recommend.publish': 'Empfehlung veröffentlichen',
+  'receipt.pdfSaved': 'PDF gespeichert in den App-Dateien deines Geräts:',
+  'escrow.disputed': 'In Prüfung',
+  'escrow.executed': 'Ausgeführt',
+  'escrow.confirmed': 'Bestätigt',
+  'dsidebar.supportedProjects': 'Unterstützte Projekte',
+  'dcmd.publishInStudio': 'Im Studio veröffentlichen',
+  'dcmd.supportProject': 'Projekt unterstützen',
+  'dcmd.searching': 'Suche läuft…',
+  'dchat.noMessages': 'Noch keine Nachrichten. Starte das Gespräch.',
+  'dchat.close': 'Schließen',
+  'ota.updateAvailable': 'Neues Update verfügbar',
+  'avail.title': 'Verfügbarkeit',
+  'avail.openForRequests': 'Offen für neue Anfragen',
+  'proj.supportNow': 'Jetzt unterstützen',
+  'feed.transparentAnon': 'Transparent & anonymisiert — keine Namen, nur Beträge.',
+
 };

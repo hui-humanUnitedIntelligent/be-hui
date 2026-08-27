@@ -13,6 +13,7 @@ import { useAuth } from '../../lib/AuthContext.jsx';
 import { useChatThread, formatChatTime } from '../../lib/chatContext.js';
 import { useEscapeKey } from './hooks/useEscapeKey.js';
 import { formatTimeDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function ChatList({ chats, activeChatId, onSelect, loading }) {
   if (loading) {
@@ -89,7 +90,7 @@ function ChatThread({ chatId, chat }) {
       <div className="chat-messages" ref={scrollRef}>
         {loading ? <div className="v3-shimmer" style={{ width: '50%', margin: '20px' }} /> : (
           messages.filter(m => !m.is_deleted).length === 0 ? (
-            <p className="v3-empty">Noch keine Nachrichten. Starte das Gespräch.</p>
+            <p className="v3-empty">{t("dchat.noMessages")}</p>
           ) : (
             messages.filter(m => !m.is_deleted).map(msg => {
               const isMine = msg.sender_id === user?.id;
@@ -122,6 +123,7 @@ function ChatThread({ chatId, chat }) {
 }
 
 export default function DesktopChatPanel({ onClose, chats = [], chatLoading = false, chatUnread = 0 }) {
+  const { t } = useTranslation();
   const [activeChat, setActiveChat] = useState(null);
 
   useEscapeKey(onClose);
@@ -134,7 +136,7 @@ export default function DesktopChatPanel({ onClose, chats = [], chatLoading = fa
           <div className="chat-master-header">
             <h3>Nachrichten</h3>
             {chatUnread > 0 && <span className="chat-unread">{chatUnread}</span>}
-            <button className="fly-close" onClick={onClose} aria-label="Schließen">
+            <button className="fly-close" onClick={onClose} aria-label={t("dchat.close")}>
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 5l10 10M15 5L5 15" /></svg>
             </button>
           </div>

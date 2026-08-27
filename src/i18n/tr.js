@@ -3578,4 +3578,23 @@ export default {
   'legal.draftNotice': 'Taslak — destekleyen kuruluşlar tarafından yasal incelemeye tabidir',
   'legal.deOnlyNotice': 'Kullanım koşulları şu anda yalnızca Almanca olarak mevcuttur. Profesyonel çeviri takip edecektir.',
 
+  'verb.errConnectFailed': 'Bağlantı kurulamadı. Lütfen daha sonra tekrar dene.',
+  'report.reasonHarassment': 'Taciz / Zorbalık',
+  'recommend.publish': 'Öneriyi yayınla',
+  'receipt.pdfSaved': 'PDF cihazının uygulama dosyalarına kaydedildi:',
+  'escrow.disputed': 'İncelemede',
+  'escrow.executed': 'Gerçekleştirildi',
+  'escrow.confirmed': 'Onaylandı',
+  'dsidebar.supportedProjects': 'Desteklenen projeler',
+  'dcmd.publishInStudio': 'Studio\'da yayınla',
+  'dcmd.supportProject': 'Projeyi destekle',
+  'dcmd.searching': 'Aranıyor…',
+  'dchat.noMessages': 'Henüz mesaj yok. Sohbeti başlat.',
+  'dchat.close': 'Kapat',
+  'ota.updateAvailable': 'Yeni güncelleme mevcut',
+  'avail.title': 'Uygunluk',
+  'avail.openForRequests': 'Yeni taleplere açık',
+  'proj.supportNow': 'Şimdi destekle',
+  'feed.transparentAnon': 'Şeffaf ve anonim — isim yok, sadece tutarlar.',
+
 };
