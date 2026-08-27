@@ -27,10 +27,8 @@ import { ImpactProjekteTab } from "./ImpactProjekteTab.jsx";
 import { MeinMomenteDrawerContent } from "./MeinMomenteDrawerContent.jsx";
 import { createPortal } from "react-dom";
 import { T } from "./constants.js";
-import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = true }) {
-  const { t } = useTranslation();
   return createPortal(
     <div
       onClick={onClose}
@@ -94,7 +92,7 @@ export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, fo
               cursor:"pointer", background:"rgba(26,26,24,0.08)",
               color:"rgba(26,26,24,0.52)", fontSize:14, fontWeight: 600,
               fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
-            }}>{t("meinBereich.schliessen")}</button>
+            }}>Schließen</button>
           </div>
         )}
       </div>
@@ -133,11 +131,10 @@ export function MeinBereichChooserRow({ icon, label, desc, onPress }) {
 // additiv/optional (Default false) -- bestehende Aufrufer ohne den Prop
 // verhalten sich unveraendert.
 export function MeinBereichTile({ icon, label, onPress, showDot = false }) {
-  const { t } = useTranslation();
   return (
     <button
       onClick={onPress}
-      aria-label={showDot ? `${label} — ${t("meinBereich.neuesUpdate")}` : label}
+      aria-label={showDot ? `${label} — neues Update` : label}
       className="mbp-press-light"
       style={{
         display:"flex", flexDirection:"column", alignItems:"center", gap:8,
@@ -166,7 +163,7 @@ export function MeinBereichTile({ icon, label, onPress, showDot = false }) {
         textAlign:"center", lineHeight:1.3, maxWidth:72,
         wordBreak:"normal", overflowWrap:"anywhere", hyphens:"auto",
         whiteSpace:"normal",
-      }}>{label}</span>
+      }} lang="de">{label}</span>
     </button>
   );
 }
@@ -182,7 +179,6 @@ export function MeinBereichMenu({
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
-  const { t } = useTranslation();
   const [activeDrawer, setActiveDrawer] = useState(null); // talente|werke|erlebnisse|momente|empfehlungen|impact|finanzen
 
   // MEIN-BEREICH-UPDATE-DOT (2026-08-15, Michael-Request) -- SSOT ist die
@@ -268,7 +264,7 @@ export function MeinBereichMenu({
     <div style={{ padding:`0 ${T.px}px` }}>
       {/* Titel außerhalb der Kachel */}
       <div style={{ fontSize:15, fontWeight: 600, color:T.ink, marginBottom:10, letterSpacing:"-0.01em" }}>
-        {t("meinBereich.titel")}
+        Mein Bereich
       </div>
 
       <div style={{
@@ -281,25 +277,25 @@ export function MeinBereichMenu({
           rowGap:18, columnGap:4,
         }}>
           {isTalent && (
-            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label={t("meinBereich.meineWerke")} showDot={hasTileDot("werke")} onPress={() => openDrawerAndClearDot("werke", "werke")} />
+            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label="Meine Werke" showDot={hasTileDot("werke")} onPress={() => openDrawerAndClearDot("werke", "werke")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label={t("meinBereich.talentAngebote")} showDot={hasTileDot("talente")} onPress={() => openDrawerAndClearDot("talente", "talente")} />
+            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label="Talent-Angebote" showDot={hasTileDot("talente")} onPress={() => openDrawerAndClearDot("talente", "talente")} />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label={t("meinBereich.erlebnisseProjekte")} showDot={hasTileDot("erlebnisse")} onPress={() => openDrawerAndClearDot("erlebnisse", "erlebnisse")} />
+            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label="Erlebnisse & Projekte" showDot={hasTileDot("erlebnisse")} onPress={() => openDrawerAndClearDot("erlebnisse", "erlebnisse")} />
           )}
-          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label={t("meinBereich.meineMomente")} onPress={() => setActiveDrawer("momente")} />
-          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label={t("meinBereich.impactStimmen")} onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label={t("meinBereich.kaufeVerkaufe")} showDot={hasTileDot("finanzen")} onPress={() => openDrawerAndClearDot("finanzen", null, () => setShowFinanzModal(true))} />
-          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label={t("meinBereich.meineResonanz")} onPress={onOpenResonanz} />
-          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label={t("meinBereich.empfehlungen")} onPress={() => setActiveDrawer("empfehlungen")} />
+          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label="Meine Momente" onPress={() => setActiveDrawer("momente")} />
+          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label="Impact & Stimmen" onPress={() => setActiveDrawer("impact")} />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label="Käufe/Verkäufe" showDot={hasTileDot("finanzen")} onPress={() => openDrawerAndClearDot("finanzen", null, () => setShowFinanzModal(true))} />
+          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label="Meine Resonanz" onPress={onOpenResonanz} />
+          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label="Empfehlungen" onPress={() => setActiveDrawer("empfehlungen")} />
         </div>
       </div>
 
       {/* ── Talent-Angebote ─────────────────────────────────── */}
       {activeDrawer === "talente" && (
-        <MeinBereichDrawer title={t("meinBereich.talentAngebote")} icon={<HUITalentIcon size={18}/>} subtitle={t("meinBereich.talentAngeboteSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Talent-Angebote" icon={<HUITalentIcon size={18}/>} subtitle="Deine buchbaren Leistungen & Dienstleistungen." onClose={close} footer={false}>
           <TalentAngeboteSection
             talents={talents}
             onTalentWizard={onTalentWizard}
@@ -310,7 +306,7 @@ export function MeinBereichMenu({
 
       {/* ── Meine Werke ──────────────────────────────────────── */}
       {activeDrawer === "werke" && (
-        <MeinBereichDrawer title={t("meinBereich.meineWerke")} icon={<HUIWerkeIcon size={18}/>} subtitle={t("meinBereich.meineWerkeSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Meine Werke" icon={<HUIWerkeIcon size={18}/>} subtitle="Deine veröffentlichten Kreationen." onClose={close} footer={false}>
           <MeineWerkeSection
             works={works}
             onWerkWizard={onWerkWizard}
@@ -321,10 +317,10 @@ export function MeinBereichMenu({
 
       {/* ── Erlebnisse & Projekte ────────────────────────────── */}
       {activeDrawer === "erlebnisse" && (
-        <MeinBereichDrawer title={t("meinBereich.erlebnisseProjekte")} icon={<HUIErlebnisIcon size={18}/>} subtitle={t("meinBereich.erlebnisseProjekteSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Erlebnisse & Projekte" icon={<HUIErlebnisIcon size={18}/>} subtitle="Deine Erlebnisse, Events und Herzensprojekte." onClose={close} footer={false}>
           {/* Tab-Switcher */}
           <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
-            {[["erlebnisse",t("meinBereich.tabErlebnisse")],["impact",t("meinBereich.tabImpactProjekte")]].map(([key,label]) => (
+            {[["erlebnisse","Erlebnisse"],["impact","Impact Projekte"]].map(([key,label]) => (
               <button key={key} onClick={() => setActiveTab(key)} style={{
                 flex:1, padding:"8px 4px", borderRadius:10, border:"none",
                 background: activeTab===key ? "white" : "transparent",
@@ -364,7 +360,7 @@ export function MeinBereichMenu({
 
       {/* ── Meine Momente ───────────────────────────────────── */}
       {activeDrawer === "momente" && (
-        <MeinBereichDrawer title={t("meinBereich.meineMomente")} icon={<HUIFotoIcon size={18}/>} subtitle={t("meinBereich.meineMomenteSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Meine Momente" icon={<HUIFotoIcon size={18}/>} subtitle="Fotos, Gedanken oder Videos aus deinem Alltag." onClose={close} footer={false}>
           <MeinMomenteDrawerContent
             profile={profile}
             onOpenMomentSheet={() => {
@@ -380,21 +376,21 @@ export function MeinBereichMenu({
           Kein eigenes internes Portal → kein redundanter lazy-Load-Hänger */}
 {/* ── Empfehlungen — Chooser: Kundenstimmen + Meine Empfehlungen ─ */}
       {activeDrawer === "empfehlungen" && !empfehlungDetail && (
-        <MeinBereichDrawer title={t("meinBereich.empfehlungen")} icon={<HUIEmpfehlungIcon size={18}/>} subtitle={t("meinBereich.empfehlungenSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Empfehlungen" icon={<HUIEmpfehlungIcon size={18}/>} subtitle="Erhaltene und gegebene Empfehlungen." onClose={close} footer={false}>
           <MeinBereichChooserRow
-            icon={<HUIEmpfehlungIcon size={18}/>} label={t("meinBereich.kundenstimmen")}
-            desc={t("meinBereich.kundenstimmenDesc")}
+            icon={<HUIEmpfehlungIcon size={18}/>} label="Kundenstimmen"
+            desc="Empfehlungen, die du erhalten hast"
             onPress={() => setEmpfehlungDetail("incoming")}
           />
           <MeinBereichChooserRow
-            icon={<HUIEmpfehlungIcon size={18}/>} label={t("meinBereich.meineEmpfehlungen")}
-            desc={t("meinBereich.meineEmpfehlungenDesc")}
+            icon={<HUIEmpfehlungIcon size={18}/>} label="Meine Empfehlungen"
+            desc="Empfehlungen, die du gegeben hast"
             onPress={() => setEmpfehlungDetail("outgoing")}
           />
         </MeinBereichDrawer>
       )}
       {activeDrawer === "empfehlungen" && empfehlungDetail === "incoming" && (
-        <MeinBereichDrawer title={t("meinBereich.kundenstimmen")} icon={<HUIEmpfehlungIcon size={18}/>} subtitle={t("meinBereich.kundenstimmenSub")} onClose={() => setEmpfehlungDetail(null)} footer={false}>
+        <MeinBereichDrawer title="Kundenstimmen" icon={<HUIEmpfehlungIcon size={18}/>} subtitle="Empfehlungen, die du erhalten hast." onClose={() => setEmpfehlungDetail(null)} footer={false}>
           <RecommendationsSection
             recommendations={recommendations}
             isOwner={true}
@@ -409,14 +405,14 @@ export function MeinBereichMenu({
 
       {/* ── Impact & Stimmen (Chooser + Detail-Drawer) ──────── */}
       {activeDrawer === "impact" && !impactDetail && (
-        <MeinBereichDrawer title={t("meinBereich.impactStimmen")} icon={<HUIImpactIcon size={18}/>} subtitle={t("meinBereich.impactStimmenSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title="Impact & Stimmen" icon={<HUIImpactIcon size={18}/>} subtitle="Deine Wirkung und abgegebene Stimmen." onClose={close} footer={false}>
           <MeinBereichChooserRow
-            icon={<HUIStimmeIcon size={18}/>} label={t("meinBereich.impactStimmenLabel")}
-            desc={isTalent ? t("meinBereich.impactStimmenTalentDesc") : t("meinBereich.impactStimmenBasisDesc")}
+            icon={<HUIStimmeIcon size={18}/>} label="Impact-Stimmen"
+            desc={isTalent ? "1 Stimme / Monat" : "Nur für Talente"}
             onPress={() => setImpactDetail("stimmen")}
           />
           <MeinBereichChooserRow
-            icon={<HUIProjektIcon size={18}/>} label={t("meinBereich.unterstuetzteProjekte")}
+            icon={<HUIProjektIcon size={18}/>} label="Meine unterstützten Projekte"
             onPress={() => setImpactDetail("projekte")}
           />
         </MeinBereichDrawer>
