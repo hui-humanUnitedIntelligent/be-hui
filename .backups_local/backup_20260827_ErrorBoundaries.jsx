@@ -75,7 +75,7 @@ function GlobalAppFallback({ isFatal, retryCount, onRetry }) {
   );
 }
 
-function RouteFallback({ fallbackTitle, onRetry, errorMsg }) {
+function RouteFallback({ fallbackTitle, onRetry }) {
   const { t } = useTranslation();
   return (
     <div style={{
@@ -87,16 +87,6 @@ function RouteFallback({ fallbackTitle, onRetry, errorMsg }) {
       <div style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>
         {fallbackTitle || t("error.pageLoadFailed")}
       </div>
-      {errorMsg && (
-        <div style={{
-          fontSize: 12, color: 'rgba(26,26,46,0.45)',
-          background: 'rgba(232,58,58,0.06)', borderRadius: 8,
-          padding: '8px 12px', maxWidth: 400, wordBreak: 'break-word',
-          fontFamily: 'monospace', lineHeight: 1.5,
-        }}>
-          {errorMsg}
-        </div>
-      )}
       <button
         onClick={onRetry}
         style={{ padding: '10px 22px', background: `${C.teal}15`,
@@ -243,12 +233,10 @@ export class RouteBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('[HUI RouteBoundary] CRASH in route:', this.props.name, error?.message, error?.stack);
     sentryCapture(normalizeError(error), {
       boundary: 'RouteBoundary',
       route: this.props.name || 'unknown',
     });
-    this.setState({ errorMsg: error?.message || 'Unknown error' });
   }
 
   render() {
@@ -256,7 +244,6 @@ export class RouteBoundary extends React.Component {
     return (
       <RouteFallback
         fallbackTitle={this.props.fallbackTitle}
-        errorMsg={this.state.error?.message || ''}
         onRetry={() => this.setState({ error: null })}
       />
     );
