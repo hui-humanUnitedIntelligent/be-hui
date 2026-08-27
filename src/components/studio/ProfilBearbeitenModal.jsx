@@ -44,6 +44,7 @@ import { useAuth } from "../../lib/AuthContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import DeleteAccountModal from "./DeleteAccountModal.jsx";
 
 // ── Design Tokens ──────────────────────────────────────────────────
@@ -68,9 +69,9 @@ const T = {
 };
 
 // ── Tabs ───────────────────────────────────────────────────────────
-const TABS = [
-  { key: "basis",   label: "Basis-Profil",   icon: <HUIProfilIcon size={14}/> },
-  { key: "talent",  label: "Talent-Profil",   icon: <HUITalentIcon size={14}/> },
+const getTabs = (t) => [
+  { key: "basis",   label: t("pbm.tabBasis"),   icon: <HUIProfilIcon size={14}/> },
+  { key: "talent",  label: t("pbm.tabTalent"),   icon: <HUITalentIcon size={14}/> },
 ];
 
 // Fixe Optionen
@@ -79,6 +80,8 @@ const TABS = [
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate = () => {} }) {
+  const { t } = useTranslation();
+  const TABS = getTabs(t);
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ProfilBearbeitenModal");
   const { saveProfile, refreshProfile, user } = useAuth() || {};
@@ -131,9 +134,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   useEffect(() => {
     const orig = profile?.username || "";
     if (username === orig) { setUsernameErr(""); setUsernameOk(false); return; }
-    if (!username.trim()) { setUsernameErr("Username darf nicht leer sein."); setUsernameOk(false); return; }
+    if (!username.trim()) { setUsernameErr(t("pbm.usernameEmpty")); setUsernameOk(false); return; }
     if (!/^[a-z0-9_.]{3,30}$/.test(username)) {
-      setUsernameErr("3–30 Zeichen: a–z, 0–9, . oder _");
+      setUsernameErr(t("pbm.usernameFormat"));
       setUsernameOk(false); return;
     }
     setCheckingUname(true);
@@ -146,7 +149,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         .maybeSingle();
       setCheckingUname(false);
       if (data) {
-        setUsernameErr("Dieser Username ist bereits vergeben.");
+        setUsernameErr(t("pbm.usernameTaken"));
         setUsernameOk(false);
       } else {
         setUsernameErr("");
@@ -191,7 +194,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   // ── Speichern ────────────────────────────────────────────────────
   const handleSave = useCallback(async () => {
     if (saving) return;
-    if (usernameErr) { setSaveErr("Bitte Username-Fehler beheben."); return; }
+    if (usernameErr) { setSaveErr(t("pbm.saveErrUsername")); return; }
     setSaving(true); setSaveErr(""); setSaveOk(false);
 
     try {
@@ -248,7 +251,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       }, 1200);
 
     } catch(e) {
-      setSaveErr(e.message || "Fehler beim Speichern. Bitte versuche es erneut.");
+      setSaveErr(e.message || t("pbm.saveErrGeneric"));
     } finally {
       setSaving(false);
     }
@@ -284,7 +287,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-              {isTalent ? "Basis & Talent-Profil" : "Basis-Profil"}
+              {isTalent ? t("pbm.titleBoth") : t("pbm.titleBasis")}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -326,21 +329,21 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
           {tab === "basis" && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
 
-              <FieldGroup label="Öffentlicher Name">
+              <FieldGroup label={t("pbm.fieldPublicName")}>
                 <Input value={fullName} onChange={setFullName}
-                  placeholder="Dein vollständiger Name" maxLength={80} />
+                  placeholder={t("pbm.phFullName")} maxLength={80} />
               </FieldGroup>
 
-              <FieldGroup label="Anzeigename (Spitzname)">
+              <FieldGroup label={t("pbm.fieldDisplayName")}>
                 <Input value={displayName} onChange={setDisplayName}
-                  placeholder="Wie soll dein Name angezeigt werden?" maxLength={60}
+                  placeholder={t("pbm.phDisplayName")} maxLength={60}
                   name="nickname" autoComplete="nickname" autoCorrect="on"
                   autoCapitalize="words" inputMode="text" />
               </FieldGroup>
 
               <FieldGroup
-                label="@Username"
-                hint={checkingUname ? "Prüfe…" : usernameOk ? "✅ Verfügbar" : usernameErr || "Nur Kleinbuchstaben, Zahlen, _ oder ."}
+                label={t("pbm.fieldUsername")}
+                hint={checkingUname ? t("pbm.usernameChecking") : usernameOk ? t("pbm.usernameAvailable") : usernameErr || t("pbm.usernameHint")}
                 hintColor={usernameErr ? T.coral : usernameOk ? T.green : T.inkFaint}
               >
                 <Input
@@ -354,23 +357,23 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 />
               </FieldGroup>
 
-              <FieldGroup label="Bio / Über mich" hint={`${bio.length}/200`}>
+              <FieldGroup label={t("pbm.fieldBio")} hint={`${bio.length}/200`}>
                 <Textarea value={bio} onChange={setBio}
-                  placeholder="Erzähl etwas über dich…" rows={4} maxLength={200} />
+                  placeholder={t("pbm.phBio")} rows={4} maxLength={200} />
               </FieldGroup>
 
               {/* "Fokus / Bereich" entfernt 2026-08-06 — profiles.focus_type ist
                   live die Sichtbarkeits-Einstellung (Sprint F.9G.1), keine Kategorie
                   mehr. Speichern hier hätte die Sichtbarkeit überschrieben. */}
 
-              <FieldGroup label="Standort">
+              <FieldGroup label={t("pbm.fieldLocation")}>
                 {/* GPS-Button + Autocomplete */}
                 <div style={{ position:"relative" }}>
                   <LocationAutocompleteInput
                     value={locationLabel}
                     onChange={v => { setLocationLabel(v); setLocationLat(null); setLocationLng(null); }}
                     onPick={place => { setLocationLabel(place.label); setLocationLat(place.lat); setLocationLng(place.lng); }}
-                    placeholder="Stadt oder Region suchen…"
+                    placeholder={t("pbm.phLocation")}
                     style={{
                       width:"100%", fontSize:14, padding:"11px 44px 11px 38px",
                       border:`1.5px solid rgba(26,26,24,0.15)`, borderRadius:T.r12,
@@ -384,7 +387,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   </span>
                   {/* GPS-Button rechts */}
                   <button onClick={handleGPSLocation} disabled={geoLoading}
-                    title="Aktuellen Standort verwenden"
+                    title={t("pbm.gpsTitle")}
                     style={{
                       position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
                       background:"none", border:"none", cursor:"pointer", padding:4,
@@ -396,16 +399,16 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 </div>
                 {locationLat && (
                   <div style={{ fontSize:10.5, color:"#0EC4B8", marginTop:3 }}>
-                    ✓ Koordinaten gespeichert ({locationLat.toFixed(3)}, {locationLng.toFixed(3)})
+                    {t("pbm.coordsSaved", { lat: locationLat.toFixed(3), lng: locationLng.toFixed(3) })}
                   </div>
                 )}
               </FieldGroup>
 
 
 
-              <FieldGroup label="Website / Portfolio">
+              <FieldGroup label={t("pbm.fieldWebsite")}>
                 <Input value={website} onChange={setWebsite}
-                  placeholder="https://deine-website.de" icon={<HUILinkIcon size={15}/>} maxLength={200} />
+                  placeholder={t("pbm.phWebsite")} icon={<HUILinkIcon size={15}/>} maxLength={200} />
               </FieldGroup>
 
               {/* "Skills" (Basis) entfernt 2026-08-06 — profiles.skills ist live
@@ -432,23 +435,22 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
               <div style={{ height:1, background:T.border, margin:"4px 0" }}/>
 
               <InfoBox>
-                Kategorien, Skills, Standort und Verfügbarkeit für dein Talent
-                bearbeitest du direkt auf deinem Talent-Profil.
+                {t("pbm.infoTalentEdit")}
               </InfoBox>
 
-              <FieldGroup label="Talent-Bezeichnung (Berufsfeld)">
+              <FieldGroup label={t("pbm.fieldTalentTitle")}>
                 <Input value={talentTitle} onChange={setTalentTitle}
-                  placeholder="z.B. Fotograf, Musiker, Coach" maxLength={80} />
+                  placeholder={t("pbm.phTalentTitle")} maxLength={80} />
               </FieldGroup>
 
-              <FieldGroup label="Talent-Kurzbeschreibung">
+              <FieldGroup label={t("pbm.fieldTalentDesc")}>
                 <Input value={talentDescription} onChange={setTalentDescription}
-                  placeholder="Was macht dich aus? Was bietest du an?" maxLength={120} />
+                  placeholder={t("pbm.phTalentDesc")} maxLength={120} />
               </FieldGroup>
 
-              <FieldGroup label="Stundensatz (€)">
+              <FieldGroup label={t("pbm.fieldHourlyRate")}>
                 <Input value={talentRate} onChange={setTalentRate}
-                  placeholder="z.B. 120" type="number" icon={<HUIEuroIcon size={15}/>} />
+                  placeholder={t("pbm.phHourlyRate")} type="number" icon={<HUIEuroIcon size={15}/>} />
               </FieldGroup>
 
             </div>
@@ -472,7 +474,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             background:T.greenSoft, border:`1px solid ${T.green}40`,
             fontSize:13, color:T.green, fontWeight: 600, flexShrink:0,
           }}>
-            ✅ Gespeichert! Profil wurde aktualisiert.
+            {t("pbm.saveOk")}
           </div>
         )}
 
@@ -497,8 +499,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
             }}
           >
             {saving ? (
-              <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> Wird gespeichert…</>
-            ) : saveOk ? "✅ Gespeichert!" : "💾 Änderungen speichern"}
+              <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> {t("pbm.saving")}</>
+            ) : saveOk ? t("pbm.saveOk") : t("pbm.saveBtn")}
           </button>
 
           {/* ── Account löschen (nur Basis-Tab) ── */}

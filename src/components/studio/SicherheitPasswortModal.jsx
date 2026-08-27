@@ -9,6 +9,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -35,7 +36,7 @@ const T = {
 };
 
 // Passwort-Stärke berechnen
-function pwStrength(pw) {
+function pwStrength(pw, t) {
   if (!pw) return { score:0, label:"", color:"transparent" };
   let s = 0;
   if (pw.length >= 8)  s++;
@@ -43,14 +44,15 @@ function pwStrength(pw) {
   if (/[A-Z]/.test(pw)) s++;
   if (/[0-9]/.test(pw)) s++;
   if (/[^A-Za-z0-9]/.test(pw)) s++;
-  if (s <= 1) return { score:s, label:"Sehr schwach", color:T.coral };
-  if (s === 2) return { score:s, label:"Schwach",      color:"#F97316" };
-  if (s === 3) return { score:s, label:"Mittel",       color:T.amber  };
-  if (s === 4) return { score:s, label:"Stark",        color:T.green  };
-  return { score:s, label:"Sehr stark", color:"#059669" };
+  if (s <= 1) return { score:s, label:t("spm.strengthVeryWeak"), color:T.coral };
+  if (s === 2) return { score:s, label:t("spm.strengthWeak"),      color:"#F97316" };
+  if (s === 3) return { score:s, label:t("spm.strengthMedium"),       color:T.amber  };
+  if (s === 4) return { score:s, label:t("spm.strengthStrong"),        color:T.green  };
+  return { score:s, label:t("spm.strengthVeryStrong"), color:"#059669" };
 }
 
 export default function SicherheitPasswortModal({ profile, onClose }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "SicherheitPasswortModal");
   // Passwort-Ändern
   const [newPw,     setNewPw]     = useState("");
@@ -66,15 +68,15 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
   const [resetErr,   setResetErr]   = useState("");
   const [resetLoading,setResetLoading]=useState(false);
 
-  const strength = pwStrength(newPw);
+  const strength = pwStrength(newPw, t);
   const match    = newPw && confirmPw && newPw === confirmPw;
   const mismatch = confirmPw && newPw !== confirmPw;
 
   // ── Passwort speichern ──────────────────────────────────────────
   const handleSave = async () => {
     setSaveErr(""); setSaveOk(false);
-    if (newPw.length < 8)  { setSaveErr("Mindestens 8 Zeichen erforderlich."); return; }
-    if (newPw !== confirmPw){ setSaveErr("Passwörter stimmen nicht überein.");  return; }
+    if (newPw.length < 8)  { setSaveErr(t("spm.errMinLength")); return; }
+    if (newPw !== confirmPw){ setSaveErr(t("spm.errMismatch"));  return; }
     setSaving(true);
     const { error } = await supabase.auth.updateUser({ password: newPw });
     setSaving(false);
@@ -87,7 +89,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
   // ── Reset per E-Mail ────────────────────────────────────────────
   const handleReset = async () => {
     setResetErr(""); setResetSent(false);
-    if (!profile?.email) { setResetErr("Keine E-Mail-Adresse hinterlegt."); return; }
+    if (!profile?.email) { setResetErr(t("spm.errNoEmail")); return; }
     setResetLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
       redirectTo: `${window.location.origin}/reset-password`,
@@ -126,10 +128,10 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-              
+              {t("spm.title")}
             </div>
             <div style={{ fontSize:12, color:T.inkSoft, marginTop:2 }}>
-              {profile?.email || "Account-Sicherheit"}
+              {profile?.email || t("spm.subtitleFallback")}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -157,15 +159,15 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
                 background:T.tealSoft, display:"flex", alignItems:"center",
                 justifyContent:"center", fontSize:14,
               }}>🔑</span>
-              Neues Passwort setzen
+              {t("spm.newPassword")}
             </div>
 
             {/* Neues Passwort */}
-            <FieldLabel label="Neues Passwort" />
+            <FieldLabel label={t("spm.fieldNewPw")} />
             <PwInput
               value={newPw} onChange={setNewPw}
               show={showNew} onToggleShow={() => setShowNew(s=>!s)}
-              placeholder="Mindestens 8 Zeichen"
+              placeholder={t("spm.phNewPw")}
               name="new-password"
             />
 
@@ -189,23 +191,23 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             )}
 
             {/* Passwort bestätigen */}
-            <FieldLabel label="Passwort bestätigen" style={{ marginTop: newPw ? 0 : 12 }} />
+            <FieldLabel label={t("spm.fieldConfirmPw")} style={{ marginTop: newPw ? 0 : 12 }} />
             <PwInput
               value={confirmPw} onChange={setConfirmPw}
               show={showConf} onToggleShow={() => setShowConf(s=>!s)}
-              placeholder="Nochmals eingeben"
+              placeholder={t("spm.phConfirmPw")}
               hasError={mismatch}
               hasSuccess={match}
               name="confirm-new-password"
             />
             {mismatch && (
               <div style={{ fontSize:11, color:T.coral, marginTop:4, fontWeight:600 }}>
-                ❌ Passwörter stimmen nicht überein
+                {t("spm.mismatch")}
               </div>
             )}
             {match && (
               <div style={{ fontSize:11, color:T.green, marginTop:4, fontWeight:600 }}>
-                ✅ Passwörter stimmen überein
+                {t("spm.match")}
               </div>
             )}
 
@@ -215,10 +217,10 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
               background:T.amberSoft, border:"1px solid rgba(245,158,11,0.20)",
             }}>
               <div style={{ fontSize:11, color:"#92400E", lineHeight:1.6 }}>
-                <div>💡 <strong>Tipps für ein starkes Passwort:</strong></div>
-                <div>· Mindestens 12 Zeichen</div>
-                <div>· Groß- und Kleinbuchstaben</div>
-                <div>· Zahlen und Sonderzeichen (@, #, !, …)</div>
+                <div>{t("spm.tipTitle")}</div>
+                <div>{t("spm.tip1")}</div>
+                <div>{t("spm.tip2")}</div>
+                <div>{t("spm.tip3")}</div>
               </div>
             </div>
 
@@ -235,7 +237,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
                 marginTop:12, padding:"10px 14px", borderRadius:T.r12,
                 background:T.greenSoft, border:`1px solid ${T.greenMid}`,
                 fontSize:13, color:T.green, fontWeight: 600,
-              }}>✅ Passwort wurde erfolgreich geändert!</div>
+              }}>{t("spm.saveOk")}</div>
             )}
 
             {/* Speichern */}
@@ -258,7 +260,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             >
               {saving
                 ? <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> Wird gespeichert…</>
-                : saveOk ? "✅ Gespeichert!" : "💾 Passwort ändern"
+                : saveOk ? t("spm.saved") : t("spm.saveBtn")
               }
             </button>
           </div>
@@ -317,8 +319,8 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
               }}
             >
               {resetLoading
-                ? <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> Sende…</>
-                : resetSent ? "✅ Link gesendet" : "📧 Reset-Link senden"
+                ? <><span style={{ animation:"spin 1s linear infinite", display:"inline-block" }}>⏳</span> {t("spm.resetSending")}</>
+                : resetSent ? t("spm.resetSent") : t("spm.resetBtn")
               }
             </button>
           </div>
@@ -330,8 +332,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             marginBottom:8,
           }}>
             <div style={{ fontSize:11, color:T.inkSoft, lineHeight:1.6 }}>
-              🔐 Dein Passwort wird verschlüsselt über <strong>Supabase Auth</strong> gespeichert.
-              HUI hat keinen Zugriff auf dein Klartext-Passwort.
+              {t("spm.infoEncrypted")} <strong>Supabase Auth</strong> {t("spm.infoNoAccess")}
             </div>
           </div>
 
@@ -346,7 +347,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
             fontSize:14, fontWeight: 600,
             WebkitTapHighlightColor:"transparent",
           }}>
-            Schließen
+            {t("spm.close")}
           </button>
         </div>
       </div>
