@@ -10,7 +10,6 @@
  * Parts:
  *   • SVG background with organic center notch
  *   • HUI Logo (static, centered — replaces former growth Orb)
-import { useTranslation } from "../../../hooks/useTranslation.js";
  *   • Four nav entries (Entdecken, Home, Impact, Profil)
  *   • Safe area
  *   • Own layout container
@@ -23,6 +22,7 @@ import { useTranslation } from "../../../hooks/useTranslation.js";
  *   — Hook backup: backup_20260815_useOrbGrowthStage.js
  *   — Nav backup:  backup_20260815_HUIBottomNavigation.jsx
  */
+import { useTranslation } from "../../../hooks/useTranslation.js";
 import React from "react";
 import NavItem from "./NavItem.jsx";
 import { HUI } from "../../../design/hui.design.js";
