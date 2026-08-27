@@ -14,67 +14,6 @@ import { ProfileService } from '../../../services/db';
 import { supabase } from "../../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../../lib/profileUtils.js";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
-import { useTranslation } from "../../../hooks/useTranslation.js";
-
-
-// ── Functional sub-components for ErrorBoundary (class can't use hooks) ──
-function ChunkReloadScreen() {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:9500,
-      background:"#F7F5F0",
-      display:"flex", flexDirection:"column", alignItems:"center",
-      justifyContent:"center", gap:12, padding:24,
-    }}>
-      <div style={{fontSize:32}}>🔄</div>
-      <p style={{color:"#1a1a18", fontSize:15, fontFamily:"Inter, sans-serif", textAlign:"center", margin:0}}>
-        {t("profile.reloading")}
-      </p>
-    </div>
-  );
-}
-
-function ProfileErrorScreen({ error, onClose }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:9500,
-      background:"#0A1A1A",
-      display:"flex", flexDirection:"column",
-      alignItems:"center", justifyContent:"center", gap:12,
-      padding:24,
-    }}>
-      <div style={{display:"flex",justifyContent:"center",color:"#F59E0B"}}><HUIWarnIcon size={32}/></div>
-      <p style={{color:"#FF6B6B", fontSize:15, fontFamily:"Inter, sans-serif", textAlign:"center", margin:0}}>
-        {t("profile.loadError")}
-      </p>
-      <p style={{color:"rgba(255,255,255,0.4)", fontSize:11, fontFamily:"monospace", textAlign:"center"}}>
-        {error?.message || t("profile.unknownError")}
-      </p>
-      <button
-        onClick={() => window.location.reload()}
-        style={{
-          marginTop:8, padding:"10px 24px", borderRadius:20,
-          background:"#0DC4B5", border:"none", color:"#000",
-          fontWeight: 600, fontSize:14, cursor:"pointer",
-        }}
-      >
-        🔄 {t("profile.reloadPage")}
-      </button>
-      <button
-        onClick={onClose}
-        style={{
-          padding:"8px 24px", borderRadius:20,
-          background:"transparent", border:"1px solid rgba(255,255,255,0.2)",
-          color:"rgba(255,255,255,0.6)", fontWeight:600, fontSize:13, cursor:"pointer",
-        }}
-      >
-        {t("profile.closeBtn")}
-      </button>
-    </div>
-  );
-}
 
 // ── Inline ErrorBoundary ─────────────────────────────────────────
 class ProfileErrorBoundary extends React.Component {
@@ -114,9 +53,56 @@ class ProfileErrorBoundary extends React.Component {
       if (isChunk && !sessionStorage.getItem("chunk_boundary_reloaded")) {
         sessionStorage.setItem("chunk_boundary_reloaded", "1");
         setTimeout(() => window.location.reload(), 100);
-        return <ChunkReloadScreen />;
+        return (
+          <div style={{
+            position:"fixed", inset:0, zIndex:9500, background:"#F7F5F0", /* <BottomNav — Basis-Fallback, siehe PROFIL-NAV-FIX 2026-07-05 */
+            display:"flex", flexDirection:"column", alignItems:"center",
+            justifyContent:"center", gap:12, padding:24,
+          }}>
+            <div style={{fontSize:32}}>🔄</div>
+            <p style={{color:"#1a1a18", fontSize:15, fontFamily:"Inter, sans-serif", textAlign:"center", margin:0}}>
+              Wird neu geladen…
+            </p>
+          </div>
+        );
       }
-      return <ProfileErrorScreen error={this.state.error} onClose={() => { this.setState({hasError:false,error:null}); this.props.onClose?.(); }} />;
+      return (
+        <div style={{
+          position:"fixed", inset:0, zIndex:9500, /* <BottomNav — Basis-Fallback, siehe PROFIL-NAV-FIX 2026-07-05 */
+          background:"#0A1A1A",
+          display:"flex", flexDirection:"column",
+          alignItems:"center", justifyContent:"center", gap:12,
+          padding:24,
+        }}>
+          <div style={{display:"flex",justifyContent:"center",color:"#F59E0B"}}><HUIWarnIcon size={32}/></div>
+          <p style={{color:"#FF6B6B", fontSize:15, fontFamily:"Inter, sans-serif", textAlign:"center", margin:0}}>
+            Profil konnte nicht geladen werden
+          </p>
+          <p style={{color:"rgba(255,255,255,0.4)", fontSize:11, fontFamily:"monospace", textAlign:"center"}}>
+            {this.state.error?.message || "Unbekannter Fehler"}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              marginTop:8, padding:"10px 24px", borderRadius:20,
+              background:"#0DC4B5", border:"none", color:"#000",
+              fontWeight: 600, fontSize:14, cursor:"pointer",
+            }}
+          >
+            🔄 Seite neu laden
+          </button>
+          <button
+            onClick={() => { this.setState({hasError:false,error:null}); this.props.onClose?.(); }}
+            style={{
+              padding:"8px 24px", borderRadius:20,
+              background:"transparent", border:"1px solid rgba(255,255,255,0.2)",
+              color:"rgba(255,255,255,0.6)", fontWeight:600, fontSize:13, cursor:"pointer",
+            }}
+          >
+            Schließen
+          </button>
+        </div>
+      );
     }
     return this.props.children;
   }

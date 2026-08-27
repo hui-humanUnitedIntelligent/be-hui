@@ -2075,4 +2075,6 @@ export default {
   'feed.reportAria': 'Report',
   'feed.reported': 'Reported',
   'feed.systemProjectText': 'This is the power of HUI: When many stand together, an idea becomes reality. Discover which project you want to support next in the Impact section.',
+  'profile.loadError': 'Profile could not be loaded',
+  'profile.unknownError': 'Unknown error',
 };

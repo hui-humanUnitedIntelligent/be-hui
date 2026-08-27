@@ -2067,4 +2067,6 @@ export default {
   'feed.reportAria': 'Melden',
   'feed.reported': 'Gemeldet',
   'feed.systemProjectText': 'Das ist die Kraft von HUI: Wenn viele zusammenhalten, wird aus einer Idee Wirklichkeit. Entdecke im Impact-Bereich, welches Projekt du als Nächstes unterstützen möchtest.',
+  'profile.loadError': 'Profil konnte nicht geladen werden',
+  'profile.unknownError': 'Unbekannter Fehler',
 };
