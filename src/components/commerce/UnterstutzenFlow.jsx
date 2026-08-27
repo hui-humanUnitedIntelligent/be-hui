@@ -19,7 +19,7 @@ import { HUIWarnIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect } from "react";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
-  C, TYPE_META,
+  C,
   haptic, calcTotalWithQty, calcImpact, calcPlatformFee,
   uniquePeople, clearCartAfterSuccess,
 } from "./commerceUtils.js";

@@ -32,13 +32,15 @@ export const C = {
 };
 
 // ── Typ-Metadaten ─────────────────────────────────────────────────
-export const TYPE_META = {
-  work:       { label: "Werk",           accent: C.teal,   bg: C.tealPale   },
-  experience: { label: "Erlebnis",       accent: C.coral,  bg: C.coralGlow  },
-  event:      { label: "Event",          accent: C.violet, bg: C.violetPale },
-  impact:     { label: "Impact-Projekt", accent: C.sage,   bg: C.sagePale   },
-  moment:     { label: "Moment",         accent: C.gold,   bg: C.goldPale   },
-};
+export function getTypeMeta(t) {
+  return {
+    work:       { label: t("com.typeWork"),       accent: C.teal,   bg: C.tealPale   },
+    experience: { label: t("com.typeExperience"), accent: C.coral,  bg: C.coralGlow  },
+    event:      { label: t("com.typeEvent"),      accent: C.violet, bg: C.violetPale },
+    impact:     { label: t("com.typeImpact"),     accent: C.sage,   bg: C.sagePale   },
+    moment:     { label: t("com.typeMoment"),     accent: C.gold,   bg: C.goldPale   },
+  };
+}
 
 // ── Impact-Konstante ──────────────────────────────────────────────
 // HUI investiert 7 % der eigenen Einnahmen — kein Aufschlag für Käufer
@@ -95,7 +97,7 @@ export function uniquePeople(items) {
   }, 0) || items.length;
 }
 
-export function groupByPerson(items) {
+export function groupByPerson(items, t) {
   const map = new Map();
   for (const item of items) {
     // BUGFIX v2 (2026-08-10): "Unbekannter Wirker" im Korb.
@@ -113,7 +115,7 @@ export function groupByPerson(items) {
     const name = item.author?.name || item.author?.displayName
               || rawP.full_name || rawP.display_name || rawP.name || rawP.username
               || item.full_name || item.display_name || item.username
-              || "Unbekannter Wirker";
+              || (t ? t("com.unknownWirker") : "Unbekannter Wirker");
     const avatar = item.author?.avatar || rawP.avatar_url || rawP.avatar || item.avatar_url || null;
     if (!map.has(id)) map.set(id, { id, key: id, name, avatar, items: [] });
     map.get(id).items.push(item);
@@ -257,15 +259,15 @@ export function allowsQuantity(item) {
  * Gibt einen kurzen Hinweis-Text zurück wenn das Item ein Einzelstück ist.
  * null wenn kein Hinweis nötig.
  */
-export function getOriginalHint(item) {
+export function getOriginalHint(item, t) {
   const raw = item._raw || {};
   // BUGFIX (2026-08-16): is_unique statt is_original, stock_total/
   // stock_quantity statt inventory — siehe allowsQuantity() oben.
-  if (raw.is_unique === true) return "Original \u00b7 Einzelst\u00fcck";
-  if (raw.is_original === true) return "Original \u00b7 Einzelst\u00fcck";
-  if (typeof raw.stock_total === "number" && raw.stock_total === 1) return "Original \u00b7 1 verf\u00fcgbar";
-  if (typeof raw.stock_quantity === "number" && raw.stock_quantity === 1) return "Original \u00b7 1 verf\u00fcgbar";
-  if (typeof raw.inventory === "number" && raw.inventory === 1) return "Original \u00b7 1 verf\u00fcgbar";
+  if (raw.is_unique === true) return t ? t("com.originalSingle") : "Original · Einzelstück";
+  if (raw.is_original === true) return t ? t("com.originalSingle") : "Original · Einzelstück";
+  if (typeof raw.stock_total === "number" && raw.stock_total === 1) return t ? t("com.originalOne") : "Original · 1 verfügbar";
+  if (typeof raw.stock_quantity === "number" && raw.stock_quantity === 1) return t ? t("com.originalOne") : "Original · 1 verfügbar";
+  if (typeof raw.inventory === "number" && raw.inventory === 1) return t ? t("com.originalOne") : "Original · 1 verfügbar";
   return null;
 }
 

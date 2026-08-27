@@ -26,6 +26,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { IMPACT_RATE } from "./commerceUtils.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
@@ -70,7 +71,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
 
   const workId    = werk.id || werk._raw?.id;
   const creatorId = werk.author?.id || werk._raw?.user_id || werk._raw?.creator_id || werk.creator_id || werk.user_id;
-  const title     = werk.title || werk._raw?.title || werk.name || "Werk";
+  const title     = werk.title || werk._raw?.title || werk.name || t("wkf.fallbackWerk");
   const coverUrl  = werk.author?.avatar || werk._raw?.cover_url || werk.cover_url || werk.img;
   const rawPrice  = werk._raw?.price ?? werk.price ?? null;
   const amount    = typeof rawPrice === "string"
@@ -114,11 +115,11 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       setShowAddressModal(true);
       return;
     }
-    if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
-    if (!workId)      { setErrMsg("Werk-ID fehlt."); setPhase("error"); return; }
-    if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
-    if (user.id === creatorId) { setErrMsg("Du kannst dein eigenes Werk nicht kaufen."); setPhase("error"); return; }
-    if (amount <= 0)  { setErrMsg("Dieses Werk hat keinen Preis."); setPhase("error"); return; }
+    if (!user?.id)    { setErrMsg(t("wkf.errNotLoggedIn")); setPhase("error"); return; }
+    if (!workId)      { setErrMsg(t("wkf.errWerkId")); setPhase("error"); return; }
+    if (!creatorId)   { setErrMsg(t("wkf.errCreatorId")); setPhase("error"); return; }
+    if (user.id === creatorId) { setErrMsg(t("wkf.errSelfBuy")); setPhase("error"); return; }
+    if (amount <= 0)  { setErrMsg(t("wkf.errNoPrice")); setPhase("error"); return; }
 
     setPhase("loading");
     setErrMsg("");
@@ -131,7 +132,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       // ── Stripe PaymentIntent über Edge Function erstellen ──
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
-      if (!accessToken) { setErrMsg("Sitzung abgelaufen — bitte neu anmelden."); setPhase("error"); return; }
+      if (!accessToken) { setErrMsg(t("wkf.errSession")); setPhase("error"); return; }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
@@ -163,15 +164,15 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
 
       if (!res.ok || result.error) {
         const msg = result.code === "STRIPE_NOT_CONFIGURED"
-          ? "Stripe ist noch nicht konfiguriert. Bitte später versuchen."
-          : (result.error || "Zahlung konnte nicht gestartet werden.");
+          ? t("wkf.errStripeNotConfigured")
+          : (result.error || t("wkf.errPaymentStart"));
         setErrMsg(msg);
         setPhase("error");
         return;
       }
 
       if (!result.clientSecret) {
-        setErrMsg("Zahlungsgeheimnis fehlt.");
+        setErrMsg(t("wkf.errNoSecret"));
         setPhase("error");
         return;
       }
@@ -181,7 +182,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       setOrderId(result.orderId ?? null);
       setPhase("payment");
     } catch (e) {
-      setErrMsg(e?.message || "Verbindungsfehler beim Starten der Zahlung.");
+      setErrMsg(e?.message || t("wkf.errConnection"));
       setPhase("error");
     }
   }
@@ -193,7 +194,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
     await supabase.from("notifications").insert({
       user_id:    creatorId,
       type:       "work_sold",
-      title:      "Dein Werk wurde verkauft",
+      title:      t("wkf.notifSold", { title }),
       body:       `Dein Werk "${title}" wurde gekauft.`,
       is_read:    false,
       read:       false,
@@ -222,7 +223,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
         otherUserId:  creatorId,
         bookingId:    oid || workId,
         bookingType:  "werk",
-        bookingTitle: title || werk?.title || "Werk-Kauf",
+        bookingTitle: title || werk?.title || t("wkf.werkKaufTitle"),
       }).catch((e) => console.warn("[CHAT-V2] autoCreateOrReopenChat:", e?.message));
     }
 
@@ -289,7 +290,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   <div style={{
                     display: "flex", alignItems: "center", gap: 12, marginBottom: 12,
                   }}>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>Menge:</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E" }}>{t("wkf.labelQuantity")}</span>
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
                       disabled={quantity <= 1}
@@ -336,17 +337,17 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 marginBottom: 16, fontSize: 13, color: "rgba(26,26,46,0.65)",
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span>Zwischensumme</span>
+                  <span>{t("wkf.subtotal")}</span>
                   <span style={{ fontWeight: 600 }}>{totalPrice.toFixed(2).replace(".", ",")} EUR</span>
                 </div>
                 {totalShipping > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span>Versand</span>
+                    <span>{t("wkf.shipping")}</span>
                     <span style={{ fontWeight: 600 }}>{totalShipping.toFixed(2).replace(".", ",")} EUR</span>
                   </div>
                 )}
                 <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 6, borderTop: "1px solid rgba(22,215,197,0.15)" }}>
-                  <span style={{ fontWeight: 600 }}>Gesamt</span>
+                  <span style={{ fontWeight: 600 }}>{t("wkf.total")}</span>
                   <span style={{ fontWeight: 600, color: TEAL, fontSize: 15 }}>{grandTotal.toFixed(2).replace(".", ",")} EUR</span>
                 </div>
               </div>
@@ -379,7 +380,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                           <div style={{ fontSize: 12, color: "rgba(26,26,46,0.45)", marginTop: 2 }}>{v.description}</div>
                         )}
                         <div style={{ fontSize: 11.5, color: TEAL, fontWeight: 600, marginTop: 3 }}>
-                          {v.stock_available} von {v.stock_total} verfügbar
+                          {t("wkf.variantStock", { avail: v.stock_available, total: v.stock_total })}
                         </div>
                       </div>
                       <div style={{ fontSize: 16, fontWeight: 600, color: TEAL }}>
@@ -431,8 +432,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 </button>
               </div>
             )}
-                          Deine Zahlung ist sicher bei HUI hinterlegt. Sobald du das Werk erhältst,
-              bestätige den Erhalt in deinem Profil — erst dann erhält der Creator seine Auszahlung.
+                          {t("wkf.escrowInfo")}
             </div>
 
             <button
@@ -447,10 +447,10 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               }}
             >
               {hasVariants && !activeVariant
-                ? "Bitte Variante wählen"
+                ? t("wkf.btnPleaseVariant")
                 : shippingAddress
-                  ? (grandTotalStr ? `Kaufen für ${grandTotalStr}` : "Kaufen")
-                  : (displayPriceStr ? `Weiter — ${displayPriceStr}` : "Weiter zur Lieferung")}
+                  ? (grandTotalStr ? t("wkf.btnBuyFor", { price: grandTotalStr }) : t("wkf.btnBuy"))
+                  : (displayPriceStr ? t("wkf.btnNext", { price: displayPriceStr }) : t("wkf.btnNextShipping"))}
             </button>
           </>
         )}
@@ -461,7 +461,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             <div style={{ width: 44, height: 44, border: `3px solid ${TEAL}33`, borderTopColor: TEAL,
               borderRadius: "50%", animation: "wkfSpin 0.8s linear infinite", margin: "0 auto 16px" }} />
             <style>{`@keyframes wkfSpin { to { transform: rotate(360deg); } }`}</style>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)" }}>Zahlung wird vorbereitet…</div>
+            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)" }}>{t("wkf.loadingPayment")}</div>
           </div>
         )}
 
@@ -493,7 +493,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 <path d="M7 14L12 19L21 9" stroke={TEAL} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>Kauf erfolgreich</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>{t("wkf.successTitle")}</div>
             {/* Detaillierte Kaufinfo */}
             <div style={{
               background: "rgba(22,215,197,0.06)", border: "1px solid rgba(22,215,197,0.15)",
@@ -501,25 +501,25 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
               <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                <span style={{ fontWeight: 600 }}>Verkäufer:</span> {werk.author?.name || werk.author?.displayName || "Creator"}
+                <span style={{ fontWeight: 600 }}>{t("wkf.labelSeller")}</span> {werk.author?.name || werk.author?.displayName || t("wkf.fallbackCreator")}
               </div>
               {quantity > 1 && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Menge:</span> {quantity} x {displayPrice.toFixed(2).replace(".", ",")} EUR
+                  <span style={{ fontWeight: 600 }}>{t("wkf.labelQuantity")}</span> {quantity} x {displayPrice.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
               {totalShipping > 0 && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Versand:</span> {totalShipping.toFixed(2).replace(".", ",")} EUR
+                  <span style={{ fontWeight: 600 }}>{t("wkf.labelShipping")}</span> {totalShipping.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
               {grandTotal > 0 && (
                 <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Gesamt:</span> {grandTotal.toFixed(2).replace(".", ",")} EUR
+                  <span style={{ fontWeight: 600 }}>{t("wkf.labelTotal")}</span> {grandTotal.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
               <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
-                Deine Zahlung ist sicher bei HUI hinterlegt. Bestätige den Erhalt in deinem Profil.
+                {t("wkf.escrowInfoShort")}
               </div>
             </div>
 
@@ -569,10 +569,10 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   boxShadow: "0 12px 48px rgba(20,20,34,0.25)",
                 }}>
                   <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
-                    Mit {werk.author?.name || werk.author?.displayName || "Verkäufer"} chatten?
+                    Mit {werk.author?.name || werk.author?.displayName || t("wkf.fallbackCreator")} chatten?
                   </div>
                   <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
-                    Möchtest du eine Unterhaltung mit dem Verkäufer starten?
+                    {t("wkf.chatDesc")}
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
                     <button
@@ -594,7 +594,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                         actions[A.OPEN_CHAT]?.({
                           recipient: {
                             id: creatorId,
-                            display_name: werk.author?.name || werk.author?.displayName || "Verkäufer",
+                            display_name: werk.author?.name || werk.author?.displayName || t("wkf.fallbackCreator"),
                             avatar_url: werk.author?.avatar || null,
                           },
                           source: S.SYSTEM,
@@ -619,7 +619,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             <button
               onClick={() => {
                 if (!hasChatted) {
-                  toast.info("Du findest den Verkäufer unter 'Mein Bereich' \u2192 'Käufe/Verkäufe' in deinem Profil.");
+                  toast.info(t("wkf.sellerHint"));
                 }
                 onClose();
               }}
@@ -636,8 +636,8 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   const { data: prof } = await supabase.from("profiles")
                     .select("email, website").eq("id", creatorId).maybeSingle();
                   await generateReceipt({
-                    offerTitle: title || "Werk",
-                    sellerName: werk.author?.name || werk.author?.displayName || "Creator",
+                    offerTitle: title || t("wkf.fallbackWerk"),
+                    sellerName: werk.author?.name || werk.author?.displayName || t("wkf.fallbackCreator"),
                     sellerEmail: prof?.email || null,
                     sellerWebsite: prof?.website || null,
                     amountEur: amount,
@@ -663,9 +663,9 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
         {/* ── ERROR ── */}
         {phase === "error" && (
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
-            <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>{t("wkf.errTitle")}</div>
             <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
-              {errMsg || "Etwas ist schiefgegangen."}
+              {errMsg || t("wkf.errGeneric")}
             </div>
             <button
               onClick={() => { setErrMsg(""); setPhase("confirm"); }}

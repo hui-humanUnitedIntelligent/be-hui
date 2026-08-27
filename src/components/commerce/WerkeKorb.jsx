@@ -9,7 +9,7 @@ import { EASE, DUR } from "../../design/hui.interaction.js";
 import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
 import { NAV_CLEARANCE_CSS } from "../home/navigation/navigationGeometry.js";
 import {
-  C, TYPE_META, haptic as haptic_,
+  C, getTypeMeta, haptic as haptic_,
   calcTotal, calcImpact, calcTotalWithQty, calcPlatformFee,
   groupByPerson,
   allowsQuantity, getOriginalHint,
@@ -265,6 +265,7 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
 // ══════════════════════════════════════════════════════════════════
 function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, onQtyChange = () => {} }) {
   const { t } = useTranslation();
+  const TYPE_META = getTypeMeta(t);
   const meta       = TYPE_META[item.type] || TYPE_META.work;
   const price      = formatPrice(item._raw?.price ?? item.price);
   const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;
