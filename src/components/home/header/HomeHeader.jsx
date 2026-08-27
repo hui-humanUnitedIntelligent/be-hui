@@ -15,7 +15,7 @@ import MoodSheet          from "../mood/MoodSheet.jsx";
 import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { S } from "../../../core/hui.sources.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
-import LangSwitcher from "../../LangSwitcher.jsx";
+import LangGlobeButton from "./LangGlobeButton.jsx";
 
 export default function HomeHeader({
   activeMood,
@@ -68,27 +68,6 @@ export default function HomeHeader({
       }}>
         <div style={{ height:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))" }}/>
 
-        {/* i18n — LangSwitcher: klein, dezent, oben rechts */}
-        <div style={{
-          position:"absolute",
-          top:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))",
-          right:8,
-          zIndex:70,
-        }}>
-          <LangSwitcher selectStyle={{
-            background:"transparent",
-            border:"1px solid rgba(26,53,48,0.12)",
-            borderRadius:6,
-            color:"rgba(26,53,48,0.55)",
-            padding:"2px 6px",
-            fontSize:10,
-            fontWeight:500,
-            cursor:"pointer",
-            appearance:"none",
-            WebkitAppearance:"none",
-            outline:"none",
-          }} />
-        </div>
 
         <div style={{
           // ROOT-CAUSE-FIX (2026-07-06, Lars -- "Discovery-Panel rechts offen"):
@@ -123,6 +102,12 @@ export default function HomeHeader({
             onSearchStateChange={onSearchStateChange}
             quickActions={
               <>
+                {/* GLOBUS — Sprachauswahl-Dropdown (2026-08-27, Michael-Request):
+                    Globus-Icon rechts neben dem Suchfeld, gleiche 36px-Kreis-Optik
+                    wie WerkeKorb/Glocke/Chat. Öffnet ein Hamburger-Dropdown zur
+                    schnellen Sprachumschaltung. Das Suchfeld wird durch die
+                    Icon-Breite automatisch schmaler (flex:1 verteilt den Rest). */}
+                <LangGlobeButton/>
                 {/* MOOD-ORB — 2026-08-12: Temporär ausgeblendet.
                     Mood-System existiert (moodConfig.js, MoodSheet.jsx, MoodOrbButton.jsx)
                     aber MOOD_FEED_HINTS sind noch nicht mit Feed-Logik verknüpft.

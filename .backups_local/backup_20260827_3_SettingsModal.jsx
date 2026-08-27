@@ -1,6 +1,5 @@
 import { platformPath, getAuthRedirectUrl } from '../../lib/platform.js';
-import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon, HUIFinanzIcon, HUISpracheIcon } from '../../design/icons/HuiSystemIcons.jsx';
-import { SUPPORTED_LANGS, LANG_LABELS, LANG_FLAGS } from '../../i18n/index.js';
+import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon, HUIFinanzIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import BankdatenModal from './BankdatenModal.jsx';
 // src/components/settings/SettingsModal.jsx
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
@@ -392,7 +391,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 
 // ── Haupt-Komponente ─────────────────────────────────────────
 export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false }) {
-  const { t, lang, changeLang } = useTranslation();
+  const { t } = useTranslation();
   useModalRegistration(true, onClose, "SettingsModal");
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};
@@ -404,7 +403,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
   const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
-  const [showLangModal, setShowLangModal] = useState(false); // SPRACHAUSWAHL (2026-08-27)
   const [showBankdaten, setShowBankdaten] = useState(false);
   // BANKDATEN-LINK (2026-08-16): Wenn von Notification-Deep-Link geöffnet,
   // automatisch Bankdaten-Sub-Modal öffnen.
@@ -520,9 +518,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={() => setView("tickets")}/>
               <NavItem icon={<HUISettingsIcon size={16}/>} label={t("sm.nav.tutorial")}
                 onClick={() => setShowTutorialConfirm(true)}/>
-              <NavItem icon={<HUISpracheIcon size={16}/>} label={t("sm.nav.language")}
-                onClick={() => setShowLangModal(true)}
-                right={<span style={{ fontSize:13, color:T.inkSoft, fontWeight:500 }}>{LANG_FLAGS[lang]} {lang.toUpperCase()}</span>}/>
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label={t("sm.nav.logout")}
                 onClick={logout} danger last/>
             </Section>
@@ -616,69 +611,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                     }}
                   >{t("sm.tutorial.yes")}</button>
                 </div>
-              </div>
-            </div>,
-            document.body
-          )}
-
-          {/* SPRACHAUSWAHL-MODAL (2026-08-27) — gleiches Muster wie
-              Tutorial-Restart-Bestaetigung: eigener Portal, zIndex 10600
-              (oberhalb des SettingsModal-Roots mit zIndex 10500). Liste
-              aller SUPPORTED_LANGS aus i18n/index.js, aktive Sprache
-              hervorgehoben, Auswahl ruft changeLang() (CustomEvent-
-              basiert, kein Reload) und schliesst das Modal. */}
-          {showLangModal && createPortal(
-            <div
-              onClick={() => setShowLangModal(false)}
-              style={{
-                position:"fixed", inset:0, zIndex:10600,
-                display:"flex", alignItems:"center", justifyContent:"center",
-                background:"rgba(10,10,8,0.55)", backdropFilter:"blur(4px)",
-                WebkitBackdropFilter:"blur(4px)",
-              }}>
-              <div
-                onClick={e => e.stopPropagation()}
-                style={{
-                  background:"#FDFBF8", borderRadius:24, padding:"24px 20px 20px",
-                  maxWidth:340, width:"calc(100% - 48px)", maxHeight:"70vh",
-                  overflowY:"auto", WebkitOverflowScrolling:"touch",
-                  boxShadow:"0 8px 40px rgba(0,0,0,0.25)",
-                  fontFamily:"Inter, sans-serif",
-                }}>
-                <h2 style={{ fontSize:19, fontWeight:700, color:"#1A1A18", margin:"0 0 16px", textAlign:"center" }}>
-                  {t("sm.lang.title")}
-                </h2>
-                <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
-                  {SUPPORTED_LANGS.map(l => (
-                    <button
-                      key={l}
-                      onClick={() => { changeLang(l); setShowLangModal(false); }}
-                      style={{
-                        display:"flex", alignItems:"center", gap:12, width:"100%",
-                        padding:"12px 14px", borderRadius:14, border:"none",
-                        background: l === lang ? "rgba(14,196,184,0.10)" : "transparent",
-                        cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
-                        WebkitTapHighlightColor:"transparent",
-                      }}>
-                      <span style={{ fontSize:20 }}>{LANG_FLAGS[l]}</span>
-                      <span style={{ flex:1, textAlign:"left", fontSize:15, fontWeight: l===lang?700:500, color:"#1A1A18" }}>
-                        {LANG_LABELS[l]}
-                      </span>
-                      {l === lang && <span style={{ color:"#0EC4B8", fontSize:16, fontWeight:700 }}>✓</span>}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => setShowLangModal(false)}
-                  style={{
-                    marginTop:16, width:"100%", padding:"13px", borderRadius:14,
-                    border:"1.5px solid rgba(26,26,24,0.12)",
-                    background:"transparent", color:"rgba(26,26,24,0.65)",
-                    fontSize:15, fontWeight:600, fontFamily:"Inter, sans-serif",
-                    cursor:"pointer", touchAction:"manipulation",
-                    WebkitTapHighlightColor:"transparent",
-                  }}
-                >{t("sm.lang.close")}</button>
               </div>
             </div>,
             document.body
