@@ -7,7 +7,6 @@
 import { HUIWarnIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React from 'react';
 import { SAFE_MODE } from './safeMode.js';
-import { useTranslation } from '../hooks/useTranslation.js';
 
 /* ── Structured error log ─────────────────────────────────────── */
 function logCrash(label, error, info) {
@@ -24,88 +23,6 @@ function logCrash(label, error, info) {
     visibilityState:document.visibilityState,
     timestamp:      new Date().toISOString(),
   });
-}
-
-// ── Functional sub-components for SafeBoundary (class can't use hooks) ──
-function SafeBoundaryMinimal({ label, onRetry }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      padding: '12px 16px', borderRadius: 12, margin: '6px 16px',
-      background: 'rgba(255,138,107,0.06)',
-      border: '1px solid rgba(255,138,107,0.15)',
-      display: 'flex', alignItems: 'center', gap: 10,
-    }}>
-      <HUIWarnIcon size={16} style={{flexShrink:0, color:"#F59E0B"}} />
-      <div>
-        <div style={{ fontSize: 12, color: '#888', fontWeight: 600 }}>
-          {t("error.areaLoadFailed", { label: label || t("error.area") })}
-        </div>
-        <button
-          onClick={onRetry}
-          style={{
-            marginTop: 4, padding: '3px 10px', borderRadius: 99,
-            background: 'rgba(22,215,197,0.12)', border: 'none',
-            color: '#16D7C5', fontSize: 11, fontWeight: 600,
-            cursor: 'pointer', fontFamily: 'inherit',
-          }}>
-          {t("error.retry")}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SafeBoundaryFull({ label, err, onRetry }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      padding: '24px 16px',
-      display: 'flex', flexDirection: 'column', gap: 12,
-    }}>
-      {[0, 1, 2].map(i => (
-        <div key={i} style={{
-          borderRadius: 18,
-          background: 'rgba(0,0,0,0.04)',
-          height: i === 0 ? 220 : 140,
-          animation: 'hui-skeleton-pulse 1.8s ease-in-out infinite',
-          animationDelay: `${i * 0.2}s`,
-        }} />
-      ))}
-      <style>{`
-        @keyframes hui-skeleton-pulse {
-          0%,100% { opacity:0.5; }
-          50%      { opacity:0.9; }
-        }
-      `}</style>
-      <div style={{ textAlign: 'center', paddingTop: 8 }}>
-        <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>
-          {t("error.feedLoadFailed", { label: label || t("error.feed") })}
-        </div>
-        <button
-          onClick={onRetry}
-          style={{
-            padding: '10px 24px', borderRadius: 14,
-            background: 'linear-gradient(135deg,#16D7C5,#FF8A6B)',
-            border: 'none', color: 'white', fontWeight: 600,
-            fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
-            boxShadow: '0 4px 14px rgba(22,215,197,0.25)',
-          }}>
-          {t("error.tryAgain")}
-        </button>
-      </div>
-      <details style={{ fontSize: 10, color: '#aaa', padding: '0 4px' }} open>
-        <summary style={{ cursor: 'pointer', color: '#FF8A6B', fontWeight: 600 }}>
-          ⚠ Crash: {label}
-        </summary>
-        <pre style={{ overflow: 'auto', marginTop: 4, fontSize: 10, color: '#ff9999',
-          background: 'rgba(0,0,0,0.3)', padding: 8, borderRadius: 6,
-          whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-          {err?.message}{'\n\n'}{err?.stack?.split('\n').slice(0,12).join('\n')}
-        </pre>
-      </details>
-    </div>
-  );
 }
 
 /* ── Inline ErrorBoundary ─────────────────────────────────────── */
@@ -151,12 +68,84 @@ class SafeBoundary extends React.Component {
 
     // 2. Minimal inline fallback (for rail items, cards)
     if (minimal) {
-      return <SafeBoundaryMinimal label={label} onRetry={this.handleRetry} />;
+      return (
+        <div style={{
+          padding: '12px 16px', borderRadius: 12, margin: '6px 16px',
+          background: 'rgba(255,138,107,0.06)',
+          border: '1px solid rgba(255,138,107,0.15)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <HUIWarnIcon size={16} style={{flexShrink:0, color:"#F59E0B"}} />
+          <div>
+            <div style={{ fontSize: 12, color: '#888', fontWeight: 600 }}>
+              {label || 'Bereich'} konnte nicht geladen werden
+            </div>
+            <button
+              onClick={this.handleRetry}
+              style={{
+                marginTop: 4, padding: '3px 10px', borderRadius: 99,
+                background: 'rgba(22,215,197,0.12)', border: 'none',
+                color: '#16D7C5', fontSize: 11, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}>
+              Wiederholen
+            </button>
+          </div>
+        </div>
+      );
     }
 
     // 3. Full feed fallback — shows placeholder cards instead of white screen
     return (
-      <SafeBoundaryFull label={label} err={err} onRetry={this.handleRetry} />
+      <div style={{
+        padding: '24px 16px',
+        display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
+        {/* Skeleton cards */}
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{
+            borderRadius: 18,
+            background: 'rgba(0,0,0,0.04)',
+            height: i === 0 ? 220 : 140,
+            animation: 'hui-skeleton-pulse 1.8s ease-in-out infinite',
+            animationDelay: `${i * 0.2}s`,
+          }} />
+        ))}
+        <style>{`
+          @keyframes hui-skeleton-pulse {
+            0%,100% { opacity:0.5; }
+            50%      { opacity:0.9; }
+          }
+        `}</style>
+        {/* Retry button */}
+        <div style={{ textAlign: 'center', paddingTop: 8 }}>
+          <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>
+            {label || 'Feed'} konnte nicht geladen werden.
+          </div>
+          <button
+            onClick={this.handleRetry}
+            style={{
+              padding: '10px 24px', borderRadius: 14,
+              background: 'linear-gradient(135deg,#16D7C5,#FF8A6B)',
+              border: 'none', color: 'white', fontWeight: 600,
+              fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
+              boxShadow: '0 4px 14px rgba(22,215,197,0.25)',
+            }}>
+            Erneut versuchen
+          </button>
+        </div>
+        {/* Crash details — always visible for debugging */}
+        <details style={{ fontSize: 10, color: '#aaa', padding: '0 4px' }} open>
+          <summary style={{ cursor: 'pointer', color: '#FF8A6B', fontWeight: 600 }}>
+            ⚠ Crash: {label}
+          </summary>
+          <pre style={{ overflow: 'auto', marginTop: 4, fontSize: 10, color: '#ff9999',
+            background: 'rgba(0,0,0,0.3)', padding: 8, borderRadius: 6,
+            whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {err?.message}{'\n\n'}{err?.stack?.split('\n').slice(0,12).join('\n')}
+          </pre>
+        </details>
+      </div>
     );
   }
 }

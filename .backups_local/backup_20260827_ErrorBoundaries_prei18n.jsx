@@ -12,8 +12,6 @@ import { sentryCapture } from './sentry.js';
 import { normalizeError, SEVERITY } from './errors/index.js';
 import { reportError, markErrorFixed } from './errorReporter.js';
 import { HUI } from "../design/hui.design.js";
-import { useTranslation } from "../hooks/useTranslation.js";
-import { t as i18nT, detectSystemLang } from "../i18n/index.js";
 
 const C = {
   cream: '#F9F6F2', card: HUI.COLOR.white,
@@ -21,107 +19,6 @@ const C = {
   ink: HUI.COLOR.inkStudio, muted: '#888',
   border: 'rgba(0,0,0,0.07)',
 };
-
-// ── Functional sub-components for ErrorBoundary (class can't use hooks) ──
-function GlobalAppFallback({ isFatal, retryCount, onRetry }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, background: C.cream,
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      padding: 32, fontFamily: 'inherit',
-    }}>
-      <div style={{ fontSize: 40, marginBottom: 16 }}>
-        {isFatal ? '✦' : '○'}
-      </div>
-      <div style={{ fontSize: 20, fontWeight: 600, color: C.ink, marginBottom: 8, textAlign: 'center' }}>
-        {isFatal ? t("error.fatalTitle") : t("error.errorTitle")}
-      </div>
-      <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, textAlign: 'center', maxWidth: 300, lineHeight: 1.6 }}>
-        {t("error.unexpectedError")}
-      </div>
-      {isFatal ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
-          <button
-            onClick={() => window.location.reload()}
-            style={{ padding: '12px 28px', background: C.teal, border: 'none',
-              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-            {t("error.restartApp")}
-          </button>
-          <button
-            onClick={() => {
-              if (navigator.serviceWorker) {
-                navigator.serviceWorker.getRegistrations().then(r =>
-                  r.forEach(sw => sw.unregister())
-                ).then(() => window.location.reload());
-              } else { window.location.reload(); }
-            }}
-            style={{ padding: '10px 22px', background: 'transparent',
-              border: `1px solid ${C.border}`, borderRadius: 14,
-              color: C.muted, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
-            {t("error.clearCacheReload")}
-          </button>
-        </div>
-      ) : (
-        <button
-          onClick={onRetry}
-          style={{ padding: '12px 28px', background: C.teal, border: 'none',
-            borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-          {t("error.retryCount", { count: retryCount })}
-        </button>
-      )}
-    </div>
-  );
-}
-
-function RouteFallback({ fallbackTitle, onRetry }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      minHeight: '40vh', padding: 24, gap: 12,
-    }}>
-      <div style={{ fontSize: 28 }}>○</div>
-      <div style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>
-        {fallbackTitle || t("error.pageLoadFailed")}
-      </div>
-      <button
-        onClick={onRetry}
-        style={{ padding: '10px 22px', background: `${C.teal}15`,
-          border: `1px solid ${C.teal}40`, borderRadius: 12,
-          color: C.teal, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-        {t("error.reload")}
-      </button>
-    </div>
-  );
-}
-
-function OverlayFallback({ onClose }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      minHeight: 200, padding: 24, gap: 10,
-    }}>
-      <div style={{ fontSize: 24 }}>○</div>
-      <div style={{ fontSize: 14, color: C.muted, textAlign: 'center' }}>
-        {t("error.contentLoadFailed")}
-      </div>
-      {onClose && (
-        <button
-          onClick={onClose}
-          style={{ padding: '8px 18px', background: 'none',
-            border: `1px solid ${C.border}`, borderRadius: 10,
-            color: C.muted, fontSize: 13, cursor: 'pointer' }}>
-          {t("error.close")}
-        </button>
-      )}
-    </div>
-  );
-}
 
 // ── GlobalAppBoundary ────────────────────────────────────────────
 // Fängt alle unkontrollierten Fehler auf App-Ebene.
@@ -162,7 +59,7 @@ export class GlobalAppBoundary extends React.Component {
         // SICHERHEITSFIX (Red-Team-Audit C.15): Nutzer-Feedback vor Reload
         const _ov = document.createElement('div');
         _ov.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.95);display:flex;align-items:center;justify-content:center;z-index:99999;font-family:Inter,sans-serif;flex-direction:column;gap:12px';
-        _ov.innerHTML = '<div style="font-size:16px;font-weight:600;color:#333">' + i18nT('error.appUpdating', detectSystemLang()) + '</div><div style="font-size:14px;color:#666">' + i18nT('error.justMoment', detectSystemLang()) + '</div><div style="width:40px;height:40px;border:3px solid #16D7C3;border-top-color:transparent;border-radius:50%;animation:_hui_spin 0.8s linear infinite"></div><style>@keyframes _hui_spin{to{transform:rotate(360deg)}}</style>';
+        _ov.innerHTML = '<div style="font-size:16px;font-weight:600;color:#333">App wird aktualisiert…</div><div style="font-size:14px;color:#666">Ein kurzer Moment bitte</div><div style="width:40px;height:40px;border:3px solid #16D7C3;border-top-color:transparent;border-radius:50%;animation:_hui_spin 0.8s linear infinite"></div><style>@keyframes _hui_spin{to{transform:rotate(360deg)}}</style>';
         document.body.appendChild(_ov);
         setTimeout(() => window.location.reload(), 200);
         return;
@@ -210,11 +107,52 @@ export class GlobalAppBoundary extends React.Component {
     const isFatal = appErr.severity === SEVERITY.FATAL || this.state.retryCount >= 3;
 
     return (
-      <GlobalAppFallback
-        isFatal={isFatal}
-        retryCount={this.state.retryCount}
-        onRetry={this.handleRetry}
-      />
+      <div style={{
+        position: 'fixed', inset: 0, background: C.cream,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        padding: 32, fontFamily: 'inherit',
+      }}>
+        <div style={{ fontSize: 40, marginBottom: 16 }}>
+          {isFatal ? '✦' : '○'}
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 600, color: C.ink, marginBottom: 8, textAlign: 'center' }}>
+          {isFatal ? 'HUI muss neu gestartet werden' : 'Etwas ist schiefgelaufen'}
+        </div>
+        <div style={{ fontSize: 14, color: C.muted, marginBottom: 28, textAlign: 'center', maxWidth: 300, lineHeight: 1.6 }}>
+          {appErr.toUserMessage?.() || 'Ein unerwarteter Fehler ist aufgetreten.'}
+        </div>
+        {isFatal ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'center' }}>
+            <button
+              onClick={() => window.location.reload()}
+              style={{ padding: '12px 28px', background: C.teal, border: 'none',
+                borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+              App neu starten
+            </button>
+            <button
+              onClick={() => {
+                if (navigator.serviceWorker) {
+                  navigator.serviceWorker.getRegistrations().then(r =>
+                    r.forEach(sw => sw.unregister())
+                  ).then(() => window.location.reload());
+                } else { window.location.reload(); }
+              }}
+              style={{ padding: '10px 22px', background: 'transparent',
+                border: `1px solid ${C.border}`, borderRadius: 14,
+                color: C.muted, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+              Cache leeren & neu laden
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={this.handleRetry}
+            style={{ padding: '12px 28px', background: C.teal, border: 'none',
+              borderRadius: 14, color: 'white', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+            Erneut versuchen ({this.state.retryCount}/3)
+          </button>
+        )}
+      </div>
     );
   }
 }
@@ -242,10 +180,23 @@ export class RouteBoundary extends React.Component {
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <RouteFallback
-        fallbackTitle={this.props.fallbackTitle}
-        onRetry={() => this.setState({ error: null })}
-      />
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        minHeight: '40vh', padding: 24, gap: 12,
+      }}>
+        <div style={{ fontSize: 28 }}>○</div>
+        <div style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>
+          {this.props.fallbackTitle || 'Seite konnte nicht geladen werden'}
+        </div>
+        <button
+          onClick={() => this.setState({ error: null })}
+          style={{ padding: '10px 22px', background: `${C.teal}15`,
+            border: `1px solid ${C.teal}40`, borderRadius: 12,
+            color: C.teal, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+          Neu laden
+        </button>
+      </div>
     );
   }
 }
@@ -274,7 +225,25 @@ export class OverlayBoundary extends React.Component {
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <OverlayFallback onClose={this.props.onClose} />
+      <div style={{
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        minHeight: 200, padding: 24, gap: 10,
+      }}>
+        <div style={{ fontSize: 24 }}>○</div>
+        <div style={{ fontSize: 14, color: C.muted, textAlign: 'center' }}>
+          Inhalt konnte nicht geladen werden
+        </div>
+        {this.props.onClose && (
+          <button
+            onClick={this.props.onClose}
+            style={{ padding: '8px 18px', background: 'none',
+              border: `1px solid ${C.border}`, borderRadius: 10,
+              color: C.muted, fontSize: 13, cursor: 'pointer' }}>
+            Schließen
+          </button>
+        )}
+      </div>
     );
   }
 }
