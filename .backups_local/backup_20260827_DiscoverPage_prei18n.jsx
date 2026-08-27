@@ -24,7 +24,6 @@ import { normalizeTalentForPreview, normalizePostForPreview } from "../lib/previ
 import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
 import { ProfileService } from "../services/db.js";
 import { formatDateDE } from "../lib/formatters.js";
-import { useTranslation } from "../hooks/useTranslation.js";
 
 const MenschenAllModal = lazy(() => import("../components/discover/MenschenAllModal.jsx"));
 const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
@@ -46,7 +45,6 @@ import { ProjekteSection } from "../components/discover/ProjektSection.jsx";
 import { OrteSection } from "../components/discover/OrtSection.jsx";
 
 export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal, searchState = {} }) {
-  const { t: _t } = useTranslation();
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
@@ -257,10 +255,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             id:         b.id,
             user_id:    b.user_id,
             src:        safeStr(b.src),
-            caption:    safeStr(b.caption, _t("discover.fallbackMoment")),
+            caption:    safeStr(b.caption, "Ein Moment"),
             type:       safeStr(b.type, "foto"),
             created_at: b.created_at,
-            name:       safeStr(bp.full_name || bp.display_name, _t("discover.fallbackMember")),
+            name:       safeStr(bp.full_name || bp.display_name, "HUI Mitglied"),
             avatar_url: bp.avatar_url || null,
             location:   "",
             likes:      eng.likes,
@@ -284,9 +282,9 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         if (!cancelled && ws?.length > 0) {
           // Schritt 2: Profile für alle Autoren nachladen (public_profiles = öffentlich lesbar)
           const FILE_FORMAT_LABEL = {
-            original: _t("discover.fileFormatOriginal"),
-            druck:    _t("discover.fileFormatDruck"),
-            digital:  _t("discover.fileFormatDigital"),
+            original: "Original",
+            druck:    "Druck",
+            digital:  "Digital Art",
           };
           const userIds = [...new Set(ws.map(w => w.user_id).filter(Boolean))];
           let profileMap = {};
@@ -302,14 +300,14 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             return {
               id:        w.id,
               user_id:   w.user_id,
-              title:     safeStr(w.title, _t("discover.fallbackWerk")),
+              title:     safeStr(w.title, "Werk"),
               cover:     safeStr(w.cover_url),
-              medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, _t("discover.fallbackWerk")),
+              medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, "Werk"),
               price:     w.price != null ? safeNum(w.price, 0) : null,
               location:  safeStr(w.location_text),
               lat:       Number.isFinite(w.lat) ? w.lat : null,
               lng:       Number.isFinite(w.lng) ? w.lng : null,
-              author:    safeStr(prof.full_name || prof.display_name, _t("discover.fallbackTalent")),
+              author:    safeStr(prof.full_name || prof.display_name, "HUI Talent"),
               avatar_url: prof.avatar_url || null,
               likes:     w.likes_count || 0,
               views:     w.views_count || 0,
@@ -341,13 +339,13 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               .from("profiles")
               .select("id,display_name,full_name,username")
               .in("id", providerIds);
-            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.full_name || p.display_name || p.username, _t("discover.fallbackTalent"))]));
+            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.full_name || p.display_name || p.username, "HUI Talent")]));
           }
           if (!cancelled) {
             setTalente(tal.map(t => ({
               id:                    t.id,
               user_id:               t.user_id,
-              title:                 safeStr(t.title, _t("discover.fallbackTalentOffer")),
+              title:                 safeStr(t.title, "Talent-Angebot"),
               description:           safeStr(t.description),
               cover:                 (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.images[0].url) : null,
               category:              safeStr(t.category),
@@ -360,7 +358,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               map_link:              safeStr(t.map_link),
               lat:                   Number.isFinite(t.lat) ? t.lat : null,
               lng:                   Number.isFinite(t.lng) ? t.lng : null,
-              author:                providerMap[t.user_id] || _t("discover.fallbackTalent"),
+              author:                providerMap[t.user_id] || "HUI Talent",
               // Buchungsdaten (TALENT-SERVICES-001) — fuer TalentBookingFlow
               available_dates:       Array.isArray(t.available_dates) ? t.available_dates : [],
               available_time_slots:  Array.isArray(t.available_time_slots) ? t.available_time_slots : [],
@@ -935,10 +933,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
        !searchedWerke.length && !searchedTalente.length && !searchedErlebnisse.length &&
        !searchedProjekte.length && (
         <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
-          <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>{_t("discover.noResults")}</div>
+          <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>Keine Ergebnisse</div>
           <div style={{ fontSize:13 }}>
-            {_t("discover.noResultsQuery", { query: _searchQuery })}
-            {_searchCats.length > 0 && _t("discover.tryOtherCats")}
+            Für „{_searchQuery}" wurde nichts gefunden.
+            {_searchCats.length > 0 && " Versuche andere Kategorien."}
           </div>
         </div>
       )}
