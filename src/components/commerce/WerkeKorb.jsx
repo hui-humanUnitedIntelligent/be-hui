@@ -15,6 +15,7 @@ import {
   allowsQuantity, getOriginalHint,
 } from "./commerceUtils.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 function haptic(style = "light") {
   try {
     if (window.navigator?.vibrate) {
@@ -107,6 +108,7 @@ export function SchalenIcon({ size = 28, opacity = 1, filled = false }) {
 //  FLOATING BUTTON
 // ══════════════════════════════════════════════════════════════════
 export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false }) {
+  const { t } = useTranslation();
   const [glow,    setGlow]    = useState(false);
   const [pulse,   setPulse]   = useState(false); // KORB-PULSE-001: Skalier-Animation beim Hinzufügen
   const [mounted, setMounted] = useState(count > 0); // nur rendern wenn nötig
@@ -141,7 +143,7 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
       // Toast: "Zum Werkekorb hinzugefügt." — nur beim ERSTEN Item
       if (prevCount.current === 1) {
         import("../../lib/useToast.jsx").then(m => {
-          m?.toast?.success?.("Zum Werkekorb hinzugefügt.", { duration: 2500 });
+          m?.toast?.success?.(t("wk.toastAdded"), { duration: 2500 });
         }).catch(() => {});
       }
       return () => { clearTimeout(tGlow); clearTimeout(tPulse); };
@@ -162,7 +164,7 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
   return (
     <button
       onClick={() => onOpen?.()}
-      aria-label="Werkekorb öffnen"
+      aria-label={t("wk.ariaOpen")}
       style={{
         position:     "fixed",
         bottom:       `calc(${NAV_CLEARANCE_CSS} + 20px)`,
@@ -262,10 +264,11 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
 //  KARTE
 // ══════════════════════════════════════════════════════════════════
 function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, onQtyChange = () => {} }) {
+  const { t } = useTranslation();
   const meta       = TYPE_META[item.type] || TYPE_META.work;
   const price      = formatPrice(item._raw?.price ?? item.price);
   const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;
-  const title      = item.title || item._raw?.title || item.name || "Ohne Titel";
+  const title      = item.title || item._raw?.title || item.name || t("wk.untitled");
   // BUGFIX v2 (2026-08-10): Erweiterte Fallback-Kette — gleiche Logik
   // wie groupByPerson in commerceUtils. Verhindert "Unbekannter Wirker".
   const _rawP = item._raw?.profile || item._raw?.creator || item._raw?.author || item._raw?.user
@@ -443,7 +446,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
               <button
                 onPointerDown={e => e.stopPropagation()}
                 onClick={() => changeQty(-1)}
-                aria-label="Weniger"
+                aria-label={t("wk.less")}
                 style={{
                   width:       32,
                   height:      32,
@@ -481,7 +484,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
               <button
                 onPointerDown={e => e.stopPropagation()}
                 onClick={() => changeQty(+1)}
-                aria-label="Mehr"
+                aria-label={t("wk.more")}
                 disabled={qty >= maxQty}
                 style={{
                   width:       32,
@@ -542,7 +545,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
       <button
         onPointerDown={e => e.stopPropagation()}
         onClick={() => { haptic("medium"); onRemove(item); }}
-        aria-label="Entfernen"
+        aria-label={t("wk.remove")}
         style={{
           width:       28,
           height:      28,
@@ -574,8 +577,9 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
 //  PERSONEN-GRUPPE
 // ══════════════════════════════════════════════════════════════════
 function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
+  const { t } = useTranslation();
   const count = group.items.length;
-  const label = count === 1 ? "1 Werk ausgewählt" : `${count} Auswahlen`;
+  const label = count === 1 ? t("wk.oneWorkSelected") : t("wk.countSelected", { count });
 
   return (
     <div style={{ marginBottom: 14 }}>
@@ -654,6 +658,7 @@ function PersonGruppe({ group, onRemove, removingId, onQtyChange }) {
 //  LEERER ZUSTAND
 // ══════════════════════════════════════════════════════════════════
 function LeererKorb({ onDiscover, onClose }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       display:       "flex",
@@ -692,7 +697,7 @@ function LeererKorb({ onDiscover, onClose }) {
         letterSpacing: -0.5,
         marginBottom: 12,
       }}>
-        Dein Werkekorb ist noch<br />ein leerer Raum.
+        {t("wk.emptyTitle")}
       </div>
       <div style={{
         fontSize:    14,
@@ -701,7 +706,7 @@ function LeererKorb({ onDiscover, onClose }) {
         maxWidth:    260,
         marginBottom: 32,
       }}>
-        Hier sammelst du Werke, Erlebnisse und Projekte von Menschen, die dich berühren.
+        {t("wk.emptyDesc")}
       </div>
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
@@ -723,7 +728,7 @@ function LeererKorb({ onDiscover, onClose }) {
             transition:   `transform ${DUR.tap}ms ${EASE.outSoft}`,
           }}
         >
-          Entdecken
+          {t("wk.emptyDiscover")}
         </button>
         <button
           onClick={onClose}
@@ -740,7 +745,7 @@ function LeererKorb({ onDiscover, onClose }) {
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          Deinen Raum öffnen
+          {t("wk.emptyOpenSpace")}
         </button>
       </div>
     </div>
@@ -751,6 +756,7 @@ function LeererKorb({ onDiscover, onClose }) {
 //  ERFOLGS-SCREEN
 // ══════════════════════════════════════════════════════════════════
 function ErfolgsScreen({ result, onChat, onDiscover }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       display:       "flex",
@@ -785,7 +791,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
         lineHeight:  1.2,
         marginBottom: 12,
       }}>
-        Unterstützung angekommen.
+        {t("wk.successTitle")}
       </div>
 
       <div style={{
@@ -796,14 +802,14 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
         marginBottom: 12,
       }}>
         Du hast heute{" "}
-        <strong style={{ color: C.inkMid }}>{result.count} {result.count === 1 ? "Auswahl" : "Auswahlen"}</strong>
+        <strong style={{ color: C.inkMid }}>{result.count} {result.count === 1 ? t("wk.successSingular") : t("wk.successPlural")}</strong>
         {result.creators > 0 && (
-          <> von{" "}
+          <> {t("wk.successFrom")}{" "}
             <strong style={{ color: C.inkMid }}>
-              {result.creators} {result.creators === 1 ? "Person" : "Menschen"}
+              {result.creators} {result.creators === 1 ? t("wk.successOnePerson") : t("wk.successManyPeople")}
             </strong>
           </>
-        )}{" "}unterstützt.
+        )}{" "}{t("wk.support")}.
       </div>
 
       <div style={{
@@ -814,7 +820,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
         lineHeight: 1.6,
         marginBottom: 32,
       }}>
-        Die Verbindung entsteht niemals automatisch. Sie bleibt immer deine Wahl.
+        {t("wk.successDesc")}
       </div>
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
@@ -835,7 +841,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
               WebkitTapHighlightColor: "transparent",
             }}
           >
-            Verbinden
+            {t("wk.successChat")}
           </button>
         )}
         <button
@@ -853,7 +859,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          Weiter entdecken
+          {t("wk.successDiscover")}
         </button>
       </div>
     </div>
@@ -864,6 +870,7 @@ function ErfolgsScreen({ result, onChat, onDiscover }) {
 //  IMPACT-ZEILE
 // ══════════════════════════════════════════════════════════════════
 function ImpactZeile({ impactEur, huiEur }) {
+  const { t } = useTranslation();
   if (!impactEur || impactEur <= 0) return null;
   const impactStr = impactEur.toFixed(2).replace(".", ",");
   const huiStr    = huiEur ? huiEur.toFixed(2).replace(".", ",") : impactStr;
@@ -906,7 +913,7 @@ function ImpactZeile({ impactEur, huiEur }) {
         lineHeight: 1.5,
         paddingLeft: 20,
       }}>
-        Für dich entstehen keine zusätzlichen Kosten.
+        {t("wk.impactHint")}
       </div>
     </div>
   );
@@ -917,6 +924,7 @@ function ImpactZeile({ impactEur, huiEur }) {
 //  PREISBLOCK — modular, zukunftssicher (Werke / Versand / Rabatt / Gesamt)
 // ════════════════════════════════════════════════════════════════
 function PreisBlock({ werke, versand, rabatt }) {
+  const { t } = useTranslation();
   const fmt = (v) => v.toFixed(2).replace(".", ",") + " €";
   const showVersand = versand !== null && versand !== undefined;
   const showRabatt  = rabatt  !== null && rabatt  !== undefined && rabatt > 0;
@@ -956,14 +964,14 @@ function PreisBlock({ werke, versand, rabatt }) {
         fontSize:10, fontWeight:600, color:C.faint,
         letterSpacing:0.8, textTransform:"uppercase", marginBottom:10,
       }}>
-        Deine Auswahl
+        {t("wk.priceYourSelection")}
       </div>
       {[
-        { label:"Werke", val:werke, color:C.inkMid, custom:null },
-        ...(showVersand ? [{ label:"Versand", val:versand,
+        { label:t("wk.priceWerke"), val:werke, color:C.inkMid, custom:null },
+        ...(showVersand ? [{ label:t("wk.priceShipping"), val:versand,
           color: versand === 0 ? C.sage : C.muted,
-          custom: versand === 0 ? "Kostenlos" : null }] : []),
-        ...(showRabatt ? [{ label:"Rabatt", val:rabatt,
+          custom: versand === 0 ? t("wk.priceFree") : null }] : []),
+        ...(showRabatt ? [{ label:t("wk.priceDiscount"), val:rabatt,
           color:C.sage, custom: "−" + fmt(rabatt) }] : []),
       ].map((r, i) => (
         <div key={i} style={{ display:"flex", justifyContent:"space-between",
@@ -977,7 +985,7 @@ function PreisBlock({ werke, versand, rabatt }) {
       ))}
       <div style={{ height:1, background:"rgba(20,20,34,0.06)", margin:"8px 0" }} />
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
-        <span style={{ fontSize:13, color:C.ink, fontWeight:600 }}>Gesamt</span>
+        <span style={{ fontSize:13, color:C.ink, fontWeight:600 }}>{t("wk.priceTotal")}</span>
         <span style={{ fontSize:20, fontWeight: 600, color:C.ink,
           letterSpacing:-0.5 }}>
           {fmt(gesamt)}
@@ -1033,6 +1041,7 @@ export default function WerkeKorb({
                // erhöhte Menge verworfen, Stripe/Server bekamen quantity=1.
 }) {
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
+  const { t } = useTranslation();
   const [phase,     setPhase]     = useState("list");
   const [result,    setResult]    = useState(null);
   const [removingId, setRemovingId] = useState(null);
@@ -1168,7 +1177,7 @@ export default function WerkeKorb({
               letterSpacing: -0.5,
               lineHeight:  1.2,
             }}>
-              Dein Werkekorb
+              {t("wk.headerTitle")}
             </div>
             {iCount > 0 && phase !== "success" && (
               <div style={{ marginTop: 5 }}>
@@ -1179,8 +1188,8 @@ export default function WerkeKorb({
                   lineHeight:  1.5,
                 }}>
                   {pCount === 1
-                    ? "Du unterstützt 1 Menschen"
-                    : `Du unterstützt ${pCount} Menschen`}
+                    ? t("wk.headerSupporting1")
+                    : t("wk.headerSupportingN", { count: pCount })}
                 </div>
                 <div style={{
                   fontSize:    11,
@@ -1188,14 +1197,14 @@ export default function WerkeKorb({
                   marginTop:   2,
                   fontWeight:  400,
                 }}>
-                  {iCount} {iCount === 1 ? "Auswahl" : "Auswahlen"}
+                  {iCount} {iCount === 1 ? t("wk.headerSelectionSingular") : t("wk.headerSelectionPlural")}
                 </div>
               </div>
             )}
           </div>
           <button
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={t("wk.close")}
             style={{
               width:       34,
               height:      34,
@@ -1321,7 +1330,7 @@ export default function WerkeKorb({
                 flexShrink:   0,
               }}
             >
-              {phase === "loading" ? "Einen Moment …" : "Unterstützen"}
+              {phase === "loading" ? t("wk.loading") : t("wk.support")}
             </button>
           </div>
         )}

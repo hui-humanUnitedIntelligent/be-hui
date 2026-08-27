@@ -23,6 +23,7 @@ import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import BelegViewerModal from "../notifications/BelegViewerModal.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { formatDateDE, formatEUR } from "../../lib/formatters.js";
 
 const T = {
@@ -63,7 +64,7 @@ function dt(iso) {
 // Diese Funktion erkennt bekannte Netzwerkfehler-Muster und ersetzt sie
 // durch eine verständliche, beruhigende deutsche Meldung (Geld ist sicher
 // in Treuhand, bitte Verbindung prüfen + erneut versuchen).
-function friendlyErrorMessage(rawMessage) {
+function friendlyErrorMessage(rawMessage, t) {
   const msg = String(rawMessage || "");
   const networkPatterns = [
     /unable to resolve host/i,
@@ -78,9 +79,9 @@ function friendlyErrorMessage(rawMessage) {
     /offline/i,
   ];
   if (networkPatterns.some((re) => re.test(msg))) {
-    return "Keine Internetverbindung. Deine Zahlung bleibt sicher in Treuhand — bitte prüfe dein WLAN/Mobilfunk und tippe erneut auf \"Ja, erhalten\".";
+    return t("fz.errNetwork");
   }
-  return msg || "Unbekannter Fehler";
+  return msg || t("fz.errUnknown");
 }
 
 function StatusChip({ label, color = T.inkFaint, bg = T.border }) {
@@ -99,6 +100,7 @@ function StatusChip({ label, color = T.inkFaint, bg = T.border }) {
 // Nur: Thumbnail (falls vorhanden) · Titel · Datum · Preis · Status-Chips.
 // Alle Aktionen leben im TransactionDetailSheet nach Klick auf die Karte.
 function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink, statusChips, onClick, needsAction }) {
+  const { t } = useTranslation();
   return (
     <div
       onClick={onClick}
@@ -131,7 +133,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
         {Array.isArray(statusChips) && statusChips.length > 0 && (
           <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 5 }}>
             {statusChips.map((c, i) => <StatusChip key={i} {...c} />)}
-            {needsAction && <StatusChip label="Aktion nötig" color={T.teal} bg={T.tealSoft} />}
+            {needsAction && <StatusChip label={t("fz.actionNeeded")} color={T.teal} bg={T.tealSoft} />}
           </div>
         )}
       </div>
@@ -147,6 +149,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
 // TAB 1: Meine Käufe (orders als customer)
 // ──────────────────────────────────────────────────────────────────────
 function MeineKaeufe({ userId }) {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmingId, setConfirmingId] = useState(null);
@@ -182,7 +185,7 @@ function MeineKaeufe({ userId }) {
         .in("id", sellerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || "Verkäufer", avatar: p.img || p.avatar_url || null, website: p.website || null, username: p.username || null };
+        map[p.id] = { name: p.display_name || p.username || t("fz.seller"), avatar: p.img || p.avatar_url || null, website: p.website || null, username: p.username || null };
       });
       setSellerMap(map);
     }
@@ -256,8 +259,8 @@ function MeineKaeufe({ userId }) {
         // In beiden Fällen: NICHT als "done" markieren.
         {
         const friendly = friendlyErrorMessage(result?.error);
-        const isNetwork = friendly !== (result?.error || "Unbekannter Fehler");
-        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+        const isNetwork = friendly !== (result?.error || t("fz.errUnknown"));
+        alert(isNetwork ? friendly : t("fz.errConfirmFailed", { msg: friendly }) + ".");
       }
       }
     } catch (e) {
@@ -273,8 +276,8 @@ function MeineKaeufe({ userId }) {
       } else {
         {
         const friendly = friendlyErrorMessage(rpcErr?.message);
-        const isNetwork = friendly !== (rpcErr?.message || "Unbekannter Fehler");
-        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+        const isNetwork = friendly !== (rpcErr?.message || t("fz.errUnknown"));
+        alert(isNetwork ? friendly : t("fz.errConfirmFailed", { msg: friendly }) + ".");
       }
       }
     } finally {
@@ -304,7 +307,7 @@ function MeineKaeufe({ userId }) {
 
   const buildTx = (o) => {
     const item = o.order_items?.[0];
-    const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+    const title = item?.snapshot?.title || item?.snapshot?.name || t("fz.work");
     const variantName = item?.variant_name || null;
     const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
     const image = item?.snapshot?.cover_url || null;
@@ -315,10 +318,10 @@ function MeineKaeufe({ userId }) {
     const sInfo = sellerId ? sellerMap[sellerId] : null;
 
     const statusChips = [];
-    if (o.escrow_status === "released" || confirmed) statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
-    if (o.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
-    if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
-    if (confirmed) statusChips.push({ label: "Erhalten ✓", color: T.teal, bg: T.tealSoft });
+    if (o.escrow_status === "released" || confirmed) statusChips.push({ label: t("fz.statusReleased"), color: T.green, bg: T.greenSoft });
+    if (o.escrow_status === "holding") statusChips.push({ label: t("fz.statusHolding"), color: T.amber, bg: T.amberSoft });
+    if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: t("fz.statusDisputed"), color: T.amber, bg: T.amberSoft });
+    if (confirmed) statusChips.push({ label: t("fz.statusReceived"), color: T.teal, bg: T.tealSoft });
 
     // FIX (2026-08-26, Michael): Vorherige Version zeigte "Werk-Preis 10 +
     // Plattformgebühr 2 = 12" während "Gesamt bezahlt" 13 anzeigte — die
@@ -333,9 +336,9 @@ function MeineKaeufe({ userId }) {
     const priceEur = item?.snapshot?.price_eur ?? item?.unit_price_eur ?? 0;
     const shippingEur = Number(item?.shipping_eur ?? 0);
     const breakdown = [];
-    breakdown.push({ label: "Werk-Preis", value: eur(priceEur) });
-    if (shippingEur > 0) breakdown.push({ label: "Versand", value: eur(shippingEur) });
-    breakdown.push({ label: "Gesamt bezahlt", value: eur(o.total_eur) });
+    breakdown.push({ label: t("fz.detailWorkPrice"), value: eur(priceEur) });
+    if (shippingEur > 0) breakdown.push({ label: t("fz.detailShippingCost"), value: eur(shippingEur) });
+    breakdown.push({ label: t("fz.detailTotalPaid"), value: eur(o.total_eur) });
 
     // Block 2 — separate Transparenz-Anzeige: wie sich der Werk-Preis
     // (NICHT der Versand) zwischen Verkäufer und Plattform aufteilt.
@@ -344,23 +347,23 @@ function MeineKaeufe({ userId }) {
     const itemFee = (item?.unit_price_eur || 0) - (item?.payout_eur || 0);
     const impactEurBuyer = item?.snapshot?.impact_eur ?? item?.impact_eur ?? null;
     const revenueSplit = itemFee > 0 ? [
-      { label: "Verkäufer-Anteil (80%)", value: eur(item?.payout_eur || 0) },
-      { label: "Plattform-Anteil (20%)", value: eur(itemFee) },
-      ...(impactEurBuyer != null ? [{ label: "Impact-Pool (30% vom Plattform-Anteil)", value: eur(impactEurBuyer) }] : []),
+      { label: t("fz.detailSellerShare"), value: eur(item?.payout_eur || 0) },
+      { label: t("fz.detailPlatformShare"), value: eur(itemFee) },
+      ...(impactEurBuyer != null ? [{ label: t("fz.detailImpactPoolShare"), value: eur(impactEurBuyer) }] : []),
     ] : [];
 
     return {
-      id: o.id, kindLabel: "Kauf", title: titleWithVariant, image,
-      amount: o.total_eur, amountLabel: "Bezahlt",
+      id: o.id, kindLabel: t("fz.detailPurchase"), title: titleWithVariant, image,
+      amount: o.total_eur, amountLabel: t("fz.detailPaid"),
       dateLabel: dt(o.created_at), statusChips, breakdown, revenueSplit, needsConfirm,
       meta: [
-        ...(o.shipped_at ? [{ label: "Versendet am", value: dt(o.shipped_at) }] : []),
-        ...(o.delivered_at ? [{ label: "Zugestellt am", value: dt(o.delivered_at) }] : []),
-        ...((o.delivery_status === "shipped" && !o.delivered_at) ? [{ label: "Status", value: "Unterwegs zu dir" }] : []),
-        ...(o.shipping_address ? [{ label: "Lieferadresse", value: (o.shipping_address.full || "").replace(/\n/g, ", ") }] : []),
-        ...(o.tracking_number ? [{ label: "Tracking", value: o.tracking_number }] : []),
+        ...(o.shipped_at ? [{ label: t("fz.metaShippedAt"), value: dt(o.shipped_at) }] : []),
+        ...(o.delivered_at ? [{ label: t("fz.metaDeliveredAt"), value: dt(o.delivered_at) }] : []),
+        ...((o.delivery_status === "shipped" && !o.delivered_at) ? [{ label: t("fz.metaStatus"), value: t("fz.statusUnderway") }] : []),
+        ...(o.shipping_address ? [{ label: t("fz.metaShippingAddress"), value: (o.shipping_address.full || "").replace(/\n/g, ", ") }] : []),
+        ...(o.tracking_number ? [{ label: t("fz.metaTracking"), value: o.tracking_number }] : []),
       ],
-      person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, website: sInfo.website, roleLabel: "Verkäufer" } : null,
+      person: sInfo ? { name: sInfo.name, avatar: sInfo.avatar, website: sInfo.website, roleLabel: t("fz.seller") } : null,
       actions: {
         onConfirmReceipt: needsConfirm ? () => handleConfirm(o.id) : null,
         confirmingReceipt: confirmingId === o.id,
@@ -371,12 +374,12 @@ function MeineKaeufe({ userId }) {
         onChat: (sellerId && sInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar }, source: S.SYSTEM }) : null,
         canRecommend: !!(confirmed && sellerId && !recommendedOrderIds.has(o.id)),
         recommendationGiven: recommendedOrderIds.has(o.id),
-        onRecommend: (confirmed && sellerId && !recommendedOrderIds.has(o.id)) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || "Verkäufer", orderId: o.id }); } : null,
+        onRecommend: (confirmed && sellerId && !recommendedOrderIds.has(o.id)) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || t("fz.seller"), orderId: o.id }); } : null,
         onDownloadReceipt: async () => {
           try {
             const result = await generateReceipt({
               offerTitle: title,
-              sellerName: sInfo?.name || "Verkäufer",
+              sellerName: sInfo?.name || t("fz.seller"),
               // BELEG-013: sellerEmail entfernt — generateReceipt.js zeigt
               // immer support@be-hui.com (SSOT, Datenschutz).
               sellerWebsite: sInfo?.website || null,
@@ -398,16 +401,16 @@ function MeineKaeufe({ userId }) {
   };
 
   if (loading) return <LoadingPlaceholder />;
-  if (!orders.length) return <EmptyState text="Noch keine Käufe vorhanden." />;
+  if (!orders.length) return <EmptyState text={t("fz.noPurchases")} />;
 
   const total = orders.reduce((s, o) => s + (o.total_eur || 0), 0);
 
   return (
     <div>
-      <SummaryRow label="Gesamt ausgegeben" value={eur(total)} />
+      <SummaryRow label={t("fz.totalSpent")} value={eur(total)} />
       {orders.map(o => {
         const item = o.order_items?.[0];
-        const title = item?.snapshot?.title || item?.snapshot?.name || "Werk";
+        const title = item?.snapshot?.title || item?.snapshot?.name || t("fz.work");
         const variantName = item?.variant_name || null;
         const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
         const image = item?.snapshot?.cover_url || null;
@@ -415,9 +418,9 @@ function MeineKaeufe({ userId }) {
         const isDisputed = disputeDone[o.id] || !!o.dispute_open || o.escrow_status === "disputed";
         const needsConfirm = (o.escrow_status === "holding" || !o.escrow_status) && !confirmed && !isDisputed;
         const statusChips = [];
-        if (o.escrow_status === "released" || confirmed) statusChips.push({ label: "Zahlung freigegeben", color: T.green, bg: T.greenSoft });
-        if (o.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
-        if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
+        if (o.escrow_status === "released" || confirmed) statusChips.push({ label: t("fz.statusReleased"), color: T.green, bg: T.greenSoft });
+        if (o.escrow_status === "holding") statusChips.push({ label: t("fz.statusHolding"), color: T.amber, bg: T.amberSoft });
+        if (o.escrow_status === "disputed" || isDisputed) statusChips.push({ label: t("fz.statusDisputed"), color: T.amber, bg: T.amberSoft });
         return (
           <TxCard
             key={o.id}
@@ -456,6 +459,7 @@ function MeineKaeufe({ userId }) {
   );
 }
 function MeineVerkaeufe({ userId }) {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [buyerMap, setBuyerMap] = useState({});
@@ -495,8 +499,8 @@ function MeineVerkaeufe({ userId }) {
           const { error: notifErr } = await supabase.from("notifications").insert({
             user_id:     order.customer_id,
             type:        "order_shipped",
-            title:       "Dein Kauf wurde versendet",
-            body:        "Dein Werk/Talent/Erlebnis wurde versendet und ist unterwegs.",
+            title:       t("fz.notifShippedTitle"),
+            body:        t("fz.notifShippedBody"),
             is_read:     false,
             read:        false,
             actor_id:    authUser?.id || null,
@@ -534,7 +538,7 @@ function MeineVerkaeufe({ userId }) {
         .in("id", buyerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || "Käufer", avatar: p.img || p.avatar_url || null };
+        map[p.id] = { name: p.display_name || p.username || t("fz.buyer"), avatar: p.img || p.avatar_url || null };
       });
       setBuyerMap(map);
     }
@@ -544,7 +548,7 @@ function MeineVerkaeufe({ userId }) {
   useEffect(() => { load(); }, [load]);
 
   const buildTx = (s) => {
-    const title = s.snapshot?.title || s.snapshot?.name || "Werk";
+    const title = s.snapshot?.title || s.snapshot?.name || t("fz.work");
     const image = s.snapshot?.cover_url || null;
     const escrow = s.orders?.escrow_status;
     const payoutReq = !!s.orders?.payout_requested_at;
@@ -552,17 +556,17 @@ function MeineVerkaeufe({ userId }) {
     const bInfo = buyerId ? buyerMap[buyerId] : null;
 
     const statusChips = [];
-    if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
-    if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
+    if (escrow === "holding" && !payoutReq) statusChips.push({ label: t("fz.statusPaymentOpen"), color: T.amber, bg: T.amberSoft });
+    if (escrow === "holding" && payoutReq) statusChips.push({ label: t("fz.statusPayoutRequested"), color: T.teal, bg: T.tealSoft });
     // FIX (2026-08-16): Bei escrow='released' unterscheiden ob der
     // Stripe-Transfer wirklich stattfand (payout_status='transferred')
     // oder ob der Verkäufer keine Bankdaten hat (payout_status='manual_required').
     const payoutStatus = s.payout_status;
-    if (escrow === "released" && payoutStatus === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
-    else if (escrow === "released" && payoutStatus === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
-    else if (escrow === "released") statusChips.push({ label: "Zahlung genehmigt", color: T.teal, bg: T.tealSoft });
-    if (escrow === "disputed") statusChips.push({ label: "In Prüfung", color: T.red, bg: T.redSoft });
-    if (s.orders?.buyer_confirmed_at) statusChips.push({ label: "Käufer bestätigt", color: T.teal, bg: T.tealSoft });
+    if (escrow === "released" && payoutStatus === "transferred") statusChips.push({ label: t("fz.statusPaidOut"), color: T.green, bg: T.greenSoft });
+    else if (escrow === "released" && payoutStatus === "manual_required") statusChips.push({ label: t("fz.statusBankMissing"), color: T.amber, bg: T.amberSoft });
+    else if (escrow === "released") statusChips.push({ label: t("fz.statusApproved"), color: T.teal, bg: T.tealSoft });
+    if (escrow === "disputed") statusChips.push({ label: t("fz.statusDisputed"), color: T.red, bg: T.redSoft });
+    if (s.orders?.buyer_confirmed_at) statusChips.push({ label: t("fz.statusBuyerConfirmed"), color: T.teal, bg: T.tealSoft });
 
     // FIX (2026-08-16): Balanced-Growth-v1 — Impact = echter Impact-Anteil
     // aus snapshot (6% des Verkaufspreises = 30% der 20%-Gebühr), nicht die
@@ -578,22 +582,22 @@ function MeineVerkaeufe({ userId }) {
     // (tx.shippingAddress → TransactionDetailSheet) — nicht mehr als MetaRow verstecken.
     const addrParts = [];
     return {
-      id: s.id, kindLabel: "Verkauf", title: (s.snapshot?.title || s.snapshot?.name || "Werk") + (s.variant_name ? " · " + s.variant_name : ""), image,
-      amount: s.payout_eur, amountLabel: "Verdient",
+      id: s.id, kindLabel: t("fz.detailSale"), title: (s.snapshot?.title || s.snapshot?.name || t("fz.work")) + (s.variant_name ? " · " + s.variant_name : ""), image,
+      amount: s.payout_eur, amountLabel: t("fz.detailEarned"),
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [
-        { label: "Verkaufspreis", value: eur(s.unit_price_eur) },
-        { label: "Plattformgebühr (20%)", value: eur(platformFee) },
-        { label: "Davon Impact-Pool (6%)", value: eur(impactEur) },
-        { label: "Deine Auszahlung (80%)", value: eur(s.payout_eur) },
+        { label: t("fz.detailSalePrice"), value: eur(s.unit_price_eur) },
+        { label: t("fz.detailPlatformFee"), value: eur(platformFee) },
+        { label: t("fz.detailImpactShare"), value: eur(impactEur) },
+        { label: t("fz.detailYourPayout"), value: eur(s.payout_eur) },
       ],
       meta: [
-        ...(s.orders?.shipped_at ? [{ label: "Versendet am", value: dt(s.orders.shipped_at) }] : []),
-        ...(s.orders?.delivered_at ? [{ label: "Zugestellt am", value: dt(s.orders.delivered_at) }] : []),
+        ...(s.orders?.shipped_at ? [{ label: t("fz.metaShippedAt"), value: dt(s.orders.shipped_at) }] : []),
+        ...(s.orders?.delivered_at ? [{ label: t("fz.metaDeliveredAt"), value: dt(s.orders.delivered_at) }] : []),
         ...addrParts,
-        ...(s.orders?.tracking_number ? [{ label: "Tracking", value: s.orders.tracking_number }] : []),
+        ...(s.orders?.tracking_number ? [{ label: t("fz.metaTracking"), value: s.orders.tracking_number }] : []),
       ],
-      person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: "Käufer" } : null,
+      person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: t("fz.buyer") } : null,
       shippingAddress: s.orders?.shipping_address || null,
       actions: {
         onChat: (buyerId && bInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }) : null,
@@ -607,7 +611,7 @@ function MeineVerkaeufe({ userId }) {
   };
 
   if (loading) return <LoadingPlaceholder />;
-  if (!items.length) return <EmptyState text="Noch keine Verkäufe vorhanden." />;
+  if (!items.length) return <EmptyState text={t("fz.noSales")} />;
 
   const totalVerdient   = items.reduce((s, i) => s + (i.payout_eur || 0), 0);
   const totalUmsatz     = items.reduce((s, i) => s + (i.unit_price_eur || 0), 0);
@@ -617,25 +621,25 @@ function MeineVerkaeufe({ userId }) {
   return (
     <div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-        <MiniStat label="Verdient" value={eur(totalVerdient)} color={T.green} />
-        <MiniStat label="Umsatz" value={eur(totalUmsatz)} />
-        <MiniStat label="Impact-Pool" value={eur(totalImpact)} color={T.teal} />
-        <MiniStat label="Verkäufe" value={items.length} />
+        <MiniStat label={t("fz.totalEarned")} value={eur(totalVerdient)} color={T.green} />
+        <MiniStat label={t("fz.totalRevenue")} value={eur(totalUmsatz)} />
+        <MiniStat label={t("fz.totalImpactPool")} value={eur(totalImpact)} color={T.teal} />
+        <MiniStat label={t("fz.totalSales")} value={items.length} />
       </div>
       {items.map(s => {
-        const title = s.snapshot?.title || s.snapshot?.name || "Werk";
+        const title = s.snapshot?.title || s.snapshot?.name || t("fz.work");
         const variantName = s.variant_name || null;
         const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
         const image = s.snapshot?.cover_url || null;
         const escrow = s.orders?.escrow_status;
         const payoutReq = !!s.orders?.payout_requested_at;
         const statusChips = [];
-        if (escrow === "holding" && !payoutReq) statusChips.push({ label: "Zahlung offen", color: T.amber, bg: T.amberSoft });
-        if (escrow === "holding" && payoutReq) statusChips.push({ label: "Auszahlung beantragt", color: T.teal, bg: T.tealSoft });
-        if (escrow === "released" && s.payout_status === "transferred") statusChips.push({ label: "Ausgezahlt ✓", color: T.green, bg: T.greenSoft });
-        else if (escrow === "released" && s.payout_status === "manual_required") statusChips.push({ label: "Bankdaten fehlen", color: T.amber, bg: T.amberSoft });
-        else if (escrow === "released") statusChips.push({ label: "Zahlung genehmigt", color: T.teal, bg: T.tealSoft });
-        if (escrow === "disputed") statusChips.push({ label: "In Prüfung", color: T.red, bg: T.redSoft });
+        if (escrow === "holding" && !payoutReq) statusChips.push({ label: t("fz.statusPaymentOpen"), color: T.amber, bg: T.amberSoft });
+        if (escrow === "holding" && payoutReq) statusChips.push({ label: t("fz.statusPayoutRequested"), color: T.teal, bg: T.tealSoft });
+        if (escrow === "released" && s.payout_status === "transferred") statusChips.push({ label: t("fz.statusPaidOut"), color: T.green, bg: T.greenSoft });
+        else if (escrow === "released" && s.payout_status === "manual_required") statusChips.push({ label: t("fz.statusBankMissing"), color: T.amber, bg: T.amberSoft });
+        else if (escrow === "released") statusChips.push({ label: t("fz.statusApproved"), color: T.teal, bg: T.tealSoft });
+        if (escrow === "disputed") statusChips.push({ label: t("fz.statusDisputed"), color: T.red, bg: T.redSoft });
         return (
           <TxCard
             key={s.id}
@@ -659,6 +663,7 @@ function MeineVerkaeufe({ userId }) {
 // TAB 3: Meine Buchungen (als Kunde)
 // ──────────────────────────────────────────────────────────────────────
 function MeineBuchungen({ userId }) {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmDone, setConfirmDone] = useState({});
@@ -685,9 +690,9 @@ function MeineBuchungen({ userId }) {
     let nameMap = {};
     if (sellerIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, display_name, username, email, website").in("id", sellerIds);
-      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || "Anbieter", website: p.website || null, username: p.username || null }]));
+      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || t("fz.provider"), website: p.website || null, username: p.username || null }]));
     }
-    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: "Anbieter" }; return { ...b, seller_name: sm.name || "Anbieter", seller_website: sm.website || null, seller_username: sm.username || null }; }));
+    setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: t("fz.provider") }; return { ...b, seller_name: sm.name || t("fz.provider"), seller_website: sm.website || null, seller_username: sm.username || null }; }));
 
     // BUGFIX (2026-08-25): welche dieser Buchungen wurden vom Kunden bereits
     // mit einer Empfehlung versehen?
@@ -734,8 +739,8 @@ function MeineBuchungen({ userId }) {
         console.warn("[ESCROW] booking confirm error:", result?.error);
         {
         const friendly = friendlyErrorMessage(result?.error);
-        const isNetwork = friendly !== (result?.error || "Unbekannter Fehler");
-        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+        const isNetwork = friendly !== (result?.error || t("fz.errUnknown"));
+        alert(isNetwork ? friendly : t("fz.errConfirmFailed", { msg: friendly }) + ".");
       }
       }
     } catch (e) {
@@ -749,8 +754,8 @@ function MeineBuchungen({ userId }) {
       } else {
         {
         const friendly = friendlyErrorMessage(rpcErr?.message);
-        const isNetwork = friendly !== (rpcErr?.message || "Unbekannter Fehler");
-        alert(isNetwork ? friendly : "Bestätigung fehlgeschlagen: " + friendly + ". Bitte versuche es erneut.");
+        const isNetwork = friendly !== (rpcErr?.message || t("fz.errUnknown"));
+        alert(isNetwork ? friendly : t("fz.errConfirmFailed", { msg: friendly }) + ".");
       }
       }
     } finally {
@@ -776,12 +781,12 @@ function MeineBuchungen({ userId }) {
   };
 
   const buildTx = (b) => {
-    const title = b.talents?.title || "Talent-Angebot";
+    const title = b.talents?.title || t("fz.talentOffer");
     const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
     const done = b.status === "completed" || b.status === "confirmed";
     const alreadyRecommended = recommendedBookingIds.has(b.id);
     const canRec = done && b.seller_id && !alreadyRecommended;
-    const location = b.talents?.location_type === "online" ? "Online" : (b.talents?.location_address || null);
+    const location = b.talents?.location_type === "online" ? t("fz.online") : (b.talents?.location_address || null);
     const timeStr = b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null;
 
     const bConfirmed = confirmDone[b.id] || !!b.buyer_confirmed_at || !!b.buyer_confirmed;
@@ -789,25 +794,25 @@ function MeineBuchungen({ userId }) {
     const bNeedsConfirm = (b.escrow_status === "holding" || (b.status === "confirmed" && !b.escrow_status)) && !bConfirmed && !bDisputed;
 
     const statusChips = [];
-    if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
-    if (b.status === "confirmed" && !bConfirmed && !bDisputed) statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
-    if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed)) statusChips.push({ label: "Erhalten ✓", color: T.green, bg: T.greenSoft });
-    if (b.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
-    if (b.escrow_status === "disputed" || bDisputed) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
-    if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
+    if (b.status === "pending_payment") statusChips.push({ label: t("fz.statusPaymentPending"), color: T.amber, bg: T.amberSoft });
+    if (b.status === "confirmed" && !bConfirmed && !bDisputed) statusChips.push({ label: t("fz.statusConfirmedCheck"), color: T.green, bg: T.greenSoft });
+    if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed)) statusChips.push({ label: t("fz.statusReceived"), color: T.green, bg: T.greenSoft });
+    if (b.escrow_status === "holding") statusChips.push({ label: t("fz.statusHolding"), color: T.amber, bg: T.amberSoft });
+    if (b.escrow_status === "disputed" || bDisputed) statusChips.push({ label: t("fz.statusDisputed"), color: T.amber, bg: T.amberSoft });
+    if (b.status === "cancelled") statusChips.push({ label: t("fz.statusCancelled"), color: T.red, bg: T.redSoft });
 
     return {
-      id: b.id, kindLabel: "Buchung", title, image,
-      amount: b.amount_eur, amountLabel: "Gebucht für",
+      id: b.id, kindLabel: t("fz.detailBooking"), title, image,
+      amount: b.amount_eur, amountLabel: t("fz.detailBookedFor"),
       dateLabel: dt(b.selected_date), statusChips,
       meta: [
-        { label: "Datum", value: dt(b.selected_date) },
-        { label: "Uhrzeit", value: timeStr },
-        { label: "Ort", value: location },
-        { label: "Teilnehmer", value: b.participants || null },
-        { label: "Kategorie", value: b.talents?.category || null },
+        { label: t("fz.metaDate"), value: dt(b.selected_date) },
+        { label: t("fz.metaTime"), value: timeStr },
+        { label: t("fz.metaLocation"), value: location },
+        { label: t("fz.metaParticipants"), value: b.participants || null },
+        { label: t("fz.metaCategory"), value: b.talents?.category || null },
       ],
-      person: { name: b.seller_name, website: b.seller_website, roleLabel: "Anbieter" },
+      person: { name: b.seller_name, website: b.seller_website, roleLabel: t("fz.provider") },
       actions: {
         onConfirmReceipt: bNeedsConfirm ? () => handleConfirmBooking(b.id) : null,
         confirmingReceipt: confirmingBooking === b.id,
@@ -848,26 +853,26 @@ function MeineBuchungen({ userId }) {
   };
 
   if (loading) return <LoadingPlaceholder />;
-  if (!bookings.length) return <EmptyState text="Du hast noch keine Termine gebucht." />;
+  if (!bookings.length) return <EmptyState text={t("fz.noBookings")} />;
 
   const total = bookings.filter(b => b.status !== "cancelled").reduce((s, b) => s + (b.amount_eur || 0), 0);
 
   return (
     <div>
-      <SummaryRow label="Gesamt gebucht" value={eur(total)} />
+      <SummaryRow label={t("fz.totalBooked")} value={eur(total)} />
       {bookings.map(b => {
-        const title = b.talents?.title || "Talent-Angebot";
+        const title = b.talents?.title || t("fz.talentOffer");
         const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
         const statusChips = [];
         const bConfirmed2 = !!b.buyer_confirmed_at || !!b.buyer_confirmed;
         const bDisputed2 = !!b.dispute_open || b.escrow_status === "disputed";
         const bNeedsConfirm2 = (b.escrow_status === "holding" || (b.status === "confirmed" && !b.escrow_status)) && !bConfirmed2 && !bDisputed2;
-        if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
-        if (b.status === "confirmed" && !bConfirmed2 && !bDisputed2) statusChips.push({ label: "Bestätigt", color: T.green, bg: T.greenSoft });
-        if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed2)) statusChips.push({ label: "Erhalten ✓", color: T.green, bg: T.greenSoft });
-        if (b.escrow_status === "holding") statusChips.push({ label: "In Treuhand", color: T.amber, bg: T.amberSoft });
-        if (bDisputed2) statusChips.push({ label: "In Prüfung", color: T.amber, bg: T.amberSoft });
-        if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
+        if (b.status === "pending_payment") statusChips.push({ label: t("fz.statusPaymentPending"), color: T.amber, bg: T.amberSoft });
+        if (b.status === "confirmed" && !bConfirmed2 && !bDisputed2) statusChips.push({ label: t("fz.statusConfirmed"), color: T.green, bg: T.greenSoft });
+        if (b.status === "completed" || (b.escrow_status === "released" && bConfirmed2)) statusChips.push({ label: t("fz.statusReceived"), color: T.green, bg: T.greenSoft });
+        if (b.escrow_status === "holding") statusChips.push({ label: t("fz.statusHolding"), color: T.amber, bg: T.amberSoft });
+        if (bDisputed2) statusChips.push({ label: t("fz.statusDisputed"), color: T.amber, bg: T.amberSoft });
+        if (b.status === "cancelled") statusChips.push({ label: t("fz.statusCancelled"), color: T.red, bg: T.redSoft });
         return (
           <TxCard
             key={b.id}
@@ -913,10 +918,10 @@ function MeineBuchungen({ userId }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
-              <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>Mit {b.seller_name} chatten?</div>
-              <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Anbieter starten?</div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>{t("fz.chatWithSeller", { name: b.seller_name })}</div>
+              <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>{t("fz.chatWithSellerDesc")}</div>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
+                <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>{t("fz.chatNo")}</button>
                 <button
                   onClick={() => {
                     setShowChatConfirm(null);
@@ -924,7 +929,7 @@ function MeineBuchungen({ userId }) {
                     actions[A.OPEN_CHAT]?.({ recipient: { id: b.seller_id, display_name: b.seller_name, avatar_url: null }, source: S.SYSTEM });
                   }}
                   style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
-                >Ja</button>
+                >{t("fz.chatYes")}</button>
               </div>
             </div>
           </div>
@@ -940,6 +945,7 @@ function MeineBuchungen({ userId }) {
 // TAB 4: Wer hat mich gebucht
 // ──────────────────────────────────────────────────────────────────────
 function WerHatMichGebucht({ userId }) {
+  const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showChatConfirm, setShowChatConfirm] = useState(null);
@@ -959,36 +965,36 @@ function WerHatMichGebucht({ userId }) {
     let nameMap = {};
     if (customerIds.length) {
       const { data: profs } = await supabase.from("profiles").select("id, display_name, username").in("id", customerIds);
-      nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.display_name || p.username || "Kunde"]));
+      nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.display_name || p.username || t("fz.customer")]));
     }
-    setBookings((data || []).map(b => ({ ...b, customer_name: nameMap[b.customer_id] || "Kunde" })));
+    setBookings((data || []).map(b => ({ ...b, customer_name: nameMap[b.customer_id] || t("fz.customer") })));
     setLoading(false);
   }, [userId]);
 
   useEffect(() => { load(); }, [load]);
 
   const buildTx = (b) => {
-    const title = b.talents?.title || "Talent-Angebot";
+    const title = b.talents?.title || t("fz.talentOffer");
     const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
     const timeStr = b.selected_time_slot?.start ? b.selected_time_slot.start + (b.selected_time_slot.end ? " – " + b.selected_time_slot.end : "") : null;
 
     const statusChips = [];
-    if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
-    if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
-    if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
-    if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
+    if (b.status === "pending_payment") statusChips.push({ label: t("fz.statusPaymentPending"), color: T.amber, bg: T.amberSoft });
+    if (b.status === "confirmed") statusChips.push({ label: t("fz.statusConfirmedCheck"), color: T.green, bg: T.greenSoft });
+    if (b.status === "completed") statusChips.push({ label: t("fz.statusCompleted"), color: T.green, bg: T.greenSoft });
+    if (b.status === "cancelled") statusChips.push({ label: t("fz.statusCancelled"), color: T.red, bg: T.redSoft });
 
     return {
-      id: b.id, kindLabel: "Gebucht", title, image,
-      amount: b.amount_eur, amountLabel: "Einnahme",
+      id: b.id, kindLabel: t("fz.detailBooked"), title, image,
+      amount: b.amount_eur, amountLabel: t("fz.detailIncome"),
       dateLabel: dt(b.selected_date), statusChips,
       meta: [
-        { label: "Datum", value: dt(b.selected_date) },
-        { label: "Uhrzeit", value: timeStr },
-        { label: "Teilnehmer", value: b.participants || null },
-        { label: "Kategorie", value: b.talents?.category || null },
+        { label: t("fz.metaDate"), value: dt(b.selected_date) },
+        { label: t("fz.metaTime"), value: timeStr },
+        { label: t("fz.metaParticipants"), value: b.participants || null },
+        { label: t("fz.metaCategory"), value: b.talents?.category || null },
       ],
-      person: { name: b.customer_name, roleLabel: "Kunde" },
+      person: { name: b.customer_name, roleLabel: t("fz.customer") },
       actions: {
         onChat: (b.customer_id && b.status !== "cancelled") ? () => setShowChatConfirm(b.id) : null,
         onViewProfile: b.customer_id ? () => window.__HUI_OPEN_PROFILE__?.(b.customer_id) : null,
@@ -997,21 +1003,21 @@ function WerHatMichGebucht({ userId }) {
   };
 
   if (loading) return <LoadingPlaceholder />;
-  if (!bookings.length) return <EmptyState text="Noch keine Buchungen für dein Talent-Angebot." />;
+  if (!bookings.length) return <EmptyState text={t("fz.noBookedYou")} />;
 
   const totalEarned = bookings.filter(b => b.status !== "cancelled").reduce((s, b) => s + (b.amount_eur || 0), 0);
 
   return (
     <div>
-      <SummaryRow label="Gesamteinnahmen" value={eur(totalEarned)} color={T.green} />
+      <SummaryRow label={t("fz.totalEarnings")} value={eur(totalEarned)} color={T.green} />
       {bookings.map(b => {
-        const title = b.talents?.title || "Talent-Angebot";
+        const title = b.talents?.title || t("fz.talentOffer");
         const image = Array.isArray(b.talents?.images) && b.talents.images[0]?.url ? b.talents.images[0].url : null;
         const statusChips = [];
-        if (b.status === "pending_payment") statusChips.push({ label: "Zahlung ausstehend", color: T.amber, bg: T.amberSoft });
-        if (b.status === "confirmed") statusChips.push({ label: "Bestätigt ✓", color: T.green, bg: T.greenSoft });
-        if (b.status === "completed") statusChips.push({ label: "Abgeschlossen ✓", color: T.green, bg: T.greenSoft });
-        if (b.status === "cancelled") statusChips.push({ label: "Storniert", color: T.red, bg: T.redSoft });
+        if (b.status === "pending_payment") statusChips.push({ label: t("fz.statusPaymentPending"), color: T.amber, bg: T.amberSoft });
+        if (b.status === "confirmed") statusChips.push({ label: t("fz.statusConfirmedCheck"), color: T.green, bg: T.greenSoft });
+        if (b.status === "completed") statusChips.push({ label: t("fz.statusCompleted"), color: T.green, bg: T.greenSoft });
+        if (b.status === "cancelled") statusChips.push({ label: t("fz.statusCancelled"), color: T.red, bg: T.redSoft });
         return (
           <TxCard
             key={b.id}
@@ -1041,9 +1047,9 @@ function WerHatMichGebucht({ userId }) {
           }}>
             <div style={{ width: "88%", maxWidth: 320, background: T.bgCard, borderRadius: 20, padding: "24px 20px", textAlign: "center", boxShadow: "0 12px 48px rgba(20,20,34,0.25)" }}>
               <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>Mit {b.customer_name} chatten?</div>
-              <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>Möchtest du wirklich eine Unterhaltung mit dem Käufer starten?</div>
+              <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, marginBottom: 20 }}>{t("fz.chatWithBuyerDesc")}</div>
               <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>Nein</button>
+                <button onClick={() => setShowChatConfirm(null)} style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: `1.5px solid ${T.border}`, background: "transparent", color: T.inkSoft, fontSize: 15, fontWeight: 600, cursor: "pointer" }}>{t("fz.chatNo")}</button>
                 <button
                   onClick={() => {
                     setShowChatConfirm(null);
@@ -1051,7 +1057,7 @@ function WerHatMichGebucht({ userId }) {
                     actions[A.OPEN_CHAT]?.({ recipient: { id: b.customer_id, display_name: b.customer_name, avatar_url: null }, source: S.SYSTEM });
                   }}
                   style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
-                >Ja</button>
+                >{t("fz.chatYes")}</button>
               </div>
             </div>
           </div>
@@ -1065,9 +1071,10 @@ function WerHatMichGebucht({ userId }) {
 // Hilfs-Komponenten
 // ──────────────────────────────────────────────────────────────────────
 function LoadingPlaceholder() {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: "40px 0", textAlign: "center", color: T.inkFaint, fontSize: 13 }}>
-      Wird geladen…
+      {t("fz.loading")}
     </div>
   );
 }
@@ -1105,11 +1112,11 @@ function MiniStat({ label, value, color = T.ink }) {
 // ──────────────────────────────────────────────────────────────────────
 // TABS-CONFIG
 // ──────────────────────────────────────────────────────────────────────
-const TABS = [
-  { id: "kaeufe",   label: "Käufe" },
-  { id: "verkaeufe",label: "Verkäufe" },
-  { id: "buchungen",label: "Buchungen" },
-  { id: "gebucht",  label: "Gebucht" },
+const getTabs = (t) => [
+  { id: "kaeufe",   label: t("fz.tabKaeufe") },
+  { id: "verkaeufe",label: t("fz.tabVerkaeufe") },
+  { id: "buchungen",label: t("fz.tabBuchungen") },
+  { id: "gebucht",  label: t("fz.tabGebucht") },
   // "Support"-Tab entfernt (2026-08-15, auf Wunsch von Michael) — in Käufe/Verkäufe
   // nicht benötigt. MeineSupports-Komponente bleibt im Code erhalten
   // (No-Regression-Protection), ist aber hier nicht mehr erreichbar.
@@ -1120,6 +1127,7 @@ const TABS = [
 // TAB 5: Support — Gegebene und erhaltene Unterstützungen
 // ──────────────────────────────────────────────────────────────────────
 function MeineSupports({ userId }) {
+  const { t } = useTranslation();
   const [given, setGiven]     = useState([]);
   const [received, setReceived] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1153,14 +1161,14 @@ function MeineSupports({ userId }) {
   const buildTx = (item, otherIdKey) => {
     const meta = item.metadata || {};
     const msg = meta.message || meta.support_message || null;
-    const statusLabel = item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status;
+    const statusLabel = item.status === "succeeded" ? t("fz.statusSucceeded") : item.status === "pending" ? t("fz.statusPending") : item.status === "failed" ? t("fz.statusFailed") : item.status;
     const statusColor = item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red;
     const statusBg    = item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft;
     return {
-      id: item.id, kindLabel: view === "given" ? "Support gegeben" : "Support erhalten",
-      title: item.description || "Unterstützung",
+      id: item.id, kindLabel: view === "given" ? t("fz.supportGiven") : t("fz.supportReceived"),
+      title: item.description || t("fz.support"),
       image: null,
-      amount: item.amount, amountLabel: "Betrag",
+      amount: item.amount, amountLabel: t("fz.supportAmount"),
       dateLabel: dt(item.created_at),
       statusChips: [{ label: statusLabel, color: statusColor, bg: statusBg }],
       description: typeof msg === "string" ? msg : null,
@@ -1171,7 +1179,7 @@ function MeineSupports({ userId }) {
 
   if (loading) return <LoadingPlaceholder />;
   if (!given.length && !received.length)
-    return <EmptyState text="Noch keine Unterstützungen gegeben oder erhalten." />;
+    return <EmptyState text={t("fz.noSupports")} />;
 
   const items = view === "given" ? given : received;
   const otherIdKey = view === "given" ? "seller_id" : "user_id";
@@ -1200,18 +1208,18 @@ function MeineSupports({ userId }) {
       </div>
 
       {!items.length && (
-        <EmptyState text={view === "given" ? "Du hast noch niemanden unterstützt." : "Du hast noch keine Unterstützungen erhalten."} />
+        <EmptyState text={view === "given" ? t("fz.noSupportGiven") : t("fz.noSupportReceived")} />
       )}
 
       {items.map((item) => {
-        const statusLabel = item.status === "succeeded" ? "Erfolgreich" : item.status === "pending" ? "Ausstehend" : item.status === "failed" ? "Fehlgeschlagen" : item.status;
+        const statusLabel = item.status === "succeeded" ? t("fz.statusSucceeded") : item.status === "pending" ? t("fz.statusPending") : item.status === "failed" ? t("fz.statusFailed") : item.status;
         const statusColor = item.status === "succeeded" ? T.green : item.status === "pending" ? T.amber : T.red;
         const statusBg    = item.status === "succeeded" ? T.greenSoft : item.status === "pending" ? T.amberSoft : T.redSoft;
         return (
           <TxCard
             key={item.id}
             image={null}
-            title={item.description || "Unterstützung"}
+            title={item.description || t("fz.support")}
             dateLabel={dt(item.created_at)}
             amount={item.amount}
             statusChips={[{ label: statusLabel, color: statusColor, bg: statusBg }]}
@@ -1229,13 +1237,13 @@ function MeineSupports({ userId }) {
           background: T.tealSoft, border: `1px solid ${T.tealMid}`,
         }}>
           <div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 4 }}>
-            {view === "given" ? "Insgesamt gegeben" : "Insgesamt erhalten"}
+            {view === "given" ? t("fz.totalGiven") : t("fz.totalReceived")}
           </div>
           <span style={{ fontSize: 20, fontWeight: 600, color: T.teal, whiteSpace: "nowrap" }}>
             {eur(items.filter(i => i.status === "succeeded").reduce((sum, i) => sum + Number(i.amount), 0))}
           </span>
           <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 2 }}>
-            {items.filter(i => i.status === "succeeded").length} erfolgreiche Unterstützung(en)
+            {t("fz.supportCount", { count: items.filter(i => i.status === "succeeded").length })}
           </div>
         </div>
       )}
@@ -1247,6 +1255,8 @@ function MeineSupports({ userId }) {
 // HAUPT-EXPORT
 // ──────────────────────────────────────────────────────────────────────
 export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
+  const { t } = useTranslation();
+  const TABS = getTabs(t);
   useModalRegistration(true, onClose, "FinanzuebersichtModal");
   const [tab, setTab] = useState("kaeufe");
   const userId = profile?.id;
@@ -1283,10 +1293,10 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
         }}>
           <div>
             <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
-              Käufe/Verkäufe
+              {t("fz.headerTitle")}
             </div>
             <div style={{ fontSize: 12, color: T.inkFaint, marginTop: 2 }}>
-              Käufe, Verkäufe, Buchungen
+              {t("fz.headerSubtitle")}
             </div>
           </div>
           <button onClick={onClose} style={{
