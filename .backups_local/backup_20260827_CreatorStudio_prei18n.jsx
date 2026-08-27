@@ -8,7 +8,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useAppState } from "../lib/AppStateContext";
 import { useCreatorBookings, BOOKING_STATUS } from "../lib/bookingContext";
 import { useAuth } from "../lib/AuthContext";
-import { useTranslation } from "../hooks/useTranslation.js";
 import { supabase } from "../lib/supabaseClient";
 import { HUI } from "../design/hui.design.js";
 import SupportPage from "./studio/SupportPage.jsx";
@@ -52,44 +51,37 @@ const CSS = `
 `;
 
 // Tool-Definitionen — Gruppen statt flache Liste
-function getToolGroups(t) {
-  return [
+const TOOL_GROUPS = [
   {
-    label: t("studio.groupCreative"),
+    label: "Deine kreative Arbeit",
     tools: [
-      { key:"content",      icon:"🎨", label: t("studio.toolContent"),      sub: t("studio.toolContentSub"),      accent:C.teal    },
-      { key:"availability", icon:"🗓", label: t("studio.toolAvailability"),  sub: t("studio.toolAvailabilitySub"),  accent:C.coral   },
-      { key:"orders",       icon:"🤝", label: t("studio.toolOrders"),        sub: t("studio.toolOrdersSub"),        accent:C.violet  },
+      { key:"content",      icon:"🎨", label:"Werke & Inhalte",  sub:"Was du erschaffen hast",     accent:C.teal    },
+      { key:"availability", icon:"🗓", label:"Verfügbarkeit",    sub:"Wann du kreativ arbeitest",   accent:C.coral   },
+      { key:"orders",       icon:"🤝", label:"Zusammenarbeit",   sub:"Anfragen & laufende Projekte",accent:C.violet  },
     ]
   },
   {
-    label: t("studio.groupImpact"),
+    label: "Deine Wirkung",
     tools: [
-      { key:"analytics",   icon:"✦",  label: t("studio.toolAnalytics"),    sub: t("studio.toolAnalyticsSub"),    accent:C.teal    },
-      { key:"earnings",    icon:"◎",  label: t("studio.toolEarnings"),     sub: t("studio.toolEarningsSub"),     accent:C.green   },
-      { key:"reputation",  icon:"⭐", label: t("studio.toolReputation"),    sub: t("studio.toolReputationSub"),    accent:C.gold    },
-      { key:"impact",      icon:"🌱", label: t("studio.toolImpact"),        sub: t("studio.toolImpactSub"),       accent:C.green   },
+      { key:"analytics",   icon:"✦",  label:"Reichweite",       sub:"Wer folgt dir und warum",    accent:C.teal    },
+      { key:"earnings",    icon:"◎",  label:"Einnahmen",        sub:"Dein kreatives Einkommen",   accent:C.green   },
+      { key:"reputation",  icon:"⭐", label:"Vertrauen",        sub:"Zusammenarbeit & Feedback",  accent:C.gold    },
+      { key:"impact",      icon:"🌱", label:"Impact",           sub:"Dein Beitrag zur Community", accent:C.green   },
     ]
   },
   {
-    label: t("studio.groupPersonal"),
+    label: "Persönliches",
     tools: [
-      { key:"support",     icon:"🎧", label: t("studio.toolSupport"),      sub: t("studio.toolSupportSub"),      accent:C.coral   },
-      { key:"settings",    icon:"◦",  label: t("studio.toolSettings"),     sub: t("studio.toolSettingsSub"),     accent:C.muted   },
+      { key:"support",     icon:"🎧", label:"Support",          sub:"Hilfe & Kontakt",             accent:C.coral   },
+      { key:"settings",    icon:"◦",  label:"Einstellungen",    sub:"Konto & Sichtbarkeit",       accent:C.muted   },
     ]
   },
-  ];
-}
-
-// Flache Liste für SubPage-Lookup (statische Keys, keine Übersetzung nötig)
-const ALL_TOOLS = [
-  { key:"content" }, { key:"availability" }, { key:"orders" },
-  { key:"analytics" }, { key:"earnings" }, { key:"reputation" }, { key:"impact" },
-  { key:"support" }, { key:"settings" },
 ];
 
+// Flache Liste für SubPage-Lookup
+const ALL_TOOLS = TOOL_GROUPS.flatMap(g => g.tools);
+
 export default function CreatorStudio() {
-  const { t } = useTranslation();
   const navigate        = useNavigate();
   const { section }     = useParams();
   const { user }        = useAuth();
@@ -194,7 +186,7 @@ export default function CreatorStudio() {
           <div style={{ flex:1 }}>
             <div style={{ fontSize:10, fontWeight: 600, color:"rgba(22,215,197,0.70)",
               letterSpacing:2, textTransform:"uppercase", marginBottom:3 }}>
-              {t("studio.deinStudio")}
+              Dein Studio
             </div>
           </div>
           {profile?.avatar_url && (
@@ -216,7 +208,7 @@ export default function CreatorStudio() {
           </div>
           <div style={{ fontSize:14, color:"rgba(255,255,255,0.50)", fontWeight:400,
             lineHeight:1.5 }}>
-            {greetingData ? greetingData.sub : t("studio.greetingFallback")}
+            {greetingData ? greetingData.sub : "Schön, dass du wieder da bist"}
           </div>
         </div>
 
@@ -233,7 +225,7 @@ export default function CreatorStudio() {
                 onClick={() => openTool("orders")}>
                 <HUIDateiIcon size={12} style={{flexShrink:0}} />
                 <span style={{ fontSize:12, fontWeight: 600, color:"rgba(245,166,35,0.90)" }}>
-                  {pendingCount > 1 ? t("studio.openRequestPlural", {count: pendingCount}) : t("studio.openRequestSingular")}
+                  {pendingCount} offene Anfrage{pendingCount > 1 ? "n" : ""}
                 </span>
               </div>
             )}
@@ -244,7 +236,7 @@ export default function CreatorStudio() {
                 border:"1px solid rgba(22,215,197,0.25)" }}>
                 <span style={{ fontSize:12 }}>🤝</span>
                 <span style={{ fontSize:12, fontWeight: 600, color:"rgba(22,215,197,0.85)" }}>
-                  {activeCount > 1 ? t("studio.activeProjectPlural", {count: activeCount}) : t("studio.activeProjectSingular")}
+                  {activeCount} aktiv{activeCount > 1 ? "e Projekte" : "s Projekt"}
                 </span>
               </div>
             )}
@@ -267,10 +259,10 @@ export default function CreatorStudio() {
           )}
           <div style={{ flex:1, textAlign:"left" }}>
             <div style={{ fontSize:13, fontWeight: 600, color:C.ink }}>
-              {t("studio.publicProfile")}
+              Öffentliches Profil ansehen
             </div>
             <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>
-              {t("studio.publicProfileSub")}
+              So siehst du für andere aus
             </div>
           </div>
           <div style={{ fontSize:13, color:C.muted }}>→</div>
@@ -279,7 +271,7 @@ export default function CreatorStudio() {
 
       {/* ── Tool-Gruppen ─────────────────────────────────────── */}
       <div style={{ padding:"20px 16px max(32px,max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 32px), 32px))" }}>
-        {getToolGroups(t).map((group, gi) => (
+        {TOOL_GROUPS.map((group, gi) => (
           <div key={group.label}
             style={{ marginBottom:24,
               animation:`studioFadeUp ${TRANSITIONS.normal} ${0.08 + gi * 0.06}s ${TRANSITIONS.overlay} both` }}>
@@ -351,7 +343,7 @@ export default function CreatorStudio() {
         <div style={{ textAlign:"center", padding:"8px 0 8px",
           fontSize:11, color:"rgba(0,0,0,0.20)", fontWeight:500,
           animation:`huiFadeIn ${TRANSITIONS.slow} 0.4s both` }}>
-          {t("studio.bottomNote")}
+          HUI — Deine kreative Welt
         </div>
       </div>
     </div>
