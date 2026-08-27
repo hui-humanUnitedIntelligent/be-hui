@@ -2,6 +2,7 @@ import { HUIAnalyticsIcon, HUIImpactIcon, HUIStatistikIcon, HUIWarnIcon, HUIWerk
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { formatDateDE } from "../lib/formatters.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 const C = {
   bg:"#0A0F1E", card:"#111827", card2:"#1A2235", border:"#1E2D45",
@@ -30,7 +31,7 @@ async function sendNotification({ userId, type, title, body, actionUrl, metadata
 // ─────────────────────────────────────────────────────────────────
 const TYPE_CFG = {
   werk: {
-    label:"WERK", emoji:"🎨",
+    label: (t) => t("adm.labelWerk"), emoji:"🎨",
     badgeBg:"rgba(245,166,35,0.92)",
     table:"works",
     pendingStatus:"pending_review",
@@ -38,14 +39,14 @@ const TYPE_CFG = {
     rejectStatus:"rejected",
     approveExtra: { published_at: new Date().toISOString() },
     rejectExtra:  { published_at: null },
-    notifApproveTitle: (t) => `Dein Werk wurde freigegeben ✅`,
-    notifApproveBody:  (t) => `„${t}" ist jetzt öffentlich im Feed.`,
-    notifRejectTitle:  (t) => `Dein Werk wurde abgelehnt`,
-    notifRejectBody:   (t) => `„${t}" konnte nicht freigegeben werden.`,
+    notifApproveTitle: (title, t) => t("adm.notifWerkApproveTitle"),
+    notifApproveBody:  (title, t) => t("adm.notifWerkApproveBody", { title }),
+    notifRejectTitle:  (title, t) => t("adm.notifWerkRejectTitle"),
+    notifRejectBody:   (title, t) => t("adm.notifWerkRejectBody", { title }),
     actionUrl:"/studio",
   },
   experience: {
-    label:"ERLEBNIS", emoji:"🎟",
+    label: (t) => t("adm.labelErlebnis"), emoji:"🎟",
     badgeBg:"rgba(42,191,172,0.92)",
     table:"experiences",
     pendingStatus:"pending_review",
@@ -53,14 +54,14 @@ const TYPE_CFG = {
     rejectStatus:"rejected",
     approveExtra: { published_at: new Date().toISOString() },
     rejectExtra:  { published_at: null },
-    notifApproveTitle: (t) => `Dein Erlebnis wurde freigegeben ✅`,
-    notifApproveBody:  (t) => `„${t}" ist jetzt öffentlich im Feed.`,
-    notifRejectTitle:  (t) => `Dein Erlebnis wurde abgelehnt`,
-    notifRejectBody:   (t) => `„${t}" konnte nicht freigegeben werden.`,
+    notifApproveTitle: (title, t) => t("adm.notifExpApproveTitle"),
+    notifApproveBody:  (title, t) => t("adm.notifWerkApproveBody", { title }),
+    notifRejectTitle:  (title, t) => t("adm.notifExpRejectTitle"),
+    notifRejectBody:   (title, t) => t("adm.notifWerkRejectBody", { title }),
     actionUrl:"/studio",
   },
   project: {
-    label:"PROJEKT", emoji:"🌍",
+    label: (t) => t("adm.labelProjekt"), emoji:"🌍",
     badgeBg:"rgba(167,139,250,0.92)",
     table:"impact_applications",
     pendingStatus:"pending",
@@ -68,10 +69,10 @@ const TYPE_CFG = {
     rejectStatus:"rejected",
     approveExtra:{},
     rejectExtra:{},
-    notifApproveTitle: (t) => `Dein Projekt wurde angenommen ✅`,
-    notifApproveBody:  (t) => `„${t}" ist jetzt Teil der HUI Impact-Projekte.`,
-    notifRejectTitle:  (t) => `Dein Projekt wurde abgelehnt`,
-    notifRejectBody:   (t) => `„${t}" konnte leider nicht angenommen werden.`,
+    notifApproveTitle: (title, t) => t("adm.notifProjApproveTitle"),
+    notifApproveBody:  (title, t) => t("adm.notifProjApproveBody", { title }),
+    notifRejectTitle:  (title, t) => t("adm.notifProjRejectTitle"),
+    notifRejectBody:   (title, t) => t("adm.notifProjRejectBody", { title }),
     actionUrl:"/impact",
   },
 };
@@ -79,15 +80,17 @@ const TYPE_CFG = {
 // ─────────────────────────────────────────────────────────────────
 // Status-Badge
 // ─────────────────────────────────────────────────────────────────
-const STATUS_STYLE = {
-  pending_review: { label:"Ausstehend", color:"#FBBF24", bg:"rgba(251,191,36,0.12)" },
-  pending:        { label:"Ausstehend", color:"#FBBF24", bg:"rgba(251,191,36,0.12)" },
-  published:      { label:"Freigegeben", color:"#10B981", bg:"rgba(16,185,129,0.12)" },
-  approved:       { label:"Freigegeben", color:"#10B981", bg:"rgba(16,185,129,0.12)" },
-  rejected:       { label:"Abgelehnt",  color:"#EF4444", bg:"rgba(239,68,68,0.12)"  },
-  draft:          { label:"Entwurf",    color:"#94A3B8", bg:"rgba(148,163,184,0.12)" },
-};
+const getStatusStyle = (t) => ({
+  pending_review: { label: t("adm.statusPending"), color:"#FBBF24", bg:"rgba(251,191,36,0.12)" },
+  pending:        { label: t("adm.statusPending"), color:"#FBBF24", bg:"rgba(251,191,36,0.12)" },
+  published:      { label: t("adm.statusApproved"), color:"#10B981", bg:"rgba(16,185,129,0.12)" },
+  approved:       { label: t("adm.statusApproved"), color:"#10B981", bg:"rgba(16,185,129,0.12)" },
+  rejected:       { label: t("adm.statusRejected"), color:"#EF4444", bg:"rgba(239,68,68,0.12)"  },
+  draft:          { label: t("adm.statusDraft"), color:"#94A3B8", bg:"rgba(148,163,184,0.12)" },
+});
 function StatusBadge({ status }) {
+  const { t } = useTranslation();
+  const STATUS_STYLE = getStatusStyle(t);
   const s = STATUS_STYLE[status] || STATUS_STYLE.draft;
   return (
     <span style={{
@@ -106,6 +109,7 @@ function StatusBadge({ status }) {
 // Dopplung eines bestehenden Admin-Bereichs.
 // ─────────────────────────────────────────────────────────────────
 function KommentarMeldungenTab({ onCountChange }) {
+  const { t } = useTranslation();
   const [rows,    setRows]    = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId,  setBusyId]  = useState(null);
@@ -174,21 +178,21 @@ function KommentarMeldungenTab({ onCountChange }) {
 
   const card = { background:C.card, border:`1px solid ${C.border}`, borderRadius:16, padding:18 };
 
-  if (loading) return <div style={card}>Lade Meldungen…</div>;
+  if (loading) return <div style={card}>{t("adm.loadingReports")}</div>;
 
   return (
     <div style={card}>
-      <div style={{ fontWeight: 600, marginBottom:14 }}>🚩 Gemeldete Kommentare ({rows.length})</div>
+      <div style={{ fontWeight: 600, marginBottom:14 }}>{t("adm.reportedComments", { count: rows.length })}</div>
       {rows.length === 0 ? (
-        <div style={{ color:C.sub, fontSize:13 }}>Keine offenen Meldungen.</div>
+        <div style={{ color:C.sub, fontSize:13 }}>{t("adm.noReports")}</div>
       ) : rows.map(row => (
         <div key={row.id} style={{
           padding:"14px 0", borderBottom:`1px solid ${C.border}`,
           display:"flex", flexDirection:"column", gap:8,
         }}>
           <div style={{ fontSize:12, color:C.sub }}>
-            Gemeldet von <b style={{ color:C.text }}>{row.reporter?.display_name || "Unbekannt"}</b>
-            {" · "}Grund: <span style={{ color:C.coral, fontWeight:600 }}>{row.reason}</span>
+            {t("adm.reportedBy")} <b style={{ color:C.text }}>{row.reporter?.display_name || t("adm.unknown")}</b>
+            {" · "}{t("adm.reason")} <span style={{ color:C.coral, fontWeight:600 }}>{row.reason}</span>
             {" · "}{formatDateDE(new Date(row.created_at), { day:"numeric", month:"short", year:"numeric" })}
           </div>
           <div style={{
@@ -196,11 +200,11 @@ function KommentarMeldungenTab({ onCountChange }) {
             fontSize:13.5, color:C.text, lineHeight:1.5,
           }}>
             {row.comment?.deleted_at
-              ? <span style={{ color:C.sub, fontStyle:"italic" }}>(Kommentar bereits geloescht)</span>
-              : (row.comment?.text || <span style={{ color:C.sub, fontStyle:"italic" }}>(Kommentar nicht mehr auffindbar)</span>)}
+              ? <span style={{ color:C.sub, fontStyle:"italic" }}>{t("adm.commentDeleted")}</span>
+              : (row.comment?.text || <span style={{ color:C.sub, fontStyle:"italic" }}>{t("adm.commentNotFound")}</span>)}
           </div>
           <div style={{ fontSize:11.5, color:C.muted }}>
-            von {row.commentAuthor?.display_name || "Unbekannt"} · {row.comment?.post_type || "?"} #{row.comment?.post_id?.slice(0,8) || "?"}
+            von {row.commentAuthor?.display_name || t("adm.unknown")} · {row.comment?.post_type || "?"} #{row.comment?.post_id?.slice(0,8) || "?"}
           </div>
           <div style={{ display:"flex", gap:8 }}>
             <button disabled={busyId===row.id || row.comment?.deleted_at} onClick={() => handleDeleteComment(row)} style={{
@@ -228,6 +232,7 @@ function KommentarMeldungenTab({ onCountChange }) {
 // FreigabenTab — Ausstehend / Freigegeben / Abgelehnt
 // ─────────────────────────────────────────────────────────────────
 function FreigabenTab({ onPendingChange }) {
+  const { t } = useTranslation();
   const [items,     setItems]     = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [subTab,    setSubTab]    = useState("pending"); // pending|approved|rejected
@@ -318,16 +323,16 @@ function FreigabenTab({ onPendingChange }) {
         is_update: false,
       })
       .eq("id", item.id);
-    if (error) { showToast("Fehler: "+error.message, false); }
+    if (error) { showToast(t("adm.errorPrefix")+error.message, false); }
     else {
       await sendNotification({
         userId: uid, type:"content_approved",
-        title: cfg.notifApproveTitle(item._title),
-        body:  cfg.notifApproveBody(item._title),
+        title: cfg.notifApproveTitle(item._title, t),
+        body:  cfg.notifApproveBody(item._title, t),
         actionUrl: cfg.actionUrl,
         metadata: { content_type:item._type, content_id:item.id, content_title:item._title },
       });
-      showToast(`✅ ${cfg.label} freigegeben`);
+      showToast(`✅ ${cfg.label(t)} ` + t("adm.statusApproved"));
       setItems(p => p.filter(x => x.id !== item.id));
       onPendingChange?.(p => Math.max(0, (p||1)-1));
     }
@@ -355,19 +360,19 @@ function FreigabenTab({ onPendingChange }) {
         is_update: false,
       })
       .eq("id", rejectDlg.id);
-    if (error) { showToast("Fehler: "+error.message, false); }
+    if (error) { showToast(t("adm.errorPrefix")+error.message, false); }
     else {
       await sendNotification({
         userId: uid, type:"content_rejected",
-        title: cfg.notifRejectTitle(rejectDlg._title),
-        body:  cfg.notifRejectBody(rejectDlg._title),
+        title: cfg.notifRejectTitle(rejectDlg._title, t),
+        body:  cfg.notifRejectBody(rejectDlg._title, t),
         actionUrl: cfg.actionUrl,
         metadata: {
           content_type:rejectDlg._type, content_id:rejectDlg.id,
           content_title:rejectDlg._title, rejection_reason:reason||null,
         },
       });
-      showToast(`❌ ${cfg.label} abgelehnt & Nutzer benachrichtigt`);
+      showToast(t("adm.rejectedToast", { label: cfg.label(t) }));
       setItems(p => p.filter(x => x.id !== rejectDlg.id));
       onPendingChange?.(p => Math.max(0, (p||1)-1));
     }
@@ -382,9 +387,9 @@ function FreigabenTab({ onPendingChange }) {
       .update({ admin_comment: commentText.trim() || null,
                 updated_at: new Date().toISOString() })
       .eq("id", commentDlg.id);
-    if (error) { showToast("Fehler: "+error.message, false); }
+    if (error) { showToast(t("adm.errorPrefix")+error.message, false); }
     else {
-      showToast("💬 Kommentar gespeichert");
+      showToast(t("adm.commentSaved"));
       setItems(p => p.map(x =>
         x.id === commentDlg.id ? {...x, admin_comment:commentText.trim()||null} : x
       ));
@@ -424,20 +429,20 @@ function FreigabenTab({ onPendingChange }) {
           <div style={{background:C.card,borderRadius:20,padding:24,
             width:"100%",maxWidth:460,border:`1px solid ${C.border}`}}>
             <div style={{fontSize:16,fontWeight: 600,color:C.text,marginBottom:4}}>
-              ❌ {TYPE_CFG[rejectDlg._type]?.label} ablehnen
+              {t("adm.rejectTitle", { label: TYPE_CFG[rejectDlg._type]?.label(t) })}
             </div>
             <div style={{fontSize:12,color:C.sub,marginBottom:14}}>„{rejectDlg._title}"</div>
             <div style={{fontSize:12,fontWeight:600,color:C.sub,marginBottom:6}}>
-              Ablehnungsgrund (sichtbar für den Nutzer):
+              {t("adm.rejectReasonLabel")}
             </div>
             <textarea value={rejectReason} onChange={e=>setRejectReason(e.target.value)}
-              placeholder="z.B. Bilder zu unscharf, Beschreibung fehlt…" rows={3}
+              placeholder={t("adm.rejectPlaceholder")} rows={3}
               style={{width:"100%",padding:"10px 12px",borderRadius:10,
                 background:C.card2,border:`1px solid ${C.border}`,
                 color:C.text,fontSize:12,fontFamily:"inherit",
                 resize:"vertical",outline:"none",boxSizing:"border-box",lineHeight:1.5}}/>
             <div style={{fontSize:10,color:C.muted,marginTop:3,marginBottom:14}}>
-              Optional — kann leer gelassen werden.
+              {t("adm.rejectOptional")}
             </div>
             <div style={{display:"flex",gap:8}}>
               <button onClick={()=>{setRejectDlg(null);setRejectReason("");}}
@@ -449,7 +454,7 @@ function FreigabenTab({ onPendingChange }) {
               <button onClick={rejectConfirm}
                 style={{flex:2,padding:"10px",borderRadius:10,border:"none",
                   background:C.red,color:"#fff",fontSize:12,fontWeight: 600,cursor:"pointer"}}>
-                ✕ Ablehnen & benachrichtigen
+                {t("adm.rejectConfirm")}
               </button>
             </div>
           </div>
@@ -464,11 +469,11 @@ function FreigabenTab({ onPendingChange }) {
           <div style={{background:C.card,borderRadius:20,padding:24,
             width:"100%",maxWidth:460,border:`1px solid ${C.border}`}}>
             <div style={{fontSize:16,fontWeight: 600,color:C.text,marginBottom:4}}>
-              💬 Admin-Kommentar
+              {t("adm.commentTitle")}
             </div>
             <div style={{fontSize:12,color:C.sub,marginBottom:14}}>„{commentDlg._title}"</div>
             <textarea value={commentText} onChange={e=>setCommentText(e.target.value)}
-              placeholder="Interner Hinweis oder Feedback für den Ersteller…" rows={3}
+              placeholder={t("adm.commentPlaceholder")} rows={3}
               style={{width:"100%",padding:"10px 12px",borderRadius:10,
                 background:C.card2,border:`1px solid ${C.border}`,
                 color:C.text,fontSize:12,fontFamily:"inherit",
@@ -483,7 +488,7 @@ function FreigabenTab({ onPendingChange }) {
               <button onClick={saveComment}
                 style={{flex:2,padding:"10px",borderRadius:10,border:"none",
                   background:C.teal,color:"#fff",fontSize:12,fontWeight: 600,cursor:"pointer"}}>
-                💬 Speichern
+                {t("adm.saveComment")}
               </button>
             </div>
           </div>
@@ -498,10 +503,10 @@ function FreigabenTab({ onPendingChange }) {
           <HUIWarnIcon size={20} style={{color:'#F59E0B'}} />
           <div>
             <div style={{fontSize:13,fontWeight: 600,color:C.yellow}}>
-              {items.filter(x=>x._type==="werk").length} Werk{items.filter(x=>x._type==="werk").length!==1?"e":""} wartet{items.filter(x=>x._type==="werk").length===1?"":"en"} auf Freigabe
+              {t("adm.pendingBanner", { count: items.filter(x=>x._type==="werk").length })}
             </div>
             <div style={{fontSize:11,color:C.sub,marginTop:1}}>
-              Neue Einreichungen und Aktualisierungen müssen geprüft werden, bevor sie öffentlich erscheinen.
+              {t("adm.pendingBannerSub")}
             </div>
           </div>
         </div>
@@ -512,9 +517,9 @@ function FreigabenTab({ onPendingChange }) {
         justifyContent:"space-between", flexWrap:"wrap", gap:12, marginBottom:8}}>
         <div style={{display:"flex",gap:6}}>
           {[
-            ["pending",  "⏳ Ausstehend"],
-            ["approved", "✅ Freigegeben"],
-            ["rejected", "❌ Abgelehnt"],
+            ["pending",  t("adm.tabPending")],
+            ["approved", t("adm.tabApproved")],
+            ["rejected", t("adm.tabRejected")],
           ].map(([k,l]) => (
             <button key={k} onClick={()=>setSubTab(k)} style={{
               padding:"6px 14px", borderRadius:99, border:"none", cursor:"pointer",
@@ -526,10 +531,10 @@ function FreigabenTab({ onPendingChange }) {
         </div>
         <div style={{display:"flex",gap:5}}>
           {[
-            ["all","Alle"],
-            ["works","Werke"],
-            ["experiences","Erlebnisse"],
-            ["projects","Projekte"],
+            ["all", t("adm.filterAll")],
+            ["works", t("adm.filterWorks")],
+            ["experiences", t("adm.filterExperiences")],
+            ["projects", t("adm.filterProjects")],
           ].map(([k,l]) => (
             <button key={k} onClick={()=>setTypeFilter(k)} style={{
               padding:"4px 10px", borderRadius:99, border:`1px solid ${C.border}`,
@@ -550,9 +555,9 @@ function FreigabenTab({ onPendingChange }) {
         <div style={{...card,textAlign:"center",padding:44,color:C.sub}}>
           <div style={{fontSize:36,marginBottom:10}}>✨</div>
           <div style={{fontSize:14,fontWeight:600}}>
-            {subTab==="pending" ? "Keine Einträge zur Prüfung" :
-             subTab==="approved" ? "Noch keine freigegebenen Inhalte" :
-             "Keine abgelehnten Inhalte"}
+            {subTab==="pending" ? t("adm.emptyPending") :
+             subTab==="approved" ? t("adm.emptyApproved") :
+             t("adm.emptyRejected")}
           </div>
         </div>
       ) : visible.map(item => {
@@ -610,13 +615,13 @@ function FreigabenTab({ onPendingChange }) {
                 {/* Titel + NEU/AKTUALISIERT Badge */}
                 <div style={{fontSize:13,fontWeight: 600,color:C.text,
                   marginBottom:3,lineHeight:1.3,display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-                  <span>{item._title||item.title||"Kein Titel"}</span>
+                  <span>{item._title||item.title||t("adm.noTitle")}</span>
                   {item._type==="werk" && subTab==="pending" && (
                     item.is_update
                       ? <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight: 600,
-                          background:"rgba(168,139,250,0.20)",color:"#A78BFA",flexShrink:0}}>AKTUALISIERT</span>
+                          background:"rgba(168,139,250,0.20)",color:"#A78BFA",flexShrink:0}}>{t("adm.updated")}</span>
                       : <span style={{padding:"1px 6px",borderRadius:99,fontSize:8,fontWeight: 600,
-                          background:"rgba(42,191,172,0.20)",color:"#2ABFAC",flexShrink:0}}>NEU</span>
+                          background:"rgba(42,191,172,0.20)",color:"#2ABFAC",flexShrink:0}}>{t("adm.new")}</span>
                   )}
                 </div>
 
@@ -635,19 +640,19 @@ function FreigabenTab({ onPendingChange }) {
                     background:"rgba(239,68,68,0.07)",
                     border:"1px solid rgba(239,68,68,0.18)",
                     borderRadius:7,padding:"5px 8px",marginBottom:6}}>
-                    <b>Grund:</b> {item.rejection_reason}
+                    <b>{t("adm.grundLabel")}</b> {item.rejection_reason}
                   </div>
                 )}
                 {item.admin_comment && (
                   <div style={{fontSize:10.5,color:C.sub,
                     background:C.card2,borderRadius:7,
                     padding:"5px 8px",marginBottom:6}}>
-                    <b>Kommentar:</b> {item.admin_comment}
+                    <b>{t("adm.commentLabel")}</b> {item.admin_comment}
                   </div>
                 )}
                 {item.reviewed_at && subTab !== "pending" && (
                   <div style={{fontSize:10,color:C.muted,marginBottom:6}}>
-                    Geprüft am {formatDateDE(new Date(item.reviewed_at))}
+                    {t("adm.reviewedAt", { date: formatDateDE(new Date(item.reviewed_at)) })}
                   </div>
                 )}
 
@@ -669,7 +674,7 @@ function FreigabenTab({ onPendingChange }) {
                         background:acting?"rgba(16,185,129,0.28)":C.green,
                         color:"#fff",fontSize:11.5,fontWeight: 600,
                         cursor:acting?"not-allowed":"pointer"}}>
-                      {acting?"…":"✓ Freigeben"}
+                      {acting?"…":t("adm.btnApprove")}
                     </button>
                     <button disabled={acting}
                       onClick={()=>{setRejectReason("");setRejectDlg(item);}}
@@ -677,11 +682,11 @@ function FreigabenTab({ onPendingChange }) {
                         background:"none",color:acting?C.muted:C.red,
                         fontSize:11,fontWeight:600,cursor:acting?"not-allowed":"pointer",
                         border:`1px solid ${acting?C.border:C.red}`}}>
-                      {acting?"…":"✕ Ablehnen"}
+                      {acting?"…":t("adm.btnReject")}
                     </button>
                     <button
                       onClick={()=>{setCommentText(item.admin_comment||"");setCommentDlg(item);}}
-                      title="Kommentar"
+                      title={t("adm.commentTitle")}
                       style={{width:34,padding:"7px 0",borderRadius:8,
                         background:C.card2,border:`1px solid ${C.border}`,
                         color:C.sub,fontSize:13,cursor:"pointer"}}>
@@ -696,7 +701,7 @@ function FreigabenTab({ onPendingChange }) {
                     onClick={()=>{setCommentText(item.admin_comment||"");setCommentDlg(item);}}
                     style={{padding:"5px 12px",borderRadius:8,border:`1px solid ${C.border}`,
                       background:"none",color:C.sub,fontSize:11,cursor:"pointer"}}>
-                    💬 Kommentar {item.admin_comment?"bearbeiten":"hinzufügen"}
+                    💬 {t("adm.commentEdit", { action: item.admin_comment ? t("adm.commentEditAction") : t("adm.commentAdd") })}
                   </button>
                 )}
               </div>
@@ -714,23 +719,24 @@ function FreigabenTab({ onPendingChange }) {
 // Tabellen: experiences, projects, initiatives (später)
 // ─────────────────────────────────────────────────────────────────
 function ErlebnisseProjekteTab() {
+  const { t } = useTranslation();
   const [filter, setFilter] = useState("alle");
 
   const FILTERS = [
-    { key:"alle",       label:"Alle"       },
-    { key:"published",  label:"Published"  },
-    { key:"draft",      label:"Draft"      },
-    { key:"gemeldet",   label:"Gemeldet"   },
-    { key:"geloescht",  label:"Gelöscht"   },
-    { key:"sensitiv",   label:"Sensitiv"   },
+    { key:"alle",       label: t("adm.epFilterAll")       },
+    { key:"published",  label: t("adm.epFilterPublished")  },
+    { key:"draft",      label: t("adm.epFilterDraft")      },
+    { key:"gemeldet",   label: t("adm.epFilterReported")   },
+    { key:"geloescht",  label: t("adm.epFilterDeleted")   },
+    { key:"sensitiv",   label: t("adm.epFilterSensitive")   },
   ];
 
   const STATS = [
-    { label:"Gesamt",    value:"—", icon:"📊", color:C.teal   },
-    { label:"Published", value:"—", icon:"✅", color:C.green  },
-    { label:"Draft",     value:"—", icon:"✏️", color:C.sub    },
-    { label:"Gemeldet",  value:"—", icon:"⚠️", color:C.yellow },
-    { label:"Gelöscht",  value:"—", icon:"🗑️", color:C.coral  },
+    { label: t("adm.epStatTotal"),    value:"—", icon:"📊", color:C.teal   },
+    { label: t("adm.epStatPublished"), value:"—", icon:"✅", color:C.green  },
+    { label: t("adm.epStatDraft"),     value:"—", icon:"✏️", color:C.sub    },
+    { label: t("adm.epStatReported"),  value:"—", icon:"⚠️", color:C.yellow },
+    { label: t("adm.epStatDeleted"),  value:"—", icon:"🗑️", color:C.coral  },
   ];
 
   return (
@@ -744,17 +750,17 @@ function ErlebnisseProjekteTab() {
           <HUIImpactIcon size={22} style={{color:'rgba(14,196,184,0.7)'}} />
           <div>
             <div style={{fontSize:16,fontWeight: 600,color:C.text}}>
-              Erlebnisse & Projekte
+              {t("adm.epTitle")}
             </div>
             <div style={{fontSize:12,color:C.sub,marginTop:2}}>
-              Erlebnisse · Projekte · Initiativen — Supabase-Anbindung folgt
+              {t("adm.epSubtitle")}
             </div>
           </div>
           <div style={{
             marginLeft:"auto", padding:"4px 10px", borderRadius:99,
             background:"rgba(251,191,36,0.15)", border:"1px solid rgba(251,191,36,0.30)",
             color:C.yellow, fontSize:10, fontWeight: 600, letterSpacing:"0.08em",
-          }}>COMING SOON</div>
+          }}>{t("adm.epComingSoon", { default: "COMING SOON" })}</div>
         </div>
       </div>
 
@@ -805,7 +811,7 @@ function ErlebnisseProjekteTab() {
           borderBottom:`1px solid ${C.border}`,
           background:C.card2,
         }}>
-          {["Titel","Kategorie","Status","Preis / Wert","Engagement","Erstellt","Aktionen"].map(h => (
+          {[t("adm.epTableTitle"), t("adm.epTableCategory"), t("adm.epTableStatus"), t("adm.epTablePrice"), t("adm.epTableEngagement"), t("adm.epTableCreated"), t("adm.epTableActions")].map(h => (
             <div key={h} style={{fontSize:11,fontWeight: 600,color:C.sub,
               letterSpacing:"0.06em",textTransform:"uppercase"}}>{h}</div>
           ))}
@@ -815,10 +821,10 @@ function ErlebnisseProjekteTab() {
         <div style={{textAlign:"center",padding:"60px 20px",color:C.sub}}>
           <div style={{marginBottom:12, display:'flex', justifyContent:'center'}}><HUIImpactIcon size={40} style={{color:'rgba(14,196,184,0.5)'}} /></div>
           <div style={{fontSize:15,fontWeight: 600,color:C.text,marginBottom:6}}>
-            Noch keine Daten
+            {t("adm.epEmpty")}
           </div>
           <div style={{fontSize:12,color:C.sub,maxWidth:320,margin:"0 auto",lineHeight:1.6}}>
-            Dieser Bereich wird bald mit Erlebnissen, Projekten und Initiativen aus Supabase befüllt.
+            {t("adm.epEmptyDesc")}
           </div>
           <div style={{
             marginTop:16, display:"inline-flex", gap:8, flexWrap:"wrap",
@@ -850,6 +856,7 @@ function ErlebnisseProjekteTab() {
 // Kein Service-Role nötig — nutzt bestehende RLS-Policies.
 // ─────────────────────────────────────────────────────────────────
 function FeedAnalyticsTab() {
+  const { t } = useTranslation();
   const [loading,   setLoading]   = useState(true);
   const [impress,   setImpress]   = useState({ total:0, works:0, exps:0, topWorks:[], topExps:[] });
   const [depth,     setDepth]     = useState({ d5:0, d10:0, d20:0, end:0, sessions:0 });
@@ -944,7 +951,7 @@ function FeedAnalyticsTab() {
   if (loading) return (
     <div style={{textAlign:"center",padding:40}}>
       <div style={{marginBottom:8,display:"flex",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIStatistikIcon size={32}/></div>
-      <div style={{color:C.sub}}>Lade Feed-Analytics…</div>
+      <div style={{color:C.sub}}>{t("adm.faLoading")}</div>
     </div>
   );
 
@@ -952,13 +959,13 @@ function FeedAnalyticsTab() {
     <div>
       {/* ── Impressions ── */}
       <div style={{...card}}>
-        <div style={{fontWeight: 600,marginBottom:14,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIAnalyticsIcon size={16}/>Feed-Impressions</div>
+        <div style={{fontWeight: 600,marginBottom:14,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIAnalyticsIcon size={16}/>{t("adm.faImpressions")}</div>
         <div style={kpiGrid}>
           {[
-            { label:"Gesamt",             value: impress.total, color: C.teal,   icon:"👁" },
-            { label:"Work-Impressions",   value: impress.works, color: C.purple, icon:"🎨" },
-            { label:"Experience-Views",   value: impress.exps,  color: C.orange, icon:"🗓" },
-            { label:"Unsichtbare Works",  value: invisible.works.length, color: invisible.works.length > 0 ? C.coral : C.green, icon:"⚠️" },
+            { label: t("adm.faTotal"),    value: impress.total, color: C.teal,   icon:"👁" },
+            { label: t("adm.faWorkViews"), value: impress.works, color: C.purple, icon:"🎨" },
+            { label: t("adm.faExpViews"),  value: impress.exps,  color: C.orange, icon:"🗓" },
+            { label: t("adm.faInvisibleWorks"), value: invisible.works.length, color: invisible.works.length > 0 ? C.coral : C.green, icon:"⚠️" },
           ].map(kpi => (
             <div key={kpi.label} style={{background:C.card2,borderRadius:12,padding:14,
               border:`1px solid ${C.border}`}}>
@@ -969,7 +976,7 @@ function FeedAnalyticsTab() {
           ))}
         </div>
         <div style={{fontSize:11,color:C.muted,marginTop:4}}>
-          ℹ️ Zeigt Feed-Impressions für deinen Creator-Account (RLS-begrenzt).
+          ℹ️ Zeigt {t("adm.faImpressions")} für deinen Creator-Account (RLS-begrenzt).
           Plattform-weite Aggregation erfordert RPC-Erweiterung.
         </div>
       </div>
@@ -985,10 +992,10 @@ function FeedAnalyticsTab() {
         ) : (
           <>
             {[
-              { label:"Karte 5 erreicht",    value:depth.d5,  base:depth.sessions, color:C.green  },
-              { label:"Karte 10 erreicht",   value:depth.d10, base:depth.sessions, color:C.teal   },
-              { label:"Karte 20 erreicht",   value:depth.d20, base:depth.sessions, color:C.gold   },
-              { label:"Feed-Ende erreicht",  value:depth.end, base:depth.sessions, color:C.purple },
+              { label: t("adm.faCard5"),     value:depth.d5,  base:depth.sessions, color:C.green  },
+              { label: t("adm.faCard10"),    value:depth.d10, base:depth.sessions, color:C.teal   },
+              { label: t("adm.faCard20"),    value:depth.d20, base:depth.sessions, color:C.gold   },
+              { label: t("adm.faFeedEnd"),   value:depth.end, base:depth.sessions, color:C.purple },
             ].map(row => (
               <div key={row.label} style={{marginBottom:10}}>
                 <div style={{display:"flex",justifyContent:"space-between",
@@ -1012,7 +1019,7 @@ function FeedAnalyticsTab() {
       {/* ── Top Works ── */}
       {impress.topWorks.length > 0 && (
         <div style={card}>
-          <div style={{fontWeight: 600,marginBottom:12,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIWerkeIcon size={16}/>Top Works (nach Impressions)</div>
+          <div style={{fontWeight: 600,marginBottom:12,fontSize:15,display:'flex',alignItems:'center',gap:6}}><HUIWerkeIcon size={16}/>{t("adm.faTopWorks")}</div>
           {impress.topWorks.map((w,i) => (
             <div key={w.id} style={{display:"flex",justifyContent:"space-between",
               padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
@@ -1041,15 +1048,15 @@ function FeedAnalyticsTab() {
       {(invisible.works.length > 0 || invisible.exps.length > 0) && (
         <div style={card}>
           <div style={{fontWeight: 600,marginBottom:12,fontSize:15}}>
-            👻 Unsichtbare Inhalte ({invisible.works.length + invisible.exps.length})
+            {t("adm.faInvisible", { count: invisible.works.length + invisible.exps.length })} ({invisible.works.length + invisible.exps.length})
           </div>
           <div style={{fontSize:12,color:C.muted,marginBottom:12}}>
-            Published, aber 0 Feed-Impressions erhalten
+            Published, aber 0 {t("adm.faImpressions")} erhalten
           </div>
           {invisible.works.slice(0,5).map(w => (
             <div key={w.id} style={{padding:"6px 0",borderBottom:`1px solid ${C.border}`,
               fontSize:12}}>
-              <span style={{color:C.coral,display:"flex",alignItems:"center",gap:3}}><HUIWerkeIcon size={12}/>Work</span>
+              <span style={{color:C.coral,display:"flex",alignItems:"center",gap:3}}><HUIWerkeIcon size={12}/>{t("cps.typeWork")}</span>
               <span style={{color:C.sub,marginLeft:8}}>{w.title || w.id.slice(0,12)}</span>
             </div>
           ))}
@@ -1066,21 +1073,21 @@ function FeedAnalyticsTab() {
       {/* ── SQL-Referenz ── */}
       <div style={{...card,background:C.bg}}>
         <div style={{fontWeight: 600,marginBottom:10,fontSize:13,color:C.sub}}>
-          📋 SQL-Referenz (für Service-Role RPC)
+          {t("adm.faSqlRef")}
         </div>
         {[
-          ["Feed-Impressions gesamt",
+          [t("adm.faSqlImpressions"),
            `SELECT COUNT(*) FROM creator_analytics
 WHERE event_type IN ('work_view','experience_view')`],
-          ["Nutzer bis Karte 5",
+          [t("adm.faSqlCard5"),
            `SELECT COUNT(DISTINCT actor_id) FROM platform_events
 WHERE event_type = 'feed_depth_5'`],
-          ["Feed-Ende-Rate",
+          [t("adm.faSqlFeedEnd"),
            `SELECT
   COUNT(DISTINCT CASE WHEN event_type='feed_depth_5' THEN actor_id END) as d5,
   COUNT(DISTINCT CASE WHEN event_type='feed_end_reached' THEN actor_id END) as end_reached
 FROM platform_events`],
-          ["Unsichtbare Works",
+          [t("adm.faSqlInvisible"),
            `SELECT w.id, w.title FROM works w
 LEFT JOIN creator_analytics ca
   ON ca.source_id = w.id AND ca.event_type='work_view'
@@ -1100,6 +1107,7 @@ WHERE w.status='published' AND ca.id IS NULL`],
 }
 
 export default function Admin() {
+  const { t } = useTranslation();
   const [wirker,   setWirker]   = useState([]);
   const [payments, setPayments] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -1170,7 +1178,7 @@ export default function Admin() {
     <div style={{...s,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
         <div style={{marginBottom:12,display:"flex",justifyContent:"center",color:"rgba(14,196,184,0.5)"}}><HUIImpactIcon size={40}/></div>
-        <div style={{color:C.teal}}>Lade Admin-Daten…</div>
+        <div style={{color:C.teal}}>{t("adm.loadingAdmin")}</div>
       </div>
     </div>
   );
@@ -1179,22 +1187,22 @@ export default function Admin() {
     <div style={s}>
       <div style={{marginBottom:24}}>
         <h1 style={{margin:0,fontSize:22,fontWeight: 600}}>
-          HUI Admin <span style={{color:C.teal}}>Dashboard</span>
+          HUI Admin <span style={{color:C.teal}}>{t("adm.dashboard")}</span>
         </h1>
-        <div style={{color:C.sub,fontSize:13,marginTop:4}}>Echtzeit-Daten aus Supabase</div>
+        <div style={{color:C.sub,fontSize:13,marginTop:4}}>{t("adm.realtimeData")}</div>
       </div>
 
       {/* Tabs */}
       <div style={{display:"flex",gap:8,marginBottom:24,flexWrap:"wrap"}}>
         {[
-          {key:"dashboard",label:"Dashboard"},
-          {key:"content",  label:"Freigaben", badge:pending},
-          {key:"kommentare", label:"Kommentar-Meldungen", badge:commentReports},
-          {key:"feed",     label:"Feed Analytics"},
-          {key:"erl_proj", label:"Erlebnisse & Projekte"},
-          {key:"wirker",   label:"Wirker"},
-          {key:"payments", label:"Payments"},
-          {key:"projekte", label:"Projekte"},
+          {key:"dashboard",label: t("adm.tabDashboard")},
+          {key:"content",  label: t("adm.tabContent"), badge:pending},
+          {key:"kommentare", label: t("adm.tabKommentare"), badge:commentReports},
+          {key:"feed",     label: t("adm.tabFeed")},
+          {key:"erl_proj", label: t("adm.tabErlProj")},
+          {key:"wirker",   label: t("adm.tabWirker")},
+          {key:"payments", label: t("adm.tabPayments")},
+          {key:"projekte", label: t("adm.tabProjekte")},
         ].map(({key,label,badge=0}) => (
           <button key={key} onClick={()=>setTab(key)} style={tabBtn(tab===key,badge)}>
             {label}
@@ -1216,11 +1224,11 @@ export default function Admin() {
           <div style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",
             gap:12,marginBottom:16}}>
             {[
-              {label:"Wirker",      value:wirker.length,                 icon:"✨",color:C.teal,  onClick:null},
-              {label:"Buchungen",   value:payments.length,               icon:"📋",color:C.orange,onClick:null},
-              {label:"Umsatz",      value:`${totalRevenue.toFixed(0)} €`,icon:"💰",color:C.green, onClick:null},
-              {label:"Impact Pool", value:`${totalImpact.toFixed(2)} €`, icon:"🌱",color:C.coral, onClick:null},
-              {label:"Zur Prüfung", value:pending,                       icon:"📝",color:C.yellow,onClick:()=>setTab("content")},
+              {label: t("adm.kpiWirker"),      value:wirker.length,                 icon:"✨",color:C.teal,  onClick:null},
+              {label: t("adm.kpiBuchungen"),   value:payments.length,               icon:"📋",color:C.orange,onClick:null},
+              {label: t("adm.kpiUmsatz"),      value:`${totalRevenue.toFixed(0)} €`,icon:"💰",color:C.green, onClick:null},
+              {label: t("adm.kpiImpactPool"), value:`${totalImpact.toFixed(2)} €`, icon:"🌱",color:C.coral, onClick:null},
+              {label: t("adm.kpiPending"), value:pending,                       icon:"📝",color:C.yellow,onClick:()=>setTab("content")},
             ].map(kpi => (
               <div key={kpi.label} onClick={kpi.onClick||undefined}
                 style={{...card,marginBottom:0,cursor:kpi.onClick?"pointer":"default"}}>
@@ -1231,7 +1239,7 @@ export default function Admin() {
             ))}
           </div>
           <div style={card}>
-            <div style={{fontWeight: 600,marginBottom:12}}>🌍 Impact Projekte ({projects.length})</div>
+            <div style={{fontWeight: 600,marginBottom:12}}>{t("adm.impactProjects", { count: projects.length })}</div>
             {projects.slice(0,3).map(p=>(
               <div key={p.id} style={{display:"flex",justifyContent:"space-between",
                 padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
@@ -1252,7 +1260,7 @@ export default function Admin() {
 
       {tab==="wirker" && (
         <div style={card}>
-          <div style={{fontWeight: 600,marginBottom:12}}>✨ Alle Wirker ({wirker.length})</div>
+          <div style={{fontWeight: 600,marginBottom:12}}>{t("adm.wirkerList", { count: wirker.length })}</div>
           {(wirker||[]).filter(w=>w&&typeof w==="object").map(w=>(
             <div key={w.id} style={{display:"flex",alignItems:"center",gap:12,
               padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
@@ -1273,7 +1281,7 @@ export default function Admin() {
 
       {tab==="payments" && (
         <div style={card}>
-          <div style={{fontWeight: 600,marginBottom:12}}>💳 Buchungen ({payments.length})</div>
+          <div style={{fontWeight: 600,marginBottom:12}}>{t("adm.paymentsList", { count: payments.length })}</div>
           {(payments||[]).filter(p=>p&&typeof p==="object").map(p=>(
             <div key={p.id} style={{padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
               <div style={{display:"flex",justifyContent:"space-between"}}>
@@ -1291,7 +1299,7 @@ export default function Admin() {
 
       {tab==="projekte" && (
         <div style={card}>
-          <div style={{fontWeight: 600,marginBottom:12}}>🌍 Impact Projekte ({projects.length})</div>
+          <div style={{fontWeight: 600,marginBottom:12}}>{t("adm.impactProjects", { count: projects.length })}</div>
           {(projects||[]).filter(p=>p&&typeof p==="object").map(p=>(
             <div key={p.id} style={{padding:"10px 0",borderBottom:`1px solid ${C.border}`}}>
               <div style={{fontWeight:600,fontSize:14}}>{p.name||p.title}</div>

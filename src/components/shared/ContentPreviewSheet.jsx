@@ -36,6 +36,7 @@ import { countComments, getComments } from "../../lib/commentsService.js";
 import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -43,17 +44,17 @@ const T = {
   sheet: "#FCFDFC", overlay: "rgba(20,24,22,0.46)",
 };
 
-const TYPE_LABEL = {
-  work: "Werk", werk: "Werk",
-  experience: "Erlebnis", erlebnis: "Erlebnis",
-  moment: "Beitrag", beitrag: "Beitrag",
-  event: "Veranstaltung", veranstaltung: "Veranstaltung",
-  project: "Impact-Projekt", projekt: "Impact-Projekt",
-  recommendation: "Empfehlung",
-  wirker: "Wirker",
-  talent: "Talent-Angebot",
-  connection: "Verbindung",
-};
+const getTypeLabel = (t) => ({
+  work: t("cps.typeWork"), werk: t("cps.typeWork"),
+  experience: t("cps.typeExperience"), erlebnis: t("cps.typeExperience"),
+  moment: t("cps.typeMoment"), beitrag: t("cps.typeMoment"),
+  event: t("cps.typeEvent"), veranstaltung: t("cps.typeEvent"),
+  project: t("cps.typeProject"), projekt: t("cps.typeProject"),
+  recommendation: t("cps.typeRecommendation"),
+  wirker: t("cps.typeWirker"),
+  talent: t("cps.typeTalent"),
+  connection: t("cps.typeConnection"),
+});
 
 const CSS = `
   @keyframes cps-overlay-in { from{opacity:0} to{opacity:1} }
@@ -69,6 +70,8 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
   // FIX: navigate VOR useCallback deklarieren (TDZ-Bug war: navigate nach useCallback)
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const TYPE_LABEL = getTypeLabel(t);
 
   // BACK-BUTTON: Register so Android back button closes the preview sheet
   useModalRegistration(!!item, onClose, "ContentPreviewSheet");
@@ -126,7 +129,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
       // neben dem Bookmark-Icon immer null (wie in PostFullscreenView).
       toggleSave(postId, postType, snapshot);
       toggle("save");
-      toast.info(saved ? "Aus Merkliste entfernt" : "Gespeichert", { duration:1800 });
+      toast.info(saved ? t("cps.toastRemoved") : t("cps.toastSaved"), { duration:1800 });
       return;
     }
     toggle(type);
@@ -265,14 +268,14 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"0 16px 10px" }}>
             <span style={{ fontSize:11, fontWeight: 600, color:T.teal, letterSpacing:".04em",
               background:"rgba(13,196,181,0.10)", borderRadius:99, padding:"3px 10px" }}>
-              {TYPE_LABEL[item?.type] || "Inhalt"}
+              {TYPE_LABEL[item?.type] || t("cps.typeInhalt")}
             </span>
             <button className="cps-btn" onClick={onClose} style={{ fontSize:20, color:T.inkFaint, padding:4 }}>✕</button>
           </div>
         </div>
 
         {loading && (
-          <div style={{ padding:"40px 20px", textAlign:"center", color:T.inkFaint, fontSize:13 }}>Lädt…</div>
+          <div style={{ padding:"40px 20px", textAlign:"center", color:T.inkFaint, fontSize:13 }}>{t("cps.loading")}</div>
         )}
 
         {item && (
@@ -348,7 +351,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   gleiche Pill-Optik wie der bestehende Werk-Preis-Chip. */}
               {(item.type === "experience" || item.type === "erlebnis") && (() => {
                 const raw = item._raw || {};
-                const FORMAT_LABELS = { vor_ort:"Vor Ort", online:"Online", hybrid:"Vor Ort & Online" };
+                const FORMAT_LABELS = { vor_ort: t("cps.formatVorOrt"), online: t("cps.formatOnline"), hybrid: t("cps.formatHybrid") };
                 let dateStr = null;
                 if (raw.date) {
                   try { dateStr = formatDateDE(new Date(raw.date), { day:"numeric", month:"long", year:"numeric" }); }
@@ -362,8 +365,8 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                 const timeEndStr   = item.timeEnd   ? item.timeEnd.slice(0,5)   : null;
                 const timeStr = timeStartStr
                   ? (timeEndStr && timeEndStr !== timeStartStr
-                      ? `${timeStartStr}–${timeEndStr} Uhr`
-                      : `${timeStartStr} Uhr`)
+                      ? `${timeStartStr}–${timeEndStr}${t("cps.timeSuffix") ? " " + t("cps.timeSuffix") : ""}`
+                      : `${timeStartStr}${t("cps.timeSuffix") ? " " + t("cps.timeSuffix") : ""}`)
                   : null;
                 const formatLabel = raw.format ? (FORMAT_LABELS[raw.format] || raw.format) : null;
                 // Treffpunkt nur zeigen wenn vorhanden UND inhaltlich anders
@@ -373,9 +376,9 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                 const priceSuffix = item.pricePer ? ` / ${item.pricePer}` : null;
                 const spotsStr = item.spotsAvailable != null
                   ? (item.maxParticipants != null
-                      ? `${item.spotsAvailable} von ${item.maxParticipants} Plätzen frei`
-                      : `${item.spotsAvailable} Plätze frei`)
-                  : (item.maxParticipants != null ? `Max. ${item.maxParticipants} Teilnehmer` : null);
+                      ? t("cps.spotsAvailable", { available: item.spotsAvailable, max: item.maxParticipants })
+                      : t("cps.spotsOnly", { count: item.spotsAvailable }))
+                  : (item.maxParticipants != null ? t("cps.maxParticipants", { max: item.maxParticipants }) : null);
                 const hasAnyInfo = dateStr || timeStr || item.price != null || item.location
                   || formatLabel || raw.category || meetingPointStr || spotsStr;
                 if (!hasAnyInfo) return null;
@@ -400,7 +403,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                           <span style={{ fontSize:16, fontWeight: 600, color:"rgba(0,150,136,1)" }}>
                             {item.price > 0
                               ? formatNumberDE(Number(item.price)) + " €" + (priceSuffix || "")
-                              : "Kostenlos"}
+                              : t("cps.freePrice")}
                           </span>
                         </div>
                       )}
@@ -436,7 +439,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:6,
                         fontSize:12.5, color:T.inkFaint }}>
                         <span>📍</span>
-                        <span>Treffpunkt: {meetingPointStr}</span>
+                        <span>{t("cps.meetingPoint", { point: meetingPointStr })}</span>
                       </div>
                     )}
                   </div>
@@ -467,7 +470,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                 }}>
                   <span>🕐</span>
-                  <span>Dieses Erlebnis liegt in der Vergangenheit und kann nicht mehr gebucht werden.</span>
+                  <span>{t("cps.pastExperience")}</span>
                 </div>
               )}
               {(item.type === "experience" || item.type === "erlebnis") && !isPastExperience && item.price != null && Number(item.price) > 0 && (
@@ -530,14 +533,14 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                           background: sAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
                           border:"1px solid rgba(13,196,181,0.18)",
                           borderRadius:99, padding:"4px 10px",
-                        }}>{sAvail} von {sTotal} verfugbar</div>
+                        }}>{t("cps.stockAvailable", { avail: sAvail, total: sTotal })}</div>
                         {sHas && (
                           <div style={{
                             display:"inline-flex", alignItems:"center",
                             fontSize:12, fontWeight:600, color:T.inkSoft,
                             background:"rgba(26,26,46,0.05)", borderRadius:99,
                             padding:"4px 10px",
-                          }}>Versand: {sCost.toFixed(2).replace(".", ",")} EUR</div>
+                          }}>{t("cps.shipping", { cost: sCost.toFixed(2).replace(".", ",") })}</div>
                         )}
                       </>
                     );
@@ -626,10 +629,10 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   background:T.ink, color:"#fff", fontSize:14, fontWeight: 600,
                 }}>
                   {item.type === "impact" || item.type === "project" || item.type === "projekt"
-                    ? "Vollständige Ansicht öffnen"
+                    ? t("cps.openFullView")
                     : item.type === "talent"
-                    ? "Talent-Profil ansehen"
-                    : "Vollständige Ansicht öffnen"}
+                    ? t("cps.viewTalentProfile")
+                    : t("cps.openFullView")}
                 </button>
               )}
             </div>
@@ -652,7 +655,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                     letterSpacing:"-0.01em",
                   }}
                 >
-                  Profil ansehen
+                  {t("cps.viewProfile")}
                 </button>
               </div>
             )}
