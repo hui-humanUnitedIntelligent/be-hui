@@ -17,6 +17,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatEUR } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 import EmpfehlenModal from "../commerce/EmpfehlenModal.jsx";
+import { useTranslation } from '../../hooks/useTranslation.js';
 
 const T = {
   bg:       "#F7F5F0",
@@ -100,7 +101,7 @@ function ActionButton({ children, onClick, variant = "outline", disabled, loadin
         ...styles[variant],
       }}
     >
-      {loading ? "Wird bearbeitet…" : children}
+      {loading ? t('txSheet.processing') : children}
     </button>
   );
 }
@@ -148,6 +149,7 @@ function Cover({ src, imgErr, onErr }) {
  *   }
  */
 export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(!!tx, onClose, "TransactionDetailSheet");
   const [imgErr, setImgErr] = useState(false);
@@ -257,7 +259,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
           )}
 
           {tx.description && (
-            <Section title="Beschreibung">
+            <Section title={t('txSheet.description')}>
               <div style={{
                 fontSize: 13.5, color: T.inkSoft, lineHeight: 1.55,
                 background: T.bgCard, borderRadius: T.r12, padding: "12px 14px",
@@ -269,7 +271,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
           )}
 
           {Array.isArray(tx.breakdown) && tx.breakdown.length > 0 && (
-            <Section title="Preis-Aufschlüsselung">
+            <Section title={t('txSheet.priceBreakdown')}>
               <div style={{ background: T.bgCard, borderRadius: T.r12, padding: "4px 14px", border: `1px solid ${T.border}` }}>
                 {tx.breakdown.map((row, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < tx.breakdown.length - 1 ? `1px solid ${T.border}` : "none" }}>
@@ -288,7 +290,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
               zusätzlicher Betrag, den der Käufer zahlt — nur Transparenz,
               wohin der bereits im Werk-Preis enthaltene Plattform-Anteil geht. */}
           {Array.isArray(tx.revenueSplit) && tx.revenueSplit.length > 0 && (
-            <Section title="Transparenz: So verteilt sich der Werk-Preis">
+            <Section title={t('txSheet.transparenz')}>
               <div style={{ background: T.bgCard, borderRadius: T.r12, padding: "4px 14px", border: `1px solid ${T.border}` }}>
                 {tx.revenueSplit.map((row, i) => (
                   <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: i < tx.revenueSplit.length - 1 ? `1px solid ${T.border}` : "none" }}>
@@ -301,7 +303,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
           )}
 
           {Array.isArray(tx.meta) && tx.meta.length > 0 && (
-            <Section title="Details">
+            <Section title={t('txSheet.details')}>
               <div style={{ background: T.bgCard, borderRadius: T.r12, padding: "4px 14px", border: `1px solid ${T.border}` }}>
                 {tx.meta.map((row, i) => <MetaRow key={i} {...row} />)}
               </div>
@@ -397,7 +399,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         opacity: a.shipping ? 0.6 : 1,
                       }}
                     >
-                      {a.shipping ? "Wird markiert…" : "✓ Ja, versendet"}
+                      {a.shipping ? t('txSheet.marking') : t('txSheet.yesShipped')}
                     </button>
                   </div>
                 ) : (
@@ -409,7 +411,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                       fontSize: 14, fontWeight: 600, cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
                     }}
                   >
-                    Als versendet markieren
+                    {t('txSheet.markAsShipped')}
                   </button>
                 )}
               </div>
@@ -427,8 +429,8 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
               }}>
                 <span style={{ fontSize: 18 }}>✅</span>
                 <div>
-                  <div style={{ fontWeight: 600, color: T.green }}>Versendet</div>
-                  Versendet am {a.shippedAt}
+                  <div style={{ fontWeight: 600, color: T.green }}>{t('txSheet.shipped')}</div>
+                  {t('txSheet.shippedAt', { date: a.shippedAt })}
                 </div>
               </div>
             </Section>
@@ -445,11 +447,10 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   fontSize: 13, fontWeight: 700, color: T.amber, marginBottom: 6,
                   display: "flex", alignItems: "center", gap: 6,
                 }}>
-                  ⚠ Bestätigung erforderlich
+                  ⚠ {t('txSheet.confirmRequired')}
                 </div>
                 <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 14 }}>
-                  Bitte bestätige, dass du dein {tx.kindLabel === "Buchung" ? "Talent/Erlebnis erhalten hast" : "Werk erhalten hast"}.
-                  Erst dann wird die Zahlung an den Anbieter freigegeben.
+                  {tx.kindLabel === "Buchung" ? t('txSheet.confirmBodyTalent') : t('txSheet.confirmBodyWerk')}
                 </div>
                 <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
                     <button
@@ -461,7 +462,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
                       }}
                     >
-                      ✓ Ware erhalten
+                      {t('txSheet.goodsReceived')}
                     </button>
                   </div>
               </div>
@@ -498,8 +499,8 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
               }}>
                 <span style={{ fontSize: 18 }}>✅</span>
                 <div>
-                  <div style={{ fontWeight: 600, color: T.green }}>Erhalten</div>
-                  Du hast den Erhalt bestätigt. Die Zahlung wurde freigegeben.
+                  <div style={{ fontWeight: 600, color: T.green }}>{t('txSheet.received')}</div>
+                  {t('txSheet.receivedBody')}
                 </div>
               </div>
             </Section>
@@ -514,13 +515,13 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                 disabled={a.receiptConfirmed}
               >
                 {a.receiptConfirmed
-                  ? "Chat geschlossen"
-                  : (tx.person?.roleLabel ? `${tx.person.roleLabel} kontaktieren` : "Kontaktieren")}
+                  ? t('txSheet.chatClosed')
+                  : (tx.person?.roleLabel ? t('txSheet.contactRole', { role: tx.person.roleLabel }) : t('txSheet.contact'))}
               </ActionButton>
             )}
             {a.canRecommend && a.onRecommend && (
               <ActionButton variant="outline" onClick={a.onRecommend}>
-                + Empfehlung schreiben
+                {t('txSheet.writeReview')}
               </ActionButton>
             )}
             {/* BUGFIX (2026-08-25, Michael-Report): Wenn bereits eine
@@ -530,12 +531,12 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                 ("✓ Empfohlen"). disabled=true → kein Klick möglich. */}
             {a.recommendationGiven && (
               <ActionButton variant="ghost" disabled>
-                ✓ Empfehlung abgegeben
+                {t('txSheet.reviewGiven')}
               </ActionButton>
             )}
             {a.onDownloadReceipt && (
               <ActionButton variant="receipt" onClick={handleDownload} loading={downloading}>
-                Beleg herunterladen
+                {t('txSheet.downloadReceipt')}
               </ActionButton>
             )}
           </Section>
@@ -555,7 +556,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   fontSize: 14, fontWeight: 600, cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
                 }}
               >
-                Profil ansehen
+                {t('txSheet.viewProfile')}
               </button>
             </div>
           )}
