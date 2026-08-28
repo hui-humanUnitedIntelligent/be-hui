@@ -228,7 +228,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
                 <div style={{ fontSize:11.5, color:T.inkFaint }}>
                   {showDetail
                     ? `${detailItems.length} ${detailItems.length === 1 ? "Eintrag" : t("common.entries")} in ${selectedPlace}`
-                    : "Echte Orte aus HUI-Profilen, Werken & Erlebnissen"}
+                    : t("discover.orteSub")}
                 </div>
               </div>
             </div>

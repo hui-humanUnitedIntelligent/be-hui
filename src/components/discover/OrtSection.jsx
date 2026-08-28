@@ -14,7 +14,7 @@ export function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, del
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
         title={t("discover.orte")}
-        sub="Echte Orte aus HUI-Profilen, Werken & Erlebnissen."
+        sub={t("discover.orteSub")}
         action={t("discover.alleOrte")}
         onAction={onSectionAction}
         delay={delay}

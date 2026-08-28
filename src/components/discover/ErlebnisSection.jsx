@@ -126,7 +126,7 @@ export function ErlebnisseSection({
       <div data-dp-erlebnisse/>
       <SectionHead
         title={t("erl.forYou")}
-        sub="Workshops, Treffen, Kurse & besondere Momente."
+        sub={t("discover.erlebnisseSub")}
         action={t("discover.alleErlebnisse")}
         onAction={onSectionAction}
         delay={delay}

@@ -223,7 +223,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
               <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("mom.nearbyYou")}</div>
-              <div style={{ fontSize:11.5, color:T.inkFaint }}>Echte Geschichten, gerade jetzt</div>
+              <div style={{ fontSize:11.5, color:T.inkFaint }}>{t("discover.stories").replace(".", "")}</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>

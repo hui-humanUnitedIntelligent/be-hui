@@ -23,6 +23,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { supabase } from "../lib/supabaseClient.js";
 import { timedQuery } from "../lib/perfMonitor.js";
+import { t } from '../i18n/index.js';
 
 const REFRESH_INTERVAL_MS = 90_000; // Optimiert: 90s statt 60s
 const PER_SOURCE_LIMIT    = 5;
@@ -112,7 +113,7 @@ function transformRPCData(rpcData) {
   for (const r of (rpcData.recommendations || [])) {
     items.push({
       id: `rec_${r.id}`, createdAt: r.created_at,
-      text: `Neue Empfehlung wurde veröffentlicht`,
+      text: t("ticker.newRecommendation"),
       openRef: { type: "recommendation", id: r.id },
     });
   }

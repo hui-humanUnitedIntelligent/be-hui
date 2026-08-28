@@ -20,6 +20,7 @@
 // (Name, Bio, Ort, Wirkung) werden angezeigt (Pflichtregel: kein Raten).
 // ══════════════════════════════════════════════════════════════════
 import { createPortal } from "react-dom";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -112,6 +113,7 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
 }
 
 export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "MenschenAllModal");
   const [items, setItems]       = useState([]);
@@ -194,8 +196,8 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Inspirierende Menschen</div>
-              <div style={{ fontSize:11.5, color:T.inkFaint }}>Entdecke wundervolle Menschen auf HUI</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("discover.inspiringPeople")}</div>
+              <div style={{ fontSize:11.5, color:T.inkFaint }}>{t("discover.inspiringPeopleSub")}</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>

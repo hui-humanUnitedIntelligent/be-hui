@@ -2,8 +2,10 @@
 // Extracted from DiscoverPage.jsx — no logic changes.
 import React from "react";
 import { T } from "./constants.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function DiscoverTitleBar() {
+  const { t } = useTranslation();
   return (
     <div style={{
       padding:`12px ${T.px}px 14px`,
@@ -11,10 +13,10 @@ export function DiscoverTitleBar() {
     }}>
       {/* Title Row */}
       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-        <span style={{ fontSize:22, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em" }}>Entdecke HUI</span>
+        <span style={{ fontSize:22, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em" }}>{t("discover.title")}</span>
       </div>
       <div style={{ fontSize:12.5, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-        Menschen, Ideen, Werke und Erlebnisse — alles auf einen Blick.
+        {t("discover.subtitle")}
       </div>
     </div>
   );

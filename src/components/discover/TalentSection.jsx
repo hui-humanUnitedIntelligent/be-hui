@@ -162,7 +162,7 @@ export function TalenteSection({
       <div data-dp-talente/>
       <SectionHead
         title={t("discover.talente")}
-        sub="Dienstleistungen & Angebote von HUI Talenten."
+        sub={t("discover.talenteSub")}
         action={t("discover.alleTalente")}
         onAction={onSectionAction}
         delay={delay}

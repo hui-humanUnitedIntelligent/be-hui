@@ -6,6 +6,7 @@ import { Skel, SectionHead } from "./atoms.jsx";
 import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { formatPresence } from "../../lib/usePresence.js";
 import { optimizeAvatar } from "../../lib/perfUtils.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers=0, likes=0 }) {
   const [imgErr, setImgErr] = useState(false);
@@ -114,13 +115,14 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
 }
 
 export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
+  const { t } = useTranslation();
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
       <SectionHead
-        title="Inspirierende Menschen"
-        sub="Entdecke wundervolle Menschen auf HUI."
-        action="Alle anzeigen"
+        title={t("discover.inspiringPeople")}
+        sub={t("discover.inspiringPeopleSub")}
+        action={t("discover.showAll")}
         onAction={onSectionAction}
         delay={delay}
       />
