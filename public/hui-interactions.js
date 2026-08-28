@@ -7,20 +7,13 @@
 
   // ═══ i18n helper ═══
   function t(key){
-    if(typeof window.t === 'function') return window.t(key);
-    // fallback: check DE dict
-    if(typeof window.DE !== 'undefined' && window.DE[key]) return window.DE[key];
-    if(typeof window.EN !== 'undefined' && window.EN[key]) return window.EN[key];
+    if(window.HUI_i18n && typeof window.HUI_i18n.t === 'function') return window.HUI_i18n.t(key);
     return key;
   }
 
   function getLang(){
-    if(typeof window.currentLang !== 'undefined') return window.currentLang;
-    var path = window.location.pathname;
-    if(path.indexOf('/en/') === 0) return 'en';
-    var stored = '';
-    try{ stored = localStorage.getItem('hui-lang') || ''; }catch(e){}
-    return stored === 'en' ? 'en' : 'de';
+    if(window.HUI_i18n && typeof window.HUI_i18n.getLang === 'function') return window.HUI_i18n.getLang();
+    return 'de';
   }
 
   document.addEventListener('DOMContentLoaded', function(){
