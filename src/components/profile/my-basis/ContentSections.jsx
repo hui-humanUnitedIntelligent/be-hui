@@ -273,7 +273,7 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
             const badgeText  = isApproved ? t("cs.badge.live")
               : isPending  ? t("cs.badge.pruefung")
               : isDraft    ? t("cs.badge.entwurf")
-              : "❌ Abgelehnt";
+              : t("impact.abgelehnt");
             return (
               <div key={w.id || i}
                 onClick={() => isDraft ? setDraftWork(w) : setChoiceWork(w)}
@@ -507,7 +507,7 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
               : isDraft
                 ? "📝 Entwurf"
                 : isRejected
-                  ? "❌ Abgelehnt"
+                  ? t("impact.abgelehnt")
                   : "✅ Live";
           const borderCol  = isApproved ? "#0EC4B8" : isPending ? "#D4A800" : isDraft ? "rgba(120,120,128,0.5)" : isRejected ? "#ff5050" : "#0EC4B8";
           return (

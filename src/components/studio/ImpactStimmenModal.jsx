@@ -323,10 +323,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
-              Impact-Stimmen
+              {t("impact.stimmenModalTitle")}
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
-              {monthKey} · {isTalent ? "Talent" : "Basis"}-Mitglied
+              {monthKey} · {isTalent ? t("impact.talentMember") : t("impact.basisMember")}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -362,10 +362,10 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
             <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
               • {t("is.title.pool")}
             </div>
-            <div style={{ fontSize: 22, fontWeight: 600, color: "#fff", lineHeight: 1.2, marginBottom: 6 }}>
+            <div style={{ fontSize: 22, fontWeight: 600, color: "#fff", lineHeight: 1.2, marginBottom: 6, whiteSpace: "pre-line" }}>
               {t("is.title.headline")}
             </div>
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 1.45 }}>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.82)", lineHeight: 1.45, whiteSpace: "pre-line" }}>
               {t("is.title.sub")}
             </div>
           </div>

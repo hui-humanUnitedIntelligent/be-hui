@@ -133,7 +133,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           const isApproved = proj.status === "approved";
           const isRejected = proj.status === "rejected";
           const badgeBg = isApproved ? "rgba(14,196,184,0.92)" : isRejected ? "rgba(255,80,80,0.92)" : "rgba(234,179,8,0.92)";
-          const badgeText = isApproved ? "✅ Bewilligt" : isRejected ? "❌ Abgelehnt" : t("common.inReview");
+          const badgeText = isApproved ? t("impact.bewilligt") : isRejected ? t("impact.abgelehnt") : t("common.inReview");
           const borderCol = isApproved ? "#0EC4B8" : isRejected ? "#ff5050" : "#D4A800";
           return (
             <div key={proj.id || i}
@@ -199,7 +199,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               color: selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12",
               background: (selected.status==="approved" ? "#0DC4B5" : selected.status==="rejected" ? "#e74c3c" : "#f39c12") + "15",
             }}>
-              {selected.status==="approved" ? "✅ Bewilligt" : selected.status==="rejected" ? "❌ Abgelehnt" : t("common.inReview")}
+              {selected.status==="approved" ? t("impact.bewilligt") : selected.status==="rejected" ? t("impact.abgelehnt") : t("common.inReview")}
             </span>
           </div>
           {selected.short_desc && (
@@ -212,7 +212,7 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
             return (
               <>
                 <div style={{ fontSize:12, color:"#666", marginBottom:6 }}>
-                  €{formatNumberDE(funded)} von €{formatNumberDE(goal)} finanziert
+                  {t("impact.finanziertVon", {funded: formatNumberDE(funded), goal: formatNumberDE(goal)})}
                 </div>
                 <div style={{ height:6, borderRadius:99, background:"rgba(0,0,0,0.08)", overflow:"hidden", marginBottom:16 }}>
                   <div style={{ height:"100%", borderRadius:99, width:`${pct}%`, background:"linear-gradient(90deg,#0DC4B5,#09A89D)" }} />
@@ -222,11 +222,11 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           })()}
           {/* ── Neuigkeiten / Projekt-Updates ── */}
           <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:14, fontWeight: 600, color:"#1A1A1A", marginBottom:8 }}>📰 Neuigkeiten</div>
+            <div style={{ fontSize:14, fontWeight: 600, color:"#1A1A1A", marginBottom:8 }}>{t("impact.neuigkeiten")}</div>
             {updatesLoading ? (
-              <div style={{ fontSize:12, color:"#888" }}>Laden...</div>
+              <div style={{ fontSize:12, color:"#888" }}>{t("impact.laden")}</div>
             ) : updates.length === 0 ? (
-              <div style={{ fontSize:12, color:"#888" }}>Noch keine Neuigkeiten.</div>
+              <div style={{ fontSize:12, color:"#888" }}>{t("impact.keineNeuigkeiten")}</div>
             ) : (
               <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                 {updates.map((u) => {

@@ -15,6 +15,7 @@
 // ════════════════════════════════════════════════════════════════
 import { HUIWarnIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "../hooks/useTranslation.js";
 import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient.js";
 
@@ -136,13 +137,13 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
         display:"flex",alignItems:"center",justifyContent:"center",gap:10,
         opacity:(uploading||fileSize>100*1024*1024)?0.72:1,
       }}>
-        {uploading ? <><Spinner/> Wird hochgeladen…</> : "HUI-Moment teilen"}
+        {uploading ? <><Spinner/> {t("moment.uploading")}</> : t("moment.shareTitle")}
       </button>
       <button className="hms-btn-ghost" onClick={onDiscard} disabled={uploading} style={{
         width:"100%",padding:"13px",fontSize:14,color:D.inkSoft,fontWeight:500,
         display:"flex",alignItems:"center",justifyContent:"center",gap:6,
       }}>
-        <span style={{ fontSize:15 }}>×</span>Verwerfen
+        <span style={{ fontSize:15 }}>×</span>{t("moment.discard")}
       </button>
     </div>
   );
@@ -233,6 +234,7 @@ async function moderateContent({ userId, mediaUrl, mediaType, text }) {
 
 // ════════════════════════════════════════════════════════════════
 export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'public' }) {
+  const { t } = useTranslation();
   const [phase,     setPhase]     = useState(visible ? "open" : "hidden");
   const [text,      setText]      = useState("");
   const [mediaURL,  setMediaURL]  = useState(null);
@@ -461,11 +463,11 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
             <div style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:7 }}>
               <span style={{ fontSize:18,color:D.teal,filter:"drop-shadow(0 0 4px rgba(14,196,184,0.50))" }}>✦</span>
               <h2 style={{ fontSize:21,fontWeight: 600,color:D.ink,letterSpacing:"-0.035em",margin:0,lineHeight:1.2 }}>
-                HUI-Moment teilen
+                {t("moment.shareTitle")}
               </h2>
             </div>
             <p style={{ fontSize:14,color:D.inkSoft,margin:0,fontWeight:400,lineHeight:1.5 }}>
-              {isPreview ? "Füge optional einen Gedanken hinzu." : "Teile einen echten Moment."}
+              {isPreview ? t("moment.optionalThought") : t("moment.shareReal")}
             </p>
           </div>
 
@@ -479,7 +481,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
             }}>
               <HUIWarnIcon size={18} style={{flexShrink:0, color:"rgba(245,158,11,0.8)"}} />
               <div style={{ flex:1,minWidth:0 }}>
-                <div style={{ fontSize:13.5,fontWeight: 600,color:D.coral }}>Fehler beim Teilen</div>
+                <div style={{ fontSize:13.5,fontWeight: 600,color:D.coral }}>{t("moment.shareError")}</div>
                 <div style={{ fontSize:12,color:D.inkSoft,marginTop:2,wordBreak:"break-word" }}>{shareErr}</div>
               </div>
               <button className="hms-btn-ghost" onClick={() => setShareErr(null)}
@@ -497,8 +499,8 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
                 display:"flex",alignItems:"center",justifyContent:"center",
                 fontSize:32,color:"white",boxShadow:`0 8px 28px rgba(14,196,184,0.40)` }}>✓</div>
               <div style={{ textAlign:"center" }}>
-                <div style={{ fontSize:17,fontWeight: 600,color:D.ink,marginBottom:4 }}>Moment geteilt!</div>
-                <div style={{ fontSize:13.5,color:D.inkSoft }}>Erscheint jetzt in deinem Feed.</div>
+                <div style={{ fontSize:17,fontWeight: 600,color:D.ink,marginBottom:4 }}>{t("meinBereich.momentsShared")}!</div>
+                <div style={{ fontSize:13.5,color:D.inkSoft }}>{t("moment.appearsInFeed")}</div>
               </div>
             </div>
           )}
@@ -515,7 +517,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
             <div style={{ animation:"hms-content-in .28s ease both" }}>
               <textarea ref={textareaRef} className="hms-textarea"
                 value={text} onChange={e => setText(e.target.value.slice(0,300))}
-                placeholder={"Was möchtest du teilen?\n\nSchreibe einen echten Gedanken…"}
+                placeholder={t("moment.thoughtPlaceholder")}
                 rows={5} style={{ width:"100%",boxSizing:"border-box",
                   border:"1.5px solid rgba(14,196,184,0.28)",borderRadius:18,
                   background:"rgba(14,196,184,0.05)",padding:"16px 18px",
@@ -536,7 +538,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
                   transition:"all .20s ease",marginBottom:4,
                   display:"flex",alignItems:"center",justifyContent:"center",gap:10,
                 }}>
-                {uploading?<><Spinner/> Wird geteilt…</>:"HUI-Moment teilen"}
+                {uploading?<><Spinner/> {t("moment.uploading")}</>:t("moment.shareTitle")}
               </button>
               <button className="hms-btn-ghost" onClick={() => setPhase("open")}
                 disabled={uploading} style={{

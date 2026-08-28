@@ -8,8 +8,10 @@ import { supabase } from "../../../lib/supabaseClient.js";
 import { HUIFotoIcon } from "../../../design/icons/HuiSystemIcons.jsx";
 import { T } from "./constants.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
+  const { t } = useTranslation();
   const { openRef } = useContentPreview();
   const [moments, setMoments]       = React.useState([]);
   const [loading, setLoading]       = React.useState(true);
@@ -113,7 +115,7 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
               style={{ width:"100%", padding:"12px", borderRadius:99,
                 background:"#f0f0ee", border:"none", color:"#444",
                 fontSize:14, fontWeight:600, cursor:"pointer",
-                fontFamily:"inherit" }}>Abbrechen</button>
+                fontFamily:"inherit" }}>{t("common.cancel")}</button>
           </div>
         </div>,
         document.body
@@ -123,8 +125,8 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
         {/* ── Header ────────────────────────────────────────── */}
         <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>
           {moments.length > 0
-            ? `${moments.length} ${moments.length === 1 ? "Moment" : "Momente"} geteilt`
-            : "Fotos, Gedanken oder Videos"}
+            ? `${moments.length} ${moments.length === 1 ? t("meinBereich.momentSingular") : t("meinBereich.momentPlural")} ${t("meinBereich.momentsShared").toLowerCase()}`
+            : t("meinBereich.momentsEmpty")}
         </div>
 
         {/* ── Kachel-Grid 3-spaltig ─── */}
@@ -211,13 +213,13 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
               <HUIFotoIcon size={22} style={{color:"rgba(14,196,184,0.55)"}}/>
               <div style={{ fontSize:9, fontWeight:600, color:"rgba(26,26,24,0.4)",
                 textAlign:"center", lineHeight:1.2, padding:"0 4px" }}>
-                Ersten Moment teilen
+                {t("meinBereich.firstMoment")}
               </div>
             </div>
           </div>
         )}
 
-        {/* ── "+ Moment hinzufügen" Button (identisch zu Talent-Angeboten) ── */}
+        {/* ── "+ {t("meinBereich.addMoment")}" Button (identisch zu Talent-Angeboten) ── */}
         <button className="mbp-press-light" onClick={onOpenMomentSheet} style={{
           display:"flex", alignItems:"center", gap:8,
           padding:"8px 14px", borderRadius:T.r12,
@@ -231,7 +233,7 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
             background:T.teal, color:"#fff", fontSize:13, fontWeight: 600,
             display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
           }}>+</span>
-          Moment hinzufügen
+          {t("meinBereich.addMoment")}
         </button>
       </div>
     </>

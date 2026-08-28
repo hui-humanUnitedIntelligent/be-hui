@@ -8,6 +8,7 @@ import React from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 import { optimizeCard } from "../../../lib/perfUtils.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -38,6 +39,7 @@ export function MomentsSection({
   onAddMoment = null,
 }) {
   const { open: openPreview } = useContentPreview();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
@@ -81,7 +83,7 @@ export function MomentsSection({
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>
               <HUIFotoIcon size={24} style={{color:"rgba(14,196,184,0.6)"}} />
-              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Ersten Moment teilen</div>
+              <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>{t("meinBereich.firstMoment")}</div>
               <div style={{ fontSize:12, color:T.inkFaint }}>Bilder, die dein Wirken zeigen</div>
             </button>
           </div>

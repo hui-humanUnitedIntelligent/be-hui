@@ -19,20 +19,22 @@ import { useHome } from "../home/HomeShell.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 import { ProfileService } from "../../services/db";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
-function timeAgo(iso) {
+function timeAgo(iso, t) {
   if (!iso) return "";
   const ms = Date.now() - new Date(iso).getTime();
   const m = Math.floor(ms / 60000);
-  if (m < 1) return "Gerade eben";
-  if (m < 60) return `vor ${m} Min`;
+  if (m < 1) return t ? t("common.justNow") : "Gerade eben";
+  if (m < 60) return t ? t("common.minutesAgoShort", {n: m}) : `vor ${m} Min`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `vor ${h} Std`;
+  if (h < 24) return t ? t("common.hoursAgoShort", {n: h}) : `vor ${h} Std`;
   const d = Math.floor(h / 24);
-  return `vor ${d} Tag${d !== 1 ? "en" : ""}`;
+  return t ? t("common.daysAgoShort", {n: d}) : `vor ${d} Tag${d !== 1 ? "en" : ""}`;
 }
 
 function MyRecommendationsModal({ userId, onClose = () => {} }) {
+  const { t } = useTranslation();
   useModalRegistration(true, onClose, "MyRecommendationsModal");
   const { openProfileById } = useHome() || {};
   const [items, setItems]     = useState([]);
@@ -105,10 +107,10 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.02em" }}>
-              Meine Empfehlungen
+              {t("meinBereich.myRecommendations")}
             </div>
             <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
-              {items.length === 0 ? "Noch keine Empfehlungen geschrieben" : `${items.length} Empfehlung${items.length !== 1 ? "en" : ""} geschrieben`}
+              {items.length === 0 ? t("rec.noneWritten") : items.length === 1 ? t("rec.countWritten", {count: items.length}) : t("rec.countWrittenPlural", {count: items.length})}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -122,7 +124,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
         <div style={{ overflowY:"auto", WebkitOverflowScrolling:"touch", flex:1, padding:"12px 16px" }}>
           {loading ? (
             <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
-              Lade Empfehlungen…
+              {t("rec.loading")}
             </div>
           ) : items.length === 0 ? (
             <div style={{ textAlign:"center", padding:"50px 20px" }}>
@@ -130,10 +132,10 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
                 <HUIEmpfehlungIcon size={36}/>
               </div>
               <div style={{ fontSize:15, fontWeight:600, color:"#1A1A18", marginBottom:6 }}>
-                Noch keine Empfehlungen
+                {t("rec.noneWritten")}
               </div>
               <div style={{ fontSize:13, color:"rgba(26,26,24,0.45)", lineHeight:1.5 }}>
-                Nach einem Kauf oder einer Buchung kannst du dem Anbieter eine Empfehlung schreiben.
+                {t("profile.recommendationExplain")}
               </div>
             </div>
           ) : (
@@ -171,7 +173,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
                           {p.name || "Mitglied"}
                         </div>
                         <div style={{ fontSize:11, color:"rgba(26,26,24,0.4)", flexShrink:0 }}>
-                          {timeAgo(item.created_at)}
+                          {timeAgo(item.created_at, t)}
                         </div>
                       </div>
                       <div style={{

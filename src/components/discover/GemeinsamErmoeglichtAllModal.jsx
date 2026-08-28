@@ -197,7 +197,7 @@ export default function GemeinsamErmoeglichtAllModal({ isOpen, onClose, onPressI
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>💚</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Noch keine finanzierten Projekte</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("impact.noFundedProjects")}</div>
               <div style={{ fontSize:13, marginTop:6 }}>Bald werden hier die ersten Erfolge stehen</div>
             </div>
           )}

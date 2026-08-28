@@ -187,7 +187,7 @@ export function WorksSection({
               const badgeLabel = isApproved ? "✅ Live"
                 : isUpdate   ? "🔄 Update"
                 : isPending  ? "⏳ Prüfung"
-                : isRejected ? "❌ Abgelehnt"
+                : isRejected ? t("impact.abgelehnt")
                 : t('works.draft');
 
               return (
