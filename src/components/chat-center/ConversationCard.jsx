@@ -7,19 +7,21 @@ import React from "react";
 import { HUI } from "../../design/hui.design.js";
 import { formatTimeDE } from "../../lib/formatters.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)" };
 
-function timeAgo(iso) {
+function timeAgo(iso, t) {
   if (!iso) return "";
   const d = new Date(iso), now = Date.now();
   const diff = (now - d.getTime()) / 1000;
   if (diff < 3600)  return formatTimeDE(d, {hour:"2-digit",minute:"2-digit"});
   if (diff < 86400) return formatTimeDE(d, {hour:"2-digit",minute:"2-digit"});
-  return "Gestern";
+  return t('common.yesterday');
 }
 
 export default function ConversationCard({ conv, onPress, isActive, isClosed = false }) {
+  const { t } = useTranslation();
   // NAME-DISPLAY-FIX (2026-08-17): ConversationCard griff bisher direkt auf
   // other_profile?.display_name zu (frei wählbarer Spitzname, z.B. "Linda",
   // "Michèle", "Meyer") statt auf die SSOT-Funktion getFullDisplayName()
@@ -29,7 +31,7 @@ export default function ConversationCard({ conv, onPress, isActive, isClosed = f
   // gepflegtem full_name. Fix: gleiche SSOT-Funktion wie überall sonst im Chat.
   const name       = conv.name || getFullDisplayName(conv.other_profile, "?");
   const avatar     = conv.avatar_url || conv.other_profile?.avatar_url;
-  const lastMsg    = conv.last_message || "Eine Verbindung ist entstanden";
+  const lastMsg    = conv.last_message || t('chat.connectionCreated');
   const unread     = conv.unread || 0;
   const initials   = name[0]?.toUpperCase() || "?";
 
@@ -91,7 +93,7 @@ export default function ConversationCard({ conv, onPress, isActive, isClosed = f
             overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", flex:1, minWidth:0,
           }}>{name}</span>
           <span style={{ fontSize:11, color:C.muted, flexShrink:0, marginLeft:6 }}>
-            {timeAgo(conv.last_message_at || conv.last_at)}
+            {timeAgo(conv.last_message_at || conv.last_at, t)}
           </span>
         </div>
         {/* Letzte Nachricht oder "Geschlossen"-Badge */}
@@ -104,7 +106,7 @@ export default function ConversationCard({ conv, onPress, isActive, isClosed = f
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
-            <span>Geschlossen · {lastMsg}</span>
+            <span>{t('chat.closed')} · {lastMsg}</span>
           </div>
         ) : (
           <div style={{

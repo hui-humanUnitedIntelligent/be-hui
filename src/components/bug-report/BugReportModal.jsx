@@ -98,11 +98,11 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
 
   const handleSubmit = useCallback(async () => {
     if (!description.trim()) {
-      setError("Bitte beschreibe den Fehler.");
+      setError(t('bug.errorEmpty'));
       return;
     }
     if (!user?.id) {
-      setError("Du musst angemeldet sein, um einen Fehler zu melden.");
+      setError(t('bug.errorAuth'));
       return;
     }
 
@@ -168,7 +168,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
         if (updErr || !updData) {
           console.error("[BugReport] attachments update failed:", updErr || "kein Zeilen-Match (RLS?)");
           setAttachmentWarning(
-            `Deine Beschreibung wurde gespeichert, aber ${attachments.length === 1 ? "das Bild/Video" : `${attachments.length} Bilder/Videos`} konnte${attachments.length === 1 ? "" : "n"} nicht angehängt werden. Bitte melde den Fehler kurz nochmal — am besten ohne Anhang oder mit Support kontaktieren.`
+            t('bug.errorPartial')
           );
         }
       }
@@ -185,7 +185,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       setSubmitted(true);
     } catch (e) {
       console.error("[BugReport] Submit failed:", e);
-      setError(e?.message || "Fehler beim Absenden. Bitte versuche es erneut.");
+      setError(e?.message || t('bug.errorSubmit'));
     } finally {
       setUploading(false);
     }
@@ -243,10 +243,10 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
           </div>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#1a1a2e", fontFamily: "Inter, sans-serif" }}>
-              Fehler melden
+              {t('bug.report')}
             </h2>
             <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(20,20,34,0.5)", fontFamily: "Inter, sans-serif", lineHeight: 1.4 }}>
-              Hier kannst du alle Fehler hochladen, die du während der Testphase findest, damit sich ein HUI-Programmierer darum kümmern kann.
+              {t('bug.body')}
             </p>
           </div>
           <button
@@ -278,7 +278,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
               </svg>
             </div>
             <p style={{ fontSize: 15, fontWeight: 600, color: "#1a1a2e", fontFamily: "Inter, sans-serif", margin: "0 0 4px" }}>
-              Danke! Ein HUI-Programmierer schaut sich deinen Fehler an.
+              {t('bug.success')}
             </p>
             {attachmentWarning && (
               <div style={{
@@ -309,7 +309,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                 display: "block", fontSize: 13, fontWeight: 600,
                 color: "#1a1a2e", fontFamily: "Inter, sans-serif", marginBottom: 8,
               }}>
-                Fehler beschreiben <span style={{ color: "#EF4444" }}>*</span>
+                {t('bug.label')} <span style={{ color: "#EF4444" }}>*</span>
               </label>
               <textarea
                 value={description}
@@ -336,7 +336,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                 display: "block", fontSize: 13, fontWeight: 600,
                 color: "#1a1a2e", fontFamily: "Inter, sans-serif", marginBottom: 8,
               }}>
-                Bilder / Videos (optional, max. 10)
+                {t('bug.mediaLabel')}
               </label>
               <input
                 ref={fileInputRef}
@@ -360,7 +360,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                 }}
               >
                 <span style={{ fontSize: 22 }}>📷</span>
-                <span>{files.length >= MAX_FILES ? "Maximum erreicht" : "Screenshots/Videos hochladen"}</span>
+                <span>{files.length >= MAX_FILES ? t('bug.maxReached') : t('bug.upload')}</span>
               </button>
 
               {/* File List */}
@@ -396,7 +396,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                 </div>
               )}
               <p style={{ fontSize: 11, color: "rgba(20,20,34,0.35)", fontFamily: "Inter, sans-serif", margin: "4px 0 0" }}>
-                Bilder max 5MB · Videos max 25MB · {files.length}/{MAX_FILES}
+                {t('bug.mediaInfo')} · {files.length}/{MAX_FILES}
               </p>
             </div>
 
@@ -433,9 +433,9 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                     borderTopColor: "#fff",
                     animation: "hui-spin 0.7s linear infinite",
                   }} />
-                  Wird gesendet…
+                  {t('bug.sending')}
                 </>
-              ) : "Fehler absenden"}
+              ) : t('bug.submit')}
             </button>
           </>
         )}

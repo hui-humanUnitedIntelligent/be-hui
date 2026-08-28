@@ -23,16 +23,16 @@ const T = {
 };
 
 const TALENT_KATEGORIEN = [
-  {icon:"🎨",label:"Malerei"},{icon:"✏️",label:"Illustration"},
-  {icon:"📸",label:"Fotografie"},{icon:"🎵",label:"Musik"},
-  {icon:"🎤",label:"Gesang"},{icon:"🪡",label:"Handwerk"},
-  {icon:"💻",label:"Programmierung"},{icon:"📐",label:"Design"},
-  {icon:"📚",label:"Bildung"},{icon:"🎭",label:"Theater"},
-  {icon:"🧘",label:"Coaching"},{icon:"🌿",label:"Naturführung"},
-  {icon:"🍳",label:"Kochen"},{icon:"🎬",label:"Film"},
-  {icon:"✍️",label:"Schreiben"},{icon:"🏺",label:"Töpfern"},
-  {icon:"🎸",label:"Workshops"},{icon:"⭐",label:"Kunstberatung"},
-  {icon:"🖼️",label:"Auftragskunst"},{icon:"🎁",label:"Weitere Angebote"},
+  {icon:"🎨",key:"cat.malerei", label:"Malerei"},{icon:"✏️",key:"cat.illustration", label:"Illustration"},
+  {icon:"📸",key:"cat.fotografie", label:"Fotografie"},{icon:"🎵",key:"cat.musik", label:"Musik"},
+  {icon:"🎤",key:"cat.gesang", label:"Gesang"},{icon:"🪡",key:"cat.handwerk", label:"Handwerk"},
+  {icon:"💻",key:"cat.programmierung", label:"Programmierung"},{icon:"📐",key:"cat.design", label:"Design"},
+  {icon:"📚",key:"cat.bildung", label:"Bildung"},{icon:"🎭",key:"cat.theater", label:"Theater"},
+  {icon:"🧘",key:"cat.coaching", label:"Coaching"},{icon:"🌿",key:"cat.naturfuehrung", label:"Naturführung"},
+  {icon:"🍳",key:"cat.kochen", label:"Kochen"},{icon:"🎬",key:"cat.film", label:"Film"},
+  {icon:"✍️",key:"cat.schreiben", label:"Schreiben"},{icon:"🏺",key:"cat.toepfern", label:"Töpfern"},
+  {icon:"🎸",key:"cat.workshops", label:"Workshops"},{icon:"⭐",key:"cat.kunstberatung", label:"Kunstberatung"},
+  {icon:"🖼️",key:"cat.auftragskunst", label:"Auftragskunst"},{icon:"🎁",key:"cat.weitere", label:"Weitere Angebote"},
 ];
 
 function normalizeSkills(raw) {
@@ -119,7 +119,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
                 background:T.bgCard, border:`1px solid ${T.tealMid}`,
                 fontSize:11, fontWeight:600, color:T.ink, boxShadow:T.card,
               }}>
-                {sk.icon && <span style={{ fontSize:11 }}>{sk.icon}</span>}{sk.label}
+                {sk.icon && <span style={{ fontSize:11 }}>{sk.icon}</span>}{t(sk.key) || sk.label}
               </div>
             ))}
             {isOwner && (
@@ -171,7 +171,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
                     cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
                     boxShadow: active ? T.glowTeal : T.card,
                   }}>
-                    <span style={{ fontSize:15 }}>{t.icon}</span>{t.label}
+                    <span style={{ fontSize:15 }}>{t.icon}</span>{t(t.key) || t.label}
                   </button>
                 );
               })}

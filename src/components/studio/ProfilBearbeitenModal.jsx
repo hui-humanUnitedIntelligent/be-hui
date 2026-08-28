@@ -515,7 +515,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 cursor:"pointer", transition:"all .2s",
               }}
             >
-              Account endgültig löschen
+              {t('pbm.deleteAccount')}
             </button>
           )}
         </div>

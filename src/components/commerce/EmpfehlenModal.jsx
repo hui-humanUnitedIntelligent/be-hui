@@ -11,6 +11,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -33,11 +34,11 @@ const T = {
 };
 
 const DISPUTE_REASONS = [
-  { code: "damaged",         label: "Ware ist beschädigt angekommen" },
-  { code: "not_as_described", label: "Ware entspricht nicht der Beschreibung" },
-  { code: "not_delivered",    label: "Ware wurde nicht geliefert" },
-  { code: "wrong_item",       label: "Falsche Ware erhalten" },
-  { code: "poor_quality",     label: "Qualität ist mangelhaft" },
+  { code: "damaged",         label: t('rec.reasonDamaged') },
+  { code: "not_as_described", label: t('rec.reasonNotAsDescribed') },
+  { code: "not_delivered",    label: t('rec.reasonNotDelivered') },
+  { code: "wrong_item",       label: t('rec.reasonWrongItem') },
+  { code: "poor_quality",     label: t('rec.reasonPoorQuality') },
 ];
 
 export default function EmpfehlenModal({
@@ -51,6 +52,7 @@ export default function EmpfehlenModal({
   useModalRegistration(true, () => onClose?.(), "EmpfehlenModal");
   useWizardBodyLock();
 
+  const { t } = useTranslation();
   const [step, setStep] = useState("choose"); // "choose" | "recommend" | "dispute" | "submitting" | "done_recommended" | "done_disputed"
   const [reviewText, setReviewText] = useState("");
   const [selectedReason, setSelectedReason] = useState(null);
@@ -60,7 +62,7 @@ export default function EmpfehlenModal({
 
   const handleRecommend = async () => {
     if (!reviewText.trim()) {
-      setError("Bitte schreibe eine Bewertung. Eine positive Bewertung ist erforderlich.");
+      setError(t('rec.errorNeedReview'));
       return;
     }
     setStep("submitting");
@@ -73,10 +75,10 @@ export default function EmpfehlenModal({
         p_review_text: reviewText.trim(),
       });
       if (rpcErr) throw rpcErr;
-      if (reviewData && !reviewData.ok) throw new Error(reviewData.error || "Fehler bei der Bewertung");
+      if (reviewData && !reviewData.ok) throw new Error(reviewData.error || t('rec.errorReview'));
       if (reviewData?.skipped) {
         // Bereits bestätigt — idempotent
-        setResultMsg("Du hast die Ware bereits empfohlen. Die Auszahlung wurde freigegeben.");
+        setResultMsg(t('rec.alreadyRecommendedMsg'));
         setStep("done_recommended");
         setTimeout(() => { onSuccess?.(); onClose?.(); }, 2500);
         return;
@@ -101,13 +103,13 @@ export default function EmpfehlenModal({
 
       // Erfolg — egal ob res.ok oder skipped (bereits vom ersten RPC bestätigt)
       if (res.ok && (result?.ok || result?.skipped)) {
-        setResultMsg("Du hast die Ware empfohlen. Die Auszahlung an den Verkäufer wurde freigegeben.");
+        setResultMsg(t('rec.successReleased'));
         setStep("done_recommended");
         setTimeout(() => { onSuccess?.(); onClose?.(); }, 2800);
       } else {
         // Edge Function Fehler — aber Review wurde bereits gespeichert
         console.warn("[EMPFEHLEN] confirm-and-transfer error:", result?.error);
-        setResultMsg("Du hast die Ware empfohlen. Die Auszahlung wird vom HUI-Team freigegeben.");
+        setResultMsg(t('rec.successPending'));
         setStep("done_recommended");
         setTimeout(() => { onSuccess?.(); onClose?.(); }, 2800);
       }
@@ -116,11 +118,11 @@ export default function EmpfehlenModal({
       // aber Stripe-Transfer fehlt. Dem Nutzer sagen dass es geprüft wird.
       if (e?.name === "AbortError") {
         console.warn("[EMPFEHLEN] confirm-and-transfer timeout");
-        setResultMsg("Du hast die Ware empfohlen. Die Auszahlung wird vom HUI-Team freigegeben.");
+        setResultMsg(t('rec.successPending'));
         setStep("done_recommended");
         setTimeout(() => { onSuccess?.(); onClose?.(); }, 2800);
       } else {
-        setError(e?.message || "Fehler beim Senden. Bitte erneut versuchen.");
+        setError(e?.message || t('rec.errorSend'));
         setStep("recommend");
       }
     }
@@ -144,13 +146,13 @@ export default function EmpfehlenModal({
         p_reason_text: reasonText,
       });
       if (rpcErr) throw rpcErr;
-      if (data && !data.ok) throw new Error(data.error || "Fehler beim Einreichen");
+      if (data && !data.ok) throw new Error(data.error || t('rec.errorSubmit'));
 
       setResultMsg("Das Problem wird vom HUI-Team geprüft. Du erhältst eine Benachrichtigung, sobald es eine Entscheidung gibt.");
       setStep("done_disputed");
       setTimeout(() => { onSuccess?.(); onClose?.(); }, 2800);
     } catch (e) {
-      setError(e?.message || "Fehler beim Senden. Bitte erneut versuchen.");
+      setError(e?.message || t('rec.errorSend'));
       setStep("dispute");
     }
   };
@@ -181,7 +183,7 @@ export default function EmpfehlenModal({
         {/* Header */}
         <div style={{ padding: "10px 20px 8px", flexShrink: 0 }}>
           <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
-            Ware erhalten
+            {t("rec.itemReceived")}
           </div>
           {itemTitle && (
             <div style={{ fontSize: 13, color: T.inkSoft, marginTop: 2 }}>
@@ -197,7 +199,7 @@ export default function EmpfehlenModal({
           {step === "choose" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 8 }}>
               <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.6, marginBottom: 4 }}>
-                Bitte bestätige den Erhalt der Ware und gib eine Bewertung ab.
+                {t('rec.confirmPrompt')}
               </div>
 
               {/* Option A: Empfehlen */}
@@ -220,7 +222,7 @@ export default function EmpfehlenModal({
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 600, color: T.ink }}>Empfehlen</div>
                   <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2, lineHeight: 1.4 }}>
-                    Du schreibst eine positive Bewertung. Die Auszahlung wird freigegeben.
+                    {t('rec.recommendHint')}
                   </div>
                 </div>
               </button>
@@ -256,15 +258,15 @@ export default function EmpfehlenModal({
           {step === "recommend" && (
             <div style={{ paddingTop: 8 }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: T.green, marginBottom: 8 }}>
-                Empfehlung schreiben
+                {t("rec.writeReview")}
               </div>
               <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 12 }}>
-                Schreibe eine positive Bewertung über den Verkäufer. Deine Bewertung wird öffentlich im Profil des Verkäufers angezeigt. Mit dem Absenden bestätigst du den Erhalt und gibst die Auszahlung frei.
+                {t('rec.reviewBody')}
               </div>
               <textarea
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                placeholder="Schreibe hier deine Bewertung…"
+                placeholder={t('rec.reviewPlaceholder')}
                 rows={5}
                 data-hui-kbd-self-managed
                 style={{
@@ -299,7 +301,7 @@ export default function EmpfehlenModal({
                     cursor: !reviewText.trim() ? "not-allowed" : "pointer",
                     touchAction: "manipulation", fontFamily: T.ff,
                   }}
-                >Bewertung absenden</button>
+                >{t('rec.submitReview')}</button>
               </div>
             </div>
           )}

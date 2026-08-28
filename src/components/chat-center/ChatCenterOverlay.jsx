@@ -112,7 +112,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Suche nach Namen, Projekten…"
+            placeholder={t('chat.searchPlaceholder')}
             style={{ flex: 1, border: "none", background: "none", outline: "none", fontSize: 13.5, color: C.ink, fontFamily: "inherit" }}
           />
         </div>

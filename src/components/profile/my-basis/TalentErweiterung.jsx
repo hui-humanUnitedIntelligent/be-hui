@@ -3,7 +3,10 @@
 import React from "react";
 import { T } from "./constants.js";
 
+import { useTranslation } from "../../../hooks/useTranslation.js";
+
 export function TalentErweiterung({ profile, onProfileUpdate }) {
+  const { t } = useTranslation();
 
 
   return (
@@ -81,16 +84,16 @@ export function TalentErweiterung({ profile, onProfileUpdate }) {
 // ══════════════════════════════════════════════════════════════
 
 const TALENT_KATEGORIEN = [
-  {icon:"🎨", label:"Malerei"},      {icon:"✏️", label:"Illustration"},
-  {icon:"📸", label:"Fotografie"},   {icon:"🎵", label:"Musik"},
-  {icon:"🎤", label:"Gesang"},       {icon:"🪡", label:"Handwerk"},
-  {icon:"💻", label:"Programmierung"},{icon:"📐", label:"Design"},
-  {icon:"📚", label:"Bildung"},      {icon:"🎭", label:"Theater"},
-  {icon:"🧘", label:"Coaching"},     {icon:"🌿", label:"Naturführung"},
-  {icon:"🍳", label:"Kochen"},       {icon:"🎬", label:"Film"},
-  {icon:"✍️", label:"Schreiben"},   {icon:"🏺", label:"Töpfern"},
-  {icon:"🎸", label:"Workshops"},    {icon:"⭐", label:"Kunstberatung"},
-  {icon:"🖼️", label:"Auftragskunst"},{icon:"🎁", label:"Weitere Angebote"},
+  {icon:"🎨", key:"cat.malerei", label:"Malerei"},      {icon:"✏️", key:"cat.illustration", label:"Illustration"},
+  {icon:"📸", key:"cat.fotografie", label:"Fotografie"},   {icon:"🎵", key:"cat.musik", label:"Musik"},
+  {icon:"🎤", key:"cat.gesang", label:"Gesang"},       {icon:"🪡", key:"cat.handwerk", label:"Handwerk"},
+  {icon:"💻", key:"cat.programmierung", label:"Programmierung"},{icon:"📐", key:"cat.design", label:"Design"},
+  {icon:"📚", key:"cat.bildung", label:"Bildung"},      {icon:"🎭", key:"cat.theater", label:"Theater"},
+  {icon:"🧘", key:"cat.coaching", label:"Coaching"},     {icon:"🌿", key:"cat.naturfuehrung", label:"Naturführung"},
+  {icon:"🍳", key:"cat.kochen", label:"Kochen"},       {icon:"🎬", key:"cat.film", label:"Film"},
+  {icon:"✍️", key:"cat.schreiben", label:"Schreiben"},   {icon:"🏺", key:"cat.toepfern", label:"Töpfern"},
+  {icon:"🎸", key:"cat.workshops", label:"Workshops"},    {icon:"⭐", key:"cat.kunstberatung", label:"Kunstberatung"},
+  {icon:"🖼️", key:"cat.auftragskunst", label:"Auftragskunst"},{icon:"🎁", key:"cat.weitere", label:"Weitere Angebote"},
 ];
 
 

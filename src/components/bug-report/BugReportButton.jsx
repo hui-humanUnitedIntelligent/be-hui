@@ -6,8 +6,10 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import BugIcon from "./BugIcon.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 export default function BugReportButton({ onPress = () => {} }) {
+  const { t } = useTranslation();
   const [pressed, setPressed] = React.useState(false);
 
   function handleTouchEnd(e) {
@@ -21,7 +23,7 @@ export default function BugReportButton({ onPress = () => {} }) {
       onClick={() => onPress?.()}
       onTouchStart={() => setPressed(true)}
       onTouchEnd={handleTouchEnd}
-      aria-label="Fehler melden"
+      aria-label={t('bug.report')}
       style={{
         position: "fixed",
         bottom: "calc(80px + env(safe-area-inset-bottom, 0px))",

@@ -1747,8 +1747,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
           <div style={{ textAlign:"center", padding:"40px 20px" }}>
             <div style={{ fontSize:32, marginBottom:10 }}>🌱</div>
             <p style={{ margin:0, fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-              Noch keine abgeschlossenen Monate — die erste Verteilung
-              erscheint hier, sobald der Impact Pool zum ersten Mal ausgezahlt wurde.
+              {t('impact.noCompletedMonths')}
             </p>
           </div>
         ) : (
@@ -3040,7 +3039,7 @@ function InfoSheet({ modal, onClose }) {
               fontSize:17, fontWeight: 600, color:T.teal,
               letterSpacing:"-0.018em", lineHeight:1.3,
             }}>
-              t("impact.heroSub2")
+              {t("impact.heroSub2")}
             </div>
           </div>
         </>
