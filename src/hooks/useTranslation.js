@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { t, SUPPORTED_LANGS, detectSystemLang } from '../i18n/index.js';
+import { setFormatLocale } from '../lib/formatters.js';
 
 const LANG_CHANGE_EVENT = 'hui_lang_change';
 
