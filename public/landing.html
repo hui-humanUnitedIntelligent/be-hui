@@ -256,27 +256,57 @@ ul{list-style:none}
 .eco-atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 45%,rgba(13,196,181,.04) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 30% 70%,rgba(244,115,85,.02) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 70% 30%,rgba(212,149,42,.03) 0%,transparent 55%);animation:eco-atm 12s ease-in-out infinite}
 .eco .section-kicker{text-shadow:0 1px 6px rgba(250,247,242,.85)}
 @keyframes eco-atm{0%,100%{opacity:.65}50%{opacity:1}}
-.eco-inner{max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.eco-inner{max-width:1180px;margin:0 auto;text-align:center;position:relative;z-index:1}
 .eco-h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:20px;text-shadow:0 1px 8px rgba(250,247,242,.85)}
 .eco-sub{font-size:17px;font-weight:300;color:var(--muted);max-width:480px;margin:0 auto 44px;text-shadow:0 1px 6px rgba(250,247,242,.8)}
-.eco-field{position:relative;width:100%;max-width:580px;margin:0 auto;aspect-ratio:1/1;min-height:420px}
-.eco-core{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;background:radial-gradient(circle,rgba(13,196,181,.06) 0%,rgba(212,149,42,.025) 35%,transparent 70%);z-index:0;opacity:0}
-.eco-field.visible .eco-core{animation:eco-appear 2s var(--ease-out) forwards,eco-breathe 8s ease-in-out 2s infinite}
-@keyframes eco-appear{from{opacity:0}to{opacity:1}}
-@keyframes eco-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.65;transform:scale(.95)}}
-.eco-energy{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0;transition:opacity 2.5s var(--ease-out) .5s}
-.eco-field.visible .eco-energy{opacity:1}
-.eco-term{position:absolute;transform:translate(-50%,calc(-50% + 12px));text-align:center;z-index:2;opacity:0;transition:opacity 1s var(--ease-out),transform 1s var(--ease-out);max-width:140px}
-.eco-field.visible .eco-term{opacity:1;transform:translate(-50%,-50%)}
-.eco-field.visible .eco-term[data-eco="1"]{transition-delay:.3s}
-.eco-field.visible .eco-term[data-eco="2"]{transition-delay:.45s}
-.eco-field.visible .eco-term[data-eco="3"]{transition-delay:.6s}
-.eco-field.visible .eco-term[data-eco="4"]{transition-delay:.75s}
-.eco-field.visible .eco-term[data-eco="5"]{transition-delay:.9s}
-.eco-field.visible .eco-term[data-eco="6"]{transition-delay:1.05s}
-.eco-field.visible .eco-term[data-eco="7"]{transition-delay:1.2s}
-.eco-cat{display:block;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(13,196,181,.65);margin-bottom:5px;text-shadow:0 1px 4px rgba(250,247,242,.9)}
-.eco-stmt{display:block;font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;text-shadow:0 1px 6px rgba(250,247,242,.95)}
+.eco-cat{display:block;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(13,196,181,.75);margin-bottom:6px;text-shadow:0 1px 4px rgba(250,247,242,.9)}
+.eco-stmt{display:block;font-size:17px;font-weight:600;color:var(--ink);letter-spacing:-.01em;text-shadow:0 1px 6px rgba(250,247,242,.95)}
+
+/* ── Eco Journey — editorial visual story of the 7 HUI-Bereiche ── */
+.eco-journey{max-width:1180px;margin:64px auto 0;display:flex;flex-direction:column;gap:96px}
+.eco-row{all:unset;display:flex;box-sizing:border-box;width:100%;cursor:pointer;border-radius:26px;-webkit-tap-highlight-color:transparent}
+.eco-row:focus-visible{outline:2px solid var(--teal);outline-offset:6px}
+.eco-row-figure{margin:0;border-radius:26px;overflow:hidden;box-shadow:0 22px 58px -24px rgba(26,26,46,.16);transition:box-shadow .5s var(--ease-out);flex-shrink:0}
+.eco-row-figure img{display:block;width:100%;height:auto;transition:transform .6s var(--ease-out)}
+.eco-row:hover .eco-row-figure{box-shadow:0 28px 70px -22px rgba(26,26,46,.22)}
+.eco-row:hover .eco-row-figure img{transform:scale(1.02)}
+.eco-row-text{display:flex;flex-direction:column;justify-content:center}
+
+/* 01 — Menschen: large, centered, emotional — no card look */
+.eco-row--01{flex-direction:column;align-items:center;max-width:640px;margin:0 auto}
+.eco-row--01 .eco-row-figure{width:100%}
+.eco-row--01 .eco-row-text{margin-top:24px;text-align:center;align-items:center}
+
+/* 02 — Wirker: text left, image right, offset */
+.eco-row--02{align-items:center;gap:44px}
+.eco-row--02 .eco-row-text{flex:0 0 260px;text-align:left}
+.eco-row--02 .eco-row-figure{flex:1 1 auto;max-width:560px;margin-left:auto;transform:translateX(18px)}
+
+/* 03 — Projekte: image left, text right (mirrors 02) */
+.eco-row--03{align-items:center;gap:44px}
+.eco-row--03 .eco-row-figure{flex:1 1 auto;max-width:560px;transform:translateX(-18px)}
+.eco-row--03 .eco-row-text{flex:0 0 260px;text-align:left}
+
+/* 04 — Werke: the work itself in the spotlight, generously large */
+.eco-row--04{flex-direction:column;align-items:center}
+.eco-row--04 .eco-row-figure{width:min(100%,980px);margin:0 auto}
+.eco-row--04 .eco-row-text{margin-top:24px;text-align:center;align-items:center}
+
+/* 05 — Erlebnisse: wide, atmospheric banner */
+.eco-row--05{flex-direction:column;align-items:center}
+.eco-row--05 .eco-row-figure{width:100%}
+.eco-row--05 .eco-row-text{margin-top:24px;text-align:center;align-items:center}
+
+/* 06 — Unternehmen: modest, warm, authentic — image left, text right */
+.eco-row--06{align-items:center;gap:40px;max-width:880px;margin:0 auto}
+.eco-row--06 .eco-row-figure{flex:0 0 auto;width:min(52%,460px)}
+.eco-row--06 .eco-row-text{flex:1 1 auto;text-align:left}
+
+/* 07 — Gemeinschaft: the largest image, emotional climax */
+.eco-row--07{flex-direction:column;align-items:center}
+.eco-row--07 .eco-row-figure{width:min(112%,1180px)}
+.eco-row--07 .eco-row-text{margin-top:28px;text-align:center;align-items:center}
+.eco-row--07 .eco-stmt{font-size:19px}
 
 /* ═══ VERBINDUNG ═══ */
 .eco-connect{max-width:580px;margin:56px auto 0;text-align:center}
@@ -554,12 +584,16 @@ ul{list-style:none}
 
   .eco{padding:72px 24px 64px}
   .eco-sub{margin-bottom:32px}
-  .eco-field{max-width:440px}
-  .eco-term{max-width:120px}
   .eco-cat{font-size:10px}
-  .eco-stmt{font-size:13px}
-  .eco-core{width:180px;height:180px;margin:-90px 0 0 -90px}
+  .eco-stmt{font-size:14px}
   .eco-connect{margin-top:40px}
+
+  .eco-journey{gap:64px}
+  .eco-row--02,.eco-row--03,.eco-row--06{flex-direction:column;align-items:stretch;gap:20px;max-width:100%}
+  .eco-row--02 .eco-row-text,.eco-row--03 .eco-row-text,.eco-row--06 .eco-row-text{flex:none;text-align:center;align-items:center}
+  .eco-row--02 .eco-row-figure,.eco-row--03 .eco-row-figure,.eco-row--06 .eco-row-figure{width:100%!important;max-width:100%!important;margin:0!important;transform:none!important}
+  .eco-row--04 .eco-row-figure,.eco-row--07 .eco-row-figure{width:100%}
+  .eco-row--01{max-width:100%}
 
   .hui-app-phone{width:200px;height:400px;border-radius:32px}
   .phone-screen{border-radius:26px}
@@ -607,11 +641,11 @@ ul{list-style:none}
   .hero-badge{margin-bottom:20px}
   .hero-actions{flex-direction:column;gap:12px;margin-top:20px}
   .hero-actions .btn-primary,.hero-actions .btn-ghost{width:100%;justify-content:center}
-  .eco-energy{display:none}
-  .eco-field{aspect-ratio:auto;max-width:340px;min-height:auto;padding:24px 0}
-  .eco-core{position:absolute;top:50%;left:50%;width:240px;height:240px;margin:-120px 0 0 -120px;opacity:.3;animation:none}
-  .eco-term{position:relative!important;left:auto!important;top:auto!important;transform:none!important;width:100%;text-align:center;margin-bottom:22px;opacity:1!important;max-width:none}
   .eco-connect p{font-size:16px}
+  .eco-journey{gap:48px}
+  .eco-row-figure{border-radius:18px}
+  .eco-stmt{font-size:14px}
+  .eco-row--07 .eco-stmt{font-size:17px}
   .impact-cell{padding:22px}
   .hui-app-phone{width:180px;height:360px}
   .origin{padding:72px 16px 56px}
@@ -644,9 +678,7 @@ ul{list-style:none}
   .vision-flow{display:none}
   .vision-answer-wrap::before{opacity:1;transition:none}
   .eco-atmosphere{animation:none}
-  .eco-energy{display:none}
-  .eco-core{animation:none;opacity:1}
-  .eco-term{opacity:1!important}
+  .eco-row:hover .eco-row-figure img{transform:none}
   /* removed */
   /* removed */
   /* removed */
@@ -932,54 +964,83 @@ ul{list-style:none}
     <p class="section-kicker reveal" data-i18n="eco.kicker">Das Ökosystem</p>
     <h2 class="eco-h2 reveal d1" data-i18n="eco.h2">Die Welt von HUI</h2>
     <p class="eco-sub reveal d2" data-i18n="eco.intro">HUI verbindet Menschen, Ideen und Möglichkeiten in einem lebendigen Ökosystem.</p>
-    <div class="eco-field reveal d2">
-      <div class="eco-core" aria-hidden="true"></div>
-      <svg class="eco-energy" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
-          <animateMotion dur="9s" repeatCount="indefinite" begin="0s" path="M50,13 C38,19 24,32 21,27 C15,40 13,50 14,58 C19,69 27,78 34,83"/>
-          <animate attributeName="opacity" values="0;0.5;0.4;0.4;0.2;0" dur="9s" repeatCount="indefinite" begin="0s"/>
-        </circle>
-        <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
-          <animateMotion dur="10s" repeatCount="indefinite" begin="3s" path="M21,27 C38,19 62,19 79,27"/>
-          <animate attributeName="opacity" values="0;0.5;0.3;0.2;0" dur="10s" repeatCount="indefinite" begin="3s"/>
-        </circle>
-        <circle r="2" fill="#D4952A" fill-opacity=".4" opacity="0">
-          <animateMotion dur="12s" repeatCount="indefinite" begin="6s" path="M79,27 C85,36 87,46 86,58 C81,69 73,78 66,83"/>
-          <animate attributeName="opacity" values="0;0.4;0.3;0.3;0.2;0" dur="12s" repeatCount="indefinite" begin="6s"/>
-        </circle>
-        <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
-          <animateMotion dur="11s" repeatCount="indefinite" begin="8s" path="M50,13 C50,32 50,48 50,58 C56,68 61,76 66,83"/>
-          <animate attributeName="opacity" values="0;0.5;0.3;0.3;0.2;0" dur="11s" repeatCount="indefinite" begin="8s"/>
-        </circle>
-      </svg>
-      <div class="eco-term" data-eco="1" style="left:50%;top:13%">
-        <span class="eco-cat" data-i18n="eco.people">Menschen</span>
-        <span class="eco-stmt" data-i18n="eco.people-desc">Jeder Mensch zählt</span>
-      </div>
-      <div class="eco-term" data-eco="2" style="left:21%;top:27%">
-        <span class="eco-cat" data-i18n="eco.creators">Wirker</span>
-        <span class="eco-stmt" data-i18n="eco.creators-desc">Talente & Können</span>
-      </div>
-      <div class="eco-term" data-eco="3" style="left:79%;top:27%">
-        <span class="eco-cat" data-i18n="eco.projects">Projekte</span>
-        <span class="eco-stmt" data-i18n="eco.projects-desc">Ideen werden möglich</span>
-      </div>
-      <div class="eco-term" data-eco="4" style="left:14%;top:58%">
-        <span class="eco-cat" data-i18n="eco.works">Werke</span>
-        <span class="eco-stmt" data-i18n="eco.works-desc">Geschaffen & geteilt</span>
-      </div>
-      <div class="eco-term" data-eco="5" style="left:86%;top:58%">
-        <span class="eco-cat" data-i18n="eco.experiences">Erlebnisse</span>
-        <span class="eco-stmt" data-i18n="eco.experiences-desc">Momente verbinden</span>
-      </div>
-      <div class="eco-term" data-eco="6" style="left:34%;top:83%">
-        <span class="eco-cat" data-i18n="eco.companies">Unternehmen</span>
-        <span class="eco-stmt" data-i18n="eco.companies-desc">Partner & Möglichkeiten</span>
-      </div>
-      <div class="eco-term" data-eco="7" style="left:66%;top:83%">
-        <span class="eco-cat" data-i18n="eco.community">Gemeinschaft</span>
-        <span class="eco-stmt" data-i18n="eco.community-desc">Zusammenhalt</span>
-      </div>
+    <div class="eco-journey">
+      <!-- 01 — Menschen -->
+      <button type="button" class="eco-row eco-row--01 reveal" data-pre-launch data-eco="1" aria-label="Menschen bei HUI — bald verfügbar">
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-menschen.webp" alt="Menschen mit individuellen Talenten und Fähigkeiten bei HUI" width="1024" height="768" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.people">Menschen</span>
+          <span class="eco-stmt" data-i18n="eco.people-desc">Jeder Mensch zählt</span>
+        </div>
+      </button>
+
+      <!-- 02 — Wirker -->
+      <button type="button" class="eco-row eco-row--02 reveal" data-pre-launch data-eco="2" aria-label="Wirker bei HUI — bald verfügbar">
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.creators">Wirker</span>
+          <span class="eco-stmt" data-i18n="eco.creators-desc">Talente & Können</span>
+        </div>
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-wirker.webp" alt="Mensch zeigt sein kreatives Talent und Können" width="1024" height="768" loading="lazy" decoding="async"/>
+        </figure>
+      </button>
+
+      <!-- 03 — Projekte -->
+      <button type="button" class="eco-row eco-row--03 reveal" data-pre-launch data-eco="3" aria-label="Projekte bei HUI — bald verfügbar">
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-projekte.webp" alt="Menschen arbeiten gemeinsam an einer Idee und einem Projekt" width="1024" height="768" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.projects">Projekte</span>
+          <span class="eco-stmt" data-i18n="eco.projects-desc">Ideen werden möglich</span>
+        </div>
+      </button>
+
+      <!-- 04 — Werke -->
+      <button type="button" class="eco-row eco-row--04 reveal" data-pre-launch data-eco="4" aria-label="Werke bei HUI — bald verfügbar">
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-werke.webp" alt="Kunstwerk und kreatives Schaffen" width="1024" height="768" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.works">Werke</span>
+          <span class="eco-stmt" data-i18n="eco.works-desc">Geschaffen & geteilt</span>
+        </div>
+      </button>
+
+      <!-- 05 — Erlebnisse -->
+      <button type="button" class="eco-row eco-row--05 reveal" data-pre-launch data-eco="5" aria-label="Erlebnisse bei HUI — bald verfügbar">
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-erlebnisse.webp" alt="Menschen erleben gemeinsam besondere Momente" width="1024" height="768" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.experiences">Erlebnisse</span>
+          <span class="eco-stmt" data-i18n="eco.experiences-desc">Momente verbinden</span>
+        </div>
+      </button>
+
+      <!-- 06 — Unternehmen -->
+      <button type="button" class="eco-row eco-row--06 reveal" data-pre-launch data-eco="6" aria-label="Unternehmen bei HUI — bald verfügbar">
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-unternehmen.webp" alt="Menschen arbeiten authentisch in einem kleinen Unternehmen zusammen" width="1024" height="768" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.companies">Unternehmen</span>
+          <span class="eco-stmt" data-i18n="eco.companies-desc">Partner & Möglichkeiten</span>
+        </div>
+      </button>
+
+      <!-- 07 — Gemeinschaft -->
+      <button type="button" class="eco-row eco-row--07 reveal" data-pre-launch data-eco="7" aria-label="Gemeinschaft bei HUI — bald verfügbar">
+        <figure class="eco-row-figure">
+          <img src="/assets/eco-gemeinschaft.webp" alt="Menschen verbringen gemeinsam Zeit und erleben Gemeinschaft" width="1024" height="683" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="eco-row-text">
+          <span class="eco-cat" data-i18n="eco.community">Gemeinschaft</span>
+          <span class="eco-stmt" data-i18n="eco.community-desc">Zusammenhalt</span>
+        </div>
+      </button>
     </div>
     <div class="eco-connect">
       <p class="reveal d4" data-i18n-html="eco.connect">Keine isolierten Funktionen — ein <strong>verbundenes Ökosystem</strong>, in dem alles miteinander verknüpft ist.</p>
