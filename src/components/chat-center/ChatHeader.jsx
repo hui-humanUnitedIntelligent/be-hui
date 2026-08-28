@@ -16,7 +16,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
   const name           = getFullDisplayName(conv?.other_profile) || conv?.name || t("chat.conversation");
   const rawTalent      = conv?.talent || conv?.type || null;
   const talent         = (rawTalent && rawTalent !== "public") ? rawTalent : null;
-  const mood           = conv?.mood   || "Gerade kreativ im Studio";
+  const mood           = conv?.mood   || t("chat.moodDefault");
   const avatar         = conv?.avatar_url;
   const initials       = name[0]?.toUpperCase() || "?";
   const presence       = formatPresence(conv?.other_profile?.last_seen_at || conv?.last_seen_at);
@@ -141,7 +141,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
                   borderBottom:"1px solid rgba(0,0,0,0.05)",
                   WebkitTapHighlightColor:"transparent",
                 }}
-              >✦ Profil ansehen</button>
+              >✦ {t("chat.viewProfile")}</button>
             )}
             <button
               onClick={() => {
@@ -153,7 +153,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
                 textAlign:"left", fontSize:14, color:C.ink, cursor:"pointer",
                 WebkitTapHighlightColor:"transparent",
               }}
-            >🗓 Termin ansehen</button>
+            >🗓 {t("chat.viewAppointment")}</button>
             <button
               onClick={() => { setConfirmDelete(true); }}
               style={{

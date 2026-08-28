@@ -35,7 +35,7 @@ function Skel() {
 // Preis-Hilfsfunktion
 function formatPrice(talent) {
   if (talent.price_per_session) return `${talent.price_per_session} ${talent.currency || "€"}`;
-  if (talent.price_per_hour)    return `${talent.price_per_hour} ${talent.currency || "€"}/Std.`;
+  if (talent.price_per_hour)    return `${talent.price_per_hour} ${talent.currency || "€"}/${t("common.perHour")}`;
   return null;
 }
 

@@ -118,7 +118,7 @@ function NavBar({ onBack = () => {}, title }) {
           {title}
         </div>
         <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
-          Entdecke diese Person
+          {t("pub.discoverPerson")}
         </div>
       </div>
       {/* Platzhalter rechts für Symmetrie */}

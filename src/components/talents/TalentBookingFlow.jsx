@@ -360,7 +360,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   if (!talent) return null;
 
   const priceStr = talent.price_per_hour != null
-    ? `${fmtEur(talent.price_per_hour)}/Std`
+    ? `${fmtEur(talent.price_per_hour)}/${t("common.perHour")}`
     : talent.price_per_session != null
       ? `${fmtEur(talent.price_per_session)}/Termin`
       : null;

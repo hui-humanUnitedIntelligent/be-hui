@@ -23,10 +23,12 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL = "#16D7C5";
 
 export default function TalentAnfrageFlow({ talent, onClose }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [message, setMessage] = useState("");
   const [phase,   setPhase]   = useState("form"); // form | loading | success | error
@@ -47,9 +49,9 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
   const providerId  = talent.user_id;
   const providerName= talent.author || "HUI Talent";
   const priceStr = talent.price_per_hour != null
-    ? `${formatNumberDE(parseFloat(talent.price_per_hour), {minimumFractionDigits:0})} €/Std`
+    ? `${formatNumberDE(parseFloat(talent.price_per_hour), {minimumFractionDigits:0})} €/${t("common.perHour")}`
     : talent.price_per_session != null
-      ? `${formatNumberDE(parseFloat(talent.price_per_session), {minimumFractionDigits:0})} €/Termin`
+      ? `${formatNumberDE(parseFloat(talent.price_per_session), {minimumFractionDigits:0})} €/${t("common.perSession")}`
       : null;
 
   async function handleSenden() {

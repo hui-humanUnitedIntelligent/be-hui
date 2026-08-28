@@ -48,7 +48,7 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
   // Preis formatieren
   const priceLabel = {
     free:    "Kostenlos",
-    hourly:  form.price ? `${parseFloat(form.price).toFixed(0)} €/Std.` : "Stundenpreis",
+    hourly:  form.price ? `${parseFloat(form.price).toFixed(0)} €/${t("common.perHour")}` : t("lm.hourly"),
     fixed:   form.price ? `${parseFloat(form.price).toFixed(2)} €` : "Festpreis",
     inquiry: "Auf Anfrage",
   }[form.priceMode] || "–";

@@ -27,7 +27,7 @@ function TalentCardItem({ t, onPress }) {
   const price = t.price_per_session != null
     ? `${formatNumberDE(Number(t.price_per_session))} €/Sitzung`
     : t.price_per_hour != null
-    ? `${formatNumberDE(Number(t.price_per_hour))} €/Std`
+    ? `${formatNumberDE(Number(t.price_per_hour))} €/${t("common.perHour")}`
     : null;
   const locLabel = LOC_KEY[t.location_type] || t.location_type || "";
   return (

@@ -75,14 +75,14 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
       {talents.length > 0 && (
         <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
           gap:10, marginBottom:12 }}>
-          {talents.map((t, i) => {
-            const isApproved = t.status === "approved";
-            const isPending  = t.status === "pending";
+          {talents.map((tal, i) => {
+            const isApproved = tal.status === "approved";
+            const isPending  = tal.status === "pending";
             const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
             const badgeText  = isApproved ? t("cs.badge.live") : isPending ? t("cs.badge.pruefung") : t("cs.badge.abgelehnt");
-            const cover = Array.isArray(t.images) && t.images[0]?.url;
+            const cover = Array.isArray(tal.images) && tal.images[0]?.url;
             return (
-              <div key={t.id || i}
+              <div key={tal.id || i}
                 onClick={() => setChoiceTalent(t)}
                 style={{
                   width:"100%", aspectRatio:"1/1",
@@ -91,7 +91,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : "0 0 0 2px #ff5050",
                 }}>
                 {cover
-                  ? <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={t.title||""}
+                  ? <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={tal.title||""}
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex",
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>💼</div>
@@ -116,25 +116,25 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
                 }}>
                   {badgeText}
                 </div>
-                {t.title && (
+                {tal.title && (
                   <div style={{
                     position:"absolute", top:0, left:0, right:0,
                     background:"rgba(0,0,0,0.45)", fontSize:9, color:"#fff",
                     padding:"3px 22px 3px 5px", whiteSpace:"nowrap",
                     overflow:"hidden", textOverflow:"ellipsis",
                   }}>
-                    {t.title}
+                    {tal.title}
                   </div>
                 )}
                 {/* Preis-Hinweis (Master-Prompt 2026-07-05) — nur eine kompakte Zeile,
                     Sichtbarkeit fuer Dritte ohnehin ueber RLS (approved-only) geregelt */}
-                {(t.price_per_hour || t.price_per_session) && (
+                {(tal.price_per_hour || tal.price_per_session) && (
                   <div style={{
                     position:"absolute", bottom:18, left:0, right:0,
                     background:"rgba(0,0,0,0.35)", fontSize:8.5, color:"#fff",
                     padding:"2px 5px", textAlign:"center", fontWeight:600,
                   }}>
-                    {t.price_per_hour ? `${t.price_per_hour}€/Std` : `${t.price_per_session}€/Termin`}
+                    {tal.price_per_hour ? `${tal.price_per_hour}€/${t("common.perHour")}` : `${tal.price_per_session}€/${t("common.perSession")}`}
                   </div>
                 )}
               </div>

@@ -114,7 +114,7 @@ export function WorksSection({
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.ws-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.ws-hscroll::-webkit-scrollbar{display:none}`}</style>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Meine Werke</div>
+          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>{t("meinBereich.meineWerke")}</div>
         </div>
         <div className="ws-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {[1,2,3,4,5].map(i => <Sk key={i} w={100} h={100} r={T.r16}/>)}
@@ -141,7 +141,7 @@ export function WorksSection({
           {visible.length > 0 && onShowAll && (
             <button onClick={onShowAll} style={{ background:"none", border:"none", padding:0,
               fontSize:12, fontWeight:600, color:T.teal, cursor:"pointer", fontFamily:"inherit" }}>
-              Alle ansehen ›
+              {t("common.viewAll")}
             </button>
           )}
         </div>

@@ -9,16 +9,17 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const PURPLE      = "rgba(139,92,246,1)";
 const PURPLE_SOFT = "rgba(139,92,246,0.10)";
 const INK         = "#1A1A2E";
 const INK_SUB     = "rgba(26,26,46,0.45)";
 
-function fmtPrice(ph, ps, currency = "EUR") {
+function fmtPrice(ph, ps, currency = "EUR", t) {
   const sym = currency === "EUR" ? "€" : currency;
-  if (ps != null && ps > 0) return `${sym}${Number(ps).toFixed(0)}/Session`;
-  if (ph != null && ph > 0) return `${sym}${Number(ph).toFixed(0)}/Std`;
+  if (ps != null && ps > 0) return `${sym}${Number(ps).toFixed(0)}/${t ? t("common.perSession") : "Session"}`;
+  if (ph != null && ph > 0) return `${sym}${Number(ph).toFixed(0)}/${t ? t("common.perHour") : "Std"}`;
   return null;
 }
 
@@ -33,6 +34,7 @@ function locLabel(t) {
 }
 
 export default function TalentContent({ item, onProfile, onReaction, onShare }) {
+  const { t } = useTranslation();
   if (!item) return null;
 
   const raw      = item._raw || {};
@@ -42,7 +44,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
   const desc     = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
   const category = raw.category || "";
   const locType  = raw.location_type || null;
-  const price    = fmtPrice(raw.price_per_hour, raw.price_per_session, raw.currency);
+  const price    = fmtPrice(raw.price_per_hour, raw.price_per_session, raw.currency, t);
 
   const { open, openTalentBooking } = useContentPreview();
   const handleCardClick = () => open({

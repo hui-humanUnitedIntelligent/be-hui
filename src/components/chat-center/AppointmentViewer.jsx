@@ -188,10 +188,10 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
         }}>
           <div>
             <div style={{ fontSize:17, fontWeight:600, color:C.ink, letterSpacing:-0.3 }}>
-              Termine mit {otherName || "dieser Person"}
+              {t("chat.appointmentsWith", {name: otherName || t("common.someone")})}
             </div>
             <div style={{ fontSize:12, color:C.muted, marginTop:2 }}>
-              {appointments.length} {appointments.length === 1 ? "Termin" : "Termine"} insgesamt
+              {appointments.length} {appointments.length === 1 ? t("chat.appointment") : t("chat.appointments")} {t("chat.total")}
             </div>
           </div>
           <button onClick={onClose} style={{
@@ -237,10 +237,10 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
                 fontSize:14, textAlign:"center", lineHeight:1.7,
                 color:"rgba(80,80,80,0.42)", maxWidth:240,
               }}>
-                Noch keine Termine mit dieser Person.
+                {t("chat.noAppointments")}
                 <br/>
                 <span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>
-                  Buch ein Talent oder Erlebnis im Profil.
+                  {t("chat.noAppointmentsCTA")}
                 </span>
               </div>
             </div>

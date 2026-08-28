@@ -15,9 +15,9 @@ export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
   const cover  = (!imgErr && talent.cover) ? talent.cover : null;
   const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };
   const priceStr = talent.price_per_hour != null
-    ?formatNumberDE(parseFloat(talent.price_per_hour), { minimumFractionDigits:0 }) + " €/Std"
+    ?formatNumberDE(parseFloat(talent.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`
     : talent.price_per_session != null
-      ?formatNumberDE(parseFloat(talent.price_per_session), { minimumFractionDigits:0 }) + " €/Termin"
+      ?formatNumberDE(parseFloat(talent.price_per_session), { minimumFractionDigits:0 }) + ` €/${t("common.perSession")}`
       : null;
   const locationLabel = TALENT_LOCATION_LABEL[talent.location_type] || null;
 
@@ -253,9 +253,9 @@ export function TalenteSection({
             : talente.map((t) => {
                 const medCol = MEDIUM_COLOR[t.category] || { bg:T.tealSoft, text:T.teal };
                 const priceStr = t.price_per_hour != null
-                  ?formatNumberDE(parseFloat(t.price_per_hour), { minimumFractionDigits:0 }) + " €/Std"
+                  ?formatNumberDE(parseFloat(t.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`
                   : t.price_per_session != null
-                    ?formatNumberDE(parseFloat(t.price_per_session), { minimumFractionDigits:0 }) + " €/Termin"
+                    ?formatNumberDE(parseFloat(t.price_per_session), { minimumFractionDigits:0 }) + ` €/${t("common.perSession")}`
                     : null;
                 return (
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)} role="button" tabIndex={0}>
