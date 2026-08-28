@@ -481,60 +481,101 @@ ul{list-style:none}
 /* ═══ RESPONSIVE ═══ */
 
 /* ═══ HUI SIDEBAR ═══ */
-.hui-tab{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:1001;display:flex;align-items:center;justify-content:center;width:64px;height:70px;background:rgba(253,251,248,.9);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(20,20,34,.07);border-right:none;border-radius:18px 0 0 18px;box-shadow:-4px 3px 24px rgba(20,20,34,.09);cursor:pointer;transition:opacity .35s var(--ease-out),transform .35s var(--ease-out),background .25s var(--ease),box-shadow .25s var(--ease)}
-.hui-tab:hover{background:rgba(255,255,255,.97);box-shadow:-6px 4px 32px rgba(20,20,34,.12)}
-.hui-tab img{width:32px;height:32px;opacity:.88;transition:opacity .25s var(--ease),transform .25s var(--ease)}
-.hui-tab:hover img{opacity:1;transform:scale(1.06)}
-.hui-tab.sidebar-open{opacity:0;pointer-events:none;transform:translateY(-50%) translateX(100%)}
-.hui-tab:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-
-/* ── HUI Entdeckungs-Tab: dezentes Atmen + Hover-Kapsel ── */
-@keyframes hui-tab-breathe{0%,100%{box-shadow:-4px 3px 24px rgba(20,20,34,.09)}50%{box-shadow:-4px 3px 24px rgba(13,196,181,.13)}}
-@media(hover:hover){.hui-tab:not(.sidebar-open){animation:hui-tab-breathe 6s ease-in-out infinite}
-@media(hover:hover) and (prefers-reduced-motion:reduce){.hui-tab:not(.sidebar-open){animation:none}}}
-.hui-tab-capsule{position:fixed;right:0;top:50%;transform:translate(100%,-50%);z-index:1000;pointer-events:none;opacity:0;transition:opacity .4s var(--ease-out),transform .5s var(--ease-out);display:flex;align-items:center;gap:10px;padding:12px 22px 12px 16px;background:rgba(253,251,248,.94);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(13,196,181,.12);border-right:none;border-radius:18px 0 0 18px;box-shadow:-4px 3px 28px rgba(20,20,34,.07)}
-@media(hover:hover){.hui-tab:hover~.hui-tab-capsule,.hui-tab-capsule:hover{opacity:1;transform:translate(0,-50%);pointer-events:auto}}
-.hui-tab-capsule-label{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;line-height:1.3}
-.hui-tab-capsule-sub{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:400;color:var(--teal);letter-spacing:.02em;white-space:nowrap;margin-top:2px}
-.hui-tab-capsule-text{display:flex;flex-direction:column}
 .hui-tab-capsule.sidebar-open{opacity:0 !important;transform:translate(100%,-50%) !important;pointer-events:none !important}
 
 .hui-sidebar-backdrop{position:fixed;inset:0;z-index:1100;background:rgba(20,20,34,.16);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .45s var(--ease-out),visibility .45s}
 .hui-sidebar-backdrop.open{opacity:1;visibility:visible}
 
-.hui-sidebar{position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;height:100dvh;z-index:1101;background:rgba(253,251,248,.94);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border-left:1px solid rgba(20,20,34,.06);box-shadow:-16px 0 52px rgba(20,20,34,.08);transform:translateX(100%);transition:transform .45s var(--ease-out),visibility .45s;display:flex;flex-direction:column;overflow:hidden;visibility:hidden}
+.hui-sidebar{position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;height:100dvh;z-index:1101;background:rgba(253,251,248,.96);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border-left:1px solid rgba(20,20,34,.06);box-shadow:-16px 0 52px rgba(20,20,34,.08);transform:translateX(100%);transition:transform .45s var(--ease-out),visibility .45s;display:flex;flex-direction:column;overflow:hidden;visibility:hidden}
 .hui-sidebar.open{transform:translateX(0);visibility:visible}
 
-.hui-sidebar-close{position:absolute;top:18px;right:18px;z-index:5;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(20,20,34,.04);border:1px solid rgba(20,20,34,.06);border-radius:50%;color:var(--ink-body);cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),transform .2s var(--ease)}
-.hui-sidebar-close:hover{background:rgba(20,20,34,.07);color:var(--ink);transform:rotate(90deg)}
+.hui-sidebar-close{position:absolute;top:18px;right:18px;z-index:5;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(20,20,34,.04);border:1px solid rgba(20,20,34,.06);border-radius:50%;color:var(--ink-body);cursor:pointer;transition:all .2s var(--ease)}
+.hui-sidebar-close:hover{background:rgba(13,196,181,.06);border-color:rgba(13,196,181,.2);color:var(--teal-deep);transform:rotate(90deg)}
 .hui-sidebar-close:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 
-.hui-sidebar-header{flex-shrink:0;padding:40px 36px 24px;text-align:center}
-.hui-sidebar-logo{width:40px;height:40px;margin:0 auto 14px;display:block;opacity:.9}
-.hui-sidebar-tagline{font-size:17px;font-weight:600;color:var(--ink);letter-spacing:-.02em;line-height:1.2;margin:0 0 4px}
+.hui-sidebar-header{flex-shrink:0;padding:44px 36px 24px;text-align:center}
+.hui-sidebar-logo{width:48px;height:48px;margin:0 auto 14px;display:block;opacity:.92}
+.hui-sidebar-tagline{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.2;margin:0 0 4px}
 .hui-sidebar-sub{font-size:12px;color:var(--muted);letter-spacing:.5px;margin:0;font-weight:400}
 
-.hui-sidebar-divider{flex-shrink:0;width:120px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(20,20,34,.1),transparent);position:relative}
-.hui-sidebar-divider::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.3}
+.hui-sidebar-divider{flex-shrink:0;width:140px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(20,20,34,.1),transparent);position:relative}
+.hui-sidebar-divider::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.35}
 
-.hui-sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 36px;display:flex;flex-direction:column;gap:32px;-webkit-overflow-scrolling:touch}
+.hui-sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 36px;display:flex;flex-direction:column;gap:28px;-webkit-overflow-scrolling:touch}
 .hui-sidebar-scroll::-webkit-scrollbar{width:4px}
 .hui-sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(20,20,34,.06);border-radius:4px}
 .hui-sidebar-scroll::-webkit-scrollbar-track{background:transparent}
 
-.hui-sidebar-nav{display:flex;flex-direction:column;gap:28px}
-.hui-nav-group{display:flex;flex-direction:column;gap:2px}
-.hui-nav-heading{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal-deep);margin:0 0 10px;padding-bottom:8px;border-bottom:1px solid rgba(20,20,34,.04)}
-.hui-nav-item{display:flex;align-items:center;padding:9px 14px;font-size:14px;font-weight:500;color:var(--ink-body);border-radius:10px;transition:color .2s var(--ease),background .2s var(--ease);cursor:pointer;text-decoration:none;line-height:1.3}
-.hui-nav-item:hover{color:var(--teal-deep);background:rgba(13,196,181,.06)}
-.hui-nav-item:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
-.hui-nav-item.hui-nav-active{color:var(--teal);background:rgba(13,196,181,.08);position:relative}
-.hui-nav-item.hui-nav-active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:14px;background:var(--teal);border-radius:0 3px 3px 0}
-.hui-nav-pre{color:var(--muted);font-weight:400}
-.hui-nav-pre:hover{color:var(--teal-deep);background:rgba(13,196,181,.04)}
-.hui-nav-badge{margin-left:auto;font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:2px 8px;background:rgba(20,20,34,.04);border-radius:var(--rx);flex-shrink:0}
-.hui-nav-pre .hui-nav-badge{color:var(--faint)}
+.hui-sidebar-nav{display:flex;flex-direction:column;gap:24px}
 
+/* ── Section headings ── */
+.hui-nav-section{display:flex;flex-direction:column}
+.hui-nav-heading{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal-deep);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(20,20,34,.04)}
+
+/* ── Main links with subtitles (Entdecken + Die Idee primary) ── */
+.hui-nav-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.hui-nav-link{display:flex;flex-direction:column;padding:10px 14px;border-radius:10px;text-decoration:none;transition:background .2s var(--ease),transform .2s var(--ease),border-color .2s var(--ease);border:1px solid transparent}
+.hui-nav-link:hover{background:rgba(13,196,181,.05);transform:translateX(3px)}
+.hui-nav-link:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.hui-nav-link-label{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.3}
+.hui-nav-link-sub{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px;line-height:1.4}
+.hui-nav-link:hover .hui-nav-link-label{color:var(--teal-deep)}
+
+/* ── "Was ist HUI?" highlighted ── */
+.hui-nav-link-primary{background:rgba(13,196,181,.04);border-color:rgba(13,196,181,.1)}
+.hui-nav-link-primary .hui-nav-link-label{font-size:16px;font-weight:700;color:var(--ink)}
+.hui-nav-link-primary:hover{background:rgba(13,196,181,.08);border-color:rgba(13,196,181,.18)}
+.hui-nav-link-primary:hover .hui-nav-link-label{color:var(--teal-deep)}
+
+/* ── Active page state ── */
+.hui-nav-link[aria-current="page"]{background:rgba(13,196,181,.07);border-color:rgba(13,196,181,.15);position:relative}
+.hui-nav-link[aria-current="page"]::before{content:'';position:absolute;left:-1px;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--teal);border-radius:0 3px 3px 0}
+.hui-nav-link[aria-current="page"] .hui-nav-link-label{color:var(--teal-deep)}
+.hui-nav-link[aria-current="page"] .hui-nav-link-sub{color:var(--teal-deep);opacity:.7}
+
+/* ── Plain links (Die Idee secondary) ── */
+.hui-nav-link-plain{display:block;padding:8px 14px;font-size:14px;font-weight:500;color:var(--ink-body);border-radius:8px;text-decoration:none;transition:color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease)}
+.hui-nav-link-plain:hover{color:var(--teal-deep);background:rgba(13,196,181,.04);transform:translateX(3px)}
+.hui-nav-link-plain:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.hui-nav-link-plain[aria-current="page"]{color:var(--teal-deep);background:rgba(13,196,181,.06);position:relative;padding-left:18px}
+.hui-nav-link-plain[aria-current="page"]::before{content:'';position:absolute;left:4px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--teal)}
+
+/* ── Action links (Mitmachen) ── */
+.hui-nav-action{display:block;padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.5);border:1px solid rgba(20,20,34,.06);text-decoration:none;transition:all .25s var(--ease)}
+.hui-nav-action:hover{border-color:rgba(13,196,181,.25);background:rgba(13,196,181,.04);transform:translateX(3px)}
+.hui-nav-action:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.hui-nav-action-label{font-size:14px;font-weight:600;color:var(--ink)}
+.hui-nav-action:hover .hui-nav-action-label{color:var(--teal-deep)}
+.hui-nav-action[aria-current="page"]{background:rgba(13,196,181,.07);border-color:rgba(13,196,181,.18)}
+.hui-nav-action[aria-current="page"] .hui-nav-action-label{color:var(--teal-deep)}
+.hui-nav-action[aria-current="page"]::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal);margin-left:8px;vertical-align:middle}
+
+/* ── Secondary links (Entdecken sub-items) ── */
+.hui-nav-list-secondary{list-style:none;margin:8px 0 0;padding:6px 0 0;border-top:1px solid rgba(20,20,34,.03);display:flex;flex-wrap:wrap;gap:4px 12px}
+.hui-nav-list-secondary li{display:inline}
+.hui-nav-list-secondary a{font-size:12.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:6px;transition:color .2s var(--ease),background .2s var(--ease)}
+.hui-nav-list-secondary a:hover{color:var(--teal-deep);background:rgba(13,196,181,.04)}
+.hui-nav-list-secondary a:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+
+/* ── Compact sections (Inspiration, HUI kommt) ── */
+.hui-nav-section-compact .hui-nav-heading{font-size:9px;letter-spacing:2px;margin-bottom:8px}
+.hui-nav-list-plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.hui-nav-list-plain a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:color .2s var(--ease),background .2s var(--ease)}
+.hui-nav-list-plain a:hover{color:var(--teal-deep);background:rgba(13,196,181,.04)}
+.hui-nav-list-plain a:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+
+/* ── Stagger animation on sidebar open ── */
+.hui-sidebar.open .hui-nav-section{animation:sidebarFadeIn .4s var(--ease-out) both}
+.hui-sidebar.open .hui-nav-section:nth-child(1){animation-delay:.1s}
+.hui-sidebar.open .hui-nav-section:nth-child(2){animation-delay:.16s}
+.hui-sidebar.open .hui-nav-section:nth-child(3){animation-delay:.22s}
+.hui-sidebar.open .hui-nav-section:nth-child(4){animation-delay:.28s}
+.hui-sidebar.open .hui-nav-section:nth-child(5){animation-delay:.34s}
+.hui-sidebar.open .hui-journey{animation:sidebarFadeIn .4s var(--ease-out) .4s both}
+.hui-sidebar.open .hui-quote{animation:sidebarFadeIn .4s var(--ease-out) .46s both}
+@keyframes sidebarFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Journey + Quote (unchanged styles) ── */
 .hui-journey{padding:4px 0}
 .hui-journey-title{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal-deep);margin:0 0 16px;padding-bottom:8px;border-bottom:1px solid rgba(20,20,34,.04)}
 .hui-journey-steps{position:relative;display:flex;flex-direction:column;gap:14px;padding-left:24px}
@@ -675,9 +716,12 @@ ul{list-style:none}
   .footer-col{align-items:center}
 
   .hui-sidebar{width:94vw}
-  .hui-sidebar-header{padding:32px 24px 20px}
-  .hui-sidebar-scroll{padding:0 24px;gap:24px}
+  .hui-sidebar-header{padding:36px 24px 20px}
+  .hui-sidebar-scroll{padding:0 24px;gap:20px}
   .hui-sidebar-footer{padding:16px 24px 24px}
+  .hui-nav-link{padding:8px 12px}
+  .hui-nav-action{padding:10px 12px}
+  .hui-nav-link-primary .hui-nav-link-label{font-size:15px}
   .hui-tab{width:58px;height:64px}
   .hui-tab-capsule{display:none}
 }
@@ -1616,14 +1660,14 @@ if(prefersReduced){
 <div class="hui-sidebar-backdrop" id="huiSidebarBackdrop" aria-hidden="true"></div>
 
 <aside class="hui-sidebar" id="huiSidebar" role="complementary" aria-label="HUI Navigation" aria-hidden="true">
-  <button class="hui-sidebar-close" id="huiSidebarClose" aria-label="Schließen" data-i18n-aria="sidebar.close.aria">
+  <button class="hui-sidebar-close" id="huiSidebarClose" aria-label="Menü schließen" data-i18n-aria="sidebar.close.aria">
     <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <path d="M4 4L14 14M14 4L4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
   </button>
 
   <div class="hui-sidebar-header">
-    <img src="/hui_logo.webp" alt="HUI" width="40" height="40" class="hui-sidebar-logo"/>
+    <img src="/hui_logo.webp" alt="HUI – Human United Intelligence" width="48" height="48" class="hui-sidebar-logo"/>
     <p class="hui-sidebar-tagline" data-i18n="sidebar.tagline">Entdecke HUI.</p>
     <p class="hui-sidebar-sub" data-i18n="sidebar.sub">Menschen. Ideen. Möglichkeiten.</p>
   </div>
@@ -1631,56 +1675,88 @@ if(prefersReduced){
   <div class="hui-sidebar-divider" aria-hidden="true"></div>
 
   <div class="hui-sidebar-scroll">
-    <nav class="hui-sidebar-nav" aria-label="HUI Bereiche">
+    <nav class="hui-sidebar-nav" aria-label="HUI Navigation">
       <!-- ENTDECKEN -->
-      <div class="hui-nav-group">
+      <section class="hui-nav-section">
         <h4 class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
-        <a href="/menschen" class="hui-nav-item" data-i18n="sidebar.nav.people">Menschen</a>
-        <a href="/talente" class="hui-nav-item" data-i18n="sidebar.nav.talents">Talente</a>
-        <a href="/ideen" class="hui-nav-item" data-i18n="sidebar.nav.ideas">Ideen</a>
-        <a href="/projekte" class="hui-nav-item" data-i18n="sidebar.nav.projects">Projekte</a>
-        <a href="/werke" class="hui-nav-item" data-i18n="sidebar.nav.works">Werke</a>
-        <a href="/erlebnisse" class="hui-nav-item" data-i18n="sidebar.nav.experiences">Erlebnisse</a>
-        <a href="/unternehmen" class="hui-nav-item" data-i18n="sidebar.nav.companies">Unternehmen</a>
-        <a href="/gemeinschaft" class="hui-nav-item" data-i18n="sidebar.nav.community">Gemeinschaft</a>
-      </div>
+        <ul class="hui-nav-list">
+          <li><a href="/werke" class="hui-nav-link" data-page="werke">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.works">Werke</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.works">Geschaffenes entdecken</span>
+          </a></li>
+          <li><a href="/erlebnisse" class="hui-nav-link" data-page="erlebnisse">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.experiences">Erlebnisse</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.experiences">Gemeinsame Momente erleben</span>
+          </a></li>
+          <li><a href="/unternehmen" class="hui-nav-link" data-page="unternehmen">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.companies">Unternehmen</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.companies">Verantwortung und Partnerschaften</span>
+          </a></li>
+          <li><a href="/gemeinschaft" class="hui-nav-link" data-page="gemeinschaft">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.community">Gemeinschaft</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.community">Menschen miteinander verbinden</span>
+          </a></li>
+        </ul>
+        <ul class="hui-nav-list-secondary">
+          <li><a href="/menschen" data-i18n="sidebar.nav.people">Menschen</a></li>
+          <li><a href="/talente" data-i18n="sidebar.nav.talents">Talente</a></li>
+          <li><a href="/ideen" data-i18n="sidebar.nav.ideas">Ideen</a></li>
+          <li><a href="/projekte" data-i18n="sidebar.nav.projects">Projekte</a></li>
+        </ul>
+      </section>
 
       <!-- DIE IDEE -->
-      <div class="hui-nav-group">
+      <section class="hui-nav-section">
         <h4 class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
-        <a href="#ueber" class="hui-nav-item" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</a>
-        <a href="#idee" class="hui-nav-item" data-i18n="sidebar.nav.the-idea">Die Idee dahinter</a>
-        <a href="#wie" class="hui-nav-item" data-i18n="sidebar.nav.why-hui">Warum HUI?</a>
-        <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="hui-nav-item" data-i18n="sidebar.nav.4vision">4VisionGlobal</a>
-        <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="hui-nav-item" data-i18n="sidebar.nav.liga">Liga der Kreativen</a>
-      </div>
+        <ul class="hui-nav-list">
+          <li><a href="/was-ist-hui" class="hui-nav-link hui-nav-link-primary" data-page="was-ist-hui">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.what-is-hui">Zentraler Einstieg</span>
+          </a></li>
+          <li><a href="/die-idee-dahinter" class="hui-nav-link-plain" data-i18n="sidebar.nav.the-idea">Die Idee dahinter</a></li>
+          <li><a href="/warum-hui" class="hui-nav-link-plain" data-i18n="sidebar.nav.why-hui">Warum HUI?</a></li>
+          <li><a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="hui-nav-link-plain" data-i18n="sidebar.nav.4vision">4VisionGlobal</a></li>
+          <li><a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="hui-nav-link-plain" data-i18n="sidebar.nav.liga">Liga der Kreativen</a></li>
+        </ul>
+      </section>
 
       <!-- MITMACHEN -->
-      <div class="hui-nav-group">
+      <section class="hui-nav-section">
         <h4 class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
-        <a href="/mitmachen/idee" class="hui-nav-item" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</a>
-        <a href="/mitmachen/talent" class="hui-nav-item" data-i18n="sidebar.nav.have-talent">Ich habe ein Talent</a>
-        <a href="/mitmachen/projekt" class="hui-nav-item" data-i18n="sidebar.nav.start-project">Ich möchte ein Projekt starten</a>
-        <a href="/mitmachen/unterstuetzen" class="hui-nav-item" data-i18n="sidebar.nav.support">Ich möchte unterstützen</a>
-        <a href="/mitmachen/informiert" class="hui-nav-item" data-i18n="sidebar.nav.stay-informed">Ich möchte informiert werden</a>
-      </div>
+        <ul class="hui-nav-list">
+          <li><a href="/mitmachen/idee" class="hui-nav-action" data-page="mitmachen-idee">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</span>
+          </a></li>
+          <li><a href="/mitmachen/talent" class="hui-nav-action" data-page="mitmachen-talent">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-talent">Ich habe ein Talent</span>
+          </a></li>
+          <li><a href="/mitmachen/projekt" class="hui-nav-action" data-page="mitmachen-projekt">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.start-project">Ich möchte ein Projekt starten</span>
+          </a></li>
+          <li><a href="/mitmachen/unterstuetzen" class="hui-nav-action" data-page="mitmachen-unterstuetzen">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.support">Ich möchte unterstützen</span>
+          </a></li>
+        </ul>
+      </section>
 
-      <!-- INSPIRATION -->
-      <div class="hui-nav-group">
+      <!-- WEITERE BEREICHE -->
+      <section class="hui-nav-section hui-nav-section-compact">
         <h4 class="hui-nav-heading" data-i18n="sidebar.section.inspiration">Inspiration</h4>
-        <a href="/inspiration/menschen" class="hui-nav-item" data-i18n="sidebar.nav.insp.people">Menschen</a>
-        <a href="/inspiration/ideen" class="hui-nav-item" data-i18n="sidebar.nav.insp.ideas">Ideen</a>
-        <a href="/inspiration/geschichten" class="hui-nav-item" data-i18n="sidebar.nav.insp.stories">Geschichten</a>
-        <a href="/inspiration/impulse" class="hui-nav-item" data-i18n="sidebar.nav.insp.impulses">Impulse</a>
-      </div>
-
-      <!-- HUI KOMMT -->
-      <div class="hui-nav-group">
+        <ul class="hui-nav-list-plain">
+          <li><a href="/inspiration/menschen" data-i18n="sidebar.nav.insp.people">Menschen</a></li>
+          <li><a href="/inspiration/ideen" data-i18n="sidebar.nav.insp.ideas">Ideen</a></li>
+          <li><a href="/inspiration/geschichten" data-i18n="sidebar.nav.insp.stories">Geschichten</a></li>
+          <li><a href="/inspiration/impulse" data-i18n="sidebar.nav.insp.impulses">Impulse</a></li>
+        </ul>
+      </section>
+      <section class="hui-nav-section hui-nav-section-compact">
         <h4 class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
-        <a href="/launch" class="hui-nav-item" data-i18n="sidebar.nav.launch">Launch</a>
-        <a href="/updates" class="hui-nav-item" data-i18n="sidebar.nav.updates">Updates</a>
-        <a href="/von-anfang-an-dabei" class="hui-nav-item" data-i18n="sidebar.nav.from-start">Von Anfang an dabei</a>
-      </div>
+        <ul class="hui-nav-list-plain">
+          <li><a href="/launch" data-i18n="sidebar.nav.launch">Launch</a></li>
+          <li><a href="/updates" data-i18n="sidebar.nav.updates">Updates</a></li>
+          <li><a href="/von-anfang-an-dabei" data-i18n="sidebar.nav.from-start">Von Anfang an dabei</a></li>
+        </ul>
+      </section>
     </nav>
 
     <!-- Die Reise von HUI -->

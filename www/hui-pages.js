@@ -152,5 +152,30 @@
         link.addEventListener('click',function(){close()});
       }
     });
+
+    // ═══ Active page detection (aria-current="page") ═══
+    var currentPath=window.location.pathname.replace(/\/$/,'');
+    var navLinks=sidebar.querySelectorAll('a[data-page]');
+    navLinks.forEach(function(link){
+      var page=link.getAttribute('data-page');
+      var matchPath='/' + page;
+      var matchPath2='/' + page.replace(/-/g,'/');
+      if(currentPath===matchPath||currentPath===matchPath2||(currentPath===''&&page==='was-ist-hui'&&window.location.hash)){
+        // Don't set for hash-only matches on landing
+      }
+      if(currentPath===matchPath){
+        link.setAttribute('aria-current','page');
+      }
+    });
+    // Also check plain links and action links without data-page (by href)
+    sidebar.querySelectorAll('a[href]').forEach(function(link){
+      if(link.hasAttribute('aria-current')) return;
+      var href=link.getAttribute('href');
+      if(!href||href.charAt(0)==='#'||href.charAt(0)==='h') return; // skip anchors and external
+      var linkPath=href.replace(/\/$/,'');
+      if(currentPath===linkPath){
+        link.setAttribute('aria-current','page');
+      }
+    });
   });
 })();
