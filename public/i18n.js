@@ -98,6 +98,49 @@
     'app.works-sub': 'Geschaffen & geteilt',
     'app.works-title': 'Werke',
     'cs.close-aria': 'Schließen',
+    'sidebar.tab.aria': 'HUI Menü öffnen',
+    'sidebar.tagline': 'Entdecke HUI.',
+    'sidebar.sub': 'Menschen. Ideen. Möglichkeiten.',
+    'sidebar.close.aria': 'Schließen',
+    'sidebar.section.discover': 'Entdecken',
+    'sidebar.section.idea': 'Die Idee',
+    'sidebar.section.join': 'Mitmachen',
+    'sidebar.section.inspiration': 'Inspiration',
+    'sidebar.section.coming': 'HUI kommt',
+    'sidebar.nav.people': 'Menschen',
+    'sidebar.nav.talents': 'Talente',
+    'sidebar.nav.ideas': 'Ideen',
+    'sidebar.nav.projects': 'Projekte',
+    'sidebar.nav.works': 'Werke',
+    'sidebar.nav.experiences': 'Erlebnisse',
+    'sidebar.nav.companies': 'Unternehmen',
+    'sidebar.nav.community': 'Gemeinschaft',
+    'sidebar.nav.what-is-hui': 'Was ist HUI?',
+    'sidebar.nav.the-idea': 'Die Idee dahinter',
+    'sidebar.nav.why-hui': 'Warum HUI?',
+    'sidebar.nav.4vision': '4VisionGlobal',
+    'sidebar.nav.liga': 'Liga der Kreativen',
+    'sidebar.nav.have-idea': 'Ich habe eine Idee',
+    'sidebar.nav.have-talent': 'Ich habe ein Talent',
+    'sidebar.nav.start-project': 'Ich möchte ein Projekt starten',
+    'sidebar.nav.support': 'Ich möchte unterstützen',
+    'sidebar.nav.stay-informed': 'Ich möchte informiert werden',
+    'sidebar.nav.insp.people': 'Menschen',
+    'sidebar.nav.insp.ideas': 'Ideen',
+    'sidebar.nav.insp.stories': 'Geschichten',
+    'sidebar.nav.insp.impulses': 'Impulse',
+    'sidebar.nav.launch': 'Launch',
+    'sidebar.nav.updates': 'Updates',
+    'sidebar.nav.from-start': 'Von Anfang an dabei',
+    'sidebar.journey.title': 'Die Reise von HUI',
+    'sidebar.journey.1': 'Menschen',
+    'sidebar.journey.2': 'Ideen',
+    'sidebar.journey.3': 'Möglichkeiten',
+    'sidebar.journey.4': 'Begegnungen',
+    'sidebar.journey.5': 'Wirkung',
+    'sidebar.quote': 'Eine Idee kann etwas bewegen. Gemeinsam kann sie die Welt verändern.',
+    'sidebar.coming-soon': 'Dieser Bereich entsteht gerade.',
+    'sidebar.coming-soon.launch': 'Kommt mit dem Start von HUI.',
     'cs.text': 'Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.',
     'cs.title': 'HUI ist bald für dich da.',
     'cta.btn1': 'HUI entdecken →',
@@ -381,6 +424,49 @@
     'lang.switch-aria': 'Switch language',
     'legal.back': '← Back to home',
     'legal.back-bottom': 'Back to home',
+    'sidebar.tab.aria': 'Open HUI menu',
+    'sidebar.tagline': 'Discover HUI.',
+    'sidebar.sub': 'People. Ideas. Possibilities.',
+    'sidebar.close.aria': 'Close',
+    'sidebar.section.discover': 'Discover',
+    'sidebar.section.idea': 'The Idea',
+    'sidebar.section.join': 'Get Involved',
+    'sidebar.section.inspiration': 'Inspiration',
+    'sidebar.section.coming': 'HUI is Coming',
+    'sidebar.nav.people': 'People',
+    'sidebar.nav.talents': 'Talents',
+    'sidebar.nav.ideas': 'Ideas',
+    'sidebar.nav.projects': 'Projects',
+    'sidebar.nav.works': 'Works',
+    'sidebar.nav.experiences': 'Experiences',
+    'sidebar.nav.companies': 'Organisations',
+    'sidebar.nav.community': 'Community',
+    'sidebar.nav.what-is-hui': 'What is HUI?',
+    'sidebar.nav.the-idea': 'The idea behind it',
+    'sidebar.nav.why-hui': 'Why HUI?',
+    'sidebar.nav.4vision': '4VisionGlobal',
+    'sidebar.nav.liga': 'Liga der Kreativen',
+    'sidebar.nav.have-idea': 'I have an idea',
+    'sidebar.nav.have-talent': 'I have a talent',
+    'sidebar.nav.start-project': 'I want to start a project',
+    'sidebar.nav.support': 'I want to support',
+    'sidebar.nav.stay-informed': 'I want to stay informed',
+    'sidebar.nav.insp.people': 'People',
+    'sidebar.nav.insp.ideas': 'Ideas',
+    'sidebar.nav.insp.stories': 'Stories',
+    'sidebar.nav.insp.impulses': 'Impulses',
+    'sidebar.nav.launch': 'Launch',
+    'sidebar.nav.updates': 'Updates',
+    'sidebar.nav.from-start': 'Be there from the start',
+    'sidebar.journey.title': 'The Journey of HUI',
+    'sidebar.journey.1': 'People',
+    'sidebar.journey.2': 'Ideas',
+    'sidebar.journey.3': 'Possibilities',
+    'sidebar.journey.4': 'Encounters',
+    'sidebar.journey.5': 'Impact',
+    'sidebar.quote': 'An idea can move something. Together, it can change the world.',
+    'sidebar.coming-soon': 'This area is being created.',
+    'sidebar.coming-soon.launch': 'Coming with the launch of HUI.',
     'meta.description': 'HUI connects people, talents, projects, works, and experiences. Together, we create impact.',
     'meta.og-description': 'People. Ideas. Possibilities. Together, we create impact.',
     'meta.og-title': 'HUI — Human United Intelligence',
@@ -522,6 +608,11 @@
     var ogDesc = document.querySelector('meta[property="og:description"]');
     if(ogDesc && dict['meta.og-description']) ogDesc.setAttribute('content', dict['meta.og-description']);
 
+
+    // Update sidebar toast messages
+    if(dict['sidebar.coming-soon'] && window.HUI_SIDEBAR_TOAST){
+      window.HUI_SIDEBAR_TOAST.set(dict['sidebar.coming-soon'], dict['sidebar.coming-soon.launch']);
+    }
     // Coming-soon toast
     var toastH = document.querySelector('#csToast h4');
     if(toastH && dict['cs.title']) toastH.textContent = dict['cs.title'];
@@ -673,6 +764,14 @@
       drawer.appendChild(drawerSwitch.firstChild);
     }
 
+
+    // Inject into HUI sidebar
+    var sidebarLang = document.getElementById('huiSidebarLang');
+    if(sidebarLang){
+      var sidebarSwitch = document.createElement('span');
+      sidebarSwitch.innerHTML = switcherHTML;
+      sidebarLang.appendChild(sidebarSwitch.firstChild);
+    }
     // Legal pages
     var legalNav = document.querySelector('.legal-nav-back');
     if(legalNav && !document.querySelector('.lang-switch')){
