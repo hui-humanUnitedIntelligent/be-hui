@@ -16,6 +16,7 @@ import { HUIFinanzIcon, HUISicherheitIcon } from "../../design/icons/HuiSystemIc
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js"; // KBD-INSET-FIX (2026-08-23)
 import { formatDateDE } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -43,6 +44,7 @@ const inp = {
 };
 
 export default function BankdatenModal({ userId, onClose = () => {}, onSaved = () => {} }) {
+  const { t } = useTranslation();
   useModalRegistration(true);
   useKeyboardInset(); // KBD-INSET-FIX (2026-08-23): aktiviert --hui-keyboard-inset CSS-Var
   const [status, setStatus] = useState(null); // { has_bank_details, bank_iban_last4, updated_at }
@@ -96,7 +98,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
         });
         const syncResult = await res.json();
         if (!syncResult?.ok) {
-          setSyncNote("Bankdaten gespeichert. Die Verknüpfung mit der Auszahlung wird noch abgeschlossen — versuch's gleich nochmal zu speichern, falls Auszahlungen ausbleiben.");
+          setSyncNote(t("bank.syncNote"));
         }
       } catch (syncErr) {
         console.warn("[BankdatenModal] sync-payout-bank-account:", syncErr);
@@ -138,7 +140,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
         }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <HUIFinanzIcon size={16}/>
-            <div style={{ fontSize:17, fontWeight:600, color:T.ink }}>Bankdaten</div>
+            <div style={{ fontSize:17, fontWeight:600, color:T.ink }}>{t("bank.title")}</div>
           </div>
           <button onClick={onClose} style={{ background:"rgba(26,26,24,0.07)", border:"none",
             borderRadius:"50%", width:34, height:34, fontSize:16, cursor:"pointer",
@@ -160,44 +162,44 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
               padding:14, display:"flex", flexDirection:"column", gap:10,
             }}>
               <div style={{ fontSize:13, fontWeight:600, color:T.green }}>
-                🏦 Bankverbindung hinterlegt: IBAN endet auf •••• {status?.bank_iban_last4 || "????"}
+                🏦 {t("bank.connectionStored")} {status?.bank_iban_last4 || "????"}
               </div>
               {status?.updated_at && (
                 <div style={{ fontSize:11.5, color:T.inkSoft }}>
-                  Zuletzt aktualisiert: {formatDateDE(status.updated_at)}
+                  {t("bank.lastUpdated")}: {formatDateDE(status.updated_at)}
                 </div>
               )}
               <button onClick={() => setEditing(true)} style={{
                 alignSelf:"flex-start", padding:"9px 16px", borderRadius:10,
                 background:"transparent", border:`1px solid ${T.border}`, color:T.ink,
                 fontWeight:600, fontSize:12.5, cursor:"pointer", fontFamily:"inherit",
-              }}>Ändern</button>
+              }}>{t("bank.change")}</button>
             </div>
           ) : (
             <div style={{
               background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:T.radius, padding:14,
             }}>
               <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:10 }}>
-                Bankverbindung {status?.has_bank_details ? "ändern" : "hinterlegen"}
+                {t("bank.connectionAction", { has: status?.has_bank_details })}
               </div>
               <input value={holder} onChange={(e) => setHolder(e.target.value)}
-                placeholder="Kontoinhaber (Vor- und Nachname)" style={inp}/>
+                placeholder={t("bank.holderPlaceholder")} style={inp}/>
               <input value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())}
-                placeholder="IBAN (z.B. DE89 3704 0044 0532 0130 00)" style={inp}/>
+                placeholder={t("bank.ibanPlaceholder")} style={inp}/>
               <input value={bic} onChange={(e) => setBic(e.target.value.toUpperCase())}
-                placeholder="BIC (optional)" style={inp}/>
+                placeholder={t("bank.bicPlaceholder")} style={inp}/>
               <input value={bankName} onChange={(e) => setBankName(e.target.value)}
-                placeholder="Name der Bank (optional)" style={inp}/>
+                placeholder={t("bank.bankNamePlaceholder")} style={inp}/>
 
               <div style={{ display:"flex", alignItems:"flex-start", gap:6, fontSize:11.5,
                 color:T.inkSoft, marginBottom:12, lineHeight:1.4 }}>
                 <HUISicherheitIcon size={13} style={{ flexShrink:0, marginTop:1 }}/>
-                <span>Deine Bankdaten werden verschlüsselt gespeichert und nur zur Auszahlungs-Verarbeitung verwendet.</span>
+                <span>{t("bank.encryptionNote")}</span>
               </div>
 
               {error && (
                 <div style={{ fontSize:12, color:T.danger, marginBottom:10 }}>
-                  ❌ {error === "invalid_iban" ? "Bitte eine gültige IBAN eingeben."
+                  ❌ {error === "invalid_iban" ? t("bank.invalidIban")
                     : error === "holder_required" ? "Bitte einen Kontoinhaber angeben."
                     : error}
                 </div>

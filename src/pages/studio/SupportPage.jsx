@@ -4,6 +4,7 @@ import React, { useState, useRef } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   teal:    HUI.COLOR.tealStudio,
@@ -20,11 +21,11 @@ const C = {
 const CATEGORIES = [
   { key:"fehler",        label:"🐛 Fehler melden",       desc:"Etwas funktioniert nicht" },
   { key:"verbesserung",  label:"💡 Verbesserungsvorschlag",desc:"Idee für neue Funktion"   },
-  { key:"anfrage",       label:"📋 Allgemeine Anfrage",   desc:"Frage oder Anliegen"       },
+  { key:"anfrage",       label:t("support.catAnfrage"),   desc:t("support.catAnfrageDesc")       },
   { key:"hilfe",         label:"🆘 Hilfe benötigt",       desc:"Ich komme nicht weiter"    },
   { key:"passwort",      label:"🔐 Passwort / Zugang",    desc:"Login-Probleme"            },
   { key:"konto",         label:"◎ Konto-Problem",         desc:"Account, Profil, Daten"    },
-  { key:"zahlung",       label:"💳 Zahlung / Abrechnung", desc:"Zahlungsfragen"            },
+  { key:"zahlung",       label:t("support.catZahlung"), desc:t("support.catZahlungDesc")            },
   { key:"sonstiges",     label:"📝 Sonstiges",            desc:"Alles andere"              },
 ];
 
@@ -42,6 +43,7 @@ function generateTicketNumber() {
 }
 
 export default function SupportPage({ onBack, userId, userEmail, userName }) {
+  const { t } = useTranslation();
   const [step,      setStep]      = useState("form"); // form | success
   const [category,  setCategory]  = useState(null);
   const [form,      setForm]      = useState({
@@ -161,15 +163,15 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           ✅
         </div>
         <h2 style={{ fontSize:22, fontWeight: 600, color:C.ink, margin:"0 0 10px" }}>
-          Ticket erstellt!
+          t("support.created")
         </h2>
         <p style={{ fontSize:15, color:C.muted, margin:"0 0 20px", lineHeight:1.5 }}>
-          Dein Support-Ticket wurde erfolgreich übermittelt.<br/>
+          t("support.createdDesc") + "<br/>"
           Ein Admin wird sich so schnell wie möglich darum kümmern.
         </p>
         <div style={{ background:"white", border:`1px solid ${C.border}`,
           borderRadius:12, padding:"14px 24px", marginBottom:28 }}>
-          <p style={{ margin:0, fontSize:12, color:C.muted }}>Deine Ticket-Nummer</p>
+          <p style={{ margin:0, fontSize:12, color:C.muted }}>t("support.ticketNr")</p>
           <p style={{ margin:"4px 0 0", fontSize:20, fontWeight: 600,
             color:C.teal, fontFamily:"monospace", letterSpacing:1 }}>
             {ticketNr}
@@ -214,7 +216,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           cursor:"pointer", fontSize:16 }}>←</button>
         <div>
-          <p style={{ margin:0, fontSize:17, fontWeight: 600, color:C.ink }}>Support</p>
+          <p style={{ margin:0, fontSize:17, fontWeight: 600, color:C.ink }}>{t("support.title")}</p>
           <p style={{ margin:0, fontSize:12, color:C.muted }}>Wir helfen dir gerne weiter</p>
         </div>
       </div>
@@ -227,7 +229,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${C.border}`, marginBottom:14 }}>
           <p style={{ margin:"0 0 14px", fontSize:14, fontWeight: 600, color:C.ink }}>
-            📋 Kontaktdaten
+            t("support.kontaktdaten")
           </p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <div>
@@ -356,7 +358,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
             color:"white", fontSize:16, fontWeight: 600,
             cursor: loading ? "default" : "pointer",
             letterSpacing:0.3 }}>
-          {loading ? "⏳ Ticket wird erstellt…" : "📨 Support-Ticket senden"}
+          {loading ? t("support.sending") : t("support.send")}
         </button>
 
         <p style={{ textAlign:"center", fontSize:12, color:C.muted, marginTop:12, lineHeight:1.5 }}>

@@ -281,10 +281,10 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
       }}>
         <div style={{ display:"flex", color:T.muted }}><HUIBookmarkIcon size={36} /></div>
         <div style={{ fontSize:16, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-          Noch nichts gemerkt
+          t("profile.merkerEmptyTitle")
         </div>
         <div style={{ fontSize:13, color:T.soft, maxWidth:260, lineHeight:1.6 }}>
-          Speichere Werke, Erlebnisse oder Beiträge und finde sie hier jederzeit wieder.
+          t("profile.merkerEmpty")
         </div>
         {onOpenDiscover && (
           <button
@@ -296,7 +296,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
               border:"none", cursor:"pointer", touchAction:"manipulation",
             }}
           >
-            Entdecken öffnen
+            t("merken.openDiscover")
           </button>
         )}
       </div>
