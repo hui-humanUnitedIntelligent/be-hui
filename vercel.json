@@ -146,6 +146,190 @@
       "destination": "/en/contact.html"
     },
     {
+      "source": "/die-idee-dahinter",
+      "destination": "/die-idee-dahinter.html"
+    },
+    {
+      "source": "/en/the-idea-behind-it",
+      "destination": "/die-idee-dahinter.html"
+    },
+    {
+      "source": "/erlebnisse",
+      "destination": "/erlebnisse.html"
+    },
+    {
+      "source": "/en/experiences",
+      "destination": "/erlebnisse.html"
+    },
+    {
+      "source": "/gemeinschaft",
+      "destination": "/gemeinschaft.html"
+    },
+    {
+      "source": "/en/community",
+      "destination": "/gemeinschaft.html"
+    },
+    {
+      "source": "/ideen",
+      "destination": "/ideen.html"
+    },
+    {
+      "source": "/en/ideas",
+      "destination": "/ideen.html"
+    },
+    {
+      "source": "/inspiration/geschichten",
+      "destination": "/inspiration-geschichten.html"
+    },
+    {
+      "source": "/en/inspiration/stories",
+      "destination": "/inspiration-geschichten.html"
+    },
+    {
+      "source": "/inspiration/ideen",
+      "destination": "/inspiration-ideen.html"
+    },
+    {
+      "source": "/en/inspiration/ideas",
+      "destination": "/inspiration-ideen.html"
+    },
+    {
+      "source": "/inspiration/impulse",
+      "destination": "/inspiration-impulse.html"
+    },
+    {
+      "source": "/en/inspiration/impulses",
+      "destination": "/inspiration-impulse.html"
+    },
+    {
+      "source": "/inspiration/menschen",
+      "destination": "/inspiration-menschen.html"
+    },
+    {
+      "source": "/en/inspiration/people",
+      "destination": "/inspiration-menschen.html"
+    },
+    {
+      "source": "/launch",
+      "destination": "/launch.html"
+    },
+    {
+      "source": "/en/launch",
+      "destination": "/launch.html"
+    },
+    {
+      "source": "/menschen",
+      "destination": "/menschen.html"
+    },
+    {
+      "source": "/en/people",
+      "destination": "/menschen.html"
+    },
+    {
+      "source": "/mitmachen/idee",
+      "destination": "/mitmachen-idee.html"
+    },
+    {
+      "source": "/en/get-involved/idea",
+      "destination": "/mitmachen-idee.html"
+    },
+    {
+      "source": "/mitmachen/informiert",
+      "destination": "/mitmachen-informiert.html"
+    },
+    {
+      "source": "/en/get-involved/informed",
+      "destination": "/mitmachen-informiert.html"
+    },
+    {
+      "source": "/mitmachen/projekt",
+      "destination": "/mitmachen-projekt.html"
+    },
+    {
+      "source": "/en/get-involved/project",
+      "destination": "/mitmachen-projekt.html"
+    },
+    {
+      "source": "/mitmachen/talent",
+      "destination": "/mitmachen-talent.html"
+    },
+    {
+      "source": "/en/get-involved/talent",
+      "destination": "/mitmachen-talent.html"
+    },
+    {
+      "source": "/mitmachen/unterstuetzen",
+      "destination": "/mitmachen-unterstuetzen.html"
+    },
+    {
+      "source": "/en/get-involved/support",
+      "destination": "/mitmachen-unterstuetzen.html"
+    },
+    {
+      "source": "/projekte",
+      "destination": "/projekte.html"
+    },
+    {
+      "source": "/en/projects",
+      "destination": "/projekte.html"
+    },
+    {
+      "source": "/talente",
+      "destination": "/talente.html"
+    },
+    {
+      "source": "/en/talents",
+      "destination": "/talente.html"
+    },
+    {
+      "source": "/unternehmen",
+      "destination": "/unternehmen.html"
+    },
+    {
+      "source": "/en/organisations",
+      "destination": "/unternehmen.html"
+    },
+    {
+      "source": "/updates",
+      "destination": "/updates.html"
+    },
+    {
+      "source": "/en/updates",
+      "destination": "/updates.html"
+    },
+    {
+      "source": "/von-anfang-an-dabei",
+      "destination": "/von-anfang-an-dabei.html"
+    },
+    {
+      "source": "/en/be-there-from-the-start",
+      "destination": "/von-anfang-an-dabei.html"
+    },
+    {
+      "source": "/warum-hui",
+      "destination": "/warum-hui.html"
+    },
+    {
+      "source": "/en/why-hui",
+      "destination": "/warum-hui.html"
+    },
+    {
+      "source": "/was-ist-hui",
+      "destination": "/was-ist-hui.html"
+    },
+    {
+      "source": "/en/what-is-hui",
+      "destination": "/was-ist-hui.html"
+    },
+    {
+      "source": "/werke",
+      "destination": "/werke.html"
+    },
+    {
+      "source": "/en/works",
+      "destination": "/werke.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

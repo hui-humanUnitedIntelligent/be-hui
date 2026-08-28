@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
+<title>Ein Gedanke zum Mitnehmen – HUI Inspiration</title>
+<meta name="description" content="Kurze, tiefgründige Impulse für den Alltag und neue Perspektiven. Ein Einblick in das redaktionelle Format, das Sie bald auf HUI begleitet."/>
+<meta name="theme-color" content="#0DC4B5"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<meta property="og:title" content="Ein Gedanke zum Mitnehmen – HUI Inspiration"/>
+<meta property="og:description" content="Kurze, tiefgründige Impulse für den Alltag und neue Perspektiven. Ein Einblick in das redaktionelle Format, das Sie bald auf HUI begleitet."/>
+<meta property="og:type" content="website"/>
+<link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
+<style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('/fonts/Inter-ExtraBold.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/Inter-Black.woff2') format('woff2')}
+</style>
+<link rel="stylesheet" href="/hui-shared.css"/>
+<style>
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.hui-page{position:relative}
+.hui-page-hero{position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="/" class="nav-brand">
+    <img src="/hui_logo.webp" alt="HUI" class="nav-logo" width="36" height="36"/>
+    <div>
+      <span class="nav-name">HUI</span>
+      <span class="nav-sub">Human United Intelligence</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/#ueber" class="nav-link" data-i18n="nav.about">Uber HUI</a>
+    <a href="/#entdecken" class="nav-link" data-i18n="nav.discover">Entdecken</a>
+    <a href="/#wie" class="nav-link" data-i18n="nav.how">Wie HUI wirkt</a>
+    <a href="/#mitmachen" class="nav-link" data-i18n="nav.join">Mitmachen</a>
+    <a href="/app/login" class="nav-cta" data-i18n="nav.cta">HUI entdecken -></a>
+  </div>
+  <button class="nav-ham" id="hamBtn" aria-label="Menu" data-i18n-aria="nav.menu-aria">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="drawer" id="drawer">
+  <a href="/#ueber" data-i18n="nav.about">Uber HUI</a>
+  <a href="/#entdecken" data-i18n="nav.discover">Entdecken</a>
+  <a href="/#wie" data-i18n="nav.how">Wie HUI wirkt</a>
+  <a href="/#mitmachen" data-i18n="nav.join">Mitmachen</a>
+  <a href="/app/login" class="drawer-cta" data-i18n="nav.cta">HUI entdecken -></a>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+
+
+
+<div class="hui-sidebar-toast" id="huiSidebarToast" role="alert" aria-live="polite">
+  <p id="huiSidebarToastText"></p>
+</div>
+
+<div class="cs-toast" id="csToast" role="alert" aria-live="polite">
+  <button class="cs-close" id="csToastClose" aria-label="Schliessen" data-i18n-aria="cs.close-aria">&times;</button>
+  <h4 data-i18n="cs.title">HUI ist bald fuer dich da.</h4>
+  <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau.</p>
+</div>
+
+<!-- PAGE CONTENT -->
+<main class="hui-page">
+  <div class="page-hero-bg" aria-hidden="true"></div>
+  <section class="hui-page-hero">
+    <a href="/" class="hui-page-back" data-i18n="page.back">&#8592; HUI</a>
+    <h1 class="reveal" data-i18n="page.inspiration.impulse.hero">Ein Gedanke zum Mitnehmen</h1>
+    <p class="reveal d2" data-i18n="page.inspiration.impulse.sub">Kompakte Denkanstöße für Klarheit, Fokussierung und wertvolles Reflektieren im Alltag.</p>
+  </section>
+
+  <div class="hui-page-content">
+    <section class="hui-page-section reveal">
+      <h2 data-i18n="page.inspiration.impulse.s1-title">Innehalten und Weiterdenken</h2>
+      <p data-i18n="page.inspiration.impulse.s1-text">Oft reicht ein einzelner Satz oder ein neuer Blickwinkel, um den eigenen Tag positiv zu verändern. Nach dem Start von HUI finden Sie hier regelmäßige Denkanstöße zu Themen wie Achtsamkeit, Kooperation, Führung und persönlichem Wachstum. Es handelt sich um prägnante Zitate, Fragen und Reflexionen, die Sie im Alltag begleiten.</p>
+    </section>
+
+    <section class="hui-page-section reveal">
+      <h2 data-i18n="page.inspiration.impulse.s2-title">Qualität statt Reizüberflutung</h2>
+      <p data-i18n="page.inspiration.impulse.s2-text">In einer hektischen Welt setzen wir auf Entschleunigung und Substanz. Jeder Impuls wird sorgfältig ausgewählt, um nachhaltige Gedanken anzustoßen, anstatt flüchtige Schlagzeilen zu produzieren. Wir freuen uns darauf, Ihnen diese Gedanken bald mit auf den Weg zu geben.</p>
+    </section>
+  </div>
+
+  <div class="hui-coming-box reveal">
+    <p data-i18n="page.inspiration.impulse.coming">Die ersten Impulse stehen ab dem offiziellen Launch für Sie bereit.</p>
+  </div>
+
+  <section class="hui-page-cta">
+    <a href="/app/login" class="btn-primary" data-i18n="page.inspiration.impulse.cta">Auf die Warteliste setzen</a>
+    <p data-i18n="page.inspiration.impulse.cta-sub">Erhalten Sie die ersten Gedanken zum Mitnehmen direkt zum Launch.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="/hui_logo.webp" alt="HUI" class="footer-logo" width="36" height="36"/>
+    <p class="footer-tag" data-i18n="footer.tag">Human United Intelligence</p>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4 class="footer-col-title" data-i18n="footer.col1">HUI</h4>
+        <a href="/#ueber" class="footer-link" data-i18n="footer.col1-1">Uber HUI</a>
+        <a href="/#entdecken" class="footer-link" data-i18n="footer.col1-2">Entdecken</a>
+        <a href="/#wie" class="footer-link" data-i18n="footer.col1-3">Wie HUI wirkt</a>
+        <a href="/#mitmachen" class="footer-link" data-i18n="footer.col1-4">Mitmachen</a>
+        <a href="/app/login" class="footer-link" data-i18n="footer.col1-5">HUI entdecken</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title" data-i18n="footer.col2">Rechtliches</h4>
+        <a href="/impressum" class="footer-link" data-i18n="footer.col2-1">Impressum</a>
+        <a href="/datenschutz" class="footer-link" data-i18n="footer.col2-2">Datenschutz</a>
+        <a href="/cookie-einstellungen" class="footer-link" data-i18n="footer.col2-3">Cookie-Einstellungen</a>
+        <a href="/nutzungsbedingungen" class="footer-link" data-i18n="footer.col2-4">Nutzungsbedingungen</a>
+        <a href="/barrierefreiheit" class="footer-link" data-i18n="footer.col2-5">Barrierefreiheit</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title" data-i18n="footer.col3">Kontakt</h4>
+        <a href="/kontakt" class="footer-link" data-i18n="footer.col3-1">Kontakt</a>
+        <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="footer-link">4VisionGlobal</a>
+        <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="footer-link">Liga der Kreativen</a>
+      </div>
+    </div>
+    <p class="footer-copy" data-i18n="footer.copy">(c) 2026 HUI</p>
+  </div>
+</footer>
+
+<script src="/hui-pages.js"></script>
+<script src="/i18n.js" defer></script>
+</body>
+</html>

@@ -52,3 +52,10 @@ yarn-error.log*
 
 # Lokale APK/Build-Artefakte am Repo-Root (Auslieferung via public storage, nie committen)
 /be-hui-*.zip
+__pycache__/
+*.pyc
+content_group*.py
+generate_pages.py
+i18n_page_keys_*.txt
+subpage_mappings.json
+vercel_new_routes.json
