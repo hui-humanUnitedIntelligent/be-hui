@@ -488,6 +488,17 @@ ul{list-style:none}
 .hui-tab.sidebar-open{opacity:0;pointer-events:none;transform:translateY(-50%) translateX(100%)}
 .hui-tab:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 
+/* ── HUI Entdeckungs-Tab: dezentes Atmen + Hover-Kapsel ── */
+@keyframes hui-tab-breathe{0%,100%{box-shadow:-3px 2px 18px rgba(20,20,34,.06)}50%{box-shadow:-3px 2px 18px rgba(13,196,181,.1)}}
+@media(hover:hover){.hui-tab:not(.sidebar-open){animation:hui-tab-breathe 6s ease-in-out infinite}
+@media(hover:hover) and (prefers-reduced-motion:reduce){.hui-tab:not(.sidebar-open){animation:none}}}
+.hui-tab-capsule{position:fixed;right:0;top:50%;transform:translate(100%,-50%);z-index:1000;pointer-events:none;opacity:0;transition:opacity .4s var(--ease-out),transform .5s var(--ease-out);display:flex;align-items:center;gap:10px;padding:12px 22px 12px 16px;background:rgba(253,251,248,.94);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(13,196,181,.12);border-right:none;border-radius:18px 0 0 18px;box-shadow:-4px 3px 28px rgba(20,20,34,.07)}
+@media(hover:hover){.hui-tab:hover~.hui-tab-capsule,.hui-tab-capsule:hover{opacity:1;transform:translate(0,-50%);pointer-events:auto}}
+.hui-tab-capsule-label{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;line-height:1.3}
+.hui-tab-capsule-sub{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:400;color:var(--teal);letter-spacing:.02em;white-space:nowrap;margin-top:2px}
+.hui-tab-capsule-text{display:flex;flex-direction:column}
+.hui-tab-capsule.sidebar-open{opacity:0 !important;transform:translate(100%,-50%) !important;pointer-events:none !important}
+
 .hui-sidebar-backdrop{position:fixed;inset:0;z-index:1100;background:rgba(20,20,34,.16);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .45s var(--ease-out),visibility .45s}
 .hui-sidebar-backdrop.open{opacity:1;visibility:visible}
 
@@ -668,6 +679,7 @@ ul{list-style:none}
   .hui-sidebar-scroll{padding:0 24px;gap:24px}
   .hui-sidebar-footer{padding:16px 24px 24px}
   .hui-tab{width:44px;height:48px}
+  .hui-tab-capsule{display:none}
 }
 
 @media(max-width:480px){
@@ -1594,6 +1606,12 @@ if(prefersReduced){
 <button class="hui-tab" id="huiTab" aria-label="HUI Menü öffnen" data-i18n-aria="sidebar.tab.aria" aria-expanded="false" aria-controls="huiSidebar">
   <img src="/hui_logo.webp" alt="HUI" width="24" height="24"/>
 </button>
+<div class="hui-tab-capsule" id="huiTabCapsule" aria-hidden="true">
+  <div class="hui-tab-capsule-text">
+    <span class="hui-tab-capsule-label" data-i18n="sidebar.tab.hint">Was steckt dahinter?</span>
+    <span class="hui-tab-capsule-sub" data-i18n="sidebar.tab.sub-hint">Entdecke HUI</span>
+  </div>
+</div>
 
 <div class="hui-sidebar-backdrop" id="huiSidebarBackdrop" aria-hidden="true"></div>
 
@@ -1768,6 +1786,7 @@ if(!APP_PUBLIC_ACCESS){
 // ═══ HUI SIDEBAR ═══
 (function(){
   var tab=document.getElementById('huiTab');
+  var capsule=document.getElementById('huiTabCapsule');
   var sidebar=document.getElementById('huiSidebar');
   var backdrop=document.getElementById('huiSidebarBackdrop');
   var closeBtn=document.getElementById('huiSidebarClose');
@@ -1783,6 +1802,8 @@ if(!APP_PUBLIC_ACCESS){
     sidebar.classList.add('open');
     backdrop.classList.add('open');
     tab.classList.add('sidebar-open');
+    capsule.classList.add('sidebar-open');
+    capsule.setAttribute('aria-hidden','true');
     tab.setAttribute('aria-expanded','true');
     sidebar.setAttribute('aria-hidden','false');
     body.style.overflow='hidden';
@@ -1793,6 +1814,8 @@ if(!APP_PUBLIC_ACCESS){
     sidebar.classList.remove('open');
     backdrop.classList.remove('open');
     tab.classList.remove('sidebar-open');
+    capsule.classList.remove('sidebar-open');
+    capsule.setAttribute('aria-hidden','false');
     tab.setAttribute('aria-expanded','false');
     sidebar.setAttribute('aria-hidden','true');
     body.style.overflow='';
