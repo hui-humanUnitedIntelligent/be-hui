@@ -7,6 +7,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock from '../../lib/wizardBodyLock.js'
 import { supabase } from '../../lib/supabaseClient.js'
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CORAL = '#FF8A6B'
 
@@ -14,6 +15,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "SellerPayoutRequestSheet");
   useWizardBodyLock()
+  const { t } = useTranslation()
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -22,7 +24,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
   if (!item) return null
 
   const handleRequest = async () => {
-    if (!note.trim()) return setError('Bitte beschreibe kurz was du geliefert hast.')
+    if (!note.trim()) return setError(t('sps.errNoNote'))
     setLoading(true)
     setError('')
     try {
@@ -36,7 +38,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
       setDone(true)
       setTimeout(() => { onSuccess?.(); onClose?.() }, 2500)
     } catch (e) {
-      setError(e?.message || 'Fehler beim Antrag. Bitte erneut versuchen.')
+      setError(e?.message || t('sps.errRequest'))
     } finally {
       setLoading(false)
     }
@@ -68,21 +70,20 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
           ) : (
             <>
               <div style={{ fontSize: 11, fontWeight: 600, color: CORAL, textTransform: 'uppercase',
-                letterSpacing: '0.06em', marginBottom: 6 }}>Auszahlung beantragen</div>
+                letterSpacing: '0.06em', marginBottom: 6 }}>{t('sps.title')}</div>
               <div style={{ fontSize: 17, fontWeight: 600, color: '#1A1A2E', marginBottom: 8 }}>
-                {item.title || item.work_title || item.talent_title || 'Transaktion'}
+                {item.title || item.work_title || item.talent_title || t('sps.defaultTitle')}
               </div>
               <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.6)', lineHeight: 1.6, marginBottom: 16 }}>
-                Der K\u00e4ufer hat die Lieferung noch nicht best\u00e4tigt. Du kannst einen Auszahlungsantrag stellen —
-                HUI pr\u00fcft deinen Fall und gibt die Zahlung frei wenn Belege vorliegen.
+                {t('sps.desc')}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A2E', marginBottom: 8 }}>
-                Was hast du geliefert / ausgef\u00fchrt?
+                {t('sps.labelWhatDelivered')}
               </div>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Beschreibe kurz was du geliefert / ausgef\u00fchrt hast. Kannst du Belege (Screenshots, Fotos) beif\u00fcgen?"
+                placeholder={t('sps.phNote')}
                 rows={4}
                 style={{ width: '100%', resize: 'none', border: '1.5px solid rgba(26,26,46,0.12)',
                   borderRadius: 14, padding: '12px 14px', fontSize: 14, color: '#1A1A2E',
@@ -112,7 +113,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
                 fontSize: 15, fontWeight: 600,
                 cursor: (loading || !note.trim()) ? 'not-allowed' : 'pointer',
                 touchAction: 'manipulation' }}>
-              {loading ? 'Wird gesendet…' : 'Auszahlung beantragen'}
+              {loading ? t('sps.sending') : t('sps.requestPayout')}
             </button>
           </div>
         )}

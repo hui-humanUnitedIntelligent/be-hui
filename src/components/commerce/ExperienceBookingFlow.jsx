@@ -64,8 +64,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const creatorId = crObj?.id  || expObj?.author?.id
                   || expObj?._raw?.creator_id || expObj?._raw?.user_id
                   || expObj?.creator_id;
-  const title     = expObj?.title || expObj?._raw?.title || "Erlebnis";
-  const creatorName = crObj?.display_name || crObj?.name || expObj?.author?.name || "Creator";
+  const title     = expObj?.title || expObj?._raw?.title || t("ebf.defaultTitle");
+  const creatorName = crObj?.display_name || crObj?.name || expObj?.author?.name || t("ebf.defaultCreator");
   const rawPrice  = expObj?._raw?.price ?? expObj?.price ?? null;
   const amount    = typeof rawPrice === "number" ? rawPrice
                   : typeof rawPrice === "string"
@@ -81,11 +81,11 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   };
 
   async function handleBuchen() {
-    if (!user?.id)    { setErrMsg("Nicht eingeloggt."); setPhase("error"); return; }
-    if (!expId)       { setErrMsg("Erlebnis-ID fehlt."); setPhase("error"); return; }
-    if (!creatorId)   { setErrMsg("Creator-ID fehlt."); setPhase("error"); return; }
-    if (user.id === creatorId) { setErrMsg("Du kannst dein eigenes Erlebnis nicht buchen."); setPhase("error"); return; }
-    if (amount <= 0)  { setErrMsg("Dieses Erlebnis hat keinen Preis."); setPhase("error"); return; }
+    if (!user?.id)    { setErrMsg(t("ebf.errNotLoggedIn")); setPhase("error"); return; }
+    if (!expId)       { setErrMsg(t("ebf.errExpId")); setPhase("error"); return; }
+    if (!creatorId)   { setErrMsg(t("ebf.errCreatorId")); setPhase("error"); return; }
+    if (user.id === creatorId) { setErrMsg(t("ebf.errSelfBook")); setPhase("error"); return; }
+    if (amount <= 0)  { setErrMsg(t("ebf.errNoPrice")); setPhase("error"); return; }
 
     setPhase("loading");
     setErrMsg("");
@@ -97,7 +97,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
       const { data: sellerProfile } = await supabase
         .from("profiles").select("focus_type").eq("id", creatorId).maybeSingle();
       if (sellerProfile && sellerProfile.focus_type && sellerProfile.focus_type !== "public") {
-        setErrMsg("Dieses Profil ist nicht öffentlich — Buchungen sind aktuell deaktiviert.");
+        setErrMsg(t("ebf.errNotPublic"));
         setPhase("error");
         return;
       }
@@ -105,7 +105,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
       // ── Stripe PaymentIntent über Edge Function ──
       const { data: { session } } = await supabase.auth.getSession();
       const accessToken = session?.access_token;
-      if (!accessToken) { setErrMsg("Sitzung abgelaufen — bitte neu anmelden."); setPhase("error"); return; }
+      if (!accessToken) { setErrMsg(t("ebf.errSessionExpired")); setPhase("error"); return; }
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
@@ -131,15 +131,15 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
 
       if (!res.ok || result.error) {
         const msg = result.code === "STRIPE_NOT_CONFIGURED"
-          ? "Stripe ist noch nicht konfiguriert. Bitte später versuchen."
-          : (result.error || "Zahlung konnte nicht gestartet werden.");
+          ? t("ebf.errStripeNotConfigured")
+          : (result.error || t("ebf.errPaymentStart"));
         setErrMsg(msg);
         setPhase("error");
         return;
       }
 
       if (!result.clientSecret) {
-        setErrMsg("Zahlungsgeheimnis fehlt.");
+        setErrMsg(t("ebf.errNoSecret"));
         setPhase("error");
         return;
       }
@@ -149,7 +149,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
       setOrderId(result.orderId ?? null);
       setPhase("payment");
     } catch (e) {
-      setErrMsg(e?.message || "Verbindungsfehler beim Starten der Zahlung.");
+      setErrMsg(e?.message || t("ebf.errConnection"));
       setPhase("error");
     }
   }
@@ -192,7 +192,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
         otherUserId:  creatorId,
         bookingId:    String(expId || experience?.id || ""),
         bookingType:  "erlebnis",
-        bookingTitle: title || expObj?.title || "Erlebnis-Buchung",
+        bookingTitle: title || expObj?.title || t("ebf.defaultBookingTitle"),
       }).catch((e) => console.warn("[CHAT-V2] autoCreateOrReopenChat:", e?.message));
     }
 
@@ -355,8 +355,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                   const { data: prof } = await supabase.from("profiles")
                     .select("email, website").eq("id", creatorId).maybeSingle();
                   await generateReceipt({
-                    offerTitle: title || "Erlebnis",
-                    sellerName: creatorName || "Anbieter",
+                    offerTitle: title || t("ebf.defaultOfferTitle"),
+                    sellerName: creatorName || t("ebf.defaultSellerName"),
                     // BELEG-013: sellerEmail wird nicht mehr übergeben — generateReceipt.js
                     // zeigt jetzt IMMER support@be-hui.com als Kontakt (SSOT, Datenschutz).
                     sellerWebsite: prof?.website || null,
@@ -460,7 +460,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
             <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
             <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
-              {errMsg || "Etwas ist schiefgegangen."}
+              {errMsg || t("ebf.errGeneric")}
             </div>
             <button
               onClick={() => { setErrMsg(""); setPhase("form"); }}

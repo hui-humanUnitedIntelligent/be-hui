@@ -55,7 +55,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
       if (submitError) {
         const msg = submitError.type === "card_error" || submitError.type === "validation_error"
           ? submitError.message
-          : "Zahlungsdaten konnten nicht bestätigt werden. Bitte prüfen.";
+          : t("stripe.errConfirmFailed");
         setError(msg);
         return; // finally setzt processing = false
       }
@@ -83,7 +83,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
       if (stripeError) {
         const msg = stripeError.type === "card_error" || stripeError.type === "validation_error"
           ? stripeError.message
-          : "Zahlung fehlgeschlagen. Bitte erneut versuchen.";
+          : t("stripe.errPaymentFailed");
         setError(msg);
         onError?.(stripeError);
         return; // finally setzt processing = false
@@ -111,12 +111,12 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
       }
 
       // Unerwarteter Status
-      setError("Unbekannter Zahlungsstatus. Bitte Support kontaktieren.");
+      setError(t("stripe.errUnknownStatus"));
 
     } catch (e) {
       // Netzwerkfehler, Stripe.js nicht geladen, unerwartete Exceptions
       if (import.meta.env.DEV) console.error("[STRIPE] confirmPayment exception:", e);
-      setError(e?.message ?? "Unbekannter Fehler. Bitte erneut versuchen.");
+      setError(e?.message ?? t("stripe.errUnknown"));
     } finally {
       // finally läuft IMMER — auch bei return im succeeded-Pfad.
       // Das ist korrekt: Danke-Screen wird via goTo(1) aufgebaut,
@@ -232,7 +232,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
             WebkitTapHighlightColor: "transparent",
           }}
         >
-          {processing ? "Wird verarbeitet…" : t("stripe.supportNow")}
+          {processing ? t("stripe.processing") : t("stripe.supportNow")}
         </button>
         <div style={{
           textAlign: "center", marginTop: 10, fontSize: 11,

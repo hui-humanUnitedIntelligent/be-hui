@@ -32,7 +32,7 @@ import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import {
-  expandTalentAvailableDates, describeRecurring, TALENT_LOCATION_LABELS, formatDuration,
+  expandTalentAvailableDates, describeRecurring, getTalentLocationLabels, formatDuration,
   todayIsoLocal,
 } from "../../lib/talentAvailability.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
@@ -142,7 +142,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     [talent, minDate, maxDate]
   );
   const hasDates = expandedDates.length > 0;
-  const recurringDesc = useMemo(() => describeRecurring(talent), [talent]);
+  const recurringDesc = useMemo(() => describeRecurring(talent, t), [talent]);
 
   // Sobald expandedDates bereit ist, das initiale Datum auf den ersten
   // buchbaren Tag setzen (falls noch keins gewählt).
@@ -239,8 +239,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
 
   const handleBuchen = useCallback(async () => {
     if (!talent) return;
-    if (!user?.id) return setErrMsg("Bitte melde dich an.");
-    if (user.id === talent.user_id) return setErrMsg("Du kannst dein eigenes Angebot nicht buchen.");
+    if (!user?.id) return setErrMsg(t("tbf.errPleaseLogin"));
+    if (user.id === talent.user_id) return setErrMsg(t("tbf.errSelfBook"));
     if (!canSubmit) return;
     // AKTIONSRADIUS-ENFORCE-001: Client-seitige Vorab-Pruefung fuer sofortiges
     // Feedback -- die eigentliche, nicht umgehbare Durchsetzung passiert
@@ -345,7 +345,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         otherUserId:  talent.user_id,
         bookingId:    String(talent.id),
         bookingType:  "talent",
-        bookingTitle: talentTitle || talent?.title || "Talent-Buchung",
+        bookingTitle: talentTitle || talent?.title || t("tbf.defaultBookingTitle"),
       }).catch((e) => console.warn("[CHAT-V2] autoCreateOrReopenChat:", e?.message));
     }
 
@@ -468,14 +468,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   const { data: prof } = await supabase.from("profiles")
                     .select("email, website").eq("id", talent.user_id).maybeSingle();
                   await generateReceipt({
-                    offerTitle: talent.title || "Talent-Angebot",
-                    sellerName: talent.author || "Anbieter",
+                    offerTitle: talent.title || t("tbf.notifDefaultTitle"),
+                    sellerName: talent.author || t("tbf.defaultSellerName"),
                     // BELEG-013: sellerEmail wird nicht mehr übergeben — generateReceipt.js
                     // zeigt jetzt IMMER support@be-hui.com als Kontakt (SSOT, Datenschutz).
                     sellerWebsite: prof?.website || null,
                     date: selectedDate,
                     time: selectedSlot ? selectedSlot.start + (selectedSlot.end ? " – " + selectedSlot.end : "") : null,
-                    location: talent.location_type === "online" ? "Online" : (talent.location_address || null),
+                    location: talent.location_type === "online" ? t("common.online") : (talent.location_address || null),
                     amountEur: amountEur,
                     participants: participants,
                     bookingId: bookingId,
@@ -646,26 +646,26 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       {talent.category}
                     </span>
                   )}
-                  {TALENT_LOCATION_LABELS[talent.location_type] && (
+                  {getTalentLocationLabels(t)[talent.location_type] && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
                       background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
                       borderRadius: 99, padding: "3px 8px" }}>
-                      {TALENT_LOCATION_LABELS[talent.location_type]}
+                      {getTalentLocationLabels(t)[talent.location_type]}
                     </span>
                   )}
-                  {formatDuration(talent.duration_minutes) && (
+                  {formatDuration(talent.duration_minutes, t) && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
                       background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
                       borderRadius: 99, padding: "3px 8px" }}>
-                      {formatDuration(talent.duration_minutes)}
+                      {formatDuration(talent.duration_minutes, t)}
                     </span>
                   )}
                   {talent.booking_type === "gruppe" && (
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#1A1A2E",
                       background: "#fff", border: "1px solid rgba(26,26,46,0.12)",
                       borderRadius: 99, padding: "3px 8px" }}>
-                      {talent.min_participants > 1 ? `Gruppe ab ${talent.min_participants}` : "Gruppe"}
-                      {talent.max_participants > 0 ? ` · max ${talent.max_participants}` : ""}
+                      {talent.min_participants > 1 ? t("tbf.groupFrom", { n: talent.min_participants }) : t("tbf.group")}
+                      {talent.max_participants > 0 ? t("tbf.maxParticipants", { n: talent.max_participants }) : ""}
                     </span>
                   )}
                   {hasSlots && (
@@ -783,7 +783,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                         display: "inline-flex", alignItems: "center", gap: 4,
                         background: "rgba(232,58,58,0.08)", color: "rgba(185,28,28,1)",
                         borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 600,
-                      }}>Bereits ausgebucht</span>
+                      }}>{t("tbf.fullyBooked")}</span>
                     )}
                   </div>
                 )}
@@ -792,7 +792,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               {/* Zeitfenster */}
               {hasSlots && selectedDate && (
                 <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>Uhrzeit</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>{t("tbf.timeLabel")}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {talent.available_time_slots.map((s, i) => {
                       const active = selectedSlot && selectedSlot.start === s.start && selectedSlot.end === s.end;

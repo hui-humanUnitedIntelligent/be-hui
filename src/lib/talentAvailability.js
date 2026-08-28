@@ -26,7 +26,12 @@
 // Buchungsfenster hochgerechnet werden.
 // ══════════════════════════════════════════════════════════════════════
 
-const WEEKDAY_NAMES = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+export function getWeekdayNames(t) {
+  return [
+    t("tbf.weekdaySun"), t("tbf.weekdayMon"), t("tbf.weekdayTue"),
+    t("tbf.weekdayWed"), t("tbf.weekdayThu"), t("tbf.weekdayFri"), t("tbf.weekdaySat"),
+  ];
+}
 
 export function isoFromParts(year, monthIndex0, day) {
   return `${year}-${String(monthIndex0 + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -122,22 +127,23 @@ export function expandTalentAvailableDates(talent, { windowStart, windowEnd } = 
 }
 
 /** Menschenlesbare Kurzbeschreibung des Wiederholungsmusters für die Buchungsansicht. */
-export function describeRecurring(talent) {
+export function describeRecurring(talent, t) {
   const recurring = talent?.recurring || "";
   // FREIE-BUCHUNG-001 (2026-08-20): eigener Text, unabhaengig von anchors
   // (die bei "frei" ohnehin ignoriert werden, siehe expandTalentAvailableDates).
-  if (recurring === "frei") return "Flexible Terminwahl — du wählst dein Wunschdatum";
+  if (recurring === "frei") return t("tbf.recurringFlexible");
 
   const anchors = Array.isArray(talent?.available_dates) ? talent.available_dates.filter(Boolean) : [];
   if (!recurring || !anchors.length) return null;
 
   if (recurring === "weekly") {
+    const weekdayNames = getWeekdayNames(t);
     const weekdays = [...new Set(anchors.map(a => {
       const d = parseIsoLocal(a);
-      return d ? WEEKDAY_NAMES[d.getDay()] : null;
+      return d ? weekdayNames[d.getDay()] : null;
     }).filter(Boolean))];
     if (!weekdays.length) return null;
-    return `Wöchentlich wiederkehrend, jeden ${weekdays.join(" & ")}`;
+    return t("tbf.recurringWeekly", { days: weekdays.join(" & ") });
   }
   if (recurring === "monthly") {
     const days = [...new Set(anchors.map(a => {
@@ -145,22 +151,24 @@ export function describeRecurring(talent) {
       return d ? d.getDate() : null;
     }).filter(Boolean))].sort((a, b) => a - b);
     if (!days.length) return null;
-    return `Monatlich wiederkehrend, jeweils am ${days.join(". & ")}. des Monats`;
+    return t("tbf.recurringMonthly", { days: days.join(". & ") });
   }
   return null;
 }
 
-export const TALENT_LOCATION_LABELS = {
-  online: "Online",
-  vor_ort: "Vor Ort",
-  hybrid: "Hybrid",
-};
+export function getTalentLocationLabels(t) {
+  return {
+    online: t("common.online"),
+    vor_ort: t("tbf.locVorOrt"),
+    hybrid: t("tbf.locHybrid"),
+  };
+}
 
-export function formatDuration(minutes) {
+export function formatDuration(minutes, t) {
   const m = Number(minutes);
   if (!m || m <= 0) return null;
-  if (m < 60) return `${m} Min.`;
+  if (m < 60) return t("tbf.durationMin", { n: m });
   const h = Math.floor(m / 60);
   const rest = m % 60;
-  return rest === 0 ? `${h} Std.` : `${h} Std. ${rest} Min.`;
+  return rest === 0 ? t("tbf.durationHour", { n: h }) : t("tbf.durationHourMin", { h, m: rest });
 }
