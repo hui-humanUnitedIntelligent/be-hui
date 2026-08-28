@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -31,6 +32,7 @@ function Sk({ w, h, r=8 }) {
 }
 
 function DeleteConfirm({ werk, onConfirm, onCancel }) {
+  const { t } = useTranslation();
   return createPortal(
     <div onClick={onCancel} style={{ position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
       background:"rgba(0,0,0,0.55)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
@@ -38,15 +40,15 @@ function DeleteConfirm({ werk, onConfirm, onCancel }) {
         padding:"24px 20px 20px", maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)" }}>
         <div style={{ textAlign:"center", marginBottom:8, display:"flex", justifyContent:"center", color:"#F59E0B" }}><HUIWarnIcon size={36}/></div>
         <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:T.ink }}>
-          Werk unwiderruflich löschen?
+          {t('works.deleteConfirm')}
         </div>
         <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-          <strong>„{werk.title || "Dieses Werk"}"</strong> wird dauerhaft gelöscht.
+          <strong>„{werk.title || t('works.untitled')}"</strong> {t('works.deleteWarning')}
         </div>
         <button onClick={onConfirm} style={{ width:"100%", padding:"12px", borderRadius:99,
           background:"#ff3b3b", border:"none", color:"#fff", fontSize:14, fontWeight: 600,
           cursor:"pointer", fontFamily:"inherit", marginBottom:8 }}>
-          Ja, endgültig löschen
+          {t('works.deletePermanent')}
         </button>
         <button onClick={onCancel} style={{ width:"100%", padding:"12px", borderRadius:99,
           background:"#f0f0ee", border:"none", color:"#444", fontSize:14, fontWeight:600,
@@ -67,6 +69,7 @@ export function WorksSection({
   onDeleteWork = null, // (id) => void
   onShowAll  = null,   // () => void
 }) {
+  const { t } = useTranslation();
   const [confirmWork, setConfirmWork] = useState(null);
   useModalRegistration(!!confirmWork, () => setConfirmWork(null), "WorksSection-DeleteConfirm");
   const { open: openPreview } = useContentPreview();
@@ -95,11 +98,11 @@ export function WorksSection({
       if (!countErr && count > 0) {
         console.warn(`Werk Hard-Delete blockiert — ${count} bestehende Kauf/Käufe gefunden. Fallback Soft-Delete.`);
         await supabase.from("works").update({ status: "deleted", visibility: "private" }).eq("id", w.id);
-        toast.success("Werk wurde gelöscht (Kaufdaten geschützt).", { duration: 3000 });
+        toast.success(t('works.deletedProtected'), { duration: 3000 });
       } else {
         // Hard-Delete: Zeile vollständig aus DB entfernen
         await supabase.from("works").delete().eq("id", w.id);
-        toast.success("Werk wurde unwiderruflich gelöscht.", { duration: 3000 });
+        toast.success(t('works.deletedPermanent'), { duration: 3000 });
       }
       onDeleteWork?.(w.id);
     } catch(e) { console.error("[WorksSection] delete:", e); }
@@ -185,7 +188,7 @@ export function WorksSection({
                 : isUpdate   ? "🔄 Update"
                 : isPending  ? "⏳ Prüfung"
                 : isRejected ? "❌ Abgelehnt"
-                : "Entwurf";
+                : t('works.draft');
 
               return (
                 <div key={w.id || i} className="ws-press"

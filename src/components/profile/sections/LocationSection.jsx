@@ -53,7 +53,7 @@ export function LocationSection({
     setSaving(true); setErr("");
     const res = await addLocation({ label: place.label, lat: place.lat, lng: place.lng });
     setSaving(false);
-    if (!res.ok) { setErr(res.error || "Konnte Standort nicht speichern."); return; }
+    if (!res.ok) { setErr(res.error || t('loc.saveError')); return; }
     setAdding(false); setQuery(""); setSuggestions([]);
   };
 

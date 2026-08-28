@@ -92,7 +92,9 @@ function Skel({ w, h=14, r=8 }) {
 
 // ── Rollen-Badge ──────────────────────────────────────────────────
 // ── NavBar ────────────────────────────────────────────────────────
-function NavBar({ onBack = () => {}, title = "Öffentliches Profil" }) {
+function NavBar({ onBack = () => {}, title }) {
+  const { t } = useTranslation();
+  const navTitle = title || t('pub.title');
   return (
     <div style={{
       display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -210,7 +212,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
           }
         </svg>
         <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
-          {isFollowing ? `Gefolgt` : `${shortName} folgen`}
+          {isFollowing ? t('pub.followed') : t('pub.follow', { name: shortName })}
         </span>
       </button>
     </div>
@@ -225,11 +227,12 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
 // jeweiligen Section weiter unten auf der Seite (kein Modal, kein
 // Seitenwechsel — bleibt im selben Fenster).
 function QuickStats({ talents = [], works = [], experiences = [], moments = [], onStatClick = () => {} }) {
+  const { t } = useTranslation();
   const stats = [
-    { key:"talent",     icon:<HUITalentStarIcon size={20}/>,  val: talents?.length ?? 0,     label:"Talent"     },
-    { key:"werke",      icon:<HUIWerkeIcon size={20}/>,      val: works?.length ?? 0,       label:"Werke"      },
-    { key:"momente",    icon:<HUIMomenteIcon size={20}/>,    val: moments?.length ?? 0,     label:"Momente"    },
-    { key:"erlebnisse", icon:<HUIErlebnisIcon size={20}/>,   val: experiences?.length ?? 0, label:"Erlebnisse" },
+    { key:"talent",     icon:<HUITalentStarIcon size={20}/>,  val: talents?.length ?? 0,     label:t('pub.statTalent')     },
+    { key:"werke",      icon:<HUIWerkeIcon size={20}/>,      val: works?.length ?? 0,       label:t('pub.statWerke')      },
+    { key:"momente",    icon:<HUIMomenteIcon size={20}/>,    val: moments?.length ?? 0,     label:t('pub.statMomente')    },
+    { key:"erlebnisse", icon:<HUIErlebnisIcon size={20}/>,   val: experiences?.length ?? 0, label:t('pub.statErlebnisse') },
   ];
   return (
     <div style={{
@@ -301,10 +304,11 @@ function BioCard({ profile = {}, loading = false }) {
 
 // ── Skills/Interessen ──────────────────────────────────────────────
 function SkillsCard({ profile = {}, loading = false }) {
+  const { t } = useTranslation();
   const skills = Array.isArray(profile?.skills_final) ? profile.skills_final : [];
   if (!loading && skills.length === 0) return null;
   return (
-    <SectionCard icon={<HUITalentIcon size={16}/>} title="Interessen & Schwerpunkte" delay={60}>
+    <SectionCard icon={<HUITalentIcon size={16}/>} title={t('pub.interests')} delay={60}>
       {loading ? (
         <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
           {[60,70,50,65,55].map((w,i) => <Skel key={i} w={w} h={20} r={T.r99}/>)}
@@ -339,10 +343,10 @@ function ErrorView({ onClose = () => {} }) {
     }}>
       <span style={{ fontSize:40 }}>🔍</span>
       <p style={{ fontSize:16, fontWeight: 600, color:T.ink, textAlign:"center", margin:0 }}>
-        Profil nicht gefunden
+        {t('pub.notFound')}
       </p>
       <p style={{ fontSize:13, color:T.inkSoft, textAlign:"center", margin:0 }}>
-        Dieses Profil existiert nicht oder ist nicht öffentlich sichtbar.
+        {t('pub.notFoundSub')}
       </p>
       <button onClick={onClose} className="ppp-press" style={{
         marginTop:8, padding:"12px 32px", borderRadius:T.r99,
@@ -360,6 +364,7 @@ function ErrorView({ onClose = () => {} }) {
 export default function PublicProfilePage({ profileId, onClose = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "PublicProfilePage");
   const { user } = useAuth();
+  const { t } = useTranslation();
   const isOwnProfile = user?.id === profileId;
   // CHAT-LOGIK-v2 (2026-08-22): handleOpenChat entfernt — Chat wird nicht
   // mehr per Klick vom Profil aus geöffnet, siehe RelationButtons-Kommentar.
@@ -454,7 +459,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         paddingBottom: isOwnProfile ? NAV_CLEARANCE_CSS : "calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         overflowY:"auto",
       }}>
-        <NavBar onBack={handleBack} title="Öffentliches Profil" />
+        <NavBar onBack={handleBack} title={t('pub.title')} />
 
         {/* ── Kanonischer ProfileHeader (SSOT) — ersetzt Legacy-ProfileHero + Duplikat-Identity-Block ── */}
         {(profile || loading) && (
@@ -516,7 +521,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {profile?.bio && <Gap h={12}/>}
 
         {/* ── EMPFEHLUNGEN / KUNDENSTIMMEN — direkt unter Bio, immer sichtbar ── */}
-        <SectionCard icon={<HUIImpactIcon size={16}/>} title="Empfehlungen" delay={60}>
+        <SectionCard icon={<HUIImpactIcon size={16}/>} title={t('pub.recommendations')} delay={60}>
             <RecommendationsSection recommendations={recommendations} isOwner={false} loading={loadingLazy} profileOwnerId={profileId || ""} profileOwnerName={profile?.display_name || profile?.nickname || ""} />
         </SectionCard>
         <Gap h={12}/>
@@ -538,7 +543,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── TALENT-ANGEBOTE (aus talents-Tabelle, nur approved) ── */}
         {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
           <div ref={talentSectionRef}>
-            <SectionCard icon={<HUITalentIcon size={16}/>} title="Talent-Angebote" delay={90}>
+            <SectionCard icon={<HUITalentIcon size={16}/>} title={t('pub.talentOffers')} delay={90}>
               <PublicTalentOffersSection profileId={profileId}/>
             </SectionCard>
             <Gap h={12}/>
@@ -548,14 +553,14 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── WERKE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
           <div ref={werkeSectionRef}>
-            <SectionCard icon={<HUIWerkeIcon size={16}/>} title="Werke" delay={100}>
+            <SectionCard icon={<HUIWerkeIcon size={16}/>} title={t('pub.works')} delay={100}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={120} h={120} r={T.r12}/>)}</div>
               ) : works.length > 0 ? (
                   <WorksSection works={works} profile={profile} isOwner={false} loading={false} saleStatus={worksSaleStatus} />
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
-                  🎨 Noch keine Werke vorhanden
+                  {t('pub.emptyWorks')}
                 </div>
               )}
             </SectionCard>
@@ -566,14 +571,14 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── MOMENTE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
           <div ref={momenteSectionRef}>
-            <SectionCard icon={<span style={{ fontSize:16 }}>💬</span>} title="Momente" delay={120}>
+            <SectionCard icon={<span style={{ fontSize:16 }}>💬</span>} title={t('pub.moments')} delay={120}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>
               ) : moments.length > 0 ? (
                   <MomentsSection moments={moments} isOwner={false} loading={false} />
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
-                  💬 Noch keine Momente geteilt
+                  {t('pub.emptyMoments')}
                 </div>
               )}
             </SectionCard>
@@ -584,14 +589,14 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── ERLEBNISSE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
           <div ref={erlebnisseSectionRef}>
-            <SectionCard icon={<HUIErlebnisIcon size={16}/>} title="Erlebnisse" delay={140}>
+            <SectionCard icon={<HUIErlebnisIcon size={16}/>} title={t('pub.experiences')} delay={140}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>
               ) : experiences.length > 0 ? (
                   <ExperiencesSection experiences={experiences} isOwner={false} loading={false} />
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
-                  ⭐ Noch keine Erlebnisse angeboten
+                  {t('pub.emptyExperiences')}
                 </div>
               )}
             </SectionCard>
@@ -614,7 +619,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
           }}>
             <div style={{ fontSize:28, marginBottom:8 }}>🌱</div>
             <p style={{ fontSize:14, color:T.inkSoft, margin:0, lineHeight:1.5 }}>
-              Diese Person hat noch keine Inhalte geteilt.
+              {t('pub.emptyContent')}
             </p>
           </div>
         )}

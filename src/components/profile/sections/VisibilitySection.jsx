@@ -144,7 +144,7 @@ export function VisibilitySection({
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
               boxShadow:"0 4px 18px rgba(14,196,184,0.26)", marginTop:8,
             }}>
-              {isOwner ? "Fertig" : "Verstanden"}
+              {isOwner ? t('common.done') : t('common.understood')}
             </button>
           </div>
         </div>,

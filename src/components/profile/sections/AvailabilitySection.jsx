@@ -59,7 +59,7 @@ export function AvailabilitySection({
               style={{ background:"none", border:"none", padding:0, fontSize:11,
                 color: saving ? T.inkFaint : T.teal, fontWeight: 600,
                 cursor: saving ? "default" : "pointer", fontFamily:"inherit" }}>
-              {saving ? "Speichert…" : isOpen ? "Als ausgelastet markieren ›" : "Als offen markieren ›"}
+              {saving ? t('avail.saving') : isOpen ? t('avail.markBusy') : t('avail.markOpen')}
             </button>
           )}
         </div>

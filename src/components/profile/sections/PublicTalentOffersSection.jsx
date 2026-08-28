@@ -6,6 +6,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -39,10 +40,10 @@ function formatPrice(talent) {
 }
 
 // Standort-Label
-function locationLabel(talent) {
-  if (talent.location_type === "online")  return "Online";
-  if (talent.location_type === "hybrid")  return "Hybrid";
-  if (talent.location_type === "vor_ort") return "Vor Ort";
+function locationLabel(talent, t) {
+  if (talent.location_type === "online")  return t('common.online');
+  if (talent.location_type === "hybrid")  return t('common.hybrid');
+  if (talent.location_type === "vor_ort") return t('common.vorOrt');
   return null;
 }
 
@@ -50,7 +51,7 @@ function locationLabel(talent) {
 function TalentCard({ talent, onClick }) {
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
   const price = formatPrice(talent);
-  const loc   = locationLabel(talent);
+  const loc   = locationLabel(talent, t);
 
   return (
     <div
@@ -124,7 +125,7 @@ function TalentCard({ talent, onClick }) {
 function TalentDetailModal({ talent, onClose }) {
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
   const price = formatPrice(talent);
-  const loc   = locationLabel(talent);
+  const loc   = locationLabel(talent, t);
 
   return (
     <>
@@ -225,12 +226,12 @@ function TalentDetailModal({ talent, onClose }) {
               }}>
                 {talent.max_participants && (
                   <div style={{ fontSize:12.5, color:T.inkSoft, marginBottom:4 }}>
-                    👥 Max. {talent.max_participants} {talent.max_participants === 1 ? "Person" : "Personen"}
+                    {t('pub.maxPersons', { n: talent.max_participants })}
                   </div>
                 )}
                 {talent.booking_type && (
                   <div style={{ fontSize:12.5, color:T.inkSoft }}>
-                    📋 {talent.booking_type === "gruppe" ? "Gruppenangebot" : "Einzelbuchung"}
+                    📋 {talent.booking_type === "gruppe" ? t('pub.groupOffer') : t('pub.singleBooking')}
                   </div>
                 )}
               </div>
@@ -252,6 +253,7 @@ function TalentDetailModal({ talent, onClose }) {
 // ── Haupt-Export ──────────────────────────────────────────────────
 export function PublicTalentOffersSection({ profileId }) {
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setSelected(null));
+  const { t } = useTranslation();
   const [talents, setTalents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);

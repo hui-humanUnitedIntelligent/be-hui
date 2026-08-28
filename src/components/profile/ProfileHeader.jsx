@@ -127,17 +127,17 @@ export function ProfileHeader({
   const isSuperadmin     = ["admin","superadmin","super_admin"].includes(profile?.role);
 
   // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
-  const badgeLabel = isSuperadmin ? "Superadmin" : isTalentResolved ? "HUI-Talent" : "Basis-Nutzer";
+  const badgeLabel = isSuperadmin ? t('pub.badgeSuperadmin') : isTalentResolved ? t('pub.badgeTalent') : t('pub.badgeBasis');
 
   const handleAvatarFile = useCallback((e) => {
     const file = e.target.files?.[0];
-    if (file && file.size > MAX_IMAGE_BYTES) { alert(`Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return; }
+    if (file && file.size > MAX_IMAGE_BYTES) { alert(t('common.imageMax', { max: UPLOAD_LIMITS.MAX_IMAGE_MB })); return; }
     handleAvatarUpload({ event: e, profileId: profile?.id, onSuccess: onEditAvatar, setUploading: setAvatarUploading });
   }, [profile?.id, onEditAvatar]);
 
   const handleCoverFile = useCallback((e) => {
     const file = e.target.files?.[0];
-    if (file && file.size > MAX_IMAGE_BYTES) { alert(`Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return; }
+    if (file && file.size > MAX_IMAGE_BYTES) { alert(t('common.imageMax', { max: UPLOAD_LIMITS.MAX_IMAGE_MB })); return; }
     handleCoverUpload({ event: e, profileId: profile?.id, onSuccess: onEditCover, setUploading: setCoverUploading });
   }, [profile?.id, onEditCover]);
 

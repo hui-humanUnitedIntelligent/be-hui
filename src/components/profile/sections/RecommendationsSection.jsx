@@ -309,7 +309,7 @@ export function RecommendationsSection({
             <textarea
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
-              placeholder="Warum möchtest du diese Empfehlung melden?"
+              placeholder={t('rec.reportPlaceholder')}
               maxLength={300}
               style={{
                 width: "100%", minHeight: 80, padding: "12px 14px",
@@ -330,7 +330,7 @@ export function RecommendationsSection({
                 opacity: reportSubmitting ? 0.6 : 1,
               }}
             >
-              {reportSubmitting ? "Wird gesendet…" : "Meldung senden"}
+              {reportSubmitting ? t('common.sending') : t('rec.reportSend')}
             </button>
           </div>
         </div>,

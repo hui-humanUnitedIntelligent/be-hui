@@ -21,17 +21,17 @@ const T = {
   card:"0 1px 3px rgba(0,0,0,0.04),0 4px 20px rgba(0,0,0,0.06)",
 };
 
-const CAT_MAP = {
-  workshop:"Workshop", kurs:"Workshop", malen:"Workshop",
-  event:"Event", festival:"Event", konzert:"Event",
-  ausstellung:"Ausstellung", galerie:"Ausstellung",
-  projekt:"Projekt", community:"Projekt",
-};
-function catLabel(cat) {
-  if (!cat) return "Projekt";
+function catLabel(cat, t) {
+  if (!cat) return t('exp.typeProjekt');
+  const CAT_MAP = {
+    workshop: t('exp.typeWorkshop'), kurs: t('exp.typeWorkshop'), malen: t('exp.typeWorkshop'),
+    event: t('exp.typeEvent'), festival: t('exp.typeEvent'), konzert: t('exp.typeEvent'),
+    ausstellung: t('exp.typeAusstellung'), galerie: t('exp.typeAusstellung'),
+    projekt: t('exp.typeProjekt'), community: t('exp.typeProjekt'),
+  };
   const k = cat.toLowerCase();
   for (const [key, val] of Object.entries(CAT_MAP)) { if (k.includes(key)) return val; }
-  return "Projekt";
+  return t('exp.typeProjekt');
 }
 function fmtDate(d) {
   if (!d) return "";
@@ -154,7 +154,7 @@ export function ExperiencesSection({
                 WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
                 {ex.title || "Erlebnis"}
               </div>
-              <div style={{ fontSize:10.5, color:T.inkFaint }}>{catLabel(ex.category)}</div>
+              <div style={{ fontSize:10.5, color:T.inkFaint }}>{catLabel(ex.category, t)}</div>
               <div style={{ fontSize:10, color:T.inkFaint }}>{fmtDate(ex.date || ex.created_at)}</div>
             </div>
           ))}

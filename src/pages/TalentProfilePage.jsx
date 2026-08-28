@@ -581,7 +581,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
       notifyWatcher({
         watcherId:   currentUserId,
         profileId:   profile.id,
-        watcherName: authProfile?.display_name || "Jemand",
+        watcherName: authProfile?.display_name || t('common.someone'),
       }).catch(() => {});
       rel.refetch();
     } else {
@@ -624,7 +624,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
             }}>
-              💬 Nachricht senden
+              💬 {t('pub.sendMessage')}
             </button>
 
           ) : isPending ? (
@@ -662,7 +662,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
               display:"flex", alignItems:"center", justifyContent:"center", gap:7,
               touchAction:"manipulation",
             }}>
-              <span className="hui-emoji">🤝</span> Verbinden
+              <span className="hui-emoji">🤝</span> {t('pub.connect')}
             </button>
 
           ) : (
@@ -945,7 +945,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
       notifyWatcher({
         watcherId:   currentUserId,
         profileId:   profile.id,
-        watcherName: authProfile?.display_name || "Jemand",
+        watcherName: authProfile?.display_name || t('common.someone'),
       }).catch(() => {});
       rel.refetch();
     } else {
@@ -979,7 +979,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
           }}>
-            💬 Nachricht senden
+            💬 {t('pub.sendMessage')}
           </button>
 
         ) : isPending ? (
@@ -1017,7 +1017,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:7,
             touchAction:"manipulation",
           }}>
-            <span className="hui-emoji">🤝</span> Verbinden
+            <span className="hui-emoji">🤝</span> {t('pub.connect')}
           </button>
 
         ) : (
@@ -1102,9 +1102,9 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
   const { t } = useTranslation();
   // Live-Werte: keine fake Multiplikatoren/Fallbacks
   const stats = [
-    { icon:"👥", value: loading?"–":String(followCounts?.followers??0), label:"Verbindungen"   },
-    { icon:"❤️", value: loading?"–":String(experiences.length),         label:"Gem. Begegnungen" },
-    { icon:"💬", value: loading?"–":String(moments.length),             label:"Gem. Momente"  },
+    { icon:"👥", value: loading?"–":String(followCounts?.followers??0), label:t('pub.statConnections')   },
+    { icon:"❤️", value: loading?"–":String(experiences.length),         label:t('pub.statBegegnungen') },
+    { icon:"💬", value: loading?"–":String(moments.length),             label:t('pub.statMomente')  },
   ];
   return (
     <div style={{
@@ -1353,7 +1353,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           borderTopColor:"#0DC4B5",
           animation:"spin 0.75s linear infinite",
         }}/>
-        <div style={{ fontSize:12, color:"#9CA3AF" }}>Profil wird geladen…</div>
+        <div style={{ fontSize:12, color:"#9CA3AF" }}>{t('common.loading')}</div>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -1378,7 +1378,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         <div style={{ fontSize:40 }}>🔍</div>
         <div style={{ fontSize:16, fontWeight:600, color:"#1C1C1A" }}>{t("tpp.profileUnavailable")}</div>
         <div style={{ fontSize:13, color:"#6B7280", textAlign:"center", maxWidth:260 }}>
-          Dieses Profil konnte nicht geladen werden.
+          {t('pub.loadError')}
         </div>
       </div>
     );
@@ -1467,7 +1467,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           <>
             <div style={{ padding:"0 16px", marginBottom:8 }}>
               <div style={{ fontSize:15, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.01em" }}>
-                Talent-Angebote
+                {t('pub.talentOffers')}
               </div>
             </div>
             <div style={{ padding:"0 16px" }}>
