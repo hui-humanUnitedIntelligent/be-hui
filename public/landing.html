@@ -427,16 +427,25 @@ ul{list-style:none}
 .honest-text{font-size:clamp(17px,2.5vw,20px);font-weight:300;line-height:1.75;color:var(--ink-mid)}
 .honest-text .em{display:inline-block;margin-top:8px;font-size:clamp(20px,3vw,26px);font-weight:500;color:var(--teal);letter-spacing:-.01em}
 
-/* ═══ WIRKUNG ═══ */
-.impact{padding:96px 32px;background:var(--cream-soft);text-align:center;position:relative}
+/* ═══ WIRKUNG — visuelle Erzählung Menschen → Projekte → Werke → Wirkung ═══ */
+.impact{padding:96px 32px;background:var(--cream-soft);text-align:center;position:relative;overflow:hidden}
 .impact::before{content:'';position:absolute;top:15%;left:5%;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(20,20,34,.015) 0%,transparent 55%);pointer-events:none;z-index:0}
-.impact-inner{max-width:680px;margin:0 auto;position:relative;z-index:1}
-.impact-h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:44px}
-.impact-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;text-align:left;max-width:560px;margin:0 auto}
-.impact-cell{padding:30px 26px;background:var(--white);border:none;border-radius:var(--rl);transition:all .4s var(--ease-out);box-shadow:var(--shadow)}
-.impact-cell:hover{box-shadow:var(--shadow-m);transform:translateY(-2px)}
-.impact-cell .q{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:10px;line-height:1.4}
-.impact-cell .a{font-size:14px;font-weight:300;color:var(--muted);line-height:1.55}
+.impact-inner{max-width:1040px;margin:0 auto;position:relative;z-index:1}
+.impact-h2{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:56px}
+.impact-story{display:flex;flex-direction:column;gap:72px;text-align:left}
+.impact-item{display:flex;align-items:center;gap:52px}
+.impact-item:nth-child(even){flex-direction:row-reverse}
+.impact-item:nth-child(2){transform:translateX(28px)}
+.impact-item:nth-child(4){transform:translateX(-28px)}
+.impact-num{display:block;font-size:13px;font-weight:600;letter-spacing:2px;color:var(--teal);opacity:.55;margin-bottom:10px;transition:opacity .4s var(--ease-out)}
+.impact-item:hover .impact-num{opacity:.9}
+.impact-figure{flex:0 0 auto;width:clamp(260px,32vw,420px);border-radius:22px;overflow:hidden;box-shadow:0 14px 36px -16px rgba(20,20,34,.16);transition:box-shadow .35s var(--ease-out)}
+.impact-item:hover .impact-figure,.impact-item:focus-within .impact-figure{box-shadow:0 20px 46px -16px rgba(20,20,34,.24)}
+.impact-figure img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;transition:transform .4s var(--ease-out)}
+.impact-item:hover .impact-figure img,.impact-item:focus-within .impact-figure img,.impact-figure img.is-tapped{transform:scale(1.1)}
+.impact-text{flex:1;min-width:0}
+.impact-text .q{font-size:clamp(19px,2.2vw,23px);font-weight:600;color:var(--ink);margin-bottom:12px;line-height:1.35;letter-spacing:-.01em}
+.impact-text .a{font-size:16px;font-weight:300;color:var(--muted);line-height:1.65;max-width:380px}
 
 /* ═══ CTA ═══ */
 .cta{padding:136px 32px;text-align:center;background:var(--cream);position:relative;overflow:hidden}
@@ -641,8 +650,12 @@ ul{list-style:none}
   .honest{padding:60px 24px}
 
   .impact{padding:64px 24px}
-  .impact-grid{grid-template-columns:1fr;gap:16px}
-  .impact-h2{margin-bottom:28px}
+  .impact-h2{margin-bottom:36px}
+  .impact-story{gap:48px}
+  .impact-item,.impact-item:nth-child(even){flex-direction:column;align-items:flex-start;gap:20px;transform:none}
+  .impact-figure{width:100%;max-width:420px;margin:0 auto}
+  .impact-text{text-align:left;width:100%}
+  .impact-text .a{max-width:none}
 
   .cta{padding:96px 24px}
 
@@ -680,7 +693,10 @@ ul{list-style:none}
   .eco-term[data-eco="7"] .eco-thumb{width:88px}
   .eco-term .eco-cat,.eco-term .eco-stmt{display:inline;text-align:left}
   .eco-term .eco-cat{margin-bottom:0;margin-right:4px}
-  .impact-cell{padding:22px}
+  .impact-figure{max-width:100%}
+  .impact-story{gap:40px}
+  .impact-text .q{font-size:18px}
+  .impact-text .a{font-size:15px}
   .hui-app-phone{width:180px;height:360px}
   .origin{padding:72px 16px 56px}
   .vision-flow{display:none}
@@ -1365,23 +1381,47 @@ ul{list-style:none}
   <div class="impact-inner">
     <p class="section-kicker reveal" data-i18n="impact.kicker">Wirkung</p>
     <h2 class="impact-h2 reveal d1" data-i18n="impact.h2">Was entsteht daraus?</h2>
-    <div class="impact-grid">
-      <div class="impact-cell reveal d1">
-        <p class="q" data-i18n="impact.q1">Welche Menschen begegnen sich?</p>
-        <p class="a" data-i18n="impact.a1">Talente, die sich ohne HUI vielleicht nie begegnet wären.</p>
-      </div>
-      <div class="impact-cell reveal d2">
-        <p class="q" data-i18n="impact.q2">Welche Projekte werden möglich?</p>
-        <p class="a" data-i18n="impact.a2">Ideen, die durch gemeinschaftliche Unterstützung Wirklichkeit werden.</p>
-      </div>
-      <div class="impact-cell reveal d3">
-        <p class="q" data-i18n="impact.q3">Welche Werke erreichen Menschen?</p>
-        <p class="a" data-i18n="impact.a3">Geschaffenes, das nicht in der Schublade bleibt, sondern geteilt wird.</p>
-      </div>
-      <div class="impact-cell reveal d4">
-        <p class="q" data-i18n="impact.q4">Welche Wirkung bleibt?</p>
-        <p class="a" data-i18n="impact.a4">Etwas, das über die Plattform hinausgeht — ins echte Leben.</p>
-      </div>
+    <div class="impact-story">
+      <article class="impact-item reveal d1" data-impact="1" tabindex="0">
+        <figure class="impact-figure">
+          <img src="/assets/impact/impact-menschen.webp" alt="Zwei Talente lernen sich im Gespräch auf einem HUI-Treffen kennen" width="900" height="675" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="impact-text">
+          <span class="impact-num">01</span>
+          <p class="q" data-i18n="impact.q1">Welche Menschen begegnen sich?</p>
+          <p class="a" data-i18n="impact.a1">Talente, die sich ohne HUI vielleicht nie begegnet wären.</p>
+        </div>
+      </article>
+      <article class="impact-item reveal d2" data-impact="2" tabindex="0">
+        <figure class="impact-figure">
+          <img src="/assets/impact/impact-projekte.webp" alt="Eine Gruppe entwickelt gemeinsam an einem Tisch die Idee für ein neues Projekt" width="900" height="675" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="impact-text">
+          <span class="impact-num">02</span>
+          <p class="q" data-i18n="impact.q2">Welche Projekte werden möglich?</p>
+          <p class="a" data-i18n="impact.a2">Ideen, die durch gemeinschaftliche Unterstützung Wirklichkeit werden.</p>
+        </div>
+      </article>
+      <article class="impact-item reveal d3" data-impact="3" tabindex="0">
+        <figure class="impact-figure">
+          <img src="/assets/impact/impact-werke.webp" alt="Zwei Besucher betrachten Werke bei einer kleinen Kunstausstellung im Freien" width="900" height="675" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="impact-text">
+          <span class="impact-num">03</span>
+          <p class="q" data-i18n="impact.q3">Welche Werke erreichen Menschen?</p>
+          <p class="a" data-i18n="impact.a3">Geschaffenes, das nicht in der Schublade bleibt, sondern geteilt wird.</p>
+        </div>
+      </article>
+      <article class="impact-item reveal d4" data-impact="4" tabindex="0">
+        <figure class="impact-figure">
+          <img src="/assets/impact/impact-wirkung.webp" alt="Eine Mutter und ihre Tochter pflanzen gemeinsam mit anderen bei einem Nachbarschaftsprojekt im Garten" width="900" height="675" loading="lazy" decoding="async"/>
+        </figure>
+        <div class="impact-text">
+          <span class="impact-num">04</span>
+          <p class="q" data-i18n="impact.q4">Welche Wirkung bleibt?</p>
+          <p class="a" data-i18n="impact.a4">Etwas, das über die Plattform hinausgeht — ins echte Leben.</p>
+        </div>
+      </article>
     </div>
   </div>
 </section>
@@ -1888,6 +1928,38 @@ if(!APP_PUBLIC_ACCESS){
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(function(){ clearZoom(activeZoom); }, 50);
   }, { passive: true });
+})();
+
+// ── Impact story — Tap-Vergrößerung auf Touch-Geräten (Desktop nutzt CSS :hover) ──
+(function(){
+  var isTouch = window.matchMedia('(hover: none)').matches;
+  if(!isTouch) return;
+
+  var activeImg = null;
+
+  function clearTap(){
+    if(activeImg){ activeImg.classList.remove('is-tapped'); activeImg = null; }
+  }
+
+  document.querySelectorAll('.impact-item').forEach(function(item){
+    var img = item.querySelector('.impact-figure img');
+    if(!img) return;
+    item.addEventListener('click', function(e){
+      e.preventDefault();
+      if(activeImg === img){
+        clearTap();
+      } else {
+        clearTap();
+        img.classList.add('is-tapped');
+        activeImg = img;
+      }
+    });
+  });
+
+  document.addEventListener('click', function(e){
+    if(activeImg && !activeImg.closest('.impact-item').contains(e.target)) clearTap();
+  });
+  window.addEventListener('scroll', function(){ clearTap(); }, { passive: true });
 })();
 </script>
 
