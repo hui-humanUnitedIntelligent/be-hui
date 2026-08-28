@@ -6,6 +6,7 @@ import {
   HUIKalenderIcon, HUIZeitIcon, HUILocationIcon, HUIPersonenIcon, HUIFinanzIcon, HUIProfilIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState } from "react";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { formatDateDE } from "../../lib/formatters.js";
@@ -293,8 +294,8 @@ function PublishActions({ onPublish, onEdit, onDraft, publishing }) {
         justifyContent:"center",
       }}>
         {[
-          { label:"✏️  Bearbeiten",       onClick:onEdit  },
-          { label:"📋  Entwurf speichern", onClick:onDraft },
+          { label: "✏️  " + t("common.edit"),       onClick:onEdit  },
+          { label: "📋  " + t("common.draft"), onClick:onDraft },
         ].map(a => (
           <button key={a.label} onClick={a.onClick} style={{
             padding:"8px 16px", borderRadius:99,

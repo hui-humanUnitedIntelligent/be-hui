@@ -401,7 +401,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
           <span style={{
             display:"inline-block", fontSize:12.5, fontWeight:800,
             color:"#F47355", letterSpacing:"0.09em", textTransform:"uppercase",
-          }}>Systemnachricht</span>
+          }}>{t("feed.systemMsg")}</span>
         </div>
       ) : grund && (
         <div style={{ display:"flex", alignItems:"flex-start", gap:7, marginTop:9, marginBottom:10 }}>

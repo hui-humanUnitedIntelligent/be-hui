@@ -495,7 +495,7 @@ function S1({ data, onChange, userId }) {
               position: "absolute", bottom: 10, left: 10,
               background: "rgba(14,196,184,0.90)", borderRadius: 8,
               padding: "3px 10px", fontSize: 10, fontWeight: 600, color: "#fff",
-            }}>TITELBILD</div>
+            }}>{t("common.titelbild")}</div>
           </div>
         ) : (
           <div

@@ -240,10 +240,10 @@ function S1({ data, onChange, userId, onNext }) {
                 <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
               )}
               {isVid && (
-                <div style={{ position:"absolute", top:4, left:4, background:"rgba(0,0,0,0.6)", color:"#fff", fontSize:9, fontWeight:600, padding:"2px 6px", borderRadius:6 }}>VIDEO</div>
+                <div style={{ position:"absolute", top:4, left:4, background:"rgba(0,0,0,0.6)", color:"#fff", fontSize:9, fontWeight:600, padding:"2px 6px", borderRadius:6 }}>{t("common.video")}</div>
               )}
               {idx === 0 && !isVid && (
-                <div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight:600, color:"#fff", textAlign:"center" }}>TITELBILD</div>
+                <div style={{ position:"absolute", bottom:0, left:0, right:0, background:"linear-gradient(transparent,rgba(14,196,184,0.82))", padding:"12px 5px 4px", fontSize:9, fontWeight:600, color:"#fff", textAlign:"center" }}>{t("common.titelbild")}</div>
               )}
               <button onClick={() => handleRemove(idx)} style={{
                 position:"absolute", top:4, right:4, width:22, height:22, borderRadius:"50%",
@@ -1087,7 +1087,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
             cursor:"pointer", fontFamily:"inherit",
             touchAction:"manipulation", padding:"8px 24px",
           }}>
-            Entwurf speichern
+            {t("common.draft")}
           </button>
         </div>
       )}

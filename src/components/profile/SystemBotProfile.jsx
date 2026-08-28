@@ -2,6 +2,7 @@
 // HUI-System Bot Profil — spezielle Ansicht für den System-Account
 // Zeigt: Name + Follower + Abgeschlossene Projekte (Kacheln) + Systemnachrichten
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -151,6 +152,7 @@ function MessageItem({ notif = {}, onPress = () => {} }) {
 
 // ── Haupt-Komponente ─────────────────────────────────────────────────────
 export default function SystemBotProfile({ profileId, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { authProfile } = useHome();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -378,7 +380,7 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
               </div>
               {messages.length === 0 ? (
                 <div style={{ padding: "24px 0", textAlign: "center", color: T.inkFaint, fontSize: 13 }}>
-                  Keine Systemnachrichten vorhanden.
+                  {t("feed.noSystemMsgs")}
                 </div>
               ) : (
                 <div>

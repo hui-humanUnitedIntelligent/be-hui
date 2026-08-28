@@ -125,7 +125,7 @@ export default function MultiUploadGrid({
                   background: "rgba(0,0,0,0.6)", color: "#fff",
                   fontSize: 9, fontWeight: 600, padding: "2px 6px",
                   borderRadius: 6, pointerEvents: "none",
-                }}>VIDEO</div>
+                }}>{t("common.video")}</div>
               )}
 
               {/* Upload-Progress */}
