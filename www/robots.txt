@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /app
+Sitemap: https://be-hui.com/sitemap.xml

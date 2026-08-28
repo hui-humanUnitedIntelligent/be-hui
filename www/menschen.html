@@ -23,11 +23,21 @@
 @font-face{font-family:'Inter';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/Inter-Black.woff2') format('woff2')}
 </style>
 <link rel="stylesheet" href="/hui-shared.css"/>
+<link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
 .page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
 .hui-page-hero{position:relative;z-index:1}
 </style>
+<!-- SEO / GEO Meta Tags -->
+<link rel="canonical" href="https://be-hui.com/menschen"/>
+<link rel="alternate" hreflang="de" href="https://be-hui.com/menschen"/>
+<link rel="alternate" hreflang="en" href="https://be-hui.com/en/people"/>
+<link rel="alternate" hreflang="x-default" href="https://be-hui.com/menschen"/>
+<meta property="og:url" content="https://be-hui.com/menschen"/>
+<meta property="og:image" content="https://be-hui.com/hero.webp"/>
+<meta property="og:locale" content="de_DE"/>
+<meta property="og:locale:alternate" content="en_US"/>
 </head>
 <body>
 
@@ -219,6 +229,23 @@
     </section>
   </div>
 
+
+  <div class="hui-interact reveal">
+    <h3 class="hui-interact-title" data-i18n="interact.menschen.title">Was bringst du mit?</h3>
+    <p class="hui-interact-sub" data-i18n="interact.menschen.sub">Jeder Mensch hat etwas. Was ist deines?</p>
+    <div class="hui-interact-options" data-response-prefix="interact.menschen.response">
+      <span class="hui-interact-chip" data-value="idea" data-i18n="interact.menschen.option.idea">Eine Idee</span>
+      <span class="hui-interact-chip" data-value="talent" data-i18n="interact.menschen.option.talent">Ein Talent</span>
+      <span class="hui-interact-chip" data-value="experience" data-i18n="interact.menschen.option.experience">Erfahrung</span>
+      <span class="hui-interact-chip" data-value="time" data-i18n="interact.menschen.option.time">Zeit</span>
+      <span class="hui-interact-chip" data-value="support" data-i18n="interact.menschen.option.support">Unterstützung</span>
+      <span class="hui-interact-chip" data-value="curiosity" data-i18n="interact.menschen.option.curiosity">Neugier</span>
+    </div>
+    <div class="hui-interact-response">
+      <p class="hui-interact-response-text"></p>
+    </div>
+  </div>
+
   <div class="hui-coming-box reveal">
     <p data-i18n="page.menschen.coming">Nach dem Start wirst du auf HUI Menschen mit unterschiedlichsten Hintergründen entdecken, dich direkt vernetzen und neue Blickwinkel gewinnen können.</p>
   </div>
@@ -263,5 +290,6 @@
 
 <script src="/hui-pages.js"></script>
 <script src="/i18n.js" defer></script>
+<script src="/hui-interactions.js" defer></script>
 </body>
 </html>

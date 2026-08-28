@@ -1,0 +1,84 @@
+/* ═══════════════════════════════════════════════════
+   HUI Interactions CSS — pre-launch experience
+   Subtle, elegant, premium interactions
+   ═══════════════════════════════════════════════════ */
+
+/* ── "Was wäre, wenn?" interactive reveals ── */
+.vision-item{cursor:pointer;transition:all .4s var(--ease-out, cubic-bezier(.22,1,.36,1));position:relative;padding:8px 0}
+.vision-item::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--teal, #0DC4B5);transition:width .5s var(--ease-out, cubic-bezier(.22,1,.36,1))}
+.vision-item:hover::after,.vision-item.active::after{width:100%}
+.vision-item:hover .mark,.vision-item.active .mark{color:var(--teal, #0DC4B5)}
+.vision-reveal{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s var(--ease-out, cubic-bezier(.22,1,.36,1)),opacity .4s ease;margin-top:0}
+.vision-reveal.show{max-height:120px;opacity:1;margin-top:12px}
+.vision-reveal p{font-size:15px;line-height:1.6;color:var(--muted, #6b6b7a);padding-left:24px;border-left:2px solid var(--teal-light, rgba(13,196,181,.2));font-style:italic}
+
+/* ── "Was bringst du mit?" interaction ── */
+.bring-section{padding:100px 24px;background:linear-gradient(180deg, transparent 0%, rgba(13,196,181,.015) 50%, transparent 100%)}
+.bring-inner{max-width:720px;margin:0 auto;text-align:center}
+.bring-kicker{font-size:13px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--teal, #0DC4B5);margin-bottom:16px}
+.bring-h2{font-size:clamp(28px, 4vw, 42px);font-weight:800;letter-spacing:-.02em;color:var(--ink, #1a1a2e);line-height:1.15;margin-bottom:12px}
+.bring-sub{font-size:17px;line-height:1.6;color:var(--muted, #6b6b7a);margin-bottom:40px;max-width:520px;margin-left:auto;margin-right:auto}
+.bring-options{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-bottom:32px}
+.bring-chip{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:100px;border:1.5px solid var(--border, rgba(0,0,0,.08));background:var(--card, #fff);font-size:15px;font-weight:500;color:var(--ink, #1a1a2e);cursor:pointer;transition:all .35s var(--ease-out, cubic-bezier(.22,1,.36,1));user-select:none;-webkit-tap-highlight-color:transparent}
+.bring-chip:hover{border-color:var(--teal, #0DC4B5);transform:translateY(-2px);box-shadow:0 4px 16px rgba(13,196,181,.08)}
+.bring-chip.selected{background:var(--teal, #0DC4B5);color:#fff;border-color:var(--teal, #0DC4B5);box-shadow:0 4px 20px rgba(13,196,181,.2)}
+.bring-chip-icon{font-size:18px;line-height:1}
+.bring-response{min-height:80px;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(8px);transition:opacity .5s ease, transform .5s ease}
+.bring-response.show{opacity:1;transform:translateY(0)}
+.bring-response-text{font-size:18px;line-height:1.6;color:var(--ink, #1a1a2e);max-width:480px;font-weight:400;letter-spacing:-.005em}
+.bring-response-text::before{content:'';display:inline-block;width:32px;height:1px;background:var(--teal, #0DC4B5);margin-right:16px;vertical-align:middle}
+.bring-cta{margin-top:24px;opacity:0;transition:opacity .5s ease .2s}
+.bring-cta.show{opacity:1}
+.bring-cta a{display:inline-block;padding:12px 28px;border-radius:100px;background:var(--ink, #1a1a2e);color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:all .3s ease}
+.bring-cta a:hover{background:var(--teal, #0DC4B5);transform:translateY(-1px)}
+
+/* ── Action cards interactive ── */
+.action-card{cursor:pointer;transition:all .4s var(--ease-out, cubic-bezier(.22,1,.36,1));position:relative;overflow:hidden}
+.action-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(13,196,181,.04) 0%, transparent 60%);opacity:0;transition:opacity .4s ease}
+.action-card:hover::before{opacity:1}
+.action-card:hover{transform:translateY(-4px);border-color:rgba(13,196,181,.3);box-shadow:0 8px 32px rgba(13,196,181,.06)}
+.action-card-arrow{position:absolute;bottom:16px;right:16px;width:28px;height:28px;border-radius:50%;border:1px solid var(--border, rgba(0,0,0,.1));display:flex;align-items:center;justify-content:center;opacity:0;transform:translateX(-8px);transition:all .35s ease;font-size:14px;color:var(--teal, #0DC4B5)}
+.action-card:hover .action-card-arrow{opacity:1;transform:translateX(0)}
+
+/* ── Subpage micro-interactions ── */
+.hui-interact{margin:48px 0;padding:40px;border-radius:16px;background:linear-gradient(180deg, rgba(13,196,181,.02) 0%, rgba(244,115,85,.01) 100%);border:1px solid rgba(13,196,181,.08)}
+.hui-interact-title{font-size:22px;font-weight:700;color:var(--ink, #1a1a2e);margin-bottom:8px;letter-spacing:-.01em}
+.hui-interact-sub{font-size:15px;line-height:1.5;color:var(--muted, #6b6b7a);margin-bottom:24px}
+.hui-interact-options{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px}
+.hui-interact-chip{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:100px;border:1.5px solid var(--border, rgba(0,0,0,.08));background:var(--card, #fff);font-size:14px;font-weight:500;color:var(--ink, #1a1a2e);cursor:pointer;transition:all .3s var(--ease-out, cubic-bezier(.22,1,.36,1));user-select:none;-webkit-tap-highlight-color:transparent}
+.hui-interact-chip:hover{border-color:var(--teal, #0DC4B5);transform:translateY(-1px)}
+.hui-interact-chip.selected{background:var(--teal, #0DC4B5);color:#fff;border-color:var(--teal, #0DC4B5)}
+.hui-interact-response{min-height:60px;display:flex;align-items:center;opacity:0;transform:translateY(8px);transition:opacity .5s ease, transform .5s ease}
+.hui-interact-response.show{opacity:1;transform:translateY(0)}
+.hui-interact-response-text{font-size:16px;line-height:1.6;color:var(--ink, #1a1a2e);font-style:italic;padding-left:16px;border-left:2px solid var(--teal, #0DC4B5)}
+
+/* ── "Von Anfang an dabei" timeline ── */
+.hui-timeline{margin:48px 0;position:relative;padding:0 0 0 0}
+.hui-timeline-item{position:relative;padding:0 0 40px 48px;opacity:0;transform:translateX(-12px);transition:opacity .6s ease, transform .6s ease}
+.hui-timeline-item.visible{opacity:1;transform:translateX(0)}
+.hui-timeline-item::before{content:'';position:absolute;left:19px;top:8px;bottom:0;width:2px;background:linear-gradient(180deg, var(--teal, #0DC4B5) 0%, rgba(13,196,181,.1) 100%)}
+.hui-timeline-item:last-child::before{display:none}
+.hui-timeline-dot{position:absolute;left:12px;top:4px;width:18px;height:18px;border-radius:50%;background:var(--card, #fff);border:2px solid var(--teal, #0DC4B5);z-index:1;transition:all .4s ease}
+.hui-timeline-item.visible .hui-timeline-dot{background:var(--teal, #0DC4B5);box-shadow:0 0 0 6px rgba(13,196,181,.1)}
+.hui-timeline-num{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--teal, #0DC4B5);margin-bottom:4px}
+.hui-timeline-title{font-size:18px;font-weight:700;color:var(--ink, #1a1a2e);margin-bottom:6px;letter-spacing:-.01em}
+.hui-timeline-text{font-size:14px;line-height:1.6;color:var(--muted, #6b6b7a)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .bring-section{padding:64px 20px}
+  .bring-h2{font-size:28px}
+  .bring-chip{padding:10px 18px;font-size:14px}
+  .hui-interact{padding:28px 20px;margin:32px 0}
+  .hui-timeline-item{padding-left:36px}
+  .hui-timeline-item::before{left:15px}
+  .hui-timeline-dot{left:8px}
+}
+
+@media(max-width:480px){
+  .bring-options{gap:8px}
+  .bring-chip{padding:8px 14px;font-size:13px}
+  .bring-response-text{font-size:16px}
+  .bring-response-text::before{width:20px;margin-right:10px}
+  .hui-interact-chip{padding:8px 14px;font-size:13px}
+}

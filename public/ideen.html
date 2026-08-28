@@ -23,11 +23,21 @@
 @font-face{font-family:'Inter';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/Inter-Black.woff2') format('woff2')}
 </style>
 <link rel="stylesheet" href="/hui-shared.css"/>
+<link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
 .page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
 .hui-page-hero{position:relative;z-index:1}
 </style>
+<!-- SEO / GEO Meta Tags -->
+<link rel="canonical" href="https://be-hui.com/ideen"/>
+<link rel="alternate" hreflang="de" href="https://be-hui.com/ideen"/>
+<link rel="alternate" hreflang="en" href="https://be-hui.com/en/ideas"/>
+<link rel="alternate" hreflang="x-default" href="https://be-hui.com/ideen"/>
+<meta property="og:url" content="https://be-hui.com/ideen"/>
+<meta property="og:image" content="https://be-hui.com/hero.webp"/>
+<meta property="og:locale" content="de_DE"/>
+<meta property="og:locale:alternate" content="en_US"/>
 </head>
 <body>
 
@@ -219,6 +229,25 @@
     </section>
   </div>
 
+
+  <div class="hui-interact reveal">
+    <h3 class="hui-interact-title" data-i18n="interact.ideen.title">Meine Idee beginnt mit …</h3>
+    <p class="hui-interact-sub" data-i18n="interact.ideen.sub">Wähle einen Bereich, der deiner Idee am nächsten kommt.</p>
+    <div class="hui-interact-options" data-response-prefix="interact.ideen.response">
+      <span class="hui-interact-chip" data-value="people" data-i18n="interact.ideen.option.people">Menschen</span>
+      <span class="hui-interact-chip" data-value="community" data-i18n="interact.ideen.option.community">Gemeinschaft</span>
+      <span class="hui-interact-chip" data-value="craft" data-i18n="interact.ideen.option.craft">Handwerk</span>
+      <span class="hui-interact-chip" data-value="art" data-i18n="interact.ideen.option.art">Kunst</span>
+      <span class="hui-interact-chip" data-value="tech" data-i18n="interact.ideen.option.tech">Technik</span>
+      <span class="hui-interact-chip" data-value="nature" data-i18n="interact.ideen.option.nature">Natur</span>
+      <span class="hui-interact-chip" data-value="education" data-i18n="interact.ideen.option.education">Bildung</span>
+      <span class="hui-interact-chip" data-value="other" data-i18n="interact.ideen.option.other">etwas anderes</span>
+    </div>
+    <div class="hui-interact-response">
+      <p class="hui-interact-response-text"></p>
+    </div>
+  </div>
+
   <div class="hui-coming-box reveal">
     <p data-i18n="page.ideen.coming">Nach dem Start kannst du eigene Ideen veröffentlichen, andere Ansätze kommentieren und gemeinsam die ersten Schritte in Richtung Realisierung gehen.</p>
   </div>
@@ -263,5 +292,6 @@
 
 <script src="/hui-pages.js"></script>
 <script src="/i18n.js" defer></script>
+<script src="/hui-interactions.js" defer></script>
 </body>
 </html>

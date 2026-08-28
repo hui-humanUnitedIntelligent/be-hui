@@ -15,6 +15,7 @@
 <link rel="preload" as="image" href="/hero.webp" fetchpriority="high"/>
 <link rel="preload" as="font" href="/fonts/Inter-ExtraBold.woff2" type="font/woff2" crossorigin/>
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
+<link rel="stylesheet" href="/hui-interactions.css"/>
 
 <!-- Inter — local, no Google Fonts -->
 <style>
@@ -635,6 +636,49 @@ ul{list-style:none}
 .cs-toast .cs-close{position:absolute;top:10px;right:14px;background:none;border:none;font-size:20px;color:var(--faint);cursor:pointer;padding:4px;line-height:1;transition:color .2s var(--ease)}
 .cs-toast .cs-close:hover{color:var(--muted)}
 </style>
+<!-- SEO / GEO Meta Tags -->
+<link rel="canonical" href="https://be-hui.com/"/>
+<link rel="alternate" hreflang="de" href="https://be-hui.com/"/>
+<link rel="alternate" hreflang="en" href="https://be-hui.com/?lang=en"/>
+<link rel="alternate" hreflang="x-default" href="https://be-hui.com/"/>
+<meta property="og:url" content="https://be-hui.com/"/>
+<meta property="og:image" content="https://be-hui.com/hero.webp"/>
+<meta property="og:locale" content="de_DE"/>
+<meta property="og:locale:alternate" content="en_US"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "HUI Human United Intelligence",
+      "url": "https://be-hui.com",
+      "logo": "https://be-hui.com/hui_logo.webp",
+      "description": "HUI verbindet Menschen, Talente, Projekte, Werke und Erlebnisse.",
+      "slogan": "Einer für Alle, alle Fair(ein)t",
+      "founder": [
+        {
+          "@type": "Organization",
+          "name": "4VisionGlobal"
+        },
+        {
+          "@type": "Organization",
+          "name": "Liga der Kreativen"
+        }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "name": "HUI",
+      "url": "https://be-hui.com",
+      "inLanguage": [
+        "de",
+        "en"
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -735,14 +779,68 @@ ul{list-style:none}
         </circle>
       </svg>
       <div class="vision-questions">
-        <p class="vision-item reveal d1" data-i18n-html="vision.q1">Was wäre, wenn Menschen und ihre Talente <span class="mark">sichtbar</span> würden?</p>
-        <p class="vision-item reveal d2" data-i18n-html="vision.q2">Was wäre, wenn Ideen nicht einfach <span class="mark">verschwinden</span>?</p>
-        <p class="vision-item reveal d3" data-i18n-html="vision.q3">Was wäre, wenn aus einer Begegnung etwas <span class="mark">entsteht</span>?</p>
-        <p class="vision-item reveal d4" data-i18n-html="vision.q4">Was wäre, wenn Wirkung nicht nur versprochen, sondern <span class="mark">sichtbar</span> gemacht wird?</p>
+        <div class="vision-item-wrap">
+          <p class="vision-item reveal d1" data-i18n-html="vision.q1" data-vision-reveal="vr1">Was wäre, wenn Menschen und ihre Talente <span class="mark">sichtbar</span> würden?</p>
+          <div class="vision-reveal" id="vr1"><p data-i18n="vision.r1">Jeder Mensch hat etwas, das ihn ausmacht. HUI macht diese Vielfalt sichtbar — nicht als Profil, sondern als Möglichkeit.</p></div>
+        </div>
+        <div class="vision-item-wrap">
+          <p class="vision-item reveal d2" data-i18n-html="vision.q2" data-vision-reveal="vr2">Was wäre, wenn Ideen nicht einfach <span class="mark">verschwinden</span>?</p>
+          <div class="vision-reveal" id="vr2"><p data-i18n="vision.r2">Viele Ideen verschwinden, weil sie niemanden finden. HUI gibt ihnen einen Ort und Menschen, die sie weiterdenken.</p></div>
+        </div>
+        <div class="vision-item-wrap">
+          <p class="vision-item reveal d3" data-i18n-html="vision.q3" data-vision-reveal="vr3">Was wäre, wenn aus einer Begegnung etwas <span class="mark">entsteht</span>?</p>
+          <div class="vision-reveal" id="vr3"><p data-i18n="vision.r3">Manchmal genügt ein Moment, um etwas ins Rollen zu bringen. HUI schafft Räume für genau diese Momente.</p></div>
+        </div>
+        <div class="vision-item-wrap">
+          <p class="vision-item reveal d4" data-i18n-html="vision.q4" data-vision-reveal="vr4">Was wäre, wenn Wirkung nicht nur versprochen, sondern <span class="mark">sichtbar</span> gemacht wird?</p>
+          <div class="vision-reveal" id="vr4"><p data-i18n="vision.r4">Wirkung entsteht nicht aus Versprechen, sondern aus Tun. HUI macht sichtbar, was Menschen gemeinsam bewegen.</p></div>
+        </div>
       </div>
       <div class="vision-answer-wrap reveal d5">
         <p class="vision-answer" data-i18n="vision.answer">Genau dafür entsteht HUI.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ "WAS BRINGST DU MIT?" — zentrale Interaktion ═══ -->
+<section class="bring-section" id="mitbringen">
+  <div class="bring-inner">
+    <p class="bring-kicker reveal" data-i18n="bring.kicker">Eine Begegnung beginnt</p>
+    <h2 class="bring-h2 reveal d1" data-i18n="bring.h2">Was bringst du mit?</h2>
+    <p class="bring-sub reveal d2" data-i18n="bring.sub">Vielleicht ist es genau das, was irgendwo noch fehlt.</p>
+    <div class="bring-options reveal d3">
+      <span class="bring-chip" data-bring="idea" data-cta-link="/ideen">
+        <span class="bring-chip-icon">&#128161;</span>
+        <span data-i18n="bring.option.idea">Eine Idee</span>
+      </span>
+      <span class="bring-chip" data-bring="talent" data-cta-link="/talente">
+        <span class="bring-chip-icon">&#10024;</span>
+        <span data-i18n="bring.option.talent">Ein Talent</span>
+      </span>
+      <span class="bring-chip" data-bring="time" data-cta-link="/mitmachen/unterstuetzen">
+        <span class="bring-chip-icon">&#129309;</span>
+        <span data-i18n="bring.option.time">Zeit</span>
+      </span>
+      <span class="bring-chip" data-bring="creation" data-cta-link="/werke">
+        <span class="bring-chip-icon">&#127912;</span>
+        <span data-i18n="bring.option.creation">Etwas, das ich geschaffen habe</span>
+      </span>
+      <span class="bring-chip" data-bring="vision" data-cta-link="/mitmachen/idee">
+        <span class="bring-chip-icon">&#127757;</span>
+        <span data-i18n="bring.option.vision">Den Wunsch, etwas zu bewegen</span>
+      </span>
+      <span class="bring-chip" data-bring="curiosity" data-cta-link="/von-anfang-an-dabei">
+        <span class="bring-chip-icon">&#128064;</span>
+        <span data-i18n="bring.option.curiosity">Neugier</span>
+      </span>
+    </div>
+    <div class="bring-response" id="bringResponse">
+      <p class="bring-response-text" id="bringResponseText"></p>
+    </div>
+    <div class="bring-cta" id="bringCta">
+      <a href="/von-anfang-an-dabei" data-i18n="bring.cta.default">Von Anfang an dabei</a>
     </div>
   </div>
 </section>
@@ -969,23 +1067,23 @@ ul{list-style:none}
     <h2 class="actions-h2 reveal d1" data-i18n="action.h2">Bei HUI kannst du etwas bewegen.</h2>
     <p class="actions-sub reveal d2" data-i18n="action.sub">Fünf Möglichkeiten, Teil von HUI zu werden.</p>
     <div class="actions-grid">
-      <div class="action-card reveal d1">
+      <div class="action-card reveal d1" data-link="/menschen">
         <span class="label" data-i18n="action.1-title">Entdecken</span>
         <p class="desc" data-i18n="action.1-desc">Menschen, Talente, Projekte, Werke und Erlebnisse in deiner Umgebung entdecken.</p>
       </div>
-      <div class="action-card reveal d2">
+      <div class="action-card reveal d2" data-link="/werke">
         <span class="label" data-i18n="action.2-title">Zeigen</span>
         <p class="desc" data-i18n="action.2-desc">Was du kannst, erschaffst oder anbieten möchtest, sichtbar machen.</p>
       </div>
-      <div class="action-card reveal d3">
+      <div class="action-card reveal d3" data-link="/mitmachen/projekt">
         <span class="label" data-i18n="action.3-title">Mitwirken</span>
         <p class="desc" data-i18n="action.3-desc">Ideen unterstützen, Projekte begleiten und selbst etwas beitragen.</p>
       </div>
-      <div class="action-card reveal d4">
+      <div class="action-card reveal d4" data-link="/erlebnisse">
         <span class="label" data-i18n="action.4-title">Erleben</span>
         <p class="desc" data-i18n="action.4-desc">Menschen begegnen, Angebote nutzen, gemeinsam etwas unternehmen und neue Erfahrungen machen.</p>
       </div>
-      <div class="action-card reveal d5">
+      <div class="action-card reveal d5" data-link="/warum-hui">
         <span class="label" data-i18n="action.5-title">Bewirken</span>
         <p class="desc" data-i18n="action.5-desc">Sehen, was aus Begegnungen, Unterstützung und gemeinsamen Ideen entsteht.</p>
       </div>
@@ -1518,5 +1616,6 @@ if(!APP_PUBLIC_ACCESS){
 </script>
 
 <script src="/i18n.js" defer></script>
+<script src="/hui-interactions.js" defer></script>
 </body>
 </html>
