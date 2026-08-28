@@ -92,7 +92,7 @@ const TYPE_META = {
   project_approved:    { tab:"informativ", icon:"✅", color:"#22C55E", label:"Projekt freigegeben" },
   project_rejected:    { tab:"informativ", icon:"❌", color:"#EF4444", label:"Projekt abgelehnt" },
   // Default
-  default:        { tab:"informativ", icon:"✦",  color:T.teal,   label:t("notif.aktivitaet") },
+  default:        { tab:"informativ", icon:"✦",  color:T.teal,   label:"Aktivität" },
 };
 
 function getMeta(type) {
@@ -719,7 +719,7 @@ function WeekStats({ userId }) {
           color:"rgba(26,26,24,0.40)",
           letterSpacing:"0.07em", textTransform:"uppercase",
         }}>
-          {t("notif.dieseWoche")}
+          "Diese Woche"
         </span>
       </div>
 
@@ -756,6 +756,7 @@ function WeekStats({ userId }) {
 
 // ── Leerer Zustand ────────────────────────────────────────────
 function EmptyTab({ tab }) {
+  const { t } = useTranslation();
   const msgs = {
     alle:      { icon:"✦",  text:"Alles ruhig – Dein Wirken entfaltet sich." },
     wichtig:   { icon:"🌿", text:t("notif.ruhe") },

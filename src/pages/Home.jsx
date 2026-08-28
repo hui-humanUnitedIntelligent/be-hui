@@ -606,7 +606,7 @@ function HomeInner() {
       )}
 
       <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
-  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>{t("home.entdeckenOeffnet")}</div>}>
+  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>"Entdecken öffnet sich…"</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
                 <DiscoverPage
                     onView={(id) => { if(id) openProfileById(id); }}
@@ -624,7 +624,7 @@ function HomeInner() {
 
           <div ref={tabRefs.impact} style={keepImpact}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
-  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>{t("home.impactRaumOeffnet")}</div>}>
+  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>"Impact-Raum öffnet sich…"</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
                 <ImpactPage currentUser={currentUser}/>
               </SafeRender>

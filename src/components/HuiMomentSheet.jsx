@@ -185,9 +185,9 @@ async function uploadToMedia(file, userId) {
     // Bei Videos: KEIN graceful-Fallback — Nutzer muss es wissen
     if (isVid) {
       const msg = error.statusCode === 413
-        ? t("moment.videoTooLarge")
+        ? "Video ist zu groß"
         : error.statusCode === 403
-        ? t("moment.noPermission")
+        ? "Keine Berechtigung"
         : `Upload fehlgeschlagen: ${error.message}`;
       throw new Error(msg);
     }

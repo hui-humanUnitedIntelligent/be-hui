@@ -14,7 +14,7 @@ import VariantEditor from "../../../components/commerce/VariantEditor.jsx";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const CATEGORIES = getFlowCategoryOptions("work");
-const FORMATS   = ["JPG, PNG","PDF","MP3, WAV","PSD, AI","Figma","ZIP",t("wd.sonstiges")];
+const FORMATS   = ["JPG, PNG","PDF","MP3, WAV","PSD, AI","Figma","ZIP","Sonstiges"];
 const SHIP_TIMES = ["1–2 Werktage","3–5 Werktage","5–10 Werktage","2–3 Wochen","Auf Anfrage"];
 const CONDITIONS = ["Neu","Wie neu","Gut","Akzeptabel"];
 
@@ -50,6 +50,7 @@ function SectionLabel({ number, title, optional }) {
 
 /* ── Preis Pills ─────────────────────────────────────────────── */
 function PricePills({ value, onChange }) {
+  const { t } = useTranslation();
   const opts = [
     { key:"free",    icon:"🎁", label:"Kostenlos" },
     { key:"fixed",   icon:"🛡", label:"Festpreis" },

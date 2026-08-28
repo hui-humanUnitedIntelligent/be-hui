@@ -21,10 +21,10 @@ const T = {
   r16: 16, r12: 12, ff: "Inter, system-ui, sans-serif",
 };
 
-const CONFIRM_WORD = t("del.confirmWord");
 
 export default function DeleteAccountModal({ onClose = () => {} }) {
   const { t } = useTranslation();
+  const CONFIRM_WORD = t("del.confirmWord");
   const [step, setStep] = useState(1); // 1 = Warnung, 2 = Eingabe-Bestätigung
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
