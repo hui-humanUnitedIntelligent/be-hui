@@ -423,7 +423,7 @@ export default function EmpfehlenModal({
               <div style={{ width: 56, height: 56, borderRadius: "50%", background: T.amberSoft, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                 <span style={{ fontSize: 28, color: T.amber }}>⚠</span>
               </div>
-              <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>Problem gemeldet</div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, marginBottom: 8 }}>{t("notif.problemReported")}</div>
               <div style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.6, padding: "0 16px" }}>
                 {resultMsg}
               </div>

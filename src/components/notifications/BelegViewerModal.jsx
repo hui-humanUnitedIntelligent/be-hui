@@ -185,7 +185,7 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
             <path d="M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" strokeWidth="2" />
             <path d="M8.6 13.5l6.8 3.9M15.4 6.6L8.6 10.5" stroke="currentColor" strokeWidth="2" />
           </svg>
-          {sharing ? "Teilen …" : "Beleg teilen"}
+          {sharing ? t("share.sharing") : t("share.shareReceipt")}
         </button>
 
         {/* Schließen */}

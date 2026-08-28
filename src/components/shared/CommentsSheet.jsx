@@ -80,6 +80,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -228,7 +229,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                 </button>
               ) : (
                 <div style={{ padding:"10px 14px" }}>
-                  <p style={{ fontSize:12, color:"#666", margin:"0 0 8px" }}>Kommentar wirklich löschen?</p>
+                  <p style={{ fontSize:12, color:"#666", margin:"0 0 8px" }}>{t("comment.deleteConfirm")}</p>
                   <div style={{ display:"flex", gap:8 }}>
                     <button className="cs-btn" onClick={onDelete}
                       style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight: 600, color:"#fff",
@@ -250,7 +251,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                 style={{ display:"flex", alignItems:"center", gap:10, width:"100%",
                   padding:"10px 14px", fontSize:13, fontWeight:600, color:"#1A1A2E",
                   background:"none", cursor:"pointer" }}>
-                🚩 Melden
+                🚩 {t("comment.report")}
               </button>
             ) : REPORT_REASONS.map(r => (
               <button key={r.key} className="cs-btn" onClick={() => onReport(r.key)}
@@ -277,7 +278,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
   const [editText, setEditText] = useState(comment.text);
 
   const isOwn = currentUserId && comment.user_id === currentUserId;
-  const authorName = comment._author?.full_name || comment._author?.display_name || comment._author?.username || "HUI-Mitglied";
+  const authorName = comment._author?.full_name || comment._author?.display_name || comment._author?.username || t("comment.memberDefault");
 
   // HINWEIS (COMMENTS-NO-PLACEHOLDER-Fix 2026-08-05): Gelöschte Kommentare
   // erreichen diese Komponente ueberhaupt nicht mehr -- buildTree()
@@ -305,7 +306,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                 fontSize:13, fontWeight: 600, color:T.ink, WebkitTapHighlightColor:"transparent" }}
             >{authorName}</button>
             <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(comment.created_at)}</span>
-            {comment.is_edited && <span style={{ fontSize:11, color:T.inkFaint }}>· bearbeitet</span>}
+            {comment.is_edited && <span style={{ fontSize:11, color:T.inkFaint }}>· {t("comment.edited")}</span>}
           </div>
 
           {editing ? (
@@ -323,9 +324,9 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
               />
               <div style={{ display:"flex", gap:10, marginTop:6 }}>
                 <button className="cs-btn" onClick={() => { onSaveEdit(comment.id, editText); setEditing(false); }}
-                  style={{ fontSize:12, fontWeight: 600, color:T.teal }}>Speichern</button>
+                  style={{ fontSize:12, fontWeight: 600, color:T.teal }}>{t("common.save")}</button>
                 <button className="cs-btn" onClick={() => { setEditing(false); setEditText(comment.text); }}
-                  style={{ fontSize:12, fontWeight:600, color:T.inkFaint }}>Abbrechen</button>
+                  style={{ fontSize:12, fontWeight:600, color:T.inkFaint }}>{t("common.cancel")}</button>
               </div>
             </div>
           ) : (
@@ -340,7 +341,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                 <HUIHeartIcon size={15} active={comment.hearted_by_me} style={{color: comment.hearted_by_me ? T.coral : T.inkFaint}} />
                 {comment.heart_count > 0 && <span style={{ fontSize:12, color: comment.hearted_by_me ? T.coral : T.inkFaint, fontWeight:600 }}>{comment.heart_count}</span>}
               </button>
-              <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight: 600, color:T.inkFaint }}>Antworten</button>
+              <button className="cs-btn" onClick={() => onReply(comment)} style={{ fontSize:12, fontWeight: 600, color:T.inkFaint }}>{t("comment.reply")}</button>
               {/* ••• Button + Portal-Dropdown */}
               <div style={{ marginLeft:"auto" }}>
                 <CommentMenuPortal
@@ -387,6 +388,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
 }
 
 export default function CommentsSheet({ open, onClose, postId, postType, postAuthorId, postActionUrl, highlightCommentId, mediaUrl = null, mediaType = null, postTitle = null, zIndex = 10500 }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user, profile } = useAuth();
   // Back-Button Registration
@@ -749,9 +751,9 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 20px 10px" }}>
           <div>
-            <div style={{ fontSize:17, fontWeight: 600, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>Kommentar & Anfragen</div>
+            <div style={{ fontSize:17, fontWeight: 600, color:T.ink, display:"flex", alignItems:"center", gap:6 }}><HUIChatIcon size={17}/>{t("comment.title")}</div>
             <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
-              {total > 0 ? `${total} ${total === 1 ? "Kommentar" : "Kommentare"}` : "Kommentiere und stelle Anfragen an das Talent"}
+              {total > 0 ? `${total} ${total === 1 ? t("comment.singular") : t("comment.plural")}` : t("comment.placeholder")}
             </div>
           </div>
           <button className="cs-btn" onClick={onClose} style={{ fontSize:20, color:T.inkFaint, padding:6 }}>✕</button>
@@ -777,8 +779,8 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
           {!migrationPending && !loading && total === 0 && (
             <div style={{ textAlign:"center", padding:"48px 20px" }}>
               <div style={{ marginBottom:10, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}><HUIChatIcon size={34}/></div>
-              <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>Noch keine Kommentare.</div>
-              <div style={{ fontSize:13, color:T.inkFaint, marginTop:4 }}>Sei der Erste und teile deine Gedanken.</div>
+              <div style={{ fontSize:14, fontWeight: 600, color:T.ink }}>{t("comment.empty")}</div>
+              <div style={{ fontSize:13, color:T.inkFaint, marginTop:4 }}>{t("comment.emptyHint")}</div>
             </div>
           )}
 

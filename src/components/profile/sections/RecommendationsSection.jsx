@@ -227,7 +227,7 @@ export function RecommendationsSection({
                     color: T.inkFaint, cursor: "pointer", fontFamily: T.ff,
                   }}
                 >
-                  ⚠ Melden
+                  ⚠ {t("comment.report")}
                 </button>
               )}
               {isOwner && reported[rec.id] && (

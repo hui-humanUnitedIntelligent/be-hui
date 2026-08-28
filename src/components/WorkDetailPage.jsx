@@ -765,7 +765,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           />
           <IconBtn
             Icon={HUIShareIcon}
-            label={shareOk ? "Kopiert!" : "Weitergeben"}
+            label={shareOk ? t("share.copied") : t("share.forward")}
             active={shareOk}
             color={C.teal}
             variant="weitergeben"

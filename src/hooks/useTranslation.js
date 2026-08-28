@@ -12,6 +12,11 @@ const LANG_CHANGE_EVENT = 'hui_lang_change';
 export function useTranslation() {
   const [lang, setLang] = useState(() => detectSystemLang());
 
+  // Keep formatDateDE in sync with UI locale
+  useEffect(() => {
+    setFormatLocale(lang);
+  }, [lang]);
+
   useEffect(() => {
     function onLangChange(e) {
       setLang(e.detail.lang);
@@ -34,6 +39,7 @@ export function useTranslation() {
   const changeLang = useCallback((newLang) => {
     if (!SUPPORTED_LANGS.includes(newLang)) return;
     localStorage.setItem('hui_lang', newLang);
+    setFormatLocale(newLang);
     window.dispatchEvent(
       new CustomEvent(LANG_CHANGE_EVENT, { detail: { lang: newLang } })
     );

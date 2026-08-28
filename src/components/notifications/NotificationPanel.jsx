@@ -315,7 +315,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#F59E0B",
         headerIcon: "⚠️",
-        headerTitle: "Inhalt gemeldet",
+        headerTitle: t("notif.contentFlagged"),
         headerSubtitle: md.entry_title || n.title || null,
         blocks: [
           { type:"label-text", label:t("notif.meta.details"), text: md.reason || n.body || t("notif.meta.contentReported"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
@@ -344,7 +344,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Werk entfernt",
         headerSubtitle: md.entry_title || n.title || null,
         blocks: [
-          { type:"label-text", label:"Grund", text: md.reason || n.body || "Dein Werk wurde entfernt.", color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"label-text", label:t("notif.reason"), text: md.reason || n.body || t("notif.workRemovedAdmin"), color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
         ],
       };
     }
@@ -616,8 +616,8 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: "Herzensprojekt entfernt",
         headerSubtitle: `„${projectName}"`,
         blocks: [
-          { type:"label-text", label:"Grund", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
-          { type:"info", text: "Bei Fragen wende dich bitte an den Support." },
+          { type:"label-text", label:t("notif.reason"), text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"info", text: t("notif.contactSupport") },
         ],
       };
     }
@@ -628,7 +628,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#F59E0B",
         headerIcon: "⚠️",
-        headerTitle: "Inhalt gemeldet",
+        headerTitle: t("notif.contentFlagged"),
         headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
         blocks: [
           { type:"label-text", label:t("notif.meta.details"), text: n.body || t("notif.meta.contentReported"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
@@ -653,16 +653,16 @@ function DetailModal({ n, onClose, onAction }) {
 
     // ── Moment entfernt durch Admin ──────────────────────────────────────
     if (t === "moment_removed") {
-      const reason = md.reason || n.body || "Dein Moment wurde vom Admin entfernt.";
+      const reason = md.reason || n.body || t("notif.momentAdminRemoved");
       const preview = md.moment_preview || md.entry_title || "";
       return {
         accentColor: "#DC2626",
         headerIcon: "🗑",
-        headerTitle: "Moment entfernt",
+        headerTitle: t("notif.momentRemovedAdmin"),
         headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
         blocks: [
           { type:"label-text", label:t("notif.meta.adminReason"), text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
-          { type:"info", text: "Bei Fragen wende dich bitte an den Support." },
+          { type:"info", text: t("notif.contactSupport") },
         ],
       };
     }
@@ -673,7 +673,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#F59E0B",
         headerIcon: "⚠️",
-        headerTitle: "Moment gemeldet",
+        headerTitle: t("notif.momentFlagged"),
         headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
         blocks: [
           { type:"label-text", label:t("notif.meta.hint"), text: n.body || t("notif.meta.momentReported"), color:"#F59E0B", bg:"rgba(245,158,11,0.06)", border:"rgba(245,158,11,0.22)" },
@@ -684,16 +684,16 @@ function DetailModal({ n, onClose, onAction }) {
 
     // ── Moment durch mehrfache Meldungen entfernt ──────────────────────────
     if (t === "moment_reported_removed") {
-      const reason = md.reason || n.body || "Dein Moment wurde aufgrund mehrfacher Meldungen automatisch entfernt.";
+      const reason = md.reason || n.body || t("notif.momentReportedRemoved");
       const preview = md.moment_preview || md.entry_title || "";
       return {
         accentColor: "#DC2626",
         headerIcon: "🚫",
-        headerTitle: "Moment entfernt (5 Meldungen)",
+        headerTitle: t("notif.momentRemovedReports"),
         headerSubtitle: preview ? `„${preview.substring(0,60)}"` : null,
         blocks: [
-          { type:"label-text", label:"Grund", text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
-          { type:"info", text: "Dein Moment wurde von 5 verschiedenen Nutzern gemeldet und automatisch entfernt." },
+          { type:"label-text", label:t("notif.reason"), text: reason, color:"#DC2626", bg:"rgba(239,68,68,0.06)", border:"rgba(239,68,68,0.22)" },
+          { type:"info", text: t("notif.momentAutoRemoved") },
         ],
       };
     }

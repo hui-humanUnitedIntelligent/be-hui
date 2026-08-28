@@ -23,10 +23,74 @@
 // Wahrheit, keine Duplicate-Logic).
 // ══════════════════════════════════════════════════════════════════
 
-const MONTHS_SHORT = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
-const MONTHS_LONG  = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
-const WEEKDAYS_SHORT = ["So","Mo","Di","Mi","Do","Fr","Sa"];
-const WEEKDAYS_LONG  = ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+// Locale-aware month/weekday arrays
+const LOCALE_DATA = {
+  de: {
+    monthsShort: ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],
+    monthsLong:  ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    weekdaysShort: ["So","Mo","Di","Mi","Do","Fr","Sa"],
+    weekdaysLong:  ["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],
+  },
+  en: {
+    monthsShort: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    monthsLong:  ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    weekdaysShort: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    weekdaysLong:  ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+  },
+  es: {
+    monthsShort: ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"],
+    monthsLong:  ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+    weekdaysShort: ["dom","lun","mar","mié","jue","vie","sáb"],
+    weekdaysLong:  ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"],
+  },
+  fr: {
+    monthsShort: ["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"],
+    monthsLong:  ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"],
+    weekdaysShort: ["dim","lun","mar","mer","jeu","ven","sam"],
+    weekdaysLong:  ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"],
+  },
+  it: {
+    monthsShort: ["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"],
+    monthsLong:  ["gennaio","febbraio","marzo","aprile","maggio","giugno","luglio","agosto","settembre","ottobre","novembre","dicembre"],
+    weekdaysShort: ["dom","lun","mar","mer","gio","ven","sab"],
+    weekdaysLong:  ["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"],
+  },
+  tr: {
+    monthsShort: ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"],
+    monthsLong:  ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"],
+    weekdaysShort: ["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"],
+    weekdaysLong:  ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"],
+  },
+  pt: {
+    monthsShort: ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],
+    monthsLong:  ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"],
+    weekdaysShort: ["dom","seg","ter","qua","qui","sex","sáb"],
+    weekdaysLong:  ["domingo","segunda","terça","quarta","quinta","sexta","sábado"],
+  },
+  sq: {
+    monthsShort: ["jan","shk","mar","pri","maj","qer","kor","gus","sht","tet","nën","dhj"],
+    monthsLong:  ["janar","shkurt","mars","prill","maj","qershor","korrik","gusht","shtator","tetor","nëntor","dhjetor"],
+    weekdaysShort: ["Die","Hën","Mar","Mër","Enj","Pre","Sht"],
+    weekdaysLong:  ["Dielë","Hënë","Martë","Mërkurë","Enjte","Premte","Shtunë"],
+  },
+};
+
+// Global locale (defaults to 'de' for backwards compatibility)
+let _formatLocale = 'de';
+
+export function setFormatLocale(locale) {
+  if (LOCALE_DATA[locale]) _formatLocale = locale;
+}
+
+export function getFormatLocale() {
+  return _formatLocale;
+}
+
+// Backwards-compat constants (DE, used as fallback)
+const MONTHS_SHORT = LOCALE_DATA.de.monthsShort;
+const MONTHS_LONG  = LOCALE_DATA.de.monthsLong;
+const WEEKDAYS_SHORT = LOCALE_DATA.de.weekdaysShort;
+const WEEKDAYS_LONG  = LOCALE_DATA.de.weekdaysLong;
 
 function pad2(n) { return String(n).padStart(2, "0"); }
 
@@ -85,10 +149,12 @@ export function formatDateDE(input, opts = {}) {
   if (!input) return "";
   const d = input instanceof Date ? input : new Date(input);
   if (Number.isNaN(d.getTime())) return "";
-  const { day, month, year, weekday } = opts;
+  const { day, month, year, weekday, locale } = opts;
+  const loc = locale || _formatLocale;
+  const locData = LOCALE_DATA[loc] || LOCALE_DATA.de;
 
   const weekdayStr = weekday
-    ? (weekday === "long" ? WEEKDAYS_LONG[d.getDay()] : WEEKDAYS_SHORT[d.getDay()])
+    ? (weekday === "long" ? locData.weekdaysLong[d.getDay()] : locData.weekdaysShort[d.getDay()])
     : "";
 
   // Nur Wochentag angefragt (z.B. { weekday: "short" })
@@ -100,8 +166,10 @@ export function formatDateDE(input, opts = {}) {
 
   const numericMonth = (month === "2-digit" || month === "numeric");
   let monthStr = "";
-  if (month === "short") monthStr = MONTHS_SHORT[d.getMonth()] + ".";
-  else if (month === "long") monthStr = MONTHS_LONG[d.getMonth()];
+  // For non-DE locales, short months don't get a trailing dot
+  const shortMonthSuffix = (loc === 'de') ? "." : "";
+  if (month === "short") monthStr = locData.monthsShort[d.getMonth()] + shortMonthSuffix;
+  else if (month === "long") monthStr = locData.monthsLong[d.getMonth()];
   else if (month === "2-digit") monthStr = pad2(d.getMonth() + 1);
   else if (month === "numeric") monthStr = String(d.getMonth() + 1);
 

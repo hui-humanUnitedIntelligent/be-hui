@@ -9,6 +9,7 @@
 import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ══════════════════════════════════════════════════════════════
 // DESIGN-KONSTANTEN — systemweit für ALLE Tutorials identisch
@@ -76,6 +77,7 @@ const ADVANCED_READY_SELECTORS = [
 // Feste Größe, unverzerrt (objectFit: cover), borderRadius = rund.
 // ══════════════════════════════════════════════════════════════
 function FoxBot({ size = FOX_SIZE }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   if (imgErr) {
     // Fallback: kleiner Kreis mit "H" Initial, wie bei CardAvatar
@@ -378,12 +380,12 @@ export default function OnboardingTutorial() {
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
             <FoxBot size={64} />
           </div>
-          <h2 style={dialogTitleStyle}>Willkommen bei HUI!</h2>
-          <p style={dialogTextStyle}>Möchtest du das HUI-Tutorial sehen?</p>
-          <p style={dialogSubTextStyle}>In wenigen Schritten zeigen wir dir die wichtigsten Bereiche der App.</p>
+          <h2 style={dialogTitleStyle}>{t("onboarding.welcomeTitle")}</h2>
+          <p style={dialogTextStyle}>{t("onboarding.askTutorial")}</p>
+          <p style={dialogSubTextStyle}>{t("onboarding.tutorialHint")}</p>
           <div style={dialogButtonsStyle}>
-            <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
-            <button onClick={() => { setPhase("tutorial"); }} style={btnYesStyle}>Ja</button>
+            <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>{t("common.no")}</button>
+            <button onClick={() => { setPhase("tutorial"); }} style={btnYesStyle}>{t("common.yes")}</button>
             <button
               onClick={() => {
                 try {
@@ -447,8 +449,8 @@ export default function OnboardingTutorial() {
           <p style={dialogTextStyle}>Super! Du kennst jetzt die wichtigsten Bereiche von HUI.</p>
           <p style={dialogSubTextStyle}>Möchtest du das erweiterte HUI-Tutorial sehen?</p>
           <div style={dialogButtonsStyle}>
-            <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>Nein</button>
-            <button onClick={startAdvancedTutorial} style={btnYesStyle}>Ja</button>
+            <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>{t("common.no")}</button>
+            <button onClick={startAdvancedTutorial} style={btnYesStyle}>{t("common.yes")}</button>
           </div>
         </div>
       </div>,

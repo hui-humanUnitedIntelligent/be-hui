@@ -7,6 +7,7 @@ import { supabase }           from "../../lib/supabaseClient.js";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { UsernameInput, validateUsername } from "../../lib/useUsernameCheck.jsx";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -134,6 +135,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
 }
 
 export default function ProfileCompletionFlow({ onComplete }) {
+  const { t } = useTranslation();
   injectCSS();
   const { user, profile, refreshProfile } = useAuth();
   // FIX (2026-08-15): Username wurde bereits bei der Registrierung
@@ -219,8 +221,8 @@ export default function ProfileCompletionFlow({ onComplete }) {
       }}>
         <div style={{textAlign:"center",animation:"pcfIn 0.4s ease both"}}>
           <div style={{fontSize:64,marginBottom:16}}>✦</div>
-          <div style={{fontSize:24,fontWeight: 600,color:INK,marginBottom:8}}>Willkommen bei HUI</div>
-          <div style={{fontSize:15,color:"rgba(26,26,46,0.5)"}}>Dein Profil ist bereit.</div>
+          <div style={{fontSize:24,fontWeight: 600,color:INK,marginBottom:8}}>{t("auth.welcomeHui")}</div>
+          <div style={{fontSize:15,color:"rgba(26,26,46,0.5)"}}>{t("auth.profileReady")}</div>
         </div>
       </div>
     );

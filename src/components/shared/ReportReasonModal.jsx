@@ -93,13 +93,13 @@ export default function ReportReasonModal({
               fontSize: 18, fontWeight: 600, color: INK,
               margin: "0 0 8px", textAlign: "center",
             }}>
-              Beitrag wirklich melden?
+              {t("report.confirmTitle")}
             </h2>
             <p style={{
               fontSize: 14, color: MUTED, lineHeight: 1.5,
               margin: "0 0 24px", textAlign: "center",
             }}>
-              Deine Meldung wird an unser Team weitergeleitet und geprüft.
+              {t("report.confirmBody")}
               Diese Aktion kann nicht zurückgenommen werden.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -111,7 +111,7 @@ export default function ReportReasonModal({
                   fontSize: 15, fontWeight: 600, cursor: "pointer",
                 }}
               >
-                Ja, melden
+                {t("report.confirm")}
               </button>
               <button
                 onClick={() => onClose?.()}

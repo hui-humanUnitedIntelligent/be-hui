@@ -150,7 +150,7 @@ const SOCIAL_APPS = [
     build: (text, url) => `sms:?body=${encodeURIComponent(text)}`,
   },
   {
-    id: "copy", label: "Link kopieren",
+    id: "copy", label: t("share.copyLink"),
     color: T.ink2, bg: "rgba(26,26,46,0.06)",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
@@ -240,7 +240,7 @@ export function HuiShareModal({ item, onClose }) {
       setTimeout(() => onClose?.(), 1400);
     } catch (err) {
       console.warn("[HUI_SHARE] intern:", err?.message);
-      toast.error("Teilen fehlgeschlagen. Bitte erneut versuchen.");
+      toast.error(t("share.failed"));
     } finally {
       setSending(false);
     }
@@ -374,8 +374,8 @@ export function HuiShareModal({ item, onClose }) {
         {/* ── Tabs ─────────────────────────────────────────────── */}
         <div style={{ display: "flex", borderBottom: `1px solid ${T.border}` }}>
           {[
-            { key: "intern", label: "Intern teilen" },
-            { key: "extern", label: "Extern teilen" },
+            { key: "intern", label: t("share.internal") },
+            { key: "extern", label: t("share.external") },
           ].map(t => (
             <button
               key={t.key}
@@ -400,13 +400,13 @@ export function HuiShareModal({ item, onClose }) {
             {/* Nutzer-Suche */}
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, display: "block", marginBottom: 6 }}>
-                EMPFÄNGER SUCHEN
+                {t("share.searchRecipient")}
               </label>
               <div style={{ position: "relative" }}>
                 <input
                   value={query}
                   onChange={e => { setQuery(e.target.value); setSelectedUser(null); }}
-                  placeholder="Name oder @username…"
+                  placeholder={t("share.recipientPlaceholder")}
                   autoComplete="off"
                   style={{
                     width: "100%", padding: "10px 14px",
@@ -543,7 +543,7 @@ export function HuiShareModal({ item, onClose }) {
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="17" height="17">
                     <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
                   </svg>
-                  {selectedUser ? `An ${selectedUser.display_name?.split(" ")[0] || "senden"}` : "Empfänger auswählen"}
+                  {selectedUser ? t("share.sendTo", {name: selectedUser.display_name?.split(" ")[0] || ""}) : t("share.selectRecipient")}
                 </>
               )}
             </button>
@@ -569,13 +569,13 @@ export function HuiShareModal({ item, onClose }) {
                   <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                 </svg>
-                Über installierte Apps teilen
+                {t("share.viaApps")}
               </button>
             )}
 
             {/* App-Raster */}
             <div style={{ fontSize: 11, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, marginBottom: 10 }}>
-              DIREKT TEILEN
+              {t("share.directShare")}
             </div>
             <div style={{
               display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10,
@@ -606,7 +606,7 @@ export function HuiShareModal({ item, onClose }) {
                     color: app.special === "copy" && copiedLink ? "#22C55E" : T.ink2,
                     textAlign: "center", lineHeight: 1.2,
                   }}>
-                    {app.special === "copy" && copiedLink ? "Kopiert!" : app.label}
+                    {app.special === "copy" && copiedLink ? t("share.copied") : app.label}
                   </span>
                 </button>
               ))}
@@ -618,7 +618,7 @@ export function HuiShareModal({ item, onClose }) {
               background: T.bg, border: `1px solid ${T.border}`,
             }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, marginBottom: 4 }}>
-                ÖFFENTLICHER LINK
+                {t("share.publicLink")}
               </div>
               <div style={{
                 fontSize: 12, color: T.teal,
