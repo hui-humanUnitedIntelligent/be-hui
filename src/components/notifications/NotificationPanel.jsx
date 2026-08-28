@@ -430,7 +430,7 @@ function DetailModal({ n, onClose, onAction }) {
         chatUserName: buyerName,
         entityId: workId,
         entityType: "work",
-        actionLabel: "Werk ansehen →",
+        actionLabel: t("np.viewWerk"),
       };
     }
 
@@ -550,7 +550,7 @@ function DetailModal({ n, onClose, onAction }) {
         chatUserName: sellerName,
         entityId: workId,
         entityType: "work",
-        actionLabel: "Werk ansehen →",
+        actionLabel: t("np.viewWerk"),
         // BELEG-001: Beleg-Download für den Käufer
         receiptData: {
           offerTitle,

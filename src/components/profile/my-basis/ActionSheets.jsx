@@ -2,6 +2,7 @@
 // DraftActionSheet, ItemActionChoiceSheet, DeleteWerkConfirm, DeleteTalentConfirm
 // Extracted from MyBasisProfile.jsx — no logic changes.
 import React from "react";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 import { createPortal } from "react-dom";
 
 export function DraftActionSheet({ label, onPublish, onEdit, onDelete = null, onCancel }) {
@@ -66,6 +67,7 @@ export function DraftActionSheet({ label, onPublish, onEdit, onDelete = null, on
 }
 
 export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, onCancel }) {
+  const { t } = useTranslation();
   return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
@@ -78,7 +80,7 @@ export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, 
         fontFamily:"Inter, sans-serif",
       }}>
         <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:18, color:"#1a1a18" }}>
-          Was möchtest du tun?
+          {t("as.whatToDo")}
         </div>
         <button onClick={onEdit} style={{
           width:"100%", padding:"13px", borderRadius:99,
@@ -86,7 +88,7 @@ export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, 
           fontSize:14, fontWeight: 600, cursor:"pointer",
           fontFamily:"inherit", marginBottom:10,
         }}>
-          {label} bearbeiten
+          {t("as.bearbeitenLabel", { label })}
         </button>
         <button onClick={onView} style={{
           width:"100%", padding:"13px", borderRadius:99,
@@ -94,7 +96,7 @@ export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, 
           color:"#0EC4B8", fontSize:14, fontWeight: 600, cursor:"pointer",
           fontFamily:"inherit", marginBottom:10,
         }}>
-          {label} ansehen
+          {t("as.ansehenLabel", { label })}
         </button>
         {/* ITEM-ACTION-CHOICE-DELETE (2026-08-17, Michael-Feedback): Loeschen
             zusaetzlich direkt im Popup, nicht nur ueber die kleine X-Ecke auf
@@ -108,7 +110,7 @@ export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, 
             color:"#ff3b3b", fontSize:14, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", marginBottom:10,
           }}>
-            {label} löschen
+            {t("as.loeschenLabel", { label })}
           </button>
         )}
         <button onClick={onCancel} style={{
@@ -126,6 +128,7 @@ export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, 
 }
 
 export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
@@ -138,10 +141,10 @@ export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
       }}>
         <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
         <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
-          Werk unwiderruflich löschen?
+          {t("works.deleteConfirm")}
         </div>
         <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-          <strong>„{werk.title || 'Dieses Werk'}"</strong> wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.
+          <strong>{t("as.deleteWerkDesc", { title: werk.title || t("as.deleteWerkFallback") })}</strong>
         </div>
         <button onClick={onConfirm} style={{
           width:"100%", padding:"12px", borderRadius:99,
@@ -149,7 +152,7 @@ export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
           fontSize:14, fontWeight: 600, cursor:"pointer",
           fontFamily:"inherit", marginBottom:8,
         }}>
-          Ja, endgültig löschen
+          {t("works.deletePermanent")}
         </button>
         <button onClick={onCancel} style={{
           width:"100%", padding:"12px", borderRadius:99,
@@ -165,6 +168,7 @@ export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
 }
 
 export function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
@@ -177,10 +181,10 @@ export function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
       }}>
         <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
         <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
-          Talent-Angebot unwiderruflich löschen?
+          {t("as.deleteTalentTitle")}
         </div>
         <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-          <strong>„{talent.title || 'Dieses Angebot'}"</strong> wird dauerhaft gelöscht und kann nicht wiederhergestellt werden.
+          <strong>{t("as.deleteTalentDesc", { title: talent.title || t("as.deleteTalentFallback") })}</strong>
         </div>
         <button onClick={onConfirm} style={{
           width:"100%", padding:"12px", borderRadius:99,
@@ -188,7 +192,7 @@ export function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
           fontSize:14, fontWeight: 600, cursor:"pointer",
           fontFamily:"inherit", marginBottom:8,
         }}>
-          Ja, endgültig löschen
+          {t("works.deletePermanent")}
         </button>
         <button onClick={onCancel} style={{
           width:"100%", padding:"12px", borderRadius:99,
