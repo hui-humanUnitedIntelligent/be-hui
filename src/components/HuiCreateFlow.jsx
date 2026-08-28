@@ -292,7 +292,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
     if (!f) return;
     const maxSize = f.type.startsWith("video") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     if (f.size > maxSize) {
-      setError(f.type.startsWith("video") ? `Video max. ${UPLOAD_LIMITS.MAX_VIDEO_MB} MB` : `Bild max. ${UPLOAD_LIMITS.MAX_IMAGE_MB} MB`);
+      setError(f.type.startsWith("video") ? t("common.videoMax", { max: UPLOAD_LIMITS.MAX_VIDEO_MB }) : t("common.imageMax", { max: UPLOAD_LIMITS.MAX_IMAGE_MB }));
       return;
     }
     setError("");

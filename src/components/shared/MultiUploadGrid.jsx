@@ -69,7 +69,7 @@ export default function MultiUploadGrid({
 
   const canAddMore = files.length < maxFiles && !disabled;
   const fullAccept = allowDocuments ? `${accept},.pdf,.doc,.docx,.txt` : accept;
-  const defaultHint = hint || `Bilder max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB · Videos max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB · ${files.length}/${maxFiles}`;
+  const defaultHint = hint || t('common.uploadHint', { imgMax: UPLOAD_LIMITS.MAX_IMAGE_MB, vidMax: UPLOAD_LIMITS.MAX_VIDEO_MB, current: files.length, max: maxFiles });
 
   return (
     <div>

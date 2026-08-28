@@ -3,6 +3,7 @@
 // Props: onSend({text, msgType, mediaUrl, mediaType}), sending
 
 import React, { useRef, useState, useCallback } from "react";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { HUI } from "../../design/hui.design.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
@@ -90,6 +91,7 @@ function MediaPreview({ file, type, duration, onRemove }) {
 }
 
 export default function ChatInput({ onSend, sending = false, disabled = false, placeholder = "Schreib etwas Echtes\u2026" }) {
+  const { t } = useTranslation();
   const [text,      setText]      = useState("");
   const [focused,   setFocused]   = useState(false);
   const [mediaFile, setMediaFile] = useState(null);
@@ -183,7 +185,7 @@ export default function ChatInput({ onSend, sending = false, disabled = false, p
     // UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos
     const maxSize = file.type.startsWith("video/") ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     if (file.size > maxSize) {
-      toast.warn(file.type.startsWith("video/") ? `Video max ${UPLOAD_LIMITS.MAX_VIDEO_MB}MB` : `Bild max ${UPLOAD_LIMITS.MAX_IMAGE_MB}MB`); return;
+      toast.warn(file.type.startsWith("video/") ? t("common.videoMax", { max: UPLOAD_LIMITS.MAX_VIDEO_MB }) : t("common.imageMax", { max: UPLOAD_LIMITS.MAX_IMAGE_MB })); return;
     }
     setMediaFile(file);
     setMediaType(file.type.startsWith("video/") ? "video" : "image");

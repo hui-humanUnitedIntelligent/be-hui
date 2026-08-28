@@ -271,7 +271,7 @@ function S1({ data, onChange, userId, onNext }) {
       </div>
       {imgs.length > 0 && (
         <div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>
-          {imgs.length}/{UPLOAD_LIMITS.MAX_FILES} · Bilder max {UPLOAD_LIMITS.MAX_IMAGE_MB}MB · Videos max {UPLOAD_LIMITS.MAX_VIDEO_MB}MB
+          {t('common.uploadSummary', { current: imgs.length, max: UPLOAD_LIMITS.MAX_FILES, imgMax: UPLOAD_LIMITS.MAX_IMAGE_MB, vidMax: UPLOAD_LIMITS.MAX_VIDEO_MB })}
         </div>
       )}
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple style={{ display:"none" }} onChange={(e) => {
