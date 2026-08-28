@@ -4650,4 +4650,5 @@ export default {
   'sps.sending': 'Wird gesendet…',
   'sps.requestPayout': 'Auszahlung beantragen',
   'sps.defaultTitle': 'Transaktion',
+  'common.sessionExpiredReauth': 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.',
 };

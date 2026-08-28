@@ -4658,4 +4658,5 @@ export default {
   'sps.sending': 'Sending…',
   'sps.requestPayout': 'Request Payout',
   'sps.defaultTitle': 'Transaction',
+  'common.sessionExpiredReauth': 'Your session has expired. Please log in again.',
 };

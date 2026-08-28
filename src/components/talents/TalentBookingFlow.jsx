@@ -38,6 +38,7 @@ import {
 import { generateReceipt } from "../../lib/generateReceipt.js";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { postToEdgeFunction } from "../../lib/authFetch.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -253,26 +254,25 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     setSubmitting(true);
     setErrMsg("");
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) throw new Error(t("tbf.notLoggedIn"));
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const res = await fetch(`${supabaseUrl}/functions/v1/create-talent-booking-payment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
-        body: JSON.stringify({
-          talent_id: talent.id,
-          selected_date: selectedDate,
-          time_slot: selectedSlot,
-          participants,
-          customer_note: note.trim() || null,
-          customer_address: isHomeVisit ? (customerAddress.trim() || null) : null,
-          customer_lat: isHomeVisit ? (customerGeo?.lat ?? null) : null,
-          customer_lng: isHomeVisit ? (customerGeo?.lng ?? null) : null,
-        }),
+      const { res, result, sessionExpired } = await postToEdgeFunction("create-talent-booking-payment", {
+        talent_id: talent.id,
+        selected_date: selectedDate,
+        time_slot: selectedSlot,
+        participants,
+        customer_note: note.trim() || null,
+        customer_address: isHomeVisit ? (customerAddress.trim() || null) : null,
+        customer_lat: isHomeVisit ? (customerGeo?.lat ?? null) : null,
+        customer_lng: isHomeVisit ? (customerGeo?.lng ?? null) : null,
       });
-      const result = await res.json();
+      // AUTH-401-RECOVERY-001 (2026-08-28): Session durch JWT-Key-Rotation
+      // oder Ablauf ungueltig geworden -- klare Meldung statt rohem
+      // "Unauthorized", Nutzer wird abgemeldet fuer garantiert frischen Login.
+      if (sessionExpired) {
+        setErrMsg(t("common.sessionExpiredReauth"));
+        try { await supabase.auth.signOut(); } catch {}
+        setSubmitting(false);
+        return;
+      }
       if (!res.ok || result.error) {
         // AKTIONSRADIUS-ENFORCE-001: outside_radius-Fehler vom Server mit
         // konkreten km-Angaben anreichern (server ist die Wahrheit, auch falls

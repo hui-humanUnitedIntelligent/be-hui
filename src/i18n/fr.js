@@ -4658,4 +4658,5 @@ export default {
   'sps.sending': 'Envoi…',
   'sps.requestPayout': 'Demander un paiement',
   'sps.defaultTitle': 'Transaction',
+  'common.sessionExpiredReauth': 'Votre session a expiré. Veuillez vous reconnecter.',
 };

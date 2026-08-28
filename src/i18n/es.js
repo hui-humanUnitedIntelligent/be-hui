@@ -4657,4 +4657,5 @@ export default {
   'sps.sending': 'Enviando…',
   'sps.requestPayout': 'Solicitar pago',
   'sps.defaultTitle': 'Transacción',
+  'common.sessionExpiredReauth': 'Tu sesión ha caducado. Por favor, inicia sesión de nuevo.',
 };

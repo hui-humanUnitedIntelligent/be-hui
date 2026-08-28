@@ -4657,4 +4657,5 @@ export default {
   'sps.sending': 'Gönderiliyor…',
   'sps.requestPayout': 'Ödeme talep et',
   'sps.defaultTitle': 'İşlem',
+  'common.sessionExpiredReauth': 'Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.',
 };

@@ -4611,4 +4611,5 @@ export default {
   'sps.sending': 'Duke dërguar…',
   'sps.requestPayout': 'Kërko pagesë',
   'sps.defaultTitle': 'Transaksion',
+  'common.sessionExpiredReauth': 'Sesioni juaj ka skaduar. Ju lutemi, kyçuni përsëri.',
 };

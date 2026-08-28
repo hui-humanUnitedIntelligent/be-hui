@@ -27,6 +27,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { IMPACT_RATE } from "./commerceUtils.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { postToEdgeFunction } from "../../lib/authFetch.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
@@ -131,37 +132,29 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
       // Das focus_type='public'-Filter blockierte legitime Verkaeufer mit hybrid.
 
       // ── Stripe PaymentIntent über Edge Function erstellen ──
-      const { data: { session } } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (!accessToken) { setErrMsg(t("wkf.errSession")); setPhase("error"); return; }
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const efUrl = `${supabaseUrl}/functions/v1/create-payment-intent`;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const res = await fetch(efUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
-          "apikey": supabaseAnonKey ?? "",
-        },
-        body: JSON.stringify({
-          orderItems: [{
-            item_id: workId,
-            item_type: "work",
-            quantity: Math.min(quantity, maxQty),
-            // VARIANTS-001: Varianten-Auswahl mitsenden
-            variant_id: activeVariant?.id || null,
-            variant_name: activeVariant?.name || null,
-          }],
-          // BUGFIX (2026-08-16): Lieferadresse wurde erfasst, aber nie an die
-          // Edge Function gesendet — orders.shipping_address blieb immer leer.
-          shipping_address: address || null,
-        }),
+      // AUTH-401-RECOVERY-001 (2026-08-28): postToEdgeFunction versucht bei
+      // 401 automatisch einen Session-Refresh + Retry (schuetzt gegen durch
+      // JWT-Key-Rotation ungueltig gewordene Access-Tokens).
+      const { res, result, sessionExpired } = await postToEdgeFunction("create-payment-intent", {
+        orderItems: [{
+          item_id: workId,
+          item_type: "work",
+          quantity: Math.min(quantity, maxQty),
+          // VARIANTS-001: Varianten-Auswahl mitsenden
+          variant_id: activeVariant?.id || null,
+          variant_name: activeVariant?.name || null,
+        }],
+        // BUGFIX (2026-08-16): Lieferadresse wurde erfasst, aber nie an die
+        // Edge Function gesendet — orders.shipping_address blieb immer leer.
+        shipping_address: address || null,
       });
 
-      const result = await res.json();
+      if (sessionExpired) {
+        setErrMsg(t("common.sessionExpiredReauth"));
+        try { await supabase.auth.signOut(); } catch {}
+        setPhase("error");
+        return;
+      }
 
       if (!res.ok || result.error) {
         const msg = result.code === "STRIPE_NOT_CONFIGURED"
