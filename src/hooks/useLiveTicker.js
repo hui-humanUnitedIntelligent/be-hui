@@ -23,7 +23,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "../lib/AuthContext.jsx";
 import { supabase } from "../lib/supabaseClient.js";
 import { timedQuery } from "../lib/perfMonitor.js";
-import { t } from '../i18n/index.js';
+import { t, detectSystemLang } from '../i18n/index.js';
 
 const REFRESH_INTERVAL_MS = 90_000; // Optimiert: 90s statt 60s
 const PER_SOURCE_LIMIT    = 5;
@@ -86,7 +86,7 @@ function transformRPCData(rpcData) {
   for (const w of (rpcData.works || [])) {
     items.push({
       id: `work_${w.id}`, createdAt: w.created_at,
-      text: `„${esc(w.title) || "Ein neues Werk"}" wurde soeben veröffentlicht`,
+      text: _tt("ticker.newWork", {title: esc(w.title) || _tt("ticker.fallbackWork")}),
       openRef: { type: "work", id: w.id },
     });
   }
@@ -95,7 +95,7 @@ function transformRPCData(rpcData) {
   for (const e of (rpcData.experiences || [])) {
     items.push({
       id: `exp_${e.id}`, createdAt: e.created_at,
-      text: `Neues Erlebnis: „${esc(e.title) || "Ohne Titel"}"`,
+      text: _tt("ticker.newExperience", {title: esc(e.title) || _tt("ticker.fallbackTitle")}),
       openRef: { type: "experience", id: e.id },
     });
   }
@@ -104,7 +104,7 @@ function transformRPCData(rpcData) {
   for (const c of (rpcData.connections || [])) {
     items.push({
       id: `conn_${c.id}`, createdAt: c.created_at,
-      text: `Neue Verbindung entstanden`,
+      text: _tt("ticker.newConnection"),
       openRef: { type: "connection", id: c.id },
     });
   }
@@ -113,7 +113,7 @@ function transformRPCData(rpcData) {
   for (const r of (rpcData.recommendations || [])) {
     items.push({
       id: `rec_${r.id}`, createdAt: r.created_at,
-      text: t("ticker.newRecommendation"),
+      text: _tt("ticker.newRecommendation"),
       openRef: { type: "recommendation", id: r.id },
     });
   }
@@ -122,7 +122,7 @@ function transformRPCData(rpcData) {
   for (const pr of (rpcData.post_reactions || [])) {
     items.push({
       id: `resonance_${pr.id}`, createdAt: pr.created_at,
-      text: `Ein Beitrag hat gerade Resonanz erhalten`,
+      text: _tt("ticker.postResonance"),
       openRef: pr.type === "work" ? { type: "work", id: pr.post_id } : null,
     });
   }
@@ -131,7 +131,7 @@ function transformRPCData(rpcData) {
   for (const ps of (rpcData.project_support || [])) {
     items.push({
       id: `support_${ps.id}`, createdAt: ps.created_at,
-      text: `Ein Impact-Projekt hat neue Unterstützung erhalten`,
+      text: _tt("ticker.projectSupport"),
       openRef: ps.project_id ? { type: "project", id: ps.project_id } : null,
     });
   }
@@ -140,7 +140,7 @@ function transformRPCData(rpcData) {
   for (const ws of (rpcData.work_sales || [])) {
     items.push({
       id: `sale_${ws.id}`, createdAt: ws.created_at,
-      text: `Ein Werk wurde gerade verkauft`,
+      text: _tt("ticker.workSold"),
       openRef: ws.work_id ? { type: "work", id: ws.work_id } : null,
     });
   }
@@ -149,7 +149,7 @@ function transformRPCData(rpcData) {
   for (const tb of (rpcData.talent_bookings || [])) {
     items.push({
       id: `booking_${tb.id}`, createdAt: tb.created_at,
-      text: `Ein Talent wurde gerade gebucht`,
+      text: _tt("ticker.talentBooked"),
       openRef: tb.talent_id ? { type: "talent", id: tb.talent_id } : null,
     });
   }
@@ -158,7 +158,7 @@ function transformRPCData(rpcData) {
   for (const iv of (rpcData.impact_votes || [])) {
     items.push({
       id: `vote_${iv.id}`, createdAt: iv.created_at,
-      text: `Jemand hat gerade für ein Impact-Projekt gestimmt`,
+      text: _tt("ticker.impactVote"),
       openRef: iv.project_id ? { type: "project", id: iv.project_id } : null,
     });
   }
@@ -168,7 +168,7 @@ function transformRPCData(rpcData) {
     if (!esc(t.title)) continue;
     items.push({
       id: `talentoffer_${t.id}`, createdAt: t.created_at,
-      text: `Neues Talent-Angebot: „${esc(t.title)}"`,
+      text: _tt("ticker.newTalentOffer", {title: esc(t.title)}),
       openRef: { type: "talent", id: t.id },
     });
   }
@@ -179,7 +179,7 @@ function transformRPCData(rpcData) {
     if (!name || looksLikeEmail(name)) continue;
     items.push({
       id: `newuser_${p.id}`, createdAt: p.created_at,
-      text: `${name} ist jetzt bei HUI dabei`,
+      text: _tt("ticker.newUser", {name}),
       openRef: { type: "profile", id: p.id },
     });
   }
@@ -191,7 +191,7 @@ function transformRPCData(rpcData) {
     items.push({
       id: `pool_${ip.id}`,
       createdAt: ip.created_at,
-      text: `€ ${fmtAmount} wurden gerade in den Impact-Pool eingezahlt`,
+      text: _tt("ticker.impactPoolDeposit", {amount: fmtAmount}),
       openRef: null,
     });
   }
@@ -211,7 +211,7 @@ async function fetchWorks() {
   );
   return rows.map(w => ({
     id: `work_${w.id}`, createdAt: w.created_at,
-    text: `„${esc(w.title) || "Ein neues Werk"}" wurde soeben veröffentlicht`,
+    text: _tt("ticker.newWork", {title: esc(w.title) || _tt("ticker.fallbackWork")}),
     openRef: { type: "work", id: w.id },
   }));
 }
@@ -232,23 +232,23 @@ async function fetchFallbackStats() {
   const out = [];
   if (works > 0) out.push({
     id: "fb_works", createdAt: "2000-01-01T00:00:00Z",
-    text: `Schon ${works} Werke auf HUI veröffentlicht`, openRef: null,
+    text: _tt("ticker.worksCount", {n: works}), openRef: null,
   });
   if (talentsN > 0) out.push({
     id: "fb_talents", createdAt: "2000-01-01T00:00:01Z",
-    text: `${talentsN} Talente bieten aktuell ihr Können auf HUI an`, openRef: null,
+    text: _tt("ticker.talentsCount", {n: talentsN}), openRef: null,
   });
   if (experiences > 0) out.push({
     id: "fb_experiences", createdAt: "2000-01-01T00:00:02Z",
-    text: `${experiences} Erlebnisse warten auf HUI darauf, entdeckt zu werden`, openRef: null,
+    text: _tt("ticker.experiencesCount", {n: experiences}), openRef: null,
   });
   if (users > 0) out.push({
     id: "fb_users", createdAt: "2000-01-01T00:00:03Z",
-    text: `Schon ${users} Menschen sind Teil von HUI`, openRef: null,
+    text: _tt("ticker.usersCount", {n: users}), openRef: null,
   });
   if (projects > 0) out.push({
     id: "fb_projects", createdAt: "2000-01-01T00:00:04Z",
-    text: `${projects} Herzensprojekte werden aktuell über den Impact Pool unterstützt`, openRef: null,
+    text: _tt("ticker.projectsCount", {n: projects}), openRef: null,
   });
   return out;
 }
@@ -264,6 +264,15 @@ async function fallbackToLegacyQueries() {
 // ══════════════════════════════════════════════════════════════════
 // HOOK
 // ══════════════════════════════════════════════════════════════════
+function _tt(key, vars = {}) {
+  const lang = detectSystemLang();
+  let text = t(key, lang);
+  Object.entries(vars).forEach(([k, v]) => {
+    text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
+  });
+  return text;
+}
+
 export function useLiveTicker() {
   const { user } = useAuth();
   const [items, setItems]     = useState([]);

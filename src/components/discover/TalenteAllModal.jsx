@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -14,10 +15,10 @@ const T = {
 };
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
-  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"newest",  label:"common.newest",  icon:"🕐" },
   { key:"alpha",   label:"A–Z", icon:"🔤" },
 ];
-const LOC_LABELS = { vor_ort:"Vor Ort", online:"Online", beides:"Vor Ort & Online" };
+const LOC_KEY = { vor_ort:"discover.vorOrt", online:"discover.online", beides:"common.vorOrtOnline" };
 
 function TalentCardItem({ t, onPress }) {
   const [imgErr, setImgErr] = useState(false);
@@ -28,7 +29,7 @@ function TalentCardItem({ t, onPress }) {
     : t.price_per_hour != null
     ? `${formatNumberDE(Number(t.price_per_hour))} €/Std`
     : null;
-  const locLabel = LOC_LABELS[t.location_type] || t.location_type || "";
+  const locLabel = LOC_KEY[t.location_type] || t.location_type || "";
   return (
     <div onClick={() => onPress?.(t)} style={{
       background:T.white, borderRadius:16, overflow:"hidden",
@@ -60,7 +61,7 @@ function TalentCardItem({ t, onPress }) {
         )}
         {t._author && !t.user_id && <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>{t._author}</div>}
         {locLabel && (
-          <div style={{ fontSize:10.5, color:T.inkSoft, marginBottom:4 }}>📍 {locLabel}</div>
+          <div style={{ fontSize:10.5, color:T.inkSoft, marginBottom:4 }}>📍 {locLabel.startsWith("discover.") || locLabel.startsWith("common.") ? t(locLabel) : locLabel}</div>
         )}
         {price && (
           <div style={{ marginTop:"auto", fontSize:13, fontWeight: 600, color:T.tealDeep }}>{price}</div>
@@ -71,6 +72,7 @@ function TalentCardItem({ t, onPress }) {
 }
 
 export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "TalenteAllModal");
   const [items, setItems]       = useState([]);
@@ -153,10 +155,10 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
   if (!isOpen) return null;
 
   const LOC_FILTERS = [
-    { key:"alle", label:"Alle" },
-    { key:"vor_ort", label:"Vor Ort" },
-    { key:"online", label:"Online" },
-    { key:"beides", label:"Vor Ort & Online" },
+    { key:"alle", label:t("common.all") },
+    { key:"vor_ort", label:t("discover.vorOrt") },
+    { key:"online", label:t("discover.online") },
+    { key:"beides", label:t("common.vorOrtOnline") },
   ];
 
   return createPortal(
@@ -191,7 +193,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,
                 cursor:"pointer", whiteSpace:"nowrap",
               }}>
-                {opt.icon} {opt.label}
+                {opt.icon} {t(opt.label)}
               </button>
             ))}
           </div>
@@ -218,14 +220,14 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>⭐</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Keine Talente gefunden</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noTalenteFound")}</div>
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {items.map(t => <TalentCardItem key={t.id} t={t} onPress={onPressTalent}/>)}
           </div>
           {loading && items.length > 0 && (
-            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}

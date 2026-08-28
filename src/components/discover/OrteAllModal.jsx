@@ -227,7 +227,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
                 </div>
                 <div style={{ fontSize:11.5, color:T.inkFaint }}>
                   {showDetail
-                    ? `${detailItems.length} ${detailItems.length === 1 ? "Eintrag" : t("common.entries")} in ${selectedPlace}`
+                    ? `${detailItems.length} ${detailItems.length === 1 ? t("common.entry") : t("common.entries")} in ${selectedPlace}`
                     : t("discover.orteSub")}
                 </div>
               </div>
@@ -253,7 +253,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
             ) : detailItems.length === 0 ? (
               <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
                 <div style={{ fontSize:28, marginBottom:10 }}>📍</div>
-                <div style={{ fontSize:15, fontWeight:600 }}>Keine Einträge in {selectedPlace}</div>
+                <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noOrteFound", {place: selectedPlace})}</div>
               </div>
             ) : (
               <div style={{ background:T.white, borderRadius:0 }}>
@@ -285,7 +285,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
               <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
                 <div style={{ fontSize:28, marginBottom:10 }}>📍</div>
                 <div style={{ fontSize:15, fontWeight:600 }}>Kein Ort gefunden</div>
-                <div style={{ fontSize:12, marginTop:4 }}>Versuche eine andere Suche.</div>
+                <div style={{ fontSize:12, marginTop:4 }}>{t("common.tryOtherSearch")}</div>
               </div>
             ) : (
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>

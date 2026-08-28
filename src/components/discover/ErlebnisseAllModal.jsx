@@ -15,27 +15,28 @@ const T = {
 };
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
-  { key:"popular", label:"Beliebt",  icon:"✨" },
-  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"popular", label:"common.popular",  icon:"✨" },
+  { key:"newest",  label:"common.newest",  icon:"🕐" },
   { key:"alpha",   label:"A–Z", icon:"🔤" },
 ];
-const TYPE_MAP = { workshop:"Workshop", event:"Event", ausstellung:"Ausstellung",
-  projekt:"Projekt", kurs:"Kurs", online:"Online" };
+const TYPE_MAP = { workshop:"workshop", event:"event", ausstellung:"ausstellung",
+  projekt:"projekt", kurs:"kurs", online:"online" };
 
 function mapExp(e) {
   const d = e.date ? new Date(e.date) : null;
   const now = new Date();
-  let statusLabel = "Aktiv"; let statusColor = "#16A34A";
-  if (d && d > now) { statusLabel = "Geplant"; statusColor = "#D97706"; }
-  if (d && d < now) { statusLabel = "Abgeschlossen"; statusColor = "rgba(26,26,46,0.38)"; }
+  let statusLabel = null; let statusColor = "#16A34A";
+  if (d && d > now) { statusLabel = "planned"; statusColor = "#D97706"; }
+  if (d && d < now) { statusLabel = "completed"; statusColor = "rgba(26,26,46,0.38)"; }
   const typeRaw = e.experience_type || e.category || "";
-  const typeLabel = TYPE_MAP[typeRaw.toLowerCase()] || typeRaw || "Erlebnis";
+  const typeLabel = TYPE_MAP[typeRaw.toLowerCase()] || typeRaw || null;
   const dayNum  = d ? String(d.getDate()).padStart(2,"0") : null;
   const monthSh = d ? d.toLocaleString("de",{month:"short"}).toUpperCase() : null;
   return { ...e, dayNum, monthSh, statusLabel, statusColor, typeLabel };
 }
 
 function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   return (
     <div onClick={() => onPress?.(ev)} style={{
@@ -63,7 +64,7 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
           <div style={{
             position:"absolute", top:8, right:8, background:T.teal, color:"#fff",
             borderRadius:99, fontSize:9.5, fontWeight: 600, padding:"2px 8px"
-          }}>{ev.typeLabel}</div>
+          }}>{ev.typeLabel ? t("common." + ev.typeLabel) : ""}</div>
         )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
@@ -76,7 +77,7 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
             onClick={e => { e.stopPropagation(); onAuthorPress?.(ev.user_id); }}
             style={{ fontSize:11, color:T.tealDeep, fontWeight:600, marginBottom:4, cursor:"pointer",
               WebkitTapHighlightColor:"transparent" }}>
-            von {ev._authorName}
+            {t("common.by")} {ev._authorName}
           </div>
         )}
         {ev.location_text && (
@@ -86,7 +87,7 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
         )}
         <div style={{ marginTop:"auto", display:"flex", alignItems:"center", gap:5 }}>
           <div style={{ width:7, height:7, borderRadius:"50%", background:ev.statusColor, flexShrink:0 }}/>
-          <span style={{ fontSize:11, color:ev.statusColor, fontWeight:600 }}>{ev.statusLabel}</span>
+          <span style={{ fontSize:11, color:ev.statusColor, fontWeight:600 }}>{ev.statusLabel ? t("common.status" + ev.statusLabel.charAt(0).toUpperCase() + ev.statusLabel.slice(1)) : t("common.statusActive")}</span>
         </div>
       </div>
     </div>
@@ -142,8 +143,8 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
 
       let mapped = data.map(mapExp);
       // Clientseitiger Status-Filter (abgeschlossen/geplant aus Datum)
-      if (filterStatus === "geplant") mapped = mapped.filter(e => e.statusLabel === "Geplant");
-      if (filterStatus === "abgeschlossen") mapped = mapped.filter(e => e.statusLabel === "Abgeschlossen");
+      if (filterStatus === "geplant") mapped = mapped.filter(e => e.statusLabel === "planned");
+      if (filterStatus === "abgeschlossen") mapped = mapped.filter(e => e.statusLabel === "completed");
       // Autorname nachladen
       const uids = [...new Set(mapped.map(e => e.user_id).filter(Boolean))];
       if (uids.length > 0) {
@@ -182,11 +183,11 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
   if (!isOpen) return null;
 
   const STATUS_F = [
-    {key:"alle",label:"Alle"},{key:"geplant",label:"Geplant"},{key:"abgeschlossen",label:"Abgeschlossen"}
+    {key:"alle",label:t("common.all")},{key:"geplant",label:t("common.statusPlanned")},{key:"abgeschlossen",label:t("common.statusCompleted")}
   ];
   const TYPE_F = [
-    {key:"alle",label:"Alle"},{key:"workshop",label:"Workshop"},{key:"event",label:"Event"},
-    {key:"kurs",label:"Kurs"},{key:"ausstellung",label:"Ausstellung"},
+    {key:"alle",label:t("common.all")},{key:"workshop",label:t("common.workshop")},{key:"event",label:t("common.event")},
+    {key:"kurs",label:t("common.kurs")},{key:"ausstellung",label:t("common.ausstellung")},
   ];
 
   return createPortal(
@@ -204,7 +205,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
               <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("erl.forYou")}</div>
-              <div style={{ fontSize:11.5, color:T.inkFaint }}>Workshops, Treffen, Kurse & mehr</div>
+              <div style={{ fontSize:11.5, color:T.inkFaint }}>{t("discover.erlebnisseSub")}</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>
@@ -221,7 +222,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,
                 cursor:"pointer", whiteSpace:"nowrap",
               }}>
-                {opt.icon} {opt.label}
+                {opt.icon} {t(opt.label)}
               </button>
             ))}
           </div>
@@ -258,14 +259,14 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>🌟</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Keine Erlebnisse gefunden</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noErlebnisseFound")}</div>
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {items.map(e => <ErlebnisCardItem key={e.id} e={e} onPress={onPressItem} onAuthorPress={e.user_id ? openCreatorProfile : null}/>)}
           </div>
           {loading && items.length > 0 && (
-            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}

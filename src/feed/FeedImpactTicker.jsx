@@ -27,7 +27,7 @@ function relTime(iso) {
   const h = Math.floor(m / 60);
   if (h < 24) return `vor ${h} Std`;
   const d = Math.floor(h / 24);
-  if (d < 7) return `vor ${d} Tag${d > 1 ? "en" : ""}`;
+  if (d < 7) return t("common.daysAgo", {n: d});
   return new Date(iso).toLocaleDateString("de-DE", { day: "1-digit", month: "short" });
 }
 

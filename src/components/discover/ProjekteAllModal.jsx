@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -25,8 +26,8 @@ const T = {
 };
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
-  { key:"votes",   label:"Stimmen",    icon:"❤️" },
-  { key:"funding", label:"Finanziert", icon:"💰" },
+  { key:"votes",   label:"discover.stimmen",    icon:"❤️" },
+  { key:"funding", label:"discover.finanziert", icon:"💰" },
   { key:"alpha",   label:"A–Z",    icon:"🔤" },
 ];
 // Rang-Indikatoren: subtil, kein lauter Rand mehr
@@ -37,6 +38,7 @@ const RANK_BADGE = {
 };
 
 function ProjektCardItem({ p, onPress, onAuthorPress }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const prog = p.funding_goal > 0
     ? Math.min(100, Math.round((p.current_amount_eur || 0) / p.funding_goal * 100))
@@ -131,7 +133,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
             onClick={e => { e.stopPropagation(); onAuthorPress?.(p._userId); }}
             style={{ fontSize:11, color:"rgba(14,196,184,0.9)", fontWeight:600,
               marginBottom:4, cursor:"pointer", WebkitTapHighlightColor:"transparent" }}>
-            von {p._initiatorName}
+            {t("common.by")} {p._initiatorName}
           </div>
         )}
         {/* Beschreibung — kürzer, ruhiger */}
@@ -161,7 +163,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
             fontSize: 11.5, color: T.inkFaint, fontWeight: 500,
           }}>
             <span style={{ fontSize:12, opacity:0.7 }}>♡</span>
-            {p.vote_count || 0} Stimmen
+            {p.vote_count || 0} {t("discover.stimmen")}
           </span>
 
           {/* Betrag */}
@@ -203,6 +205,7 @@ function ProjektCardItem({ p, onPress, onAuthorPress }) {
 }
 
 export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "ProjekteAllModal");
   const { openCreatorProfile } = useProfileLauncher();
@@ -319,7 +322,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
   if (!isOpen) return null;
 
   const RANK_F = [
-    {key:"alle",label:"Alle"},{key:"top3",label:"Top 3"},{key:"weitere",label:"Weitere"}
+    {key:"alle",label:t("common.all")},{key:"top3",label:"Top 3"},{key:"weitere",label:t("common.more")}
   ];
 
   return createPortal(
@@ -354,7 +357,7 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,
                 cursor:"pointer", whiteSpace:"nowrap",
               }}>
-                {opt.icon} {opt.label}
+                {opt.icon} {t(opt.label)}
               </button>
             ))}
           </div>
@@ -380,12 +383,12 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>💚</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Keine Projekte gefunden</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noProjekteFound")}</div>
             </div>
           )}
           {items.map(p => <ProjektCardItem key={p.id} p={p} onPress={onPressItem} onAuthorPress={p._userId ? openCreatorProfile : null}/>)}
           {loading && items.length > 0 && (
-            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}

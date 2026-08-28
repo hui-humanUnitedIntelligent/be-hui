@@ -6,6 +6,7 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { toast } from "../../lib/useToast.jsx";
+import { t as _rawT, detectSystemLang } from "../../i18n/index.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
@@ -18,16 +19,16 @@ const T = {
 const SYSTEM_USER_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2";
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
-  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"newest",  label:"common.newest",  icon:"🕐" },
   { key:"alpha",   label:"A–Z", icon:"🔤" },
 ];
 const timeAgo = (iso) => {
   if (!iso) return "";
   const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (d < 1) return "heute";
-  if (d === 1) return "gestern";
-  if (d < 7) return `vor ${d} Tagen`;
-  if (d < 30) return `vor ${Math.floor(d/7)} Wo.`;
+  if (d < 1) return _rawT("common.today", _lang);
+  if (d === 1) return _rawT("common.yesterday", _lang);
+  if (d < 7) return _rawT("common.daysAgo", _lang).replace("{n}", d);
+  if (d < 30) return _rawT("common.weeksAgoShort", _lang).replace("{n}", Math.floor(d/7));
   return `vor ${Math.floor(d/30)} Mon.`;
 };
 
@@ -80,7 +81,7 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
             fontSize:9.5, fontWeight:600, letterSpacing:0.2,
             zIndex:2, pointerEvents:"none", whiteSpace:"nowrap",
           }}>
-            ⚠️ Wird geprüft
+            {t("common.underReview")}
           </div>
         )}
       </div>
@@ -240,7 +241,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,
                 cursor:"pointer", whiteSpace:"nowrap",
               }}>
-                {opt.icon} {opt.label}
+                {opt.icon} {t(opt.label)}
               </button>
             ))}
           </div>
@@ -255,7 +256,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>📸</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Keine Momente gefunden</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noMomenteFound")}</div>
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
@@ -288,7 +289,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
             ))}
           </div>
           {loading && items.length > 0 && (
-            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}

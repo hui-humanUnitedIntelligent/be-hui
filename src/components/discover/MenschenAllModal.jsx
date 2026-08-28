@@ -35,8 +35,8 @@ const T = {
 };
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
-  { key:"popular",   label:"Beliebt",    icon:"✨" },
-  { key:"followers", label:"Follower",   icon:"👥" },
+  { key:"popular",   label:"common.popular",    icon:"✨" },
+  { key:"followers", label:"common.followers",   icon:"👥" },
   { key:"likes",     label:"Likes",      icon:"❤️" },
   { key:"alpha",     label:"A–Z",   icon:"🔤" },
 ];
@@ -214,7 +214,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,
                 cursor:"pointer", whiteSpace:"nowrap",
               }}>
-                {opt.icon} {opt.label}
+                {opt.icon} {t(opt.label)}
               </button>
             ))}
           </div>
@@ -230,14 +230,14 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>👤</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Keine Menschen gefunden</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noMenschenFound")}</div>
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={p.total_likes || 0} />)}
           </div>
           {loading && items.length > 0 && (
-            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}

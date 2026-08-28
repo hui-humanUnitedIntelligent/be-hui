@@ -1,4 +1,5 @@
 import { createPortal } from "react-dom";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -14,17 +15,18 @@ const T = {
 };
 const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
-  { key:"popular", label:"Beliebt",  icon:"✨" },
-  { key:"newest",  label:"Neueste",  icon:"🕐" },
+  { key:"popular", label:"common.popular",  icon:"✨" },
+  { key:"newest",  label:"common.newest",  icon:"🕐" },
   { key:"alpha",   label:"A–Z", icon:"🔤" },
 ];
-const FORMAT_LABEL = { original:"Original", druck:"Druck", digital:"Digital Art" };
+const FORMAT_KEY = { original:"discover.fileFormatOriginal", druck:"discover.fileFormatDruck", digital:"discover.fileFormatDigital" };
 const FORMAT_BADGE = { original:"#7C3AED", druck:"#0891B2", digital:"#D97706" };
 
 function WerkCardItem({ w, onPress, saleStatus }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const price = w.price != null ? `${formatNumberDE(Number(w.price))} €` : null;
-  const badge = FORMAT_LABEL[w.file_format] || w.category || "Werk";
+  const badge = w.file_format || w.category || null;
   const badgeColor = FORMAT_BADGE[w.file_format] || T.teal;
   const ss = saleStatus?.[w.id];
   return (
@@ -44,7 +46,7 @@ function WerkCardItem({ w, onPress, saleStatus }) {
           position:"absolute", top:8, left:8,
           background:badgeColor, color:"#fff", borderRadius:99,
           fontSize:9.5, fontWeight: 600, padding:"2px 8px"
-        }}>{badge}</div>
+        }}>{badge ? (FORMAT_KEY[badge] ? t(FORMAT_KEY[badge]) : badge) : ""}</div>
         {ss && (
           <div style={{
             position:"absolute", bottom:8, left:8,
@@ -52,7 +54,7 @@ function WerkCardItem({ w, onPress, saleStatus }) {
             color:"#fff", borderRadius:99,
             fontSize:9, fontWeight:700, padding:"2px 8px",
             backdropFilter:"blur(4px)",
-          }}>{ss === "verkauft" ? "Verkauft" : "Reserviert"}</div>
+          }}>{ss === "verkauft" ? t("common.sold") : t("common.reserved")}</div>
         )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>
@@ -63,7 +65,7 @@ function WerkCardItem({ w, onPress, saleStatus }) {
         {w._authorName ? (
           <div
             style={{ fontSize:11, color:T.tealDeep, fontWeight:600, marginBottom:4 }}>
-            von {w._authorName}
+            {t("common.by")} {w._authorName}
           </div>
         ) : (
           <div style={{ fontSize:11, color:T.inkFaint, marginBottom:4 }}>von HUI Talent</div>
@@ -82,6 +84,7 @@ function WerkCardItem({ w, onPress, saleStatus }) {
 }
 
 export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
+  const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "WerkeAllModal");
   // openCreatorProfile entfernt (2026-07-29) — Autor-Namen nicht mehr klickbar
@@ -187,10 +190,10 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
   if (!isOpen) return null;
 
   const FILTERS = [
-    { key:"alle", label:"Alle" },
-    { key:"original", label:"Original" },
-    { key:"druck", label:"Druck" },
-    { key:"digital", label:"Digital Art" },
+    { key:"alle", label:t("common.all") },
+    { key:"original", label:t("discover.fileFormatOriginal") },
+    { key:"druck", label:t("discover.fileFormatDruck") },
+    { key:"digital", label:t("discover.fileFormatDigital") },
   ];
 
   return createPortal(
@@ -210,14 +213,14 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Werke entdecken</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("discover.werke")}</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>Kunst, Musik, Fotografie & mehr</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>
           <input
             value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Werke suchen…"
+            placeholder={t("discover.werkeSearchPlaceholder")}
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
               background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}
           />
@@ -230,7 +233,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
                 color: sort === opt.key ? T.tealDeep : T.inkSoft,
                 cursor:"pointer", whiteSpace:"nowrap",
               }}>
-                {opt.icon} {opt.label}
+                {opt.icon} {t(opt.label)}
               </button>
             ))}
           </div>
@@ -260,15 +263,15 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
           {items.length === 0 && !loading && (
             <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
               <div style={{ fontSize:32, marginBottom:12 }}>🎨</div>
-              <div style={{ fontSize:15, fontWeight:600 }}>Keine Werke gefunden</div>
-              <div style={{ fontSize:13, marginTop:6 }}>Versuche andere Suchbegriffe</div>
+              <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.noWerkeFound")}</div>
+              <div style={{ fontSize:13, marginTop:6 }}>{t("common.tryOtherSearch")}</div>
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem} onAuthorPress={null}/>)}
           </div>
           {loading && items.length > 0 && (
-            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>Lade weitere…</div>
+            <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
           )}
 
           {/* Bottom-Spacer: Navbar + safe-area (iOS Safari ignoriert paddingBottom bei scroll) */}
