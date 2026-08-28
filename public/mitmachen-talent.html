@@ -25,9 +25,143 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
-.hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+/* ═══ Ich habe ein Talent — Page Styles ═══ */
+.it-hero{padding:88px 24px 48px;max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;position:relative;z-index:1}
+.it-hero-left{position:relative}
+.it-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);transition:color .2s var(--ease);margin-bottom:20px;text-decoration:none}
+.it-back:hover{color:var(--teal-deep)}
+.it-hero h1{font-size:38px;font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--ink);margin:0 0 20px}
+.it-hero-sub{font-size:17px;color:var(--ink-body);line-height:1.65;max-width:480px;margin:0}
+.it-hero-accent{display:block;width:48px;height:2px;margin:24px 0 0;background:linear-gradient(90deg,var(--teal),transparent);border-radius:2px}
+.it-hero-note{font-size:14px;color:var(--muted);margin:16px 0 0;font-style:italic;max-width:440px}
+.it-content{max-width:1000px;margin:0 auto;padding:0 24px}
+.it-hero-visual{display:flex;align-items:center;justify-content:center}
+.it-svg{width:100%;max-width:340px;height:auto;opacity:.92}
+
+/* ── Section base ── */
+.it-section{padding:52px 0}
+.it-section h2{font-size:24px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 16px}
+.it-section p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0 0 14px}
+
+/* ── Talent landscape ── */
+.it-landscape{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:36px}
+.it-talent-node{display:flex;flex-direction:column;gap:6px;padding:24px 20px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);transition:all .25s var(--ease)}
+.it-talent-node:hover{transform:translateY(-2px);border-color:rgba(13,196,181,.12)}
+.it-talent-icon{font-size:22px;line-height:1;margin-bottom:4px}
+.it-talent-name{font-size:15px;font-weight:600;color:var(--ink);margin:0}
+.it-talent-desc{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
+
+/* ── Lebenslauf vs HUI ── */
+.it-cv{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px}
+.it-cv-col{padding:32px;border-radius:var(--rl)}
+.it-cv-col-left{background:rgba(20,20,34,.02);border:1px solid rgba(20,20,34,.04)}
+.it-cv-col-right{background:rgba(13,196,181,.03);border:1px solid rgba(13,196,181,.08)}
+.it-cv-col h3{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 18px}
+.it-cv-col-left h3{color:var(--faint)}
+.it-cv-col-right h3{color:var(--teal-deep)}
+.it-cv-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+.it-cv-list li{font-size:14.5px;color:var(--ink-body);line-height:1.5;display:flex;align-items:center;gap:8px}
+.it-cv-list li::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.it-cv-col-left .it-cv-list li::before{background:rgba(20,20,34,.15)}
+.it-cv-col-right .it-cv-list li::before{background:var(--teal);opacity:.5}
+.it-key-moment{text-align:center;padding:36px 0 0;font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.it-key-moment span{color:var(--teal-deep)}
+
+/* ── Flow chain ── */
+.it-flow{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:36px;max-width:420px;margin-left:auto;margin-right:auto}
+.it-flow-node{display:inline-flex;align-items:center;justify-content:center;padding:10px 26px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.06);border-radius:24px;font-size:14px;font-weight:600;color:var(--ink);transition:all .25s var(--ease)}
+.it-flow-node:hover{border-color:rgba(13,196,181,.15);color:var(--teal-deep)}
+.it-flow-conn{width:2px;height:20px;background:linear-gradient(180deg,rgba(13,196,181,.15),rgba(13,196,181,.04))}
+.it-flow-end{border-color:rgba(13,196,181,.2);color:var(--teal-deep);background:rgba(13,196,181,.04)}
+
+/* ── Scenario chips ── */
+.it-scenarios{display:flex;flex-wrap:wrap;gap:10px;margin-top:32px;max-width:680px}
+.it-chip{display:inline-flex;align-items:center;padding:10px 20px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:22px;font-size:14px;color:var(--ink-body);font-weight:500;transition:all .25s var(--ease);cursor:default}
+.it-chip:hover{border-color:rgba(13,196,181,.12);color:var(--ink);transform:translateY(-1px)}
+
+/* ── Project tree ── */
+.it-tree{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:36px;max-width:440px;margin-left:auto;margin-right:auto}
+.it-tree-top{padding:12px 28px;background:rgba(13,196,181,.04);border:1px solid rgba(13,196,181,.12);border-radius:24px;font-size:15px;font-weight:600;color:var(--teal-deep)}
+.it-tree-branch{display:flex;gap:24px;align-items:center}
+.it-tree-branch-node{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 20px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.06);border-radius:var(--r);font-size:13px;font-weight:600;color:var(--ink)}
+.it-tree-conn-v{width:2px;height:20px;background:linear-gradient(180deg,rgba(13,196,181,.15),rgba(13,196,181,.06))}
+.it-tree-conn-h{width:100%;height:2px;background:linear-gradient(90deg,rgba(13,196,181,.06),rgba(13,196,181,.12),rgba(13,196,181,.06))}
+.it-tree-result{padding:14px 32px;background:rgba(13,196,181,.06);border:1px solid rgba(13,196,181,.15);border-radius:26px;font-size:16px;font-weight:700;color:var(--teal-deep)}
+
+/* ── Formula ── */
+.it-formula{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:36px}
+.it-formula-line{font-size:16px;color:var(--ink-body);font-weight:500}
+.it-formula-op{font-size:18px;font-weight:300;color:var(--teal-deep)}
+.it-formula-result{font-size:18px;font-weight:700;color:var(--teal-deep);padding:12px 28px;background:rgba(13,196,181,.04);border:1px solid rgba(13,196,181,.1);border-radius:var(--r)}
+
+/* ── Future features ── */
+.it-future-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:760px;margin:36px auto 0}
+.it-future-item{padding:28px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);display:flex;flex-direction:column;gap:8px}
+.it-future-name{font-size:16px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.it-future-name::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.5;flex-shrink:0}
+.it-future-desc{font-size:14px;color:var(--muted);line-height:1.6;margin:0}
+
+/* ── Profile mockup ── */
+.it-mockup{max-width:420px;margin:36px auto 0;padding:36px 32px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.06);border-radius:var(--rl)}
+.it-mockup-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin:0 0 20px;text-align:center}
+.it-mockup-avatar{width:56px;height:56px;border-radius:50%;background:rgba(13,196,181,.08);border:1px solid rgba(13,196,181,.12);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--teal-deep)}
+.it-mockup-group{margin-bottom:20px}
+.it-mockup-group:last-child{margin-bottom:0}
+.it-mockup-group-label{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 10px;letter-spacing:.5px}
+.it-mockup-tags{display:flex;flex-wrap:wrap;gap:6px}
+.it-mockup-tag{display:inline-block;padding:5px 12px;font-size:12px;font-weight:500;color:var(--ink-body);background:rgba(255,255,255,.6);border:1px solid rgba(20,20,34,.06);border-radius:16px}
+.it-mockup-quote{font-size:14px;color:var(--ink-body);line-height:1.6;font-style:italic;margin:0;padding:16px;background:rgba(255,255,255,.4);border-radius:var(--r);border:1px solid rgba(20,20,34,.04)}
+.it-mockup-note{font-size:11px;color:var(--faint);text-align:center;margin:20px 0 0;font-style:italic}
+
+/* ── FAQ ── */
+.it-faq{padding:48px 0}
+.it-faq h2{font-size:24px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 28px}
+.it-faq-list{display:flex;flex-direction:column;gap:10px}
+.it-faq-item{background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);overflow:hidden;transition:border-color .2s var(--ease)}
+.it-faq-item[open]{border-color:rgba(13,196,181,.15)}
+.it-faq-item summary{list-style:none;cursor:pointer;padding:18px 24px;font-size:15.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:color .2s var(--ease)}
+.it-faq-item summary::-webkit-details-marker{display:none}
+.it-faq-item summary:hover{color:var(--teal-deep)}
+.it-faq-item summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s var(--ease);flex-shrink:0;margin-right:4px}
+.it-faq-item[open] summary::after{transform:rotate(-135deg)}
+.it-faq-item[open] summary{color:var(--teal-deep)}
+.it-faq-answer{padding:0 24px 20px;font-size:15px;color:var(--ink-body);line-height:1.75}
+.it-faq-answer a{color:var(--teal-deep);text-decoration:none;transition:color .2s var(--ease)}
+.it-faq-answer a:hover{color:var(--teal)}
+
+/* ── CTA ── */
+.it-cta{padding:56px 24px;text-align:center;max-width:640px;margin:0 auto}
+.it-cta h2{font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 16px}
+.it-cta p{font-size:15px;color:var(--ink-body);line-height:1.7;margin:0 0 28px}
+.it-cta-bald{display:inline-flex;align-items:center;padding:14px 36px;background:transparent;color:var(--muted);font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--r);border:1px solid rgba(20,20,34,.08);cursor:default}
+.it-cta-sub{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+/* ── Sign-off ── */
+.it-signoff{padding:48px 24px 72px;text-align:center;max-width:480px;margin:0 auto}
+.it-signoff-line{display:block;width:40px;height:1px;margin:0 auto 24px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.it-signoff-text{font-size:16px;font-weight:500;color:var(--ink);line-height:1.5;margin:0 0 20px;font-style:italic}
+.it-signoff-name{font-size:18px;font-weight:700;color:var(--teal-deep);letter-spacing:.02em;margin:0 0 2px}
+.it-signoff-full{font-size:11px;color:var(--muted);letter-spacing:.5px;margin:0 0 4px}
+.it-signoff-tagline{font-size:11px;color:var(--faint);letter-spacing:1px}
+
+/* ── Tints ── */
+.it-tint-mint{background:rgba(13,196,181,.015)}
+.it-tint-warm{background:rgba(244,115,85,.012)}
+
+@media(max-width:900px){
+  .it-hero{grid-template-columns:1fr;gap:32px;padding:72px 20px 36px}
+  .it-hero h1{font-size:30px}
+  .it-hero-visual{order:-1}
+  .it-svg{max-width:260px}
+  .it-landscape{grid-template-columns:repeat(2,1fr);gap:14px}
+  .it-cv{grid-template-columns:1fr;gap:16px}
+  .it-future-grid{grid-template-columns:1fr;gap:14px}
+  .it-section h2,.it-faq h2{font-size:21px}
+  .it-key-moment{font-size:17px}
+  .it-tree-branch{flex-direction:column;gap:12px}
+  .it-tree-conn-h{display:none}
+  .it-mockup{padding:28px 22px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/mitmachen/talent"/>
@@ -233,30 +367,347 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.mitmachen.talent.hero">Ich habe ein Talent</h1>
-    <p class="reveal d2" data-i18n="page.mitmachen.talent.sub">Deine Fähigkeiten sind wertvoll. Auf HUI wirst du dein Können in sinnstiftende Projekte und Netzwerke einbringen können.</p>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="it-hero">
+    <div class="it-hero-left">
+      <a href="/" class="it-back" data-i18n="page.back">← HUI</a>
+      <h1 class="reveal" data-i18n="page.mitmachen.talent.hero">Ich habe ein Talent</h1>
+      <p class="it-hero-sub reveal d2" data-i18n="page.mitmachen.talent.sub-new">Deine Fähigkeiten sind wertvoll. Auf HUI sollen Menschen sichtbar werden können – mit dem, was sie können, wissen, lieben und einbringen möchten.</p>
+      <span class="it-hero-accent reveal d3" aria-hidden="true"></span>
+      <p class="it-hero-note reveal d3" data-i18n="page.mitmachen.talent.hero-note">Was du kannst, muss nicht in eine einzige Schublade passen.</p>
+    </div>
+    <div class="it-hero-visual reveal d3">
+      <svg class="it-svg" viewBox="0 0 340 340" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- Connection lines from center to outer nodes -->
+        <g stroke="rgba(13,196,181,.08)" stroke-width="1" fill="none">
+          <line x1="170" y1="170" x2="170" y2="50"/>
+          <line x1="170" y1="170" x2="260" y2="80"/>
+          <line x1="170" y1="170" x2="300" y2="170"/>
+          <line x1="170" y1="170" x2="260" y2="260"/>
+          <line x1="170" y1="170" x2="170" y2="290"/>
+          <line x1="170" y1="170" x2="80" y2="260"/>
+          <line x1="170" y1="170" x2="40" y2="170"/>
+          <line x1="170" y1="170" x2="80" y2="80"/>
+        </g>
+        <!-- Center: DEIN POTENZIAL -->
+        <circle cx="170" cy="170" r="48" fill="rgba(13,196,181,.04)" stroke="rgba(13,196,181,.18)" stroke-width="1.5"/>
+        <text x="170" y="167" text-anchor="middle" fill="#09A89A" font-family="Inter,sans-serif" font-size="12" font-weight="700">DEIN</text>
+        <text x="170" y="181" text-anchor="middle" fill="#09A89A" font-family="Inter,sans-serif" font-size="12" font-weight="700">POTENZIAL</text>
+        <!-- Outer nodes -->
+        <g font-family="Inter,sans-serif" font-size="9.5" font-weight="600">
+          <circle cx="170" cy="50" r="28" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="170" y="54" text-anchor="middle" fill="#3A3A55">Wissen</text>
+          <circle cx="260" cy="80" r="30" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="260" y="77" text-anchor="middle" fill="#3A3A55">Fähig-</text>
+          <text x="260" y="88" text-anchor="middle" fill="#3A3A55">keiten</text>
+          <circle cx="300" cy="170" r="30" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="300" y="167" text-anchor="middle" fill="#3A3A55" font-size="8.5">Erfah-</text>
+          <text x="300" y="178" text-anchor="middle" fill="#3A3A55" font-size="8.5">rung</text>
+          <circle cx="260" cy="260" r="28" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="260" y="257" text-anchor="middle" fill="#3A3A55" font-size="8.5">Kreati-</text>
+          <text x="260" y="268" text-anchor="middle" fill="#3A3A55" font-size="8.5">vität</text>
+          <circle cx="170" cy="290" r="26" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="170" y="294" text-anchor="middle" fill="#3A3A55" font-size="9">Handwerk</text>
+          <circle cx="80" cy="260" r="26" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="80" y="257" text-anchor="middle" fill="#3A3A55" font-size="8.5">Ideen</text>
+          <circle cx="40" cy="170" r="34" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="40" y="167" text-anchor="middle" fill="#3A3A55" font-size="8">Menschen-</text>
+          <text x="40" y="178" text-anchor="middle" fill="#3A3A55" font-size="8">kenntnis</text>
+          <circle cx="80" cy="80" r="28" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="80" y="84" text-anchor="middle" fill="#3A3A55" font-size="8.5">Engage-</text>
+          <text x="80" y="95" text-anchor="middle" fill="#3A3A55" font-size="8.5" opacity="0">ment</text>
+        </g>
+      </svg>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.talent.s1-title">Talente gezielt entfalten</h2>
-      <p data-i18n="page.mitmachen.talent.s1-text">Egal ob handwerkliches Geschick, kreativer Ausdruck, organisatorisches Talent oder Fachwissen – jede Gabe entfaltet ihren wahren Wert im konkreten Tun. Auf HUI wirst du die Möglichkeit haben, deine Stärken sichtbar zu machen und an Herausforderungen zu wachsen, die dir am Herzen liegen.</p>
+  <div class="it-content">
+
+    <!-- ═══ TALENT HAT VIELE GESICHTER ═══ -->
+    <section class="it-section reveal">
+      <h2 data-i18n="page.mitmachen.talent.faces-title">Talent hat viele Gesichter.</h2>
+      <p data-i18n="page.mitmachen.talent.faces-text">Ein Talent muss kein Beruf und keine offizielle Qualifikation sein. Es kann handwerkliches Geschick sein, kreativer Ausdruck, technisches Wissen, Organisationstalent, Lebenserfahrung oder die Fähigkeit, Menschen zusammenzubringen.</p>
+      <div class="it-landscape">
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">🛠</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t1-name">Handwerk</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t1-desc">Praktisches Können und handwerkliche Fähigkeiten.</p>
+        </div>
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">🎨</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t2-name">Kreativität</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t2-desc">Gestalten, schreiben, musizieren, fotografieren oder neue Ideen entwickeln.</p>
+        </div>
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">🧠</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t3-name">Wissen</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t3-desc">Fachwissen, Erfahrung und Kenntnisse, die anderen helfen können.</p>
+        </div>
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">🤝</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t4-name">Menschen</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t4-desc">Zuhören, begleiten, organisieren, vermitteln und Gemeinschaft schaffen.</p>
+        </div>
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">💡</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t5-name">Ideen</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t5-desc">Gedanken, Konzepte und neue Perspektiven.</p>
+        </div>
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">🌱</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t6-name">Natur</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t6-desc">Erfahrungen und Fähigkeiten rund um Natur, Umwelt und nachhaltiges Handeln.</p>
+        </div>
+        <div class="it-talent-node">
+          <span class="it-talent-icon" aria-hidden="true">⚙️</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t7-name">Technik</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t7-desc">Technisches Verständnis, digitale Fähigkeiten und praktische Lösungen.</p>
+        </div>
+        <div class="it-talent-node" style="background:transparent;border-style:dashed">
+          <span class="it-talent-icon" aria-hidden="true">✨</span>
+          <h3 class="it-talent-name" data-i18n="page.mitmachen.talent.t8-name">Mehr</h3>
+          <p class="it-talent-desc" data-i18n="page.mitmachen.talent.t8-desc">Talent lässt sich nicht immer in Kategorien fassen.</p>
+        </div>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.talent.s2-title">Sinnvolle Zusammenarbeit finden</h2>
-      <p data-i18n="page.mitmachen.talent.s2-text">Statt deine Fähigkeiten anonym anzubieten, ermöglicht HUI dir die direkte Einbindung in Initiativen, die deine Werte teilen. So entstehen Verbindungen, die nicht nur Projekte voranbringen, sondern auch persönlich bereichern.</p>
-    </section>  </div>
-
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.mitmachen.talent.coming">Mit dem Launch von HUI kannst du ein individuelles Talentprofil anlegen und dich direkt für passende Vorhaben empfehlen lassen.</p>
   </div>
 
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.mitmachen.talent.cta">Jetzt informieren lassen</a>
-    <p data-i18n="page.mitmachen.talent.cta-sub">Wir benachrichtigen dich, sobald die Talent-Plattform startet.</p>
+  <!-- ═══ LEBENSLAUF vs HUI ═══ -->
+  <section class="it-section reveal it-tint-warm">
+    <div class="it-content">
+      <h2 data-i18n="page.mitmachen.talent.cv-title">Nicht jedes Talent steht in einem Lebenslauf.</h2>
+      <div class="it-cv">
+        <div class="it-cv-col it-cv-col-left">
+          <h3 data-i18n="page.mitmachen.talent.cv-left-title">Im Lebenslauf</h3>
+          <ul class="it-cv-list">
+            <li data-i18n="page.mitmachen.talent.cv-l1">Beruf</li>
+            <li data-i18n="page.mitmachen.talent.cv-l2">Ausbildung</li>
+            <li data-i18n="page.mitmachen.talent.cv-l3">Abschluss</li>
+            <li data-i18n="page.mitmachen.talent.cv-l4">Position</li>
+            <li data-i18n="page.mitmachen.talent.cv-l5">Erfahrung</li>
+          </ul>
+        </div>
+        <div class="it-cv-col it-cv-col-right">
+          <h3 data-i18n="page.mitmachen.talent.cv-right-title">Auf HUI könnte mehr sichtbar werden</h3>
+          <ul class="it-cv-list">
+            <li data-i18n="page.mitmachen.talent.cv-r1">Was du wirklich kannst</li>
+            <li data-i18n="page.mitmachen.talent.cv-r2">Was du gerne machst</li>
+            <li data-i18n="page.mitmachen.talent.cv-r3">Was du gelernt hast</li>
+            <li data-i18n="page.mitmachen.talent.cv-r4">Was du weitergeben möchtest</li>
+            <li data-i18n="page.mitmachen.talent.cv-r5">Wofür du dich begeisterst</li>
+            <li data-i18n="page.mitmachen.talent.cv-r6">Wobei du anderen helfen kannst</li>
+          </ul>
+        </div>
+      </div>
+      <p class="it-key-moment" data-i18n="page.mitmachen.talent.cv-key">Denn Menschen sind mehr als ihre Berufsbezeichnung.</p>
+    </div>
+  </section>
+
+  <div class="it-content">
+
+    <!-- ═══ TALENT → MÖGLICHKEIT ═══ -->
+    <section class="it-section reveal">
+      <h2 data-i18n="page.mitmachen.talent.meaning-title">Dein Talent bekommt Bedeutung durch das, was du damit machst.</h2>
+      <p data-i18n="page.mitmachen.talent.meaning-text">Fähigkeiten entfalten ihren Wert oft dort, wo sie auf andere Menschen, Ideen oder konkrete Aufgaben treffen.</p>
+      <div class="it-flow">
+        <span class="it-flow-node" data-i18n="page.mitmachen.talent.flow1">Talent</span>
+        <div class="it-flow-conn" aria-hidden="true"></div>
+        <span class="it-flow-node" data-i18n="sidebar.nav.people">Menschen</span>
+        <div class="it-flow-conn" aria-hidden="true"></div>
+        <a href="/ideen" class="it-flow-node" data-i18n="sidebar.nav.ideas">Ideen</a>
+        <div class="it-flow-conn" aria-hidden="true"></div>
+        <a href="/projekte" class="it-flow-node" data-i18n="sidebar.nav.projects">Projekte</a>
+        <div class="it-flow-conn" aria-hidden="true"></div>
+        <span class="it-flow-node" data-i18n="page.mitmachen.talent.flow5">Zusammenarbeit</span>
+        <div class="it-flow-conn" aria-hidden="true"></div>
+        <span class="it-flow-node it-flow-end" data-i18n="page.mitmachen.talent.flow6">Möglichkeit</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ═══ SZENARIEN ═══ -->
+  <section class="it-section reveal it-tint-mint">
+    <div class="it-content">
+      <h2 data-i18n="page.mitmachen.talent.scenarios-title">Vielleicht suchst du gar keinen Job.</h2>
+      <p data-i18n="page.mitmachen.talent.scenarios-intro">Vielleicht möchtest du …</p>
+      <div class="it-scenarios">
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc1">dein Wissen weitergeben</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc2">anderen bei einem Projekt helfen</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc3">mit Menschen an einer Idee arbeiten</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc4">dein handwerkliches Können einsetzen</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc5">etwas Kreatives beitragen</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc6">eine Initiative unterstützen</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc7">neue Erfahrungen sammeln</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc8">Menschen mit ähnlichen Interessen kennenlernen</span>
+        <span class="it-chip" data-i18n="page.mitmachen.talent.sc9">aus einer Fähigkeit etwas Neues entwickeln</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="it-content">
+
+    <!-- ═══ PROJEKT-TREE ═══ -->
+    <section class="it-section reveal">
+      <h2 data-i18n="page.mitmachen.talent.tree-title">Das richtige Talent kann eine Idee weiterbringen.</h2>
+      <p data-i18n="page.mitmachen.talent.tree-text">Projekte brauchen selten nur eine Fähigkeit. Oft entsteht etwas Neues dort, wo unterschiedliche Stärken zusammenkommen.</p>
+      <div class="it-tree">
+        <span class="it-tree-top" data-i18n="page.mitmachen.talent.tree-idea">Idee</span>
+        <div class="it-tree-conn-v" aria-hidden="true"></div>
+        <div class="it-tree-branch">
+          <span class="it-tree-branch-node" data-i18n="page.mitmachen.talent.tree-b1">Design</span>
+          <span class="it-tree-branch-node" data-i18n="page.mitmachen.talent.tree-b2">Technik</span>
+          <span class="it-tree-branch-node" data-i18n="page.mitmachen.talent.tree-b3">Organisation</span>
+        </div>
+        <div class="it-tree-conn-v" aria-hidden="true"></div>
+        <span class="it-tree-result" data-i18n="page.mitmachen.talent.tree-result">Projekt</span>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ═══ GEMEINSCHAFT ═══ -->
+  <section class="it-section reveal it-tint-warm">
+    <div class="it-content">
+      <h2 data-i18n="page.mitmachen.talent.community-title">Du musst nicht alles alleine können.</h2>
+      <p data-i18n="page.mitmachen.talent.community-text">Eine Stärke von Gemeinschaft entsteht dort, wo Menschen unterschiedliche Fähigkeiten einbringen. Der eine kann gestalten, der andere organisieren, jemand kennt sich mit Technik aus und jemand anderes bringt Erfahrung oder eine neue Perspektive mit.</p>
+      <div class="it-formula">
+        <span class="it-formula-line" data-i18n="page.mitmachen.talent.f1">Ich kann</span>
+        <span class="it-formula-op" aria-hidden="true">+</span>
+        <span class="it-formula-line" data-i18n="page.mitmachen.talent.f2">Du kannst</span>
+        <span class="it-formula-op" aria-hidden="true">+</span>
+        <span class="it-formula-line" data-i18n="page.mitmachen.talent.f3">Wir teilen</span>
+        <span class="it-formula-op" aria-hidden="true">=</span>
+        <span class="it-formula-result" data-i18n="page.mitmachen.talent.f-result">Etwas Neues entsteht</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="it-content">
+
+    <!-- ═══ FUTURE FEATURES ═══ -->
+    <section class="it-section reveal">
+      <h2 data-i18n="page.mitmachen.talent.future-title">Was nach dem Start möglich werden soll</h2>
+      <p data-i18n="page.mitmachen.talent.future-note">HUI befindet sich im Aufbau. Die folgenden Möglichkeiten sollen mit dem Start verfügbar werden.</p>
+      <div class="it-future-grid">
+        <div class="it-future-item">
+          <h3 class="it-future-name" data-i18n="page.mitmachen.talent.fu1-name">Talent sichtbar machen</h3>
+          <p class="it-future-desc" data-i18n="page.mitmachen.talent.fu1-desc">Ein persönliches Profil soll ermöglichen, Fähigkeiten, Interessen und Erfahrungen sichtbar zu machen.</p>
+        </div>
+        <div class="it-future-item">
+          <h3 class="it-future-name" data-i18n="page.mitmachen.talent.fu2-name">Passende Möglichkeiten entdecken</h3>
+          <p class="it-future-desc" data-i18n="page.mitmachen.talent.fu2-desc">Perspektivisch soll HUI dabei helfen, passende Projekte, Ideen und Menschen zu entdecken.</p>
+        </div>
+        <div class="it-future-item">
+          <h3 class="it-future-name" data-i18n="page.mitmachen.talent.fu3-name">Fähigkeiten einbringen</h3>
+          <p class="it-future-desc" data-i18n="page.mitmachen.talent.fu3-desc">Menschen sollen ihre Fähigkeiten dort einbringen können, wo sie gebraucht werden.</p>
+        </div>
+        <div class="it-future-item">
+          <h3 class="it-future-name" data-i18n="page.mitmachen.talent.fu4-name">Gemeinsam entwickeln</h3>
+          <p class="it-future-desc" data-i18n="page.mitmachen.talent.fu4-desc">Aus unterschiedlichen Fähigkeiten können neue Kooperationen und gemeinsame Projekte entstehen.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PROFILE MOCKUP ═══ -->
+    <section class="it-section reveal">
+      <h2 data-i18n="page.mitmachen.talent.mockup-title">Ein Talent-Profil könnte so aussehen</h2>
+      <div class="it-mockup">
+        <p class="it-mockup-label" data-i18n="page.mitmachen.talent.mockup-label">Dein Talent</p>
+        <div class="it-mockup-avatar" aria-hidden="true">✦</div>
+        <div class="it-mockup-group">
+          <p class="it-mockup-group-label" data-i18n="page.mitmachen.talent.mockup-can">Was ich kann</p>
+          <div class="it-mockup-tags">
+            <span class="it-mockup-tag" data-i18n="page.mitmachen.talent.t1-name">Handwerk</span>
+            <span class="it-mockup-tag" data-i18n="page.mitmachen.talent.mockup-photo">Fotografie</span>
+            <span class="it-mockup-tag" data-i18n="page.mitmachen.talent.tree-b3">Organisation</span>
+            <span class="it-mitmachen-talent-mockup-tag it-mockup-tag" data-i18n="page.mitmachen.talent.t6-name">Natur</span>
+          </div>
+        </div>
+        <div class="it-mockup-group">
+          <p class="it-mockup-group-label" data-i18n="page.mitmachen.talent.mockup-interest">Was mich interessiert</p>
+          <div class="it-mockup-tags">
+            <span class="it-mockup-tag" data-i18n="sidebar.nav.community">Gemeinschaft</span>
+            <span class="it-mockup-tag" data-i18n="page.mitmachen.talent.mockup-sustain">Nachhaltigkeit</span>
+            <span class="it-mockup-tag" data-i18n="page.mitmachen.talent.t2-name">Kreativität</span>
+          </div>
+        </div>
+        <div class="it-mockup-group">
+          <p class="it-mockup-group-label" data-i18n="page.mitmachen.talent.mockup-bring">Was ich einbringen möchte</p>
+          <p class="it-mockup-quote" data-i18n="page.mitmachen.talent.mockup-quote">„Ich möchte meine Erfahrung und mein praktisches Wissen in sinnvolle Projekte einbringen."</p>
+        </div>
+        <p class="it-mockup-note" data-i18n="page.mitmachen.talent.mockup-note">Beispiel für eine mögliche Darstellung nach dem Start.</p>
+      </div>
+    </section>
+
+    <!-- ═══ FAQ ═══ -->
+    <section class="it-faq reveal">
+      <h2 data-i18n="page.mitmachen.talent.faq-title">Häufige Fragen zu Talenten auf HUI</h2>
+      <div class="it-faq-list">
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q1">Was versteht HUI unter einem Talent?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a1">Bei HUI wird Talent nicht ausschließlich als berufliche Qualifikation verstanden. Ein Talent kann Wissen, handwerkliches Können, Kreativität, Erfahrung, soziale Kompetenz oder eine andere Fähigkeit sein, die ein Mensch einbringen möchte.</p>
+          </div>
+        </details>
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q2">Kann ich auch ein Talent haben, das kein Beruf ist?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a2">Ja. HUI versteht Talent bewusst breit. Auch Fähigkeiten und Erfahrungen, die nicht in einem Lebenslauf stehen, sind wertvoll und sollen sichtbar werden können.</p>
+          </div>
+        </details>
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q3">Welche Fähigkeiten kann ich auf HUI sichtbar machen?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a3">Perspektivisch soll HUI ermöglichen, vielfältige Fähigkeiten zu zeigen: handwerkliches Können, kreative Ausdrucksformen, Fachwissen, Organisationstalent, soziale Kompetenzen, technisches Verständnis und vieles mehr.</p>
+          </div>
+        </details>
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q4">Wie kann ich mein Talent in ein Projekt einbringen?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a4">Nach dem Start von HUI sollst du deine Fähigkeiten sichtbar machen und so auf <a href="/projekte">Projekte</a> und <a href="/ideen">Ideen</a> aufmerksam werden können, die passende Möglichkeiten bieten.</p>
+          </div>
+        </details>
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q5">Wie können Talente und Projekte zusammenfinden?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a5">HUI möchte Möglichkeiten schaffen, damit Menschen mit passenden Fähigkeiten, Interessen und Ideen leichter zueinanderfinden. Perspektivisch sollen Profile dabei helfen, den Austausch zwischen Talenten und Projekten zu erleichtern.</p>
+          </div>
+        </details>
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q6">Kann ich mehrere Talente haben?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a6">Ja. Menschen sind vielfältig. Du kannst mehrere Fähigkeiten und Interessen haben, die sich ergänzen oder in unterschiedliche Bereiche gehören.</p>
+          </div>
+        </details>
+        <details class="it-faq-item">
+          <summary data-i18n="page.mitmachen.talent.q7">Wann kann ich mein Talent auf HUI präsentieren?</summary>
+          <div class="it-faq-answer">
+            <p data-i18n="page.mitmachen.talent.a7">HUI befindet sich im Aufbau. Die entsprechenden Plattformfunktionen werden erst mit dem Start verfügbar sein. Du kannst dich bereits jetzt über den Start informieren lassen.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="it-cta reveal">
+    <h2 data-i18n="page.mitmachen.talent.cta-title">Vielleicht ist dein Talent genau das, was jemand anderes gerade sucht.</h2>
+    <p data-i18n="page.mitmachen.talent.cta-text">HUI befindet sich im Aufbau. Wenn die Plattform startet, sollen Menschen ihre Fähigkeiten sichtbar machen und neue Möglichkeiten entdecken können.</p>
+    <span class="it-cta-bald" data-i18n="page.mitmachen.talent.cta-button">Über den HUI-Start informieren →</span>
+    <p class="it-cta-sub" data-i18n="page.mitmachen.talent.cta-sub-note">Noch nicht verfügbar – HUI befindet sich im Aufbau.</p>
+  </section>
+
+  <!-- ═══ SIGN-OFF ═══ -->
+  <section class="it-signoff">
+    <span class="it-signoff-line" aria-hidden="true"></span>
+    <p class="it-signoff-text" data-i18n="page.mitmachen.talent.signoff">Ein Talent muss nicht laut sein, um wertvoll zu sein.</p>
+    <p class="it-signoff-name">HUI</p>
+    <p class="it-signoff-full">Human United Intelligence</p>
+    <p class="it-signoff-tagline" data-i18n="page.mitmachen.talent.tagline">Menschen. Ideen. Möglichkeiten.</p>
   </section>
 </main>
 
