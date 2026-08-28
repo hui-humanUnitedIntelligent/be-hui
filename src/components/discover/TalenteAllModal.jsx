@@ -175,13 +175,13 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>Talente entdecken</div>
-              <div style={{ fontSize:11.5, color:T.inkFaint }}>Dienstleistungen & Angebote von HUI Talenten</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("discover.talente")}</div>
+              <div style={{ fontSize:11.5, color:T.inkFaint }}>{t("discover.talenteSub")}</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Talente suchen…"
+            placeholder={t("discover.talenteSearchPlaceholder")}
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
               background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>

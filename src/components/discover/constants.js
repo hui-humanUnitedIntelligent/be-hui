@@ -82,12 +82,15 @@ export const safeStr = (v, fb="") => (v && typeof v === "string" ? v.trim() : fb
 export const safeNum = (v, fb=0)  => (typeof v === "number" && isFinite(v) ? v : fb);
 export const safeArr = (v)         => (Array.isArray(v) ? v : []);
 export const fmtImpact = (n) => n >= 1000 ? `${(n/1000).toFixed(1)}k` : String(n);
+import { t as _rawT, detectSystemLang } from "../../i18n/index.js";
+
 export const timeAgo = (dateStr) => {
   if (!dateStr) return "";
+  const lang = detectSystemLang();
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000 / 3600;
-  if (diff < 1) return "vor " + Math.round(diff*60) + " Min";
-  if (diff < 24) return "vor " + Math.round(diff) + " Std";
-  return "vor " + Math.round(diff/24) + " Tagen";
+  if (diff < 1) return _rawT("common.minsAgoShort", lang).replace("{n}", Math.round(diff*60));
+  if (diff < 24) return _rawT("common.hoursAgoShort", lang).replace("{n}", Math.round(diff));
+  return _rawT("common.daysAgoShort", lang).replace("{n}", Math.round(diff/24));
 };
 
 // Discover cache (module-level, shared across mounts)

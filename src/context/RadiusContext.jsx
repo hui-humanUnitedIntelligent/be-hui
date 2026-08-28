@@ -24,6 +24,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from "react";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
+import { t as _rawT, detectSystemLang } from "../i18n/index.js";
 
 // ── ZENTRALE RADIUS-KONFIGURATION (2026-07-06, UX-Vereinfachung) ──────────
 // Einzige Quelle fuer die verfuegbaren Radius-Stufen im gesamten Projekt.
@@ -47,7 +48,7 @@ export const RADIUS_OPTIONS = ["world", 10, 25, 50, 100, 250, 500];
 export const DEFAULT_RADIUS_KM = "world";
 
 export function radiusLabel(stage) {
-  return stage === "world" ? "Weltweit 🌍" : `${stage} km`;
+  return stage === "world" ? `${_rawT("discover.worldwide", detectSystemLang())} 🌍` : `${stage} km`;
 }
 
 const LS_RADIUS_KEY = "hui_radius_km";

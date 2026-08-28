@@ -113,7 +113,7 @@ export function LocationRadiusRow({
                   cursor:"pointer", border: radiusKm===stage ? "none" : `1px solid ${T.border}`,
                   background: radiusKm===stage ? T.ink : "none",
                   color: radiusKm===stage ? "#fff" : T.inkFaint, whiteSpace:"nowrap" }}>
-                {stage === "world" ? "Weltweit 🌍" : `${stage} km`}
+                {radiusLabel(stage)}
               </button>
             ))}
           </div>

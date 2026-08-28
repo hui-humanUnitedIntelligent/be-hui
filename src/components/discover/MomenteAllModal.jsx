@@ -24,12 +24,13 @@ const SORT_OPTIONS = [
 ];
 const timeAgo = (iso) => {
   if (!iso) return "";
+  const lang = detectSystemLang();
   const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (d < 1) return _rawT("common.today", _lang);
-  if (d === 1) return _rawT("common.yesterday", _lang);
-  if (d < 7) return _rawT("common.daysAgo", _lang).replace("{n}", d);
-  if (d < 30) return _rawT("common.weeksAgoShort", _lang).replace("{n}", Math.floor(d/7));
-  return `vor ${Math.floor(d/30)} Mon.`;
+  if (d < 1) return _rawT("common.today", lang);
+  if (d === 1) return _rawT("common.yesterday", lang);
+  if (d < 7) return _rawT("common.daysAgo", lang).replace("{n}", d);
+  if (d < 30) return _rawT("common.weeksAgoShort", lang).replace("{n}", Math.floor(d/7));
+  return _rawT("common.monthsAgoShort", lang).replace("{n}", Math.floor(d/30));
 };
 
 function MomentCardItem({ m, onPress, onOpenProfile }) {
@@ -229,7 +230,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Momente suchen…"
+            placeholder={t("discover.momenteSearchPlaceholder")}
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
               background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:6 }}>

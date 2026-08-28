@@ -24,6 +24,7 @@ import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { fetchSearchSuggestions, highlightMatch, hasAnySuggestions, SUGGESTIONS_MIN_QUERY_LEN } from "../../../lib/searchSuggestions.js";
 import LocationAutocompleteInput from "../../shared/LocationAutocompleteInput.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 // ─────────────────────────────────────────────────────────────
 // DESIGN TOKENS
@@ -120,9 +121,10 @@ function SectionLabel({ children, color, action, onAction }) {
 // ("aktive Stufe weich animieren", ohne Flackern -- der Text selbst bleibt
 // stabil sichtbar, nur ein sanftes Fade beim Wechsel).
 function RadiusIndicator({ radius, activeFilterCount = 0, onFilterPillClick }) {
+  const { t } = useTranslation();
   const label = radius.isWorldwide
-    ? "🌍 Weltweit"
-    : `📍 ${radius.geo?.label || "In deiner Nähe"} · ${radiusLabel(radius.radiusKm)}`;
+    ? `🌍 ${t("discover.worldwide")}`
+    : `📍 ${radius.geo?.label || t("discover.nearby")} · ${radiusLabel(radius.radiusKm)}`;
 
   // FILTER-ZÄHLER (2026-08-12, Michael-Auftrag) -- macht sichtbar, WARUM der
   // Feed gerade nur eine Teilmenge zeigt (z.B. nur Werke), auch wenn das

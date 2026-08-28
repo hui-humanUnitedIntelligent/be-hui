@@ -16,6 +16,7 @@ const T = {
 };
 
 function PlaceCard({ place, onPress }) {
+  const { t } = useTranslation();
   const [sightUrl, setSightUrl] = useState(null);
   const [imgErr, setImgErr]     = useState(false);
 
@@ -54,19 +55,19 @@ function PlaceCard({ place, onPress }) {
           {place.people_count > 0 && (
             <span style={{ color:T.tealDeep, display:"flex", alignItems:"center", gap:2 }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:T.teal, display:"inline-block" }}/>
-              {place.people_count} {place.people_count === 1 ? "Person" : "Personen"}
+              {place.people_count} {place.people_count === 1 ? t("common.person") : t("common.people")}
             </span>
           )}
           {place.works_count > 0 && (
             <span style={{ color:T.inkSoft, display:"flex", alignItems:"center", gap:2 }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:"#F5A623", display:"inline-block" }}/>
-              {place.works_count} Werk{place.works_count > 1 ? "e" : ""}
+              {place.works_count} {place.works_count === 1 ? t("common.work") : t("common.works")}
             </span>
           )}
           {place.experiences_count > 0 && (
             <span style={{ color:T.inkSoft, display:"flex", alignItems:"center", gap:2 }}>
               <span style={{ width:6, height:6, borderRadius:"50%", background:"#FF6F61", display:"inline-block" }}/>
-              {place.experiences_count} Erlebnis{place.experiences_count > 1 ? "se" : ""}
+              {place.experiences_count} {place.experiences_count === 1 ? t("common.experience") : t("common.experiences")}
             </span>
           )}
         </div>
@@ -76,14 +77,15 @@ function PlaceCard({ place, onPress }) {
 }
 
 function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const isPerson = item.item_type === "person";
   const isWork   = item.item_type === "work";
   const isExp    = item.item_type === "experience";
 
-  const typeBadge = isPerson ? { bg:"rgba(14,196,184,0.12)", text:T.tealDeep, label:"Person" }
-    : isWork ? { bg:"rgba(245,166,35,0.12)", text:"#C8860D", label:"Werk" }
-    : { bg:"rgba(255,111,97,0.12)", text:"#E04E3E", label:"Erlebnis" };
+  const typeBadge = isPerson ? { bg:"rgba(14,196,184,0.12)", text:T.tealDeep, label:t("common.person") }
+    : isWork ? { bg:"rgba(245,166,35,0.12)", text:"#C8860D", label:t("common.work") }
+    : { bg:"rgba(255,111,97,0.12)", text:"#E04E3E", label:t("common.experience") };
 
   const handleClick = () => {
     if (isPerson)     onPressPerson?.(item.id);
@@ -223,7 +225,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
               )}
               <div>
                 <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>
-                  {showDetail ? selectedPlace : "Orte entdecken"}
+                  {showDetail ? selectedPlace : t("discover.orte")}
                 </div>
                 <div style={{ fontSize:11.5, color:T.inkFaint }}>
                   {showDetail
@@ -236,7 +238,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
           </div>
           {!showDetail && (
             <input value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Ort suchen…"
+              placeholder={t("discover.orteSearchPlaceholder")}
               style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
                 background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
           )}
@@ -248,7 +250,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
             // ── Detail-View: alle Einträge für den ausgewählten Ort ──
             detailLoading ? (
               <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint, fontSize:14 }}>
-                Lade Einträge…
+                {t("common.loadingEntries")}
               </div>
             ) : detailItems.length === 0 ? (
               <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>

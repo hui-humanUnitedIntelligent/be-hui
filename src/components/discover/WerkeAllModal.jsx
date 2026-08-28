@@ -214,7 +214,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
               <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("discover.werke")}</div>
-              <div style={{ fontSize:11.5, color:T.inkFaint }}>Kunst, Musik, Fotografie & mehr</div>
+              <div style={{ fontSize:11.5, color:T.inkFaint }}>{t("discover.werkeSub")}</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>

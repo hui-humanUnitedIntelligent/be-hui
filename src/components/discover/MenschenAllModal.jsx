@@ -37,7 +37,7 @@ const PAGE_SIZE = 20;
 const SORT_OPTIONS = [
   { key:"popular",   label:"common.popular",    icon:"✨" },
   { key:"followers", label:"common.followers",   icon:"👥" },
-  { key:"likes",     label:"Likes",      icon:"❤️" },
+  { key:"likes",     label:"common.likes",      icon:"❤️" },
   { key:"alpha",     label:"A–Z",   icon:"🔤" },
 ];
 
@@ -202,7 +202,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
           </div>
           <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Menschen suchen…"
+            placeholder={t("discover.menschenSearchPlaceholder")}
             style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
               background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box", marginBottom:10 }}/>
           <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:2 }}>
