@@ -15,6 +15,7 @@
 <link rel="preload" as="image" href="/hero.webp" fetchpriority="high"/>
 <link rel="preload" as="font" href="/fonts/Inter-ExtraBold.woff2" type="font/woff2" crossorigin/>
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
+<link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 
 <!-- Inter — local, no Google Fonts -->
@@ -480,141 +481,7 @@ ul{list-style:none}
 
 /* ═══ RESPONSIVE ═══ */
 
-/* ═══ HUI SIDEBAR ═══ */
-.hui-tab{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:1001;display:flex;align-items:center;justify-content:center;width:64px;height:70px;background:rgba(253,251,248,.9);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(20,20,34,.07);border-right:none;border-radius:18px 0 0 18px;box-shadow:-4px 3px 24px rgba(20,20,34,.09);cursor:pointer;transition:opacity .35s var(--ease-out),transform .35s var(--ease-out),background .25s var(--ease),box-shadow .25s var(--ease)}
-.hui-tab:hover{background:rgba(255,255,255,.97);box-shadow:-6px 4px 32px rgba(20,20,34,.12)}
-.hui-tab img{width:32px;height:32px;opacity:.88;transition:opacity .25s var(--ease),transform .25s var(--ease)}
-.hui-tab:hover img{opacity:1;transform:scale(1.06)}
-.hui-tab.sidebar-open{opacity:0;pointer-events:none;transform:translateY(-50%) translateX(100%)}
-.hui-tab:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 
-/* ── HUI Entdeckungs-Tab: dezentes Atmen + Hover-Kapsel ── */
-@keyframes hui-tab-breathe{0%,100%{box-shadow:-4px 3px 24px rgba(20,20,34,.09)}50%{box-shadow:-4px 3px 24px rgba(13,196,181,.13)}}
-@media(hover:hover){.hui-tab:not(.sidebar-open){animation:hui-tab-breathe 6s ease-in-out infinite}
-@media(hover:hover) and (prefers-reduced-motion:reduce){.hui-tab:not(.sidebar-open){animation:none}}}
-.hui-tab-capsule{position:fixed;right:0;top:50%;transform:translate(100%,-50%);z-index:1000;pointer-events:none;opacity:0;transition:opacity .4s var(--ease-out),transform .5s var(--ease-out);display:flex;align-items:center;gap:10px;padding:12px 22px 12px 16px;background:rgba(253,251,248,.94);backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);border:1px solid rgba(13,196,181,.12);border-right:none;border-radius:18px 0 0 18px;box-shadow:-4px 3px 28px rgba(20,20,34,.07)}
-@media(hover:hover){.hui-tab:hover~.hui-tab-capsule,.hui-tab-capsule:hover{opacity:1;transform:translate(0,-50%);pointer-events:auto}}
-.hui-tab-capsule-label{font-family:'DM Sans',system-ui,sans-serif;font-size:14px;font-weight:500;color:var(--ink);white-space:nowrap;line-height:1.3}
-.hui-tab-capsule-sub{font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:400;color:var(--teal);letter-spacing:.02em;white-space:nowrap;margin-top:2px}
-.hui-tab-capsule-text{display:flex;flex-direction:column}
-.hui-tab-capsule.sidebar-open{opacity:0 !important;transform:translate(100%,-50%) !important;pointer-events:none !important}
-
-.hui-sidebar-backdrop{position:fixed;inset:0;z-index:1100;background:rgba(20,20,34,.16);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .45s var(--ease-out),visibility .45s}
-.hui-sidebar-backdrop.open{opacity:1;visibility:visible}
-
-.hui-sidebar{position:fixed;top:0;right:0;width:420px;max-width:100vw;height:100vh;height:100dvh;z-index:1101;background:rgba(253,251,248,.96);backdrop-filter:blur(28px) saturate(1.3);-webkit-backdrop-filter:blur(28px) saturate(1.3);border-left:1px solid rgba(20,20,34,.06);box-shadow:-16px 0 52px rgba(20,20,34,.08);transform:translateX(100%);transition:transform .45s var(--ease-out),visibility .45s;display:flex;flex-direction:column;overflow:hidden;visibility:hidden}
-.hui-sidebar.open{transform:translateX(0);visibility:visible}
-
-.hui-sidebar-close{position:absolute;top:18px;right:18px;z-index:5;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(20,20,34,.04);border:1px solid rgba(20,20,34,.06);border-radius:50%;color:var(--ink-body);cursor:pointer;transition:all .2s var(--ease)}
-.hui-sidebar-close:hover{background:rgba(13,196,181,.06);border-color:rgba(13,196,181,.2);color:var(--teal-deep);transform:rotate(90deg)}
-.hui-sidebar-close:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
-
-.hui-sidebar-header{flex-shrink:0;padding:44px 36px 24px;text-align:center}
-.hui-sidebar-logo{width:48px;height:48px;margin:0 auto 14px;display:block;opacity:.92}
-.hui-sidebar-tagline{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.2;margin:0 0 4px}
-.hui-sidebar-sub{font-size:12px;color:var(--muted);letter-spacing:.5px;margin:0;font-weight:400}
-
-.hui-sidebar-divider{flex-shrink:0;width:140px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(20,20,34,.1),transparent);position:relative}
-.hui-sidebar-divider::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.35}
-
-.hui-sidebar-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 36px;display:flex;flex-direction:column;gap:28px;-webkit-overflow-scrolling:touch}
-.hui-sidebar-scroll::-webkit-scrollbar{width:4px}
-.hui-sidebar-scroll::-webkit-scrollbar-thumb{background:rgba(20,20,34,.06);border-radius:4px}
-.hui-sidebar-scroll::-webkit-scrollbar-track{background:transparent}
-
-.hui-sidebar-nav{display:flex;flex-direction:column;gap:24px}
-
-/* ── Section headings ── */
-.hui-nav-section{display:flex;flex-direction:column}
-.hui-nav-heading{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal-deep);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(20,20,34,.04)}
-
-/* ── Main links with subtitles (Entdecken + Die Idee primary) ── */
-.hui-nav-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
-.hui-nav-link{display:flex;flex-direction:column;padding:10px 14px;border-radius:10px;text-decoration:none;transition:background .2s var(--ease),transform .2s var(--ease),border-color .2s var(--ease);border:1px solid transparent}
-.hui-nav-link:hover{background:rgba(13,196,181,.05);transform:translateX(3px)}
-.hui-nav-link:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
-.hui-nav-link-label{font-size:14.5px;font-weight:600;color:var(--ink);line-height:1.3}
-.hui-nav-link-sub{font-size:12px;color:var(--muted);font-weight:400;margin-top:2px;line-height:1.4}
-.hui-nav-link:hover .hui-nav-link-label{color:var(--teal-deep)}
-
-/* ── "Was ist HUI?" highlighted ── */
-.hui-nav-link-primary{background:rgba(13,196,181,.04);border-color:rgba(13,196,181,.1)}
-.hui-nav-link-primary .hui-nav-link-label{font-size:16px;font-weight:700;color:var(--ink)}
-.hui-nav-link-primary:hover{background:rgba(13,196,181,.08);border-color:rgba(13,196,181,.18)}
-.hui-nav-link-primary:hover .hui-nav-link-label{color:var(--teal-deep)}
-
-/* ── Active page state ── */
-.hui-nav-link[aria-current="page"]{background:rgba(13,196,181,.07);border-color:rgba(13,196,181,.15);position:relative}
-.hui-nav-link[aria-current="page"]::before{content:'';position:absolute;left:-1px;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--teal);border-radius:0 3px 3px 0}
-.hui-nav-link[aria-current="page"] .hui-nav-link-label{color:var(--teal-deep)}
-.hui-nav-link[aria-current="page"] .hui-nav-link-sub{color:var(--teal-deep);opacity:.7}
-
-/* ── Plain links (Die Idee secondary) ── */
-.hui-nav-link-plain{display:block;padding:8px 14px;font-size:14px;font-weight:500;color:var(--ink-body);border-radius:8px;text-decoration:none;transition:color .2s var(--ease),background .2s var(--ease),transform .2s var(--ease)}
-.hui-nav-link-plain:hover{color:var(--teal-deep);background:rgba(13,196,181,.04);transform:translateX(3px)}
-.hui-nav-link-plain:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
-.hui-nav-link-plain[aria-current="page"]{color:var(--teal-deep);background:rgba(13,196,181,.06);position:relative;padding-left:18px}
-.hui-nav-link-plain[aria-current="page"]::before{content:'';position:absolute;left:4px;top:50%;transform:translateY(-50%);width:5px;height:5px;border-radius:50%;background:var(--teal)}
-
-/* ── Action links (Mitmachen) ── */
-.hui-nav-action{display:block;padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.5);border:1px solid rgba(20,20,34,.06);text-decoration:none;transition:all .25s var(--ease)}
-.hui-nav-action:hover{border-color:rgba(13,196,181,.25);background:rgba(13,196,181,.04);transform:translateX(3px)}
-.hui-nav-action:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
-.hui-nav-action-label{font-size:14px;font-weight:600;color:var(--ink)}
-.hui-nav-action:hover .hui-nav-action-label{color:var(--teal-deep)}
-.hui-nav-action[aria-current="page"]{background:rgba(13,196,181,.07);border-color:rgba(13,196,181,.18)}
-.hui-nav-action[aria-current="page"] .hui-nav-action-label{color:var(--teal-deep)}
-.hui-nav-action[aria-current="page"]::after{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--teal);margin-left:8px;vertical-align:middle}
-
-/* ── Secondary links (Entdecken sub-items) ── */
-.hui-nav-list-secondary{list-style:none;margin:8px 0 0;padding:6px 0 0;border-top:1px solid rgba(20,20,34,.03);display:flex;flex-wrap:wrap;gap:4px 12px}
-.hui-nav-list-secondary li{display:inline}
-.hui-nav-list-secondary a{font-size:12.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:6px;transition:color .2s var(--ease),background .2s var(--ease)}
-.hui-nav-list-secondary a:hover{color:var(--teal-deep);background:rgba(13,196,181,.04)}
-.hui-nav-list-secondary a:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
-
-/* ── Compact sections (Inspiration, HUI kommt) ── */
-.hui-nav-section-compact .hui-nav-heading{font-size:9px;letter-spacing:2px;margin-bottom:8px}
-.hui-nav-list-plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
-.hui-nav-list-plain a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:6px;transition:color .2s var(--ease),background .2s var(--ease)}
-.hui-nav-list-plain a:hover{color:var(--teal-deep);background:rgba(13,196,181,.04)}
-.hui-nav-list-plain a:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
-
-/* ── Stagger animation on sidebar open ── */
-.hui-sidebar.open .hui-nav-section{animation:sidebarFadeIn .4s var(--ease-out) both}
-.hui-sidebar.open .hui-nav-section:nth-child(1){animation-delay:.1s}
-.hui-sidebar.open .hui-nav-section:nth-child(2){animation-delay:.16s}
-.hui-sidebar.open .hui-nav-section:nth-child(3){animation-delay:.22s}
-.hui-sidebar.open .hui-nav-section:nth-child(4){animation-delay:.28s}
-.hui-sidebar.open .hui-nav-section:nth-child(5){animation-delay:.34s}
-.hui-sidebar.open .hui-journey{animation:sidebarFadeIn .4s var(--ease-out) .4s both}
-.hui-sidebar.open .hui-quote{animation:sidebarFadeIn .4s var(--ease-out) .46s both}
-@keyframes sidebarFadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── Journey + Quote (unchanged styles) ── */
-.hui-journey{padding:4px 0}
-.hui-journey-title{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--teal-deep);margin:0 0 16px;padding-bottom:8px;border-bottom:1px solid rgba(20,20,34,.04)}
-.hui-journey-steps{position:relative;display:flex;flex-direction:column;gap:14px;padding-left:24px}
-.hui-journey-steps::before{content:'';position:absolute;left:3px;top:8px;bottom:8px;width:1.5px;background:linear-gradient(180deg,rgba(13,196,181,.25),rgba(20,20,34,.06));border-radius:2px}
-.hui-journey-step{display:flex;align-items:center;gap:12px;position:relative}
-.hui-journey-step::before{content:'';position:absolute;left:-24px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:var(--cream);border:1.5px solid rgba(20,20,34,.12);transition:all .3s var(--ease)}
-.hui-journey-step.hui-journey-active::before{background:var(--teal);border-color:var(--teal);box-shadow:0 0 0 4px rgba(13,196,181,.12)}
-.hui-journey-num{font-size:11px;font-weight:600;color:var(--faint);letter-spacing:.5px;width:20px;flex-shrink:0}
-.hui-journey-active .hui-journey-num{color:var(--teal-deep)}
-.hui-journey-label{font-size:13px;font-weight:500;color:var(--ink-body)}
-.hui-journey-active .hui-journey-label{color:var(--ink);font-weight:600}
-
-.hui-quote{padding:8px 12px;text-align:center}
-.hui-quote p{font-size:13px;font-weight:400;line-height:1.6;color:var(--muted);font-style:italic;margin:0}
-
-.hui-sidebar-footer{flex-shrink:0;padding:20px 36px 28px;border-top:1px solid rgba(20,20,34,.04);display:flex;flex-direction:column;gap:14px;align-items:center}
-.hui-sidebar-links{display:flex;gap:20px;align-items:center}
-.hui-sidebar-links a{font-size:11px;font-weight:500;color:var(--muted);transition:color .2s var(--ease);text-decoration:none}
-.hui-sidebar-links a:hover{color:var(--teal-deep)}
-
-/* Sidebar toast */
-.hui-sidebar-toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(16px);z-index:1200;background:var(--ink);color:var(--white);padding:14px 24px;border-radius:var(--r);font-size:14px;font-weight:500;box-shadow:0 8px 32px rgba(20,20,34,.18);opacity:0;visibility:hidden;transition:opacity .3s var(--ease-out),transform .3s var(--ease-out),visibility .3s;max-width:360px;text-align:center;line-height:1.5}
-.hui-sidebar-toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
 
 @media(max-width:900px){
 
@@ -731,15 +598,7 @@ ul{list-style:none}
   .footer-grid{grid-template-columns:1fr;gap:32px;text-align:center}
   .footer-col{align-items:center}
 
-  .hui-sidebar{width:94vw}
-  .hui-sidebar-header{padding:36px 24px 20px}
-  .hui-sidebar-scroll{padding:0 24px;gap:20px}
-  .hui-sidebar-footer{padding:16px 24px 24px}
-  .hui-nav-link{padding:8px 12px}
-  .hui-nav-action{padding:10px 12px}
-  .hui-nav-link-primary .hui-nav-link-label{font-size:15px}
-  .hui-tab{width:58px;height:64px}
-  .hui-tab-capsule{display:none}
+
 }
 
 @media(max-width:480px){
