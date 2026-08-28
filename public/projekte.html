@@ -25,9 +25,76 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 50% 35% at 70% 15%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 20% 75%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+
+/* ── HERO: zweispaltig, Bild ~45% ── */
+.projekte-hero{position:relative;z-index:1;display:flex;align-items:center;gap:48px;max-width:980px;margin:0 auto;padding:120px 24px 72px}
+.projekte-hero-text{flex:1;min-width:0}
+.projekte-hero-text .hui-page-back{margin-bottom:20px}
+.projekte-hero-text h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px}
+.projekte-hero-text p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:480px;margin:0}
+.projekte-hero-img{flex:0 0 44%;max-width:320px;position:relative}
+.projekte-hero-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.projekte-hero-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CONTENT ── */
+.projekte-content{max-width:840px;margin:0 auto;padding:0 24px 60px}
+
+/* ── Gemeinsam: zweispaltig (Text links, Bild rechts) ── */
+.projekte-gemeinsam{display:flex;align-items:center;gap:48px;margin-bottom:64px}
+.projekte-gemeinsam-text{flex:1;min-width:0}
+.projekte-gemeinsam-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.projekte-gemeinsam-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.projekte-gemeinsam-img{flex:0 0 42%;max-width:340px;position:relative}
+.projekte-gemeinsam-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.projekte-gemeinsam-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.05),rgba(244,115,85,.03));z-index:-1}
+
+/* ── Transparenz: zweispaltig (Bild links, Text rechts) ── */
+.projekte-transparenz{display:flex;align-items:center;gap:48px;margin-bottom:64px}
+.projekte-transparenz-img{flex:0 0 42%;max-width:340px;position:relative;order:1}
+.projekte-transparenz-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.projekte-transparenz-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(244,115,85,.04),rgba(13,196,181,.04));z-index:-1}
+.projekte-transparenz-text{flex:1;min-width:0;order:2}
+.projekte-transparenz-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.projekte-transparenz-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+
+/* ── Projektdynamik: 5-Schritte Prozess ── */
+.projekte-list-title{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:36px;text-align:center}
+.projekte-steps{margin-bottom:64px;max-width:560px;margin-left:auto;margin-right:auto}
+.projekte-step{display:flex;align-items:flex-start;gap:20px;padding:20px 0;position:relative}
+.projekte-step:not(:last-child)::after{content:'';position:absolute;left:15px;top:52px;bottom:-8px;width:1px;background:linear-gradient(180deg,rgba(13,196,181,.2),rgba(13,196,181,.05))}
+.projekte-step-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgba(13,196,181,.08);color:var(--teal-deep);font-size:13px;font-weight:600;font-family:'Inter',sans-serif;position:relative;z-index:1}
+.projekte-step-body h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.4}
+.projekte-step-body p{font-size:14.5px;color:var(--ink-body);line-height:1.6;margin:0}
+
+/* ── Abschluss: großzügig, motivierend ── */
+.projekte-abschluss{text-align:center;padding:56px 24px 48px;max-width:640px;margin:0 auto}
+.projekte-abschluss-headline{font-size:clamp(22px,3.5vw,32px);font-weight:300;letter-spacing:-.01em;color:var(--ink);margin-bottom:24px;line-height:1.3}
+.projekte-abschluss-headline em{font-style:normal;color:var(--teal-deep);font-weight:500}
+.projekte-abschluss::before{content:'';display:block;width:40px;height:1px;margin:0 auto 32px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.projekte-abschluss-text{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0 0 32px}
+.projekte-abschluss .btn-primary{display:inline-flex;align-items:center;padding:16px 40px;font-size:15px;font-weight:600;letter-spacing:.5px;box-shadow:0 4px 20px rgba(13,196,181,.12)}
+.projekte-abschluss-cta-sub{font-size:13.5px;color:var(--muted);margin-top:16px;line-height:1.5}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .projekte-hero{flex-direction:column-reverse;padding:100px 20px 56px;gap:32px}
+  .projekte-hero-img{max-width:240px}
+  .projekte-hero-text h1{font-size:26px}
+  .projekte-hero-text p{font-size:15px}
+  .projekte-content{padding:0 20px 40px}
+  .projekte-gemeinsam{flex-direction:column;gap:28px;margin-bottom:48px}
+  .projekte-gemeinsam-img{max-width:280px;margin:0 auto}
+  .projekte-gemeinsam-text h2{font-size:20px}
+  .projekte-transparenz{flex-direction:column;gap:28px;margin-bottom:48px}
+  .projekte-transparenz-img{max-width:280px;margin:0 auto;order:1}
+  .projekte-transparenz-text h2{font-size:20px}
+  .projekte-list-title{font-size:20px}
+  .projekte-step{gap:16px;padding:16px 0}
+  .projekte-abschluss{padding:40px 20px}
+  .projekte-abschluss-headline{font-size:22px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/projekte"/>
@@ -201,42 +268,92 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.projekte.hero">Aus einer Idee kann ein Projekt werden.</h1>
-    <p class="reveal d2" data-i18n="page.projekte.sub">Projekte verwandeln Gedanken in erlebbare Realität. Auf HUI findest du die nötige Unterstützung, um aus Plänen konkrete Initiativen mit echter Wirkung zu machen.</p>
+
+  <!-- ═══ HERO: zweispaltig mit Bild ═══ -->
+  <section class="projekte-hero">
+    <div class="projekte-hero-text">
+      <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
+      <h1 class="reveal" data-i18n="page.projekte.hero">Aus einer Idee kann ein Projekt werden.</h1>
+      <p class="reveal d2" data-i18n="page.projekte.sub">Projekte verwandeln Gedanken in erlebbare Realität. Auf HUI findest du die nötige Unterstützung, um aus Plänen konkrete Initiativen mit echter Wirkung zu machen.</p>
+    </div>
+    <div class="projekte-hero-img reveal d2">
+      <img src="/assets/projekte-hero.webp" alt="Menschen, die gemeinsam an Skizzen und Ideen arbeiten" width="320" height="320" loading="lazy" decoding="async"/>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.projekte.s1-title">Gemeinsam Ziele verwirklichen</h2>
-      <p data-i18n="page.projekte.s1-text">Ein erfolgreiches Projekt erfordert vielfältige Kompetenzen und verlässliche Partner. HUI bringt Projektverantwortliche mit Menschen zusammen, die ihre Zeit, Erfahrung oder Ressourcen einbringen möchten. So entstehen tragfähige Teams für Vorhaben jeder Größenordnung.</p>
+  <div class="projekte-content">
+
+    <!-- ═══ GEMEINSAM ZIELE VERWIRKLICHEN: Text links, Bild rechts ═══ -->
+    <section class="projekte-gemeinsam reveal">
+      <div class="projekte-gemeinsam-text">
+        <h2 data-i18n="page.projekte.s1-title">Gemeinsam Ziele verwirklichen</h2>
+        <p data-i18n="page.projekte.s1-text">Ein erfolgreiches Projekt erfordert vielfältige Kompetenzen und verlässliche Partner. HUI bringt Projektverantwortliche mit Menschen zusammen, die ihre Zeit, Erfahrung oder Ressourcen einbringen möchten. So entstehen tragfähige Teams für Vorhaben jeder Größenordnung.</p>
+      </div>
+      <div class="projekte-gemeinsam-img">
+        <img src="/assets/projekte-team.webp" alt="Ein kleines Team arbeitet gemeinsam an einem praktischen Projekt" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.projekte.s2-title">Transparente Weiterentwicklung</h2>
-      <p data-i18n="page.projekte.s2-text">Wir setzen auf nachvollziehbare Prozesse und offene Kommunikation. Du kannst den Fortschritt von Projekten mitverfolgen, Meilensteine feiern und dich in jeder Phase aktiv einbringen. So bleibt die Entstehung von Initiativen für alle Beteiligten lebendig und nachvollziehbar.</p>
+    <!-- ═══ TRANSPARENTE WEITERENTWICKLUNG: Bild links, Text rechts ═══ -->
+    <section class="projekte-transparenz reveal">
+      <div class="projekte-transparenz-img">
+        <img src="/assets/projekte-fortschritt.webp" alt="Zwei Menschen betrachten gemeinsam einen fertigen Projekt-Zwischenstand" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
+      <div class="projekte-transparenz-text">
+        <h2 data-i18n="page.projekte.s2-title">Transparente Weiterentwicklung</h2>
+        <p data-i18n="page.projekte.s2-text">Wir setzen auf nachvollziehbare Prozesse und offene Kommunikation. Du kannst den Fortschritt von Projekten mitverfolgen, Meilensteine feiern und dich in jeder Phase aktiv einbringen. So bleibt die Entstehung von Initiativen für alle Beteiligten lebendig und nachvollziehbar.</p>
+      </div>
     </section>
-    <section class="hui-page-section reveal">
-      <h3 class="hui-page-list-title" data-i18n="page.projekte.list-title">Projektdynamik auf HUI erleben</h3>
-      <ul class="hui-page-list">
-        <li data-i18n="page.projekte.list-1">Starte eigene Initiativen und definiere benötigte Unterstützung</li>
-        <li data-i18n="page.projekte.list-2">Entdecke spannende Vorhaben in deiner Region oder weltweit</li>
-        <li data-i18n="page.projekte.list-3">Bringe deine Kenntnisse gezielt in bestehende Teams ein</li>
-        <li data-i18n="page.projekte.list-4">Verfolge Entwicklungen und Meilensteine in Echtzeit</li>
-        <li data-i18n="page.projekte.list-5">Schaffe gemeinsam nachhaltige Wirkung für Gesellschaft und Umwelt</li>
-      </ul>
-    </section>
+
+    <!-- ═══ PROJEKTDYNAMIK: 5-Schritte Prozess ═══ -->
+    <h3 class="projekte-list-title reveal" data-i18n="page.projekte.list-title">Projektdynamik auf HUI erleben</h3>
+    <div class="projekte-steps reveal">
+      <div class="projekte-step">
+        <span class="projekte-step-num">01</span>
+        <div class="projekte-step-body">
+          <h3 data-i18n="page.projekte.list-1-title">Eigene Initiative starten</h3>
+          <p data-i18n="page.projekte.list-1">Starte eigene Initiativen und definiere benötigte Unterstützung</p>
+        </div>
+      </div>
+      <div class="projekte-step">
+        <span class="projekte-step-num">02</span>
+        <div class="projekte-step-body">
+          <h3 data-i18n="page.projekte.list-2-title">Passende Vorhaben entdecken</h3>
+          <p data-i18n="page.projekte.list-2">Entdecke spannende Vorhaben in deiner Region oder weltweit</p>
+        </div>
+      </div>
+      <div class="projekte-step">
+        <span class="projekte-step-num">03</span>
+        <div class="projekte-step-body">
+          <h3 data-i18n="page.projekte.list-3-title">Wissen und Fähigkeiten einbringen</h3>
+          <p data-i18n="page.projekte.list-3">Bringe deine Kenntnisse gezielt in bestehende Teams ein</p>
+        </div>
+      </div>
+      <div class="projekte-step">
+        <span class="projekte-step-num">04</span>
+        <div class="projekte-step-body">
+          <h3 data-i18n="page.projekte.list-4-title">Entwicklung und Meilensteine verfolgen</h3>
+          <p data-i18n="page.projekte.list-4">Verfolge Entwicklungen und Meilensteine in Echtzeit</p>
+        </div>
+      </div>
+      <div class="projekte-step">
+        <span class="projekte-step-num">05</span>
+        <div class="projekte-step-body">
+          <h3 data-i18n="page.projekte.list-5-title">Nachhaltige Wirkung schaffen</h3>
+          <p data-i18n="page.projekte.list-5">Schaffe gemeinsam nachhaltige Wirkung für Gesellschaft und Umwelt</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.projekte.coming">Nach dem Start kannst du eigene Projekte anlegen, nach Mitwirkenden suchen oder dich bestehenden Initiativen anschließen.</p>
+  <!-- ═══ ABSCHLUSS: großzügig, motivierend ═══ -->
+  <div class="projekte-abschluss reveal">
+    <p class="projekte-abschluss-headline" data-i18n="page.projekte.abschluss-headline">Eine Idee wartet vielleicht schon auf <em>dich</em>.</p>
+    <p class="projekte-abschluss-text" data-i18n="page.projekte.coming">Nach dem Start kannst du eigene Projekte anlegen, nach Mitwirkenden suchen oder dich bestehenden Initiativen anschließen.</p>
+    <a href="/app/login" class="btn-primary" data-i18n="page.projekte.cta">Projekt starten · bald</a>
+    <p class="projekte-abschluss-cta-sub" data-i18n="page.projekte.cta-sub">Lass dich benachrichtigen, sobald HUI online geht.</p>
   </div>
-
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.projekte.cta">Projekt starten</a>
-    <p data-i18n="page.projekte.cta-sub">Lass dich benachrichtigen, sobald HUI online geht.</p>
-  </section>
 </main>
 
 <footer class="footer">
