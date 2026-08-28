@@ -92,7 +92,7 @@ const TYPE_META = {
   project_approved:    { tab:"informativ", icon:"✅", color:"#22C55E", label:"Projekt freigegeben" },
   project_rejected:    { tab:"informativ", icon:"❌", color:"#EF4444", label:"Projekt abgelehnt" },
   // Default
-  default:        { tab:"informativ", icon:"✦",  color:T.teal,   label:"Aktivität" },
+  default:        { tab:"informativ", icon:"✦",  color:T.teal,   label:t("notif.aktivitaet") },
 };
 
 function getMeta(type) {
@@ -322,7 +322,7 @@ function RejectionDetailModal({ n, onClose }) {
     project_rejected:         { label:"notif.meta.project",          emoji:"📌", hint:"notif.meta.reviseResubmit" },
     impact_project_rejected:  { label:"notif.meta.impactProject",   emoji:"💚", hint:"notif.meta.reviseResubmit" },
   };
-  const tm      = typeMap[n.type] || { label:"notif.meta.entry", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
+  const tm      = typeMap[n.type] || { label:"notif.meta.entry", emoji:"📋", hint:t("notif.ueberarbeiten") };
   // Admin sendet: entry_title (Erlebnis/Projekt), werk_title (Werk), content_title (alt)
   const entryTitle = meta.entry_title || meta.project_name || meta.content_title || meta.werk_title || meta.title || n.title || `${t("notif.meta.yourEntry", {type: t(tm.label)})}`;
   // Admin sendet: reason (Erlebnis/Projekt), rejection_reason (Werk/alt)
@@ -375,7 +375,7 @@ function RejectionDetailModal({ n, onClose }) {
             fontWeight: 600, fontSize:14, cursor:"pointer",
             fontFamily:"inherit",
           }}
-        >Verstanden</button>
+        >{t("notif.understood")}</button>
       </div>
     </div>
   );
@@ -525,9 +525,9 @@ function NotifItem({ n, onRead, onDelete }) {
               boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
             }}
           >
-            <div style={{fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8}}>Nachricht löschen?</div>
+            <div style={{fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8}}>{t("notif.deleteConfirmTitle")}</div>
             <div style={{fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5}}>
-              Diese Benachrichtigung wird dauerhaft entfernt.
+              {t("notif.deleteConfirmBody")}
             </div>
             <div style={{display:"flex", gap:10}}>
               <button
@@ -539,7 +539,7 @@ function NotifItem({ n, onRead, onDelete }) {
                   cursor:"pointer", fontFamily:"inherit",
                 }}
               >
-                Abbrechen
+                {t("notif.cancel")}
               </button>
               <button
                 onClick={() => { setShowDeleteConfirm(false); onDelete?.(n.id); }}
@@ -550,7 +550,7 @@ function NotifItem({ n, onRead, onDelete }) {
                   cursor:"pointer", fontFamily:"inherit",
                 }}
               >
-                Löschen
+                {t("notif.delete")}
               </button>
             </div>
           </div>
@@ -566,11 +566,11 @@ function ConnectionRequestItem({ req, onRespond }) {
   const [state, setState] = useState("idle"); // idle | accepted | declined | later
   const name = req.requester_name || "Jemand";
   const INTENTIONS_MAP = {
-    work:       "Ich interessiere mich für deine Arbeit",
-    experience: "Ich möchte an deinen Erlebnissen teilnehmen",
+    work:       t("notif.connInteresse"),
+    experience: t("notif.connErlebnis"),
     exchange:   "Ich suche Austausch",
-    create:     "Ich möchte gemeinsam etwas bewirken",
-    other:      "Persönliche Nachricht",
+    create:     t("notif.connBewirken"),
+    other:      t("notif.connPersoenlich"),
   };
 
   if (state === "accepted") return (
@@ -583,7 +583,7 @@ function ConnectionRequestItem({ req, onRespond }) {
       }}>
         <HUIImpactIcon size={20} style={{opacity:0.5, color:"rgba(14,196,184,0.6)"}} />
         <span style={{fontSize:13.5, fontWeight:600, color:T.teal}}>
-          Ihr seid jetzt verbunden.
+          {t("notif.verbunden")}
         </span>
       </div>
     </div>
@@ -643,7 +643,7 @@ function ConnectionRequestItem({ req, onRespond }) {
             fontSize:13, fontWeight: 600, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>
-          Annehmen
+          {t("notif.annehmen")}
         </button>
         <button
           onClick={() => { onRespond(req.id, "later"); setState("later"); }}
@@ -654,7 +654,7 @@ function ConnectionRequestItem({ req, onRespond }) {
             fontSize:13, fontWeight:600, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>
-          Später
+          {t("notif.spaeter")}
         </button>
         <button
           onClick={() => { onRespond(req.id, "decline"); setState("declined"); }}
@@ -665,7 +665,7 @@ function ConnectionRequestItem({ req, onRespond }) {
             fontSize:13, fontWeight:600, cursor:"pointer",
             fontFamily:"inherit", touchAction:"manipulation",
           }}>
-          Ablehnen
+          {t("notif.ablehnen")}
         </button>
       </div>
     </div>
@@ -719,7 +719,7 @@ function WeekStats({ userId }) {
           color:"rgba(26,26,24,0.40)",
           letterSpacing:"0.07em", textTransform:"uppercase",
         }}>
-          Diese Woche
+          {t("notif.dieseWoche")}
         </span>
       </div>
 
@@ -758,7 +758,7 @@ function WeekStats({ userId }) {
 function EmptyTab({ tab }) {
   const msgs = {
     alle:      { icon:"✦",  text:"Alles ruhig – Dein Wirken entfaltet sich." },
-    wichtig:   { icon:"🌿", text:"Nichts Dringendes. Genieße die Ruhe." },
+    wichtig:   { icon:"🌿", text:t("notif.ruhe") },
     relevant:  { icon:"❤️", text:"Wenn Menschen auf dein Wirken reagieren, erscheint es hier." },
     info:      { icon:"📈", text:"Meilensteine und Entwicklungen erscheinen hier." },
   };
@@ -971,7 +971,7 @@ export function ResonanzzentrumPanel({ onClose }) {
             fontSize:12.5, color:T.inkFaint,
             lineHeight:1.5, marginBottom:14, paddingLeft:2,
           }}>
-            Alles Wichtige rund um dein Wirken, deine Verbindungen und deine Gemeinschaft.
+            {t("notif.wirkungIntro")}
           </div>
 
           {/* ── TABS ── */}
@@ -1040,7 +1040,7 @@ export function ResonanzzentrumPanel({ onClose }) {
                   letterSpacing:"0.01em",
                 }}
               >
-                Alle gelesen ✓
+                {t("notif.alleGelesen")}
               </button>
             </div>
           )}

@@ -1957,7 +1957,7 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
         <div style={{ display:"flex", justifyContent:"space-between",
           fontSize:12, color:T.muted, marginBottom:8 }}>
           <span>{t("impact.finanziertVonCard", { funded: formatNumberDE(fundedEur), goal: formatNumberDE(goalEur) })}</span>
-          <span><b style={{ color:T.ink }}>{p.votes||0}</b> Stimmen</span>
+          <span><b style={{ color:T.ink }}>{p.votes||0}</b> {t("impact.stimmen")}</span>
         </div>
 
         {/* Finanzierungsbalken */}
@@ -2434,7 +2434,7 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
             borderRadius:13, display:"flex", alignItems:"center", gap:8 }}>
             <span style={{ fontSize:14 }}>📨</span>
             <span style={{ fontSize:11, color:T.ink2, lineHeight:1.5 }}>
-              Neue Herzensprojekte kommen jeden Monat hinzu. <b style={{ color:T.teal }}>{t("impact.poolLebt")}</b>
+              {t("impact.neueHerzensMonat")} <b style={{ color:T.teal }}>{t("impact.poolLebt")}</b>
             </span>
           </div>
         </>

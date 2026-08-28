@@ -922,7 +922,7 @@ function WirkungsnetzScreen({ checks, onToggle, onConfirm, onClose }) {
           <div style={{ fontSize:12, color:T.ink3, textAlign:"center",
             marginBottom:12, padding:"8px 12px",
             background:"rgba(20,20,34,0.04)", borderRadius:10 }}>
-            Bitte alle Punkte bestätigen, um fortzufahren.
+            {t("impact.confirmAllHint")}
           </div>
         )}
 
@@ -990,7 +990,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
         borderRadius:16, padding:"14px 16px", marginBottom:20 }}>
         <div style={{ fontSize:11, fontWeight: 600, color:T.teal,
           letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:10 }}>
-          Deine Bewerbung
+          {t("impact.deineBewerbung")}
         </div>
         {[
           { label:t("impact.egSumProject"),      val:form.name },
@@ -1410,7 +1410,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
             
           </div>
           <div style={{ fontSize:12.5, color:T.ink3, marginTop:3 }}>
-            Zeig dein Projekt — Bilder sagen mehr als Worte.
+            {t("impact.zeigProjekt")}
           </div>
         </div>
         <button onClick={onClose} style={{
@@ -1466,7 +1466,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
                 {coverUploading ? t("impact.muCoverUploading") : t("impact.muCoverUpload")}
               </div>
               <div style={{ fontSize:11, color:T.ink3, marginTop:4 }}>
-                JPG, PNG, WebP — empfohlen 1200×800px
+                {t("impact.imageHint")}
               </div>
             </div>
           )}
@@ -1480,10 +1480,10 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         {/* ── Zusatzmaterial ────────────────────────────── */}
         <div style={{ marginBottom:16 }}>
           <div style={{ fontSize:12, fontWeight: 600, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
-            ZUSATZMATERIAL <span style={{ color:T.ink4, fontWeight:400 }}>(optional)</span>
+            {t("impact.zusatzmaterial")} <span style={{ color:T.ink4, fontWeight:400 }}>{t("impact.optional")}</span>
           </div>
           <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
-            Bilder, Videos, Dokumente, PDFs — alles was dein Projekt unterstützt.
+            {t("impact.zusatzHint")}
           </div>
 
           <button
