@@ -288,6 +288,19 @@ ul{list-style:none}
 .eco-field.visible .eco-term[data-eco="7"] .eco-thumb{transition-delay:1.4s}
 .eco-term:hover .eco-thumb{transform:translateY(-2px);box-shadow:0 6px 22px -6px rgba(26,26,46,.2),0 0 0 1px rgba(250,247,242,.5)}
 
+/* ── Eco thumb zoom — dezente interaktive Vergrößerung ── */
+.eco-term{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.eco-term:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:8px}
+.eco-thumb{will-change:transform}
+.eco-thumb.is-zoomed{z-index:20;box-shadow:0 16px 48px -12px rgba(26,26,46,.28),0 0 0 1px rgba(250,247,242,.6);transition:transform 300ms cubic-bezier(.22,.61,.36,1),box-shadow 300ms cubic-bezier(.22,.61,.36,1)}
+.eco-term[data-eco="1"] .eco-thumb.is-zoomed{transform:scale(3.6);transform-origin:50% 100%}
+.eco-term[data-eco="2"] .eco-thumb.is-zoomed{transform:scale(4.3);transform-origin:100% 100%}
+.eco-term[data-eco="3"] .eco-thumb.is-zoomed{transform:scale(4.3);transform-origin:0% 100%}
+.eco-term[data-eco="4"] .eco-thumb.is-zoomed{transform:scale(2.9);transform-origin:100% 100%}
+.eco-term[data-eco="5"] .eco-thumb.is-zoomed{transform:scale(3.6);transform-origin:0% 100%}
+.eco-term[data-eco="6"] .eco-thumb.is-zoomed{transform:scale(4.3);transform-origin:100% 0%}
+.eco-term[data-eco="7"] .eco-thumb.is-zoomed{transform:scale(3.1);transform-origin:0% 0%}
+
 /* ═══ VERBINDUNG ═══ */
 .eco-connect{max-width:580px;margin:56px auto 0;text-align:center}
 .eco-connect p{font-size:clamp(18px,2.8vw,22px);font-weight:300;line-height:1.7;color:var(--ink-mid);text-shadow:0 1px 6px rgba(250,247,242,.8)}
@@ -681,6 +694,7 @@ ul{list-style:none}
   .eco-term{opacity:1!important}
   .eco-term .eco-thumb{opacity:1!important;transition:none!important}
   .eco-term:hover .eco-thumb{transform:none}
+  .eco-thumb.is-zoomed{transform:none!important;box-shadow:0 4px 18px -6px rgba(26,26,46,.15),0 0 0 1px rgba(250,247,242,.4)!important}
   /* removed */
   /* removed */
   /* removed */
@@ -992,37 +1006,37 @@ ul{list-style:none}
           <animate attributeName="opacity" values="0;0.5;0.3;0.3;0.2;0" dur="11s" repeatCount="indefinite" begin="8s"/>
         </circle>
       </svg>
-      <div class="eco-term" data-eco="1" style="left:50%;top:13%">
+      <div class="eco-term" data-eco="1" style="left:50%;top:13%" tabindex="0" role="button" aria-label="Menschen bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-menschen.webp" alt="Menschen mit individuellen Talenten und Fähigkeiten bei HUI" width="1024" height="768" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.people">Menschen</span>
         <span class="eco-stmt" data-i18n="eco.people-desc">Jeder Mensch zählt</span>
       </div>
-      <div class="eco-term" data-eco="2" style="left:21%;top:27%">
+      <div class="eco-term" data-eco="2" style="left:21%;top:27%" tabindex="0" role="button" aria-label="Wirker bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-wirker.webp" alt="Mensch zeigt sein kreatives Talent und Können" width="1024" height="768" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.creators">Wirker</span>
         <span class="eco-stmt" data-i18n="eco.creators-desc">Talente & Können</span>
       </div>
-      <div class="eco-term" data-eco="3" style="left:79%;top:27%">
+      <div class="eco-term" data-eco="3" style="left:79%;top:27%" tabindex="0" role="button" aria-label="Projekte bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-projekte.webp" alt="Menschen arbeiten gemeinsam an einer Idee und einem Projekt" width="1024" height="768" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.projects">Projekte</span>
         <span class="eco-stmt" data-i18n="eco.projects-desc">Ideen werden möglich</span>
       </div>
-      <div class="eco-term" data-eco="4" style="left:14%;top:58%">
+      <div class="eco-term" data-eco="4" style="left:14%;top:58%" tabindex="0" role="button" aria-label="Werke bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-werke.webp" alt="Kunstwerk und kreatives Schaffen" width="1024" height="768" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.works">Werke</span>
         <span class="eco-stmt" data-i18n="eco.works-desc">Geschaffen & geteilt</span>
       </div>
-      <div class="eco-term" data-eco="5" style="left:86%;top:58%">
+      <div class="eco-term" data-eco="5" style="left:86%;top:58%" tabindex="0" role="button" aria-label="Erlebnisse bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-erlebnisse.webp" alt="Menschen erleben gemeinsam besondere Momente" width="1024" height="768" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.experiences">Erlebnisse</span>
         <span class="eco-stmt" data-i18n="eco.experiences-desc">Momente verbinden</span>
       </div>
-      <div class="eco-term" data-eco="6" style="left:34%;top:83%">
+      <div class="eco-term" data-eco="6" style="left:34%;top:83%" tabindex="0" role="button" aria-label="Unternehmen bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-unternehmen.webp" alt="Menschen arbeiten authentisch in einem kleinen Unternehmen zusammen" width="1024" height="768" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.companies">Unternehmen</span>
         <span class="eco-stmt" data-i18n="eco.companies-desc">Partner & Möglichkeiten</span>
       </div>
-      <div class="eco-term" data-eco="7" style="left:66%;top:83%">
+      <div class="eco-term" data-eco="7" style="left:66%;top:83%" tabindex="0" role="button" aria-label="Gemeinschaft bei HUI — Bild vergrößern">
         <span class="eco-thumb"><img src="/assets/eco-gemeinschaft.webp" alt="Menschen verbringen gemeinsam Zeit und erleben Gemeinschaft" width="1024" height="683" loading="lazy" decoding="async"/></span>
         <span class="eco-cat" data-i18n="eco.community">Gemeinschaft</span>
         <span class="eco-stmt" data-i18n="eco.community-desc">Zusammenhalt</span>
@@ -1738,6 +1752,78 @@ if(!APP_PUBLIC_ACCESS){
       link.addEventListener('click',function(){close()});
     }
   });
+})();
+
+// ── Eco thumb zoom — dezente interaktive Vergrößerung ──
+(function(){
+  var isTouch = window.matchMedia('(hover: none)').matches;
+  var activeZoom = null;
+
+  function setZoom(term){
+    if(activeZoom && activeZoom !== term) clearZoom(activeZoom);
+    var thumb = term.querySelector('.eco-thumb');
+    if(!thumb) return;
+    thumb.classList.add('is-zoomed');
+    activeZoom = term;
+  }
+
+  function clearZoom(term){
+    if(!term) term = activeZoom;
+    if(!term) return;
+    var thumb = term.querySelector('.eco-thumb');
+    if(thumb) thumb.classList.remove('is-zoomed');
+    if(activeZoom === term) activeZoom = null;
+  }
+
+  document.querySelectorAll('.eco-term').forEach(function(term){
+    var img = term.querySelector('.eco-thumb img');
+    if(!img) return;
+
+    if(!isTouch){
+      // Desktop: hover
+      term.addEventListener('mouseenter', function(){ setZoom(term); });
+      term.addEventListener('mouseleave', function(){ clearZoom(term); });
+    }
+
+    // Mobile + Desktop: tap/click toggle
+    term.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(activeZoom === term){
+        clearZoom(term);
+      } else {
+        setZoom(term);
+      }
+    });
+
+    // Keyboard: Enter/Space to toggle, Escape to close
+    term.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        if(activeZoom === term){ clearZoom(term); }
+        else { setZoom(term); }
+      }
+      if(e.key === 'Escape'){
+        clearZoom(term);
+        term.blur();
+      }
+    });
+  });
+
+  // Click outside: close any active zoom
+  document.addEventListener('click', function(e){
+    if(activeZoom && !activeZoom.contains(e.target)){
+      clearZoom(activeZoom);
+    }
+  });
+
+  // Scroll: close any active zoom
+  var scrollTimer;
+  window.addEventListener('scroll', function(){
+    if(!activeZoom) return;
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(function(){ clearZoom(activeZoom); }, 50);
+  }, { passive: true });
 })();
 </script>
 
