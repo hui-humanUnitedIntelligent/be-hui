@@ -11,9 +11,10 @@ import { WT } from "./WorkTokens.js";
 // Nutzer, kein Datenformat-Wechsel fuer works.category.
 import { getFlowCategoryOptions } from "../../../lib/categories.js";
 import VariantEditor from "../../../components/commerce/VariantEditor.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const CATEGORIES = getFlowCategoryOptions("work");
-const FORMATS   = ["JPG, PNG","PDF","MP3, WAV","PSD, AI","Figma","ZIP","Sonstiges"];
+const FORMATS   = ["JPG, PNG","PDF","MP3, WAV","PSD, AI","Figma","ZIP",t("wd.sonstiges")];
 const SHIP_TIMES = ["1–2 Werktage","3–5 Werktage","5–10 Werktage","2–3 Wochen","Auf Anfrage"];
 const CONDITIONS = ["Neu","Wie neu","Gut","Akzeptabel"];
 
@@ -52,7 +53,7 @@ function PricePills({ value, onChange }) {
   const opts = [
     { key:"free",    icon:"🎁", label:"Kostenlos" },
     { key:"fixed",   icon:"🛡", label:"Festpreis" },
-    { key:"inquiry", icon:<HUIChatIcon size={14}/>, label:"Auf Anfrage" },
+    { key:"inquiry", icon:<HUIChatIcon size={14}/>, label:t("wd.aufAnfrage") },
   ];
   return (
     <div style={{ display:"flex", gap:8 }}>
@@ -106,8 +107,9 @@ function Toggle({ value, onChange }) {
 
 /* ── Verfügbarkeits-Pills (COMMERCE-STOCK-001) ───────────────── */
 function AvailabilityPills({ value, onChange }) {
+  const { t } = useTranslation();
   const opts = [
-    { key:"unique",  icon:"1",  label:"Einzelstück" },
+    { key:"unique",  icon:"1",  label:t("wd.einzelstueck") },
     { key:"copies",  icon:"≡",  label:"Mehrere Kopien" },
   ];
   return (
@@ -138,6 +140,7 @@ function AvailabilityPills({ value, onChange }) {
 
 /* ── Step 2 ──────────────────────────────────────────────────── */
 export function WorkDetailsStep({ form, onFormChange, onNext }) {
+  const { t } = useTranslation();
   const isDigital = !form.shipping;
 
   return (
@@ -148,7 +151,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
       <div style={{ marginBottom:24 }}>
         <h1 style={{ fontSize:22, fontWeight: 600, color:WT.ink,
           letterSpacing:-0.5, margin:0 }}>
-          Werk Informationen<span style={{ color:WT.teal, marginLeft:3 }}>·</span>
+          {t("wd.werkInfo")}<span style={{ color:WT.teal, marginLeft:3 }}>·</span>
         </h1>
       </div>
 
@@ -156,7 +159,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
       <div style={{ marginBottom:24 }}>
         <SectionLabel number="1" title="Preis" />
         <p style={{ fontSize:13, color:WT.ink3, margin:"0 0 12px" }}>
-          Wie möchtest du dein Werk anbieten?
+          {t("wd.wieAnbieten")}
         </p>
         <PricePills
           value={form.priceMode}
@@ -189,9 +192,9 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
 
       {/* ══ 2. VERFÜGBARKEIT (COMMERCE-STOCK-001) ══ */}
       <div style={{ marginBottom:24 }}>
-        <SectionLabel number="2" title="Verfügbarkeit" />
+        <SectionLabel number="2" title={t("wd.verfuegbarkeit")} />
         <p style={{ fontSize:13, color:WT.ink3, margin:"0 0 12px" }}>
-          Ist dein Werk ein Unikat oder in mehreren Kopien verfügbar?
+          {t("wd.unikatFrage")}
         </p>
         <AvailabilityPills
           value={form.availabilityMode || "unique"}
@@ -202,7 +205,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
         {form.availabilityMode === "copies" && (
           <div style={{ marginTop:12, animation:"wfFadeStep 0.25s ease both" }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Anzahl verfügbar</label>
+              display:"block", marginBottom:5 }}>{t("wd.anzahlVerfuegbar")}</label>
             <input
               style={input}
               placeholder="25"
@@ -213,7 +216,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
               onChange={e => onFormChange({ stockCount: e.target.value })}
             />
             <p style={{ fontSize:11.5, color:WT.ink3, margin:"6px 0 0" }}>
-              Der Bestand wird im Feed angezeigt und bei jedem Kauf automatisch reduziert.
+              {t("wd.bestandHint")}
             </p>
           </div>
         )}
@@ -234,7 +237,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
         <div style={{ display:"flex", alignItems:"center",
           justifyContent:"space-between", marginBottom:12 }}>
           <span style={{ fontSize:13.5, color:WT.ink2 }}>
-            Ist ein Versand möglich?
+            {t("wd.versandMoeglich")}
           </span>
           <Toggle
             value={form.shipping}
@@ -249,7 +252,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
             <div style={{ display:"flex", gap:10 }}>
               <div style={{ flex:1 }}>
                 <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-                  display:"block", marginBottom:5 }}>Versandkosten</label>
+                  display:"block", marginBottom:5 }}>{t("wd.versandkosten")}</label>
                 <div style={{ position:"relative" }}>
                   <input
                     style={{ ...input, paddingRight:28 }}
@@ -267,7 +270,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
               </div>
               <div style={{ flex:1 }}>
                 <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-                  display:"block", marginBottom:5 }}>Lieferzeit</label>
+                  display:"block", marginBottom:5 }}>{t("wd.lieferzeit")}</label>
                 <select
                   style={select}
                   value={form.shippingTime}
@@ -280,10 +283,10 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
             {/* Länder */}
             <div>
               <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-                display:"block", marginBottom:5 }}>Versandländer</label>
+                display:"block", marginBottom:5 }}>{t("wd.versandlaender")}</label>
               <input
                 style={input}
-                placeholder="Deutschland, Österreich, Schweiz"
+                placeholder={t("wd.versandlaenderPh")}
                 value={form.shippingCountries}
                 onChange={e => onFormChange({ shippingCountries: e.target.value })}
               />
@@ -303,19 +306,19 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
         <div style={{ display:"flex", gap:10, marginBottom:10 }}>
           <div style={{ flex:1 }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Kategorie</label>
+              display:"block", marginBottom:5 }}>{t("wd.kategorie")}</label>
             <select style={select} value={form.category}
               onChange={e => onFormChange({ category: e.target.value })}>
-              <option value="">Wählen…</option>
+              <option value="">{t("wd.waehlen")}</option>
               {(CATEGORIES || []).filter(Boolean).map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
           <div style={{ flex:1 }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Dateiformat</label>
+              display:"block", marginBottom:5 }}>{t("wd.dateiformat")}</label>
             <select style={select} value={form.fileFormat}
               onChange={e => onFormChange({ fileFormat: e.target.value })}>
-              <option value="">Optional</option>
+              <option value="">{t("wd.optional")}</option>
               {FORMATS.map(f => <option key={f}>{f}</option>)}
             </select>
           </div>
@@ -325,14 +328,14 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
         <div style={{ display:"flex", gap:10, marginBottom:10 }}>
           <div style={{ flex:1 }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Größe</label>
+              display:"block", marginBottom:5 }}>{t("wd.groesse")}</label>
             <input style={input} placeholder="3000 x 2000 px"
               value={form.size}
               onChange={e => onFormChange({ size: e.target.value })} />
           </div>
           <div style={{ flex:1 }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Materialien</label>
+              display:"block", marginBottom:5 }}>{t("wd.materialien")}</label>
             <input style={input} placeholder="Digitale Malerei"
               value={form.materials}
               onChange={e => onFormChange({ materials: e.target.value })} />
@@ -343,7 +346,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
         {form.shipping && (
           <div style={{ animation:"wfFadeStep 0.22s ease both" }}>
             <label style={{ fontSize:11, color:WT.ink3, fontWeight:600,
-              display:"block", marginBottom:5 }}>Zustand</label>
+              display:"block", marginBottom:5 }}>{t("wd.zustand")}</label>
             <select style={select} value={form.condition}
               onChange={e => onFormChange({ condition: e.target.value })}>
               {(CONDITIONS || []).filter(Boolean).map(c => <option key={c}>{c}</option>)}
@@ -360,7 +363,7 @@ export function WorkDetailsStep({ form, onFormChange, onNext }) {
         boxShadow:"0 8px 24px rgba(10,191,184,0.28)",
         marginBottom:4,
       }}>
-        Weiter →
+        {t("wd.weiter")} →
       </button>
     </div>
   );

@@ -46,6 +46,7 @@ import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -54,6 +55,7 @@ const C = {
 };
 
 export default function TalentAntragPage() {
+  const { t } = useTranslation();
   const { profile, user } = useAuth();
   const [beitrag, setBeitrag] = useState('');
   const [erfahrungen, setErfahrungen] = useState('');
@@ -86,7 +88,7 @@ export default function TalentAntragPage() {
         fontFamily: "Inter, sans-serif",
       }}>
         <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
-          Du trägst bereits Verantwortung
+          {t("tap.bereitsVerantwortung")}
         </h2>
         <p style={{ fontSize: 15, color: C.muted }}>
           Du bist bereits ein Talent bei HUI. Dein Studio steht dir offen.
@@ -110,7 +112,7 @@ export default function TalentAntragPage() {
             Dein Angebot ist angekommen.
           </div>
           <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.6, marginBottom: 0 }}>
-            Das Team wird es persönlich prüfen und sich bei dir melden.
+            {t("tap.teamPraeft")}
             Wir nehmen uns die Zeit, die jeder Mensch verdient.
           </p>
         </div>
@@ -134,7 +136,7 @@ export default function TalentAntragPage() {
         actor_id: user.id,
         type: 'talent_application',
         title: 'Neues Angebot: Verantwortung als Talent',
-        body: `${profile?.display_name || profile?.username || 'Ein Mitglied'} möchte Verantwortung übernehmen.\n\nWas ich einbringen möchte: ${beitrag.trim()}\n\nWas mich geprägt hat: ${erfahrungen.trim() || '—'}\n\nWas ich bewirken möchte: ${vision.trim() || '—'}`,
+        body: `${profile?.display_name || profile?.username || t("tap.einMitglied")} möchte Verantwortung übernehmen.\n\nWas ich einbringen möchte: ${beitrag.trim()}\n\nWas mich geprägt hat: ${erfahrungen.trim() || '—'}\n\nWas ich bewirken möchte: ${vision.trim() || '—'}`,
         is_read: false,
         created_at: new Date().toISOString(),
         metadata: {
@@ -163,13 +165,13 @@ export default function TalentAntragPage() {
       {/* Einleitung */}
       <div style={{ marginBottom: 40 }}>
         <h2 style={{ fontSize: 26, fontWeight: 600, color: C.ink, marginBottom: 12, lineHeight: 1.3 }}>
-          Verantwortung übernehmen
+          {t("tap.verantwortung")}
         </h2>
         <p style={{ fontSize: 15, color: C.muted, lineHeight: 1.7, marginBottom: 0 }}>
           Ein Talent bei HUI zu sein, bedeutet nicht, einen Status zu erhalten.
-          Es bedeutet, Verantwortung für die Gemeinschaft zu übernehmen —
-          für das, was du erschaffst, für die Menschen, die dich erreichen,
-          und für die Wirkung, die entsteht.
+          {t("tap.verantwortungGemeinschaft")}
+          {t("tap.fuerMenschen")}
+          {t("tap.wirkungEntsteht")}
         </p>
       </div>
 
@@ -182,29 +184,29 @@ export default function TalentAntragPage() {
           Was es bedeutet
         </div>
         <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, color: C.muted, lineHeight: 1.8 }}>
-          <li>Du gestaltest Angebote, die anderen Menschen etwas bedeuten</li>
-          <li>Du zeigst dich mit deinem Namen, deinem Gesicht, deiner Arbeit</li>
-          <li>Du begleitest die Menschen, die dir vertrauen</li>
-          <li>Du trägst bei zu dem, was HUI als Gemeinschaft ausmacht</li>
+          <li>{t("tap.gestaltest")}</li>
+          <li>{t("tap.zeigstDich")}</li>
+          <li>{t("tap.begleitest")}</li>
+          <li>{t("tap.traegstBei")}</li>
         </ul>
       </div>
 
       {/* Frage 1: Was möchtest du einbringen? */}
       <QuestionBlock
         number="01"
-        title="Was möchtest du einbringen?"
-        hint="Deine Gabe, deine Fähigkeit, das, was du besonders gut kannst."
+        title={t("tap.q1Title")}
+        hint={t("tap.q1Desc")}
         value={beitrag}
         onChange={setBeitrag}
-        placeholder="Ich möchte…"
+        placeholder={t("tap.q1Ph")}
         required
       />
 
       {/* Frage 2: Welche Erfahrungen haben dich geprägt? */}
       <QuestionBlock
         number="02"
-        title="Welche Erfahrungen haben dich geprägt?"
-        hint="Der Weg, der dich hierher geführt hat. Was hast du gelernt?"
+        title={t("tap.q2Title")}
+        hint={t("tap.q2Desc")}
         value={erfahrungen}
         onChange={setErfahrungen}
         placeholder="Mein Weg begann…"
@@ -213,8 +215,8 @@ export default function TalentAntragPage() {
       {/* Frage 3: Was möchtest du bewirken? */}
       <QuestionBlock
         number="03"
-        title="Was möchtest du in der Gemeinschaft bewirken?"
-        hint="Die Veränderung, die du sehen möchtest. Was ist deine Vision?"
+        title={t("tap.q3Title")}
+        hint={t("tap.q3Desc")}
         value={vision}
         onChange={setVision}
         placeholder="Ich stelle mir eine Gemeinschaft vor, in der…"
@@ -237,12 +239,12 @@ export default function TalentAntragPage() {
         </button>
         {!canSubmit && (
           <p style={{ fontSize: 12, color: C.muted, marginTop: 8 }}>
-            Bitte beschreibe mindestens, was du einbringen möchtest (mindestens 10 Zeichen).
+            {t("tap.min10zeichen")}
           </p>
         )}
         <p style={{ fontSize: 13, color: C.muted, marginTop: 16, lineHeight: 1.6 }}>
-          Nach dem Absenden prüft das Team dein Angebot persönlich.
-          Du erhältst eine Nachricht, sobald eine Entscheidung vorliegt.
+          {t("tap.nachAbsenden")}
+          {t("tap.entscheidung")}
         </p>
       </div>
     </div>

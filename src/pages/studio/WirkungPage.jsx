@@ -49,6 +49,7 @@ import { supabase } from '../../lib/supabaseClient.js';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -78,6 +79,7 @@ function relativeTime(dateStr) {
 }
 
 export default function WirkungPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -170,15 +172,15 @@ export default function WirkungPage() {
 
     supports.forEach(s => allMoments.push({
       type: 'support', date: s.created_at,
-      text: s.anonymous ? 'Anonym' : 'Jemand'
-        ? `${s.anonymous ? 'Anonym' : 'Jemand'} hat dich unterstützt`
-        : 'Jemand hat dich unterstützt',
+      text: s.anonymous ? t("wk.anonym") : t("wk.jemand")
+        ? `${s.anonymous ? t("wk.anonym") : t("wk.jemand")} hat dich unterstützt`
+        : t("wk.jemandUnterstuetzt"),
       detail: s.message || `${fmtEur(s.amount_eur)}`,
     }));
 
     votes.forEach(v => allMoments.push({
       type: 'vote', date: v.created_at,
-      text: 'Jemand hat für dein Projekt gestimmt',
+      text: t("wk.jemandGestimmt"),
       detail: '',
     }));
 
@@ -200,7 +202,7 @@ export default function WirkungPage() {
   if (loading) {
     return (
       <div style={{ padding: '40px 32px', maxWidth: 680, fontFamily: "Inter, sans-serif" }}>
-        <p style={{ color: C.muted, fontSize: 14 }}>Spiegelt deine Wirkung…</p>
+        <p style={{ color: C.muted, fontSize: 14 }}>{t("wk.spiegelt")}</p>
       </div>
     );
   }
@@ -214,11 +216,10 @@ export default function WirkungPage() {
     }}>
       {/* Einleitung */}
       <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
-        Deine Wirkung
+        {t("wk.deineWirkung")}
       </h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 40, lineHeight: 1.7 }}>
-        Was durch dich entstanden ist. Was gewachsen ist.
-        Was andere Menschen erreicht hat.
+        {t("wk.wasEntstanden")}
       </p>
 
       {/* ═══ Erzählte Wirkung ═══ */}
@@ -237,7 +238,7 @@ export default function WirkungPage() {
           <WirkungsSatz
             zahl={fmtNum(data.followers)}
             satz="Menschen folgen deiner Arbeit."
-            detail="Sie möchten wissen, was du als Nächstes erschaffst."
+            detail={t("wk.wissenNächstes")}
           />
         )}
 
@@ -255,7 +256,7 @@ export default function WirkungPage() {
           <WirkungsSatz
             zahl={fmtNum(data.publishedWorks)}
             satz={data.publishedWorks === 1 ? "Werk hast du erschaffen und geteilt." : "Werke hast du erschaffen und geteilt."}
-            detail="Jedes Werk ist ein Stück von dir, das die Welt sehen kann."
+            detail={t("wk.stueckVonDir")}
           />
         )}
 
@@ -265,8 +266,8 @@ export default function WirkungPage() {
             zahl={fmtNum(data.approvedProjects)}
             satz={data.approvedProjects === 1 ? "Projekt hast du begleitet." : "Projekte hast du begleitet."}
             detail={data.completedMilestones > 0
-              ? `${fmtNum(data.completedMilestones)} Meilensteine erreicht, ${fmtNum(data.totalMilestoneUpdates)} Einträge in der Reise dokumentiert.`
-              : 'Die Reise beginnt.'}
+              ? t("wk.meilensteineDetail", { milestones: fmtNum(data.completedMilestones), updates: fmtNum(data.totalMilestoneUpdates) })
+              : t("wk.reiseBeginnt")}
           />
         )}
 
@@ -274,7 +275,7 @@ export default function WirkungPage() {
         {data.uniqueSupporters > 0 && (
           <WirkungsSatz
             zahl={fmtNum(data.uniqueSupporters)}
-            satz={data.uniqueSupporters === 1 ? "Mensch hat dich direkt unterstützt." : "Menschen haben dich direkt unterstützt."}
+            satz={data.uniqueSupporters === 1 ? "Mensch hat dich direkt unterstützt." : t("wk.menschenUnterstuetzt")}
             detail={`${fmtEur(data.totalSupportEur)} wurden dir anvertraut.`}
           />
         )}
@@ -283,7 +284,7 @@ export default function WirkungPage() {
         {data.uniqueVoters > 0 && (
           <WirkungsSatz
             zahl={fmtNum(data.uniqueVoters)}
-            satz={data.uniqueVoters === 1 ? "Stimme wurde für deine Projekte abgegeben." : "Stimmen wurden für deine Projekte abgegeben."}
+            satz={data.uniqueVoters === 1 ? t("wk.stimmeAbgegeben") : t("wk.stimmenAbgegeben")}
             detail="Menschen, die an das glauben, was du voranbringst."
           />
         )}
@@ -307,9 +308,7 @@ export default function WirkungPage() {
           border: `1px solid ${C.border}`, textAlign: 'center', marginBottom: 40,
         }}>
           <p style={{ fontSize: 14, color: C.muted, lineHeight: 1.7, marginBottom: 0 }}>
-            Deine Wirkung wächst mit jedem Schritt.
-            Jedes Werk, das du teilst, jedes Projekt, das du begleitest,
-            jeder Mensch, der dich erreicht — alles wird hier sichtbar.
+            {t("wk.wirkungWachst")}
           </p>
         </div>
       )}
@@ -318,7 +317,7 @@ export default function WirkungPage() {
       {moments.length > 0 && (
         <div>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: C.ink, marginBottom: 16 }}>
-            Was sich kürzlich verändert hat
+            {t("wk.kuerzlichVeraendert")}
           </h3>
           <div style={{ position: 'relative', paddingLeft: 16 }}>
             <div style={{

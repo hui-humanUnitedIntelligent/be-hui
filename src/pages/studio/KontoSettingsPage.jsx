@@ -30,6 +30,7 @@ import { useAuth } from '../../lib/AuthContext.jsx';
 import { isProfileTalent } from '../../lib/profileUtils.js';
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -46,6 +47,7 @@ const ROLE_LABELS = {
 };
 
 export default function KontoSettingsPage() {
+  const { t } = useTranslation();
   const { user, profile, saveProfile, signOut } = useAuth();
   const [notifSettings, setNotifSettings] = useState(null);
   const [privacySettings, setPrivacySettings] = useState(null);
@@ -144,15 +146,14 @@ export default function KontoSettingsPage() {
       fontFamily: "Inter, sans-serif",
     }}>
       <h2 style={{ fontSize: 24, fontWeight: 600, color: C.ink, marginBottom: 8 }}>
-        Dein Raum
+        {t("ks.deinRaum")}
       </h2>
       <p style={{ fontSize: 15, color: C.muted, marginBottom: 40, lineHeight: 1.7 }}>
-        Wer du bist. Was du trägst. Wie du erreichbar bist.
-        Hier bestimmst du, was die Welt von dir sieht.
+        {t("ks.raumIntro")}
       </p>
 
       {/* ═══ Identität ═══ */}
-      <Section title="Deine Identität" hint="Wie du in der Gemeinschaft sichtbar bist.">
+      <Section title={t("ks.deineIdentitaet")} hint={t("ks.identitaetHint")}>
         <div style={{
           padding: '20px', borderRadius: 14, background: C.white,
           border: `1px solid ${C.border}`,
@@ -183,12 +184,12 @@ export default function KontoSettingsPage() {
           {editing ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               <InputField label="Name" value={displayName} onChange={setDisplayName} placeholder="Dein Name" />
-              <TextAreaField label="Über dich" value={bio} onChange={setBio} placeholder="Erzähl von dir" />
+              <TextAreaField label={t("ks.ueberDich")} value={bio} onChange={setBio} placeholder={t("ks.erzaehlVonDir")} />
               <InputField label="Ort" value={locationLabel} onChange={setLocationLabel} placeholder="Wo du lebst" />
               <InputField label="Website" value={website} onChange={setWebsite} placeholder="https://…" />
               {/* Geburtsdatum — sensible Spalte, optional */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>Geburtsdatum (optional)</label>
+                <label style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{t("ks.geburtsdatum")}</label>
                 <input
                   type="date"
                   value={geburtsdatum || ''}
@@ -202,7 +203,7 @@ export default function KontoSettingsPage() {
                   }}
                 />
                 <span style={{ fontSize: 11, color: C.muted }}>
-                  Wird nicht öffentlich angezeigt. Mindestalter 16 Jahre.
+                  {t("ks.geburtsdatumHint")}
                 </span>
               </div>
               <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
@@ -214,7 +215,7 @@ export default function KontoSettingsPage() {
                 <button onClick={() => setEditing(false)} style={{
                   padding: '10px 20px', borderRadius: 10, border: `1px solid ${C.border}`,
                   background: 'transparent', cursor: 'pointer', fontSize: 14, color: C.muted,
-                }}>Abbrechen</button>
+                }}>{t("ks.abbrechen")}</button>
               </div>
             </div>
           ) : (
@@ -227,7 +228,7 @@ export default function KontoSettingsPage() {
                 marginTop: 12, padding: '8px 16px', borderRadius: 10,
                 border: `1px solid ${C.border}`, background: 'transparent',
                 cursor: 'pointer', fontSize: 13, color: C.teal, fontWeight: 500,
-              }}>Bearbeiten</button>
+              }}>{t("ks.bearbeiten")}</button>
             </div>
           )}
         </div>
@@ -259,7 +260,7 @@ export default function KontoSettingsPage() {
       </Section>
 
       {/* ═══ Verantwortungen ═══ */}
-      <Section title="Deine Verantwortungen" hint="Was du trägst. Diese wurden dir anvertraut — nicht selbst gewählt.">
+      <Section title={t("ks.deineVerantwortungen")} hint={t("ks.rolleIntro")}>
         <div style={{
           padding: '20px', borderRadius: 14, background: C.white,
           border: `1px solid ${C.border}`,
@@ -269,7 +270,7 @@ export default function KontoSettingsPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 0', borderBottom: `1px solid ${C.border}`,
           }}>
-            <span style={{ fontSize: 14, color: C.ink }}>Rolle</span>
+            <span style={{ fontSize: 14, color: C.ink }}>{t("ks.rolle")}</span>
             <span style={{ fontSize: 14, fontWeight: 600, color: C.teal }}>
               {ROLE_LABELS[profile?.role] || 'Mitglied'}
             </span>
@@ -280,7 +281,7 @@ export default function KontoSettingsPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 0', borderBottom: `1px solid ${C.border}`,
           }}>
-            <span style={{ fontSize: 14, color: C.ink }}>Talent-Verantwortung</span>
+            <span style={{ fontSize: 14, color: C.ink }}>{t("ks.talentVerantwortung")}</span>
             <span style={{
               fontSize: 13, fontWeight: 500,
               color: isTalent ? C.green : C.muted,
@@ -306,22 +307,21 @@ export default function KontoSettingsPage() {
             fontSize: 12, color: C.muted, marginTop: 12, lineHeight: 1.5,
             fontStyle: 'italic',
           }}>
-            Verantwortungen werden vom HUI-Team vergeben.
-            Sie sind Vertrauen, kein Status. Du kannst sie hier einsehen.
+            {t("ks.verantwortungHint")}
           </p>
         </div>
       </Section>
 
       {/* ═══ Privatsphäre ═══ */}
       {privacySettings && (
-        <Section title="Deine Privatsphäre" hint="Was die Welt von dir sehen darf.">
+        <Section title={t("ks.privatsphaere")} hint={t("ks.privatsphaereHint")}>
           <div style={{
             padding: '20px', borderRadius: 14, background: C.white,
             border: `1px solid ${C.border}`,
           }}>
             <ToggleRow
               label="Profil sichtbar"
-              hint="Andere können dein Profil finden"
+              hint={t("ks.profilFinden")}
               value={privacySettings.profile_visibility !== 'private'}
               onChange={() => togglePrivacy('profile_visibility')}
               toggleType="visibility"
@@ -334,14 +334,14 @@ export default function KontoSettingsPage() {
               onChange={() => togglePrivacy('show_location')}
             />
             <ToggleRow
-              label="Verfügbarkeit anzeigen"
+              label={t("ks.verfuegbarkeitAnzeigen")}
               hint="Zeigt, ob du Zeit hast"
               value={privacySettings.show_availability}
               onChange={() => togglePrivacy('show_availability')}
             />
             <ToggleRow
               label="Nachrichten erlauben"
-              hint="Andere können dir schreiben"
+              hint={t("ks.duSchreiben")}
               value={privacySettings.allow_messages}
               onChange={() => togglePrivacy('allow_messages')}
               last
@@ -352,17 +352,17 @@ export default function KontoSettingsPage() {
 
       {/* ═══ Benachrichtigungen ═══ */}
       {notifSettings && (
-        <Section title="Deine Benachrichtigungen" hint="Was du wissen möchtest. Bewusst, nicht ständig.">
+        <Section title={t("ks.deineBenachrichtigungen")} hint={t("ks.notifIntro")}>
           <div style={{
             padding: '20px', borderRadius: 14, background: C.white,
             border: `1px solid ${C.border}`,
           }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 12 }}>E-Mail</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 12 }}>{t("ks.email")}</div>
             <ToggleRow label="Buchungen" hint="Wenn jemand Zeit mit dir verbringt" value={notifSettings.email_bookings} onChange={() => toggleNotif('email_bookings')} />
             <ToggleRow label="Nachrichten" hint="Wenn dir jemand schreibt" value={notifSettings.email_messages} onChange={() => toggleNotif('email_messages')} />
             <ToggleRow label="Impact" hint="Wenn sich an deinen Projekten etwas bewegt" value={notifSettings.email_impact} onChange={() => toggleNotif('email_impact')} last />
 
-            <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginTop: 16, marginBottom: 12 }}>Push</div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginTop: 16, marginBottom: 12 }}>{t("ks.push")}</div>
             <ToggleRow label="Buchungen" hint="" value={notifSettings.push_bookings} onChange={() => toggleNotif('push_bookings')} />
             <ToggleRow label="Nachrichten" hint="" value={notifSettings.push_messages} onChange={() => toggleNotif('push_messages')} />
             <ToggleRow label="Impact" hint="" value={notifSettings.push_impact} onChange={() => toggleNotif('push_impact')} last />
@@ -371,7 +371,7 @@ export default function KontoSettingsPage() {
       )}
 
       {/* ═══ Abmeldung ═══ */}
-      <Section title="Abmelden" hint="Verlässt den Raum. Du kannst jederzeit zurückkommen.">
+      <Section title={t("ks.abmelden")} hint={t("ks.abmeldenHint")}>
         <button
           onClick={() => signOut?.()}
           style={{
@@ -380,7 +380,7 @@ export default function KontoSettingsPage() {
             cursor: 'pointer', fontSize: 14, fontWeight: 500,
             color: C.coral,
           }}
-        >Abmelden</button>
+        >{t("ks.abmelden")}</button>
       </Section>
 
       {/* Toast */}

@@ -18,6 +18,7 @@ import { useAuth }  from "../../lib/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE, formatEUR } from "../../lib/formatters.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -33,19 +34,19 @@ const T = {
   px:        20,
 };
 
-const TYPE_CONFIG = {
-  support:   { icon: <HUIHeartIcon size={18}/>,  label: "Unterstützung", color: "#E85D75", bg: "rgba(232,93,117,0.09)"  },
-  werk:      { icon: <HUIWerkeIcon size={18}/>,  label: "Werk",          color: "#7264D6", bg: "rgba(114,100,214,0.09)" },
-  erlebnis:  { icon: <HUIErlebnisIcon size={18}/>,  label: "Erlebnis",      color: "#2D9E6A", bg: "rgba(45,158,106,0.09)"  },
-  impact:    { icon: <HUIImpactIcon size={18}/>,  label: "Impact",         color: "#0EC4B8", bg: "rgba(14,196,184,0.09)"  },
+function getTypeConfig(t) { return {
+  support:   { icon: <HUIHeartIcon size={18}/>,  label: t("res.unterstuetzung"), color: "#E85D75", bg: "rgba(232,93,117,0.09)"  },
+  werk:      { icon: <HUIWerkeIcon size={18}/>,  label: t("res.werk"),          color: "#7264D6", bg: "rgba(114,100,214,0.09)" },
+  erlebnis:  { icon: <HUIErlebnisIcon size={18}/>,  label: t("res.erlebnis"),      color: "#2D9E6A", bg: "rgba(45,158,106,0.09)"  },
+  impact:    { icon: <HUIImpactIcon size={18}/>,  label: t("res.impact"),         color: "#0EC4B8", bg: "rgba(14,196,184,0.09)"  },
   buchung:   { icon: <HUIKalenderIcon size={18}/>,  label: "Buchung",        color: "#F59E0B", bg: "rgba(245,158,11,0.09)"  },
 };
 
-const FILTERS = [
-  { id: "all",      label: "Alle",          icon: <HUIImpactIcon size={14}/> },
-  { id: "support",  label: "Unterstützung", icon: <HUIHeartIcon size={14}/> },
-  { id: "werk",     label: "Werke",         icon: <HUIWerkeIcon size={14}/> },
-  { id: "erlebnis", label: "Erlebnisse",    icon: <HUIErlebnisIcon size={14}/> },
+function getFilters(t) { return [
+  { id: "all",      label: t("res.alle"),          icon: <HUIImpactIcon size={14}/> },
+  { id: "support",  label: t("res.unterstuetzung"), icon: <HUIHeartIcon size={14}/> },
+  { id: "werk",     label: t("res.werke"),         icon: <HUIWerkeIcon size={14}/> },
+  { id: "erlebnis", label: t("res.erlebnisse"),    icon: <HUIErlebnisIcon size={14}/> },
   { id: "impact",   label: "Impact",        icon: <HUIImpactIcon size={14}/> },
   { id: "buchung",  label: "Buchungen",     icon: <HUIKalenderIcon size={14}/> },
 ];
@@ -79,12 +80,12 @@ function formatRelative(iso) {
   return formatDateDE(new Date(iso), { day:"numeric", month:"long", year:"numeric" });
 }
 
-function statusLabel(status) {
+function statusLabel(status, t) {
   const map = {
-    paid:"Bezahlt", completed:"Abgeschlossen", confirmed:"Bestätigt",
-    pending:"Ausstehend", cancelled:"Storniert", approved:"Genehmigt",
-    fulfilled:"Erfüllt", shipped:"Versandt", delivered:"Geliefert",
-    processing:"In Bearbeitung", voted:"Abgestimmt", submitted:"Eingereicht",
+    paid:t("res.bezahlt"), completed:t("res.abgeschlossen"), confirmed:t("res.bestaetigt"),
+    pending:t("res.ausstehend"), cancelled:t("res.storniert"), approved:t("res.genehmigt"),
+    fulfilled:t("res.erfuellt"), shipped:t("res.versandt"), delivered:t("res.geliefert"),
+    processing:t("res.inBearbeitung"), voted:t("res.abgestimmt"), submitted:t("res.eingereicht"),
   };
   return map[status?.toLowerCase()] || status || "";
 }
@@ -151,7 +152,7 @@ async function loadTimeline(userId) {
         id:     "pay-" + p.id,
         type:   "support",
         date:   p.created_at,
-        title:  p.item_name || "Unterstützung",
+        title:  p.item_name || t("res.unterstuetzung"),
         desc:   p.item_type || "",
         img:    null,
         amount: safeNum(p.amount_eur),
@@ -201,8 +202,8 @@ async function loadTimeline(userId) {
         id:     "vote-" + v.id,
         type:   "impact",
         date:   v.created_at,
-        title:  (app && app.project_name) || "Herzensprojekt unterstützt",
-        desc:   (app && app.short_desc) || ("Stimme für " + v.pool_month),
+        title:  (app && app.project_name) || t("res.herzensprojektUnterstuetzt"),
+        desc:   (app && app.short_desc) || (t("res.stimmeFuer") + " " + v.pool_month),
         img:    (app && app.cover_url) || null,
         amount: null,
         status: "voted",
@@ -274,10 +275,10 @@ function ResonanzSummary({ entries }) {
   }
 
   const stats = [
-    { icon:<HUIHeartIcon size={14}/>, label:"Unterstützt", val:t.support  },
-    { icon:<HUIWerkeIcon size={14}/>, label:"Werke",       val:t.werk      },
-    { icon:"🌿", label:"Erlebnisse",  val:t.erlebnis  },
-    { icon:"🌍", label:"Impact",      val:t.impact    },
+    { icon:<HUIHeartIcon size={14}/>, label:t("res.unterstuetzt"), val:t.support  },
+    { icon:<HUIWerkeIcon size={14}/>, label:t("res.werke"),       val:t.werk      },
+    { icon:"🌿", label:t("res.erlebnisse"),  val:t.erlebnis  },
+    { icon:"🌍", label:t("res.impact"),      val:t.impact    },
     { icon:"📅", label:"Buchungen",   val:t.buchung   },
   ].filter(s => s.val > 0);
 
@@ -298,7 +299,7 @@ function ResonanzSummary({ entries }) {
             {formatEUR(t.eur, { minimumFractionDigits: t.eur%1===0?0:2 })}
           </div>
           <div style={{ fontSize:12, color:T.inkSoft, marginTop:6 }}>
-            in {entries.length} {entries.length===1?"Aktivität":"Aktivitäten"}
+            in {entries.length} {entries.length===1?t("res.aktivitaet"):t("res.aktivitaeten")}
           </div>
         </div>
       )}
@@ -322,9 +323,9 @@ function ResonanzSummary({ entries }) {
 
 // ── Timeline Entry ─────────────────────────────────────────────────
 function ResonanzEntry({ entry, animIndex, onTap }) {
-  const cfg   = TYPE_CONFIG[entry.type] || TYPE_CONFIG.werk;
+  const cfg   = getTypeConfig(t)[entry.type] || getTypeConfig(t).werk;
   const st    = statusColor(entry.status);
-  const sl    = statusLabel(entry.status);
+  const sl    = statusLabel(entry.status, t);
   const [imgErr, setImgErr] = React.useState(false);
   const hasImg = entry.img && !imgErr;
 
@@ -428,17 +429,17 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
 
 // ── Leer-State ────────────────────────────────────────────────────
 function EmptyState({ filter }) {
-  const cfg = filter !== "all" ? TYPE_CONFIG[filter] : null;
+  const cfg = filter !== "all" ? getTypeConfig(t)[filter] : null;
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
       <div style={{ marginBottom:18, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}>{cfg?.icon || <HUIResonanzIcon size={48}/>}</div>
       <div style={{ fontSize:18, fontWeight: 600, color:T.ink, marginBottom:10, letterSpacing:"-0.02em" }}>
-        {filter==="all" ? "Deine Geschichte beginnt hier" : "Noch keine " + (cfg?.label||"Aktivitäten")}
+        {filter==="all" ? t("res.geschichteBeginnt") : t("res.nochKeine", { label: cfg?.label || t("res.aktivitaeten") })}
       </div>
       <div style={{ fontSize:14, color:T.inkSoft, lineHeight:"1.65", maxWidth:260, margin:"0 auto" }}>
         {filter==="all"
-          ? "Jede Buchung, jede Stimme, jedes erworbene Werk erscheint hier als Teil deiner persönlichen Resonanz."
-          : "Sobald du " + (cfg?.label?.toLowerCase()||"etwas") + " unterstützt oder erlebst, erscheint es hier."}
+          ? t("res.emptyAllDesc")
+          : t("res.emptyFilteredDesc", { label: (cfg?.label?.toLowerCase()||t("res.etwas")) })}
       </div>
     </div>
   );
@@ -446,6 +447,7 @@ function EmptyState({ filter }) {
 
 // ── Hauptkomponente ────────────────────────────────────────────────
 export default function MeineResonanz({ onClose, onNavigate }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "MeineResonanz");
   const { user, profile } = useAuth();
   const [entries, setEntries] = React.useState([]);
@@ -522,14 +524,14 @@ export default function MeineResonanz({ onClose, onNavigate }) {
               Meine Resonanz
             </div>
             <div style={{ fontSize:13, color:T.inkSoft, marginTop:3, lineHeight:"1.4" }}>
-              Alles, was du unterstützt, erlebt und bewegt hast.
+              {t("res.resonanzIntro")}
             </div>
           </div>
         </div>
 
         {/* Filter-Chips */}
         <div className="mr-chips" style={{ display:"flex", gap:8, padding:"0 " + T.px + "px 14px" }}>
-          {FILTERS.map(f => {
+          {getFilters(t).map(f => {
             const active = filter === f.id;
             return (
               <button key={f.id} className="mr-chip" onClick={() => setFilter(f.id)} style={{
@@ -577,7 +579,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
           {/* Footer */}
           {!loading && filtered.length > 0 && (
             <div style={{ textAlign:"center", padding:"36px 0 8px", fontSize:12, color:T.inkFaint, lineHeight:"1.6" }}>
-              Das ist deine Resonanz.{"\n"}Jede Aktivität hinterlässt eine Spur.
+              {t("res.deineResonanzSpur")}
             </div>
           )}
         </div>
