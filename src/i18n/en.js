@@ -4269,7 +4269,7 @@ export default {
   'rec.countWrittenPlural': '{count} recommendations written',
   'rec.loading': 'Loading recommendations…',
   'comment.title': 'Comments & Requests',
-  'comment.placeholder': 'Comment and ask the talent questions',
+  'comment.placeholder': 'Comment and/or ask the talent questions',
   'comment.empty': 'No comments yet.',
   'comment.emptyHint': 'Be the first to share your thoughts.',
   'comment.deleteConfirm': 'Delete this comment?',

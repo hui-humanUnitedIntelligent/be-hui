@@ -4261,7 +4261,7 @@ export default {
   'rec.countWrittenPlural': '{count} Empfehlungen geschrieben',
   'rec.loading': 'Lade Empfehlungen…',
   'comment.title': 'Kommentar & Anfragen',
-  'comment.placeholder': 'Kommentiere und stelle Anfragen an das Talent',
+  'comment.placeholder': 'Kommentiere und/oder stelle Anfragen an das Talent',
   'comment.empty': 'Noch keine Kommentare.',
   'comment.emptyHint': 'Sei der Erste und teile deine Gedanken.',
   'comment.deleteConfirm': 'Kommentar wirklich löschen?',
