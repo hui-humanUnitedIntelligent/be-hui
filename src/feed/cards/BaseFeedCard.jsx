@@ -20,6 +20,7 @@ import { prefetchProfile, optimizeAvatar, optimizeCard } from "../../lib/perfUti
 // Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
 import ImageSlider from "../../components/shared/ImageSlider.jsx";
 import { toast } from "../../lib/useToast.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bgCard:   "#FFFFFF",
@@ -182,7 +183,7 @@ const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = f
 //   MOMENT     → immer fester Text (keine Rollen-Einmischung)
 //   EVENT      → item._raw.location_text
 // Kein API-Call. Kein neues Feld. Pure Berechnung aus vorhandenen _raw-Daten.
-function getBegegnungsgrund(item) {
+function getBegegnungsgrund(item, t) {
   const type   = item?.type || "moment";
   const author = item?.author || {};
   const raw    = item?._raw  || {};
@@ -206,53 +207,53 @@ function getBegegnungsgrund(item) {
   // ── WERK ──────────────────────────────────────────────────────────────────
   if (type === "work") {
     if (cat && first)
-      return `${first} wirkt im Bereich ${cat} und hat ein neues Werk erschaffen.`;
+      return t('card.reasonWorkCat', { first, cat });
     if (first)
-      return `${first} hat ein neues Werk veröffentlicht.`;
-    return "Hat ein neues Werk veröffentlicht.";
+      return t('card.reasonWorkFirst', { first });
+    return t('card.reasonWork');
   }
 
   // ── ERLEBNIS ──────────────────────────────────────────────────────────────
   if (type === "experience") {
     if (tag && first)
-      return `${first} lädt dich zu einem Erlebnis ein im Bereich ${tag}.`;
+      return t('card.reasonExperienceTag', { first, tag });
     if (loc && first)
-      return `${first} lädt zu einem gemeinsamen Erlebnis ein in ${loc}.`;
+      return t('card.reasonExperienceLoc', { first, loc });
     if (first)
-      return `${first} lädt zu einem gemeinsamen Erlebnis ein.`;
-    return "Lädt zu einem gemeinsamen Erlebnis ein.";
+      return t('card.reasonExperienceFirst', { first });
+    return t('card.reasonExperience');
   }
 
   // ── TALENT-ANGEBOT ────────────────────────────────────────────────────────
   if (type === "talent") {
     if (cat && first)
-      return `${first} wirkt als Talent und bietet sein Können im Bereich ${cat} an.`;
+      return t('card.reasonTalentCat', { first, cat });
     if (first)
-      return `${first} bietet sein Talent an.`;
-    return "Bietet ein Talent an.";
+      return t('card.reasonTalentFirst', { first });
+    return t('card.reasonTalent');
   }
 
   // ── IMPACT / HERZENSPROJEKT ───────────────────────────────────────────────
   if (type === "impact") {
     if (first)
-      return `${first} hat ein Herzensprojekt geteilt.`;
-    return "Ein Herzensprojekt wurde geteilt.";
+      return t('card.reasonImpactFirst', { first });
+    return t('card.reasonImpact');
   }
 
   // ── EVENT ─────────────────────────────────────────────────────────────────
   if (type === "event") {
     if (loc && first)
-      return `${first} organisiert ein Event in ${loc}.`;
+      return t('card.reasonEventLoc', { first, loc });
     if (first)
-      return `${first} organisiert ein gemeinsames Event.`;
-    return "Organisiert ein gemeinsames Event.";
+      return t('card.reasonEventFirst', { first });
+    return t('card.reasonEvent');
   }
 
   // ── MOMENT / GEDANKE / ALLES ANDERE ───────────────────────────────────────
   // NIEMALS Profilbezeichnung (author.talent) hier verwenden.
   if (first)
-    return `${first} teilt einen persönlichen Moment.`;
-  return "Teilt einen persönlichen Moment.";
+    return t('card.reasonMomentFirst', { first });
+  return t('card.reasonMoment');
 }
 
 // ── HumanHeader v3.0 — exakt nach Mockup ─────────────────────
@@ -267,6 +268,7 @@ function getBegegnungsgrund(item) {
 const SYSTEM_USER_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2";
 
 export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
+  const { t } = useTranslation();
   const _uid = item?.author?.id || item?.user_id || item?.creator_id || null;
   const author   = item?.author || {};
   const isSystemBot = _uid === SYSTEM_USER_ID;
@@ -279,7 +281,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
       console.groupEnd();
     }
   }
-  const name     = (author.name || author.displayName || "").trim() || "Mitglied";
+  const name     = (author.name || author.displayName || "").trim() || t('bpp.member');
   const avatar   = author.avatar || author.avatar_url || null;
   const talent   = author.talent || null;
   const loc      = author.location_label || item?.location || null;
@@ -287,7 +289,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
   const mType    = author.membershipType || "base";
   const presence = item?._presenceStatus || null;
   const timeStr  = item?.createdAt || null;
-  const grund    = getBegegnungsgrund(item);
+  const grund    = getBegegnungsgrund(item, t);
   const [pressed, setPressed] = React.useState(false);
   // SYSTEMNACHRICHT-LABEL (2026-08-13): Admin-Broadcasts (beitraege.moment_source
   // === "system_broadcast") zeigen statt des generischen Story-Satzes
@@ -422,9 +424,10 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
 
 // ── Header ────────────────────────────────────────────────────
 export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge, onProfile, presenceStatus }) {
+  const { t } = useTranslation();
   const _isTalent = author?.isTalent || false;
   const _mType    = author?.membershipType || "base";
-  const name   = ((author && (author.name || author.displayName)) || "").trim() || "Mitglied";
+  const name   = ((author && (author.name || author.displayName)) || "").trim() || t('bpp.member');
   const uname  = (author && author.username) || null;
   // avatar: author.avatar (normalisiert) — bereits als URL oder null
   const avatar = author?.avatar || author?.avatar_url || null;
@@ -599,7 +602,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       if (lightboxTimerRef.current) clearTimeout(lightboxTimerRef.current);
       lightboxTimerRef.current = setTimeout(() => {
         if (blurred) {
-          toast.warn("Dieser Inhalt wird noch geprüft und ist vorübergehend nicht einsehbar.");
+          toast.warn(t('mom.underReview'));
           return;
         }
         if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
@@ -691,7 +694,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           borderRadius={0}
           showDots={imgs.length > 1}
           objectFit="cover"
-          onImageTap={blurred ? () => { toast.warn("Dieser Inhalt wird noch geprüft und ist vorübergehend nicht einsehbar."); } : null /* MODERATION-BLUR-BYPASS-FIX */}
+          onImageTap={blurred ? () => { toast.warn(t('mom.underReview')); } : null /* MODERATION-BLUR-BYPASS-FIX */}
         />
         {/* onLoad tracking for first image shimmer */}
         <img
@@ -743,17 +746,21 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 // ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
 // ARIA-Label je Interaktion (Toggle-Paar wo zutreffend) -- deckt alle 4
 // Icons der HUI Interaction Icon Library v1.0 ab, nicht nur Resonanz.
-const ACTION_ARIA = {
-  resonanz:    { on: "Resonanz entfernen",   off: "Resonanz geben" },
-  austauschen: { on: "Austausch beenden",    off: "Austauschen" },
-  merken:      { on: "Aus Merkliste entfernen", off: "Merken" },
-  weitergeben: { off: "Weitergeben" }, // kein Toggle -- einmalige Aktion
-  // KOMMENTAR.1 (2026-07-09): oeffnet die Kommentarfunktion, kein Toggle
-  kommentieren: { off: "Kommentare öffnen" },
-};
+function getActionAria(t) {
+  return {
+    resonanz:    { on: t('card.ariaResonanzOn'),   off: t('card.ariaResonanzOff') },
+    austauschen: { on: t('card.ariaAustauschenOn'), off: t('hii.austauschen') },
+    merken:      { on: t('card.ariaMerkenOn'),      off: t('hii.merken') },
+    weitergeben: { off: t('hii.weitergeben') }, // kein Toggle -- einmalige Aktion
+    // KOMMENTAR.1 (2026-07-09): oeffnet die Kommentarfunktion, kein Toggle
+    kommentieren: { off: t('card.ariaKommentierenOff') },
+  };
+}
 export const ActionBtn = memo(function ActionBtn({
   Icon, label, count, active, onClick, activeColor, inactiveColor, variant, disabled, loading
 }) {
+  const { t } = useTranslation();
+  const ACTION_ARIA = getActionAria(t);
   const isResonanz = variant === "resonanz";
   const ariaSpec = ACTION_ARIA[variant];
   const ariaLabel = ariaSpec ? (active && ariaSpec.on ? ariaSpec.on : ariaSpec.off) : (label || undefined);
@@ -868,7 +875,7 @@ export const ActionBtn = memo(function ActionBtn({
 
 // ── Resonanz-Zeile v3.0 — nach Mockup ────────────────────────
 // Format: "[Name] und [N] weitere wurden inspiriert."
-function getResonanzText(r) {
+function getResonanzText(r, t) {
   const inspire = r.inspireCount || 0;
   const touch   = r.touchCount   || 0;
   const total   = inspire + touch;
@@ -877,22 +884,23 @@ function getResonanzText(r) {
     ? (r.firstInspirer.split(" ")[0] || null)
     : null;
   if (firstName && total > 1)
-    return `${firstName} und ${total - 1} weitere wurden inspiriert.`;
+    return t('card.resonanzMultiple', { firstName, n: total - 1 });
   if (firstName && total === 1)
-    return `${firstName} wurde inspiriert.`;
+    return t('card.resonanzSingleName', { firstName });
   if (total === 1)
-    return "Ein Mensch hat darauf reagiert.";
+    return t('card.resonanzOnePerson');
   if (inspire >= touch)
-    return `${total} Menschen wurden inspiriert.`;
-  return `${total} Menschen haben reagiert.`;
+    return t('card.resonanzAllInspired', { total });
+  return t('card.resonanzReacted', { total });
 }
 
 // ── Actions bar ───────────────────────────────────────────────
 export const FeedActions = memo(function FeedActions({
   reactions, onReaction, onShare, extraActions
 }) {
+  const { t } = useTranslation();
   const r = reactions || {};
-  const resonanz = getResonanzText(r);
+  const resonanz = getResonanzText(r, t);
   // Premium-Finetuning Runde 3 2026-07-05 (Lars Punkt 3, "mit der Karte
   // verschmelzen"): marginTop 12->4, Border-Deckkraft 0.07->0.045
   // ("nur sehr dezent"), explizites background:T.bgCard (identisch zur
