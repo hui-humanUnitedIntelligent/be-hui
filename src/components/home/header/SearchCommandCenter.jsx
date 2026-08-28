@@ -178,6 +178,7 @@ function RadiusIndicator({ radius, activeFilterCount = 0, onFilterPillClick }) {
 
 // ─────────────────────────────────────────────────────────────
 function RadiusRow({ radius }) {
+  const { t } = useTranslation();
   const [manualOpen,  setManualOpen]  = useState(false);
   const [manualQuery, setManualQuery] = useState("");
 
@@ -226,7 +227,7 @@ function RadiusRow({ radius }) {
           WebkitTapHighlightColor:"transparent",
         }}>
           <HUILocationIcon size={12} style={{flexShrink:0, opacity:0.55}} />
-          {radius.status === "requesting" ? "Suche…" : (radius.geo ? radius.geo.label : "Standort")}
+          {radius.status === "requesting" ? t("discover.searching") : (radius.geo ? radius.geo.label : t("discover.standortChip"))}
         </button>
         {radius.stages.map(stage => {
           const active = radius.radiusKm === stage;
@@ -558,6 +559,7 @@ export default function SearchCommandCenter({
   // statt auf getrennten, versetzten Zeilen.
   quickActions = null,
 }) {
+  const { t } = useTranslation();
   const [open,       setOpen]       = useState(false);   // Suche fokussiert/aktiv
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "moment" | "experience" | "talent"
@@ -715,7 +717,7 @@ export default function SearchCommandCenter({
   }, [showAllCategories]);
 
   // Placeholder-Rotation (nur wenn nicht aktiv)
-  const PH = ["Menschen, Werke oder Erlebnisse","Menschen finden","Werke entdecken","Projekte erkunden"];
+  const PH = [t("discover.ph1"), t("discover.ph2"), t("discover.ph3"), t("discover.ph4")];
   const [phIdx,setPhIdx] = useState(0);
   const [phVis,setPhVis] = useState(true);
   useEffect(()=>{
@@ -987,7 +989,7 @@ export default function SearchCommandCenter({
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
         )}
         {open && !query && (
-          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:400,letterSpacing:"-0.01em",color:"rgba(26,53,48,0.26)",whiteSpace:"nowrap"}}>Was möchtest du bewirken?</span>
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:400,letterSpacing:"-0.01em",color:"rgba(26,53,48,0.26)",whiteSpace:"nowrap"}}>{t("discover.searchPromptPlaceholder")}</span>
         )}
       </div>
       {query && (
@@ -1017,10 +1019,10 @@ export default function SearchCommandCenter({
   // Sonderfall). Neu: Momente + Talente ergaenzt, deckt jetzt alle 4
   // Feed-Kartentypen ab (work/moment/experience/talent).
   const FILTERS = [
-    {key:"work",       label:"Werke",      emoji:"🎨"},
-    {key:"moment",     label:"Momente",    emoji:"💬"},
-    {key:"experience", label:"Erlebnisse", emoji:"📅"},
-    {key:"talent",     label:"Talente",    emoji:"⭐"},
+    {key:"work",       label:t("discover.filterWerke"),      emoji:"🎨"},
+    {key:"moment",     label:t("discover.filterMomente"),    emoji:"💬"},
+    {key:"experience", label:t("discover.filterErlebnisse"), emoji:"📅"},
+    {key:"talent",     label:t("discover.filterTalente"),    emoji:"⭐"},
   ];
 
   const panelAnimating = panelPhase === "entering" || panelPhase === "leaving";
@@ -1145,7 +1147,7 @@ export default function SearchCommandCenter({
                 whiteSpace:"nowrap", WebkitTapHighlightColor:"transparent",
               }}>
                 <HUILocationIcon size={12} style={{flexShrink:0, opacity: locationQuery ? 1 : .55}} />
-                {locationQuery || "Ort"}
+                {locationQuery || t("discover.ortChip")}
               </button>
             ) : (
               <div style={{
@@ -1160,7 +1162,7 @@ export default function SearchCommandCenter({
                   onChange={e=>setLocationQuery(e.target.value.slice(0,200))}
                   onBlur={()=>{ if (!locationQuery) setLocationInputOpen(false); }}
                   onKeyDown={e=>{ if (e.key==="Enter") e.currentTarget.blur(); }}
-                  placeholder="Ort eingeben…"
+                  placeholder={t("discover.ortEingebenPlaceholder")}
                   style={{
                     flex:1,minWidth:0,border:"none",outline:"none",background:"transparent",
                     fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:T.ink,
@@ -1182,7 +1184,7 @@ export default function SearchCommandCenter({
               fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:"rgba(26,53,48,0.62)",
               whiteSpace:"nowrap", WebkitTapHighlightColor:"transparent",
             }}>
-              <span style={{fontSize:12,opacity:.75}}>🕐</span>{sort==="newest" ? "Neueste" : "Älteste"}
+              <span style={{fontSize:12,opacity:.75}}>🕐</span>{sort==="newest" ? t("common.newestShort") : t("common.oldestShort")}
             </button>
           </div>
         </div>
