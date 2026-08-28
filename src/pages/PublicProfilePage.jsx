@@ -132,6 +132,7 @@ function NavBar({ onBack = () => {}, title }) {
 // ist ab sofort ausschließlich nach Buchung/Kauf verfügbar (öffnet automatisch
 // nach Bezahlung), nicht mehr per Klick von einem beliebigen Profil aus.
 function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
+  const { t } = useTranslation();
   const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";

@@ -123,6 +123,7 @@ function TalentCard({ talent, onClick }) {
 
 // Detail-Modal für ein einzelnes Talent-Angebot
 function TalentDetailModal({ talent, onClose }) {
+  const { t } = useTranslation();
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
   const price = formatPrice(talent);
   const loc   = locationLabel(talent, t);
