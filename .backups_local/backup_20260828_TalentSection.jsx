@@ -82,7 +82,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
           <button onClick={() => setShowSheet(true)}
             style={{ background:"none", border:"none", padding:0, fontSize:11, color:T.teal,
               fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
-            {t("profile.editArrowLabel")}
+            Bearbeiten ›
           </button>
         </div>
       )}

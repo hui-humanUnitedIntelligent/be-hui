@@ -15,7 +15,6 @@ import { supabase } from "../../../lib/supabaseClient";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 import { RecommendationScoreBadge, RecommendationRankingModal } from "../RecommendationScoreBadge.jsx";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
-import { useTranslation } from "../../../hooks/useTranslation.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -48,7 +47,6 @@ export function RecommendationsSection({
   profileOwnerId   = "",
   profileOwnerName = "",
 }) {
-  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowRecommendModal(false));
   const { openCreatorProfile } = useProfileLauncher();
   const { open: openPreview } = useContentPreview();
@@ -113,7 +111,7 @@ export function RecommendationsSection({
         <style>{`@keyframes ps-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}.rs-hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}.rs-hscroll::-webkit-scrollbar{display:none}`}</style>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
-          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>{t("rec.kundenstimmen")}</div>
+          <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Kundenstimmen</div>
         </div>
         <div className="rs-hscroll" style={{ display:"flex", gap:12, padding:`0 ${T.px}px 4px` }}>
           <Sk w={210} h={110} r={T.r16}/>
@@ -132,7 +130,7 @@ export function RecommendationsSection({
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
           padding:`0 ${T.px}px`, marginBottom:12 }}>
           <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-            {t("rec.kundenstimmen")}
+            Kundenstimmen
           </div>
         </div>
         <div style={{ margin:`0 ${T.px}px` }}>
@@ -140,10 +138,10 @@ export function RecommendationsSection({
             background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
             <div style={{ fontSize:22, color:T.teal, marginBottom:6 }}>❝</div>
             <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:6 }}>
-              {t("rec.noRecsYet")}
+              Noch keine Empfehlungen vorhanden.
             </div>
             <div style={{ fontSize:11, color:T.inkSoft, lineHeight:1.5 }}>
-              {t("rec.howCreated")}
+              Empfehlungen entstehen, wenn andere Mitglieder nach einem Kauf oder einer Buchung ihre Erfahrung teilen.
             </div>
           </div>
         </div>
@@ -160,7 +158,7 @@ export function RecommendationsSection({
         padding:`0 ${T.px}px`, marginBottom:12 }}>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-            {t("rec.kundenstimmen")}
+            Kundenstimmen
           </div>
           <RecommendationScoreBadge profileOwnerId={profileOwnerId} onOpen={() => setShowRankingModal(true)} />
         </div>
@@ -178,10 +176,10 @@ export function RecommendationsSection({
             <div style={{ padding:"16px", borderRadius:T.r16,
               background:T.bgCard, border:`1px solid ${T.border}` }}>
               <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic", marginBottom:10 }}>
-                {t("rec.noMemberRecs")}
+                Noch keine Empfehlungen von anderen Mitgliedern.
               </div>
               <div style={{ fontSize:12, color:T.inkSoft, lineHeight:1.5 }}>
-                {t("rec.howRecsWork")}
+                Empfehlungen entstehen, wenn andere Mitglieder deine Arbeit weiterempfehlen.
               </div>
             </div>
           </div>

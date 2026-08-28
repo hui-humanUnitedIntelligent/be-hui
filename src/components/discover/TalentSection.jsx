@@ -125,7 +125,7 @@ export function LocationRadiusRow({
       ) : (
         <div style={{ position:"relative", maxWidth:320 }}>
           <input value={locQuery} onChange={e => onLocQueryChange(e.target.value)}
-            placeholder="Standort eingeben, z.B. Paphos CY"
+            placeholder={t("discover.standortPlaceholder")}
             style={{ width:"100%", padding:"8px 12px", borderRadius:99,
               border:`1px solid ${T.border}`, outline:"none", fontSize:12,
               color:T.ink, fontFamily:"inherit", boxSizing:"border-box", background:T.white }}/>
@@ -160,9 +160,9 @@ export function TalenteSection({
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-talente/>
       <SectionHead
-        title="Talente entdecken"
+        title={t("discover.talente")}
         sub="Dienstleistungen & Angebote von HUI Talenten."
-        action="Alle Talente"
+        action={t("discover.alleTalente")}
         onAction={onSectionAction}
         delay={delay}
       />
@@ -207,7 +207,7 @@ export function TalenteSection({
         ) : (
           <div style={{ position:"relative", maxWidth:320 }}>
             <input value={locQuery} onChange={e => onLocQueryChange(e.target.value)}
-              placeholder="Standort eingeben, z.B. Paphos CY"
+              placeholder={t("discover.standortPlaceholder")}
               style={{ width:"100%", padding:"8px 12px", borderRadius:99,
                 border:`1px solid ${T.border}`, outline:"none", fontSize:12,
                 color:T.ink, fontFamily:"inherit", boxSizing:"border-box", background:T.white }}/>

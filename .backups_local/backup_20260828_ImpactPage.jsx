@@ -1561,7 +1561,7 @@ function BigHero({ pool }) {
 // 2. POOL-KARTE (zentral, einfach, emotional)
 // ════════════════════════════════════════════════════════════════
 function PoolCard({ pool, userImpact, onOpenVormonate }) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   return (
     <div style={{ padding:"24px 16px 0" }}>
       {/* Haupt-Pool-Karte */}
@@ -1603,7 +1603,7 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
                 cursor:"pointer",
               }}
             >
-              <span style={{ fontSize:12 }}>📅</span> {t("impact.vormonateBtn")}
+              <span style={{ fontSize:12 }}>📅</span> Impact Vormonate
             </button>
           </div>
           <div style={{ fontSize:38,
@@ -1635,7 +1635,7 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
                   {userImpact.projekte}
                 </div>
                 <div style={{ fontSize:9, color:T.muted, marginTop:2 }}>
-                  {t("impact.projektUnterstuetzt", { suffix: userImpact.projekte !== 1 ? (lang === "de" || lang === "sq" ? "e" : lang === "tr" ? "ler" : lang === "it" ? "i" : "s") : "" })}
+                  {t("impact.projektUnterstuetzt", { suffix: userImpact.projekte !== 1 ? "e" : "" })}
                 </div>
               </div>
             </div>
@@ -1726,7 +1726,7 @@ function ImpactVormonateModal({ months, loading, onClose }) {
           margin:"0 44px 0 0", fontSize:18, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.022em", lineHeight:1.25,
         }}>
-          {t("impact.vormonateBtn")}
+          Impact Vormonate
         </h3>
         <p style={{ margin:"6px 0 0", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
           {t("impact.vormonateSub")}
@@ -2385,7 +2385,7 @@ function EmptyImpactState({ type = "voting" }) {
 // WeitereHerzensSection — Platz 2-5 approved + Fallback Seed
 // ════════════════════════════════════════════════════════════════
 function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpen }) {
-  const { t, lang } = useTranslation();
+  const { t } = useTranslation();
   const [expanded, setExpanded] = React.useState(false);
   const hasReal = !loadingApps && apps && apps.length > 0;
   const rawList = hasReal ? apps : [];
@@ -2408,7 +2408,7 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
         <p style={{ margin:0, fontSize:12.5, color:T.ink2, lineHeight:1.6 }}>
           {isLoading ? t("impact.wirdGeladen") : isSeed
             ? t("impact.beispielprojekte")
-            : t("impact.projekteSortiert", { count: rawList.length, suffix: rawList.length !== 1 ? (lang === "de" || lang === "sq" ? "e" : lang === "tr" ? "ler" : lang === "it" ? "i" : "s") : "" })}
+            : `t("impact.projekteSortiert", { count: rawList.length, suffix: rawList.length !== 1 ? "e" : "" })`}
         </p>
       </div>
       {isLoading ? <SkeletonCards count={3} /> : rawList.length === 0 ? (
@@ -2563,9 +2563,9 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
           {/* Beispiel-Wirkungskarten (Vorschau wie es aussehen wird) */}
           {[
             { name: t("impact.repairCafe"), month: t("impact.repairCafeMonth"),
-              lines:[t("impact.demo1.l1"),t("impact.demo1.l2"),t("impact.demo1.l3")], icon:"🔧" },
+              lines:["340 Geräte repariert","120 Menschen geholfen","18 Ehrenamtliche aktiv"], icon:"🔧" },
             { name: t("impact.musikVerbindet"), month: t("impact.musikMonth"),
-              lines:[t("impact.demo2.l1"),t("impact.demo2.l2"),t("impact.demo2.l3")], icon:"🎵" },
+              lines:["42 Kinder erhalten Unterricht","3 neue Kurse gestartet","Selbstvertrauen gestärkt"], icon:"🎵" },
           ].map((ex, ei) => (
             <div key={ei} style={{
               background:"rgba(255,255,255,0.55)", backdropFilter:"blur(6px)",

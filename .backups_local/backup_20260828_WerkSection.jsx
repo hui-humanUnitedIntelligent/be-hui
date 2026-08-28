@@ -104,9 +104,9 @@ export function WerkeSection({
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-werke/>
       <SectionHead
-        title={t("discover.werke")}
+        title="Werke entdecken"
         sub="Kunst, Musik, Fotografie & mehr von der HUI Community."
-        action={t("discover.alleWerke")}
+        action="Alle Werke"
         onAction={onSectionAction}
         delay={delay}
       />

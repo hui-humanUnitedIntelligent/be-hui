@@ -127,7 +127,7 @@ export function ErlebnisseSection({
       <SectionHead
         title={t("erl.forYou")}
         sub="Workshops, Treffen, Kurse & besondere Momente."
-        action={t("discover.alleErlebnisse")}
+        action="Alle Erlebnisse"
         onAction={onSectionAction}
         delay={delay}
       />

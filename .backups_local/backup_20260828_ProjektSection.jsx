@@ -83,9 +83,9 @@ export function ProjekteSection({ projekte=[], loading, delay=0, view='cards', o
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-projekte/>
       <SectionHead
-        title={t("discover.projekte")}
+        title="Projekte & Initiativen"
         sub="Gemeinsam echte Wirkung schaffen."
-        action={t("discover.alleProjekte")}
+        action="Alle Projekte"
         onAction={onSectionAction}
         delay={delay}
       />

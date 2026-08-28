@@ -86,7 +86,7 @@ export function MomenteSection({ momente=[], loading, delay=0, view='cards', onP
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <div data-dp-momente/>
       <SectionHead
-        title={t("discover.momente")}
+        title="Momente aus deiner Nähe"
         sub="Echte Geschichten, gerade jetzt."
         action="Alle anzeigen"
         onAction={onSectionAction}

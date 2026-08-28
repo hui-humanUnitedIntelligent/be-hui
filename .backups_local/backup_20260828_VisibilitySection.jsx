@@ -25,7 +25,7 @@ const T = {
 };
 
 const OPTIONS = [
-  { key:"public",      icon:"🌍", label:t("vis.publicLabel"),   sub:t("vis.publicSub") },
+  { key:"public",      icon:"🌍", label:"Öffentlich",   sub:"Für alle sichtbar" },
   { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:"Verbindungen", sub:"Nur für deine Verbindungen" },
   { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur du" },
 ];
@@ -84,7 +84,7 @@ export function VisibilitySection({
           flexShrink:0, boxShadow:T.card,
         }}>
           <HUIGemeinschaftIcon size={12} style={{flexShrink:0}} />
-          {isOwner ? t("vis.change") : t("vis.learnMore")}
+          {isOwner ? "Ändern" : "Mehr erfahren"}
         </button>
       </div>
 

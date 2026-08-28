@@ -6,16 +6,14 @@ import { Skel, SectionHead } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { getPlaceImage } from "../../lib/placeImage.js";
 import { optimizeCard } from "../../lib/perfUtils.js";
-import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function OrteSection({ orte=[], loading, onSectionAction, onPressOrt, delay=0 }) {
-  const { t } = useTranslation();
   return (
     <div className="dp-in" style={{ marginTop:24, animationDelay:`${delay}ms` }}>
       <SectionHead
-        title={t("discover.orte")}
+        title="Orte entdecken"
         sub="Echte Orte aus HUI-Profilen, Werken & Erlebnissen."
-        action={t("discover.alleOrte")}
+        action="Alle Orte"
         onAction={onSectionAction}
         delay={delay}
       />

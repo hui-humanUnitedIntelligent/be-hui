@@ -8,7 +8,11 @@ import { loadPushSettingsFull, setPushEnabled, setPushCategory } from "../../lib
 import { Capacitor } from "@capacitor/core";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
-
+const CATEGORIES = [
+  { key: "push_buchungen",    apiKey: "buchungen",    label: "Buchungen",      hint: "Termine, die du gebucht hast oder bei dir gebucht wurden" },
+  { key: "push_kauf_verkauf", apiKey: "kauf_verkauf", label: "Kauf & Verkauf", hint: "Bestellungen und Verkaeufe" },
+  { key: "push_informativ",   apiKey: "informativ",   label: "Informativ",     hint: "Kommentare, Freigaben, Team-Nachrichten und mehr" },
+];
 
 function CategoryToggle({ label, hint, value, disabled, onChange }) {
   return (
@@ -43,11 +47,6 @@ function CategoryToggle({ label, hint, value, disabled, onChange }) {
 
 export default function PushNotificationBlock() {
   const { t } = useTranslation();
-  const CATEGORIES = [
-    { key: "push_buchungen",    apiKey: "buchungen",    label: t("sm.push.catBuchungen"),      hint: t("sm.push.catBuchungenHint") },
-    { key: "push_kauf_verkauf", apiKey: "kauf_verkauf", label: t("sm.push.catKaufVerkauf"), hint: t("sm.push.catKaufVerkaufHint") },
-    { key: "push_informativ",   apiKey: "informativ",   label: t("sm.push.catInformativ"),     hint: t("sm.push.catInformativHint") },
-  ];
   const [enabled, setEnabled] = useState(false);
   const [categories, setCategories] = useState({ push_buchungen: true, push_kauf_verkauf: true, push_informativ: true });
   const [loading, setLoading] = useState(true);
@@ -105,7 +104,7 @@ export default function PushNotificationBlock() {
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A18" }}>
-            {t("sm.push.title")}
+            Push-Benachrichtigungen
           </div>
           <div style={{
             fontSize: 12, color: "#888", marginTop: 3, lineHeight: 1.45,
@@ -113,8 +112,8 @@ export default function PushNotificationBlock() {
             {isNative
               ? enabled
                 ? t("push.notifDesc")
-                : t("sm.push.enableHint")
-              : t("sm.push.onlyInApp")}
+                : "Aktiviere Push, um über neue Aktivitäten informiert zu werden."
+              : "Push-Benachrichtigungen sind nur in der HUI-App verfügbar."}
           </div>
         </div>
 
@@ -154,7 +153,7 @@ export default function PushNotificationBlock() {
       {isNative && enabled && !loading && (
         <div style={{ marginTop: 10, paddingTop: 6, borderTop: "1px solid rgba(26,26,24,0.06)" }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
-            {t("sm.push.einzelSteuerbar")}
+            Einzeln steuerbar
           </div>
           {CATEGORIES.map(cat => (
             <CategoryToggle

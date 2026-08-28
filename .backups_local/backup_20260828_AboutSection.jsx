@@ -64,7 +64,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
           <button onClick={() => { setDraft(bio); setEditing(true); }}
             style={{ background:"none", border:"none", padding:0, fontSize:12, color:T.teal,
               fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
-            {t("profile.editArrowLabel")}
+            Bearbeiten ›
           </button>
         )}
       </div>

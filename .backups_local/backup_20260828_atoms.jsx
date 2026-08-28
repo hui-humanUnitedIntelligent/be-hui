@@ -2,12 +2,10 @@
 // Shared UI atoms for MyBasisProfile. Extracted — no logic changes.
 import React from "react";
 import { T } from "./constants.js";
-import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function Gap({ h=16 }) { return <div style={{height:h}}/>; }
 export function Divider() { return <div style={{height:1,background:T.border,margin:`0 ${T.px}px`}}/>; }
 
-  const { t } = useTranslation();
 export function SectionRow({ title = "", sub = "", onEdit = () => {} }) {
   return (
     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:`0 ${T.px}px 10px` }}>
@@ -21,7 +19,7 @@ export function SectionRow({ title = "", sub = "", onEdit = () => {} }) {
           fontSize:12, color:T.teal, fontWeight: 600,
           cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
           display:"flex", alignItems:"center", gap:3,
-        }}>{t("profile.editArrowLabel")}</button>
+        }}>Bearbeiten ›</button>
       )}
     </div>
   );
