@@ -3,6 +3,7 @@
 
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import React from "react";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 import { ET, EInput, ESelect } from "./ExperienceTokens.js";
 
 const DURATIONS  = ["30 Minuten","1 Stunde","2 Stunden","Individuell"];
@@ -96,10 +97,11 @@ function DurationPills({ value, onChange }) {
 
 /* ── Ort Pills ───────────────────────────────────────────────── */
 function LocationPills({ value, onChange }) {
+  const { t } = useTranslation();
   const opts = [
-    { k:"online",  icon:"💻", l:"Online" },
-    { k:"onsite",  icon:"📍", l:"Vor Ort" },
-    { k:"hybrid",  icon:"🔀", l:"Hybrid" },
+    { k:"online",  icon:"💻", l:t("common.online") },
+    { k:"onsite",  icon:"📍", l:t("common.vorOrt") },
+    { k:"hybrid",  icon:"🔀", l:t("common.hybrid") },
   ];
   return (
     <div style={{ display:"flex", gap:8 }}>

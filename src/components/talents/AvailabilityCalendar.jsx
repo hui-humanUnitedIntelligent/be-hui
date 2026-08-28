@@ -22,11 +22,8 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
-const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-const MONTH_NAMES = [
-  "Januar", "Februar", "März", "April", "Mai", "Juni",
-  "Juli", "August", "September", "Oktober", "November", "Dezember",
-];
+// WEEKDAYS + MONTH_NAMES now from i18n (cal.weekdaysShort, cal.months)
+// MONTH_NAMES from i18n
 
 function toIso(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -59,6 +56,8 @@ export default function AvailabilityCalendar({
   disabled = false,
 }) {
   const { t } = useTranslation();
+  const WEEKDAYS = t("cal.weekdaysShort").split(",");
+  const MONTH_NAMES = t("cal.months").split(",");
   const min = minDate || todayIso();
   const initial = useMemo(() => {
     const ref = (mode === "book" && selectedDate) ? selectedDate : min;

@@ -257,21 +257,21 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               Typ
             </label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {UPDATE_TYPES.map(t => (
+              {UPDATE_TYPES.map(ut => (
                 <button
-                  key={t.key}
-                  onClick={() => setUpdateType(t.key)}
+                  key={ut.key}
+                  onClick={() => setUpdateType(ut.key)}
                   style={{
                     padding: "8px 14px", borderRadius: T.r99,
-                    border: updateType === t.key ? `1.5px solid ${t.color}` : `1px solid ${T.border}`,
-                    background: updateType === t.key ? t.bg : T.bgCard,
-                    color: updateType === t.key ? t.color : T.inkSoft,
+                    border: updateType === ut.key ? `1.5px solid ${ut.color}` : `1px solid ${T.border}`,
+                    background: updateType === ut.key ? ut.bg : T.bgCard,
+                    color: updateType === ut.key ? ut.color : T.inkSoft,
                     fontSize: 13, fontWeight: 600, fontFamily: "inherit",
                     cursor: "pointer", transition: "all .15s",
                     display: "flex", alignItems: "center", gap: 4,
                   }}
                 >
-                  <span>{t.icon}</span> {t.key}
+                  <span>{ut.icon}</span> {t("impact.updateType" + ut.key)}
                 </button>
               ))}
             </div>

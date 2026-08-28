@@ -23,14 +23,11 @@ function fmtPrice(ph, ps, currency = "EUR", t) {
   return null;
 }
 
-function locLabel(t) {
-  // FIX (2026-08-08): DB-Wert ist "vor_ort" (siehe useTalents.js
-  // TALENT_LOCATION_TYPES), nicht "local" — Vor-Ort-Angebote fielen bisher
-  // fälschlich auf "Flexibel" zurück.
-  if (t === "online")   return "Online";
-  if (t === "vor_ort")  return "Vor Ort";
-  if (t === "hybrid")   return "Hybrid";
-  return "Flexibel";
+function locLabel(type, t) {
+  if (type === "online")   return t("common.online");
+  if (type === "vor_ort")  return t("common.vorOrt");
+  if (type === "hybrid")   return t("common.hybrid");
+  return t("common.flexibel");
 }
 
 export default function TalentContent({ item, onProfile, onReaction, onShare }) {
@@ -151,7 +148,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:5, flexWrap:"wrap" }}>
           {locType && (
             <span style={{ fontSize:12.5, fontWeight:600, color:"rgba(139,92,246,0.8)" }}>
-              📍 {locLabel(locType)}
+              📍 {locLabel(locType, t)}
             </span>
           )}
           {locType && category && (

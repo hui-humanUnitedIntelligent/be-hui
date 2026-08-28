@@ -59,15 +59,16 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
 
   // Ort-Label
   const locLabel = {
-    online: "Online",
-    onsite: form.locationText || "Vor Ort",
-    hybrid: "Online + Vor Ort",
+    online: t("common.online"),
+    onsite: form.locationText || t("common.vorOrt"),
+    hybrid: t("common.onlineVorOrt"),
   }[form.locationType] || "–";
 
   // Verfügbarkeits-Zusammenfassung
-  const DAYS_DE = { mon:"Mo",tue:"Di",wed:"Mi",thu:"Do",fri:"Fr",sat:"Sa",sun:"So" };
+  const DAYS_I18N = t("cal.weekdaysShort").split(",");
+  const DAY_KEYS = ["mon","tue","wed","thu","fri","sat","sun"];
   const dayStr = form.availDays.length > 0
-    ? form.availDays.map(d => DAYS_DE[d] || d).join(", ")
+    ? form.availDays.map(d => DAYS_I18N[DAY_KEYS.indexOf(d)] || d).join(", ")
     : "Flexibel";
 
   return (

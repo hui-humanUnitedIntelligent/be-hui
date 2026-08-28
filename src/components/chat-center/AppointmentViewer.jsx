@@ -309,7 +309,7 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
               {formatDateDE(confirmingApp.date)}
               {confirmingApp.timeSlot ? " · " + (typeof confirmingApp.timeSlot === "string" ? confirmingApp.timeSlot : (confirmingApp.timeSlot?.start || confirmingApp.timeSlot?.label || "")) : ""}
               <br/>
-              Wird an Google Kalender, Apple Kalender oder eine andere Kalender-App auf deinem Gerät übergeben.
+              {t("cal.exportHint")}
             </div>
             <div style={{ display:"flex", gap:10 }}>
               <button

@@ -151,7 +151,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
           <p style={{ fontSize:13, color:T.inkSoft, lineHeight:1.5, margin:"0 0 16px" }}>
             Hier hinterlegst du das Bankkonto, auf das dein Geld überwiesen wird, sobald eine
             Zahlung bei dir freigegeben wurde (z.B. wenn ein Käufer den Erhalt bestätigt).
-            Einmalig eintragen — du kannst es jederzeit ändern.
+            {t("bank.einmaligHint")}
           </p>
 
           {loading ? (
