@@ -373,8 +373,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   Versand
                 </div>
                 <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 14 }}>
-                  Markiere diesen Verkauf als versendet, sobald du das Werk verschickt hast.
-                  Der Käufer erhält eine Benachrichtigung.
+                  {t("tx.versendetHinweis")}
                 </div>
                 {showShipConfirm ? (
                   <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
@@ -481,10 +480,10 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                 fontSize: 13, color: T.inkSoft, lineHeight: 1.5,
               }}>
                 <div style={{ fontWeight: 700, color: T.amber, marginBottom: 4 }}>
-                  ⚖ Fall in Prüfung
+                  ⚖ {t("tx.fallInPruefung")}
                 </div>
-                Du hast den Erhalt nicht bestätigt. Ein Admin prüft den Fall und entscheidet über die Auszahlung.
-                Du wirst benachrichtigt sobald es ein Update gibt.
+                {t("tx.erhaltNichtBestaetigt")}
+                {t("tx.updateBenachrichtigung")}
               </div>
             </Section>
           )}

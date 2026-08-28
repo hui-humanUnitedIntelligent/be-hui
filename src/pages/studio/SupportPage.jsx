@@ -18,16 +18,17 @@ const C = {
   gold:    HUI.COLOR.goldStatus,
 };
 
-const CATEGORIES = [
+function getCategories(t) { return [
   { key:"fehler",        label:"🐛 Fehler melden",       desc:"Etwas funktioniert nicht" },
-  { key:"verbesserung",  label:"💡 Verbesserungsvorschlag",desc:"Idee für neue Funktion"   },
-  { key:"anfrage",       label:t("support.catAnfrage"),   desc:t("support.catAnfrageDesc")       },
-  { key:"hilfe",         label:"🆘 Hilfe benötigt",       desc:"Ich komme nicht weiter"    },
-  { key:"passwort",      label:"🔐 Passwort / Zugang",    desc:"Login-Probleme"            },
-  { key:"konto",         label:"◎ Konto-Problem",         desc:"Account, Profil, Daten"    },
-  { key:"zahlung",       label:t("support.catZahlung"), desc:t("support.catZahlungDesc")            },
-  { key:"sonstiges",     label:"📝 Sonstiges",            desc:"Alles andere"              },
+  { key:"verbesserung",  label:t("sup.verbesserung"),desc:t("sup.ideeFuerFunktion")   },
+  { key:"anfrage",       label:t("sup.frage"),   desc:t("sup.allgemeineAnfrage")       },
+  { key:"hilfe",         label:t("sup.hilfeBenoetigt"),desc:t("sup.kommeNichtWeiter")    },
+  { key:"passwort",      label:t("sup.passwortZugang"),desc:t("sup.loginProbleme")            },
+  { key:"konto",         label:t("sup.kontoProblem"),desc:t("sup.accountProfilDaten")    },
+  { key:"zahlung",       label:t("sup.zahlung"), desc:t("sup.zahlungDesc")            },
+  { key:"sonstiges",     label:t("sup.sonstiges"),desc:t("sup.allesAndere")              },
 ];
+}
 
 const PRIORITY_MAP = {
   fehler:"high", verbesserung:"low", anfrage:"normal",
@@ -62,8 +63,8 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
     const e = {};
     if (!form.name.trim())    e.name    = "Name erforderlich";
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
-                              e.email   = "Gültige E-Mail erforderlich";
-    if (!category)            e.category= "Bitte Kategorie wählen";
+                              e.email   = t("sup.gueltigeEmail");
+    if (!category)            e.category= t("sup.kategorieWaehlen");
     if (!form.subject.trim()) e.subject = "Betreff erforderlich";
     if (!form.message.trim() || form.message.length < 20)
                               e.message = "Nachricht zu kurz (min. 20 Zeichen)";
@@ -167,7 +168,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         </h2>
         <p style={{ fontSize:15, color:C.muted, margin:"0 0 20px", lineHeight:1.5 }}>
           t("support.createdDesc") + "<br/>"
-          Ein Admin wird sich so schnell wie möglich darum kümmern.
+          {t("sup.adminKuemmertSich")}
         </p>
         <div style={{ background:"white", border:`1px solid ${C.border}`,
           borderRadius:12, padding:"14px 24px", marginBottom:28 }}>
@@ -189,7 +190,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           style={{ padding:"13px 32px", borderRadius:12, border:"none",
             background:C.teal, color:"white", fontSize:15, fontWeight: 600,
             cursor:"pointer" }}>
-          Zurück zum Studio
+          {t("sup.zurueckStudio")}
         </button>
       </div>
     );
@@ -261,7 +262,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
             🏷️ Problem-Kategorie *
           </p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-            {CATEGORIES.map(cat => (
+            {getCategories(t).map(cat => (
               <button key={cat.key} onClick={() => { setCategory(cat.key); setErrors(p=>({...p,category:undefined})); }}
                 style={{ padding:"10px 12px", borderRadius:10, border:"1.5px solid",
                   borderColor: category === cat.key ? C.teal : C.border,
@@ -292,7 +293,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           <div>
             <label style={labelStyle}>Nachricht * <span style={{color:C.muted,fontWeight:400}}>(min. 20 Zeichen)</span></label>
             <textarea value={form.message} onChange={inp("message")}
-              placeholder="Beschreibe dein Problem so genau wie möglich..."
+              placeholder={t("sup.beschreibeProblem")}
               rows={5}
               style={{ ...inputStyle, resize:"vertical", lineHeight:1.5,
                 borderColor: errors.message ? C.red : C.border }} />
@@ -306,7 +307,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${C.border}`, marginBottom:20 }}>
           <p style={{ margin:"0 0 6px", fontSize:14, fontWeight: 600, color:C.ink }}>
-            📎 Anhänge <span style={{color:C.muted,fontWeight:400,fontSize:12}}>(optional, max. 5 Dateien, je 10MB)</span>
+            {t("sup.anhaenge")} <span style={{color:C.muted,fontWeight:400,fontSize:12}}>({t("sup.max5Dateien")})</span>
           </p>
           <p style={{ margin:"0 0 12px", fontSize:12, color:C.muted }}>
             Bilder, Videos, Dokumente — hilft uns das Problem schneller zu verstehen
@@ -319,7 +320,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
               background:"rgba(22,215,197,0.04)",
               color:C.teal, fontSize:13, fontWeight:600,
               cursor:"pointer", width:"100%", marginBottom:10 }}>
-            + Dateien auswählen
+            {t("sup.dateienAuswaehlen")}
           </button>
           {files.map((f,i) => (
             <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -362,7 +363,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         </button>
 
         <p style={{ textAlign:"center", fontSize:12, color:C.muted, marginTop:12, lineHeight:1.5 }}>
-          Mit dem Absenden bestätigst du, dass deine Angaben korrekt sind.<br/>
+          {t("sup.absendenBestaetigen")}<br/>
           Wir melden uns unter deiner E-Mail-Adresse.
         </p>
       </div>

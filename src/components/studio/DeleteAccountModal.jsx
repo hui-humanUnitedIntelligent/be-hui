@@ -13,6 +13,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { platformPath } from "../../lib/platform.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg: "#FAF9F7", coral: "#FF4D4D", coralSoft: "rgba(255,77,77,0.10)",
@@ -20,9 +21,10 @@ const T = {
   r16: 16, r12: 12, ff: "Inter, system-ui, sans-serif",
 };
 
-const CONFIRM_WORD = "LÖSCHEN";
+const CONFIRM_WORD = t("del.confirmWord");
 
 export default function DeleteAccountModal({ onClose = () => {} }) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1); // 1 = Warnung, 2 = Eingabe-Bestätigung
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -44,7 +46,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (fnErr) throw new Error(fnErr.message || "Löschung fehlgeschlagen.");
+      if (fnErr) throw new Error(fnErr.message || t("del.loeschungFehlgeschlagen"));
       if (data?.error) throw new Error(data.detail || data.error);
 
       setDone(true);
@@ -54,7 +56,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
         window.location.href = platformPath("/login");
       }, 1800);
     } catch (e) {
-      setError(e.message || "Unbekannter Fehler bei der Löschung.");
+      setError(e.message || t("del.unbekannterFehler"));
       setDeleting(false);
     }
   };
@@ -79,7 +81,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
           <div style={{ textAlign: "center", padding: "24px 0" }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: T.ink }}>
-              Dein Account wurde gelöscht
+              {t("del.accountGeloescht")}
             </div>
             <div style={{ fontSize: 13, color: T.inkSoft, marginTop: 8 }}>
               Du wirst gleich abgemeldet…
@@ -94,7 +96,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
                 justifyContent: "center", fontSize: 20,
               }}>⚠️</div>
               <div style={{ fontSize: 18, fontWeight: 800, color: T.coral, letterSpacing: "-0.01em" }}>
-                Account endgültig löschen
+                {t("del.accountLoeschen")}
               </div>
             </div>
 
@@ -102,7 +104,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
               <>
                 <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.55, marginBottom: 16 }}>
                   Diese Aktion ist <strong>unwiderruflich</strong>. Es wird{" "}
-                  <strong>alles</strong> gelöscht, was du gepostet hast oder was
+                  <strong>{t("del.alles")}</strong> {t("del.geloeschtWas")}
                   in deinem Account gespeichert ist:
                 </div>
                 <ul style={{
@@ -126,9 +128,9 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
                   border: `1px solid ${T.coral}30`, fontSize: 12.5, color: T.coral,
                   fontWeight: 600, marginBottom: 18, lineHeight: 1.5,
                 }}>
-                  Keine Wiederherstellung möglich. Du kannst dich mit derselben
-                  E-Mail-Adresse später jederzeit neu registrieren — aber alle
-                  bisherigen Daten sind dann für immer weg.
+                  {t("del.keineWiederherstellung")}
+                  {t("del.emailNeuRegistrieren")}
+                  {t("del.fuerImmerWeg")}
                 </div>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button onClick={onClose} style={btnSecondary}>Abbrechen</button>
@@ -140,7 +142,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
             {step === 2 && (
               <>
                 <div style={{ fontSize: 14, color: T.ink, lineHeight: 1.55, marginBottom: 14 }}>
-                  Um endgültig zu löschen, tippe <strong>{CONFIRM_WORD}</strong> in das
+                  {t("del.umZuLoeschen")} <strong>{CONFIRM_WORD}</strong> {t("del.inDasFeld")}
                   Feld unten ein.
                 </div>
                 <input
@@ -177,7 +179,7 @@ export default function DeleteAccountModal({ onClose = () => {} }) {
                       cursor: (!canConfirm || deleting) ? "not-allowed" : "pointer",
                     }}
                   >
-                    {deleting ? "Wird gelöscht…" : "Endgültig löschen"}
+                    {deleting ? t("del.wirdGeloescht") : t("del.endgueltigLoeschen")}
                   </button>
                 </div>
               </>

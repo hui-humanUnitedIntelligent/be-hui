@@ -74,6 +74,7 @@ const HuiCreateFlow = lazy(() => import("../components/HuiCreateFlow.jsx").catch
 import StoryComposer       from "../components/StoryComposer.jsx";
 import OnboardingTutorial from "../components/onboarding/OnboardingTutorial.jsx";
 import { HUI } from "../design/hui.design.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 // ExperienceCreator.jsx / WerkPublisher.jsx: Datei komplett entfernt (2026-07-08
 // Dead-Code-Audit) -- showExperienceCreator/showWerkPublisher sind Legacy-benannte
 // State-Flags, rendern aber schon seit laengerem ExperienceFlow/WorkFlow (s.u.).
@@ -605,7 +606,7 @@ function HomeInner() {
       )}
 
       <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
-  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Entdecken öffnet sich…</div>}>
+  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>{t("home.entdeckenOeffnet")}</div>}>
               <SafeRender flag="discoverFeed" label="DiscoverPage">
                 <DiscoverPage
                     onView={(id) => { if(id) openProfileById(id); }}
@@ -623,7 +624,7 @@ function HomeInner() {
 
           <div ref={tabRefs.impact} style={keepImpact}>
             <Suspense fallback={<div style={{padding:"40px 20px",textAlign:"center",opacity:0.6,fontSize:13,
-  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>Impact-Raum öffnet sich…</div>}>
+  color:"rgba(20,20,34,0.40)",animation:"huiFadeIn 0.5s ease"}}>{t("home.impactRaumOeffnet")}</div>}>
               <SafeRender flag="impactPage" label="ImpactPage">
                 <ImpactPage currentUser={currentUser}/>
               </SafeRender>
@@ -1045,6 +1046,7 @@ function HomeInner() {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   return (
     <HomeShell>
       <HomeInner/>
