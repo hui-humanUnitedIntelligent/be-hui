@@ -54,14 +54,14 @@ const STEPS = [
 // startAdvancedTutorial), so dass Basis-User nur die verfügbaren Kacheln
 // sehen, ohne Auto-Skip-Flicker.
 const ADVANCED_STEPS = [
-  { selector: 'button[aria-label="Meine Werke"]',        textKey: 'tut.adv1', placement: "bottom", label: "Meine Werke" },
-  { selector: 'button[aria-label="Talent-Angebote"]',    textKey: 'tut.adv2', placement: "bottom", label: "Talent-Angebote" },
-  { selector: 'button[aria-label="Erlebnisse & Projekte"]', textKey: 'tut.adv3', placement: "bottom", label: "Erlebnisse & Projekte" },
-  { selector: 'button[aria-label="Meine Momente"]',      textKey: 'tut.adv4', placement: "bottom", label: "Meine Momente" },
-  { selector: 'button[aria-label="Impact & Stimmen"]',   textKey: 'tut.adv5', placement: "bottom", label: "Impact & Stimmen" },
-  { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', textKey: 'tut.adv6', placement: "bottom", label: "K\u00e4ufe/Verk\u00e4ufe" },
-  { selector: 'button[aria-label="Meine Resonanz"]',   textKey: 'tut.adv7', placement: "bottom", label: "Meine Resonanz" },
-  { selector: 'button[aria-label="Empfehlungen"]',      textKey: 'tut.adv8', placement: "bottom", label: "Empfehlungen" },
+  { selector: 'button[aria-label="Meine Werke"]',        textKey: 'tut.adv1', placement: "bottom", labelKey: 'tut.label.werke' },
+  { selector: 'button[aria-label="Talent-Angebote"]',    textKey: 'tut.adv2', placement: "bottom", labelKey: 'tut.label.talente' },
+  { selector: 'button[aria-label="Erlebnisse & Projekte"]', textKey: 'tut.adv3', placement: "bottom", labelKey: 'tut.label.erlebnisse' },
+  { selector: 'button[aria-label="Meine Momente"]',      textKey: 'tut.adv4', placement: "bottom", labelKey: 'tut.label.momente' },
+  { selector: 'button[aria-label="Impact & Stimmen"]',   textKey: 'tut.adv5', placement: "bottom", labelKey: 'tut.label.impact' },
+  { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', textKey: 'tut.adv6', placement: "bottom", labelKey: 'tut.label.kaeufe' },
+  { selector: 'button[aria-label="Meine Resonanz"]',   textKey: 'tut.adv7', placement: "bottom", labelKey: 'tut.label.resonanz' },
+  { selector: 'button[aria-label="Empfehlungen"]',      textKey: 'tut.adv8', placement: "bottom", labelKey: 'tut.label.empfehlungen' },
 ];
 
 // Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"
@@ -307,8 +307,8 @@ export default function OnboardingTutorial() {
           maxWidth: BUBBLE_MAX_W + FOX_PEEK,
         }}>
           {/* Label (nur erweitertes Tutorial) */}
-          {isAdvanced && stepData.label && (
-            <div style={{ ...labelStyle, marginLeft: FOX_PEEK }}>{stepData.label}</div>
+          {isAdvanced && stepData.labelKey && (
+            <div style={{ ...labelStyle, marginLeft: FOX_PEEK }}>{t(stepData.labelKey)}</div>
           )}
 
           {/* Sprechblase + überlappender Fuchs (relative Wrapper-Ecke) */}
@@ -396,7 +396,7 @@ export default function OnboardingTutorial() {
                 window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
               }}
               style={btnDisableStyle}
-            >Nicht mehr anzeigen</button>
+            >{t("onboard.dontShow")}</button>
           </div>
         </div>
       </div>,
@@ -412,9 +412,9 @@ export default function OnboardingTutorial() {
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
             <FoxBot size={64} />
           </div>
-          <h2 style={dialogTitleStyle}>Kein Problem!</h2>
-          <p style={dialogTextStyle}>Du kannst das Tutorial jederzeit wiederholen.</p>
-          <p style={dialogSubTextStyle}>Finde es unter den Einstellungen in deinem Nutzerprofil — einfach "Tutorial erneut ansehen" antippen.</p>
+          <h2 style={dialogTitleStyle}>{t("onboard.advancedTitle")}</h2>
+          <p style={dialogTextStyle}>{t("onboard.canRepeat")}</p>
+          <p style={dialogSubTextStyle}>{t("onboard.findInSettings")}</p>
           <button
             onClick={() => {
               // "Nein" = später nochmal fragen → nur diese Session überspringen,
@@ -425,7 +425,7 @@ export default function OnboardingTutorial() {
               window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
             }}
             style={{ ...btnYesStyle, width: "100%", flex: "none" }}
-          >Verstanden</button>
+          >{t("onboard.verstanden")}</button>
         </div>
       </div>,
       document.body
@@ -471,9 +471,9 @@ export default function OnboardingTutorial() {
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
             <FoxBot size={64} />
           </div>
-          <h2 style={dialogTitleStyle}>Fantastisch!</h2>
+          <h2 style={dialogTitleStyle}>{t("onboarding.fantastic")}</h2>
           <p style={dialogTextStyle}>{t("onboarding.learnedAll")}</p>
-          <p style={dialogSubTextStyle}>Viel Freude beim Erschaffen, Entdecken und Wirken!</p>
+          <p style={dialogSubTextStyle}>{t("onboard.enjoy")}</p>
           <button
             onClick={() => {
               setPhase("done");
@@ -483,7 +483,7 @@ export default function OnboardingTutorial() {
               window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "feed" } }));
             }}
             style={{ ...btnYesStyle, width: "100%", marginTop: 8, flex: "none" }}
-          >Los geht's</button>
+          >{t("onboard.letsGo")}</button>
         </div>
       </div>,
       document.body

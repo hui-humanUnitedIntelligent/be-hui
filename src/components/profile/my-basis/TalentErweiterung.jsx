@@ -20,17 +20,17 @@ export function TalentErweiterung({ profile, onProfileUpdate }) {
         color: "#fff",
       }}>
         <div style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>
-          <span className="hui-emoji">🌱</span> Du bist Teil der Gemeinschaft
+          <span className="hui-emoji">🌱</span> {t("te.communityMember")}
         </div>
         <div style={{ fontSize: 13, opacity: 0.85 }}>
-          Gestalte dein Profil und werde sichtbar.
+          {t("te.designProfile")}
         </div>
       </div>
 
 
       {/* Meine Werke */}
       <div style={{ fontSize: 13, fontWeight: 600, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
-        MEINE WERKE
+        {t("te.myWorks")}
       </div>
       <div style={{
         background: T.bgCard, borderRadius: T.r16,
@@ -38,20 +38,20 @@ export function TalentErweiterung({ profile, onProfileUpdate }) {
         boxShadow: T.card, marginBottom: 20,
       }}>
         <div style={{ fontSize: 13, color: T.inkFaint, lineHeight: 1.65 }}>
-          Noch keine Werke hinzugefügt. Teile deine Projekte, Ideen und Leistungen mit der Gemeinschaft.
+          {t("te.noWorksYet")}
         </div>
         <button style={{
           marginTop: 12, padding: "8px 16px", borderRadius: 99,
           background: "#0EC4B8", border: "none", cursor: "pointer",
           fontSize: 13, fontWeight: 600, color: "#fff",
         }}>
-          + Werk hinzufügen
+          {t("te.addWork")}
         </button>
       </div>
 
       {/* Meine Erlebnisse */}
       <div style={{ fontSize: 13, fontWeight: 600, color: T.inkSoft, marginBottom: 12, letterSpacing: "0.05em" }}>
-        MEINE ERLEBNISSE
+        {t("te.myExperiences")}
       </div>
       <div style={{
         background: T.bgCard, borderRadius: T.r16,
@@ -59,14 +59,14 @@ export function TalentErweiterung({ profile, onProfileUpdate }) {
         boxShadow: T.card,
       }}>
         <div style={{ fontSize: 13, color: T.inkFaint, lineHeight: 1.65 }}>
-          Noch keine Erlebnisse hinzugefügt. Berichte von echten Begegnungen und Erfahrungen.
+          {t("te.noExperiencesYet")}
         </div>
         <button style={{
           marginTop: 12, padding: "8px 16px", borderRadius: 99,
           background: "#0EC4B8", border: "none", cursor: "pointer",
           fontSize: 13, fontWeight: 600, color: "#fff",
         }}>
-          + Erlebnis hinzufügen
+          {t("te.addExperience")}
         </button>
       </div>
     </div>
