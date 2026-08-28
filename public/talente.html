@@ -25,9 +25,78 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 50% 35% at 25% 15%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 75% 70%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+
+/* ── HERO: zweispaltig, Bild ~40% ── */
+.talente-hero{position:relative;z-index:1;display:flex;align-items:center;gap:48px;max-width:960px;margin:0 auto;padding:120px 24px 72px}
+.talente-hero-text{flex:1;min-width:0}
+.talente-hero-text .hui-page-back{margin-bottom:20px}
+.talente-hero-text h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px}
+.talente-hero-text p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:480px;margin:0}
+.talente-hero-img{flex:0 0 40%;max-width:300px;position:relative}
+.talente-hero-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.talente-hero-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CONTENT ── */
+.talente-content{max-width:840px;margin:0 auto;padding:0 24px 60px}
+
+/* ── Fähigkeiten: zweispaltig ── */
+.talente-faehigkeiten{display:flex;align-items:center;gap:48px;margin-bottom:64px}
+.talente-faehigkeiten-text{flex:1;min-width:0}
+.talente-faehigkeiten-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.talente-faehigkeiten-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.talente-faehigkeiten-img{flex:0 0 42%;max-width:340px;position:relative}
+.talente-faehigkeiten-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.talente-faehigkeiten-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.05),rgba(244,115,85,.03));z-index:-1}
+
+/* ── Austausch: Text links, Bild rechts ── */
+.talente-austausch{display:flex;align-items:center;gap:48px;margin-bottom:64px}
+.talente-austausch-text{flex:1;min-width:0}
+.talente-austausch-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.talente-austausch-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.talente-austausch-img{flex:0 0 42%;max-width:340px;position:relative}
+.talente-austausch-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.talente-austausch-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(244,115,85,.04),rgba(13,196,181,.04));z-index:-1}
+
+/* ── Möglichkeiten: 5 Module mit feinen Linien ── */
+.talente-list-title{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:32px;text-align:center}
+.talente-modules{margin-bottom:64px}
+.talente-module{display:flex;align-items:flex-start;gap:20px;padding:22px 0;border-bottom:1px solid var(--border)}
+.talente-module:last-child{border-bottom:none}
+.talente-module-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgba(13,196,181,.08);color:var(--teal-deep);font-size:13px;font-weight:600;font-family:'Inter',sans-serif}
+.talente-module-body h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px;line-height:1.4}
+.talente-module-body p{font-size:14.5px;color:var(--ink-body);line-height:1.6;margin:0}
+
+/* ── Was kannst du: visueller Schwerpunkt ── */
+.talente-bringst{margin-bottom:48px;text-align:center}
+.talente-bringst h3{font-size:24px;font-weight:700;color:var(--ink);margin-bottom:10px;letter-spacing:-.01em}
+.talente-bringst .talente-bringst-sub{font-size:15px;color:var(--muted);margin-bottom:28px}
+.talente-bringst .hui-interact-options{justify-content:center;max-width:640px;margin:0 auto 20px}
+
+/* ── Abschluss ── */
+.talente-abschluss{margin:0 auto;max-width:520px;padding:48px 24px;text-align:center}
+.talente-abschluss::before{content:'';display:block;width:40px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.talente-abschluss p{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .talente-hero{flex-direction:column-reverse;padding:100px 20px 56px;gap:32px}
+  .talente-hero-img{max-width:220px}
+  .talente-hero-text h1{font-size:26px}
+  .talente-hero-text p{font-size:15px}
+  .talente-content{padding:0 20px 40px}
+  .talente-faehigkeiten{flex-direction:column;gap:28px;margin-bottom:48px}
+  .talente-faehigkeiten-img{max-width:280px;margin:0 auto}
+  .talente-faehigkeiten-text h2{font-size:20px}
+  .talente-austausch{flex-direction:column;gap:28px;margin-bottom:48px}
+  .talente-austausch-img{max-width:280px;margin:0 auto}
+  .talente-austausch-text h2{font-size:20px}
+  .talente-list-title{font-size:20px}
+  .talente-module{gap:16px;padding:18px 0}
+  .talente-bringst h3{font-size:20px}
+  .talente-abschluss{padding:36px 20px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/talente"/>
@@ -201,56 +270,108 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.talente.hero">Was kannst du?</h1>
-    <p class="reveal d2" data-i18n="page.talente.sub">Ob Handwerk, Kunst, Technologie oder zwischenmenschliches Geschick — jedes Talent ist wertvoll. HUI gibt deinen Fähigkeiten eine Bühne und bringt dich mit Menschen zusammen, die genau das suchen.</p>
+
+  <!-- ═══ HERO: zweispaltig mit Bild ═══ -->
+  <section class="talente-hero">
+    <div class="talente-hero-text">
+      <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
+      <h1 class="reveal" data-i18n="page.talente.hero">Was kannst du?</h1>
+      <p class="reveal d2" data-i18n="page.talente.sub">Ob Handwerk, Kunst, Technologie oder zwischenmenschliches Geschick — jedes Talent ist wertvoll. HUI gibt deinen Fähigkeiten eine Bühne und bringt dich mit Menschen zusammen, die genau das suchen.</p>
+    </div>
+    <div class="talente-hero-img reveal d2">
+      <img src="/assets/talente-hero.webp" alt="Eine Person, die kreativ an einer Leinwand arbeitet" width="300" height="300" loading="lazy" decoding="async"/>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.talente.s1-title">Fähigkeiten statt Formalitäten</h2>
-      <p data-i18n="page.talente.s1-text">Nicht immer spiegeln Zeugnisse und akademische Titel wider, was ein Mensch wirklich kann. Auf HUI stehen praktische Fertigkeiten, Leidenschaft und individuelle Begabungen im Fokus. Wir erleichtern es dir, deine Fähigkeiten unabhängig von klassischen Qualifikationsnachweisen einzubringen.</p>
+  <div class="talente-content">
+
+    <!-- ═══ FÄHIGKEITEN STATT FORMALITÄTEN: zweispaltig ═══ -->
+    <section class="talente-faehigkeiten reveal">
+      <div class="talente-faehigkeiten-text">
+        <h2 data-i18n="page.talente.s1-title">Fähigkeiten statt Formalitäten</h2>
+        <p data-i18n="page.talente.s1-text">Nicht immer spiegeln Zeugnisse und akademische Titel wider, was ein Mensch wirklich kann. Auf HUI stehen praktische Fertigkeiten, Leidenschaft und individuelle Begabungen im Fokus. Wir erleichtern es dir, deine Fähigkeiten unabhängig von klassischen Qualifikationsnachweisen einzubringen.</p>
+      </div>
+      <div class="talente-faehigkeiten-img">
+        <img src="/assets/talente-faehigkeiten.webp" alt="Eine Person bei handwerklicher Tätigkeit mit Ton" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.talente.s2-title">Gegenseitiger Austausch und Entfaltung</h2>
-      <p data-i18n="page.talente.s2-text">Ein Talent entfaltet seine volle Wirkung erst, wenn es geteilt wird. HUI ermöglicht es dir, deine Kenntnisse anzubieten, von anderen zu lernen und gemeinsam neue Lösungsansätze zu entwickeln. So wird persönliches Wachstum zu einer Bereicherung für das gesamte Netzwerk.</p>
+    <!-- ═══ GEGENSEITIGER AUSTAUSCH: Text links, Bild rechts ═══ -->
+    <section class="talente-austausch reveal">
+      <div class="talente-austausch-text">
+        <h2 data-i18n="page.talente.s2-title">Gegenseitiger Austausch und Entfaltung</h2>
+        <p data-i18n="page.talente.s2-text">Ein Talent entfaltet seine volle Wirkung erst, wenn es geteilt wird. HUI ermöglicht es dir, deine Kenntnisse anzubieten, von anderen zu lernen und gemeinsam neue Lösungsansätze zu entwickeln. So wird persönliches Wachstum zu einer Bereicherung für das gesamte Netzwerk.</p>
+      </div>
+      <div class="talente-austausch-img">
+        <img src="/assets/talente-austausch.webp" alt="Zwei Menschen im gemeinsamen Austausch an einem Tisch" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
-    <section class="hui-page-section reveal">
-      <h3 class="hui-page-list-title" data-i18n="page.talente.list-title">Deine Möglichkeiten rund um Talente</h3>
-      <ul class="hui-page-list">
-        <li data-i18n="page.talente.list-1">Präsentiere deine Fähigkeiten übersichtlich und authentisch</li>
-        <li data-i18n="page.talente.list-2">Entdecke verborgene Talente in deiner unmittelbaren Umgebung</li>
-        <li data-i18n="page.talente.list-3">Tausche Wissen und Erfahrungen direkt mit anderen aus</li>
-        <li data-i18n="page.talente.list-4">Finde Unterstützung für Aufgaben, bei denen dir Fachwissen fehlt</li>
-        <li data-i18n="page.talente.list-5">Entwickle deine Fertigkeiten in Kooperation mit der Gemeinschaft weiter</li>
-      </ul>
-    </section>
-  </div>
 
-
-  <div class="hui-interact reveal">
-    <h3 class="hui-interact-title" data-i18n="interact.talente.title">Was kannst du, das andere brauchen könnten?</h3>
-    <p class="hui-interact-sub" data-i18n="interact.talente.sub">Talente werden wertvoll, wenn sie auf Möglichkeiten treffen.</p>
-    <div class="hui-interact-options" data-response-prefix="interact.talente.response">
-      <span class="hui-interact-chip" data-value="creative" data-i18n="interact.talente.option.creative">Kreativität</span>
-      <span class="hui-interact-chip" data-value="craft" data-i18n="interact.talente.option.craft">Handwerk</span>
-      <span class="hui-interact-chip" data-value="tech" data-i18n="interact.talente.option.tech">Technik</span>
-      <span class="hui-interact-chip" data-value="org" data-i18n="interact.talente.option.org">Organisation</span>
-      <span class="hui-interact-chip" data-value="knowledge" data-i18n="interact.talente.option.knowledge">Wissen</span>
-      <span class="hui-interact-chip" data-value="comm" data-i18n="interact.talente.option.comm">Kommunikation</span>
-      <span class="hui-interact-chip" data-value="art" data-i18n="interact.talente.option.art">Kunst</span>
-      <span class="hui-interact-chip" data-value="support" data-i18n="interact.talente.option.support">Unterstützung</span>
-      <span class="hui-interact-chip" data-value="other" data-i18n="interact.talente.option.other">etwas anderes</span>
+    <!-- ═══ DEINE MÖGLICHKEITEN: 5 Module mit feinen Linien ═══ -->
+    <h3 class="talente-list-title reveal" data-i18n="page.talente.list-title">Deine Möglichkeiten rund um Talente</h3>
+    <div class="talente-modules reveal">
+      <div class="talente-module">
+        <span class="talente-module-num">01</span>
+        <div class="talente-module-body">
+          <h3 data-i18n="page.talente.list-1-title">Fähigkeiten präsentieren</h3>
+          <p data-i18n="page.talente.list-1">Präsentiere deine Fähigkeiten übersichtlich und authentisch</p>
+        </div>
+      </div>
+      <div class="talente-module">
+        <span class="talente-module-num">02</span>
+        <div class="talente-module-body">
+          <h3 data-i18n="page.talente.list-2-title">Talente entdecken</h3>
+          <p data-i18n="page.talente.list-2">Entdecke verborgene Talente in deiner unmittelbaren Umgebung</p>
+        </div>
+      </div>
+      <div class="talente-module">
+        <span class="talente-module-num">03</span>
+        <div class="talente-module-body">
+          <h3 data-i18n="page.talente.list-3-title">Wissen austauschen</h3>
+          <p data-i18n="page.talente.list-3">Tausche Wissen und Erfahrungen direkt mit anderen aus</p>
+        </div>
+      </div>
+      <div class="talente-module">
+        <span class="talente-module-num">04</span>
+        <div class="talente-module-body">
+          <h3 data-i18n="page.talente.list-4-title">Unterstützung finden</h3>
+          <p data-i18n="page.talente.list-4">Finde Unterstützung für Aufgaben, bei denen dir Fachwissen fehlt</p>
+        </div>
+      </div>
+      <div class="talente-module">
+        <span class="talente-module-num">05</span>
+        <div class="talente-module-body">
+          <h3 data-i18n="page.talente.list-5-title">Fähigkeiten weiterentwickeln</h3>
+          <p data-i18n="page.talente.list-5">Entwickle deine Fertigkeiten in Kooperation mit der Gemeinschaft weiter</p>
+        </div>
+      </div>
     </div>
-    <div class="hui-interact-response">
-      <p class="hui-interact-response-text"></p>
-    </div>
-  </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.talente.coming">Nach dem Start wirst du deine eigenen Talente präsentieren, gezielt nach Fähigkeiten suchen und Möglichkeiten für Wissensaustausch oder Zusammenarbeit entdecken können.</p>
+    <!-- ═══ WAS KANNST DU: Pills/Chips als visueller Schwerpunkt ═══ -->
+    <div class="talente-bringst reveal">
+      <h3 class="hui-interact-title" data-i18n="interact.talente.title">Was kannst du, das andere brauchen könnten?</h3>
+      <p class="talente-bringst-sub" data-i18n="interact.talente.sub">Talente werden wertvoll, wenn sie auf Möglichkeiten treffen.</p>
+      <div class="hui-interact-options" data-response-prefix="interact.talente.response">
+        <span class="hui-interact-chip" data-value="creative" data-i18n="interact.talente.option.creative">Kreativität</span>
+        <span class="hui-interact-chip" data-value="craft" data-i18n="interact.talente.option.craft">Handwerk</span>
+        <span class="hui-interact-chip" data-value="tech" data-i18n="interact.talente.option.tech">Technik</span>
+        <span class="hui-interact-chip" data-value="org" data-i18n="interact.talente.option.org">Organisation</span>
+        <span class="hui-interact-chip" data-value="knowledge" data-i18n="interact.talente.option.knowledge">Wissen</span>
+        <span class="hui-interact-chip" data-value="comm" data-i18n="interact.talente.option.comm">Kommunikation</span>
+        <span class="hui-interact-chip" data-value="art" data-i18n="interact.talente.option.art">Kunst</span>
+        <span class="hui-interact-chip" data-value="support" data-i18n="interact.talente.option.support">Unterstützung</span>
+        <span class="hui-interact-chip" data-value="other" data-i18n="interact.talente.option.other">etwas anderes</span>
+      </div>
+      <div class="hui-interact-response">
+        <p class="hui-interact-response-text"></p>
+      </div>
+    </div>
+
+    <!-- ═══ ABSCHLUSS ═══ -->
+    <div class="talente-abschluss reveal">
+      <p data-i18n="page.talente.coming">Nach dem Start wirst du deine eigenen Talente präsentieren, gezielt nach Fähigkeiten suchen und Möglichkeiten für Wissensaustausch oder Zusammenarbeit entdecken können.</p>
+    </div>
+
   </div>
 
   <section class="hui-page-cta">
