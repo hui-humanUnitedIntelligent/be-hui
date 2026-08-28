@@ -40,44 +40,159 @@
     </div>
   </a>
   <div class="nav-links">
-    <a href="/#ueber" class="nav-link" data-i18n="nav.about">Uber HUI</a>
+    <a href="/#ueber" class="nav-link" data-i18n="nav.about">Ãber HUI</a>
     <a href="/#entdecken" class="nav-link" data-i18n="nav.discover">Entdecken</a>
     <a href="/#wie" class="nav-link" data-i18n="nav.how">Wie HUI wirkt</a>
     <a href="/#mitmachen" class="nav-link" data-i18n="nav.join">Mitmachen</a>
-    <a href="/app/login" class="nav-cta" data-i18n="nav.cta">HUI entdecken -></a>
+    <a href="/app/login" class="nav-cta" data-i18n="nav.cta">HUI entdecken →</a>
   </div>
-  <button class="nav-ham" id="hamBtn" aria-label="Menu" data-i18n-aria="nav.menu-aria">
+  <button class="nav-ham" id="hamBtn" aria-label="MenÃ¼" data-i18n-aria="nav.menu-aria">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
 <div class="drawer" id="drawer">
-  <a href="/#ueber" data-i18n="nav.about">Uber HUI</a>
+  <a href="/#ueber" data-i18n="nav.about">Ãber HUI</a>
   <a href="/#entdecken" data-i18n="nav.discover">Entdecken</a>
   <a href="/#wie" data-i18n="nav.how">Wie HUI wirkt</a>
   <a href="/#mitmachen" data-i18n="nav.join">Mitmachen</a>
-  <a href="/app/login" class="drawer-cta" data-i18n="nav.cta">HUI entdecken -></a>
+  <a href="/app/login" class="drawer-cta" data-i18n="nav.cta">HUI entdecken →</a>
 </div>
 
 <div class="backdrop" id="backdrop"></div>
 
+<!-- ═══ HUI SIDEBAR ═══ -->
+<button class="hui-tab" id="huiTab" aria-label="HUI Menü öffnen" data-i18n-aria="sidebar.tab.aria" aria-expanded="false" aria-controls="huiSidebar">
+  <img src="/hui_logo.webp" alt="HUI" width="24" height="24"/>
+</button>
 
+<div class="hui-sidebar-backdrop" id="huiSidebarBackdrop" aria-hidden="true"></div>
+
+<aside class="hui-sidebar" id="huiSidebar" role="complementary" aria-label="HUI Navigation" aria-hidden="true">
+  <button class="hui-sidebar-close" id="huiSidebarClose" aria-label="Schließen" data-i18n-aria="sidebar.close.aria">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M4 4L14 14M14 4L4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div class="hui-sidebar-header">
+    <img src="/hui_logo.webp" alt="HUI" width="40" height="40" class="hui-sidebar-logo"/>
+    <p class="hui-sidebar-tagline" data-i18n="sidebar.tagline">Entdecke HUI.</p>
+    <p class="hui-sidebar-sub" data-i18n="sidebar.sub">Menschen. Ideen. Möglichkeiten.</p>
+  </div>
+
+  <div class="hui-sidebar-divider" aria-hidden="true"></div>
+
+  <div class="hui-sidebar-scroll">
+    <nav class="hui-sidebar-nav" aria-label="HUI Bereiche">
+      <!-- ENTDECKEN -->
+      <div class="hui-nav-group">
+        <h4 class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
+        <a href="/menschen" class="hui-nav-item" data-i18n="sidebar.nav.people">Menschen</a>
+        <a href="/talente" class="hui-nav-item" data-i18n="sidebar.nav.talents">Talente</a>
+        <a href="/ideen" class="hui-nav-item" data-i18n="sidebar.nav.ideas">Ideen</a>
+        <a href="/projekte" class="hui-nav-item" data-i18n="sidebar.nav.projects">Projekte</a>
+        <a href="/werke" class="hui-nav-item" data-i18n="sidebar.nav.works">Werke</a>
+        <a href="/erlebnisse" class="hui-nav-item" data-i18n="sidebar.nav.experiences">Erlebnisse</a>
+        <a href="/unternehmen" class="hui-nav-item" data-i18n="sidebar.nav.companies">Unternehmen</a>
+        <a href="/gemeinschaft" class="hui-nav-item" data-i18n="sidebar.nav.community">Gemeinschaft</a>
+      </div>
+
+      <!-- DIE IDEE -->
+      <div class="hui-nav-group">
+        <h4 class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
+        <a href="#ueber" class="hui-nav-item" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</a>
+        <a href="#idee" class="hui-nav-item" data-i18n="sidebar.nav.the-idea">Die Idee dahinter</a>
+        <a href="#wie" class="hui-nav-item" data-i18n="sidebar.nav.why-hui">Warum HUI?</a>
+        <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="hui-nav-item" data-i18n="sidebar.nav.4vision">4VisionGlobal</a>
+        <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="hui-nav-item" data-i18n="sidebar.nav.liga">Liga der Kreativen</a>
+      </div>
+
+      <!-- MITMACHEN -->
+      <div class="hui-nav-group">
+        <h4 class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
+        <a href="/mitmachen/idee" class="hui-nav-item" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</a>
+        <a href="/mitmachen/talent" class="hui-nav-item" data-i18n="sidebar.nav.have-talent">Ich habe ein Talent</a>
+        <a href="/mitmachen/projekt" class="hui-nav-item" data-i18n="sidebar.nav.start-project">Ich möchte ein Projekt starten</a>
+        <a href="/mitmachen/unterstuetzen" class="hui-nav-item" data-i18n="sidebar.nav.support">Ich möchte unterstützen</a>
+        <a href="/mitmachen/informiert" class="hui-nav-item" data-i18n="sidebar.nav.stay-informed">Ich möchte informiert werden</a>
+      </div>
+
+      <!-- INSPIRATION -->
+      <div class="hui-nav-group">
+        <h4 class="hui-nav-heading" data-i18n="sidebar.section.inspiration">Inspiration</h4>
+        <a href="/inspiration/menschen" class="hui-nav-item" data-i18n="sidebar.nav.insp.people">Menschen</a>
+        <a href="/inspiration/ideen" class="hui-nav-item" data-i18n="sidebar.nav.insp.ideas">Ideen</a>
+        <a href="/inspiration/geschichten" class="hui-nav-item" data-i18n="sidebar.nav.insp.stories">Geschichten</a>
+        <a href="/inspiration/impulse" class="hui-nav-item" data-i18n="sidebar.nav.insp.impulses">Impulse</a>
+      </div>
+
+      <!-- HUI KOMMT -->
+      <div class="hui-nav-group">
+        <h4 class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
+        <a href="/launch" class="hui-nav-item" data-i18n="sidebar.nav.launch">Launch</a>
+        <a href="/updates" class="hui-nav-item" data-i18n="sidebar.nav.updates">Updates</a>
+        <a href="/von-anfang-an-dabei" class="hui-nav-item" data-i18n="sidebar.nav.from-start">Von Anfang an dabei</a>
+      </div>
+    </nav>
+
+    <!-- Die Reise von HUI -->
+    <div class="hui-journey">
+      <h4 class="hui-journey-title" data-i18n="sidebar.journey.title">Die Reise von HUI</h4>
+      <div class="hui-journey-steps">
+        <div class="hui-journey-step hui-journey-active">
+          <span class="hui-journey-num">01</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.1">Menschen</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">02</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.2">Ideen</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">03</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.3">Möglichkeiten</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">04</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.4">Begegnungen</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">05</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.5">Wirkung</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUI Quote -->
+    <div class="hui-quote">
+      <p data-i18n="sidebar.quote">Eine Idee kann etwas bewegen. Gemeinsam kann sie die Welt verändern.</p>
+    </div>
+  </div>
+
+  <div class="hui-sidebar-footer">
+    <div class="hui-sidebar-lang" id="huiSidebarLang"></div>
+    <div class="hui-sidebar-links">
+      <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer">4VisionGlobal</a>
+      <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer">Liga der Kreativen</a>
+    </div>
+  </div>
+</aside>
 
 <div class="hui-sidebar-toast" id="huiSidebarToast" role="alert" aria-live="polite">
   <p id="huiSidebarToastText"></p>
 </div>
 
 <div class="cs-toast" id="csToast" role="alert" aria-live="polite">
-  <button class="cs-close" id="csToastClose" aria-label="Schliessen" data-i18n-aria="cs.close-aria">&times;</button>
-  <h4 data-i18n="cs.title">HUI ist bald fuer dich da.</h4>
-  <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau.</p>
+  <button class="cs-close" id="csToastClose" aria-label="SchlieÃen" data-i18n-aria="cs.close-aria">&times;</button>
+  <h4 data-i18n="cs.title">HUI ist bald fÃ¼r dich da.</h4>
+  <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.</p>
 </div>
 
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
   <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">&#8592; HUI</a>
+    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
     <h1 class="reveal" data-i18n="page.erlebnisse.hero">Manche Dinge versteht man erst, wenn man sie erlebt.</h1>
     <p class="reveal d2" data-i18n="page.erlebnisse.sub">Echte Erfahrungen prägen uns nachhaltiger als graue Theorie. HUI ermöglicht Begegnungen, Workshops und gemeinsame Aktivitäten, die neue Perspektiven eröffnen.</p>
   </section>
@@ -92,7 +207,6 @@
       <h2 data-i18n="page.erlebnisse.s2-title">Lernen durch Anwendung und Begegnung</h2>
       <p data-i18n="page.erlebnisse.s2-text">Wenn Menschen ihr Wissen in der Praxis teilen, entsteht nachhaltiger Lernerfolg. Durch das gemeinsame Tun lernen Beteiligte voneinander, bauen Vorurteile ab und stärken den Zusammenhalt. Jedes Erlebnis wird so zu einem Schritt für persönliche Entwicklung.</p>
     </section>
-
     <section class="hui-page-section reveal">
       <h3 class="hui-page-list-title" data-i18n="page.erlebnisse.list-title">Vielfalt der Erlebnisse auf HUI</h3>
       <ul class="hui-page-list">
@@ -118,11 +232,11 @@
 <footer class="footer">
   <div class="footer-inner">
     <img src="/hui_logo.webp" alt="HUI" class="footer-logo" width="36" height="36"/>
-    <p class="footer-tag" data-i18n="footer.tag">Human United Intelligence</p>
+    <p class="footer-tag" data-i18n="footer.tag">Human United Intelligence — Menschen. Ideen. MÃ¶glichkeiten.</p>
     <div class="footer-grid">
       <div class="footer-col">
         <h4 class="footer-col-title" data-i18n="footer.col1">HUI</h4>
-        <a href="/#ueber" class="footer-link" data-i18n="footer.col1-1">Uber HUI</a>
+        <a href="/#ueber" class="footer-link" data-i18n="footer.col1-1">Ãber HUI</a>
         <a href="/#entdecken" class="footer-link" data-i18n="footer.col1-2">Entdecken</a>
         <a href="/#wie" class="footer-link" data-i18n="footer.col1-3">Wie HUI wirkt</a>
         <a href="/#mitmachen" class="footer-link" data-i18n="footer.col1-4">Mitmachen</a>
@@ -137,13 +251,13 @@
         <a href="/barrierefreiheit" class="footer-link" data-i18n="footer.col2-5">Barrierefreiheit</a>
       </div>
       <div class="footer-col">
-        <h4 class="footer-col-title" data-i18n="footer.col3">Kontakt</h4>
+        <h4 class="footer-col-title" data-i18n="footer.col3">Kontakt &amp; Verbindungen</h4>
         <a href="/kontakt" class="footer-link" data-i18n="footer.col3-1">Kontakt</a>
         <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="footer-link">4VisionGlobal</a>
         <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="footer-link">Liga der Kreativen</a>
       </div>
     </div>
-    <p class="footer-copy" data-i18n="footer.copy">(c) 2026 HUI</p>
+    <p class="footer-copy" data-i18n="footer.copy">© 2026 HUI — Human United Intelligence.</p>
   </div>
 </footer>
 
