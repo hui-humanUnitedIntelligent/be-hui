@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
-<title>Ich möchte ein Projekt starten | Mitmachen bei HUI</title>
-<meta name="description" content="Du willst eine Initiative ins Leben rufen? HUI bietet künftig die Werkzeuge, um Teams zu bilden und Ressourcen zu bündeln."/>
+<title>Projekt starten & gemeinsam Ideen verwirklichen | HUI</title>
+<meta name="description" content="Du willst eine Initiative ins Leben rufen? Du hast eine Projektidee? HUI möchte Menschen, Fähigkeiten und Ressourcen verbinden, damit aus Ideen gemeinsame Projekte und neue Möglichkeiten entstehen."/>
 <meta name="theme-color" content="#0DC4B5"/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
 <meta property="og:title" content="Ich möchte ein Projekt starten | Mitmachen bei HUI"/>
-<meta property="og:description" content="Du willst eine Initiative ins Leben rufen? HUI bietet künftig die Werkzeuge, um Teams zu bilden und Ressourcen zu bündeln."/>
+<meta property="og:description" content="Du willst eine Initiative ins Leben rufen? Du hast eine Projektidee? HUI möchte Menschen, Fähigkeiten und Ressourcen verbinden, damit aus Ideen gemeinsame Projekte und neue Möglichkeiten entstehen."/>
 <meta property="og:type" content="website"/>
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
 <style>
@@ -25,9 +25,142 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
-.hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+/* ═══ Ich möchte ein Projekt starten — Page Styles ═══ */
+.ip-hero{padding:88px 24px 48px;max-width:1000px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;position:relative;z-index:1}
+.ip-hero-left{position:relative}
+.ip-back{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);transition:color .2s var(--ease);margin-bottom:20px;text-decoration:none}
+.ip-back:hover{color:var(--teal-deep)}
+.ip-hero h1{font-size:38px;font-weight:700;letter-spacing:-.03em;line-height:1.1;color:var(--ink);margin:0 0 20px}
+.ip-hero-sub{font-size:17px;color:var(--ink-body);line-height:1.65;max-width:480px;margin:0}
+.ip-hero-accent{display:block;width:48px;height:2px;margin:24px 0 0;background:linear-gradient(90deg,var(--teal),transparent);border-radius:2px}
+.ip-hero-visual{display:flex;align-items:center;justify-content:center}
+.ip-content{max-width:1000px;margin:0 auto;padding:0 24px}
+.ip-svg{width:100%;max-width:280px;height:auto;opacity:.92}
+
+/* ── Section base ── */
+.ip-section{padding:52px 0}
+.ip-section h2{font-size:24px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 16px}
+.ip-section p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0 0 14px;max-width:680px}
+
+/* ── Three elements ── */
+.ip-triple{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:36px}
+.ip-triple-item{padding:28px 24px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);display:flex;flex-direction:column;gap:8px}
+.ip-triple-name{font-size:15px;font-weight:700;color:var(--teal-deep);letter-spacing:.5px;margin:0}
+.ip-triple-text{font-size:14px;color:var(--muted);line-height:1.6;margin:0}
+
+/* ── Talent circles formula ── */
+.ip-formula{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:36px;max-width:480px;margin-left:auto;margin-right:auto}
+.ip-formula-line{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.ip-pill{display:inline-flex;align-items:center;padding:10px 22px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:24px;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;transition:all .25s var(--ease)}
+.ip-pill:hover{border-color:rgba(13,196,181,.12);color:var(--teal-deep)}
+.ip-formula-op{font-size:18px;font-weight:300;color:var(--teal-deep);line-height:1}
+.ip-formula-result{font-size:18px;font-weight:700;color:var(--teal-deep);padding:12px 32px;background:rgba(13,196,181,.04);border:1px solid rgba(13,196,181,.12);border-radius:26px}
+
+/* ── Steps journey ── */
+.ip-steps{padding:56px 0}
+.ip-steps-title{font-size:24px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 44px;text-align:center}
+.ip-steps-flow{display:flex;flex-direction:column;align-items:center;gap:0;max-width:560px;margin:0 auto}
+.ip-step{display:flex;align-items:flex-start;gap:20px;width:100%;padding:18px 0}
+.ip-step-num{font-size:13px;font-weight:700;color:var(--teal-deep);width:40px;flex-shrink:0;text-align:center;padding-top:2px}
+.ip-step-body{flex:1}
+.ip-step-name{font-size:17px;font-weight:600;color:var(--ink);margin:0 0 6px}
+.ip-step-text{font-size:14.5px;color:var(--muted);line-height:1.6;margin:0}
+.ip-step-conn{width:2px;height:24px;background:linear-gradient(180deg,rgba(13,196,181,.15),rgba(13,196,181,.04));margin-left:20px}
+
+/* ── Categories ── */
+.ip-cats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:36px}
+.ip-cat{display:flex;flex-direction:column;gap:6px;padding:20px 18px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);transition:all .25s var(--ease)}
+.ip-cat:hover{transform:translateY(-2px);border-color:rgba(13,196,181,.1)}
+.ip-cat-icon{font-size:22px;line-height:1;margin-bottom:4px}
+.ip-cat-name{font-size:14px;font-weight:600;color:var(--ink)}
+.ip-cat-desc{font-size:12.5px;color:var(--muted);line-height:1.5}
+
+/* ── Project tree ── */
+.ip-tree{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:36px;max-width:440px;margin-left:auto;margin-right:auto}
+.ip-tree-top{padding:12px 28px;background:rgba(13,196,181,.04);border:1px solid rgba(13,196,181,.12);border-radius:24px;font-size:15px;font-weight:600;color:var(--teal-deep)}
+.ip-tree-branch{display:flex;gap:24px;align-items:center}
+.ip-tree-node{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 20px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.06);border-radius:var(--r);font-size:13px;font-weight:600;color:var(--ink)}
+.ip-tree-conn-v{width:2px;height:20px;background:linear-gradient(180deg,rgba(13,196,181,.15),rgba(13,196,181,.06))}
+.ip-tree-result{padding:14px 32px;background:rgba(13,196,181,.06);border:1px solid rgba(13,196,181,.15);border-radius:26px;font-size:16px;font-weight:700;color:var(--teal-deep)}
+
+/* ── Resources ── */
+.ip-resources{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:36px;max-width:600px;margin-left:auto;margin-right:auto}
+.ip-resource{display:inline-flex;align-items:center;padding:12px 24px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:24px;font-size:14.5px;font-weight:600;color:var(--ink);transition:all .25s var(--ease)}
+.ip-resource:hover{border-color:rgba(13,196,181,.12);color:var(--teal-deep)}
+
+/* ── Connection flow ── */
+.ip-conn{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin-top:36px}
+.ip-conn-node{display:inline-flex;align-items:center;padding:10px 22px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.06);border-radius:24px;font-size:14px;font-weight:600;color:var(--ink);text-decoration:none;transition:all .25s var(--ease)}
+.ip-conn-node:hover{border-color:rgba(13,196,181,.15);color:var(--teal-deep)}
+.ip-conn-arrow{font-size:16px;color:var(--teal-deep);font-weight:300}
+
+/* ── Mockup ── */
+.ip-mockup{max-width:440px;margin:36px auto 0;padding:36px 32px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.06);border-radius:var(--rl)}
+.ip-mockup-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--faint);margin:0 0 20px;text-align:center}
+.ip-mockup-title{font-size:18px;font-weight:700;color:var(--ink);margin:0 0 16px;text-align:center}
+.ip-mockup-group{margin-bottom:20px}
+.ip-mockup-group-label{font-size:12px;font-weight:600;color:var(--muted);margin:0 0 10px;letter-spacing:.5px}
+.ip-mockup-desc{font-size:14px;color:var(--ink-body);line-height:1.6;margin:0;padding:14px;background:rgba(255,255,255,.4);border-radius:var(--r);border:1px solid rgba(20,20,34,.04)}
+.ip-mockup-tags{display:flex;flex-wrap:wrap;gap:6px}
+.ip-mockup-tag{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;font-size:12px;font-weight:500;color:var(--ink-body);background:rgba(255,255,255,.6);border:1px solid rgba(20,20,34,.06);border-radius:16px}
+.ip-mockup-note{font-size:11px;color:var(--faint);text-align:center;margin:20px 0 0;font-style:italic}
+
+/* ── Future features ── */
+.ip-future-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:760px;margin:36px auto 0}
+.ip-future-item{padding:28px;background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);display:flex;flex-direction:column;gap:8px}
+.ip-future-name{font-size:16px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.ip-future-name::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.5;flex-shrink:0}
+.ip-future-desc{font-size:14px;color:var(--muted);line-height:1.6;margin:0}
+
+/* ── FAQ ── */
+.ip-faq{padding:48px 0}
+.ip-faq h2{font-size:24px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 28px}
+.ip-faq-list{display:flex;flex-direction:column;gap:10px}
+.ip-faq-item{background:var(--cream-soft);border:1px solid rgba(20,20,34,.05);border-radius:var(--r);overflow:hidden;transition:border-color .2s var(--ease)}
+.ip-faq-item[open]{border-color:rgba(13,196,181,.15)}
+.ip-faq-item summary{list-style:none;cursor:pointer;padding:18px 24px;font-size:15.5px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:color .2s var(--ease)}
+.ip-faq-item summary::-webkit-details-marker{display:none}
+.ip-faq-item summary:hover{color:var(--teal-deep)}
+.ip-faq-item summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s var(--ease);flex-shrink:0;margin-right:4px}
+.ip-faq-item[open] summary::after{transform:rotate(-135deg)}
+.ip-faq-item[open] summary{color:var(--teal-deep)}
+.ip-faq-answer{padding:0 24px 20px;font-size:15px;color:var(--ink-body);line-height:1.75}
+.ip-faq-answer a{color:var(--teal-deep);text-decoration:none;transition:color .2s var(--ease)}
+.ip-faq-answer a:hover{color:var(--teal)}
+
+/* ── CTA ── */
+.ip-cta{padding:56px 24px;text-align:center;max-width:640px;margin:0 auto}
+.ip-cta h2{font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 16px}
+.ip-cta p{font-size:15px;color:var(--ink-body);line-height:1.7;margin:0 0 28px}
+.ip-cta-bald{display:inline-flex;align-items:center;padding:14px 36px;background:transparent;color:var(--muted);font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--r);border:1px solid rgba(20,20,34,.08);cursor:default}
+.ip-cta-sub{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+/* ── Sign-off ── */
+.ip-signoff{padding:48px 24px 72px;text-align:center;max-width:480px;margin:0 auto}
+.ip-signoff-line{display:block;width:40px;height:1px;margin:0 auto 24px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.ip-signoff-text{font-size:16px;font-weight:500;color:var(--ink);line-height:1.5;margin:0 0 20px;font-style:italic}
+.ip-signoff-name{font-size:18px;font-weight:700;color:var(--teal-deep);letter-spacing:.02em;margin:0 0 2px}
+.ip-signoff-full{font-size:11px;color:var(--muted);letter-spacing:.5px;margin:0 0 4px}
+.ip-signoff-tagline{font-size:11px;color:var(--faint);letter-spacing:1px}
+
+/* ── Tints ── */
+.ip-tint-mint{background:rgba(13,196,181,.015)}
+.ip-tint-warm{background:rgba(244,115,85,.012)}
+
+@media(max-width:900px){
+  .ip-hero{grid-template-columns:1fr;gap:32px;padding:72px 20px 36px}
+  .ip-hero h1{font-size:30px}
+  .ip-hero-visual{order:-1}
+  .ip-svg{max-width:220px}
+  .ip-triple{grid-template-columns:1fr;gap:14px}
+  .ip-cats{grid-template-columns:repeat(2,1fr);gap:12px}
+  .ip-future-grid{grid-template-columns:1fr;gap:14px}
+  .ip-tree-branch{flex-direction:column;gap:12px}
+  .ip-section h2,.ip-faq h2,.ip-steps-title{font-size:21px}
+  .ip-mockup{padding:28px 22px}
+  .ip-conn{flex-direction:column}
+  .ip-conn-arrow{transform:rotate(90deg)}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/mitmachen/projekt"/>
@@ -233,30 +366,349 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.mitmachen.projekt.hero">Ich möchte ein Projekt starten</h1>
-    <p class="reveal d2" data-i18n="page.mitmachen.projekt.sub">Aus einer Idee wird eine Bewegung. Auf HUI wirst du dein eigenes Projekt aufbauen und das nötige Team um dich versammeln.</p>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="ip-hero">
+    <div class="ip-hero-left">
+      <a href="/" class="ip-back" data-i18n="page.back">← HUI</a>
+      <h1 class="reveal" data-i18n="page.mitmachen.projekt.hero">Ich möchte ein Projekt starten</h1>
+      <p class="ip-hero-sub reveal d2" data-i18n="page.mitmachen.projekt.sub-new">Aus einer Idee kann etwas Gemeinsames entstehen. HUI soll Menschen, Fähigkeiten und Ressourcen zusammenbringen, damit aus Vorhaben konkrete Projekte wachsen können.</p>
+      <span class="ip-hero-accent reveal d3" aria-hidden="true"></span>
+    </div>
+    <div class="ip-hero-visual reveal d3">
+      <svg class="ip-svg" viewBox="0 0 280 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g stroke="rgba(13,196,181,.15)" stroke-width="1" fill="none">
+          <path d="M140 40 L 140 100"/><path d="M135 96 L 140 100 L 145 96" stroke-linecap="round"/>
+          <path d="M140 130 L 140 190"/><path d="M135 186 L 140 190 L 145 186" stroke-linecap="round"/>
+          <path d="M140 220 L 140 280"/><path d="M135 276 L 140 280 L 145 276" stroke-linecap="round"/>
+          <path d="M140 310 L 140 335"/><path d="M135 331 L 140 335 L 145 331" stroke-linecap="round"/>
+        </g>
+        <g font-family="Inter,sans-serif" font-weight="600">
+          <circle cx="140" cy="40" r="30" fill="rgba(13,196,181,.04)" stroke="rgba(13,196,181,.15)"/>
+          <text x="140" y="44" text-anchor="middle" fill="#09A89A" font-size="12">Idee</text>
+          <circle cx="140" cy="115" r="28" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="140" y="119" text-anchor="middle" fill="#3A3A55" font-size="11">Menschen</text>
+          <circle cx="140" cy="205" r="28" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="140" y="203" text-anchor="middle" fill="#3A3A55" font-size="10">Fähig-</text>
+          <text x="140" y="214" text-anchor="middle" fill="#3A3A55" font-size="10">keiten</text>
+          <circle cx="140" cy="295" r="28" fill="rgba(253,251,248,.95)" stroke="rgba(20,20,34,.06)"/>
+          <text x="140" y="293" text-anchor="middle" fill="#3A3A55" font-size="10">Ressour-</text>
+          <text x="140" y="304" text-anchor="middle" fill="#3A3A55" font-size="10">cen</text>
+          <circle cx="140" cy="340" r="14" fill="rgba(13,196,181,.04)" stroke="rgba(13,196,181,.15)"/>
+          <text x="140" y="344" text-anchor="middle" fill="#09A89A" font-size="8" font-weight="700">Projekt</text>
+        </g>
+      </svg>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.projekt.s1-title">Vom Vorhaben zur funktionierenden Gemeinschaft</h2>
-      <p data-i18n="page.mitmachen.projekt.s1-text">Ein Projekt zu starten erfordert Mut, Struktur und die richtigen Mitmenschen. Auf HUI unterstützen wir dich dabei, Schritt für Schritt ein fundiertes Fundament für dein Vorhaben aufzubauen und engagierte Unterstützer zu finden.</p>
+  <div class="ip-content">
+
+    <!-- ═══ DIE IDEE IST DER ANFANG ═══ -->
+    <section class="ip-section reveal">
+      <h2 data-i18n="page.mitmachen.projekt.begin-title">Jedes Projekt beginnt mit einem Gedanken.</h2>
+      <p data-i18n="page.mitmachen.projekt.begin-text">Vielleicht hast du eine Idee, die schon lange in deinem Kopf ist. Vielleicht möchtest du etwas in deiner Gemeinschaft verändern, ein soziales Vorhaben starten, etwas Kreatives entwickeln oder eine praktische Lösung schaffen. Am Anfang muss noch nicht alles feststehen.</p>
+      <div class="ip-triple">
+        <div class="ip-triple-item">
+          <h3 class="ip-triple-name" data-i18n="page.mitmachen.projekt.triple1-name">Eine Idee</h3>
+          <p class="ip-triple-text" data-i18n="page.mitmachen.projekt.triple1-text">Ein Gedanke, eine Beobachtung oder ein Wunsch nach Veränderung.</p>
+        </div>
+        <div class="ip-triple-item">
+          <h3 class="ip-triple-name" data-i18n="page.mitmachen.projekt.triple2-name">Ein Vorhaben</h3>
+          <p class="ip-triple-text" data-i18n="page.mitmachen.projekt.triple2-text">Aus dem Gedanken wird ein konkreter Ansatz.</p>
+        </div>
+        <div class="ip-triple-item">
+          <h3 class="ip-triple-name" data-i18n="page.mitmachen.projekt.triple3-name">Eine Bewegung</h3>
+          <p class="ip-triple-text" data-i18n="page.mitmachen.projekt.triple3-text">Menschen kommen zusammen und machen daraus etwas Gemeinsames.</p>
+        </div>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.projekt.s2-title">Gemeinsam Ressourcen bewegen</h2>
-      <p data-i18n="page.mitmachen.projekt.s2-text">Auf der zukünftigen Plattform wirst du Meilensteine definieren, Aufgaben koordinieren und die benötigten Fähigkeiten punktgenau anfordern können. So verwandeln wir vereinzelte Bemühungen in kollaborative Stärke.</p>
-    </section>  </div>
-
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.mitmachen.projekt.coming">Nach dem offiziellen Start stehen dir Tools zur Projekterstellung, Teambildung und Ressourcenkoordination zur Verfügung.</p>
   </div>
 
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.mitmachen.projekt.cta">Benachrichtigung erhalten</a>
-    <p data-i18n="page.mitmachen.projekt.cta-sub">Wir informieren dich, wenn die Projektwerkzeuge bereitstehen.</p>
+  <!-- ═══ DU MUSST NICHT ALLES KÖNNEN ═══ -->
+  <section class="ip-section reveal ip-tint-warm">
+    <div class="ip-content">
+      <h2 data-i18n="page.mitmachen.projekt.must-title">Du musst nicht alles können.</h2>
+      <p data-i18n="page.mitmachen.projekt.must-text">Ein gutes Projekt braucht selten nur eine Fähigkeit. Vielleicht kennst du das Thema, aber brauchst Unterstützung bei Technik. Vielleicht hast du die Idee, aber suchst Menschen mit Erfahrung, Kreativität, Organisationstalent oder praktischen Fähigkeiten.</p>
+      <div class="ip-formula">
+        <div class="ip-formula-line">
+          <span class="ip-pill" data-i18n="page.mitmachen.projekt.f-idea">Idee</span>
+          <span class="ip-formula-op" aria-hidden="true">+</span>
+          <span class="ip-pill" data-i18n="page.mitmachen.projekt.f-tech">Technik</span>
+          <span class="ip-formula-op" aria-hidden="true">+</span>
+          <span class="ip-pill" data-i18n="page.mitmachen.talent.t2-name">Kreativität</span>
+          <span class="ip-formula-op" aria-hidden="true">+</span>
+        </div>
+        <div class="ip-formula-line">
+          <span class="ip-pill" data-i18n="page.mitmachen.projekt.tree-b3">Organisation</span>
+          <span class="ip-formula-op" aria-hidden="true">+</span>
+          <span class="ip-pill" data-i18n="page.mitmachen.talent.t3-name">Erfahrung</span>
+          <span class="ip-formula-op" aria-hidden="true">+</span>
+          <span class="ip-pill" data-i18n="page.mitmachen.projekt.f-engage">Engagement</span>
+          <span class="ip-formula-op" aria-hidden="true">=</span>
+        </div>
+        <span class="ip-formula-result" data-i18n="sidebar.nav.projects">Projekt</span>
+      </div>
+      <p style="text-align:center;margin-top:24px"><a href="/mitmachen/talent" data-i18n="page.mitmachen.talent.hero" style="color:var(--teal-deep);font-weight:500;text-decoration:none">Ich habe ein Talent →</a></p>
+    </div>
+  </section>
+
+  <div class="ip-content">
+
+    <!-- ═══ VON DER IDEE ZUM PROJEKT ═══ -->
+    <section class="ip-steps reveal">
+      <h2 class="ip-steps-title" data-i18n="page.mitmachen.projekt.steps-title">Was aus einer Idee werden kann</h2>
+      <div class="ip-steps-flow">
+        <div class="ip-step">
+          <span class="ip-step-num">01</span>
+          <div class="ip-step-body">
+            <h3 class="ip-step-name" data-i18n="page.mitmachen.projekt.step1-name">Gedanke</h3>
+            <p class="ip-step-text" data-i18n="page.mitmachen.projekt.step1-text">Was möchtest du verändern, entwickeln oder ausprobieren?</p>
+          </div>
+        </div>
+        <div class="ip-step-conn" aria-hidden="true"></div>
+        <div class="ip-step">
+          <span class="ip-step-num">02</span>
+          <div class="ip-step-body">
+            <h3 class="ip-step-name" data-i18n="page.mitmachen.idee.hero">Idee</h3>
+            <p class="ip-step-text" data-i18n="page.mitmachen.projekt.step2-text">Was ist dein konkreter Ansatz?</p>
+          </div>
+        </div>
+        <div class="ip-step-conn" aria-hidden="true"></div>
+        <div class="ip-step">
+          <span class="ip-step-num">03</span>
+          <div class="ip-step-body">
+            <h3 class="ip-step-name" data-i18n="page.mitmachen.talent.t4-name">Menschen</h3>
+            <p class="ip-step-text" data-i18n="page.mitmachen.projekt.step3-text">Welche Fähigkeiten und Perspektiven werden gebraucht?</p>
+          </div>
+        </div>
+        <div class="ip-step-conn" aria-hidden="true"></div>
+        <div class="ip-step">
+          <span class="ip-step-num">04</span>
+          <div class="ip-step-body">
+            <h3 class="ip-step-name" data-i18n="page.mitmachen.projekt.step4-name">Ressourcen</h3>
+            <p class="ip-step-text" data-i18n="page.mitmachen.projekt.step4-text">Was wird benötigt, um den nächsten Schritt zu gehen?</p>
+          </div>
+        </div>
+        <div class="ip-step-conn" aria-hidden="true"></div>
+        <div class="ip-step">
+          <span class="ip-step-num">05</span>
+          <div class="ip-step-body">
+            <h3 class="ip-step-name" data-i18n="sidebar.nav.projects">Projekt</h3>
+            <p class="ip-step-text" data-i18n="page.mitmachen.projekt.step5-text">Gemeinsam wird aus dem Vorhaben etwas Greifbares.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ PROJEKTE SIND VERSCHIEDEN ═══ -->
+    <section class="ip-section reveal">
+      <h2 data-i18n="page.mitmachen.projekt.types-title">Ein Projekt kann vieles sein.</h2>
+      <div class="ip-cats">
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">🌱</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.projekt.cat1-name">Soziales</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat1-desc">Initiativen, die Menschen oder Gemeinschaften unterstützen.</p></div>
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">🎨</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.talent.t2-name">Kreativ</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat2-desc">Kunst, Medien, Kultur und kreative Vorhaben.</p></div>
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">🌍</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.projekt.cat3-name">Nachhaltigkeit</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat3-desc">Ideen für Umwelt, Natur und einen verantwortungsvollen Umgang mit Ressourcen.</p></div>
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">🏘</span><h3 class="ip-cat-name" data-i18n="sidebar.nav.community">Gemeinschaft</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat4-desc">Projekte, die Menschen zusammenbringen.</p></div>
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">💡</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.projekt.cat5-name">Innovation</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat5-desc">Neue Ideen, Konzepte und Lösungen.</p></div>
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">🛠</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.projekt.cat6-name">Praktisch</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat6-desc">Vorhaben, die konkrete Probleme lösen oder Dinge verbessern.</p></div>
+        <div class="ip-cat"><span class="ip-cat-icon" aria-hidden="true">📚</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.projekt.cat7-name">Bildung</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat7-desc">Wissen teilen, Lernen ermöglichen und Fähigkeiten weitergeben.</p></div>
+        <div class="ip-cat" style="background:transparent;border-style:dashed"><span class="ip-cat-icon" aria-hidden="true">✨</span><h3 class="ip-cat-name" data-i18n="page.mitmachen.talent.t8-name">Mehr</h3><p class="ip-cat-desc" data-i18n="page.mitmachen.projekt.cat8-desc">Projekte lassen sich nicht immer in Kategorien fassen.</p></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ═══ PROJEKT + TALENT ═══ -->
+  <section class="ip-section reveal ip-tint-mint">
+    <div class="ip-content">
+      <h2 data-i18n="page.mitmachen.projekt.strengths-title">Jede Idee braucht andere Stärken.</h2>
+      <p data-i18n="page.mitmachen.projekt.strengths-text">Vielleicht bringst du die Idee mit. Ein anderer Mensch kennt sich mit Technik aus. Jemand kann gestalten. Jemand organisiert. Jemand hat Erfahrung mit dem Thema. Gemeinsam entsteht daraus eine Kombination, die alleine schwer möglich wäre.</p>
+      <div class="ip-tree">
+        <span class="ip-tree-top" data-i18n="sidebar.nav.projects">Projekt</span>
+        <div class="ip-tree-conn-v" aria-hidden="true"></div>
+        <div class="ip-tree-branch">
+          <span class="ip-tree-node" data-i18n="page.mitmachen.idee.hero">Idee</span>
+          <a href="/mitmachen/talent" class="ip-tree-node" data-i18n="sidebar.nav.talents">Talent</a>
+          <span class="ip-tree-node" data-i18n="page.mitmachen.talent.t3-name">Erfahrung</span>
+        </div>
+        <div class="ip-tree-conn-v" aria-hidden="true"></div>
+        <span class="ip-tree-result" data-i18n="page.mitmachen.talent.flow5">Zusammenarbeit</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="ip-content">
+
+    <!-- ═══ RESSOURCEN ═══ -->
+    <section class="ip-section reveal">
+      <h2 data-i18n="page.mitmachen.projekt.resources-title">Was ein Projekt wirklich braucht</h2>
+      <div class="ip-resources">
+        <span class="ip-resource" data-i18n="page.mitmachen.projekt.res1">Zeit</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.talent.t3-name">Wissen</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.talent.t1-name">Fähigkeiten</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.projekt.res4">Material</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.projekt.res5">Kontakte</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.talent.t3-name">Erfahrung</span>
+        <span class="ip-resource" data-i18n="sidebar.nav.ideas">Ideen</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.projekt.f-engage">Engagement</span>
+        <span class="ip-resource" data-i18n="page.mitmachen.projekt.res9">Finanzielle Mittel</span>
+      </div>
+      <p style="text-align:center;max-width:560px;margin:28px auto 0;font-size:15.5px;color:var(--ink-body);line-height:1.75" data-i18n="page.mitmachen.projekt.resources-text">Ressourcen sind nicht nur Geld. Auch Wissen, Zeit, Kontakte, Materialien, Erfahrungen und Fähigkeiten können ein Projekt entscheidend voranbringen.</p>
+    </section>
+
+  </div>
+
+  <!-- ═══ HUI ALS VERBINDUNG ═══ -->
+  <section class="ip-section reveal ip-tint-warm">
+    <div class="ip-content">
+      <h2 data-i18n="page.mitmachen.projekt.hui-conn-title">HUI soll aus einzelnen Möglichkeiten gemeinsame Stärke machen.</h2>
+      <p data-i18n="page.mitmachen.projekt.hui-conn-text">Perspektivisch soll HUI einen Raum schaffen, in dem Projektideen sichtbar werden und Menschen mit passenden Fähigkeiten, Interessen und Erfahrungen leichter zueinanderfinden.</p>
+      <div class="ip-conn">
+        <a href="/menschen" class="ip-conn-node" data-i18n="sidebar.nav.people">Mensch</a>
+        <span class="ip-conn-arrow" aria-hidden="true">→</span>
+        <a href="/talente" class="ip-conn-node" data-i18n="sidebar.nav.talents">Talent</a>
+        <span class="ip-conn-arrow" aria-hidden="true">→</span>
+        <a href="/ideen" class="ip-conn-node" data-i18n="sidebar.nav.ideas">Idee</a>
+        <span class="ip-conn-arrow" aria-hidden="true">→</span>
+        <span class="ip-conn-node" data-i18n="page.mitmachen.projekt.res4">Ressource</span>
+        <span class="ip-conn-arrow" aria-hidden="true">→</span>
+        <a href="/projekte" class="ip-conn-node" data-i18n="sidebar.nav.projects">Projekt</a>
+        <span class="ip-conn-arrow" aria-hidden="true">→</span>
+        <a href="/gemeinschaft" class="ip-conn-node" data-i18n="sidebar.nav.community">Gemeinschaft</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="ip-content">
+
+    <!-- ═══ MOCKUP ═══ -->
+    <section class="ip-section reveal">
+      <h2 data-i18n="page.mitmachen.projekt.mockup-title">So könnte ein Projekt auf HUI aussehen</h2>
+      <div class="ip-mockup">
+        <p class="ip-mockup-label" data-i18n="sidebar.nav.projects">Projekt</p>
+        <h3 class="ip-mockup-title" data-i18n="page.mitmachen.projekt.mockup-name">Gemeinschaftsgarten für alle</h3>
+        <div class="ip-mockup-group">
+          <p class="ip-mockup-group-label" data-i18n="page.mitmachen.projekt.mockup-about">Worum geht es?</p>
+          <p class="ip-mockup-desc" data-i18n="page.mitmachen.projekt.mockup-desc">Ein gemeinschaftlicher Garten, der Menschen aus der Umgebung zusammenbringt und Raum für gemeinsames Lernen, Pflanzen und Begegnung schafft.</p>
+        </div>
+        <div class="ip-mockup-group">
+          <p class="ip-mockup-group-label" data-i18n="page.mitmachen.projekt.mockup-sought">Gesucht</p>
+          <div class="ip-mockup-tags">
+            <span class="ip-mockup-tag">🌱 <span data-i18n="page.mitmachen.projekt.mockup-s1">Gartenwissen</span></span>
+            <span class="ip-mockup-tag">🛠 <span data-i18n="page.mitmachen.talent.t1-name">Handwerk</span></span>
+            <span class="ip-mockup-tag">🎨 <span data-i18n="page.mitmachen.projekt.mockup-s3">Gestaltung</span></span>
+            <span class="ip-mockup-tag">🤝 <span data-i18n="page.mitmachen.projekt.tree-b3">Organisation</span></span>
+            <span class="ip-mockup-tag">📣 <span data-i18n="page.mitmachen.projekt.mockup-s5">Kommunikation</span></span>
+          </div>
+        </div>
+        <div class="ip-mockup-group">
+          <p class="ip-mockup-group-label" data-i18n="page.mitmachen.projekt.mockup-needed">Benötigt</p>
+          <div class="ip-mockup-tags">
+            <span class="ip-mockup-tag" data-i18n="page.mitmachen.projekt.res1">Zeit</span>
+            <span class="ip-mockup-tag" data-i18n="page.mitmachen.projekt.res4">Material</span>
+            <span class="ip-mockup-tag" data-i18n="sidebar.nav.people">Menschen</span>
+            <span class="ip-mockup-tag">Know-how</span>
+          </div>
+        </div>
+        <p class="ip-mockup-note" data-i18n="page.mitmachen.talent.mockup-note">Beispiel für eine mögliche Darstellung nach dem Start.</p>
+      </div>
+    </section>
+
+    <!-- ═══ FUTURE FEATURES ═══ -->
+    <section class="ip-section reveal">
+      <h2 data-i18n="page.mitmachen.projekt.future-title">Was HUI für Projekte ermöglichen soll</h2>
+      <div class="ip-future-grid">
+        <div class="ip-future-item">
+          <h3 class="ip-future-name" data-i18n="page.mitmachen.projekt.fu1-name">Projekt vorstellen</h3>
+          <p class="ip-future-desc" data-i18n="page.mitmachen.projekt.fu1-desc">Projektideen sichtbar machen und erklären, worum es geht.</p>
+        </div>
+        <div class="ip-future-item">
+          <h3 class="ip-future-name" data-i18n="page.mitmachen.projekt.fu2-name">Menschen finden</h3>
+          <p class="ip-future-desc" data-i18n="page.mitmachen.projekt.fu2-desc">Menschen mit passenden Interessen und Fähigkeiten erreichen.</p>
+        </div>
+        <div class="ip-future-item">
+          <h3 class="ip-future-name" data-i18n="page.mitmachen.projekt.fu3-name">Ressourcen sichtbar machen</h3>
+          <p class="ip-future-desc" data-i18n="page.mitmachen.projekt.fu3-desc">Zeigen, welche Unterstützung, Kenntnisse oder Materialien benötigt werden.</p>
+        </div>
+        <div class="ip-future-item">
+          <h3 class="ip-future-name" data-i18n="page.mitmachen.projekt.fu4-name">Gemeinsam weiterentwickeln</h3>
+          <p class="ip-future-desc" data-i18n="page.mitmachen.projekt.fu4-desc">Ideen durch unterschiedliche Perspektiven und Fähigkeiten wachsen lassen.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ FAQ ═══ -->
+    <section class="ip-faq reveal">
+      <h2 data-i18n="page.mitmachen.projekt.faq-title">Häufige Fragen zum Start eines Projekts</h2>
+      <div class="ip-faq-list">
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q1">Was braucht man, um ein Projekt zu starten?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a1">Ein Projekt beginnt mit einer Idee. Was zusätzlich gebraucht wird, ist unterschiedlich: Fähigkeiten, Zeit, Material, Kontakte oder Unterstützung von anderen Menschen. HUI möchte dabei helfen, diese Verbindungen zu ermöglichen.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q2">Kann ich auf HUI eine eigene Projektidee vorstellen?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a2">Nach dem Start von HUI sollst du Projektideen sichtbar machen und erklären können, worum es geht. Die entsprechenden Funktionen werden mit dem offiziellen Start verfügbar.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q3">Welche Arten von Projekten passen zu HUI?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a3">HUI ist offen für vielfältige Projekte: soziale Initiativen, kreative Vorhaben, Nachhaltigkeitsideen, Gemeinschaftsprojekte, innovative Lösungen, praktische Verbesserungen und Bildungsangebote.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q4">Kann ich ein Projekt gemeinsam mit anderen Menschen entwickeln?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a4">Ja. Perspektivisch soll HUI dabei helfen, Menschen mit passenden <a href="/mitmachen/talent">Fähigkeiten</a> und Interessen zu finden, um Ideen gemeinsam zu entwickeln.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q5">Welche Fähigkeiten können Projekte brauchen?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a5">Das hängt vom Projekt ab. Oft werden unterschiedliche Stärken gebraucht: handwerkliches Können, kreative Gestaltung, technisches Wissen, Organisationstalent, Erfahrung oder Kommunikationsfähigkeit.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q6">Welche Ressourcen können ein Projekt unterstützen?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a6">Ressourcen sind mehr als Geld. Zeit, Wissen, Fähigkeiten, Material, Kontakte, Erfahrung und Engagement können ein Projekt entscheidend voranbringen.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q7">Wie sollen Menschen und Projekte auf HUI zusammenfinden?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a7">Perspektivisch soll HUI ermöglichen, dass Projektideen sichtbar werden und Menschen mit passenden Fähigkeiten und Interessen darauf aufmerksam werden können. HUI befindet sich derzeit im Aufbau.</p>
+          </div>
+        </details>
+        <details class="ip-faq-item">
+          <summary data-i18n="page.mitmachen.projekt.q8">Wann kann ich ein Projekt auf HUI starten?</summary>
+          <div class="ip-faq-answer">
+            <p data-i18n="page.mitmachen.projekt.a8">HUI befindet sich im Aufbau. Die Projektfunktionen werden mit dem offiziellen Start schrittweise verfügbar. Du kannst dich bereits jetzt über den Start informieren lassen.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="ip-cta reveal">
+    <h2 data-i18n="page.mitmachen.projekt.cta-title">Vielleicht beginnt dein nächstes Projekt mit einem Gedanken.</h2>
+    <p data-i18n="page.mitmachen.projekt.cta-text">HUI befindet sich im Aufbau. Wenn die Plattform startet, sollen Menschen ihre Ideen sichtbar machen, passende Fähigkeiten finden und gemeinsam Projekte entwickeln können.</p>
+    <span class="ip-cta-bald" data-i18n="page.mitmachen.talent.cta-button">Über den HUI-Start informieren →</span>
+    <p class="ip-cta-sub" data-i18n="page.mitmachen.talent.cta-sub-note">Noch nicht verfügbar – HUI befindet sich im Aufbau.</p>
+  </section>
+
+  <!-- ═══ SIGN-OFF ═══ -->
+  <section class="ip-signoff">
+    <span class="ip-signoff-line" aria-hidden="true"></span>
+    <p class="ip-signoff-text" data-i18n="page.mitmachen.projekt.signoff">Eine Idee wird stärker, wenn Menschen sie gemeinsam weiterdenken.</p>
+    <p class="ip-signoff-name">HUI</p>
+    <p class="ip-signoff-full">Human United Intelligence</p>
+    <p class="ip-signoff-tagline" data-i18n="page.mitmachen.talent.tagline">Menschen. Ideen. Möglichkeiten.</p>
   </section>
 </main>
 
