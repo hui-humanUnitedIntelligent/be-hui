@@ -15,9 +15,14 @@
 //   HUI Design System (src/design/hui.design.js)
 //   Inter Font, warme Cremetöne, Teal + Coral
 //   Ruhig, menschlich, hochwertig
+//
+// I18N (2026-08-28): Alle sichtbaren Texte laufen jetzt über useTranslation().
+// t() wird NIE auf Modul-Ebene aufgerufen, sondern nur innerhalb der jeweiligen
+// Komponentenfunktion (nach useTranslation()-Aufruf).
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from '../../hooks/useTranslation.js';
 
 
 // ── HUI Design Tokens ─────────────────────────────────────────────────────────
@@ -63,6 +68,7 @@ function useScrollReveal() {
 
 // ── Navigation ───────────────────────────────────────────────────────────────
 function LandingNav() {
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -73,11 +79,11 @@ function LandingNav() {
   }, []);
 
   const navLinks = [
-    { label: 'Entdecken', href: '#entdecken' },
-    { label: 'Wie HUI wirkt', href: '#prozess' },
-    { label: 'Projekte', href: '#welt' },
-    { label: 'Mitmachen', href: '#wege' },
-    { label: 'Über HUI', href: '#ueber' },
+    { label: t('nav.discover'), href: '#entdecken' },
+    { label: t('landing.nav.wieWirkt'), href: '#prozess' },
+    { label: t('landing.nav.projekte'), href: '#welt' },
+    { label: t('landing.nav.mitmachen'), href: '#wege' },
+    { label: t('landing.nav.ueberHui'), href: '#ueber' },
   ];
 
   return (
@@ -94,14 +100,14 @@ function LandingNav() {
         </div>
 
         <div className="lp-nav__actions">
-          <a href="/app/login" className="lp-nav__login">Login</a>
-          <a href="/app/login" className="lp-nav__cta">HUI entdecken →</a>
+          <a href="/app/login" className="lp-nav__login">{t('landing.nav.login')}</a>
+          <a href="/app/login" className="lp-nav__cta">{t('landing.cta.discoverHui')}</a>
         </div>
 
         <button
           className={`lp-nav__burger ${mobileOpen ? 'lp-nav__burger--open' : ''}`}
           onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Menü"
+          aria-label={t('landing.nav.menuAria')}
         >
           <span /><span /><span />
         </button>
@@ -118,7 +124,7 @@ function LandingNav() {
             >{l.label}</a>
           ))}
           <a href="/app/login" className="lp-nav__mobile-cta" onClick={() => setMobileOpen(false)}>
-            HUI entdecken →
+            {t('landing.cta.discoverHui')}
           </a>
         </div>
       )}
@@ -128,26 +134,27 @@ function LandingNav() {
 
 // ── Hero Section ──────────────────────────────────────────────────────────────
 function HeroSection() {
+  const { t } = useTranslation();
   return (
     <section className="lp-hero">
       <div className="lp-hero__bg" />
       <div className="lp-hero__content">
-        <p className="lp-hero__kicker lp-animate">HUI — Human United Intelligence</p>
+        <p className="lp-hero__kicker lp-animate">{t('landing.hero.kicker')}</p>
         <h1 className="lp-hero__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-          Menschen.<br />
-          Ideen.<br />
-          Möglichkeiten.
+          {t('landing.hero.titleLine1')}<br />
+          {t('landing.hero.titleLine2')}<br />
+          {t('landing.hero.titleLine3')}
         </h1>
         <p className="lp-hero__sub lp-animate" style={{ transitionDelay: '0.2s' }}>
-          Gemeinsam entsteht Wirkung.
+          {t('landing.hero.sub')}
         </p>
         <p className="lp-hero__desc lp-animate" style={{ transitionDelay: '0.3s' }}>
-          HUI verbindet Menschen, Talente, Projekte, Werke und Erlebnisse —<br className="lp-br" />
-          und macht aus Begegnungen echte Wirkung.
+          {t('landing.hero.descLine1')}<br className="lp-br" />
+          {t('landing.hero.descLine2')}
         </p>
         <div className="lp-hero__cta-row lp-animate" style={{ transitionDelay: '0.4s' }}>
-          <a href="/app/login" className="lp-btn lp-btn--primary">HUI entdecken →</a>
-          <a href="#prozess" className="lp-btn lp-btn--ghost">So funktioniert es ↓</a>
+          <a href="/app/login" className="lp-btn lp-btn--primary">{t('landing.cta.discoverHui')}</a>
+          <a href="#prozess" className="lp-btn lp-btn--ghost">{t('landing.hero.howItWorks')}</a>
         </div>
       </div>
       <div className="lp-hero__scroll lp-animate" style={{ transitionDelay: '0.6s' }}>
@@ -159,19 +166,20 @@ function HeroSection() {
 
 // ── Vision Section: "Was wäre, wenn…?" ──────────────────────────────────────
 function VisionSection() {
+  const { t } = useTranslation();
   const items = [
-    'jeder Mensch etwas beitragen könnte?',
-    'jedes Talent gesehen werden könnte?',
-    'gute Ideen die Menschen erreichen könnten, die sie brauchen?',
-    'aus Begegnungen etwas Neues entstehen könnte?',
+    t('landing.vision.item1'),
+    t('landing.vision.item2'),
+    t('landing.vision.item3'),
+    t('landing.vision.item4'),
   ];
 
   return (
     <section className="lp-vision" id="ueber">
       <div className="lp-section__inner">
-        <p className="lp-section__kicker lp-animate">Eine Frage</p>
+        <p className="lp-section__kicker lp-animate">{t('landing.vision.kicker')}</p>
         <h2 className="lp-vision__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-          Was wäre, wenn&nbsp;…?
+          {t('landing.vision.title')}
         </h2>
         <div className="lp-vision__list">
           {items.map((item, i) => (
@@ -185,7 +193,7 @@ function VisionSection() {
           ))}
         </div>
         <p className="lp-vision__answer lp-animate" style={{ transitionDelay: '0.6s' }}>
-          Genau dafür entsteht HUI.
+          {t('landing.vision.answer')}
         </p>
       </div>
     </section>
@@ -194,20 +202,21 @@ function VisionSection() {
 
 // ── Process Section: "So wirkt HUI" ──────────────────────────────────────────
 function ProcessSection() {
+  const { t } = useTranslation();
   const steps = [
-    { num: '01', title: 'Menschen finden', text: 'Entdecke Menschen, Talente und Ideen, die dich inspirieren.' },
-    { num: '02', title: 'Mitmachen', text: 'Bring dich ein — mit deiner Zeit, deinem Können, deiner Idee oder deiner Unterstützung.' },
-    { num: '03', title: 'Wirkung erzeugen', text: 'Aus Aktivitäten entsteht Impact, der dorthin fließen kann, wo er gebraucht wird.' },
-    { num: '04', title: 'Gemeinsam wachsen', text: 'Menschen, Projekte und Möglichkeiten verbinden sich.' },
-    { num: '05', title: 'Zukunft gestalten', text: 'Kleine Beiträge können gemeinsam etwas Großes verändern.' },
+    { num: '01', title: t('landing.process.step1Title'), text: t('landing.process.step1Text') },
+    { num: '02', title: t('landing.nav.mitmachen'), text: t('landing.process.step2Text') },
+    { num: '03', title: t('landing.process.step3Title'), text: t('landing.process.step3Text') },
+    { num: '04', title: t('landing.process.step4Title'), text: t('landing.process.step4Text') },
+    { num: '05', title: t('landing.process.step5Title'), text: t('landing.process.step5Text') },
   ];
 
   return (
     <section className="lp-process" id="prozess">
       <div className="lp-section__inner">
-        <p className="lp-section__kicker lp-animate">Der Weg</p>
+        <p className="lp-section__kicker lp-animate">{t('landing.process.kicker')}</p>
         <h2 className="lp-section__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-          So wirkt HUI
+          {t('landing.process.title')}
         </h2>
         <div className="lp-process__flow">
           {steps.map((s, i) => (
@@ -230,20 +239,21 @@ function ProcessSection() {
 
 // ── Ecosystem Section: "Die Welt von HUI" ─────────────────────────────────────
 function EcosystemSection() {
+  const { t } = useTranslation();
   const areas = [
-    { icon: '◆', title: 'PROJEKTE', text: 'Ideen, die gerade entstehen.' },
-    { icon: '●', title: 'WERKE', text: 'Dinge, die Menschen erschaffen.' },
-    { icon: '▲', title: 'ERLEBNISSE', text: 'Momente, die Menschen verbinden.' },
-    { icon: '★', title: 'WIRKER', text: 'Menschen mit Talent, Wissen und Leidenschaft.' },
-    { icon: '■', title: 'UNTERNEHMEN', text: 'Partner, die Möglichkeiten schaffen möchten.' },
+    { icon: '◆', title: t('landing.eco.projekteTitle'), text: t('landing.eco.projekteText') },
+    { icon: '●', title: t('landing.eco.werkeTitle'), text: t('landing.eco.werkeText') },
+    { icon: '▲', title: t('landing.eco.erlebnisseTitle'), text: t('landing.eco.erlebnisseText') },
+    { icon: '★', title: t('landing.eco.wirkerTitle'), text: t('landing.eco.wirkerText') },
+    { icon: '■', title: t('landing.eco.unternehmenTitle'), text: t('landing.eco.unternehmenText') },
   ];
 
   return (
     <section className="lp-ecosystem" id="welt">
       <div className="lp-section__inner">
-        <p className="lp-section__kicker lp-animate">Das Ökosystem</p>
+        <p className="lp-section__kicker lp-animate">{t('landing.eco.kicker')}</p>
         <h2 className="lp-section__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-          Die Welt von HUI
+          {t('landing.eco.title')}
         </h2>
         <div className="lp-ecosystem__grid">
           {areas.map((a, i) => (
@@ -265,26 +275,27 @@ function EcosystemSection() {
 
 // ── Honest Section: "Wir fangen gerade erst an" ───────────────────────────────
 function HonestSection() {
+  const { t } = useTranslation();
   return (
     <section className="lp-honest" id="entdecken">
       <div className="lp-section__inner">
         <div className="lp-honest__content lp-animate">
-          <p className="lp-section__kicker lp-honest__kicker">Ehrlich</p>
+          <p className="lp-section__kicker lp-honest__kicker">{t('landing.honest.kicker')}</p>
           <h2 className="lp-honest__title">
-            Wir fangen gerade erst an.
+            {t('landing.honest.title')}
           </h2>
           <div className="lp-honest__text">
-            <p>HUI ist noch jung.</p>
-            <p>Viele Ideen sind noch nicht umgesetzt.</p>
-            <p>Viele Menschen haben wir noch nicht kennennegelernt.</p>
-            <p>Viele Geschichten sind noch nicht geschrieben.</p>
+            <p>{t('landing.honest.line1')}</p>
+            <p>{t('landing.honest.line2')}</p>
+            <p>{t('landing.honest.line3')}</p>
+            <p>{t('landing.honest.line4')}</p>
           </div>
           <p className="lp-honest__call">
-            Und genau deshalb bist du hier.
+            {t('landing.honest.call')}
           </p>
           <p className="lp-honest__invite">
-            Hier entstehen die ersten Geschichten.<br />
-            Du kannst Teil der ersten Geschichte sein.
+            {t('landing.honest.inviteLine1')}<br />
+            {t('landing.honest.inviteLine2')}
           </p>
         </div>
       </div>
@@ -294,21 +305,22 @@ function HonestSection() {
 
 // ── Impact Section ───────────────────────────────────────────────────────────
 function ImpactSection() {
+  const { t } = useTranslation();
   const activities = [
-    'Ein Kauf.',
-    'Eine Buchung.',
-    'Eine Teilnahme.',
-    'Eine Empfehlung.',
-    'Eine Unterstützung.',
+    t('landing.impact.act1'),
+    t('landing.impact.act2'),
+    t('landing.impact.act3'),
+    t('landing.impact.act4'),
+    t('landing.impact.act5'),
   ];
 
   return (
     <section className="lp-impact">
       <div className="lp-section__inner">
         <div className="lp-impact__content">
-          <p className="lp-section__kicker lp-animate">Wirkung</p>
+          <p className="lp-section__kicker lp-animate">{t('landing.impact.kicker')}</p>
           <h2 className="lp-impact__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-            Deine Aktivität.<br />Echte Wirkung.
+            {t('landing.impact.titleLine1')}<br />{t('landing.impact.titleLine2')}
           </h2>
           <div className="lp-impact__activities lp-animate" style={{ transitionDelay: '0.2s' }}>
             {activities.map((a, i) => (
@@ -316,8 +328,8 @@ function ImpactSection() {
             ))}
           </div>
           <p className="lp-impact__text lp-animate" style={{ transitionDelay: '0.3s' }}>
-            Was du innerhalb von HUI tust, kann mehr bewirken<br className="lp-br" />
-            als nur in deinem eigenen Leben.
+            {t('landing.impact.textLine1')}<br className="lp-br" />
+            {t('landing.impact.textLine2')}
           </p>
         </div>
       </div>
@@ -327,29 +339,30 @@ function ImpactSection() {
 
 // ── Paths Section: "Welche Geschichte möchtest du mitgestalten?" ─────────────
 function PathsSection() {
+  const { t } = useTranslation();
   const paths = [
     {
-      title: 'Ich habe etwas zu geben',
-      text: 'Werde Wirker.',
-      cta: 'Wirker werden →',
+      title: t('landing.paths.p1Title'),
+      text: t('landing.paths.p1Text'),
+      cta: t('landing.paths.p1Cta'),
       href: '/login',
     },
     {
-      title: 'Ich habe eine Idee',
-      text: 'Starte ein Projekt.',
-      cta: 'Projekt starten →',
+      title: t('landing.paths.p2Title'),
+      text: t('landing.paths.p2Text'),
+      cta: t('landing.paths.p2Cta'),
       href: '/login',
     },
     {
-      title: 'Ich möchte etwas erleben',
-      text: 'Entdecke Erlebnisse und Menschen.',
-      cta: 'Entdecken →',
+      title: t('landing.paths.p3Title'),
+      text: t('landing.paths.p3Text'),
+      cta: t('landing.paths.p3Cta'),
       href: '/login',
     },
     {
-      title: 'Ich möchte ermöglichen',
-      text: 'Unterstütze Menschen und Projekte.',
-      cta: 'Partner werden →',
+      title: t('landing.paths.p4Title'),
+      text: t('landing.paths.p4Text'),
+      cta: t('landing.paths.p4Cta'),
       href: '/login',
     },
   ];
@@ -357,9 +370,9 @@ function PathsSection() {
   return (
     <section className="lp-paths" id="wege">
       <div className="lp-section__inner">
-        <p className="lp-section__kicker lp-animate">Dein Weg</p>
+        <p className="lp-section__kicker lp-animate">{t('landing.paths.kicker')}</p>
         <h2 className="lp-section__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-          Welche Geschichte möchtest du mitgestalten?
+          {t('landing.paths.title')}
         </h2>
         <div className="lp-paths__grid">
           {paths.map((p, i) => (
@@ -381,22 +394,23 @@ function PathsSection() {
 
 // ── App Section ──────────────────────────────────────────────────────────────
 function AppSection() {
+  const { t } = useTranslation();
   const features = [
-    { title: 'Entdecken', text: 'Finde Menschen, Projekte und Werke, die bewegen.' },
-    { title: 'Mein HUI', text: 'Dein Raum — Profil, Werke, Buchungen, Aktivitäten.' },
-    { title: 'Impact', text: 'Sieh, wie aus Beiträgen Wirkung entsteht.' },
-    { title: 'Profil', text: 'Zeige, was du kannst und was dich ausmacht.' },
+    { title: t('nav.discover'), text: t('landing.app.f1Text') },
+    { title: t('nav.myHui'), text: t('landing.app.f2Text') },
+    { title: t('nav.impact'), text: t('landing.app.f3Text') },
+    { title: t('nav.profile'), text: t('landing.app.f4Text') },
   ];
 
   return (
     <section className="lp-app">
       <div className="lp-section__inner">
-        <p className="lp-section__kicker lp-animate">Die Plattform</p>
+        <p className="lp-section__kicker lp-animate">{t('landing.app.kicker')}</p>
         <h2 className="lp-section__title lp-animate" style={{ transitionDelay: '0.1s' }}>
-          Alles, was Menschen miteinander möglich machen.
+          {t('landing.app.title')}
         </h2>
         <p className="lp-app__sub lp-animate" style={{ transitionDelay: '0.2s' }}>
-          HUI bringt Menschen, Möglichkeiten und Wirkung an einem Ort zusammen.
+          {t('landing.app.sub')}
         </p>
 
         <div className="lp-app__features">
@@ -413,7 +427,7 @@ function AppSection() {
         </div>
 
         <div className="lp-app__cta-row lp-animate" style={{ transitionDelay: '0.6s' }}>
-          <a href="/app/login" className="lp-btn lp-btn--primary">HUI entdecken →</a>
+          <a href="/app/login" className="lp-btn lp-btn--primary">{t('landing.cta.discoverHui')}</a>
         </div>
       </div>
     </section>
@@ -422,22 +436,23 @@ function AppSection() {
 
 // ── Final CTA ────────────────────────────────────────────────────────────────
 function FinalCTA() {
+  const { t } = useTranslation();
   return (
     <section className="lp-final">
       <div className="lp-section__inner">
         <div className="lp-final__content lp-animate">
           <h2 className="lp-final__title">
-            Was kannst du heute tun,<br />
-            um die Welt ein kleines bisschen<br />
-            besser zu machen?
+            {t('landing.finalCta.titleLine1')}<br />
+            {t('landing.finalCta.titleLine2')}<br />
+            {t('landing.finalCta.titleLine3')}
           </h2>
           <p className="lp-final__sub">
-            HUI beginnt nicht mit einer App.<br />
-            HUI beginnt mit dir.
+            {t('landing.finalCta.subLine1')}<br />
+            {t('landing.finalCta.subLine2')}
           </p>
           <div className="lp-final__cta-row">
-            <a href="/app/login" className="lp-btn lp-btn--primary">Jetzt entdecken →</a>
-            <a href="/app/login" className="lp-btn lp-btn--ghost">Mitmachen →</a>
+            <a href="/app/login" className="lp-btn lp-btn--primary">{t('landing.finalCta.ctaDiscover')}</a>
+            <a href="/app/login" className="lp-btn lp-btn--ghost">{t('landing.finalCta.ctaJoin')}</a>
           </div>
         </div>
       </div>
@@ -447,36 +462,37 @@ function FinalCTA() {
 
 // ── Footer ───────────────────────────────────────────────────────────────────
 function LandingFooter() {
+  const { t } = useTranslation();
   const cols = [
     {
       title: 'HUI',
       links: [
-        { label: 'Über HUI', href: '#ueber' },
-        { label: 'Wie HUI wirkt', href: '#prozess' },
+        { label: t('landing.nav.ueberHui'), href: '#ueber' },
+        { label: t('landing.nav.wieWirkt'), href: '#prozess' },
       ],
     },
     {
-      title: 'Entdecken',
+      title: t('nav.discover'),
       links: [
-        { label: 'Projekte', href: '#welt' },
-        { label: 'Werke', href: '#welt' },
-        { label: 'Erlebnisse', href: '#welt' },
-        { label: 'Wirker', href: '#welt' },
+        { label: t('landing.nav.projekte'), href: '#welt' },
+        { label: t('landing.footer.werke'), href: '#welt' },
+        { label: t('landing.footer.erlebnisse'), href: '#welt' },
+        { label: t('landing.footer.wirker'), href: '#welt' },
       ],
     },
     {
-      title: 'Mitmachen',
+      title: t('landing.nav.mitmachen'),
       links: [
-        { label: 'Wirker werden', href: '/login' },
-        { label: 'Projekt starten', href: '/login' },
-        { label: 'Partner werden', href: '/login' },
+        { label: t('landing.footer.wirkerWerden'), href: '/login' },
+        { label: t('landing.footer.projektStarten'), href: '/login' },
+        { label: t('landing.footer.partnerWerden'), href: '/login' },
       ],
     },
     {
-      title: 'Rechtliches',
+      title: t('landing.footer.legalTitle'),
       links: [
-        { label: 'Impressum', href: '#impressum' },
-        { label: 'Datenschutz', href: '#datenschutz' },
+        { label: t('landing.footer.impressum'), href: '#impressum' },
+        { label: t('landing.footer.datenschutz'), href: '#datenschutz' },
       ],
     },
   ];
@@ -487,7 +503,7 @@ function LandingFooter() {
         <div className="lp-footer__brand">
           <img src="/assets/brand/hui-logo.png" alt="HUI" className="lp-footer__logo" />
           <p className="lp-footer__tagline">
-            Ein ruhiges kreatives Netzwerk<br />für Menschen die wirken.
+            {t('landing.footer.taglineLine1')}<br />{t('landing.footer.taglineLine2')}
           </p>
         </div>
         <div className="lp-footer__cols">
@@ -504,7 +520,7 @@ function LandingFooter() {
         </div>
       </div>
       <div className="lp-footer__bottom">
-        <p>© 2026 HUI — Human United Intelligence</p>
+        <p>{t('landing.footer.copyright', { year: new Date().getFullYear() })}</p>
       </div>
     </footer>
   );
