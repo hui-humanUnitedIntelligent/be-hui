@@ -18,6 +18,7 @@
 
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { useAuth } from "../../lib/AuthContext";
 import { supabase } from "../../lib/supabaseClient";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -37,6 +38,7 @@ import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 const TEAL = "#16D7C5";
 
 export default function ExperienceBookingFlow({ experience, onClose = () => {} }) {
+  const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { user } = useAuth();
   useModalRegistration(true, onClose, "ExperienceBookingFlow");
@@ -271,7 +273,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                 cursor: "pointer", transition: "opacity 0.2s",
               }}
             >
-              {priceStr ? `Buchen für ${priceStr}` : "Buchen"}
+              {priceStr ? `${priceStr}  ${t("tbf.btn.book")}` : t("tbf.btn.book")}
             </button>
           </>
         )}
