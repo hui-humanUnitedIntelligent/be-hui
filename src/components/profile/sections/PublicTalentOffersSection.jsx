@@ -49,6 +49,7 @@ function locationLabel(talent, t) {
 
 // Einzelne Kachel
 function TalentCard({ talent, onClick }) {
+  const { t } = useTranslation();
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
   const price = formatPrice(talent);
   const loc   = locationLabel(talent, t);
