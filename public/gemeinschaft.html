@@ -25,9 +25,81 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 55% 35% at 50% 12%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 20% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+
+/* ── HERO: Text + großes Bild darunter (~70%) ── */
+.gemeinschaft-hero{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:110px 24px 48px}
+.gemeinschaft-hero .hui-page-back{margin-bottom:20px}
+.gemeinschaft-hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px;max-width:580px}
+.gemeinschaft-hero p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:520px;margin:0 0 36px}
+.gemeinschaft-hero-img{width:70%;max-width:420px;position:relative}
+.gemeinschaft-hero-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.gemeinschaft-hero-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CONTENT ── */
+.gemeinschaft-content{max-width:840px;margin:0 auto;padding:0 24px 48px}
+
+/* ── Verbundenheit: Text links, Bild rechts ── */
+.gemeinschaft-verbundenheit{display:flex;align-items:center;gap:48px;margin-bottom:56px}
+.gemeinschaft-verbundenheit-text{flex:1;min-width:0}
+.gemeinschaft-verbundenheit-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:14px}
+.gemeinschaft-verbundenheit-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.gemeinschaft-verbundenheit-img{flex:0 0 42%;max-width:340px;position:relative}
+.gemeinschaft-verbundenheit-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.gemeinschaft-verbundenheit-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.05),rgba(244,115,85,.03));z-index:-1}
+
+/* ── Gestaltungskraft: Bild links, Text rechts ── */
+.gemeinschaft-gestaltung{display:flex;align-items:center;gap:48px;margin-bottom:56px}
+.gemeinschaft-gestaltung-img{flex:0 0 42%;max-width:340px;position:relative;order:1}
+.gemeinschaft-gestaltung-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.gemeinschaft-gestaltung-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(244,115,85,.04),rgba(13,196,181,.04));z-index:-1}
+.gemeinschaft-gestaltung-text{flex:1;min-width:0;order:2}
+.gemeinschaft-gestaltung-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:14px}
+.gemeinschaft-gestaltung-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+
+/* ── Werte-Sequenz: 5 Stationen mit Trennlinien ── */
+.gemeinschaft-list-title{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:32px;text-align:center}
+.gemeinschaft-werte{margin-bottom:56px;max-width:580px;margin-left:auto;margin-right:auto}
+.gemeinschaft-wert{display:flex;align-items:flex-start;gap:20px;padding:20px 0;position:relative;transition:transform .3s var(--ease-out)}
+.gemeinschaft-wert:hover{transform:translateX(4px)}
+.gemeinschaft-wert:not(:last-child)::after{content:'';position:absolute;left:15px;bottom:0;right:0;width:auto;height:1px;background:linear-gradient(90deg,rgba(13,196,181,.15),transparent)}
+.gemeinschaft-wert-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgba(13,196,181,.06);color:var(--teal-deep);font-size:13px;font-weight:600;font-family:'Inter',sans-serif}
+.gemeinschaft-wert-body h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:5px;line-height:1.4}
+.gemeinschaft-wert-body p{font-size:14.5px;color:var(--ink-body);line-height:1.6;margin:0}
+
+/* ── Gemeinsamer Moment: breites Bild ── */
+.gemeinschaft-moment{max-width:680px;margin:0 auto 48px;position:relative}
+.gemeinschaft-moment img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.1)}
+.gemeinschaft-moment::after{content:'';position:absolute;inset:-8px;bottom:-8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── Abschluss ── */
+.gemeinschaft-abschluss{text-align:center;padding:32px 24px 48px;max-width:640px;margin:0 auto}
+.gemeinschaft-abschluss::before{content:'';display:block;width:40px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.gemeinschaft-abschluss-headline{font-size:clamp(22px,3.5vw,32px);font-weight:300;letter-spacing:-.01em;color:var(--ink);margin-bottom:24px;line-height:1.3}
+.gemeinschaft-abschluss-headline em{font-style:normal;color:var(--teal-deep);font-weight:500}
+.gemeinschaft-abschluss-text{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0 0 32px;max-width:460px;margin-left:auto;margin-right:auto}
+.gemeinschaft-abschluss .btn-primary{display:inline-flex;align-items:center;padding:16px 40px;font-size:15px;font-weight:600;letter-spacing:.5px;box-shadow:0 4px 20px rgba(13,196,181,.12)}
+.gemeinschaft-abschluss-cta-sub{font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .gemeinschaft-hero{padding:100px 20px 40px}
+  .gemeinschaft-hero h1{font-size:26px}
+  .gemeinschaft-hero p{font-size:15px}
+  .gemeinschaft-hero-img{width:85%;max-width:280px}
+  .gemeinschaft-content{padding:0 20px 36px}
+  .gemeinschaft-verbundenheit{flex-direction:column;gap:24px;margin-bottom:40px}
+  .gemeinschaft-verbundenheit-img{max-width:280px;margin:0 auto}
+  .gemeinschaft-verbundenheit-text h2{font-size:20px}
+  .gemeinschaft-gestaltung{flex-direction:column;gap:24px;margin-bottom:40px}
+  .gemeinschaft-gestaltung-img{max-width:280px;margin:0 auto;order:1}
+  .gemeinschaft-gestaltung-text h2{font-size:20px}
+  .gemeinschaft-list-title{font-size:20px}
+  .gemeinschaft-wert{gap:16px;padding:16px 0}
+  .gemeinschaft-moment{margin:0 auto 32px}
+  .gemeinschaft-abschluss{padding:24px 20px 40px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/gemeinschaft"/>
@@ -201,42 +273,95 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
+
+  <!-- ═══ HERO: Text + großes Bild ═══ -->
+  <section class="gemeinschaft-hero">
     <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
     <h1 class="reveal" data-i18n="page.gemeinschaft.hero">Gemeinschaft entsteht, wenn Menschen etwas miteinander verbindet.</h1>
     <p class="reveal d2" data-i18n="page.gemeinschaft.sub">Ein starkes Miteinander basiert auf gegenseitigem Respekt, Offenheit und gemeinsamen Werten. HUI schafft die Grundlagen für eine lebendige, unterstützende Gemeinschaft.</p>
+    <div class="gemeinschaft-hero-img reveal d2">
+      <img src="/assets/gemeinschaft-hero.webp" alt="Eine vielfältige Gruppe von Menschen in echtem Austausch in einem hellen Gemeinschaftsraum" width="420" height="420" loading="lazy" decoding="async"/>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.gemeinschaft.s1-title">Verbundenheit statt Anonymität</h2>
-      <p data-i18n="page.gemeinschaft.s1-text">In einer zunehmend digitalisierten Welt sehnen sich viele Menschen nach echter Verbundenheit. HUI begegnet dieser Anonymität mit einem geschützten Raum, der echten Dialog fördert. Hier geht es nicht um Reichweite um jeden Preis, sondern um tragfähige Beziehungen.</p>
+  <div class="gemeinschaft-content">
+
+    <!-- ═══ VERBUNDENHEIT: Text links, Bild rechts ═══ -->
+    <section class="gemeinschaft-verbundenheit reveal">
+      <div class="gemeinschaft-verbundenheit-text">
+        <h2 data-i18n="page.gemeinschaft.s1-title">Verbundenheit statt Anonymität</h2>
+        <p data-i18n="page.gemeinschaft.s1-text">In einer zunehmend digitalisierten Welt sehnen sich viele Menschen nach echter Verbundenheit. HUI begegnet dieser Anonymität mit einem geschützten Raum, der echten Dialog fördert. Hier geht es nicht um Reichweite um jeden Preis, sondern um tragfähige Beziehungen.</p>
+      </div>
+      <div class="gemeinschaft-verbundenheit-img">
+        <img src="/assets/gemeinschaft-verbundenheit.webp" alt="Drei Menschen in einem echten persönlichen Gespräch mit Blickkontakt" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.gemeinschaft.s2-title">Kollektive Gestaltungskraft</h2>
-      <p data-i18n="page.gemeinschaft.s2-text">Eine starke Gemeinschaft befähigt das Einzelne, über sich hinauszuwachsen. Wenn wir Ressourcen teilen, Erfahrungen austauschen und uns gegenseitig unterstützen, entstehen neue Möglichkeiten für alle Beteiligten. So wird aus vielen Einzelnen ein starkes Ganzes.</p>
+    <!-- ═══ KOLLEKTIVE GESTALTUNGSKRAFT: Bild links, Text rechts ═══ -->
+    <section class="gemeinschaft-gestaltung reveal">
+      <div class="gemeinschaft-gestaltung-img">
+        <img src="/assets/gemeinschaft-gestaltung.webp" alt="Menschen verschiedener Hintergründe arbeiten gemeinsam kreativ an einem Projekt" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
+      <div class="gemeinschaft-gestaltung-text">
+        <h2 data-i18n="page.gemeinschaft.s2-title">Kollektive Gestaltungskraft</h2>
+        <p data-i18n="page.gemeinschaft.s2-text">Eine starke Gemeinschaft befähigt das Einzelne, über sich hinauszuwachsen. Wenn wir Ressourcen teilen, Erfahrungen austauschen und uns gegenseitig unterstützen, entstehen neue Möglichkeiten für alle Beteiligten. So wird aus vielen Einzelnen ein starkes Ganzes.</p>
+      </div>
     </section>
-    <section class="hui-page-section reveal">
-      <h3 class="hui-page-list-title" data-i18n="page.gemeinschaft.list-title">Das zeichnet die HUI-Gemeinschaft aus</h3>
-      <ul class="hui-page-list">
-        <li data-i18n="page.gemeinschaft.list-1">Wertschätzender Umgang und konstruktives Miteinander auf Augenhöhe</li>
-        <li data-i18n="page.gemeinschaft.list-2">Gegenseitige Unterstützung bei persönlichen und beruflichen Vorhaben</li>
-        <li data-i18n="page.gemeinschaft.list-3">Offener Austausch über Themen, die Menschen wirklich bewegen</li>
-        <li data-i18n="page.gemeinschaft.list-4">Regionale Verankerung verbunden mit globaler Vernetzung</li>
-        <li data-i18n="page.gemeinschaft.list-5">Gemeinsame Gestaltung eines zukunftsorientierten Netzwerks</li>
-      </ul>
-    </section>
+
+    <!-- ═══ WERTE: 5 Stationen mit Trennlinien ═══ -->
+    <h3 class="gemeinschaft-list-title reveal" data-i18n="page.gemeinschaft.list-title">Das zeichnet die HUI-Gemeinschaft aus</h3>
+    <div class="gemeinschaft-werte reveal">
+      <div class="gemeinschaft-wert">
+        <span class="gemeinschaft-wert-num">01</span>
+        <div class="gemeinschaft-wert-body">
+          <h3 data-i18n="page.gemeinschaft.list-1-title">Wertschätzung</h3>
+          <p data-i18n="page.gemeinschaft.list-1">Wertschätzender Umgang und konstruktives Miteinander auf Augenhöhe</p>
+        </div>
+      </div>
+      <div class="gemeinschaft-wert">
+        <span class="gemeinschaft-wert-num">02</span>
+        <div class="gemeinschaft-wert-body">
+          <h3 data-i18n="page.gemeinschaft.list-2-title">Unterstützung</h3>
+          <p data-i18n="page.gemeinschaft.list-2">Gegenseitige Unterstützung bei persönlichen und beruflichen Vorhaben</p>
+        </div>
+      </div>
+      <div class="gemeinschaft-wert">
+        <span class="gemeinschaft-wert-num">03</span>
+        <div class="gemeinschaft-wert-body">
+          <h3 data-i18n="page.gemeinschaft.list-3-title">Austausch</h3>
+          <p data-i18n="page.gemeinschaft.list-3">Offener Austausch über Themen, die Menschen wirklich bewegen</p>
+        </div>
+      </div>
+      <div class="gemeinschaft-wert">
+        <span class="gemeinschaft-wert-num">04</span>
+        <div class="gemeinschaft-wert-body">
+          <h3 data-i18n="page.gemeinschaft.list-4-title">Regionale Verbindung</h3>
+          <p data-i18n="page.gemeinschaft.list-4">Regionale Verankerung verbunden mit globaler Vernetzung</p>
+        </div>
+      </div>
+      <div class="gemeinschaft-wert">
+        <span class="gemeinschaft-wert-num">05</span>
+        <div class="gemeinschaft-wert-body">
+          <h3 data-i18n="page.gemeinschaft.list-5-title">Gemeinsame Gestaltung</h3>
+          <p data-i18n="page.gemeinschaft.list-5">Gemeinsame Gestaltung eines zukunftsorientierten Netzwerks</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.gemeinschaft.coming">Nach dem Start wirst du Gruppen beitreten, regionale Netzwerke mitgestalten und dich aktiv in die Gemeinschaft einbringen können.</p>
+  <!-- ═══ GEMEINSAMER MOMENT: breites Bild ═══ -->
+  <div class="gemeinschaft-moment reveal">
+    <img src="/assets/gemeinschaft-moment.webp" alt="Eine diverse Gruppe von Menschen feiert gemeinsam ein erzieltes Ergebnis im Gemeinschaftsgarten" width="680" height="380" loading="lazy" decoding="async"/>
   </div>
 
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.gemeinschaft.cta">Teil der Gemeinschaft werden</a>
-    <p data-i18n="page.gemeinschaft.cta-sub">Schließe dich uns an und gestalte den Start mit.</p>
-  </section>
+  <!-- ═══ ABSCHLUSS / CTA ═══ -->
+  <div class="gemeinschaft-abschluss reveal">
+    <p class="gemeinschaft-abschluss-headline" data-i18n="page.gemeinschaft.abschluss-headline">Gemeinschaft beginnt mit einem Menschen, der den <em>ersten Schritt</em> macht.</p>
+    <p class="gemeinschaft-abschluss-text" data-i18n="page.gemeinschaft.coming">Nach dem Start wirst du Gruppen beitreten, regionale Netzwerke mitgestalten und dich aktiv in die Gemeinschaft einbringen können.</p>
+    <a href="/app/login" class="btn-primary" data-i18n="page.gemeinschaft.cta">Teil der Gemeinschaft werden · bald</a>
+    <p class="gemeinschaft-abschluss-cta-sub" data-i18n="page.gemeinschaft.cta-sub">Schließe dich uns an und gestalte den Start mit.</p>
+  </div>
 </main>
 
 <footer class="footer">
