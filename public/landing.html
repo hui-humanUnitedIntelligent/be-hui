@@ -121,38 +121,28 @@ ul{list-style:none}
 .vision-answer{font-size:clamp(26px,4.5vw,40px);font-weight:600;color:var(--ink);letter-spacing:-.02em;position:relative;display:inline-block}
 .vision-answer::after{content:'';position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);width:48px;height:2px;background:var(--teal);border-radius:2px;opacity:.4}
 
-/* ── Vision Narrative — editorial image storytelling (Menschen → Idee → Begegnung → Wirkung) ── */
+/* ── Vision Narrative — editorial alternating TEXT↔BILD layout ── */
 .vision-narrative{position:relative;max-width:1180px;margin:80px auto 0;z-index:1}
-.vision-story{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center}
-.vision-story+.vision-story{margin-top:104px}
-.vision-story-statement{font-size:clamp(21px,3vw,27px);font-weight:300;line-height:1.5;color:var(--ink-mid);text-align:center;max-width:560px;margin:0 auto}
+.vision-story{position:relative;z-index:1;display:flex;align-items:center;gap:56px;width:100%;max-width:960px;margin-left:auto;margin-right:auto}
+.vision-story+.vision-story{margin-top:96px}
+.vision-story-text{flex:1 1 0;min-width:0}
+.vision-story-statement{font-size:clamp(21px,2.6vw,27px);font-weight:300;line-height:1.5;color:var(--ink-mid);text-align:left;max-width:420px}
 .vision-story-statement .mark{color:var(--teal);font-weight:500;text-shadow:0 0 14px rgba(13,196,181,.12)}
-.vision-story-figure{margin:0;position:relative}
-.vision-story-figure img{display:block;width:100%;height:auto;border-radius:28px;box-shadow:0 24px 64px -24px rgba(26,26,46,.18)}
-
-/* 01 — Menschen & Talente: centered, prominent, image below, slightly overflowing */
-.vision-story--01 .vision-story-statement{margin-bottom:40px}
-.vision-story--01 .vision-story-figure{width:min(112%,780px);max-width:780px}
-
-/* 02 — Ideen: offset right, breaking into whitespace, asymmetric */
-.vision-story--02{align-items:stretch}
-.vision-story--02 .vision-story-inner{display:flex;align-items:center;gap:48px;width:100%}
-.vision-story--02 .vision-story-statement{text-align:left;max-width:340px;margin:0;flex-shrink:0}
-.vision-story--02 .vision-story-figure{width:min(58%,560px);margin-left:auto;transform:translateX(28px)}
-
-/* 03 — Begegnung: statement above, wide image beneath, larger */
-.vision-story--03 .vision-story-statement{margin-bottom:36px}
-.vision-story--03 .vision-story-figure{width:min(58%,560px)}
-
-/* 04 — Wirkung: visual climax, largest, statement tight above */
-.vision-story--04 .vision-story-statement{margin-bottom:32px;max-width:600px}
-.vision-story--04 .vision-story-figure{width:min(58%,560px)}
-.vision-story--04 .vision-story-closing{margin-top:44px;max-width:520px;text-align:center}
-.vision-story--04 .vision-story-closing p{font-size:17px;line-height:1.65;color:var(--muted, #6b6b7a);font-weight:400}
+.vision-story-figure{margin:0;position:relative;flex-shrink:0}
+.vision-story-figure img{display:block;width:100%;height:auto;border-radius:20px;box-shadow:0 16px 48px -20px rgba(26,26,46,.16)}
+.vision-story--01 .vision-story-figure,.vision-story--02 .vision-story-figure,.vision-story--03 .vision-story-figure{width:min(44%,440px)}
+.vision-story--04 .vision-story-figure{width:min(48%,480px)}
+.vision-story--01 .vision-story-figure,.vision-story--03 .vision-story-figure{order:2}
+.vision-story--01 .vision-story-text,.vision-story--03 .vision-story-text{order:1}
+.vision-story--02 .vision-story-text,.vision-story--04 .vision-story-text{order:2;text-align:right}
+.vision-story--02 .vision-story-figure,.vision-story--04 .vision-story-figure{order:1}
+.vision-story--02 .vision-story-statement,.vision-story--04 .vision-story-statement{text-align:right;margin-left:auto}
+.vision-story--04 .vision-story-closing{margin-top:20px;max-width:420px;margin-left:auto;text-align:right}
+.vision-story--04 .vision-story-closing p{font-size:15px;line-height:1.65;color:var(--muted,#6b6b7a);font-weight:400}
 
 /* Directional reveal modifiers — reuse .reveal base (opacity/transition/.visible already defined) */
-.reveal.vf-left{transform:translateX(-28px) translateY(14px)}
-.reveal.vf-right{transform:translateX(28px) translateY(14px)}
+.reveal.vf-left{transform:translateX(-20px) translateY(10px)}
+.reveal.vf-right{transform:translateX(20px) translateY(10px)}
 .reveal.vf-left.visible,.reveal.vf-right.visible{transform:none}
 
 /* ═══ HUI APP ═══ */
@@ -560,17 +550,19 @@ ul{list-style:none}
   .vision-answer-wrap{margin-top:64px}
 
   .vision-narrative{margin-top:56px}
+  .vision-story{flex-direction:column;gap:28px;text-align:center;max-width:100%}
   .vision-story+.vision-story{margin-top:64px}
-  .vision-story-statement{font-size:19px;max-width:100%!important}
-  .vision-story-figure{border-radius:20px}
-  .vision-story-figure img{border-radius:20px}
-  .vision-story--01 .vision-story-figure{width:100%}
-  .vision-story--02 .vision-story-inner{flex-direction:column;gap:24px}
-  .vision-story--02 .vision-story-statement{text-align:center}
-  .vision-story--02 .vision-story-figure{width:100%!important;margin:0!important;transform:none!important}
-  .vision-story--03 .vision-story-figure{width:100%}
-  .vision-story--04 .vision-story-figure{width:100%}
-  .vision-story--04 .vision-story-closing{max-width:100%}
+  .vision-story-text{text-align:center!important}
+  .vision-story-statement{font-size:19px;max-width:100%!important;text-align:center!important;margin:0 auto}
+  .vision-story--02 .vision-story-text,.vision-story--04 .vision-story-text{text-align:center!important}
+  .vision-story--02 .vision-story-statement,.vision-story--04 .vision-story-statement{text-align:center!important;margin:0 auto}
+  .vision-story-figure{width:88%!important;max-width:520px}
+  .vision-story--01 .vision-story-figure,.vision-story--03 .vision-story-figure{order:2}
+  .vision-story--01 .vision-story-text,.vision-story--03 .vision-story-text{order:1}
+  .vision-story--02 .vision-story-text,.vision-story--04 .vision-story-text{order:2}
+  .vision-story--02 .vision-story-figure,.vision-story--04 .vision-story-figure{order:1}
+  .vision-story--04 .vision-story-closing{max-width:100%;text-align:center;margin:0 auto}
+  .vision-story-figure img{border-radius:16px}
 
   .eco{padding:72px 24px 64px}
   .eco-sub{margin-bottom:32px}
@@ -660,8 +652,9 @@ ul{list-style:none}
 
   .vision-story+.vision-story{margin-top:52px}
   .vision-story-statement{font-size:17px}
-  .vision-story-figure img{border-radius:16px}
-  .vision-story--04 .vision-story-closing p{font-size:15.5px}
+  .vision-story-figure{width:88%!important;max-width:420px}
+  .vision-story-figure img{border-radius:14px}
+  .vision-story--04 .vision-story-closing p{font-size:14.5px}
 }
 
 /* ═══ REDUCED MOTION ═══ */
@@ -873,49 +866,55 @@ ul{list-style:none}
         </circle>
       </svg>
       <div class="vision-narrative">
-        <!-- 01 — Menschen & Talente -->
+        <!-- 01 — Menschen & Talente — TEXT LINKS, BILD RECHTS -->
         <article class="vision-story vision-story--01">
-          <div class="vision-item-wrap">
-            <p class="vision-item vision-story-statement reveal d1" data-i18n-html="vision.q1" data-vision-reveal="vr1">Was wäre, wenn Menschen und ihre Talente <span class="mark">sichtbar</span> würden?</p>
-            <div class="vision-reveal" id="vr1"><p data-i18n="vision.r1">Jeder Mensch hat etwas, das ihn ausmacht. HUI macht diese Vielfalt sichtbar — nicht als Profil, sondern als Möglichkeit.</p></div>
+          <div class="vision-story-text">
+            <div class="vision-item-wrap">
+              <p class="vision-item vision-story-statement reveal d1" data-i18n-html="vision.q1" data-vision-reveal="vr1">Was wäre, wenn Menschen und ihre Talente <span class="mark">sichtbar</span> würden?</p>
+              <div class="vision-reveal" id="vr1"><p data-i18n="vision.r1">Jeder Mensch hat etwas, das ihn ausmacht. HUI macht diese Vielfalt sichtbar — nicht als Profil, sondern als Möglichkeit.</p></div>
+            </div>
           </div>
-          <figure class="vision-story-figure reveal d2">
-            <img src="/assets/vision-menschen-talente.webp" alt="Menschen und Talente sichtbar machen – HUI verbindet Menschen, Fähigkeiten und Möglichkeiten" width="1024" height="683" loading="lazy" decoding="async"/>
+          <figure class="vision-story-figure reveal vf-right d2">
+            <img src="/assets/vision-menschen-talente.webp" alt="Menschen mit individuellen Talenten und Fähigkeiten bei HUI" width="1024" height="683" loading="lazy" decoding="async"/>
           </figure>
         </article>
 
-        <!-- 02 — Ideen -->
+        <!-- 02 — Ideen — BILD LINKS, TEXT RECHTS -->
         <article class="vision-story vision-story--02">
-          <div class="vision-story-inner">
+          <figure class="vision-story-figure reveal vf-left d2">
+            <img src="/assets/vision-ideen.webp" alt="Eine Idee wird sichtbar und findet Menschen, die sie weiterdenken" width="1024" height="683" loading="lazy" decoding="async"/>
+          </figure>
+          <div class="vision-story-text">
             <div class="vision-item-wrap">
-              <p class="vision-item vision-story-statement reveal vf-left d1" data-i18n-html="vision.q2" data-vision-reveal="vr2">Was wäre, wenn Ideen nicht einfach <span class="mark">verschwinden</span>?</p>
+              <p class="vision-item vision-story-statement reveal d1" data-i18n-html="vision.q2" data-vision-reveal="vr2">Was wäre, wenn Ideen nicht einfach <span class="mark">verschwinden</span>?</p>
               <div class="vision-reveal" id="vr2"><p data-i18n="vision.r2">Viele Ideen verschwinden, weil sie niemanden finden. HUI gibt ihnen einen Ort und Menschen, die sie weiterdenken.</p></div>
             </div>
-            <figure class="vision-story-figure reveal vf-right d2">
-              <img src="/assets/vision-ideen.webp" alt="Ideen sichtbar machen und weiterentwickeln – HUI gibt Ideen Raum und Verbindung" width="1024" height="683" loading="lazy" decoding="async"/>
-            </figure>
           </div>
         </article>
 
-        <!-- 03 — Begegnung -->
+        <!-- 03 — Begegnung — TEXT LINKS, BILD RECHTS -->
         <article class="vision-story vision-story--03">
-          <div class="vision-item-wrap">
-            <p class="vision-item vision-story-statement reveal d1" data-i18n-html="vision.q3" data-vision-reveal="vr3">Was wäre, wenn aus einer Begegnung etwas <span class="mark">entsteht</span>?</p>
-            <div class="vision-reveal" id="vr3"><p data-i18n="vision.r3">Manchmal genügt ein Moment, um etwas ins Rollen zu bringen. HUI schafft Räume für genau diese Momente.</p></div>
+          <div class="vision-story-text">
+            <div class="vision-item-wrap">
+              <p class="vision-item vision-story-statement reveal d1" data-i18n-html="vision.q3" data-vision-reveal="vr3">Was wäre, wenn aus einer Begegnung etwas <span class="mark">entsteht</span>?</p>
+              <div class="vision-reveal" id="vr3"><p data-i18n="vision.r3">Manchmal genügt ein Moment, um etwas ins Rollen zu bringen. HUI schafft Räume für genau diese Momente.</p></div>
+            </div>
           </div>
-          <figure class="vision-story-figure reveal d2">
-            <img src="/assets/vision-begegnung.webp" alt="Begegnungen, aus denen Neues entsteht – Menschen verbinden und gemeinsam Möglichkeiten schaffen" width="1024" height="683" loading="lazy" decoding="async"/>
+          <figure class="vision-story-figure reveal vf-right d2">
+            <img src="/assets/vision-begegnung.webp" alt="Menschen begegnen sich und bringen gemeinsam eine Idee voran" width="1024" height="683" loading="lazy" decoding="async"/>
           </figure>
         </article>
 
-        <!-- 04 — Wirkung -->
+        <!-- 04 — Wirkung — BILD LINKS, TEXT RECHTS -->
         <article class="vision-story vision-story--04">
-          <p class="vision-story-statement reveal d1" data-i18n-html="vision.q4">Was wäre, wenn Wirkung nicht nur versprochen, sondern <span class="mark">sichtbar</span> gemacht wird?</p>
-          <figure class="vision-story-figure reveal d2">
-            <img src="/assets/vision-wirkung.webp" alt="Gemeinsam Wirkung schaffen – sichtbar machen, was Menschen bewegen" width="1024" height="683" loading="lazy" decoding="async"/>
+          <figure class="vision-story-figure reveal vf-left d2">
+            <img src="/assets/vision-wirkung.webp" alt="Sichtbare Wirkung entsteht, wenn Menschen gemeinsam etwas bewegen" width="1024" height="683" loading="lazy" decoding="async"/>
           </figure>
-          <div class="vision-story-closing reveal d3">
-            <p data-i18n="vision.r4">Wirkung entsteht nicht aus Versprechen, sondern aus Tun. HUI macht sichtbar, was Menschen gemeinsam bewegen.</p>
+          <div class="vision-story-text">
+            <p class="vision-item vision-story-statement reveal d1" data-i18n-html="vision.q4">Was wäre, wenn Wirkung nicht nur versprochen, sondern <span class="mark">sichtbar</span> gemacht wird?</p>
+            <div class="vision-story-closing reveal d3">
+              <p data-i18n="vision.r4">Wirkung entsteht nicht aus Versprechen, sondern aus Tun. HUI macht sichtbar, was Menschen gemeinsam bewegen.</p>
+            </div>
           </div>
         </article>
       </div>
