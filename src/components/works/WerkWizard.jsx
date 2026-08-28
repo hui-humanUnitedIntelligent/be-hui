@@ -970,7 +970,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         background:"#fff", borderBottom:`1px solid ${C.border}`,
         paddingBottom:8,
       }}>
-        Schritt {step} von {TOTAL}
+        {t("ww.stepOf", {step, total: TOTAL})}
       </div>
 
       {/* ── SCROLLBARER CONTENT ───────────────────────────── */}
@@ -1056,7 +1056,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
             fontFamily:"inherit", touchAction:"manipulation",
             transition:"background .18s",
           }}>
-            Weiter →
+            {t("ww.btn.nextArrow")}
           </button>
         )}
         {isLast && (

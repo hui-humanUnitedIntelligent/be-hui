@@ -531,7 +531,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                         <span style={{
                           fontSize:10, fontWeight: 600, color:tc.c, background:tc.bg,
                           padding:"3px 8px", borderRadius:99, flexShrink:0,
-                        }}>{u.update_type || "Update"}</span>
+                        }}>{u.update_type === "Meilenstein" ? t("impact.updateTypeMeilenstein") : u.update_type === "Fortschritt" ? t("impact.updateTypeFortschritt") : u.update_type === "Neuigkeit" ? t("impact.updateTypeNeuigkeit") : u.update_type === "Geplant" ? t("impact.updateTypeGeplant") : u.update_type === "Proof of Work" ? t("impact.updateTypeProofOfWork") : u.update_type || t("impact.update")}</span>
                         <span style={{ fontSize:11, color:"#999", flexShrink:0 }}>{fmtDate(u.created_at)}</span>
                       </div>
                       <div style={{ fontSize:14, fontWeight: 600, color:"#141422", marginBottom:4 }}>{u.title}</div>
@@ -669,7 +669,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
                   border:     `1px solid ${userVotesLeft > 0 ? "rgba(13,196,181,0.25)" : "rgba(239,68,68,0.25)"}`,
                   borderRadius:99, padding:"4px 10px",
                 }}>
-                  {userVotesLeft > 0 ? `${userVotesLeft} Stimme${userVotesLeft !== 1 ? "n" : ""} übrig` : isProfileTalent(currentUser) ? "Keine Stimmen mehr" : "Nur Talente"}
+                  {userVotesLeft > 0 ? (userVotesLeft === 1 ? t("impact.voteRemainingOne", {n: userVotesLeft}) : t("impact.voteRemainingMany", {n: userVotesLeft})) : isProfileTalent(currentUser) ? t("impact.keineStimmenMehr") : t("impact.nurTalente")}
                 </div>
               )}
             </div>
@@ -2097,10 +2097,10 @@ function VotePersonal({ usedVotes, maxVotes, remainVotes, isMem, userVotes, proj
           letterSpacing:"-0.018em" }}>{t("impact.deineStimmeZaehltKurz")}.</h3>
         <p style={{ margin:"0 0 18px", fontSize:13, color:T.ink2, lineHeight:1.6 }}>
           {remainVotes > 0
-            ? <>Du kannst diesen Monat noch{" "}
-                <b style={{ color:T.teal }}>{remainVotes} Projekt{remainVotes > 1 ? "e" : ""}</b> unterstützen.</>
-            : <>Du hast diesen Monat alle deine Stimmen eingesetzt.{" "}
-                <b style={{ color:T.ink }}>Nächsten Monat gibt es neue.</b></>
+            ? <>{t("impact.supportProjectsPrefix")}{" "}
+                <b style={{ color:T.teal }}>{remainVotes} {remainVotes > 1 ? t("impact.supportProjectsWordPlural") : t("impact.supportProjectsWordSingular")}</b> {t("impact.supportProjectsSuffix")}</>
+            : <>{t("impact.allVotesUsed")}{" "}
+                <b style={{ color:T.ink }}>{t("impact.nextMonthNew")}</b></>
           }
         </p>
 

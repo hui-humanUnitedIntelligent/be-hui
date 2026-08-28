@@ -314,10 +314,11 @@ function OffenFuerSection({ profile, loading }) {
 // SOCIAL CONTEXT BAR — 3 soft columns: Verbindungen · Begegnungen · Momente
 // ══════════════════════════════════════════════════════════════════
 function SocialContextBar({ loading, followCounts }) {
+  const { t } = useTranslation();
   // P4: Nur echte Daten — hardcoded Begegnungen/Momente entfernt
   const stats = [
-    { icon:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:"Followers" },
-    { icon:"🤝", value: loading ? "–" : String(followCounts?.following ?? 0), label:"Folgt"     },
+    { icon:"👥", value: loading ? "–" : String(followCounts?.followers ?? 0), label:t("profile.followers") },
+    { icon:"🤝", value: loading ? "–" : String(followCounts?.following ?? 0), label:t("profile.followingCount")     },
   ];
 
   return (

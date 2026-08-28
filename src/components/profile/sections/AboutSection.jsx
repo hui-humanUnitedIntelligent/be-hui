@@ -39,7 +39,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
   if (loading) {
     return (
       <div style={{ padding:`0 ${T.px}px` }}>
-        <SectionTitle title="Über dich"/>
+        <SectionTitle title={t("profile.aboutTitle")}/>
         <div style={{ background:T.bgCard, borderRadius:T.r16, padding:"14px 16px", border:`1px solid ${T.border}` }}>
           {[100, 90, 70].map((w,i) => (
             <div key={i} style={{
@@ -59,7 +59,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
 
       {/* Titel außerhalb der Kachel */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>Über dich</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{t("profile.aboutTitle")}</div>
         {isOwner && !editing && (
           <button onClick={() => { setDraft(bio); setEditing(true); }}
             style={{ background:"none", border:"none", padding:0, fontSize:12, color:T.teal,

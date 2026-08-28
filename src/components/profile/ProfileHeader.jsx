@@ -312,12 +312,12 @@ export function ProfileHeader({
                 <span>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.followers ?? 0}
-                  </strong>{" "}Follower
+                  </strong>{" "}{t("profile.followers")}
                 </span>
                 <span>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.following ?? 0}
-                  </strong>{" "}folgt
+                  </strong>{" "}{t("profile.followingCount")}
                 </span>
               </div>
             )}
