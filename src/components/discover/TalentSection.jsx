@@ -91,6 +91,7 @@ export function LocationRadiusRow({
   locQuery="", onLocQueryChange, locSuggest=[], locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding:`0 ${T.px}px`, marginBottom:10 }}>
       {locActive ? (
