@@ -4159,4 +4159,5 @@ export default {
   'common.perSession': 'seancë',
   'common.viewAll': 'Shiko të gjitha ›',
   'pub.discoverPerson': 'Zbulo këtë person',
+  'impact.milestoneAdd': '+ Shto një moment',
 };

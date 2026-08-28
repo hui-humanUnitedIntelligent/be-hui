@@ -4208,4 +4208,5 @@ export default {
   'common.perSession': 'Termin',
   'common.viewAll': 'Alle ansehen ›',
   'pub.discoverPerson': 'Entdecke diese Person',
+  'impact.milestoneAdd': '+ Meilenstein hinzufügen',
 };

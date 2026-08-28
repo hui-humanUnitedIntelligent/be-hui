@@ -378,7 +378,7 @@ function Step2({ form, update, onNext, onBack, onClose }) {
         <h2 style={{ margin:"0 0 8px", fontSize:22, fontWeight: 600, color:T.ink,
           letterSpacing:"-0.022em", lineHeight:1.2 }}>{t("impact.step2Title")}</h2>
         <p style={{ margin:"0 0 28px", fontSize:14, color:T.ink2, lineHeight:1.65 }}>
-          Was ist die Kernidee? Klar und verständlich — als würdest du es einem Freund erklären.
+          {t("impact.step2Hint")}
         </p>
         <textarea className="hui-input hui-textarea"
           placeholder={t("impact.step2Placeholder")}
@@ -679,7 +679,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
               background:"transparent", color:T.teal,
               fontSize:13, fontWeight: 600, cursor:"pointer", marginBottom:16,
               fontFamily:"inherit" }}>
-            + Meilenstein hinzufügen
+            {t("impact.milestoneAdd")}
           </button>
         )}
 
@@ -687,7 +687,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
           <div style={{ fontSize:12, color:T.coral, textAlign:"center",
             marginBottom:10, padding:"8px 12px",
             background:"rgba(244,113,79,0.06)", borderRadius:10 }}>
-            Bitte mindestens einen Meilenstein mit Titel anlegen.
+            {t("impact.milestoneRequired")}
           </div>
         )}
 

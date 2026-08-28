@@ -4216,4 +4216,5 @@ export default {
   'common.perSession': 'session',
   'common.viewAll': 'View all ›',
   'pub.discoverPerson': 'Discover this person',
+  'impact.milestoneAdd': '+ Add milestone',
 };
