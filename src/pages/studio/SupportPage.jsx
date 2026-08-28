@@ -164,15 +164,15 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
           ✅
         </div>
         <h2 style={{ fontSize:22, fontWeight: 600, color:C.ink, margin:"0 0 10px" }}>
-          t("support.created")
+          {t("support.created")}
         </h2>
         <p style={{ fontSize:15, color:C.muted, margin:"0 0 20px", lineHeight:1.5 }}>
-          t("support.createdDesc") + "<br/>"
+          {t("support.createdDesc")}<br/>
           {t("sup.adminKuemmertSich")}
         </p>
         <div style={{ background:"white", border:`1px solid ${C.border}`,
           borderRadius:12, padding:"14px 24px", marginBottom:28 }}>
-          <p style={{ margin:0, fontSize:12, color:C.muted }}>t("support.ticketNr")</p>
+          <p style={{ margin:0, fontSize:12, color:C.muted }}>{t("support.ticketNr")}</p>
           <p style={{ margin:"4px 0 0", fontSize:20, fontWeight: 600,
             color:C.teal, fontFamily:"monospace", letterSpacing:1 }}>
             {ticketNr}
@@ -230,7 +230,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         <div style={{ background:"white", borderRadius:14, padding:"18px 16px",
           border:`1px solid ${C.border}`, marginBottom:14 }}>
           <p style={{ margin:"0 0 14px", fontSize:14, fontWeight: 600, color:C.ink }}>
-            t("support.kontaktdaten")
+            {t("support.kontaktdaten")}
           </p>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
             <div>
