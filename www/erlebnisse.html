@@ -25,9 +25,82 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 55% 35% at 70% 12%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 20% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+
+/* ── HERO: Text oben, großes Bild darunter (~60%) ── */
+.erlebnisse-hero{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:110px 24px 48px}
+.erlebnisse-hero .hui-page-back{margin-bottom:20px}
+.erlebnisse-hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px;max-width:560px}
+.erlebnisse-hero p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:500px;margin:0 0 32px}
+.erlebnisse-hero-img{width:60%;max-width:380px;margin:0 0 0 0;position:relative}
+.erlebnisse-hero-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.erlebnisse-hero-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CONTENT ── */
+.erlebnisse-content{max-width:840px;margin:0 auto;padding:0 24px 48px}
+
+/* ── Gemeinsame Momente: Text links, Bild rechts ── */
+.erlebnisse-momente{display:flex;align-items:center;gap:48px;margin-bottom:52px}
+.erlebnisse-momente-text{flex:1;min-width:0}
+.erlebnisse-momente-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:14px}
+.erlebnisse-momente-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.erlebnisse-momente-img{flex:0 0 42%;max-width:340px;position:relative}
+.erlebnisse-momente-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.erlebnisse-momente-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.05),rgba(244,115,85,.03));z-index:-1}
+
+/* ── Lernen: Bild links, Text rechts ── */
+.erlebnisse-lernen{display:flex;align-items:center;gap:48px;margin-bottom:52px}
+.erlebnisse-lernen-img{flex:0 0 42%;max-width:340px;position:relative;order:1}
+.erlebnisse-lernen-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.erlebnisse-lernen-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(244,115,85,.04),rgba(13,196,181,.04));z-index:-1}
+.erlebnisse-lernen-text{flex:1;min-width:0;order:2}
+.erlebnisse-lernen-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:14px}
+.erlebnisse-lernen-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+
+/* ── Erlebnisstrecke: 5 versetzte Stationen ── */
+.erlebnisse-list-title{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:32px;text-align:center}
+.erlebnisse-strecke{margin-bottom:52px;max-width:580px;margin-left:auto;margin-right:auto;position:relative}
+.erlebnisse-station{display:flex;align-items:flex-start;gap:20px;padding:18px 0;position:relative;transition:transform .3s var(--ease-out)}
+.erlebnisse-station:nth-child(odd){padding-left:20px}
+.erlebnisse-station:nth-child(even){padding-right:20px;margin-left:28px}
+.erlebnisse-station:hover{transform:translateX(4px)}
+.erlebnisse-station:not(:last-child)::after{content:'';position:absolute;left:15px;top:48px;bottom:-4px;width:1px;background:linear-gradient(180deg,rgba(13,196,181,.2),rgba(13,196,181,.05))}
+.erlebnisse-station:nth-child(even):not(:last-child)::after{left:35px}
+.erlebnisse-station-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgba(13,196,181,.08);color:var(--teal-deep);font-size:13px;font-weight:600;font-family:'Inter',sans-serif;position:relative;z-index:1}
+.erlebnisse-station-body h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:5px;line-height:1.4}
+.erlebnisse-station-body p{font-size:14.5px;color:var(--ink-body);line-height:1.6;margin:0}
+
+/* ── Abschluss: mit Bild, emotional ── */
+.erlebnisse-abschluss{text-align:center;padding:32px 24px 48px;max-width:720px;margin:0 auto}
+.erlebnisse-abschluss-img{width:55%;max-width:320px;margin:0 auto 32px;position:relative}
+.erlebnisse-abschluss-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.erlebnisse-abschluss-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+.erlebnisse-abschluss::before{content:'';display:block;width:40px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.erlebnisse-abschluss-text{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0 0 28px;max-width:460px;margin-left:auto;margin-right:auto}
+.erlebnisse-abschluss .btn-primary{display:inline-flex;align-items:center;padding:16px 40px;font-size:15px;font-weight:600;letter-spacing:.5px;box-shadow:0 4px 20px rgba(13,196,181,.12)}
+.erlebnisse-abschluss-cta-sub{font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .erlebnisse-hero{padding:100px 20px 40px}
+  .erlebnisse-hero h1{font-size:26px}
+  .erlebnisse-hero p{font-size:15px}
+  .erlebnisse-hero-img{width:80%;max-width:260px}
+  .erlebnisse-content{padding:0 20px 36px}
+  .erlebnisse-momente{flex-direction:column;gap:24px;margin-bottom:40px}
+  .erlebnisse-momente-img{max-width:280px;margin:0 auto}
+  .erlebnisse-momente-text h2{font-size:20px}
+  .erlebnisse-lernen{flex-direction:column;gap:24px;margin-bottom:40px}
+  .erlebnisse-lernen-img{max-width:280px;margin:0 auto;order:1}
+  .erlebnisse-lernen-text h2{font-size:20px}
+  .erlebnisse-list-title{font-size:20px}
+  .erlebnisse-station{gap:16px;padding:14px 0}
+  .erlebnisse-station:nth-child(even){margin-left:0;padding-right:0}
+  .erlebnisse-station:nth-child(odd){padding-left:0}
+  .erlebnisse-abschluss{padding:24px 20px 40px}
+  .erlebnisse-abschluss-img{width:70%;max-width:240px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/erlebnisse"/>
@@ -201,42 +274,92 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
+
+  <!-- ═══ HERO: Text + großes Bild darunter ═══ -->
+  <section class="erlebnisse-hero">
     <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
     <h1 class="reveal" data-i18n="page.erlebnisse.hero">Manche Dinge versteht man erst, wenn man sie erlebt.</h1>
     <p class="reveal d2" data-i18n="page.erlebnisse.sub">Echte Erfahrungen prägen uns nachhaltiger als graue Theorie. HUI ermöglicht Begegnungen, Workshops und gemeinsame Aktivitäten, die neue Perspektiven eröffnen.</p>
+    <div class="erlebnisse-hero-img reveal d2">
+      <img src="/assets/erlebnisse-hero.webp" alt="Menschen, die gemeinsam einen warmen Moment im Freien erleben" width="380" height="380" loading="lazy" decoding="async"/>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.erlebnisse.s1-title">Gemeinsame Momente schaffen</h2>
-      <p data-i18n="page.erlebnisse.s1-text">Ob ein kreativer Workshop, ein gemeinsames Naturprojekt oder ein thematischer Austauschabend — Erlebnisse verbinden Menschen auf eine tiefere Art. HUI hilft dir, Veranstaltungen und Aktivitäten zu organisieren oder an inspirierenden Formaten teilzunehmen.</p>
+  <div class="erlebnisse-content">
+
+    <!-- ═══ GEMEINSAME MOMENTE: Text links, Bild rechts ═══ -->
+    <section class="erlebnisse-momente reveal">
+      <div class="erlebnisse-momente-text">
+        <h2 data-i18n="page.erlebnisse.s1-title">Gemeinsame Momente schaffen</h2>
+        <p data-i18n="page.erlebnisse.s1-text">Ob ein kreativer Workshop, ein gemeinsames Naturprojekt oder ein thematischer Austauschabend — Erlebnisse verbinden Menschen auf eine tiefere Art. HUI hilft dir, Veranstaltungen und Aktivitäten zu organisieren oder an inspirierenden Formaten teilzunehmen.</p>
+      </div>
+      <div class="erlebnisse-momente-img">
+        <img src="/assets/erlebnisse-momente.webp" alt="Menschen bei einem gemeinsamen kreativen Workshop" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.erlebnisse.s2-title">Lernen durch Anwendung und Begegnung</h2>
-      <p data-i18n="page.erlebnisse.s2-text">Wenn Menschen ihr Wissen in der Praxis teilen, entsteht nachhaltiger Lernerfolg. Durch das gemeinsame Tun lernen Beteiligte voneinander, bauen Vorurteile ab und stärken den Zusammenhalt. Jedes Erlebnis wird so zu einem Schritt für persönliche Entwicklung.</p>
+    <!-- ═══ LERNEN DURCH ANWENDUNG: Bild links, Text rechts ═══ -->
+    <section class="erlebnisse-lernen reveal">
+      <div class="erlebnisse-lernen-img">
+        <img src="/assets/erlebnisse-lernen.webp" alt="Zwei Menschen lernen gemeinsam praktisch im Garten" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
+      <div class="erlebnisse-lernen-text">
+        <h2 data-i18n="page.erlebnisse.s2-title">Lernen durch Anwendung und Begegnung</h2>
+        <p data-i18n="page.erlebnisse.s2-text">Wenn Menschen ihr Wissen in der Praxis teilen, entsteht nachhaltiger Lernerfolg. Durch das gemeinsame Tun lernen Beteiligte voneinander, bauen Vorurteile ab und stärken den Zusammenhalt. Jedes Erlebnis wird so zu einem Schritt für persönliche Entwicklung.</p>
+      </div>
     </section>
-    <section class="hui-page-section reveal">
-      <h3 class="hui-page-list-title" data-i18n="page.erlebnisse.list-title">Vielfalt der Erlebnisse auf HUI</h3>
-      <ul class="hui-page-list">
-        <li data-i18n="page.erlebnisse.list-1">Organisiere eigene Workshops, Treffen oder Gruppenaktivitäten</li>
-        <li data-i18n="page.erlebnisse.list-2">Nimm an inspirierenden Veranstaltungen in deiner Nähe teil</li>
-        <li data-i18n="page.erlebnisse.list-3">Lerne praktische Fertigkeiten direkt von erfahrenen Menschen</li>
-        <li data-i18n="page.erlebnisse.list-4">Sammle unvergessliche Eindrücke in einer offenen Gemeinschaft</li>
-        <li data-i18n="page.erlebnisse.list-5">Knüpfe Freundschaften durch gemeinsame Interessen und Tun</li>
-      </ul>
-    </section>
+
+    <!-- ═══ VIELFALT DER ERLEBNISSE: versetzte Erlebnisstrecke ═══ -->
+    <h3 class="erlebnisse-list-title reveal" data-i18n="page.erlebnisse.list-title">Vielfalt der Erlebnisse auf HUI</h3>
+    <div class="erlebnisse-strecke reveal">
+      <div class="erlebnisse-station">
+        <span class="erlebnisse-station-num">01</span>
+        <div class="erlebnisse-station-body">
+          <h3 data-i18n="page.erlebnisse.list-1-title">Organisieren</h3>
+          <p data-i18n="page.erlebnisse.list-1">Organisiere eigene Workshops, Treffen oder Gruppenaktivitäten</p>
+        </div>
+      </div>
+      <div class="erlebnisse-station">
+        <span class="erlebnisse-station-num">02</span>
+        <div class="erlebnisse-station-body">
+          <h3 data-i18n="page.erlebnisse.list-2-title">Teilnehmen</h3>
+          <p data-i18n="page.erlebnisse.list-2">Nimm an inspirierenden Veranstaltungen in deiner Nähe teil</p>
+        </div>
+      </div>
+      <div class="erlebnisse-station">
+        <span class="erlebnisse-station-num">03</span>
+        <div class="erlebnisse-station-body">
+          <h3 data-i18n="page.erlebnisse.list-3-title">Lernen</h3>
+          <p data-i18n="page.erlebnisse.list-3">Lerne praktische Fertigkeiten direkt von erfahrenen Menschen</p>
+        </div>
+      </div>
+      <div class="erlebnisse-station">
+        <span class="erlebnisse-station-num">04</span>
+        <div class="erlebnisse-station-body">
+          <h3 data-i18n="page.erlebnisse.list-4-title">Erleben</h3>
+          <p data-i18n="page.erlebnisse.list-4">Sammle unvergessliche Eindrücke in einer offenen Gemeinschaft</p>
+        </div>
+      </div>
+      <div class="erlebnisse-station">
+        <span class="erlebnisse-station-num">05</span>
+        <div class="erlebnisse-station-body">
+          <h3 data-i18n="page.erlebnisse.list-5-title">Verbinden</h3>
+          <p data-i18n="page.erlebnisse.list-5">Knüpfe Freundschaften durch gemeinsame Interessen und Tun</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.erlebnisse.coming">Nach dem Start kannst du an vielfältigen Erlebnissen teilnehmen, eigene Veranstaltungen anbieten und unvergessliche Begegnungen gestalten.</p>
+  <!-- ═══ ABSCHLUSS: mit Bild, emotional ═══ -->
+  <div class="erlebnisse-abschluss reveal">
+    <div class="erlebnisse-abschluss-img">
+      <img src="/assets/erlebnisse-abschluss.webp" alt="Menschen teilen einen gemeinsamen besonderen Moment am Abend" width="320" height="320" loading="lazy" decoding="async"/>
+    </div>
+    <p class="erlebnisse-abschluss-text" data-i18n="page.erlebnisse.coming">Nach dem Start kannst du an vielfältigen Erlebnissen teilnehmen, eigene Veranstaltungen anbieten und unvergessliche Begegnungen gestalten.</p>
+    <a href="/app/login" class="btn-primary" data-i18n="page.erlebnisse.cta">Erlebnisse entdecken · bald</a>
+    <p class="erlebnisse-abschluss-cta-sub" data-i18n="page.erlebnisse.cta-sub">Bleibe auf dem Laufenden bis zum Start.</p>
   </div>
-
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.erlebnisse.cta">Erlebnisse entdecken</a>
-    <p data-i18n="page.erlebnisse.cta-sub">Bleibe auf dem Laufenden bis zum Start.</p>
-  </section>
 </main>
 
 <footer class="footer">
