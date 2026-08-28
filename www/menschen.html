@@ -25,9 +25,71 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 50% 35% at 70% 15%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 20% 75%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+
+/* ── HERO: zweispaltig, Bild 38% Breite ── */
+.menschen-hero{position:relative;z-index:1;display:flex;align-items:center;gap:48px;max-width:960px;margin:0 auto;padding:120px 24px 72px}
+.menschen-hero-text{flex:1;min-width:0}
+.menschen-hero-text .hui-page-back{margin-bottom:20px}
+.menschen-hero-text h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px}
+.menschen-hero-text p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:480px;margin:0}
+.menschen-hero-img{flex:0 0 38%;max-width:280px;position:relative}
+.menschen-hero-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.menschen-hero-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CONTENT: breiter für zweispaltige Sektion ── */
+.menschen-content{max-width:840px;margin:0 auto;padding:0 24px 60px}
+
+/* ── Vielfalt: zweispaltig ── */
+.menschen-vielfalt{display:flex;align-items:center;gap:48px;margin-bottom:64px}
+.menschen-vielfalt-text{flex:1;min-width:0}
+.menschen-vielfalt-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.menschen-vielfalt-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.menschen-vielfalt-img{flex:0 0 42%;max-width:340px;position:relative}
+.menschen-vielfalt-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.menschen-vielfalt-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.05),rgba(244,115,85,.03));z-index:-1}
+
+/* ── Sichtbar: typografische Hervorhebung ── */
+.menschen-sichtbar{text-align:center;margin-bottom:64px;position:relative}
+.menschen-sichtbar h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.menschen-sichtbar p{font-size:15.5px;color:var(--ink-body);line-height:1.75;max-width:580px;margin:0 auto 28px}
+.menschen-sichtbar-word{font-size:clamp(40px,7vw,72px);font-weight:200;letter-spacing:.12em;color:var(--teal);opacity:.12;line-height:1;margin:0 auto;user-select:none}
+
+/* ── Wie du dich zeigen kannst: 5 Karten ── */
+.menschen-list-title{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:28px;text-align:center}
+.menschen-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:64px}
+.menschen-card{padding:24px 22px;background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);transition:transform .3s var(--ease-out),box-shadow .3s var(--ease-out)}
+.menschen-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px -8px rgba(20,20,34,.08)}
+.menschen-card-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(13,196,181,.08);color:var(--teal-deep);font-size:13px;font-weight:600;margin-bottom:12px;font-family:'Inter',sans-serif}
+.menschen-card h3{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:8px;line-height:1.4}
+.menschen-card p{font-size:14px;color:var(--ink-body);line-height:1.6;margin:0}
+
+/* ── Was bringst du mit: kompakter ── */
+.menschen-bringst{margin-bottom:40px}
+.menschen-bringst h3{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:-.01em;text-align:center}
+.menschen-bringst .menschen-bringst-sub{font-size:15px;color:var(--muted);margin-bottom:20px;text-align:center}
+
+/* ── Abschluss: ruhig, viel Weißraum ── */
+.menschen-abschluss{margin:0 auto;max-width:520px;padding:48px 24px;text-align:center}
+.menschen-abschluss::before{content:'';display:block;width:40px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.menschen-abschluss p{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .menschen-hero{flex-direction:column-reverse;padding:100px 20px 56px;gap:32px}
+  .menschen-hero-img{max-width:200px}
+  .menschen-hero-text h1{font-size:26px}
+  .menschen-hero-text p{font-size:15px}
+  .menschen-content{padding:0 20px 40px}
+  .menschen-vielfalt{flex-direction:column;gap:28px;margin-bottom:48px}
+  .menschen-vielfalt-img{max-width:260px;margin:0 auto}
+  .menschen-vielfalt-text h2{font-size:20px}
+  .menschen-sichtbar h2{font-size:20px}
+  .menschen-cards{grid-template-columns:1fr;gap:12px}
+  .menschen-list-title{font-size:20px}
+  .menschen-abschluss{padding:36px 20px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/menschen"/>
@@ -201,53 +263,91 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.menschen.hero">Jeder Mensch zählt.</h1>
-    <p class="reveal d2" data-i18n="page.menschen.sub">Auf HUI stehen Persönlichkeit, individuelle Fähigkeiten und echte Begegnungen im Vordergrund. Wir schaffen einen Raum, in dem jede Stimme gehört wird und Entfaltung möglich ist.</p>
+
+  <!-- ═══ HERO: zweispaltig mit Bild ═══ -->
+  <section class="menschen-hero">
+    <div class="menschen-hero-text">
+      <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
+      <h1 class="reveal" data-i18n="page.menschen.hero">Jeder Mensch zählt.</h1>
+      <p class="reveal d2" data-i18n="page.menschen.sub">Auf HUI stehen Persönlichkeit, individuelle Fähigkeiten und echte Begegnungen im Vordergrund. Wir schaffen einen Raum, in dem jede Stimme gehört wird und Entfaltung möglich ist.</p>
+    </div>
+    <div class="menschen-hero-img reveal d2">
+      <img src="/assets/menschen-hero.webp" alt="Eine Person in einem warmen, natürlichen Moment" width="280" height="280" loading="lazy" decoding="async"/>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.menschen.s1-title">Vielfalt als Stärke</h2>
-      <p data-i18n="page.menschen.s1-text">Jeder Mensch bringt einzigartige Erfahrungen, Lebenseinstellungen und Fähigkeiten mit. Auf HUI vernetzen wir Menschen nicht über starre Lebensläufe, sondern über gemeinsame Werte und Interessen. So entstehen Verbindungen auf Augenhöhe, die echten Mehrwert schaffen.</p>
+  <div class="menschen-content">
+
+    <!-- ═══ VIELFALT ALS STÄRKE: zweispaltig Text + Bild ═══ -->
+    <section class="menschen-vielfalt reveal">
+      <div class="menschen-vielfalt-text">
+        <h2 data-i18n="page.menschen.s1-title">Vielfalt als Stärke</h2>
+        <p data-i18n="page.menschen.s1-text">Jeder Mensch bringt einzigartige Erfahrungen, Lebenseinstellungen und Fähigkeiten mit. Auf HUI vernetzen wir Menschen nicht über starre Lebensläufe, sondern über gemeinsame Werte und Interessen. So entstehen Verbindungen auf Augenhöhe, die echten Mehrwert schaffen.</p>
+      </div>
+      <div class="menschen-vielfalt-img">
+        <img src="/assets/menschen-vielfalt.webp" alt="Menschen verschiedener Herkunft im Gespräch an einem Tisch" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
+    <!-- ═══ SICHTBARKEIT OHNE BEWERTUNGSDRUCK ═══ -->
+    <section class="menschen-sichtbar reveal">
       <h2 data-i18n="page.menschen.s2-title">Sichtbarkeit ohne Bewertungsdruck</h2>
       <p data-i18n="page.menschen.s2-text">Wir glauben an Entfaltung ohne den Druck oberflächlicher Kennzahlen. Auf unserer Plattform zählt, wer du bist und was du bewegen möchtest. Du entscheidest selbst, wie du dich präsentieren möchtest und welche Impulse du mit der Gemeinschaft teilst.</p>
+      <span class="menschen-sichtbar-word" aria-hidden="true">SICHTBAR</span>
     </section>
-    <section class="hui-page-section reveal">
-      <h3 class="hui-page-list-title" data-i18n="page.menschen.list-title">Wie du dich auf HUI zeigen kannst</h3>
-      <ul class="hui-page-list">
-        <li data-i18n="page.menschen.list-1">Erstelle ein Profil, das deine Persönlichkeit und Werte widerspiegelt</li>
-        <li data-i18n="page.menschen.list-2">Teile deine Visionen, Gedanken und persönlichen Schwerpunkte</li>
-        <li data-i18n="page.menschen.list-3">Finde Gleichgesinnte für gemeinsamen Austausch und Inspiration</li>
-        <li data-i18n="page.menschen.list-4">Knüpfe wertvolle Kontakte abseits konventioneller Netzwerke</li>
-        <li data-i18n="page.menschen.list-5">Werde Teil einer wertschätzenden und unterstützenden Gemeinschaft</li>
-      </ul>
-    </section>
-  </div>
 
-
-  <div class="hui-interact reveal">
-    <h3 class="hui-interact-title" data-i18n="interact.menschen.title">Was bringst du mit?</h3>
-    <p class="hui-interact-sub" data-i18n="interact.menschen.sub">Jeder Mensch hat etwas. Was ist deines?</p>
-    <div class="hui-interact-options" data-response-prefix="interact.menschen.response">
-      <span class="hui-interact-chip" data-value="idea" data-i18n="interact.menschen.option.idea">Eine Idee</span>
-      <span class="hui-interact-chip" data-value="talent" data-i18n="interact.menschen.option.talent">Ein Talent</span>
-      <span class="hui-interact-chip" data-value="experience" data-i18n="interact.menschen.option.experience">Erfahrung</span>
-      <span class="hui-interact-chip" data-value="time" data-i18n="interact.menschen.option.time">Zeit</span>
-      <span class="hui-interact-chip" data-value="support" data-i18n="interact.menschen.option.support">Unterstützung</span>
-      <span class="hui-interact-chip" data-value="curiosity" data-i18n="interact.menschen.option.curiosity">Neugier</span>
+    <!-- ═══ WIE DU DICH AUF HUI ZEIGEN KANNST: 5 Karten ═══ -->
+    <h3 class="menschen-list-title reveal" data-i18n="page.menschen.list-title">Wie du dich auf HUI zeigen kannst</h3>
+    <div class="menschen-cards reveal">
+      <div class="menschen-card">
+        <span class="menschen-card-num">01</span>
+        <h3 data-i18n="page.menschen.list-1-title">Profil erstellen</h3>
+        <p data-i18n="page.menschen.list-1">Erstelle ein Profil, das deine Persönlichkeit und Werte widerspiegelt</p>
+      </div>
+      <div class="menschen-card">
+        <span class="menschen-card-num">02</span>
+        <h3 data-i18n="page.menschen.list-2-title">Visionen teilen</h3>
+        <p data-i18n="page.menschen.list-2">Teile deine Visionen, Gedanken und persönlichen Schwerpunkte</p>
+      </div>
+      <div class="menschen-card">
+        <span class="menschen-card-num">03</span>
+        <h3 data-i18n="page.menschen.list-3-title">Gleichgesinnte finden</h3>
+        <p data-i18n="page.menschen.list-3">Finde Gleichgesinnte für gemeinsamen Austausch und Inspiration</p>
+      </div>
+      <div class="menschen-card">
+        <span class="menschen-card-num">04</span>
+        <h3 data-i18n="page.menschen.list-4-title">Kontakte knüpfen</h3>
+        <p data-i18n="page.menschen.list-4">Knüpfe wertvolle Kontakte abseits konventioneller Netzwerke</p>
+      </div>
+      <div class="menschen-card">
+        <span class="menschen-card-num">05</span>
+        <h3 data-i18n="page.menschen.list-5-title">Gemeinschaft werden</h3>
+        <p data-i18n="page.menschen.list-5">Werde Teil einer wertschätzenden und unterstützenden Gemeinschaft</p>
+      </div>
     </div>
-    <div class="hui-interact-response">
-      <p class="hui-interact-response-text"></p>
-    </div>
-  </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.menschen.coming">Nach dem Start wirst du auf HUI Menschen mit unterschiedlichsten Hintergründen entdecken, dich direkt vernetzen und neue Blickwinkel gewinnen können.</p>
+    <!-- ═══ WAS BRINGST DU MIT?: kompakt mit Pills ═══ -->
+    <div class="menschen-bringst reveal">
+      <h3 class="hui-interact-title" data-i18n="interact.menschen.title">Was bringst du mit?</h3>
+      <p class="menschen-bringst-sub" data-i18n="interact.menschen.sub">Jeder Mensch hat etwas. Was ist deines?</p>
+      <div class="hui-interact-options" data-response-prefix="interact.menschen.response">
+        <span class="hui-interact-chip" data-value="idea" data-i18n="interact.menschen.option.idea">Eine Idee</span>
+        <span class="hui-interact-chip" data-value="talent" data-i18n="interact.menschen.option.talent">Ein Talent</span>
+        <span class="hui-interact-chip" data-value="experience" data-i18n="interact.menschen.option.experience">Erfahrung</span>
+        <span class="hui-interact-chip" data-value="time" data-i18n="interact.menschen.option.time">Zeit</span>
+        <span class="hui-interact-chip" data-value="support" data-i18n="interact.menschen.option.support">Unterstützung</span>
+        <span class="hui-interact-chip" data-value="curiosity" data-i18n="interact.menschen.option.curiosity">Neugier</span>
+      </div>
+      <div class="hui-interact-response">
+        <p class="hui-interact-response-text"></p>
+      </div>
+    </div>
+
+    <!-- ═══ ABSCHLUSS: ruhig, viel Weißraum ═══ -->
+    <div class="menschen-abschluss reveal">
+      <p data-i18n="page.menschen.coming">Nach dem Start wirst du auf HUI Menschen mit unterschiedlichsten Hintergründen entdecken, dich direkt vernetzen und neue Blickwinkel gewinnen können.</p>
+    </div>
+
   </div>
 
   <section class="hui-page-cta">
