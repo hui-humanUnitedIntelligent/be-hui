@@ -37,17 +37,17 @@ const T = {
   r99:      99,
 };
 
-function fmtTime(iso) {
+function fmtTime(iso, t) {
   if (!iso) return "";
   const d = new Date(iso);
   const now = new Date();
   const diff = Math.floor((now - d) / 60000);
-  if (diff < 1)  return "gerade eben";
-  if (diff < 60) return `vor ${diff} Min`;
+  if (diff < 1)  return t ? t("common.justNow") : "gerade eben";
+  if (diff < 60) return t ? t("common.minsAgoShort", {n: diff}) : `vor ${diff} Min`;
   const h = Math.floor(diff / 60);
-  if (h < 24)   return `vor ${h} Std`;
+  if (h < 24)   return t ? t("common.hoursAgoShort", {n: h}) : `vor ${h} Std`;
   const days = Math.floor(h / 24);
-  if (days < 7) return `vor ${days} Tagen`;
+  if (days < 7) return t ? t("common.daysAgoShort", {n: days}) : `vor ${days} Tagen`;
   return formatDateDE(d, { day:"numeric", month:"short" });
 }
 
@@ -831,7 +831,7 @@ function DetailModal({ n, onClose, onAction }) {
 
         {/* ── Zeitstempel ── */}
         <div style={{ fontSize:11, color:"#999", textAlign:"center", marginBottom:16 }}>
-          {fmtTime(n.created_at)}
+          {fmtTime(n.created_at, t)}
         </div>
 
         {/* ── Content-Blöcke ── */}
@@ -1115,7 +1115,7 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
                 verschoben (spart eine ganze Zeile pro Karte, statt eigener
                 Reihe darunter). */}
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:5 }}>
-              <span style={{ fontSize:10.5, color:T.inkFaint }}>{fmtTime(n.created_at)}</span>
+              <span style={{ fontSize:10.5, color:T.inkFaint }}>{fmtTime(n.created_at, t)}</span>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 {onDelete && (
                   <button

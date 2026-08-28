@@ -1013,7 +1013,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
         boxShadow:S.btn(T.teal), marginBottom:8,
       }}>{t("impact.egButton")}</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
-        fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>Abbrechen</button>
+        fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px" }}>{t("impact.cancel")}</button>
     </div>
   );
 }
@@ -1314,7 +1314,7 @@ function PersoenlicheAngaben({ onWeiter, onClose, kontakt, setKontakt }) {
       }}>{t("impact.egButton")}</button>
       <button onClick={onClose} style={{ background:"none", border:"none",
         fontSize:13, color:T.ink3, cursor:"pointer", padding:"6px",
-        display:"block", width:"100%", textAlign:"center" }}>Abbrechen</button>
+        display:"block", width:"100%", textAlign:"center" }}>{t("impact.cancel")}</button>
     </div>
   );
 }
@@ -1656,8 +1656,8 @@ export default function ImpactFlow({ onClose }) {
         await supabase.from("notifications").insert({
           user_id:     user.id,
           type:        "impact_project_submitted",
-          title:       "💚 Dein Herzensprojekt wurde eingereicht!",
-          body:        `Dein Projekt „${form.name.trim()}" wurde erfolgreich eingereicht. Ein Admin prüft es und meldet sich bei dir.`,
+          title:       t("impact.notifSubmittedTitle"),
+          body:        t("impact.notifSubmittedBody", {name: form.name.trim()}),
           entity_type: "impact_project",
           action_url:  "/impact",
           is_read:     false,

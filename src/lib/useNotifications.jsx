@@ -35,42 +35,42 @@ const T = {
 // fn_notification_category() in der DB (muss synchron gehalten werden!)
 const TYPE_META = {
   // ── BUCHUNGEN (Termine — Talent-Buchungen + Erlebnis-Buchungen) ────────
-  talent_booking_paid:        { tab:"buchungen", icon:"📅", color:"#22C55E", label:"Neue Buchung" },
-  talent_booking_confirmed:   { tab:"buchungen", icon:"📅", color:"#22C55E", label:"Buchung bestätigt" },
-  talent_booking_cancelled:   { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"Buchung storniert" },
-  experience_booking_paid:      { tab:"buchungen", icon:"🌿", color:"#22C55E", label:"Neue Buchung" },
-  experience_booking_confirmed: { tab:"buchungen", icon:"🌿", color:"#22C55E", label:"Buchung bestätigt" },
-  experience_booking_cancelled: { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"Buchung storniert" },
-  booking:        { tab:"buchungen", icon:"📅", color:"#22C55E", label:"Buchung" },
-  booking_change: { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"Buchungsänderung" },
-  experience_soon:{ tab:"buchungen", icon:"📅", color:"#22C55E", label:"Erlebnis morgen" },
+  talent_booking_paid:        { tab:"buchungen", icon:"📅", color:"#22C55E", label:"notif.metaLabel.newBooking" },
+  talent_booking_confirmed:   { tab:"buchungen", icon:"📅", color:"#22C55E", label:"notif.metaLabel.talentBookingConfirmed" },
+  talent_booking_cancelled:   { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"notif.metaLabel.talentBookingCancelled" },
+  experience_booking_paid:      { tab:"buchungen", icon:"🌿", color:"#22C55E", label:"notif.metaLabel.newBooking" },
+  experience_booking_confirmed: { tab:"buchungen", icon:"🌿", color:"#22C55E", label:"notif.metaLabel.talentBookingConfirmed" },
+  experience_booking_cancelled: { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"notif.metaLabel.talentBookingCancelled" },
+  booking:        { tab:"buchungen", icon:"📅", color:"#22C55E", label:"notif.tab.buchungen" },
+  booking_change: { tab:"buchungen", icon:"⚠️", color:"#F59E0B", label:"notif.metaLabel.bookingChange" },
+  experience_soon:{ tab:"buchungen", icon:"📅", color:"#22C55E", label:"notif.metaLabel.experienceSoon" },
   // ── KAUF & VERKAUF (Werke + Support/Zahlungen) ─────────────────────────
-  order:          { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Bestellung" },
-  new_order:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Neue Bestellung" },
-  order_confirmed:{ tab:"kauf_verkauf", icon:"✓",  color:T.teal,   label:"Bestellung bestätigt" },
-  order_shipped:  { tab:"kauf_verkauf", icon:"📦", color:T.teal,   label:"Versendet" },
-  work_sold:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"Werk verkauft" },
-  support_received:{ tab:"kauf_verkauf", icon:"✦", color:T.teal,   label:"Unterstützung erhalten" },
-  support_succeeded:{ tab:"kauf_verkauf", icon:"✓", color:T.teal,   label:"Unterstützung gesendet" },
+  order:          { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"notif.metaLabel.newOrder" },
+  new_order:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"notif.metaLabel.newOrder" },
+  order_confirmed:{ tab:"kauf_verkauf", icon:"✓",  color:T.teal,   label:"notif.metaLabel.orderConfirmed" },
+  order_shipped:  { tab:"kauf_verkauf", icon:"📦", color:T.teal,   label:"notif.metaLabel.orderShipped" },
+  work_sold:      { tab:"kauf_verkauf", icon:"🎨", color:"#FF8A6B", label:"notif.metaLabel.workSold" },
+  support_received:{ tab:"kauf_verkauf", icon:"✦", color:T.teal,   label:"notif.metaLabel.supportReceived" },
+  support_succeeded:{ tab:"kauf_verkauf", icon:"✓", color:T.teal,   label:"notif.metaLabel.supportSucceeded" },
   // ── INFORMATIV (alles Sonstige: Interaktionen, Freigaben, System) ──────
-  connection_req: { tab:"informativ", icon:"🤝", color:T.teal,   label:"Verbindungsanfrage" },
-  message:        { tab:"informativ", icon:"💬", color:T.teal,   label:"Nachricht" },
-  resonanz:       { tab:"informativ", icon:"✦",  color:T.teal,   label:"Resonanz" },
-  like:           { tab:"informativ", icon:"❤️", color:"#EF4444", label:"Favorisiert" },
-  save:           { tab:"informativ", icon:"⭐", color:"#F59E0B", label:"Gespeichert" },
-  profile_visit:  { tab:"informativ", icon:"👀", color:"#8B5CF6", label:"Profilbesuch" },
-  participant:    { tab:"informativ", icon:"🙌", color:T.teal,   label:"Neue Teilnehmer" },
-  watcher:        { tab:"informativ", icon:"🌱", color:"#22C55E", label:"Neue Beobachter" },
-  interest:       { tab:"informativ", icon:"🎯", color:T.coral,  label:"Interesse" },
-  follow:         { tab:"informativ", icon:"👤", color:T.teal,   label:"Neuer Follower" },
-  new_follower:   { tab:"informativ", icon:"👤", color:T.teal,   label:"Neuer Follower" },
-  comment:        { tab:"informativ", icon:"💬", color:T.teal,   label:"Neuer Kommentar" },
-  comment_reply:  { tab:"informativ", icon:"💬", color:T.teal,   label:"Antwort auf Kommentar" },
-  milestone:      { tab:"informativ", icon:"📈", color:T.teal,   label:"Meilenstein" },
-  impact:         { tab:"informativ", icon:"🌿", color:"#22C55E", label:"Neue Wirkung" },
+  connection_req: { tab:"informativ", icon:"🤝", color:T.teal,   label:"notif.metaLabel.connectionReq" },
+  message:        { tab:"informativ", icon:"💬", color:T.teal,   label:"notif.meta.message" },
+  resonanz:       { tab:"informativ", icon:"✦",  color:T.teal,   label:"notif.metaLabel.resonanz" },
+  like:           { tab:"informativ", icon:"❤️", color:"#EF4444", label:"notif.metaLabel.like" },
+  save:           { tab:"informativ", icon:"⭐", color:"#F59E0B", label:"notif.metaLabel.save" },
+  profile_visit:  { tab:"informativ", icon:"👀", color:"#8B5CF6", label:"notif.metaLabel.profileVisit" },
+  participant:    { tab:"informativ", icon:"🙌", color:T.teal,   label:"notif.metaLabel.participant" },
+  watcher:        { tab:"informativ", icon:"🌱", color:"#22C55E", label:"notif.metaLabel.watcher" },
+  interest:       { tab:"informativ", icon:"🎯", color:T.coral,  label:"notif.metaLabel.interest" },
+  follow:         { tab:"informativ", icon:"👤", color:T.teal,   label:"notif.metaLabel.newFollower" },
+  new_follower:   { tab:"informativ", icon:"👤", color:T.teal,   label:"notif.metaLabel.newFollower" },
+  comment:        { tab:"informativ", icon:"💬", color:T.teal,   label:"notif.metaLabel.comment" },
+  comment_reply:  { tab:"informativ", icon:"💬", color:T.teal,   label:"notif.metaLabel.commentReply" },
+  milestone:      { tab:"informativ", icon:"📈", color:T.teal,   label:"notif.metaLabel.milestone" },
+  impact:         { tab:"informativ", icon:"🌿", color:"#22C55E", label:"notif.metaLabel.impact" },
   share:          { tab:"informativ", icon:"🎨", color:"#8B5CF6", label:"Werk geteilt" },
   connection_new: { tab:"informativ", icon:"🤝", color:T.teal,   label:"Neue Verbindung" },
-  achievement:    { tab:"informativ", icon:"🏆", color:"#F59E0B", label:"Meilenstein" },
+  achievement:    { tab:"informativ", icon:"🏆", color:"#F59E0B", label:"notif.metaLabel.milestone" },
   admin_broadcast:{ tab:"informativ", icon:"📣", color:"#8B5CF6", label:"HUI Team" },
   broadcast:      { tab:"informativ", icon:"📣", color:"#8B5CF6", label:"HUI Team" },
   referral_joined:{ tab:"informativ", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
@@ -82,7 +82,7 @@ const TYPE_META = {
   talent_approved:     { tab:"informativ", icon:"✅", color:"#22C55E", label:"Talent freigegeben" },
   talent_rejected:     { tab:"informativ", icon:"❌", color:"#EF4444", label:"Talent abgelehnt" },
   impact_project_rejected:  { tab:"informativ", icon:"📋", color:"#EF4444", label:"Herzensprojekt abgelehnt" },
-  content_approved:    { tab:"informativ", icon:"✅", color:"#22C55E", label:"Inhalt freigegeben" },
+  content_approved:    { tab:"informativ", icon:"✅", color:"#22C55E", label:"notif.metaLabel.contentApproved" },
   content_rejected:    { tab:"informativ", icon:"❌", color:"#EF4444", label:"Inhalt abgelehnt" },
   // FREIGABEN — Erlebnisse
   experience_approved: { tab:"informativ", icon:"✅", color:"#22C55E", label:"Erlebnis freigegeben" },
@@ -99,14 +99,14 @@ function getMeta(type) {
 }
 
 // ── Zeit-Formatter ────────────────────────────────────────────
-function fmtTime(iso) {
+function fmtTime(iso, t) {
   if (!iso) return "";
   const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60)    return "Gerade eben";
-  if (diff < 3600)  return `vor ${Math.floor(diff/60)} Min`;
-  if (diff < 86400) return `vor ${Math.floor(diff/3600)} Std`;
-  if (diff < 172800)return "gestern";
-  return `vor ${Math.floor(diff/86400)} Tagen`;
+  if (diff < 60)    return t ? t("common.justNow") : "gerade eben";
+  if (diff < 3600)  return t ? t("common.minsAgoShort", {n: Math.floor(diff/60)}) : `vor ${Math.floor(diff/60)} Min`;
+  if (diff < 86400) return t ? t("common.hoursAgoShort", {n: Math.floor(diff/3600)}) : `vor ${Math.floor(diff/3600)} Std`;
+  if (diff < 172800)return t ? t("common.yesterday") : "gestern";
+  return t ? t("common.daysAgoShort", {n: Math.floor(diff/86400)}) : `vor ${Math.floor(diff/86400)} Tagen`;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -309,22 +309,23 @@ function useWeekStats(userId) {
 
 // ── Rejection Modal ───────────────────────────────────────────
 function RejectionDetailModal({ n, onClose }) {
+  const { t } = useTranslation();
   const rawMeta = n.metadata || n.data || {};
   const meta = typeof rawMeta === "string" ? (() => { try { return JSON.parse(rawMeta); } catch { return {}; } })() : rawMeta;
   // Dynamisch je nach Typ: Werk / Erlebnis / Projekt
   const typeMap = {
-    work_rejected:            { label:"Werk",             emoji:"🎨", hint:"Du kannst dein Werk überarbeiten und erneut einreichen." },
-    content_rejected:         { label:"Inhalt",           emoji:"📝", hint:"Du kannst den Inhalt überarbeiten und erneut einreichen." },
-    talent_rejected:          { label:"Talent",           emoji:"⭐", hint:"Du kannst dein Talent-Angebot überarbeiten und erneut einreichen." },
-    experience_rejected:      { label:"Erlebnis",         emoji:"🌿", hint:"Du kannst dein Erlebnis überarbeiten und erneut einreichen." },
-    project_rejected:         { label:"Projekt",          emoji:"📌", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
-    impact_project_rejected:  { label:"Herzensprojekt",   emoji:"💚", hint:"Du kannst dein Projekt überarbeiten und erneut einreichen." },
+    work_rejected:            { label:"notif.meta.work",             emoji:"🎨", hint:"notif.meta.reviseResubmit" },
+    content_rejected:         { label:"notif.meta.content",           emoji:"📝", hint:"notif.meta.reviseResubmit" },
+    talent_rejected:          { label:"notif.meta.talent",           emoji:"⭐", hint:"notif.meta.reviseResubmit" },
+    experience_rejected:      { label:"notif.meta.experience",         emoji:"🌿", hint:"notif.meta.reviseResubmit" },
+    project_rejected:         { label:"notif.meta.project",          emoji:"📌", hint:"notif.meta.reviseResubmit" },
+    impact_project_rejected:  { label:"notif.meta.impactProject",   emoji:"💚", hint:"notif.meta.reviseResubmit" },
   };
-  const tm      = typeMap[n.type] || { label:"Eintrag", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
+  const tm      = typeMap[n.type] || { label:"notif.meta.entry", emoji:"📋", hint:"Du kannst den Eintrag überarbeiten und erneut einreichen." };
   // Admin sendet: entry_title (Erlebnis/Projekt), werk_title (Werk), content_title (alt)
-  const entryTitle = meta.entry_title || meta.project_name || meta.content_title || meta.werk_title || meta.title || n.title || `Dein ${tm.label}`;
+  const entryTitle = meta.entry_title || meta.project_name || meta.content_title || meta.werk_title || meta.title || n.title || `${t("notif.meta.yourEntry", {type: t(tm.label)})}`;
   // Admin sendet: reason (Erlebnis/Projekt), rejection_reason (Werk/alt)
-  const reason     = meta.rejection_reason || meta.reason || meta.admin_comment || meta.review_note || n.body || "(Kein Grund angegeben)";
+  const reason     = meta.rejection_reason || meta.reason || meta.admin_comment || meta.review_note || n.body || t("notif.meta.noReason");
   return (
     <div
       onClick={onClose}
@@ -351,7 +352,7 @@ function RejectionDetailModal({ n, onClose }) {
           fontSize:11, fontWeight: 600, letterSpacing:1,
           color:"rgba(26,26,24,0.35)", textAlign:"center",
           marginBottom:16, textTransform:"uppercase",
-        }}>NACHRICHT VOM ADMIN — {tm.label} ABGELEHNT</div>
+        }}>{t("notif.meta.adminMessage")} — {t(tm.label)} {t("notif.meta.rejected")}</div>
         <div style={{
           background:"rgba(239,68,68,0.06)",
           border:"1.5px solid rgba(239,68,68,0.18)",
@@ -363,7 +364,7 @@ function RejectionDetailModal({ n, onClose }) {
           fontSize:12, color:"rgba(26,26,24,0.45)",
           textAlign:"center", marginBottom:20, lineHeight:1.5,
         }}>
-          {tm.hint}
+          {t(tm.hint)}
         </div>
         <button
           onClick={onClose}
@@ -381,6 +382,7 @@ function RejectionDetailModal({ n, onClose }) {
 
 // ── Notification Item ─────────────────────────────────────────
 function NotifItem({ n, onRead, onDelete }) {
+  const { t } = useTranslation();
   const meta = getMeta(n.type);
   const [hov, setHov] = useState(false);
   const [showRejection, setShowRejection] = useState(false);
@@ -440,7 +442,7 @@ function NotifItem({ n, onRead, onDelete }) {
             color: n.is_read ? T.inkSoft : T.ink,
             lineHeight:1.4, marginBottom:2,
           }}>
-            {n.title || meta.label}
+            {n.title || t(meta.label)}
           </div>
           {n.body && (
             <div style={{
@@ -472,7 +474,7 @@ function NotifItem({ n, onRead, onDelete }) {
           )}
 
           <div style={{ fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:4 }}>
-            {fmtTime(n.created_at)}
+            {fmtTime(n.created_at, t)}
           </div>
         </div>
 
@@ -623,7 +625,7 @@ function ConnectionRequestItem({ req, onRespond }) {
             </div>
           )}
           <div style={{fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:6}}>
-            {fmtTime(req.created_at)}
+            {fmtTime(req.created_at, t)}
           </div>
         </div>
       </div>
@@ -813,6 +815,7 @@ function injectCSS() {
 // RESONANZZENTRUM PANEL
 // ══════════════════════════════════════════════════════════════
 export function ResonanzzentrumPanel({ onClose }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "ResonanzzentrumPanel");
   // DOM-Mutation NIEMALS im Render-Body — immer in useEffect
   useEffect(() => { injectCSS(); }, []);
@@ -873,9 +876,9 @@ export function ResonanzzentrumPanel({ onClose }) {
 
   // 3 Tabs: Alle / Relevant / Informativ (Wichtig entfernt per Design-Entscheidung 2026-07-17)
   const TABS = [
-    { key:"alle",     label:"Alle",       count: safeItems.length + safeRequests.length },
-    { key:"relevant", label:"Relevant",   count: counts?.relevant ?? 0 },
-    { key:"info",     label:"Informativ", count: counts?.info     ?? 0 },
+    { key:"alle",     label:t("notif.tab.all"),       count: safeItems.length + safeRequests.length },
+    { key:"relevant", label:t("notif.tab.relevant"),   count: counts?.relevant ?? 0 },
+    { key:"info",     label:t("notif.tab.informativ"), count: counts?.info     ?? 0 },
   ];
 
   const isEmpty = (filteredItems?.length ?? 0) === 0
@@ -975,13 +978,13 @@ export function ResonanzzentrumPanel({ onClose }) {
             overflowX:"auto", paddingBottom:12,
             scrollbarWidth:"none",
           }}>
-            {TABS.map(t => {
-              const active = tab === t.key;
+            {TABS.map(tab => {
+              const active = tab === tab.key;
               return (
                 <button
-                  key={t.key}
+                  key={tab.key}
                   className="rz-tab"
-                  onClick={() => setTab(t.key)}
+                  onClick={() => setTab(tab.key)}
                   style={{
                     display:"flex", alignItems:"center", gap:5,
                     padding:"7px 12px",
@@ -998,15 +1001,15 @@ export function ResonanzzentrumPanel({ onClose }) {
                     boxShadow: active ? `0 2px 12px rgba(22,215,197,0.30)` : "none",
                   }}
                 >
-                  {t.label}
-                  {t.count > 0 && (
+                  {tab.label}
+                  {tab.count > 0 && (
                     <span style={{
                       background: active ? "rgba(255,255,255,0.25)" : T.teal,
                       color: "#fff",
                       fontSize:10.5, fontWeight: 600,
                       padding:"1px 6px", borderRadius:12,
                     }}>
-                      {t.count}
+                      {tab.count}
                     </span>
                   )}
                 </button>
@@ -1146,6 +1149,7 @@ export function NotificationBadge({ count }) {
 
 // Legacy-Export für alte NotificationInbox-Aufrufe (Backwards Compat)
 export function NotificationInbox({ onClose }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "NotificationInbox");
   return <ResonanzzentrumPanel onClose={onClose} />;
 }
