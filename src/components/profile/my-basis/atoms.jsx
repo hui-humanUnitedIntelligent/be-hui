@@ -7,8 +7,8 @@ import { useTranslation } from "../../../hooks/useTranslation.js";
 export function Gap({ h=16 }) { return <div style={{height:h}}/>; }
 export function Divider() { return <div style={{height:1,background:T.border,margin:`0 ${T.px}px`}}/>; }
 
-  const { t } = useTranslation();
 export function SectionRow({ title = "", sub = "", onEdit = () => {} }) {
+  const { t } = useTranslation();
   return (
     <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:`0 ${T.px}px 10px` }}>
       <div>
