@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
-<title>Von Anfang an dabei – HUI Kommt</title>
-<meta name="description" content="Gehören Sie zu den Erstgestaltern von HUI. Registrieren Sie Ihr Interesse, erhalten Sie exklusive Vorab-Einladungen und prägen Sie das Netzwerk vom ersten Tag an."/>
+<title>Von Anfang an dabei – Werde Teil von HUI | HUI</title>
+<meta name="description" content="HUI entsteht gerade. Werde Teil der ersten Generation und begleite den Weg von Human United Intelligence von Anfang an."/>
 <meta name="theme-color" content="#0DC4B5"/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
-<meta property="og:title" content="Von Anfang an dabei – HUI Kommt"/>
-<meta property="og:description" content="Gehören Sie zu den Erstgestaltern von HUI. Registrieren Sie Ihr Interesse, erhalten Sie exklusive Vorab-Einladungen und prägen Sie das Netzwerk vom ersten Tag an."/>
+<meta property="og:title" content="Von Anfang an dabei – Werde Teil von HUI | HUI"/>
+<meta property="og:description" content="HUI entsteht gerade. Werde Teil der ersten Generation und begleite den Weg von Human United Intelligence von Anfang an."/>
 <meta property="og:type" content="website"/>
 <link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
 <style>
@@ -25,9 +25,92 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
-.hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+/* ═══ Von Anfang an dabei — Page Styles ═══ */
+.va-hero{padding:5rem 2rem 3rem;max-width:900px;margin:0 auto;text-align:center;position:relative;z-index:1;overflow:hidden}
+.va-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.3}
+.va-hero-bg svg{width:100%;height:100%}
+.va-hero-inner{position:relative;z-index:1}
+.va-hero-label{font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:#0DC4B5;font-weight:600;margin-bottom:1.5rem}
+.va-hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.4rem);font-weight:700;color:#1a2332;line-height:1.15;margin:0 0 1.2rem}
+.va-hero-sub{font-size:1.1rem;color:#5a6a7a;line-height:1.7;max-width:580px;margin:0 auto}
+.va-hero-line{margin:2rem auto 0;width:100px;height:2px;background:linear-gradient(90deg,transparent,#0DC4B5,transparent);border-radius:2px}
+
+/* Statement */
+.va-statement{padding:4rem 2rem;text-align:center;max-width:760px;margin:0 auto}
+.va-statement-big{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3.5vw,2.3rem);font-weight:600;color:#1a2332;line-height:1.4;margin:0 0 1.5rem}
+.va-statement-sub{font-size:1.05rem;color:#0DC4B5;font-weight:500}
+
+/* Two-column */
+.va-two-col{padding:3rem 2rem;max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1.4fr;gap:3rem;align-items:start}
+.va-two-col-left h2{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:#1a2332;margin:0}
+.va-two-col-right p{font-size:1rem;color:#5a6a7a;line-height:1.8;margin:0}
+.va-gen-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;max-width:900px;margin:2rem auto 0;padding:0 2rem}
+.va-gen-card{padding:1.8rem 1.5rem;border-radius:1rem;background:#FAF7F2;border:1px solid rgba(0,0,0,.06);transition:transform .3s ease,box-shadow .3s ease}
+.va-gen-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.va-gen-card h3{font-family:'Playfair Display',serif;font-size:1rem;color:#1a2332;margin:0 0 .6rem;font-weight:600}
+.va-gen-card p{font-size:.85rem;color:#5a6a7a;line-height:1.6;margin:0}
+
+/* Why cards */
+.va-why-wrap{padding:4rem 2rem;max-width:900px;margin:0 auto}
+.va-why-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 3rem}
+.va-why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.va-why-card{padding:2.2rem 1.8rem;border-radius:1.25rem;background:linear-gradient(135deg,#FAF7F2 0%,#F5F0E8 100%);border:1px solid rgba(13,196,181,.08);text-align:center;transition:transform .3s ease,box-shadow .3s ease}
+.va-why-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(13,196,181,.08)}
+.va-why-num{font-size:.68rem;font-weight:700;letter-spacing:.2em;color:#0DC4B5;margin-bottom:.8rem}
+.va-why-card h3{font-family:'Playfair Display',serif;font-size:1.25rem;color:#1a2332;margin:0 0 .8rem}
+.va-why-card p{font-size:.9rem;color:#5a6a7a;line-height:1.65;margin:0}
+.va-why-icon{width:40px;height:40px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(13,196,181,.06)}
+.va-why-icon svg{width:20px;height:20px;stroke:#0DC4B5;stroke-width:1.5;fill:none}
+
+/* Highlight card */
+.va-hl-wrap{padding:3rem 2rem;max-width:720px;margin:0 auto}
+.va-hl-card{background:linear-gradient(135deg,rgba(13,196,181,.05) 0%,rgba(244,115,85,.02) 100%);border:1px solid rgba(13,196,181,.15);border-radius:1.5rem;padding:3rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+.va-hl-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#0DC4B5,transparent)}
+.va-hl-card h2{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,3.5vw,1.9rem);font-weight:700;color:#1a2332;margin:0 0 1.2rem;line-height:1.35}
+.va-hl-card p{font-size:1rem;color:#5a6a7a;line-height:1.75;margin:0 0 .8rem;max-width:520px;margin-left:auto;margin-right:auto}
+.va-hl-card .va-hl-sub{font-size:.95rem;color:#0DC4B5;font-weight:500;margin-top:.8rem}
+
+/* Community journey */
+.va-journey-wrap{padding:4rem 2rem;max-width:900px;margin:0 auto}
+.va-journey-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 3rem}
+.va-journey{display:flex;flex-direction:column;align-items:center;gap:0;max-width:480px;margin:0 auto}
+.va-j-step{display:flex;align-items:center;gap:1rem;padding:.8rem 1.5rem;border-radius:2rem;border:1px solid rgba(0,0,0,.06);background:#FAF7F2;font-size:.95rem;font-weight:600;color:#1a2332;transition:all .25s ease}
+.va-j-step.current{border-color:rgba(13,196,181,.2);background:rgba(13,196,181,.06);color:#0DC4B5}
+.va-j-conn{width:2px;height:24px;background:linear-gradient(180deg,rgba(13,196,181,.15),rgba(13,196,181,.04))}
+.va-j-current-note{font-size:.78rem;color:#0DC4B5;text-align:center;margin-top:1.5rem;font-weight:500}
+
+/* Interest section */
+.va-interest{padding:4rem 2rem;max-width:680px;margin:0 auto;text-align:center;background:linear-gradient(180deg,transparent 0%,rgba(245,240,232,.5) 40%,rgba(245,240,232,.5) 60%,transparent 100%)}
+.va-interest h2{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;margin:0 0 1.2rem}
+.va-interest p{font-size:1rem;color:#5a6a7a;line-height:1.7;margin:0 0 2rem;max-width:500px;margin-left:auto;margin-right:auto}
+.va-interest-btn{display:inline-block;padding:.9rem 2.2rem;border-radius:2rem;background:rgba(13,196,181,.08);border:1px solid rgba(13,196,181,.2);color:#0DC4B5;font-weight:600;font-size:.95rem;cursor:not-allowed;opacity:.7}
+.va-interest-note{font-size:.82rem;color:#9aa8b8;margin-top:1.2rem}
+
+/* Who cards */
+.va-who-wrap{padding:4rem 2rem;max-width:900px;margin:0 auto}
+.va-who-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 3rem}
+.va-who-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;max-width:760px;margin:0 auto}
+.va-who-card{padding:2rem 1.8rem;border-radius:1.25rem;background:#FAF7F2;border:1px solid rgba(0,0,0,.06);text-align:center;transition:transform .3s ease,box-shadow .3s ease;position:relative}
+.va-who-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.va-who-card::after{content:'';position:absolute;bottom:0;left:50%;width:40%;height:2px;background:rgba(13,196,181,.1);transform:translateX(-50%);border-radius:2px}
+.va-who-card h3{font-family:'Playfair Display',serif;font-size:1.15rem;color:#1a2332;margin:0 0 .6rem}
+.va-who-card p{font-size:.88rem;color:#5a6a7a;line-height:1.6;margin:0}
+
+/* Closing */
+.va-closing{padding:4rem 2rem 2rem;max-width:640px;margin:0 auto;text-align:center}
+.va-closing h2{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:600;color:#1a2332;line-height:1.35;margin:0 0 1.5rem}
+.va-closing-text{font-size:1.05rem;color:#5a6a7a;line-height:1.8;margin:0 0 2.5rem}
+.va-closing-btn{display:inline-block;padding:.9rem 2.4rem;border-radius:2rem;background:rgba(13,196,181,.08);border:1px solid rgba(13,196,181,.2);color:#0DC4B5;font-weight:600;font-size:.95rem;cursor:not-allowed;opacity:.7}
+.va-footer-trans{height:2.5rem;background:linear-gradient(180deg,transparent,rgba(26,35,50,.02))}
+
+/* Responsive */
+@media(max-width:768px){
+  .va-two-col{grid-template-columns:1fr;gap:1.5rem}
+  .va-gen-cards{grid-template-columns:1fr;gap:1rem}
+  .va-why-grid{grid-template-columns:1fr;gap:1rem}
+  .va-who-grid{grid-template-columns:1fr;gap:1rem}
+  .va-journey{max-width:300px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/von-anfang-an-dabei"/>
@@ -223,65 +306,149 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.von-anfang-an-dabei.hero">Von Anfang an dabei</h1>
-    <p class="reveal d2" data-i18n="page.von-anfang-an-dabei.sub">Werden Sie Teil der HUI-Community noch bevor die Plattform offiziell startet.</p>
+
+  <!-- 1. HERO -->
+  <section class="va-hero">
+    <div class="va-hero-bg" aria-hidden="true">
+      <svg viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+        <g stroke="rgba(13,196,181,.06)" stroke-width="1" fill="none">
+          <circle cx="80" cy="80" r="30"/><circle cx="200" cy="120" r="24"/><circle cx="320" cy="60" r="20"/>
+          <circle cx="150" cy="220" r="18"/><circle cx="280" cy="200" r="22"/>
+          <path d="M80 80 Q140 100, 200 120"/><path d="M200 120 Q260 90, 320 60"/>
+          <path d="M200 120 Q175 170, 150 220"/><path d="M150 220 Q215 210, 280 200"/>
+          <path d="M80 80 Q115 150, 150 220"/><path d="M320 60 Q300 130, 280 200"/>
+        </g>
+      </svg>
+    </div>
+    <div class="va-hero-inner">
+      <p class="va-hero-label" data-i18n="page.von-anfang-an-dabei.hero-label">Die erste Generation</p>
+      <h1 class="reveal" data-i18n="page.von-anfang-an-dabei.hero">Von Anfang an dabei</h1>
+      <p class="reveal d2" data-i18n="page.von-anfang-an-dabei.sub-new">HUI entsteht gerade. Und manche Menschen werden von Anfang an Teil dieser Geschichte sein.</p>
+      <div class="va-hero-line" aria-hidden="true"></div>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
+  <!-- 2. STATEMENT -->
+  <section class="va-statement reveal">
+    <p class="va-statement-big" data-i18n="page.von-anfang-an-dabei.statement-l1">Jede Bewegung beginnt mit Menschen,</p>
+    <p class="va-statement-big" data-i18n="page.von-anfang-an-dabei.statement-l2">die an etwas glauben, bevor es sichtbar ist.</p>
+    <p class="va-statement-sub" data-i18n="page.von-anfang-an-dabei.statement-sub">HUI möchte diesen Menschen Raum geben.</p>
+  </section>
+
+  <!-- 3. FIRST GENERATION -->
+  <div class="va-two-col reveal">
+    <div class="va-two-col-left">
       <h2 data-i18n="page.von-anfang-an-dabei.s1-title">Die erste Generation von HUI</h2>
-      <p data-i18n="page.von-anfang-an-dabei.s1-text">Pioniere verändern die Welt. Wer sich schon vor dem offiziellen Launch registriert, legt den Grundstein für eine lebendige, wertorientierte Gemeinschaft. Als Mitglied der ersten Stunde erhalten Sie priorisierten Zugang zur Plattform, die Möglichkeit an frühen Feedbackrunden teilzunehmen und direkte Einblicke in den Aufbau des Netzwerks.</p>
-    </section>
-
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.von-anfang-an-dabei.s2-title">Jetzt Interesse bekunden</h2>
-      <p data-i18n="page.von-anfang-an-dabei.s2-text">Indem Sie sich jetzt eintragen, sichern Sie sich Ihren Platz in der Startphase von HUI. Sie verpassen keinen wichtigen Meilenstein und gehören zu den Ersten, die ihr Profil aktivieren können. Lassen Sie uns gemeinsam Human United Intelligence ins Leben rufen.</p>
-    </section>  </div>
-
-
-  <div class="hui-timeline">
-    <div class="hui-timeline-item">
-      <span class="hui-timeline-dot"></span>
-      <p class="hui-timeline-num">01</p>
-      <h3 class="hui-timeline-title" data-i18n="timeline.1.title">Die Idee</h3>
-      <p class="hui-timeline-text" data-i18n="timeline.1.text">HUI beginnt mit einer Frage: Was wäre, wenn Menschen, Talente und Ideen sich leichter finden würden?</p>
     </div>
-    <div class="hui-timeline-item">
-      <span class="hui-timeline-dot"></span>
-      <p class="hui-timeline-num">02</p>
-      <h3 class="hui-timeline-title" data-i18n="timeline.2.title">Die Verbindung</h3>
-      <p class="hui-timeline-text" data-i18n="timeline.2.text">4VisionGlobal und die Liga der Kreativen verbinden ihre Vision. Aus „Einer für Alle, alle Fair(ein)t" entsteht HUI.</p>
+    <div class="va-two-col-right">
+      <p data-i18n="page.von-anfang-an-dabei.gen-text">Menschen, die HUI bereits in seiner Entstehung begleiten, gehören zu den ersten Stimmen innerhalb des entstehenden Netzwerks. Sie erleben, wie aus einer Idee Schritt für Schritt eine Plattform wird – und können ihre Perspektiven früh einbringen.</p>
     </div>
-    <div class="hui-timeline-item">
-      <span class="hui-timeline-dot"></span>
-      <p class="hui-timeline-num">03</p>
-      <h3 class="hui-timeline-title" data-i18n="timeline.3.title">Die Plattform</h3>
-      <p class="hui-timeline-text" data-i18n="timeline.3.text">Die technische Grundlage entsteht. Räume für Menschen, Ideen und Möglichkeiten werden gebaut.</p>
+  </div>
+  <div class="va-gen-cards reveal">
+    <div class="va-gen-card">
+      <h3 data-i18n="page.von-anfang-an-dabei.gen1-title">Früher Zugang</h3>
+      <p data-i18n="page.von-anfang-an-dabei.gen1-text">Als Teil der ersten Generation kannst du HUI bereits in der Entstehung begleiten.</p>
     </div>
-    <div class="hui-timeline-item">
-      <span class="hui-timeline-dot"></span>
-      <p class="hui-timeline-num">04</p>
-      <h3 class="hui-timeline-title" data-i18n="timeline.4.title">Die ersten Menschen</h3>
-      <p class="hui-timeline-text" data-i18n="timeline.4.text">Du siehst HUI gerade beim Entstehen. Noch gibt es hier keine Geschichten. Vielleicht wird eine davon deine.</p>
+    <div class="va-gen-card">
+      <h3 data-i18n="page.von-anfang-an-dabei.gen2-title">Frühes Feedback</h3>
+      <p data-i18n="page.von-anfang-an-dabei.gen2-text">Deine Perspektive kann helfen, die Plattform weiterzuentwickeln.</p>
     </div>
-    <div class="hui-timeline-item">
-      <span class="hui-timeline-dot"></span>
-      <p class="hui-timeline-num">05</p>
-      <h3 class="hui-timeline-title" data-i18n="timeline.5.title">HUI startet</h3>
-      <p class="hui-timeline-text" data-i18n="timeline.5.text">Der Tag, an dem Human United Intelligence live geht und neue Verbindungen entstehen.</p>
+    <div class="va-gen-card">
+      <h3 data-i18n="page.von-anfang-an-dabei.gen3-title">Erste Verbindungen</h3>
+      <p data-i18n="page.von-anfang-an-dabei.gen3-text">Du triffst Menschen, Ideen und Möglichkeiten bereits am Anfang.</p>
     </div>
   </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.von-anfang-an-dabei.coming">Die Registrierungsphase für Pioniere ist jetzt geöffnet.</p>
-  </div>
-
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.von-anfang-an-dabei.cta">Interesse jetzt bekunden</a>
-    <p data-i18n="page.von-anfang-an-dabei.cta-sub">Kostenlos und unverbindlich eintragen – wir informieren Sie sofort zum Start.</p>
+  <!-- 4. WHY -->
+  <section class="va-why-wrap reveal">
+    <h2 class="va-why-title" data-i18n="page.von-anfang-an-dabei.why-title">Warum von Anfang an?</h2>
+    <div class="va-why-grid">
+      <div class="va-why-card">
+        <div class="va-why-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3L4 7v6c0 4.5 3 7 8 8 5-1 8-3.5 8-8V7l-8-4z"/></svg></div>
+        <p class="va-why-num">01</p>
+        <h3 data-i18n="page.von-anfang-an-dabei.why1-title">Mitgestalten</h3>
+        <p data-i18n="page.von-anfang-an-dabei.why1-text">Nicht nur beobachten, sondern Gedanken, Erfahrungen und Ideen einbringen.</p>
+      </div>
+      <div class="va-why-card">
+        <div class="va-why-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="10" r="2.5"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5M14 20c0-2 2-3.5 4-3.5s4 1.5 4 3.5"/></svg></div>
+        <p class="va-why-num">02</p>
+        <h3 data-i18n="page.von-anfang-an-dabei.why2-title">Verbinden</h3>
+        <p data-i18n="page.von-anfang-an-dabei.why2-text">Menschen kennenlernen, die ähnliche Interessen, Fähigkeiten oder Visionen teilen.</p>
+      </div>
+      <div class="va-why-card">
+        <div class="va-why-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg></div>
+        <p class="va-why-num">03</p>
+        <h3 data-i18n="page.von-anfang-an-dabei.why3-title">Entdecken</h3>
+        <p data-i18n="page.von-anfang-an-dabei.why3-text">Früh erleben, welche Möglichkeiten aus dem HUI-Netzwerk entstehen.</p>
+      </div>
+    </div>
   </section>
+
+  <!-- 5. HIGHLIGHT CARD -->
+  <section class="va-hl-wrap reveal">
+    <div class="va-hl-card">
+      <h2 data-i18n="page.von-anfang-an-dabei.hl-title">Du musst nicht warten, bis alles fertig ist.</h2>
+      <p data-i18n="page.von-anfang-an-dabei.hl-text">HUI soll nicht erst dann sichtbar werden, wenn die Plattform vollständig ist. Die Entstehung gehört zur Geschichte.</p>
+      <p class="va-hl-sub" data-i18n="page.von-anfang-an-dabei.hl-sub">Wer früh dabei ist, erlebt diesen Weg mit.</p>
+    </div>
+  </section>
+
+  <!-- 6. COMMUNITY JOURNEY -->
+  <section class="va-journey-wrap reveal">
+    <h2 class="va-journey-title" data-i18n="page.von-anfang-an-dabei.journey-title">So entsteht die Community</h2>
+    <div class="va-journey">
+      <span class="va-j-step" data-i18n="page.von-anfang-an-dabei.j1">Interesse</span>
+      <div class="va-j-conn" aria-hidden="true"></div>
+      <span class="va-j-step" data-i18n="page.von-anfang-an-dabei.j2">Erste Verbindung</span>
+      <div class="va-j-conn" aria-hidden="true"></div>
+      <span class="va-j-step current" data-i18n="page.von-anfang-an-dabei.j3">HUI entsteht</span>
+      <div class="va-j-conn" aria-hidden="true"></div>
+      <span class="va-j-step" data-i18n="page.von-anfang-an-dabei.j4">Plattform startet</span>
+      <div class="va-j-conn" aria-hidden="true"></div>
+      <span class="va-j-step" data-i18n="page.von-anfang-an-dabei.j5">Gemeinsam wächst das Netzwerk</span>
+    </div>
+    <p class="va-j-current-note" data-i18n="page.von-anfang-an-dabei.j-current">HUI entsteht gerade.</p>
+  </section>
+
+  <!-- 7. INTEREST -->
+  <section class="va-interest reveal">
+    <h2 data-i18n="page.von-anfang-an-dabei.interest-title">Interesse an HUI?</h2>
+    <p data-i18n="page.von-anfang-an-dabei.interest-text">HUI befindet sich noch im Aufbau. Sobald die Plattform für die ersten Menschen geöffnet wird, informieren wir darüber.</p>
+    <span class="va-interest-btn" data-i18n="page.von-anfang-an-dabei.interest-btn">Über den Start informieren lassen · bald</span>
+    <p class="va-interest-note" data-i18n="page.von-anfang-an-dabei.interest-note">Kostenlos und unverbindlich.</p>
+  </section>
+
+  <!-- 8. WHO -->
+  <section class="va-who-wrap reveal">
+    <h2 class="va-who-title" data-i18n="page.von-anfang-an-dabei.who-title">HUI ist für Menschen, die etwas beitragen möchten.</h2>
+    <div class="va-who-grid">
+      <div class="va-who-card">
+        <h3 data-i18n="sidebar.nav.ideas">Ideen</h3>
+        <p data-i18n="page.von-anfang-an-dabei.who1-text">Menschen mit einer Idee, die wachsen möchte.</p>
+      </div>
+      <div class="va-who-card">
+        <h3 data-i18n="sidebar.nav.talents">Talente</h3>
+        <p data-i18n="page.von-anfang-an-dabei.who2-text">Menschen mit Fähigkeiten, die sie sinnvoll einsetzen möchten.</p>
+      </div>
+      <div class="va-who-card">
+        <h3 data-i18n="sidebar.nav.projects">Projekte</h3>
+        <p data-i18n="page.von-anfang-an-dabei.who3-text">Menschen, die etwas aufbauen oder bewegen möchten.</p>
+      </div>
+      <div class="va-who-card">
+        <h3 data-i18n="page.von-anfang-an-dabei.who4-title">Neugier</h3>
+        <p data-i18n="page.von-anfang-an-dabei.who4-text">Menschen, die neue Verbindungen und Möglichkeiten entdecken möchten.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. CLOSING -->
+  <section class="va-closing reveal">
+    <h2 data-i18n="page.von-anfang-an-dabei.closing-title">Vielleicht beginnt deine Geschichte mit HUI.</h2>
+    <p class="va-closing-text" data-i18n="page.von-anfang-an-dabei.closing-text">Noch ist nicht alles fertig. Aber genau deshalb ist jetzt der Moment, den Weg zu beobachten.</p>
+    <span class="va-closing-btn" data-i18n="page.von-anfang-an-dabei.closing-btn">HUI entdecken · bald</span>
+  </section>
+
+  <div class="va-footer-trans" aria-hidden="true"></div>
 </main>
 
 <footer class="footer">
