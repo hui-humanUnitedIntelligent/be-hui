@@ -235,6 +235,7 @@ function ParticipantBubbles({ count }) {
 
 // ── Publish Actions ───────────────────────────────────────────────────
 function PublishActions({ onPublish, onEdit, onDraft, publishing }) {
+  const { t } = useTranslation();
   return (
     <div>
       {/* Haupt-CTA */}
