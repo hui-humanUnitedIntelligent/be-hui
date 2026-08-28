@@ -24,6 +24,7 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const TEAL = "#16D7C5";
 
@@ -36,6 +37,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
 
   useWizardBodyLock();
   useModalRegistration(true, onClose, "TalentAnfrageFlow");
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { isSaved, toggleSave } = useSavedPostsContext();
 
   if (!talent) return null;
@@ -96,6 +98,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
         padding: "28px 24px calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px) + 40px)",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "tafSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both",
+        transform: sheetTransform, transition: sheetTransition,
         boxSizing: "border-box",
       }}>
         <style>{`
@@ -105,8 +108,8 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
           }
         `}</style>
 
-        {/* Handle */}
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)",
+        {/* Handle — swipe-to-dismiss */}
+        <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)",
           margin: "0 auto 24px" }} />
 
         {phase === "success" ? (

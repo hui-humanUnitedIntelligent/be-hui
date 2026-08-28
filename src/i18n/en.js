@@ -4659,4 +4659,11 @@ export default {
   'sps.requestPayout': 'Request Payout',
   'sps.defaultTitle': 'Transaction',
   'common.sessionExpiredReauth': 'Your session has expired. Please log in again.',
+  'cal.full': 'Fully booked',
+  'stripe.title': 'Payment',
+  'stripe.subtitle': 'Secure payment via Stripe',
+  'stripe.preparing': 'Preparing payment…',
+  'stripe.internSuffix': '(internal)',
+  'stripe.encryptedSecured': 'Encrypted · Secured by Stripe',
+  'stripe.unavailable': 'Payment currently unavailable. Please update the app to the latest version or reinstall it.',
 };

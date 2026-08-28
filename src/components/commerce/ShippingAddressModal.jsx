@@ -31,6 +31,7 @@ import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 import { searchCountries } from "../../lib/countries.js";
 
 const T = {
@@ -212,6 +213,7 @@ export default function ShippingAddressModal({ onConfirm = () => {}, onCancel = 
   useWizardBodyLock();
   // KBD-INSET-FIX (2026-08-20) -- siehe Kopf-Kommentar.
   useKeyboardInset();
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onCancel);
 
   const [form, setForm] = useState({
     firstName: "", lastName: "", street: "",
@@ -325,13 +327,14 @@ export default function ShippingAddressModal({ onConfirm = () => {}, onCancel = 
           // stattdessen vom internen Body (overflowY:"auto") abgefangen.
           maxHeight: "calc(94vh - var(--hui-keyboard-inset, 0px))",
           display: "flex", flexDirection: "column",
-          transition: "max-height .15s ease-out",
+          transition: `max-height .15s ease-out, ${sheetTransition}`,
           boxShadow: "0 -4px 32px rgba(26,26,24,0.20)",
+          transform: sheetTransform,
         }}
       >
-        {/* Handle */}
+        {/* Handle — swipe-to-dismiss */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

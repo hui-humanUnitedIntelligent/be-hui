@@ -4658,4 +4658,11 @@ export default {
   'sps.requestPayout': 'Ödeme talep et',
   'sps.defaultTitle': 'İşlem',
   'common.sessionExpiredReauth': 'Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.',
+  'cal.full': 'Dolu',
+  'stripe.title': 'Ödeme',
+  'stripe.subtitle': 'Stripe ile güvenli ödeme',
+  'stripe.preparing': 'Ödeme hazırlanıyor…',
+  'stripe.internSuffix': '(dahili)',
+  'stripe.encryptedSecured': 'Şifreli · Stripe tarafından güvence altında',
+  'stripe.unavailable': 'Ödeme şu anda kullanılamıyor. Lütfen uygulamayı güncelleyin veya yeniden yükleyin.',
 };

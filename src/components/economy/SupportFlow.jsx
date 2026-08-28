@@ -24,6 +24,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
 import { IMPACT_RATE } from "../commerce/commerceUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const T = {
   bg:"#FAFAF8", ink:"#1A1A2E", soft:"rgba(26,26,46,0.55)",
@@ -139,6 +140,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
     setPhase("success");
   }
 
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   // ── Render ──────────────────────────────────────────────────────
   return createPortal(
     <div
@@ -156,9 +158,10 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "sf-rise 0.3s cubic-bezier(.32,1.2,.55,1) both",
         maxHeight: "92dvh", overflowY: "auto",
+        transform: sheetTransform, transition: sheetTransition,
       }}>
-        {/* Handle */}
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
+        {/* Handle — swipe-to-dismiss */}
+        <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
 
         {/* ── FORM ── */}
         {phase === "form" && (

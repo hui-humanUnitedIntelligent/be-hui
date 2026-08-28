@@ -17,6 +17,7 @@ import { createPortal } from "react-dom";
 import { useTalentBookings } from "../../hooks/useTalentBookings.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens (identisch zu den anderen Studio-Modals) ─────────
 const T = {
@@ -110,6 +111,7 @@ function BookingRow({ b, forSeller, onCancelClick }) {
 
 export default function MeineBuchungenModal({ profile, onClose }) {
   useModalRegistration(true, () => onClose?.(), "MeineBuchungenModal");
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { asCustomer: myBookings, asSeller: bookingRequests, cancelBooking, loading } = useTalentBookings(profile?.id);
 
   const [confirmBooking, setConfirmBooking] = useState(null); // { id, title }
@@ -147,10 +149,11 @@ export default function MeineBuchungenModal({ profile, onClose }) {
         display: "flex", flexDirection: "column",
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
         fontFamily: T.ff,
+        transform: sheetTransform, transition: sheetTransition,
       }}>
-        {/* Handle */}
+        {/* Handle — swipe-to-dismiss */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

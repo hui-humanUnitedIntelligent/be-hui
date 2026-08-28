@@ -25,6 +25,7 @@ import BelegViewerModal from "../notifications/BelegViewerModal.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { formatDateDE, formatEUR } from "../../lib/formatters.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const T = {
   bg:       "#F7F5F0",
@@ -1258,6 +1259,7 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
   const { t } = useTranslation();
   const TABS = getTabs(t);
   useModalRegistration(true, onClose, "FinanzuebersichtModal");
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [tab, setTab] = useState("kaeufe");
   const userId = profile?.id;
 
@@ -1278,11 +1280,12 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           background: T.bg, borderRadius: "24px 24px 0 0",
           maxHeight: "92vh", display: "flex", flexDirection: "column",
           boxShadow: "0 -4px 32px rgba(26,26,24,0.20)",
+          transform: sheetTransform, transition: sheetTransition,
         }}
       >
-        {/* Handle */}
+        {/* Handle — swipe-to-dismiss */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", flexShrink: 0 }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

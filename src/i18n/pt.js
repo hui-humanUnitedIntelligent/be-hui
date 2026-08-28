@@ -4658,4 +4658,11 @@ export default {
   'sps.requestPayout': 'Solicitar pagamento',
   'sps.defaultTitle': 'Transação',
   'common.sessionExpiredReauth': 'A tua sessão expirou. Inicia sessão novamente.',
+  'cal.full': 'Esgotado',
+  'stripe.title': 'Pagamento',
+  'stripe.subtitle': 'Pagamento seguro através da Stripe',
+  'stripe.preparing': 'A preparar o pagamento…',
+  'stripe.internSuffix': '(interno)',
+  'stripe.encryptedSecured': 'Encriptado · Protegido pela Stripe',
+  'stripe.unavailable': 'Pagamento indisponível de momento. Atualiza a app para a versão mais recente ou reinstala-a.',
 };

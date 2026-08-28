@@ -163,7 +163,7 @@ export default function AvailabilityCalendar({
               key={iso}
               type="button"
               disabled={!clickable}
-              title={state === "full" ? "Ausgebucht" : undefined}
+              title={state === "full" ? t("cal.full") : undefined}
               onClick={() => {
                 if (!clickable) return;
                 if (mode === "edit") onToggleDate(iso);
@@ -186,7 +186,7 @@ export default function AvailabilityCalendar({
       {(mode === "book" || mode === "free") && (
         <div style={{ display: "flex", gap: 12, marginTop: 10, flexWrap: "wrap" }}>
           <Legend swatch="rgba(14,196,184,0.10)" border="rgba(14,196,184,0.35)" label={t("cal.available")} />
-          <Legend swatch="rgba(232,58,58,0.06)" border="rgba(232,58,58,0.15)" label="Ausgebucht" />
+          <Legend swatch="rgba(232,58,58,0.06)" border="rgba(232,58,58,0.15)" label={t("cal.full")} />
         </div>
       )}
     </div>

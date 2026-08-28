@@ -4651,4 +4651,11 @@ export default {
   'sps.requestPayout': 'Auszahlung beantragen',
   'sps.defaultTitle': 'Transaktion',
   'common.sessionExpiredReauth': 'Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.',
+  'cal.full': 'Ausgebucht',
+  'stripe.title': 'Zahlung',
+  'stripe.subtitle': 'Sichere Zahlung via Stripe',
+  'stripe.preparing': 'Zahlung wird vorbereitet…',
+  'stripe.internSuffix': '(intern)',
+  'stripe.encryptedSecured': 'Verschlüsselt · Gesichert durch Stripe',
+  'stripe.unavailable': 'Zahlung momentan nicht verfügbar. Bitte App auf die neueste Version aktualisieren oder neu installieren.',
 };

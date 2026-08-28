@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens (konsistent mit HUI Design) ─────────────────────
 const T = {
@@ -47,6 +48,7 @@ const STATUS_OPTIONS = [
 // ── Komponente ────────────────────────────────────────────────────
 export default function MilestoneUpdateSheet({ milestone, projectId, authorId, onClose, onSubmitted = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "MilestoneUpdateSheet");
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [content,        setContent]        = useState("");
   const [statusUpdate,   setStatusUpdate]   = useState("in_progress");
   const [mediaFiles,     setMediaFiles]     = useState([]);
@@ -157,12 +159,13 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
         display: "flex", flexDirection: "column",
         boxShadow: "0 -8px 40px rgba(0,0,0,0.22)",
         animation: "msuSlideUp 0.28s cubic-bezier(0.22,1,0.36,1) both",
+        transform: sheetTransform, transition: sheetTransition,
       }}>
         <style>{`@keyframes msuSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}`}</style>
 
-        {/* Handle */}
+        {/* Handle — swipe-to-dismiss */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(20,20,34,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 36, height: 4, borderRadius: 99, background: "rgba(20,20,34,0.12)" }} />
         </div>
 
         {/* Header */}

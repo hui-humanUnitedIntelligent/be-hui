@@ -39,6 +39,7 @@ import { generateReceipt } from "../../lib/generateReceipt.js";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { postToEdgeFunction } from "../../lib/authFetch.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
@@ -63,6 +64,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   const { user } = useAuth();
   useWizardBodyLock();
   useModalRegistration(true, onClose, "TalentBookingFlow");
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { isSaved, toggleSave } = useSavedPostsContext();
   const actions = useHuiActions();
   const [showChatConfirm, setShowChatConfirm] = useState(false);
@@ -387,7 +389,8 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         flexDirection: "column",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "tbfSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both",
-        overflow: "hidden", /* wichtig: kein overflow am Container selbst */
+        overflow: "hidden",
+        transform: sheetTransform, transition: sheetTransition,
       }}>
         <style>{`
           @keyframes tbfSlideUp {
@@ -396,8 +399,9 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
           }
         `}</style>
 
-        {/* Handle — immer sichtbar oben */}
-        <div style={{
+        {/* Handle — swipe-to-dismiss */}
+        <div {...dragHandlers} style={{
+          touchAction: "none", cursor: "grab",
           width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)",
           margin: "12px auto 0", flexShrink: 0,
         }} />

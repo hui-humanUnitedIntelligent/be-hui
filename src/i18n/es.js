@@ -4658,4 +4658,11 @@ export default {
   'sps.requestPayout': 'Solicitar pago',
   'sps.defaultTitle': 'Transacción',
   'common.sessionExpiredReauth': 'Tu sesión ha caducado. Por favor, inicia sesión de nuevo.',
+  'cal.full': 'Completo',
+  'stripe.title': 'Pago',
+  'stripe.subtitle': 'Pago seguro a través de Stripe',
+  'stripe.preparing': 'Preparando el pago…',
+  'stripe.internSuffix': '(interno)',
+  'stripe.encryptedSecured': 'Cifrado · Protegido por Stripe',
+  'stripe.unavailable': 'Pago no disponible en este momento. Actualiza la app a la última versión o reinstálala.',
 };

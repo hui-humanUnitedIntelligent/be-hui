@@ -27,6 +27,16 @@ function resolveStripeKey(publishableKey) {
 // muss daher bei confirmPayment explizit übergeben werden (Stripe-Pflicht).
 const BILLING_COUNTRY = "AT";
 
+// STRIPE-LOCALE-FIX (2026-08-28): Stripe Elements hatte locale:"de" hart
+// verdrahtet — das Payment-Widget war dadurch IMMER Deutsch. Stripe
+// unterstuetzt kein Albanisch (sq) → dafuer "auto" als Fallback.
+const STRIPE_LOCALE_MAP = {
+  de: "de", en: "en", fr: "fr", es: "es", it: "it", tr: "tr", pt: "pt",
+};
+function mapToStripeLocale(lang) {
+  return STRIPE_LOCALE_MAP[lang] || "auto";
+}
+
 // ─────────────────────────────────────────────────────────────────
 // Inner Form — innerhalb von <Elements> gemountet
 // ─────────────────────────────────────────────────────────────────
@@ -154,7 +164,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
             display: "flex", justifyContent: "space-between",
             marginBottom: 8, alignItems: "center",
           }}>
-            <span style={{ fontSize: 13, color: C.muted }}>Werke</span>
+            <span style={{ fontSize: 13, color: C.muted }}>{t("profile.works")}</span>
             <span style={{ fontSize: 13, color: C.inkMid, }}>
               {subtotal.toFixed(2).replace(".", ",")} €
             </span>
@@ -164,7 +174,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
               display: "flex", justifyContent: "space-between",
               marginBottom: 8, alignItems: "center",
             }}>
-              <span style={{ fontSize: 13, color: C.muted }}>Versand</span>
+              <span style={{ fontSize: 13, color: C.muted }}>{t("wkf.shipping")}</span>
               <span style={{ fontSize: 13, color: C.inkMid, }}>
                 {versand.toFixed(2).replace(".", ",")} €
               </span>
@@ -177,7 +187,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
             }}>
               <span style={{ fontSize: 12, color: C.sage }}>🌱 Impact Pool</span>
               <span style={{ fontSize: 12, color: C.sage }}>
-                {impact.toFixed(2).replace(".", ",")} € (intern)
+                {impact.toFixed(2).replace(".", ",")} € {t("stripe.internSuffix")}
               </span>
             </div>
           )}
@@ -185,7 +195,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
             display: "flex", justifyContent: "space-between",
             paddingTop: 8, borderTop: "1px solid rgba(20,20,34,0.06)",
           }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: C.ink }}>Gesamt</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: C.ink }}>{t("tbf.detail.total")}</span>
             <span style={{
               fontSize: 16, fontWeight: 600, color: C.ink,
               letterSpacing: -0.3,
@@ -238,7 +248,7 @@ function StripeForm({ total = 0, subtotal = 0, versand = 0, impact = 0, orderId 
           textAlign: "center", marginTop: 10, fontSize: 11,
           color: C.faint, lineHeight: 1.5,
         }}>
-          Verschlüsselt · Gesichert durch Stripe
+          {t("stripe.encryptedSecured")}
         </div>
       </div>
     </form>
@@ -261,7 +271,7 @@ export default function StripePaymentStep({
   onBack,
   hideHeader = false,  // C2.1: Header wird vom UnterstutzenFlow gesteuert
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const stripeKey = resolveStripeKey(publishableKey);
   const stripePromise = useMemo(
     () => (stripeKey ? loadStripe(stripeKey) : null),
@@ -276,8 +286,7 @@ export default function StripePaymentStep({
         alignItems: "center", justifyContent: "center", padding: "40px 24px",
       }}>
         <div style={{ fontSize: 14, color: C.coral, textAlign: "center", lineHeight: 1.6 }}>
-          Zahlung momentan nicht verfügbar. Bitte App auf die neueste Version aktualisieren
-          oder neu installieren.
+          {t("stripe.unavailable")}
         </div>
         {import.meta.env.DEV && (
           <div style={{ fontSize: 11, color: C.coral, opacity: 0.7, textAlign: "center", marginTop: 8 }}>
@@ -304,16 +313,17 @@ export default function StripePaymentStep({
           animation: "spin 0.8s linear infinite",
           marginBottom: 16,
         }} />
-        <div style={{ fontSize: 14, color: C.muted }}>Zahlung wird vorbereitet…</div>
+        <div style={{ fontSize: 14, color: C.muted }}>{t("stripe.preparing")}</div>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
 
+  const stripeLocale = mapToStripeLocale(lang);
   const options = {
     clientSecret,
     appearance: STRIPE_APPEARANCE,
-    locale: "de",
+    locale: stripeLocale,
   };
 
   return (
@@ -328,16 +338,16 @@ export default function StripePaymentStep({
             color: C.muted, fontSize: 13, padding: 0, marginBottom: 16,
             WebkitTapHighlightColor: "transparent",
           }}>
-            ← Zurück
+            {t("common.back")}
           </button>
           <div style={{
             fontSize: 24, fontWeight: 600, color: C.ink,
             letterSpacing: -0.5, lineHeight: 1.2, marginBottom: 6,
           }}>
-            Zahlung
+            {t("stripe.title")}
           </div>
           <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.6 }}>
-            Sichere Zahlung via Stripe
+            {t("stripe.subtitle")}
           </div>
         </div>
       )}

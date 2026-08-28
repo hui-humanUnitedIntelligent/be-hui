@@ -16,6 +16,7 @@ import MilestoneUpdateSheet from "./MilestoneUpdateSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 // ── Design Tokens (identisch zu HuiStudio) ────────────────────────
 const T = {
@@ -73,6 +74,7 @@ function projectStatus(proj, t) {
 // ── Komponente ────────────────────────────────────────────────────
 export default function MeineProjekteModal({ profile, onClose, switchTab = null }) {
   useModalRegistration(true, () => onClose?.(), "MeineProjekteModal");
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const { t } = useTranslation();
   const [tab,          setTab]          = useState("unterstuetzt"); // "unterstuetzt" | "stimmen"
   const [supports,     setSupports]     = useState([]);  // project_support records
@@ -216,10 +218,11 @@ export default function MeineProjekteModal({ profile, onClose, switchTab = null 
         maxHeight: "92vh", overflow: "hidden",
         display: "flex", flexDirection: "column",
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
+        transform: sheetTransform, transition: sheetTransition,
       }}>
-        {/* Handle */}
+        {/* Handle — swipe-to-dismiss */}
         <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+          <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

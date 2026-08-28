@@ -4612,4 +4612,11 @@ export default {
   'sps.requestPayout': 'Kërko pagesë',
   'sps.defaultTitle': 'Transaksion',
   'common.sessionExpiredReauth': 'Sesioni juaj ka skaduar. Ju lutemi, kyçuni përsëri.',
+  'cal.full': 'I plotë',
+  'stripe.title': 'Pagesa',
+  'stripe.subtitle': 'Pagesë e sigurt me Stripe',
+  'stripe.preparing': 'Duke përgatitur pagesën…',
+  'stripe.internSuffix': '(intern)',
+  'stripe.encryptedSecured': 'I kriptuar · I siguruar nga Stripe',
+  'stripe.unavailable': 'Pagesa aktualisht nuk është e disponueshme. Përditësoni aplikacionin ose riinstalojeni.',
 };
