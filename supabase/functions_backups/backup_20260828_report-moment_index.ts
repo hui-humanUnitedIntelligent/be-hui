@@ -16,10 +16,6 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "report-moment", 10, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-
   try {
     const { moment_id, reason = "inappropriate" } = await req.json();
     if (!moment_id) return new Response(
@@ -67,3 +63,7 @@ serve(async (req) => {
     );
   }
 });
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "report-moment", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

@@ -156,10 +156,6 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "delete-account", 3, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-
   try {
     const authHeader = req.headers.get('Authorization')
     const jwt = authHeader?.replace('Bearer ', '') ?? ''
@@ -230,3 +226,7 @@ serve(async (req) => {
     })
   }
 })
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "delete-account", 3, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

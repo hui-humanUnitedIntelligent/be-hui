@@ -18,10 +18,6 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "support-payment", 5, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
   if (!stripeKey) {
     return new Response(JSON.stringify({ error: 'Stripe nicht konfiguriert', code: 'STRIPE_NOT_CONFIGURED' }), {
@@ -135,3 +131,7 @@ serve(async (req) => {
     })
   }
 })
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "support-payment", 5, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

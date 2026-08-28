@@ -240,10 +240,6 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "moderate-content", 10, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-
   try {
     const body = await req.json()
     const { content_id, content_type = 'moment', user_id, media_url, media_type, text, device_info } = body
@@ -356,3 +352,7 @@ serve(async (req) => {
     })
   }
 })
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "moderate-content", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

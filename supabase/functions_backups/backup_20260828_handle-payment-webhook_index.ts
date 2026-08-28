@@ -42,10 +42,6 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "payment-webhook", 100, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -633,3 +629,7 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
     })
   }
 })
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "payment-webhook", 100, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);

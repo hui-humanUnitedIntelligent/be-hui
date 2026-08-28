@@ -18,10 +18,6 @@ serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  // ── Rate Limiting (SCALE-006) ──
-  const _rl = await checkRateLimit(req, "release-escrow", 10, 60);
-  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
-
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -155,3 +151,7 @@ serve(async (req) => {
     })
   }
 })
+
+  // ── Rate Limiting (SCALE-006) ──
+  const _rl = await checkRateLimit(req, "release-escrow", 10, 60);
+  if (!_rl.allowed) return rateLimitResponse(_rl.resetAt);
