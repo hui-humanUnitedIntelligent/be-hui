@@ -16,6 +16,7 @@ import { HUISicherheitIcon } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useCallback } from "react";
 import { cleanupOrbEnvironment } from "../lib/cleanup/cleanupOrbEnvironment.js";
 import { useAuth } from "../lib/AuthContext";
+import { useTranslation } from '../hooks/useTranslation.js';
 
 // ─── Design Tokens ────────────────────────────────────────────
 const T = {
@@ -342,6 +343,7 @@ function CtaBtn({ label, onClick, disabled, loading, icon, variant = "teal" }) {
 // KARTE 1 — Werde Teil der HUI Gemeinschaft
 // ═══════════════════════════════════════════════════════════════
 function Card1({ onNext, dir }) {
+  const { t } = useTranslation();
   return (
     <div className={dir === 1 ? "hmf5-slide-r" : "hmf5-slide-l"} style={{
       position:"absolute", inset:0, overflow:"hidden",
@@ -387,26 +389,25 @@ function Card1({ onNext, dir }) {
             color:T.text, margin:"0 0 14px",
             letterSpacing:-1.2, lineHeight:1.13,
           }}>
-            Werde Teil der<br/>HUI Gemeinschaft
+            {t('mflow.card1.headline1')}<br/>{t('mflow.card1.headline2')}
           </h1>
           <p style={{
             fontSize:15, color:T.soft, lineHeight:1.7,
             margin:"0 0 10px", maxWidth:320,
           }}>
-            Du kannst HUI bereits entdecken, erleben und unterstützen.
+            {t('mflow.card1.intro')}
           </p>
           <p style={{
             fontSize:14.5, color:T.soft, lineHeight:1.65,
             margin:"0 0 32px", maxWidth:320,
           }}>
-            Als Mitglied öffnest du deinen eigenen Raum: Teile Momente, veröffentliche Werke,
-            erschaffe Erlebnisse und werde sichtbar für andere Menschen.
+            {t('mflow.card1.body')}
           </p>
         </div>
 
         <div style={{ animation:"hmf5-rise 0.5s 0.22s ease both" }}>
           <CtaBtn
-            label="Weiter"
+            label={t('mflow.next')}
             icon="→"
             onClick={onNext}
           />
@@ -622,6 +623,7 @@ function BrightParticles() {
 }
 
 function Card2({ onNext, onBack, dir }) {
+  const { t } = useTranslation();
   const [ready, setReady] = useState(false);
   const [btnHover, setBtnHover] = useState(false);
   useEffect(() => { const t = setTimeout(() => setReady(true), 100); return () => clearTimeout(t); }, []);
@@ -630,32 +632,32 @@ function Card2({ onNext, onBack, dir }) {
   // Screenshot: 2 cards upper area (left & right of orb), 2 cards lower area (left & right)
   const cards = [
     {
-      icon:"✨", label:"Momente teilen",
-      sub:"Teile, was dich\nbewegt und inspiriert.",
+      icon:"✨", label:t('mflow.card2.c1Label'),
+      sub:t('mflow.card2.c1Sub'),
       iconBg:"linear-gradient(135deg, rgba(22,215,197,0.25) 0%, rgba(22,215,197,0.12) 100%)",
       floatAnim:"hmf5-float-a", delay:380,
       // upper-left — like screenshot
       style:{ top:"12%", left:"4%" },
     },
     {
-      icon:"🎨", label:"Werke zeigen",
-      sub:"Präsentiere deine Kunst,\ndein Handwerk und\ndeine Ideen.",
+      icon:"🎨", label:t('mflow.card2.c2Label'),
+      sub:t('mflow.card2.c2Sub'),
       iconBg:"linear-gradient(135deg, rgba(255,150,120,0.30) 0%, rgba(255,180,150,0.15) 100%)",
       floatAnim:"hmf5-float-b", delay:540,
       // upper-right
       style:{ top:"10%", right:"4%" },
     },
     {
-      icon:"🤝", label:"Menschen verbinden",
-      sub:"Baue echte Verbindungen\nund wachse gemeinsam.",
+      icon:"🤝", label:t('mflow.card2.c3Label'),
+      sub:t('mflow.card2.c3Sub'),
       iconBg:"linear-gradient(135deg, rgba(245,166,35,0.30) 0%, rgba(245,200,80,0.15) 100%)",
       floatAnim:"hmf5-float-d", delay:600,
       // lower-left
       style:{ top:"52%", left:"4%" },
     },
     {
-      icon:"🌱", label:"Wirkung entfalten",
-      sub:"Nutze deine Talente,\num Positives in die\nWelt zu bringen.",
+      icon:"🌱", label:t('mflow.card2.c4Label'),
+      sub:t('mflow.card2.c4Sub'),
       iconBg:"linear-gradient(135deg, rgba(100,200,180,0.30) 0%, rgba(22,215,197,0.15) 100%)",
       floatAnim:"hmf5-float-c", delay:860,
       // lower-right
@@ -785,7 +787,7 @@ function Card2({ onNext, onBack, dir }) {
             transform: btnHover ? "translateY(-1px)" : "translateY(0)",
           }}
         >
-          <span>Das klingt nach mir</span>
+          <span>{t('mflow.card2.cta')}</span>
           <span style={{ fontSize:18 }}>→</span>
         </button>
 
@@ -793,7 +795,7 @@ function Card2({ onNext, onBack, dir }) {
           background:"none", border:"none", fontFamily:"inherit",
           fontSize:13, color:"rgba(30,50,70,0.35)",
           padding:"10px 16px", cursor:"pointer", marginTop:4,
-        }}>← Zurück</button>
+        }}>{t('mflow.back')}</button>
       </div>
     </div>
   );
@@ -804,12 +806,13 @@ function Card2({ onNext, onBack, dir }) {
 // KARTE 3 — HUI ist mehr als eine Plattform
 // ═══════════════════════════════════════════════════════════════
 function Card3({ onNext, onBack, dir }) {
+  const { t } = useTranslation();
   const values = [
-    { icon:"🤍", label:"Respekt" },
-    { icon:"🌿", label:"Echtheit" },
-    { icon:"✦",  label:"Kreativität" },
-    { icon:"🤝", label:"Verbindung" },
-    { icon:"🌍", label:"Verantwortung" },
+    { icon:"🤍", label:t('mflow.card3.valRespect') },
+    { icon:"🌿", label:t('mflow.card3.valAuthentic') },
+    { icon:"✦",  label:t('mflow.card3.valCreativity') },
+    { icon:"🤝", label:t('mflow.card3.valConnection') },
+    { icon:"🌍", label:t('mflow.card3.valResponsibility') },
   ];
   return (
     <div className={dir === 1 ? "hmf5-slide-r" : "hmf5-slide-l"} style={{
@@ -850,20 +853,18 @@ function Card3({ onNext, onBack, dir }) {
             fontWeight: 600, fontSize:"clamp(26px,7vw,34px)",
             color:T.text, margin:"0 0 14px",
             letterSpacing:-1, lineHeight:1.15,
-          }}>HUI ist mehr als<br/>eine Plattform</h1>
+          }}>{t('mflow.card3.headline1')}<br/>{t('mflow.card3.headline2')}</h1>
           <p style={{
             fontSize:15.5, color:T.soft, lineHeight:1.7,
             margin:"0 0 8px",
           }}>
-            Wir glauben an echte Begegnungen, kreative Freiheit
-            und respektvolle Gemeinschaft.
+            {t('mflow.card3.body1')}
           </p>
           <p style={{
             fontSize:14.5, color:"rgba(255,255,255,0.52)", lineHeight:1.65,
             margin:"0 0 30px",
           }}>
-            Hier geht es nicht um Lautstärke,<br/>
-            sondern um Resonanz zwischen Menschen.
+            {t('mflow.card3.body2')}
           </p>
 
           {/* Value Pills */}
@@ -877,7 +878,7 @@ function Card3({ onNext, onBack, dir }) {
 
           {/* CTAs */}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            <CtaBtn label="Ich verstehe" icon="→" onClick={onNext} />
+            <CtaBtn label={t('mflow.card3.cta')} icon="→" onClick={onNext} />
             <button className="hmf5-tap" onClick={onBack} style={{
               background:"none", border:"none", fontFamily:"inherit",
               fontSize:14, color:T.muted, padding:"12px",
@@ -894,6 +895,7 @@ function Card3({ onNext, onBack, dir }) {
 // KARTE 4 — Finale Bestätigung
 // ═══════════════════════════════════════════════════════════════
 function Card4({ onFinish, onBack, dir, loading, error }) {
+  const { t } = useTranslation();
   const [agb,      setAgb]      = useState(false);
   const [privacy,  setPrivacy]  = useState(false);
   const [rules,    setRules]    = useState(false);
@@ -945,9 +947,9 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
               fontWeight: 600, fontSize:"clamp(24px,7vw,32px)",
               color:T.text, margin:"0 0 10px",
               letterSpacing:-0.9, lineHeight:1.15,
-            }}>Willkommen in der<br/>Gemeinschaft</h1>
+            }}>{t('mflow.card4.headline1')}<br/>{t('mflow.card4.headline2')}</h1>
             <p style={{ fontSize:14.5, color:T.soft, lineHeight:1.65, margin:0, maxWidth:280 }}>
-              Mit deiner Mitgliedschaft gestaltest du<br/>HUI aktiv mit.
+              {t('mflow.card4.body')}
             </p>
           </div>
 
@@ -956,22 +958,22 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
             <CheckRow
               checked={agb}
               onChange={() => setAgb(v=>!v)}
-              label="Ich akzeptiere die"
-              link="AGB"
+              label={t('mflow.card4.acceptThe')}
+              link={t('mflow.card4.agb')}
               delay={80}
             />
             <CheckRow
               checked={privacy}
               onChange={() => setPrivacy(v=>!v)}
-              label="Ich akzeptiere die"
-              link="Datenschutzrichtlinien"
+              label={t('mflow.card4.acceptThe')}
+              link={t('mflow.card4.privacy')}
               delay={160}
             />
             <CheckRow
               checked={rules}
               onChange={() => setRules(v=>!v)}
-              label="Ich respektiere die"
-              link="Gemeinschaftsregeln"
+              label={t('mflow.card4.respectThe')}
+              link={t('mflow.card4.communityRules')}
               delay={240}
             />
           </div>
@@ -991,7 +993,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
           {/* CTA */}
           <div style={{ animation:"hmf5-rise 0.5s 0.32s ease both" }}>
             <CtaBtn
-              label="Mitglied werden"
+              label={t('mflow.card4.joinCta')}
               icon={<HUIMitgliedIcon size={20}/>}
               variant="coral"
               onClick={() => onFinish()}
@@ -1008,7 +1010,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
           }}>
             <HUISicherheitIcon size={13} style={{flexShrink:0}} />
             <span style={{ fontSize:12.5, color:T.muted }}>
-              Sicher. Transparent. Respektvoll.
+              {t('mflow.card4.trust')}
             </span>
           </div>
           {sp(8)}
@@ -1029,6 +1031,7 @@ function Card4({ onFinish, onBack, dir, loading, error }) {
 // SUCCESS SCREEN — Transformation bestätigt
 // ═══════════════════════════════════════════════════════════════
 function SuccessScreen({ onDone }) {
+  const { t } = useTranslation();
   return (
     <div style={{
       position:"absolute", inset:0,
@@ -1052,20 +1055,19 @@ function SuccessScreen({ onDone }) {
         textAlign:"center", margin:"0 0 14px",
         animation:"hmf5-rise 0.55s 0.15s ease both",
       }}>
-        Du bist jetzt<br/>Teil von HUI ✦
+        {t('mflow.success.headline1')}<br/>{t('mflow.success.headline2')}
       </h1>
       <p style={{
         fontSize:15.5, color:T.soft, lineHeight:1.7,
         textAlign:"center", margin:"0 0 40px",
         animation:"hmf5-rise 0.55s 0.22s ease both",
       }}>
-        Dein kreativer Raum ist freigeschaltet.<br/>
-        Teile, erschaffe und verbinde.
+        {t('mflow.success.body')}
       </p>
 
       <div style={{ width:"100%", animation:"hmf5-rise 0.5s 0.30s ease both" }}>
         <CtaBtn
-          label="Los geht's ✦"
+          label={t('mflow.success.cta')}
           variant="teal"
           onClick={onDone}
         />
@@ -1098,6 +1100,7 @@ function CloseBtn({ onClose }) {
 // MAIN EXPORT
 // ═══════════════════════════════════════════════════════════════
 export default function HuiMembershipFlow({ onComplete, onClose }) {
+  const { t } = useTranslation();
   const { activateMembership, refreshProfile } = useAuth();
 
   const [card,    setCard]    = useState(0);   // 0–3 = Karten, 4 = Success
@@ -1126,7 +1129,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
       const result = await activateMembership?.();
       if (result?.error) {
         console.warn("[MEMBERSHIP] Fehler:", result.error);
-        setError("Speichern fehlgeschlagen. Bitte nochmal versuchen.");
+        setError(t('mflow.err.save'));
         setLoading(false);
         return;
       }
@@ -1136,7 +1139,7 @@ export default function HuiMembershipFlow({ onComplete, onClose }) {
       setDir(1);
       setCard(4); // Success screen
     } catch (e) {
-      setError("Verbindungsfehler. Bitte nochmal versuchen.");
+      setError(t('mflow.err.connection'));
       console.warn("[MF5] finish error:", e?.message);
     } finally {
       setLoading(false);
