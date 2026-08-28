@@ -33,13 +33,7 @@ const T = {
   r16: 16, r12: 12, r99: 99, r8: 8,
 };
 
-const DISPUTE_REASONS = [
-  { code: "damaged",         label: t('rec.reasonDamaged') },
-  { code: "not_as_described", label: t('rec.reasonNotAsDescribed') },
-  { code: "not_delivered",    label: t('rec.reasonNotDelivered') },
-  { code: "wrong_item",       label: t('rec.reasonWrongItem') },
-  { code: "poor_quality",     label: t('rec.reasonPoorQuality') },
-];
+// DISPUTE_REASONS moved inside component (needs t())
 
 export default function EmpfehlenModal({
   orderId = null,
@@ -53,6 +47,15 @@ export default function EmpfehlenModal({
   useWizardBodyLock();
 
   const { t } = useTranslation();
+
+  const DISPUTE_REASONS = [
+    { code: "damaged",         label: t('rec.reasonDamaged') },
+    { code: "not_as_described", label: t('rec.reasonNotAsDescribed') },
+    { code: "not_delivered",    label: t('rec.reasonNotDelivered') },
+    { code: "wrong_item",       label: t('rec.reasonWrongItem') },
+    { code: "poor_quality",     label: t('rec.reasonPoorQuality') },
+  ];
+
   const [step, setStep] = useState("choose"); // "choose" | "recommend" | "dispute" | "submitting" | "done_recommended" | "done_disputed"
   const [reviewText, setReviewText] = useState("");
   const [selectedReason, setSelectedReason] = useState(null);

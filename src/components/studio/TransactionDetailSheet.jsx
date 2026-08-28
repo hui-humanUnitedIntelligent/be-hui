@@ -82,6 +82,7 @@ function MetaRow({ label, value }) {
 }
 
 function ActionButton({ children, onClick, variant = "outline", disabled, loading }) {
+  const { t } = useTranslation();
   const styles = {
     solid:   { background: `linear-gradient(135deg, ${T.teal}, #0DBBAF)`, color: "#fff", border: "none" },
     outline: { background: T.bgCard, color: T.teal, border: `1.5px solid ${T.teal}` },

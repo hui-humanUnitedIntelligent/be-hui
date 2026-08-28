@@ -508,6 +508,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
 export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false, blurred = false }) {
+  const { t } = useTranslation();
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
   const [heartPos,  setHeartPos] = useState(null);

@@ -24,11 +24,7 @@ const T = {
   sheet:"0 -4px 40px rgba(0,0,0,0.12)",
 };
 
-const OPTIONS = [
-  { key:"public",      icon:"🌍", label:t("vis.publicLabel"),   sub:t("vis.publicSub") },
-  { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:"Verbindungen", sub:"Nur für deine Verbindungen" },
-  { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:"Privat",       sub:"Nur du" },
-];
+// OPTIONS moved inside component (needs t())
 
 export function VisibilitySection({
   profile    = null,
@@ -37,6 +33,12 @@ export function VisibilitySection({
   onSave     = null,   // (visibility: string) => void
 }) {
   const { t } = useTranslation();
+
+  const OPTIONS = [
+    { key:"public",      icon:"🌍", label:t("vis.publicLabel"),   sub:t("vis.publicSub") },
+    { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:t("vis.connectionsLabel"), sub:t("vis.connectionsSub") },
+    { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:t("vis.privateLabel"),       sub:t("vis.privateSub") },
+  ];
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowSheet(false));
   const [showSheet, setShowSheet] = useState(false);
   useModalRegistration(showSheet, () => setShowSheet(false), "VisibilitySection-Sheet");

@@ -18,7 +18,7 @@ const MUTED = "rgba(26,53,48,0.32)";
 const LINE = "rgba(26,53,48,0.06)";
 const SURFACE = "#FFFFFF";
 
-function relTime(iso) {
+function relTime(iso, t) {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -68,7 +68,7 @@ export default function FeedImpactTicker() {
           amount: Number(r.amount_eur || 0),
           proj: r.project_id ? nameById[r.project_id] : null,
           ts: r.distributed_at,
-          ago: relTime(r.distributed_at),
+          ago: relTime(r.distributed_at, t),
         })));
         setLoading(false);
       } catch { if (!dead) setLoading(false); }
