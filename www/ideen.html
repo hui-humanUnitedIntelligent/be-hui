@@ -25,9 +25,100 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 55% 35% at 65% 12%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 20% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
 .hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+
+/* ── HERO: Text + großes Bild darunter (~70%) ── */
+.ideen-hero{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:110px 24px 48px}
+.ideen-hero .hui-page-back{margin-bottom:20px}
+.ideen-hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px;max-width:580px}
+.ideen-hero p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:520px;margin:0 0 36px}
+.ideen-hero-img{width:70%;max-width:420px;position:relative}
+.ideen-hero-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.12)}
+.ideen-hero-img::after{content:'';position:absolute;inset:-8px -8px 8px -8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CONTENT ── */
+.ideen-content{max-width:840px;margin:0 auto;padding:0 24px 48px}
+
+/* ── Nährboden: Text links, Bild rechts ── */
+.ideen-naehrboden{display:flex;align-items:center;gap:48px;margin-bottom:56px}
+.ideen-naehrboden-text{flex:1;min-width:0}
+.ideen-naehrboden-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:14px}
+.ideen-naehrboden-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+.ideen-naehrboden-img{flex:0 0 42%;max-width:340px;position:relative}
+.ideen-naehrboden-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.ideen-naehrboden-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.05),rgba(244,115,85,.03));z-index:-1}
+
+/* ── Initiative: Bild links, Text rechts ── */
+.ideen-initiative{display:flex;align-items:center;gap:48px;margin-bottom:56px}
+.ideen-initiative-img{flex:0 0 42%;max-width:340px;position:relative;order:1}
+.ideen-initiative-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 6px 28px -10px rgba(20,20,34,.1)}
+.ideen-initiative-img::before{content:'';position:absolute;inset:-6px;bottom:-6px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(244,115,85,.04),rgba(13,196,181,.04));z-index:-1}
+.ideen-initiative-text{flex:1;min-width:0;order:2}
+.ideen-initiative-text h2{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:14px}
+.ideen-initiative-text p{font-size:15.5px;color:var(--ink-body);line-height:1.75;margin:0}
+
+/* ── Ideen-Weg: organische Linie mit 5 Stationen ── */
+.ideen-weg{max-width:580px;margin:0 auto 56px;position:relative}
+.ideen-weg::before{content:'';position:absolute;left:15px;top:16px;bottom:16px;width:1px;background:linear-gradient(180deg,rgba(13,196,181,.15),rgba(13,196,181,.05),rgba(13,196,181,.15))}
+.ideen-weg-station{display:flex;align-items:center;gap:20px;padding:16px 0;position:relative}
+.ideen-weg-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgba(250,247,242,.95);color:var(--teal-deep);font-size:12px;font-weight:600;font-family:'Inter',sans-serif;letter-spacing:.5px;border:1px solid rgba(13,196,181,.15);position:relative;z-index:1}
+.ideen-weg-label{font-size:15px;font-weight:600;color:var(--ink);letter-spacing:.02em}
+
+/* ── Werte-Sequenz: 5 Punkte mit Trennlinien ── */
+.ideen-list-title{font-size:24px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:32px;text-align:center}
+.ideen-moeglichkeiten{margin-bottom:56px;max-width:580px;margin-left:auto;margin-right:auto}
+.ideen-moeglichkeit{display:flex;align-items:flex-start;gap:20px;padding:20px 0;position:relative;transition:transform .3s var(--ease-out)}
+.ideen-moeglichkeit:hover{transform:translateX(4px)}
+.ideen-moeglichkeit:not(:last-child)::after{content:'';position:absolute;left:15px;bottom:0;right:0;width:auto;height:1px;background:linear-gradient(90deg,rgba(13,196,181,.15),transparent)}
+.ideen-moeglichkeit-num{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;border-radius:50%;background:rgba(13,196,181,.06);color:var(--teal-deep);font-size:13px;font-weight:600;font-family:'Inter',sans-serif}
+.ideen-moeglichkeit-body h3{font-size:16px;font-weight:600;color:var(--ink);margin-bottom:5px;line-height:1.4}
+.ideen-moeglichkeit-body p{font-size:14.5px;color:var(--ink-body);line-height:1.6;margin:0}
+
+/* ── Interact: upgraded selection box ── */
+.ideen-interact .hui-interact{padding:40px;border-radius:var(--rl);background:linear-gradient(180deg,rgba(13,196,181,.02),rgba(244,115,85,.008));border:1px solid rgba(13,196,181,.06)}
+.ideen-interact .hui-interact-title{font-size:22px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:8px}
+.ideen-interact .hui-interact-sub{font-size:15px;line-height:1.5;color:var(--muted);margin-bottom:24px}
+.ideen-interact .hui-interact-options{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.ideen-interact .hui-interact-chip{padding:14px 22px;border-radius:12px;border:1.5px solid rgba(0,0,0,.06);background:rgba(255,255,255,.6);font-size:14.5px;font-weight:500;color:var(--ink);cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1);user-select:none;-webkit-tap-highlight-color:transparent;box-shadow:0 1px 3px rgba(0,0,0,.02)}
+.ideen-interact .hui-interact-chip:hover{border-color:rgba(13,196,181,.4);transform:translateY(-2px);box-shadow:0 6px 20px -6px rgba(13,196,181,.15);background:rgba(255,255,255,.9)}
+.ideen-interact .hui-interact-chip.selected{background:rgba(13,196,181,.08);color:var(--teal-deep);border-color:var(--teal);box-shadow:0 4px 16px -4px rgba(13,196,181,.2)}
+.ideen-interact .hui-interact-response{min-height:60px;display:flex;align-items:center;opacity:0;transform:translateY(8px);transition:opacity .5s ease,transform .5s ease}
+.ideen-interact .hui-interact-response.show{opacity:1;transform:translateY(0)}
+.ideen-interact .hui-interact-response-text{font-size:16px;line-height:1.6;color:var(--ink);font-style:italic;padding-left:16px;border-left:2px solid var(--teal)}
+
+/* ── Emotionaler Abschluss: breites Bild ── */
+.ideen-abschluss-img{max-width:680px;margin:48px auto 32px;position:relative}
+.ideen-abschluss-img img{width:100%;height:auto;border-radius:var(--rl);display:block;box-shadow:0 8px 32px -12px rgba(20,20,34,.1)}
+.ideen-abschluss-img::after{content:'';position:absolute;inset:-8px;bottom:-8px;border-radius:calc(var(--rl) + 4px);background:linear-gradient(135deg,rgba(13,196,181,.04),rgba(244,115,85,.03));z-index:-1;border-radius:var(--rl)}
+
+/* ── CTA Bereich ── */
+.ideen-cta{text-align:center;padding:32px 24px 48px;max-width:640px;margin:0 auto}
+.ideen-cta::before{content:'';display:block;width:40px;height:1px;margin:0 auto 28px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.ideen-cta-text{font-size:14.5px;color:var(--muted);line-height:1.7;margin:0 0 28px;max-width:460px;margin-left:auto;margin-right:auto}
+.ideen-cta .btn-primary{display:inline-flex;align-items:center;padding:16px 40px;font-size:15px;font-weight:600;letter-spacing:.5px;box-shadow:0 4px 20px rgba(13,196,181,.12)}
+.ideen-cta-sub{font-size:13.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .ideen-hero{padding:100px 20px 40px}
+  .ideen-hero h1{font-size:26px}
+  .ideen-hero p{font-size:15px}
+  .ideen-hero-img{width:85%;max-width:280px}
+  .ideen-content{padding:0 20px 36px}
+  .ideen-naehrboden{flex-direction:column;gap:24px;margin-bottom:40px}
+  .ideen-naehrboden-img{max-width:280px;margin:0 auto}
+  .ideen-naehrboden-text h2{font-size:20px}
+  .ideen-initiative{flex-direction:column;gap:24px;margin-bottom:40px}
+  .ideen-initiative-img{max-width:280px;margin:0 auto;order:1}
+  .ideen-initiative-text h2{font-size:20px}
+  .ideen-list-title{font-size:20px}
+  .ideen-moeglichkeit{gap:16px;padding:16px 0}
+  .ideen-interact .hui-interact{padding:28px 20px}
+  .ideen-interact .hui-interact-chip{padding:12px 18px;font-size:13.5px}
+  .ideen-abschluss-img{margin:32px auto 24px}
+  .ideen-cta{padding:24px 20px 40px}
+}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/ideen"/>
@@ -201,61 +292,139 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
+
+  <!-- ═══ HERO: Text + großes Bild ═══ -->
+  <section class="ideen-hero">
     <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
     <h1 class="reveal" data-i18n="page.ideen.hero">Eine Idee kann etwas bewegen.</h1>
     <p class="reveal d2" data-i18n="page.ideen.sub">Große Veränderungen beginnen oft mit einem einfachen Gedanken. HUI bietet den Raum, um Ideen zu teilen, Feedback zu erhalten und Mitstreiter für die Umsetzung zu finden.</p>
+    <div class="ideen-hero-img reveal d2">
+      <img src="/assets/ideen-hero.webp" alt="Eine Person skizziert eine Idee, während andere bereits Interesse zeigen" width="420" height="420" loading="lazy" decoding="async"/>
+    </div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.ideen.s1-title">Nährboden für kreative Impulse</h2>
-      <p data-i18n="page.ideen.s1-text">Viele wertvolle Ideen bleiben ungenutzt, weil ihnen der passende Nährboden fehlt. Auf HUI kannst du erste Skizzen und visionäre Gedanken veröffentlichen, ohne sofort fertige Pläne vorlegen zu müssen. Hier treffen Ideen auf neugierige Menschen, die konstruktiv mitdenken.</p>
+  <div class="ideen-content">
+
+    <!-- ═══ NÄHRBODEN: Text links, Bild rechts ═══ -->
+    <section class="ideen-naehrboden reveal">
+      <div class="ideen-naehrboden-text">
+        <h2 data-i18n="page.ideen.s1-title">Nährboden für kreative Impulse</h2>
+        <p data-i18n="page.ideen.s1-text">Viele wertvolle Ideen bleiben ungenutzt, weil ihnen der passende Nährboden fehlt. Auf HUI kannst du erste Skizzen und visionäre Gedanken veröffentlichen, ohne sofort fertige Pläne vorlegen zu müssen. Hier treffen Ideen auf neugierige Menschen, die konstruktiv mitdenken.</p>
+      </div>
+      <div class="ideen-naehrboden-img">
+        <img src="/assets/ideen-naehrboden.webp" alt="Menschen betrachten gemeinsam eine Skizze und denken mit" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
     </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.ideen.s2-title">Vom Einzelfall zur gemeinsamen Initiative</h2>
-      <p data-i18n="page.ideen.s2-text">Durch das Zusammenbringen unterschiedlicher Perspektiven gewinnen Gedanken an Schärfe und Substanz. Aus einer einzelnen Idee entstehen oft gemeinschaftliche Ansätze, die weit über den ursprünglichen Impuls hinausreichen. HUI erleichtert den Schritt vom ersten Gedanken zur praktischen Umsetzung.</p>
+    <!-- ═══ INITIATIVE: Bild links, Text rechts ═══ -->
+    <section class="ideen-initiative reveal">
+      <div class="ideen-initiative-img">
+        <img src="/assets/ideen-initiative.webp" alt="Mehrere Menschen entwickeln gemeinsam aus einer Idee einen konkreten Plan" width="340" height="340" loading="lazy" decoding="async"/>
+      </div>
+      <div class="ideen-initiative-text">
+        <h2 data-i18n="page.ideen.s2-title">Vom Einzelfall zur gemeinsamen Initiative</h2>
+        <p data-i18n="page.ideen.s2-text">Durch das Zusammenbringen unterschiedlicher Perspektiven gewinnen Gedanken an Schärfe und Substanz. Aus einer einzelnen Idee entstehen oft gemeinschaftliche Ansätze, die weit über den ursprünglichen Impuls hinausreichen. HUI erleichtert den Schritt vom ersten Gedanken zur praktischen Umsetzung.</p>
+      </div>
     </section>
-    <section class="hui-page-section reveal">
-      <h3 class="hui-page-list-title" data-i18n="page.ideen.list-title">Was du mit deinen Ideen auf HUI tun kannst</h3>
-      <ul class="hui-page-list">
-        <li data-i18n="page.ideen.list-1">Teile offene Gedanken und erhalte konstruktives Feedback</li>
-        <li data-i18n="page.ideen.list-2">Lass dich von den Visionen anderer inspirieren und motivieren</li>
-        <li data-i18n="page.ideen.list-3">Finde Gleichgesinnte, die deine Leidenschaft für ein Thema teilen</li>
-        <li data-i18n="page.ideen.list-4">Erweitere erste Konzepte durch den Austausch im Netzwerk</li>
-        <li data-i18n="page.ideen.list-5">Schaffe die Grundlage für konkrete Projekte und Vorhaben</li>
-      </ul>
-    </section>
-  </div>
 
-
-  <div class="hui-interact reveal">
-    <h3 class="hui-interact-title" data-i18n="interact.ideen.title">Meine Idee beginnt mit …</h3>
-    <p class="hui-interact-sub" data-i18n="interact.ideen.sub">Wähle einen Bereich, der deiner Idee am nächsten kommt.</p>
-    <div class="hui-interact-options" data-response-prefix="interact.ideen.response">
-      <span class="hui-interact-chip" data-value="people" data-i18n="interact.ideen.option.people">Menschen</span>
-      <span class="hui-interact-chip" data-value="community" data-i18n="interact.ideen.option.community">Gemeinschaft</span>
-      <span class="hui-interact-chip" data-value="craft" data-i18n="interact.ideen.option.craft">Handwerk</span>
-      <span class="hui-interact-chip" data-value="art" data-i18n="interact.ideen.option.art">Kunst</span>
-      <span class="hui-interact-chip" data-value="tech" data-i18n="interact.ideen.option.tech">Technik</span>
-      <span class="hui-interact-chip" data-value="nature" data-i18n="interact.ideen.option.nature">Natur</span>
-      <span class="hui-interact-chip" data-value="education" data-i18n="interact.ideen.option.education">Bildung</span>
-      <span class="hui-interact-chip" data-value="other" data-i18n="interact.ideen.option.other">etwas anderes</span>
+    <!-- ═══ IDEEN-WEG: organische Linie mit 5 Stationen ═══ -->
+    <div class="ideen-weg reveal">
+      <div class="ideen-weg-station">
+        <span class="ideen-weg-num">01</span>
+        <span class="ideen-weg-label" data-i18n="page.ideen.weg-1">Idee</span>
+      </div>
+      <div class="ideen-weg-station">
+        <span class="ideen-weg-num">02</span>
+        <span class="ideen-weg-label" data-i18n="page.ideen.weg-2">Austausch</span>
+      </div>
+      <div class="ideen-weg-station">
+        <span class="ideen-weg-num">03</span>
+        <span class="ideen-weg-label" data-i18n="page.ideen.weg-3">Unterstützung</span>
+      </div>
+      <div class="ideen-weg-station">
+        <span class="ideen-weg-num">04</span>
+        <span class="ideen-weg-label" data-i18n="page.ideen.weg-4">Umsetzung</span>
+      </div>
+      <div class="ideen-weg-station">
+        <span class="ideen-weg-num">05</span>
+        <span class="ideen-weg-label" data-i18n="page.ideen.weg-5">Wirkung</span>
+      </div>
     </div>
-    <div class="hui-interact-response">
-      <p class="hui-interact-response-text"></p>
+
+    <!-- ═══ WAS DU MIT DEINEN IDEEN TUN KANNST: 5-Punkt Sequenz ═══ -->
+    <h3 class="ideen-list-title reveal" data-i18n="page.ideen.list-title">Was du mit deinen Ideen auf HUI tun kannst</h3>
+    <div class="ideen-moeglichkeiten reveal">
+      <div class="ideen-moeglichkeit">
+        <span class="ideen-moeglichkeit-num">01</span>
+        <div class="ideen-moeglichkeit-body">
+          <h3 data-i18n="page.ideen.list-1-title">Teilen</h3>
+          <p data-i18n="page.ideen.list-1">Teile offene Gedanken und erhalte konstruktives Feedback</p>
+        </div>
+      </div>
+      <div class="ideen-moeglichkeit">
+        <span class="ideen-moeglichkeit-num">02</span>
+        <div class="ideen-moeglichkeit-body">
+          <h3 data-i18n="page.ideen.list-2-title">Inspiration finden</h3>
+          <p data-i18n="page.ideen.list-2">Lass dich von den Visionen anderer inspirieren und motivieren</p>
+        </div>
+      </div>
+      <div class="ideen-moeglichkeit">
+        <span class="ideen-moeglichkeit-num">03</span>
+        <div class="ideen-moeglichkeit-body">
+          <h3 data-i18n="page.ideen.list-3-title">Gleichgesinnte finden</h3>
+          <p data-i18n="page.ideen.list-3">Finde Gleichgesinnte, die deine Leidenschaft für ein Thema teilen</p>
+        </div>
+      </div>
+      <div class="ideen-moeglichkeit">
+        <span class="ideen-moeglichkeit-num">04</span>
+        <div class="ideen-moeglichkeit-body">
+          <h3 data-i18n="page.ideen.list-4-title">Konzepte erweitern</h3>
+          <p data-i18n="page.ideen.list-4">Erweitere erste Konzepte durch den Austausch im Netzwerk</p>
+        </div>
+      </div>
+      <div class="ideen-moeglichkeit">
+        <span class="ideen-moeglichkeit-num">05</span>
+        <div class="ideen-moeglichkeit-body">
+          <h3 data-i18n="page.ideen.list-5-title">Grundlage schaffen</h3>
+          <p data-i18n="page.ideen.list-5">Schaffe die Grundlage für konkrete Projekte und Vorhaben</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ INTERACT: upgraded selection box ═══ -->
+  <div class="ideen-interact reveal">
+    <div class="hui-interact">
+      <h3 class="hui-interact-title" data-i18n="interact.ideen.title">Meine Idee beginnt mit …</h3>
+      <p class="hui-interact-sub" data-i18n="interact.ideen.sub">Wähle einen Bereich, der deiner Idee am nächsten kommt.</p>
+      <div class="hui-interact-options" data-response-prefix="interact.ideen.response">
+        <span class="hui-interact-chip" data-value="people" data-i18n="interact.ideen.option.people">Menschen</span>
+        <span class="hui-interact-chip" data-value="community" data-i18n="interact.ideen.option.community">Gemeinschaft</span>
+        <span class="hui-interact-chip" data-value="craft" data-i18n="interact.ideen.option.craft">Handwerk</span>
+        <span class="hui-interact-chip" data-value="art" data-i18n="interact.ideen.option.art">Kunst</span>
+        <span class="hui-interact-chip" data-value="tech" data-i18n="interact.ideen.option.tech">Technik</span>
+        <span class="hui-interact-chip" data-value="nature" data-i18n="interact.ideen.option.nature">Natur</span>
+        <span class="hui-interact-chip" data-value="education" data-i18n="interact.ideen.option.education">Bildung</span>
+        <span class="hui-interact-chip" data-value="other" data-i18n="interact.ideen.option.other">etwas anderes</span>
+      </div>
+      <div class="hui-interact-response">
+        <p class="hui-interact-response-text"></p>
+      </div>
     </div>
   </div>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.ideen.coming">Nach dem Start kannst du eigene Ideen veröffentlichen, andere Ansätze kommentieren und gemeinsam die ersten Schritte in Richtung Realisierung gehen.</p>
+  <!-- ═══ EMOTIONALER ABSCHLUSS: breites Bild ═══ -->
+  <div class="ideen-abschluss-img reveal">
+    <img src="/assets/ideen-abschluss.webp" alt="Eine Gruppe von Menschen vor einem fertiggestellten gemeinsamen Projekt" width="680" height="380" loading="lazy" decoding="async"/>
   </div>
 
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.ideen.cta">Ideen einbringen</a>
-    <p data-i18n="page.ideen.cta-sub">Melde dich an, um zum Start informiert zu werden.</p>
-  </section>
+  <!-- ═══ CTA ═══ -->
+  <div class="ideen-cta reveal">
+    <p class="ideen-cta-text" data-i18n="page.ideen.coming">Nach dem Start kannst du eigene Ideen veröffentlichen, andere Ansätze kommentieren und gemeinsam die ersten Schritte in Richtung Realisierung gehen.</p>
+    <a href="/app/login" class="btn-primary" data-i18n="page.ideen.cta">Ideen einbringen · bald</a>
+    <p class="ideen-cta-sub" data-i18n="page.ideen.cta-sub">Melde dich an, um zum Start informiert zu werden.</p>
+  </div>
 </main>
 
 <footer class="footer">
