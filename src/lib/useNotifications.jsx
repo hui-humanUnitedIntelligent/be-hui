@@ -10,6 +10,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { createPortal } from "react-dom";
 import { supabase } from "./supabaseClient.js";
 import { useAuth }  from "./AuthContext.jsx";
+import { useTranslation } from "../hooks/useTranslation.js";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
