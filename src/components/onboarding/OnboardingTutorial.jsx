@@ -30,12 +30,12 @@ const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
 const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
 const STEPS = [
-  { selector: 'button[aria-label="Home"]',           text: "Hier siehst du alle Beitr\u00e4ge chronologisch \u2013 dein pers\u00f6nlicher Home-Feed.", placement: "top" },
-  { selector: 'button[aria-label="Entdecken"]',      text: "Hier findest du alles \u00fcber HUI: Menschen, Werke, Erlebnisse und neue Ideen.",    placement: "top" },
-  { selector: 'button[aria-label="Impact"]',         text: "Hier findest du alle Projekte, die wir gemeinsam unterst\u00fctzen. Erstelle doch selbst eins!", placement: "top" },
-  { selector: 'button[aria-label="Profil"]',          text: "Hier kannst du dein eigenes Profil gestalten und personalisieren.",                 placement: "top" },
-  { selector: 'button[aria-label="Nachrichten"]',    text: "Hier entstehen Verbindungen. Schreibe Menschen direkt an und bleibe in Kontakt.",     placement: "bottom" },
-  { selector: 'button[aria-label="Resonanzzentrum"]', text: "Hier bekommst du alle wichtigen Neuigkeiten \u2013 Kommentare, Buchungen, K\u00e4ufe und mehr.", placement: "bottom" },
+  { selector: 'button[aria-label="Home"]',           textKey: 'tut.step1', placement: "top" },
+  { selector: 'button[aria-label="Entdecken"]',      textKey: 'tut.step2',    placement: "top" },
+  { selector: 'button[aria-label="Impact"]',         textKey: 'tut.step3', placement: "top" },
+  { selector: 'button[aria-label="Profil"]',          textKey: 'tut.step4',                 placement: "top" },
+  { selector: 'button[aria-label="Nachrichten"]',    textKey: 'tut.step5',     placement: "bottom" },
+  { selector: 'button[aria-label="Resonanzzentrum"]', textKey: 'tut.step6', placement: "bottom" },
   // WERKEKORB-TUTORIAL-STEP (2026-08-18, Michael-Request): letzter Schritt des
   // Basis-Tutorials, direkt vor der "Erweitertes Tutorial?"-Frage. Selector
   // nutzt ^= (startsWith) statt exaktem Match, weil WerkeKorbHeaderButton.jsx
@@ -44,7 +44,7 @@ const STEPS = [
   // Text bewusst NICHT als "Warenkorb" formuliert (siehe WerkeKorb.jsx Header-
   // Kommentar: "Persönlicher Sammelraum. Kein Warenkorb. Ruhiger menschlicher
   // Raum.") — Ton bleibt konsistent mit dem Rest von HUI.
-  { selector: 'button[aria-label^="Werkekorb"]',      text: "Hier sammelst du Werke, die dich ber\u00fchren \u2013 dein pers\u00f6nlicher Raum, um sie in Ruhe zu betrachten und zu erwerben, wenn du bereit bist.", placement: "bottom" },
+  { selector: 'button[aria-label^="Werkekorb"]',      textKey: 'tut.step7', placement: "bottom" },
 ];
 
 // ── Erweitertes Tutorial (2026-08-11, TUTORIAL-PROFIL-SWITCH) ──────────
@@ -54,14 +54,14 @@ const STEPS = [
 // startAdvancedTutorial), so dass Basis-User nur die verfügbaren Kacheln
 // sehen, ohne Auto-Skip-Flicker.
 const ADVANCED_STEPS = [
-  { selector: 'button[aria-label="Meine Werke"]',        text: "Hier findest du alles, was du erschaffen hast. Werke zeigen deine F\u00e4higkeiten, deine Kreativit\u00e4t und deine Wirkung.", placement: "bottom", label: "Meine Werke" },
-  { selector: 'button[aria-label="Talent-Angebote"]',    text: "Hier kannst du deine Talente anbieten. Menschen k\u00f6nnen dich buchen, unterst\u00fctzen oder mit dir zusammenarbeiten.", placement: "bottom", label: "Talent-Angebote" },
-  { selector: 'button[aria-label="Erlebnisse & Projekte"]', text: "Hier entstehen besondere Momente und echte Herzensprojekte. Du kannst eigene Projekte starten oder an bestehenden teilnehmen.", placement: "bottom", label: "Erlebnisse & Projekte" },
-  { selector: 'button[aria-label="Meine Momente"]',      text: "Momente zeigen Augenblicke aus deinem Alltag. Sie verbinden Menschen und machen HUI lebendig.", placement: "bottom", label: "Meine Momente" },
-  { selector: 'button[aria-label="Impact & Stimmen"]',   text: "Hier siehst du deine Impact-Stimmen und alle Projekte, die du unterst\u00fctzt. Jede Stimme st\u00e4rkt den Impact-Pool.", placement: "bottom", label: "Impact & Stimmen" },
-  { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', text: "Hier findest du deine K\u00e4ufe und Verk\u00e4ufe. Alles ist sicher \u00fcber Stripe abgewickelt und transparent dokumentiert.", placement: "bottom", label: "K\u00e4ufe/Verk\u00e4ufe" },
-  { selector: 'button[aria-label="Meine Resonanz"]',   text: "Hier siehst du, wie Menschen auf dich reagieren \u2013 Kommentare, Inspire, Saves und mehr. Deine Resonanz zeigt, was bei anderen ankommt.", placement: "bottom", label: "Meine Resonanz" },
-  { selector: 'button[aria-label="Empfehlungen"]',      text: "Hier sammeln sich Empfehlungen von Menschen, die mit dir gearbeitet oder gekauft haben. Sie sind das ehrlichste Zeichen echter Qualit\u00e4t.", placement: "bottom", label: "Empfehlungen" },
+  { selector: 'button[aria-label="Meine Werke"]',        textKey: 'tut.adv1', placement: "bottom", label: "Meine Werke" },
+  { selector: 'button[aria-label="Talent-Angebote"]',    textKey: 'tut.adv2', placement: "bottom", label: "Talent-Angebote" },
+  { selector: 'button[aria-label="Erlebnisse & Projekte"]', textKey: 'tut.adv3', placement: "bottom", label: "Erlebnisse & Projekte" },
+  { selector: 'button[aria-label="Meine Momente"]',      textKey: 'tut.adv4', placement: "bottom", label: "Meine Momente" },
+  { selector: 'button[aria-label="Impact & Stimmen"]',   textKey: 'tut.adv5', placement: "bottom", label: "Impact & Stimmen" },
+  { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', textKey: 'tut.adv6', placement: "bottom", label: "K\u00e4ufe/Verk\u00e4ufe" },
+  { selector: 'button[aria-label="Meine Resonanz"]',   textKey: 'tut.adv7', placement: "bottom", label: "Meine Resonanz" },
+  { selector: 'button[aria-label="Empfehlungen"]',      textKey: 'tut.adv8', placement: "bottom", label: "Empfehlungen" },
 ];
 
 // Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"
@@ -334,7 +334,7 @@ export default function OnboardingTutorial() {
                   borderBottom: "8px solid white",
                 }} />
               )}
-              <p style={bubbleTextStyle}>{stepData.text}</p>
+              <p style={bubbleTextStyle}>{t(stepData.textKey)}</p>
             </div>
 
             {/* Fuchs — überlappt die Blasen-Ecke zur Hälfte (FOX_PEEK) */}
@@ -359,7 +359,7 @@ export default function OnboardingTutorial() {
             <button
               onClick={() => { if (isLast) onComplete(); else setStep(s => s + 1); }}
               style={compactBtnStyle}
-            >{isLast ? "Fertig" : "Weiter"}</button>
+            >{isLast ? t("tut.fertig") : t("tut.weiter")}</button>
           </div>
         </div>
 

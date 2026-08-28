@@ -165,7 +165,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
       try { await refreshProfile(); } catch {}
       setSaving(false); return true;
     } catch {
-      setError("Speichern fehlgeschlagen — bitte erneut versuchen");
+      setError(t("pcf.saveError"));
       setSaving(false); return false;
     }
   }, [user?.id, refreshProfile]);
@@ -335,7 +335,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
             cursor:saving?"default":"pointer",touchAction:"manipulation",
             boxShadow: saving ? "none" : "0 4px 20px rgba(22,215,197,0.35)",
           }}>
-            {saving ? "Speichern…" : step === 3 ? "Fertig — Los geht's ✦" : "Weiter →"}
+            {saving ? t("pcf.save") : step === 3 ? t("pcf.fertigStart") : t("pcf.weiter")}
           </button>
           {(step === 2 || step === 3) && (
             <button onClick={() => setStep(s=>s+1)} style={{
