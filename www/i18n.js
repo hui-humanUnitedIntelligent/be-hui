@@ -1714,5 +1714,11 @@
   runAfterReady();
 
   // Expose for debugging
-  window.HUI_i18n = { getLang: getLang, setLang: setLang, apply: applyTranslations, validate: validateKeys };
+  // Translation helper for external scripts
+  function translateKey(key){
+    var lang = getLang();
+    var dict = T[lang] || T[LANG_DE];
+    return dict[key] || key;
+  }
+  window.HUI_i18n = { getLang: getLang, setLang: setLang, apply: applyTranslations, validate: validateKeys, t: translateKey };
 })();
