@@ -43,6 +43,7 @@ function VisibilityCard({ icon, label, sub, active, onClick }) {
 
 /* ── Experience Preview Card (immersiv) ─────────────────────── */
 function ExperiencePreviewCard({ form, mediaFiles, profile }) {
+  const { t } = useTranslation();
   const cover = mediaFiles[0]?.preview || null;
 
   // Preis formatieren

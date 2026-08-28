@@ -505,10 +505,10 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
             : isPending
               ? t("cs.badge.pruefung")
               : isDraft
-                ? "📝 Entwurf"
+                ? t("cs.badge.entwurf")
                 : isRejected
                   ? t("impact.abgelehnt")
-                  : "✅ Live";
+                  : t("cs.badge.live");
           const borderCol  = isApproved ? "#0EC4B8" : isPending ? "#D4A800" : isDraft ? "rgba(120,120,128,0.5)" : isRejected ? "#ff5050" : "#0EC4B8";
           return (
             <div key={exp.id || i}

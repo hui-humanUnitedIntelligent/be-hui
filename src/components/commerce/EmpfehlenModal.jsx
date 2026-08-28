@@ -136,7 +136,7 @@ export default function EmpfehlenModal({
     const reasonText = customReason.trim() || (selectedReason ? DISPUTE_REASONS.find(r => r.code === selectedReason)?.label : "");
 
     if (!reasonCode && !reasonText) {
-      setError("Bitte wähle einen Grund oder beschreibe das Problem.");
+      setError(t("rec.errorNeedReason"));
       return;
     }
     setStep("submitting");
@@ -151,7 +151,7 @@ export default function EmpfehlenModal({
       if (rpcErr) throw rpcErr;
       if (data && !data.ok) throw new Error(data.error || t('rec.errorSubmit'));
 
-      setResultMsg("Das Problem wird vom HUI-Team geprüft. Du erhältst eine Benachrichtigung, sobald es eine Entscheidung gibt.");
+      setResultMsg(t("rec.problemReviewing"));
       setStep("done_disputed");
       setTimeout(() => { onSuccess?.(); onClose?.(); }, 2800);
     } catch (e) {
@@ -293,7 +293,7 @@ export default function EmpfehlenModal({
                     border: `1.5px solid ${T.border}`, fontSize: 14, fontWeight: 600,
                     cursor: "pointer", touchAction: "manipulation", fontFamily: T.ff,
                   }}
-                >Zurück</button>
+                >{t("rec.back")}</button>
                 <button
                   onClick={handleRecommend}
                   disabled={!reviewText.trim()}
@@ -355,7 +355,7 @@ export default function EmpfehlenModal({
               <textarea
                 value={customReason}
                 onChange={(e) => setCustomReason(e.target.value)}
-                placeholder="Beschreibe das Problem genauer…"
+                placeholder={t("rec.describePlaceholder")}
                 rows={3}
                 data-hui-kbd-self-managed
                 style={{
@@ -379,7 +379,7 @@ export default function EmpfehlenModal({
                     border: `1.5px solid ${T.border}`, fontSize: 14, fontWeight: 600,
                     cursor: "pointer", touchAction: "manipulation", fontFamily: T.ff,
                   }}
-                >Zurück</button>
+                >{t("rec.back")}</button>
                 <button
                   onClick={handleDispute}
                   disabled={!selectedReason && !customReason.trim()}

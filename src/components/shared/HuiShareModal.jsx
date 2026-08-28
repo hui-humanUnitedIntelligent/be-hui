@@ -16,6 +16,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { useUserSearch } from "../../features/discovery/userSearch";
 import { toast } from "../../lib/useToast.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens (identisch BaseFeedCard) ──────────────────────
 const T = {
@@ -150,7 +151,7 @@ const SOCIAL_APPS = [
     build: (text, url) => `sms:?body=${encodeURIComponent(text)}`,
   },
   {
-    id: "copy", label: t("share.copyLink"),
+    id: "copy", labelKey: "share.copyLink",
     color: T.ink2, bg: "rgba(26,26,46,0.06)",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
@@ -191,6 +192,7 @@ function Avatar({ user, size = 36 }) {
 // HAUPT-KOMPONENTE
 // ══════════════════════════════════════════════════════════════════
 export function HuiShareModal({ item, onClose }) {
+  const { t } = useTranslation();
   useModalRegistration(true, onClose, "HuiShareModal");
   const [tab, setTab]                 = useState("intern"); // "intern" | "extern"
   const [selectedUser, setSelectedUser] = useState(null);
@@ -236,7 +238,7 @@ export function HuiShareModal({ item, onClose }) {
       });
       if (error) throw error;
       setSent(true);
-      toast.success(`Geteilt mit ${selectedUser.display_name || selectedUser.username} ✓`);
+      toast.success(t("share.sharedWith", {name: selectedUser.display_name || selectedUser.username}));
       setTimeout(() => onClose?.(), 1400);
     } catch (err) {
       console.warn("[HUI_SHARE] intern:", err?.message);
@@ -606,7 +608,7 @@ export function HuiShareModal({ item, onClose }) {
                     color: app.special === "copy" && copiedLink ? "#22C55E" : T.ink2,
                     textAlign: "center", lineHeight: 1.2,
                   }}>
-                    {app.special === "copy" && copiedLink ? t("share.copied") : app.label}
+                    {app.special === "copy" && copiedLink ? t("share.copied") : (app.labelKey ? t(app.labelKey) : app.label)}
                   </span>
                 </button>
               ))}

@@ -11,6 +11,7 @@ import { radiusLabel } from "../../hooks/useRadiusFilter.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const cover  = (!imgErr && talent.cover) ? talent.cover : null;
   const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };

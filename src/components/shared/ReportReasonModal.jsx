@@ -19,16 +19,16 @@ const BORDER = "rgba(26,26,46,0.10)";
 // key wird 1:1 als `reason` in momente_reports.reason gespeichert und von
 // SADB (MomenteView) zur Anzeige der Melde-Gründe genutzt.
 export const REPORT_REASONS = [
-  { key: "sexueller_inhalt",     label: "Sexueller Inhalt" },
-  { key: "rassismus",            label: "Rassismus / Diskriminierung" },
-  { key: "politik",              label: "Politik / Extremismus" },
-  { key: "gewalt",               label: "Gewalt oder Bedrohung" },
-  { key: "belaestigung",         label: "Belästigung" },
-  { key: "spam",                 label: "Spam oder Werbung" },
-  { key: "falschinformation",    label: "Falschinformation" },
-  { key: "urheberrecht",         label: "Urheberrechtsverletzung" },
-  { key: "unangemessen",         label: "Unangemessener Inhalt" },
-  { key: "sonstiges",            label: "Sonstiges" },
+  { key: "sexueller_inhalt",     labelKey: "report.reason.sexual" },
+  { key: "rassismus",            labelKey: "report.reason.racism" },
+  { key: "politik",              labelKey: "report.reason.politics" },
+  { key: "gewalt",               labelKey: "report.reason.violence" },
+  { key: "belaestigung",         labelKey: "report.reason.harassment" },
+  { key: "spam",                 labelKey: "report.reason.spam" },
+  { key: "falschinformation",    labelKey: "report.reason.misinfo" },
+  { key: "urheberrecht",         labelKey: "report.reason.copyright" },
+  { key: "unangemessen",         labelKey: "report.reason.inappropriate" },
+  { key: "sonstiges",            labelKey: "report.reason.other" },
 ];
 
 export default function ReportReasonModal({
@@ -133,12 +133,12 @@ export default function ReportReasonModal({
               fontSize: 18, fontWeight: 600, color: INK,
               margin: "0 0 4px", textAlign: "center",
             }}>
-              Worum geht es?
+              {t("report.whatIsIt")}
             </h2>
             <p style={{
               fontSize: 13, color: MUTED, margin: "0 0 18px", textAlign: "center",
             }}>
-              Wähle den Grund, der am besten passt.
+              {t("report.chooseReason")}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {REPORT_REASONS.map((r) => (
@@ -155,7 +155,7 @@ export default function ReportReasonModal({
                     opacity: submitting ? 0.5 : 1,
                   }}
                 >
-                  {r.label}
+                  {t(r.labelKey)}
                 </button>
               ))}
             </div>

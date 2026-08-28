@@ -188,7 +188,7 @@ export default function StudioFreigaben() {
   const subTabs = [
     { key: 'pending', label: 'Warteschlange' },
     { key: 'approved', label: 'Freigegeben' },
-    { key: 'rejected', label: 'Abgelehnt' },
+    { key: 'rejected', label: t("impact.abgelehnt") },
   ];
 
   return (

@@ -33,9 +33,9 @@ function Skel() {
 }
 
 // Preis-Hilfsfunktion
-function formatPrice(talent) {
+function formatPrice(talent, t) {
   if (talent.price_per_session) return `${talent.price_per_session} ${talent.currency || "€"}`;
-  if (talent.price_per_hour)    return `${talent.price_per_hour} ${talent.currency || "€"}/${t("common.perHour")}`;
+  if (talent.price_per_hour)    return `${talent.price_per_hour} ${talent.currency || "€"}/${t ? t("common.perHour") : "h"}`;
   return null;
 }
 
@@ -51,7 +51,7 @@ function locationLabel(talent, t) {
 function TalentCard({ talent, onClick }) {
   const { t } = useTranslation();
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
-  const price = formatPrice(talent);
+  const price = formatPrice(talent, t);
   const loc   = locationLabel(talent, t);
 
   return (
@@ -126,7 +126,7 @@ function TalentCard({ talent, onClick }) {
 function TalentDetailModal({ talent, onClose }) {
   const { t } = useTranslation();
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
-  const price = formatPrice(talent);
+  const price = formatPrice(talent, t);
   const loc   = locationLabel(talent, t);
 
   return (

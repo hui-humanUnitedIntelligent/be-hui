@@ -385,7 +385,7 @@ function useWirkungsraumData(profile) {
                 color = T.sage; bg = T.sageSoft; border = "rgba(92,168,122,0.13)";
                 break;
               case "impact_project_completed":
-                icon = "🌍"; label = `Projekt finanziert: ${md.project_name || "Impact"}`;
+                icon = "🌍"; label = t("notif.projectFunded", {name: md.project_name || "Impact"});
                 color = T.purple; bg = T.purpleSoft; border = "rgba(123,94,167,0.13)";
                 break;
               case "comment":

@@ -7,8 +7,7 @@
 // REFACTORED 2026-08-25: Sub-components extracted to src/components/profile/my-basis/
 // No logic changes — pure file split for maintainability.
 
-import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
-import { makeChunkReload } from "../lib/chunkReload.js";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { supabase } from "../lib/supabaseClient.js";
@@ -21,20 +20,30 @@ import SettingsModal from "../components/settings/SettingsModal.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
 import { usePullToRefresh } from "../hooks/usePullToRefresh.js";
 import { PullToRefreshIndicator } from "../components/ui/PullToRefreshIndicator.jsx";
-const PublicProfilePreview = React.lazy(() => import("../components/profile/PublicProfilePreview.jsx").catch(makeChunkReload("MyBasisProfile:PublicProfilePreview")));
-const OrbSignatur = React.lazy(() => import("../components/profile/OrbSignatur.jsx").then(m => ({ default: m.OrbSignatur })).catch(makeChunkReload("MyBasisProfile:OrbSignatur")));
+// EAGER IMPORTS (BUGFIX 2026-08-28, Michael-Report "Buttons reagieren
+// nicht/verzögert, Modal öffnet manchmal gar nicht"): Root Cause war
+// React.lazy() + ein einziger Suspense-Boundary, der die GESAMTE Seite
+// (<div className="mbp-root">...</div>) umschloss. Jeder Klick auf einen
+// Mein-Bereich-Button (Werk/Talent/Erlebnis hinzufügen, Sections) loeste
+// einen Netzwerk-Chunk-Fetch aus -- bei Verzoegerung/Fehler haengt der
+// Button ODER die komplette Seite verschwindet hinter dem Fallback-Spinner.
+// Verstoesst gegen die Standing-Instruction "kein React.lazy, kein
+// Suspense, nur Eager Imports" (siehe Memory #807/#936, PublicProfilePage/
+// SettingsModal-Praezedenzfall). Fix: alle 10 Lazy-Imports durch statische
+// Eager-Imports ersetzt, alle Suspense-Boundaries in dieser Datei entfernt.
+import PublicProfilePreview from "../components/profile/PublicProfilePreview.jsx";
+import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 import MerkenSection from "../components/profile/MerkenSection.jsx";
-const AboutSection = React.lazy(() => import("../components/profile/sections/AboutSection.jsx").then(m => ({ default: m.AboutSection })).catch(makeChunkReload("MyBasisProfile:AboutSection")));
+import { AboutSection } from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
-const TalentSection = React.lazy(() => import("../components/profile/sections/TalentSection.jsx").then(m => ({ default: m.TalentSection })).catch(makeChunkReload("MyBasisProfile:TalentSection")));
-const RecommendationsSection = React.lazy(() => import("../components/profile/sections/RecommendationsSection.jsx").then(m => ({ default: m.RecommendationsSection })).catch(makeChunkReload("MyBasisProfile:RecommendationsSection")));
-const AvailabilitySection = React.lazy(() => import("../components/profile/sections/AvailabilitySection.jsx").then(m => ({ default: m.AvailabilitySection })).catch(makeChunkReload("MyBasisProfile:AvailabilitySection")));
-const VisibilitySection = React.lazy(() => import("../components/profile/sections/VisibilitySection.jsx").then(m => ({ default: m.VisibilitySection })).catch(makeChunkReload("MyBasisProfile:VisibilitySection")));
+import { TalentSection } from "../components/profile/sections/TalentSection.jsx";
+import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
+import { VisibilitySection } from "../components/profile/sections/VisibilitySection.jsx";
 
-// ── Wizard lazy imports (BUGFIX 2026-08-26: Wizard-Render-Blöcke fehlten nach Refactor) ──
-const WerkWizard = React.lazy(() => import("../components/works/WerkWizard.jsx").catch(makeChunkReload("MyBasisProfile:WerkWizard")));
-const TalentAngebotWizard = React.lazy(() => import("../components/talents/TalentAngebotWizard.jsx").catch(makeChunkReload("MyBasisProfile:TalentAngebotWizard")));
-const ExperienceWizard = React.lazy(() => import("../components/experiences/ExperienceWizard.jsx").catch(makeChunkReload("MyBasisProfile:ExperienceWizard")));
+// ── Wizard eager imports (vormals lazy, BUGFIX 2026-08-28 s.o.) ──
+import WerkWizard from "../components/works/WerkWizard.jsx";
+import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
 
 import { useTalents } from "../hooks/useTalents.js";
 import ProfilBearbeitenModal from "../components/studio/ProfilBearbeitenModal.jsx";
@@ -587,7 +596,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }
 
   return (
-    <Suspense fallback={<div style={{position:"fixed",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10500,background:"rgba(249,247,244,0.85)",backdropFilter:"blur(6px)"}}><div style={{width:36,height:36,borderRadius:"50%",border:"3px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}>
+    
     <div className="mbp-root" style={{
       position:"fixed", top:0, left:0, right:0,
       bottom:NAV_RESERVED_HEIGHT_CSS,
@@ -719,7 +728,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onEditCover={handleCoverChange}
         />
         {(profile?.id ?? user?.id) && (
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><OrbSignatur profileId={profile?.id ?? user?.id} /></Suspense>
+        <OrbSignatur profileId={profile?.id ?? user?.id} />
         )}
         <Gap h={28}/>
 
@@ -729,11 +738,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {profile?.is_talent ? (
           <>
             {/* T1. Über mich — kanonisch: AboutSection */}
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><AboutSection
+        <AboutSection
                 profile={profile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
-              /></Suspense>
+              />
         <Gap h={24}/>
 
             {/* T2. Talente (TalentSection, Skill-Tag-Pillen "Meine Talente & Angebote")
@@ -743,11 +752,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 (siehe Memory #528 "vertagt"). Bleibt auf TalentProfilePage.jsx bestehen,
                 dort nicht Teil dieser Anfrage. */}
             {/*
-            <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><TalentSection
+            <TalentSection
               profile={profile}
               isOwner={true}
               onChange={handleSkillsSave}
-            /></Suspense>
+            />
             <Gap h={24}/>
             */}
 
@@ -779,23 +788,23 @@ export default function MyBasisProfile({ onClose, profileId }) {
             <Gap h={20}/>
 
             {/* T5. Kundenstimmen — kanonisch: RecommendationsSection */}
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><RecommendationsSection
+        <RecommendationsSection
                 recommendations={recommendations}
                 isOwner={true}
                 profileOwnerId={profile?.id || ""}
                 profileOwnerName={profile?.display_name || profile?.nickname || ""}
-              /></Suspense>
+              />
         <Gap h={24}/>
 
 
             <Gap h={24}/>
 
             {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><VisibilitySection
+        <VisibilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleVisibilitySave}
-              /></Suspense>
+              />
         <Gap h={28}/>
             <Gap h={40}/>
           </>
@@ -803,20 +812,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <>
             {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
             {/* B1. Über mich — kanonisch: AboutSection */}
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><AboutSection
+        <AboutSection
                 profile={profile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
-              /></Suspense>
+              />
         <Gap h={24}/>
 
             {/* B1a. Kundenstimmen — kanonisch: RecommendationsSection (auch für Basis-User) */}
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><RecommendationsSection
+        <RecommendationsSection
                 recommendations={recommendations}
                 isOwner={true}
                 profileOwnerId={profile?.id || ""}
                 profileOwnerName={profile?.display_name || profile?.nickname || ""}
-              /></Suspense>
+              />
         <Gap h={24}/>
 
             {/* B1c. TALENT WERDEN — Einladungskarte für Basis-User */}
@@ -860,11 +869,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 "Professionelle Skills" — siehe ProfilBearbeitenModal.jsx Kommentar). */}
 
             {/* B5. Sichtbarkeit — kanonisch: VisibilitySection */}
-        <Suspense fallback={<div style={{display:"flex",justifyContent:"center",alignItems:"center",padding:"20px 0",opacity:0.4}}><div style={{width:24,height:24,borderRadius:"50%",border:"2px solid rgba(22,215,197,0.2)",borderTopColor:"#16D7C5",animation:"hui-spin 0.7s linear infinite"}}/></div>}><VisibilitySection
+        <VisibilitySection
                 profile={profile}
                 isOwner={true}
                 onSave={handleVisibilitySave}
-              /></Suspense>
+              />
         <Gap h={28}/>
             <Gap h={40}/>
           </>
@@ -977,76 +986,43 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
       {/* ── WIZARD RENDERS (BUGFIX 2026-08-26: fehlten nach Refactor 35ca88f2) ── */}
       {showWerkWizard && profile?.id && createPortal(
-        <Suspense fallback={
-          <div style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            padding:'24px',
-            color:'rgba(255,255,255,0.4)',
-            fontSize:'14px'
-          }}>
-            {t('common.loading')}
-          </div>
-        }>
+        
           <WerkWizard
             userId={profile.id}
             existingWork={editingWerk}
             onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
             onSaved={() => { setShowWerkWizard(false); setEditingWerk(null); reload(); }}
           />
-        </Suspense>,
+        ,
         document.body
       )}
 
       {showTalentWizard && profile?.id && createPortal(
-        <Suspense fallback={
-          <div style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            padding:'24px',
-            color:'rgba(255,255,255,0.4)',
-            fontSize:'14px'
-          }}>
-            {t('common.loading')}
-          </div>
-        }>
+        
           <TalentAngebotWizard
             userId={profile.id}
             existingTalent={editingTalent}
             onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
             onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); reload(); }}
           />
-        </Suspense>,
+        ,
         document.body
       )}
 
       {showExpWizard && profile?.id && createPortal(
-        <Suspense fallback={
-          <div style={{
-            display:'flex',
-            alignItems:'center',
-            justifyContent:'center',
-            padding:'24px',
-            color:'rgba(255,255,255,0.4)',
-            fontSize:'14px'
-          }}>
-            {t('common.loading')}
-          </div>
-        }>
+        
           <ExperienceWizard
             userId={profile.id}
             existingExp={editingExp}
             onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
             onSaved={() => { setShowExpWizard(false); setEditingExp(null); reload(); }}
           />
-        </Suspense>,
+        ,
         document.body
       )}
 
     </div>
-    </Suspense>
+    
   );
 }
 

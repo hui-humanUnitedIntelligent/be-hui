@@ -98,18 +98,18 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
               justifyContent:"center", color:"#F59E0B", fontSize:32 }}>⚠️</div>
             <div style={{ fontSize:16, fontWeight: 600, textAlign:"center",
               marginBottom:6, color:"#1A1A18" }}>
-              Moment löschen?
+              {t("moment.deleteTitle")}
             </div>
             <div style={{ fontSize:13, color:"#666", textAlign:"center",
               lineHeight:1.5, marginBottom:20 }}>
-              Dieser Moment wird unwiderruflich gelöscht.
+              {t("moment.deleteWarning")}
             </div>
             <button onClick={handleConfirmDelete}
               style={{ width:"100%", padding:"12px", borderRadius:99,
                 background:"#ff3b3b", border:"none", color:"#fff",
                 fontSize:14, fontWeight: 600, cursor:"pointer",
                 fontFamily:"inherit", marginBottom:8 }}>
-              Ja, endgültig löschen
+              {t("moment.deletePermanent")}
             </button>
             <button onClick={() => setConfirmMoment(null)}
               style={{ width:"100%", padding:"12px", borderRadius:99,

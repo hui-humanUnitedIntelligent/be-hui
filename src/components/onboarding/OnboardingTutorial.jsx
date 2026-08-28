@@ -77,7 +77,6 @@ const ADVANCED_READY_SELECTORS = [
 // Feste Größe, unverzerrt (objectFit: cover), borderRadius = rund.
 // ══════════════════════════════════════════════════════════════
 function FoxBot({ size = FOX_SIZE }) {
-  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   if (imgErr) {
     // Fallback: kleiner Kreis mit "H" Initial, wie bei CardAvatar
@@ -118,6 +117,7 @@ function getTargetRect(selector) {
 // Hauptkomponente
 // ══════════════════════════════════════════════════════════════
 export default function OnboardingTutorial() {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState("init");
   const [step, setStep] = useState(0);
   const [spotRect, setSpotRect] = useState(null);
@@ -445,9 +445,9 @@ export default function OnboardingTutorial() {
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
             <FoxBot size={64} />
           </div>
-          <h2 style={dialogTitleStyle}>Geschafft!</h2>
-          <p style={dialogTextStyle}>Super! Du kennst jetzt die wichtigsten Bereiche von HUI.</p>
-          <p style={dialogSubTextStyle}>Möchtest du das erweiterte HUI-Tutorial sehen?</p>
+          <h2 style={dialogTitleStyle}>{t("onboarding.done")}</h2>
+          <p style={dialogTextStyle}>{t("onboarding.learnedBasics")}</p>
+          <p style={dialogSubTextStyle}>{t("onboarding.askAdvanced")}</p>
           <div style={dialogButtonsStyle}>
             <button onClick={() => { setPhase("hint"); }} style={btnNoStyle}>{t("common.no")}</button>
             <button onClick={startAdvancedTutorial} style={btnYesStyle}>{t("common.yes")}</button>
@@ -472,7 +472,7 @@ export default function OnboardingTutorial() {
             <FoxBot size={64} />
           </div>
           <h2 style={dialogTitleStyle}>Fantastisch!</h2>
-          <p style={dialogTextStyle}>Du kennst jetzt alle Bereiche von HUI.</p>
+          <p style={dialogTextStyle}>{t("onboarding.learnedAll")}</p>
           <p style={dialogSubTextStyle}>Viel Freude beim Erschaffen, Entdecken und Wirken!</p>
           <button
             onClick={() => {

@@ -89,9 +89,9 @@ const T = {
 };
 
 const REPORT_REASONS = [
-  { key: "spam", label: "Spam" },
-  { key: "beleidigung", label: "Beleidigung" },
-  { key: "unangemessen", label: "Unangemessen" },
+  { key: "spam", labelKey: "report.reason.spam" },
+  { key: "beleidigung", labelKey: "report.reason.insult" },
+  { key: "unangemessen", labelKey: "report.reason.inappropriate" },
 ];
 
 const CSS = `
@@ -149,6 +149,7 @@ function Avatar({ url, name, size = 34 }) {
 // damit Sheet-Overflow/clip-path den Dropdown nicht versteckt.
 function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setConfirmDelete,
     reportMenu, setReportMenu, onEdit, onDelete, onReport, T }) {
+  const { t } = useTranslation();
   const btnRef = useRef(null);
   const dropdownRef = useRef(null);
   const [pos, setPos] = useState({ top:0, right:0 });
@@ -258,7 +259,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                 style={{ display:"flex", alignItems:"center", gap:8, width:"100%",
                   padding:"10px 14px", fontSize:13, fontWeight:500, color:"#1A1A2E",
                   borderBottom:"1px solid rgba(26,26,46,0.05)", background:"none", cursor:"pointer" }}>
-                {r.label}
+                {t(r.labelKey)}
               </button>
             ))
           )}
@@ -270,6 +271,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
 }
 
 function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdit, onDelete, onHeart, onReport, replyTargetId, onCancelReply, onSubmitReply, replyText, setReplyText, submittingReply }) {
+  const { t } = useTranslation();
   const { openCreatorProfile } = useProfileLauncher();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportMenu, setReportMenu] = useState(false);

@@ -26,6 +26,7 @@ import CommentsSheet from "./shared/CommentsSheet.jsx";
 import { formatDateDE } from "../lib/formatters.js";
 import { HUILogo } from "./brand/HUILogo.jsx";
 import { NAV_CLEARANCE_CSS } from "./home/navigation/navigationGeometry.js"; // GRAU-WASCH-FIX (2026-08-18)
+import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -355,6 +356,7 @@ function IconBtn({ Icon, label, active, color, onPress, disabled, loading, varia
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════════════════ */
 export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useAuth();

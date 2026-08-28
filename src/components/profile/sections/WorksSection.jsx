@@ -52,7 +52,7 @@ function DeleteConfirm({ werk, onConfirm, onCancel }) {
         </button>
         <button onClick={onCancel} style={{ width:"100%", padding:"12px", borderRadius:99,
           background:"#f0f0ee", border:"none", color:"#444", fontSize:14, fontWeight:600,
-          cursor:"pointer", fontFamily:"inherit" }}>Abbrechen</button>
+          cursor:"pointer", fontFamily:"inherit" }}>{t("common.cancel")}</button>
       </div>
     </div>,
     document.body
@@ -184,9 +184,9 @@ export function WorksSection({
                 : isPending  ? "rgba(234,179,8,0.92)"
                 : isRejected ? "rgba(255,80,80,0.92)"
                 : "rgba(120,120,120,0.92)";
-              const badgeLabel = isApproved ? "✅ Live"
-                : isUpdate   ? "🔄 Update"
-                : isPending  ? "⏳ Prüfung"
+              const badgeLabel = isApproved ? t("cs.badge.live")
+                : isUpdate   ? t("cs.badge.update")
+                : isPending  ? t("cs.badge.pruefung")
                 : isRejected ? t("impact.abgelehnt")
                 : t('works.draft');
 

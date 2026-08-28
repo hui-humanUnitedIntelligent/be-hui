@@ -26,10 +26,10 @@ const D = {
 };
 
 const ACTIONS = [
-  { id:"foto",    icon:"📷", label:"Foto",    sub:"Kamera öffnen",      bgLight:"rgba(34,168,68,0.10)",  iconBg:"rgba(34,168,68,0.14)"  },
-  { id:"video",   icon:"🎥", label:"Video",   sub:"Videokamera öffnen", bgLight:"rgba(232,87,58,0.09)",  iconBg:"rgba(232,87,58,0.13)"  },
-  { id:"galerie", icon:"🖼️", label:"Galerie", sub:"Foto oder Video",    bgLight:"rgba(142,68,200,0.09)", iconBg:"rgba(142,68,200,0.13)" },
-  { id:"gedanke", icon:"✍️", label:"Gedanke", sub:"Text schreiben",     bgLight:"rgba(224,152,40,0.09)", iconBg:"rgba(224,152,40,0.13)" },
+  { id:"foto",    icon:"📷", labelKey:"moment.foto",    subKey:"moment.fotoSub",      bgLight:"rgba(34,168,68,0.10)",  iconBg:"rgba(34,168,68,0.14)"  },
+  { id:"video",   icon:"🎥", labelKey:"moment.video",   subKey:"moment.videoSub", bgLight:"rgba(232,87,58,0.09)",  iconBg:"rgba(232,87,58,0.13)"  },
+  { id:"galerie", icon:"🖼️", labelKey:"moment.galerie", subKey:"moment.galerieSub",    bgLight:"rgba(142,68,200,0.09)", iconBg:"rgba(142,68,200,0.13)" },
+  { id:"gedanke", icon:"✍️", labelKey:"moment.gedanke", subKey:"moment.gedankeSub",     bgLight:"rgba(224,152,40,0.09)", iconBg:"rgba(224,152,40,0.13)" },
 ];
 
 const CSS = `
@@ -65,6 +65,7 @@ function Spinner() {
 }
 
 function ActionCard({ action, onSelect, delay }) {
+  const { t } = useTranslation();
   return (
     <div className="hms-card" onClick={() => onSelect(action)} style={{
       flex:"1 1 0",minWidth:0,background:action.bgLight,borderRadius:20,
@@ -81,14 +82,15 @@ function ActionCard({ action, onSelect, delay }) {
       </div>
       <div style={{ textAlign:"center" }}>
         <div style={{ fontSize:13.5,fontWeight: 600,color:D.ink,letterSpacing:"-0.02em",
-          lineHeight:1.25,marginBottom:4 }}>{action.label}</div>
-        <div style={{ fontSize:12,color:D.inkSoft,fontWeight:400 }}>{action.sub}</div>
+          lineHeight:1.25,marginBottom:4 }}>{t(action.labelKey)}</div>
+        <div style={{ fontSize:12,color:D.inkSoft,fontWeight:400 }}>{t(action.subKey)}</div>
       </div>
     </div>
   );
 }
 
 function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading, fileSize }) {
+  const { t } = useTranslation();
   return (
     <div style={{ animation:"hms-preview-in .30s ease both" }}>
       <div style={{ width:"100%",borderRadius:20,background:"#000",
@@ -105,7 +107,7 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
       </div>
       <input className="hms-textarea" type="text" value={text}
         onChange={e => setText(e.target.value.slice(0,80))}
-        placeholder="Titel oder Beschreibung (optional)"
+        placeholder={t("moment.titleOptional")}
         style={{ width:"100%",boxSizing:"border-box",
           border:"1.5px solid rgba(14,196,184,0.22)",borderRadius:14,
           background:"rgba(14,196,184,0.04)",padding:"12px 16px",
@@ -183,9 +185,9 @@ async function uploadToMedia(file, userId) {
     // Bei Videos: KEIN graceful-Fallback — Nutzer muss es wissen
     if (isVid) {
       const msg = error.statusCode === 413
-        ? "Video zu groß für den Upload. Bitte kürze das Video."
+        ? t("moment.videoTooLarge")
         : error.statusCode === 403
-        ? "Keine Upload-Berechtigung. Bitte neu einloggen."
+        ? t("moment.noPermission")
         : `Upload fehlgeschlagen: ${error.message}`;
       throw new Error(msg);
     }
@@ -303,7 +305,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
     // 1. User authentifizieren
     const { data: authData, error: authErr } = await supabase.auth.getUser();
     if (authErr || !authData?.user?.id) {
-      throw new Error("Nicht eingeloggt — bitte Seite neu laden");
+      throw new Error(t("moment.notLoggedIn"));
     }
     const userId = authData.user.id;
 
@@ -323,7 +325,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       // WICHTIG: Storage-Datei wird NICHT gelöscht — der Admin braucht das Bild/Video
       // als Beweis im SADB "Inhaltsprüfung"-Dashboard (content_moderation.media_url).
       const blockErr = new Error(
-        "Dieses Bild verstößt gegen unsere Richtlinien. Dein Account wurde bei einem Super-Admin gemeldet. Das Bild wurde nicht gepostet."
+        t("moment.violationReported")
       );
       blockErr.isModerationBlock = true;
       throw blockErr;
@@ -545,7 +547,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
                   width:"100%",padding:"12px",fontSize:14,color:D.inkSoft,fontWeight:500,
                   display:"flex",alignItems:"center",justifyContent:"center",gap:6,
                 }}>
-                ← Zurück
+                {t("common.back")}
               </button>
             </div>
           )}
@@ -569,7 +571,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
                   fontSize:14.5,color:D.inkSoft,fontWeight:500,
                   padding:"8px 20px",display:"flex",alignItems:"center",gap:7,
                 }}>
-                  <span style={{ fontSize:16 }}>×</span>Abbrechen
+                  <span style={{ fontSize:16 }}>×</span>{t("common.cancel")}
                 </button>
               </div>
             </>

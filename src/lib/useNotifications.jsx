@@ -561,6 +561,7 @@ function NotifItem({ n, onRead, onDelete }) {
 
 // ── Verbindungsanfrage Item ───────────────────────────────────
 function ConnectionRequestItem({ req, onRespond }) {
+  const { t } = useTranslation();
   const [state, setState] = useState("idle"); // idle | accepted | declined | later
   const name = req.requester_name || "Jemand";
   const INTENTIONS_MAP = {

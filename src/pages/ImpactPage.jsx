@@ -2242,7 +2242,7 @@ function HerzensKarte({ p, idx }) {
                 <div style={{ display:"flex", justifyContent:"space-between",
                   alignItems:"center", marginBottom:3 }}>
                   <span style={{ fontSize:9.5, color:T.ink2, fontWeight:600 }}>
-                    {fmtEur(curr)} von {fmtEur(goalEur)} finanziert
+                    {t("impact.finanziertVon", {funded: fmtEur(curr), goal: fmtEur(goalEur)})}
                   </span>
                   <span style={{ fontSize:9, color:accent, fontWeight: 600 }}>
                     {Math.round(pct)}%
