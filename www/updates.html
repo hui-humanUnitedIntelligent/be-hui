@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
-<title>Fortschritt und Neuigkeiten – HUI Kommt</title>
-<meta name="description" content="Transparente Einblicke in den Entwicklungsstand von HUI. Hier informieren wir Sie regelmäßig über Meilensteine, Funktionen und Vorbereitungen vor dem Launch."/>
+<title>Fortschritt & Neuigkeiten – HUI entsteht | HUI</title>
+<meta name="description" content="HUI entsteht Schritt für Schritt. Verfolge den Weg von HUI: wo die Plattform steht, was als Nächstes kommt und wie du den Start begleiten kannst."/>
 <meta name="theme-color" content="#0DC4B5"/>
 <link rel="icon" href="/favicon.ico" sizes="any"/>
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
@@ -25,9 +25,107 @@
 <link rel="stylesheet" href="/hui-shared.css"/>
 <link rel="stylesheet" href="/hui-interactions.css"/>
 <style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
-.hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
+/* ═══ Fortschritt & Neuigkeiten — Page Styles ═══ */
+.up-hero{padding:5rem 2rem 3rem;max-width:900px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.up-hero-label{font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--hui-teal,#0DC4B5);font-weight:600;margin-bottom:1.5rem}
+.up-hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,5vw,3.4rem);font-weight:700;color:#1a2332;line-height:1.15;margin:0 0 1.2rem}
+.up-hero-sub{font-size:1.1rem;color:#5a6a7a;line-height:1.7;max-width:620px;margin:0 auto}
+.up-hero-line{margin:2.5rem auto 0;width:120px;height:2px;background:linear-gradient(90deg,transparent,#0DC4B5,transparent);border-radius:2px}
+
+/* Statement */
+.up-statement{padding:4rem 2rem;text-align:center;max-width:800px;margin:0 auto}
+.up-statement-big{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3.5vw,2.4rem);font-weight:600;color:#1a2332;line-height:1.4;margin:0 0 2rem}
+.up-statement-big span{color:var(--hui-teal,#0DC4B5)}
+.up-statement-text{font-size:1.05rem;color:#5a6a7a;line-height:1.8;max-width:640px;margin:0 auto}
+
+/* Status Card */
+.up-status-wrap{padding:3rem 2rem;max-width:720px;margin:0 auto}
+.up-status-card{background:linear-gradient(135deg,#FAF7F2 0%,#F5F0E8 100%);border:1px solid rgba(13,196,181,.12);border-radius:1.25rem;padding:3rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+.up-status-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,#0DC4B5,transparent)}
+.up-status-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem 1.1rem;border-radius:2rem;background:rgba(13,196,181,.08);border:1px solid rgba(13,196,181,.18);font-size:.72rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#0DC4B5;margin-bottom:1.5rem}
+.up-status-dot{width:8px;height:8px;border-radius:50%;background:#0DC4B5;position:relative;flex-shrink:0}
+.up-status-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(13,196,181,.3);animation:upPulse 2.5s ease-out infinite}
+@keyframes upPulse{0%{transform:scale(.8);opacity:1}100%{transform:scale(2);opacity:0}}
+@media(prefers-reduced-motion:reduce){.up-status-dot::after{animation:none}}
+.up-status-card h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:#1a2332;margin:0 0 .8rem}
+.up-status-state{font-size:1rem;font-weight:600;color:#0DC4B5;margin-bottom:1rem}
+.up-status-text{font-size:1rem;color:#5a6a7a;line-height:1.7;max-width:500px;margin:0 auto}
+
+/* Timeline */
+.up-tl-wrap{padding:4rem 2rem;max-width:780px;margin:0 auto}
+.up-tl-title{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 3rem}
+.up-tl{position:relative;list-style:none;margin:0;padding:0}
+.up-tl::before{content:'';position:absolute;left:24px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,#0DC4B5 0%,rgba(13,196,181,.2) 40%,rgba(200,200,200,.15) 60%,rgba(200,200,200,.08) 100%)}
+.up-tl-item{position:relative;padding-left:72px;padding-bottom:2.5rem}
+.up-tl-item:last-child{padding-bottom:0}
+.up-tl-node{position:absolute;left:16px;top:4px;width:18px;height:18px;border-radius:50%;background:#FAF7F2;border:2px solid #c8d0d8;z-index:1}
+.up-tl-item.done .up-tl-node{background:#0DC4B5;border-color:#0DC4B5}
+.up-tl-item.current .up-tl-node{background:#0DC4B5;border-color:#0DC4B5;box-shadow:0 0 0 6px rgba(13,196,181,.15)}
+.up-tl-item.current .up-tl-node::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid rgba(13,196,181,.25);animation:upPulse 2.5s ease-out infinite}
+@media(prefers-reduced-motion:reduce){.up-tl-item.current .up-tl-node::after{animation:none}}
+.up-tl-num{font-size:.68rem;font-weight:700;letter-spacing:.2em;color:#9aa8b8;text-transform:uppercase;margin-bottom:.3rem}
+.up-tl-status{display:inline-block;font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:.2rem .7rem;border-radius:1rem;margin-bottom:.6rem}
+.up-tl-item.done .up-tl-status{background:rgba(100,116,139,.08);color:#64748b}
+.up-tl-item.current .up-tl-status{background:rgba(13,196,181,.1);color:#0DC4B5}
+.up-tl-item.next .up-tl-status{background:rgba(244,115,85,.06);color:#e8876a}
+.up-tl-item.future .up-tl-status{background:rgba(100,116,139,.04);color:#9aa8b8}
+.up-tl-item h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:600;color:#1a2332;margin:0 0 .5rem}
+.up-tl-item.current h3{color:#0DC4B5}
+.up-tl-item p{font-size:.95rem;color:#5a6a7a;line-height:1.65;margin:0;max-width:500px}
+.up-tl-item.future h3,.up-tl-item.future p{opacity:.7}
+
+/* Current Highlight */
+.up-current-hl{margin-top:2rem;margin-left:72px;background:linear-gradient(135deg,rgba(13,196,181,.04) 0%,rgba(244,115,85,.02) 100%);border:1px solid rgba(13,196,181,.15);border-radius:1rem;padding:1.5rem 1.8rem;position:relative}
+.up-current-hl::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:#0DC4B5;border-radius:1rem 0 0 1rem}
+.up-current-hl-title{font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#0DC4B5;margin-bottom:.5rem}
+.up-current-hl-text{font-size:.95rem;color:#4a5a6a;line-height:1.65;margin:0}
+
+/* What's Next */
+.up-next-wrap{padding:4rem 2rem;max-width:900px;margin:0 auto}
+.up-next-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 3rem}
+.up-next-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.up-next-card{text-align:center;padding:2rem 1.5rem;border-radius:1rem;background:#FAF7F2;border:1px solid rgba(0,0,0,.06);transition:transform .3s ease,box-shadow .3s ease}
+.up-next-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.up-next-icon{width:44px;height:44px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(13,196,181,.06)}
+.up-next-icon svg{width:22px;height:22px;stroke:#0DC4B5;stroke-width:1.5;fill:none}
+.up-next-card h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:#1a2332;margin:0 0 .6rem}
+.up-next-card p{font-size:.9rem;color:#5a6a7a;line-height:1.6;margin:0}
+@media(max-width:768px){.up-next-grid{grid-template-columns:1fr;gap:1rem}}
+
+/* News Empty State */
+.up-news-wrap{padding:4rem 2rem;max-width:720px;margin:0 auto}
+.up-news-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 1rem}
+.up-news-intro{font-size:1rem;color:#5a6a7a;line-height:1.7;text-align:center;max-width:540px;margin:0 auto 3rem}
+.up-news-empty{background:linear-gradient(135deg,#FAF7F2 0%,#F5F0E8 100%);border:1px solid rgba(13,196,181,.1);border-radius:1.25rem;padding:3.5rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+.up-news-empty::before{content:'';position:absolute;top:50%;left:50%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(13,196,181,.04) 0%,transparent 70%);transform:translate(-50%,-50%)}
+.up-news-empty-icon{width:48px;height:48px;margin:0 auto 1.5rem;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(13,196,181,.06);position:relative;z-index:1}
+.up-news-empty-icon svg{width:24px;height:24px;stroke:#0DC4B5;stroke-width:1.5;fill:none}
+.up-news-empty h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:#1a2332;margin:0 0 .8rem;position:relative;z-index:1}
+.up-news-empty p{font-size:.95rem;color:#5a6a7a;line-height:1.7;margin:0;position:relative;z-index:1}
+
+/* Transparency */
+.up-trans-wrap{padding:4rem 2rem;background:linear-gradient(180deg,transparent 0%,rgba(245,240,232,.5) 30%,rgba(245,240,232,.5) 70%,transparent 100%)}
+.up-trans-inner{max-width:900px;margin:0 auto}
+.up-trans-title{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,4vw,2rem);font-weight:700;color:#1a2332;text-align:center;margin:0 0 1.5rem}
+.up-trans-text{font-size:1.05rem;color:#5a6a7a;line-height:1.8;text-align:center;max-width:620px;margin:0 auto 3rem}
+.up-trans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.up-trans-card{text-align:center;padding:2rem 1.5rem}
+.up-trans-card h3{font-family:'Playfair Display',serif;font-size:1.1rem;color:#0DC4B5;margin:0 0 .6rem;letter-spacing:.05em}
+.up-trans-card p{font-size:.9rem;color:#5a6a7a;line-height:1.65;margin:0}
+@media(max-width:768px){.up-trans-grid{grid-template-columns:1fr;gap:1rem}}
+
+/* CTA */
+.up-cta{padding:4rem 2rem 2rem;max-width:680px;margin:0 auto;text-align:center}
+.up-cta h2{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,3.5vw,1.9rem);font-weight:600;color:#1a2332;line-height:1.4;margin:0 0 1.2rem}
+.up-cta-text{font-size:1rem;color:#5a6a7a;line-height:1.7;margin:0 0 2rem}
+.up-cta-btn{display:inline-block;padding:.9rem 2.2rem;border-radius:2rem;background:rgba(13,196,181,.08);border:1px solid rgba(13,196,181,.2);color:#0DC4B5;font-weight:600;font-size:.95rem;text-decoration:none;cursor:not-allowed;opacity:.7}
+.up-cta-note{font-size:.82rem;color:#9aa8b8;margin-top:1.2rem}
+
+/* SEO text */
+.up-seo{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+/* Footer transition */
+.up-footer-transition{height:3rem;background:linear-gradient(180deg,transparent 0%,rgba(26,35,50,.02) 100%)}
 </style>
 <!-- SEO / GEO Meta Tags -->
 <link rel="canonical" href="https://be-hui.com/updates"/>
@@ -223,31 +321,171 @@
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.updates.hero">Fortschritt und Neuigkeiten</h1>
-    <p class="reveal d2" data-i18n="page.updates.sub">Transparente Updates auf unserem Weg zum offiziellen Start der Plattform.</p>
+
+  <!-- 1. HERO -->
+  <section class="up-hero">
+    <p class="up-hero-label" data-i18n="page.updates.hero-label">Der Weg von HUI</p>
+    <h1 class="reveal" data-i18n="page.updates.hero">Fortschritt & Neuigkeiten</h1>
+    <p class="reveal d2" data-i18n="page.updates.sub">HUI entsteht Schritt für Schritt – und du kannst diesen Weg begleiten.</p>
+    <div class="up-hero-line" aria-hidden="true"></div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.updates.s1-title">Transparenz von der ersten Zeile Code an</h2>
-      <p data-i18n="page.updates.s1-text">Wir glauben an eine offene Kommunikation und nehmen Sie gerne mit auf den Weg bis zum Launch. Auf dieser Seite veröffentlichen wir regelmäßig Berichte über den aktuellen Stand der Produktentwicklung, neue Designentscheidungen und organisatorische Meilensteine. Anstatt erfundene Nachrichten zu zeigen, finden Sie hier stets echte Fakten zum Fortgang von HUI.</p>
-    </section>
-
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.updates.s2-title">Was Sie hier erwarten wird</h2>
-      <p data-i18n="page.updates.s2-text">In den kommenden Wochen werden wir Sie über Beta-Testphasen, technische Fortschritte und Einblicke hinter die Kulissen unseres Teams auf dem Laufenden halten. Sobald wichtige Neuerungen feststehen, lesen Sie es hier zuerst. Melden Sie sich an, um keine Fortschritte zu verpassen.</p>
-    </section>  </div>
-
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.updates.coming">Das erste Entwicklungs-Update erscheint in Kürze.</p>
-  </div>
-
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.updates.cta">Updates abonnieren</a>
-    <p data-i18n="page.updates.cta-sub">Erhalten Sie wichtige Fortschritte direkt in Ihr Postfach.</p>
+  <!-- 2. STATEMENT -->
+  <section class="up-statement reveal">
+    <p class="up-statement-big">
+      <span data-i18n="page.updates.statement-l1">HUI ist noch nicht fertig.</span><br>
+      <span data-i18n="page.updates.statement-l2">Und genau deshalb gibt es diesen Weg.</span>
+    </p>
+    <p class="up-statement-text" data-i18n="page.updates.statement-text">Wir möchten nicht nur das fertige Ergebnis zeigen. Wir möchten sichtbar machen, wie aus einer Idee Schritt für Schritt eine Plattform entsteht, auf der Menschen, Ideen, Talente und Möglichkeiten zusammenfinden.</p>
   </section>
+
+  <!-- 3. STATUS CARD -->
+  <section class="up-status-wrap reveal">
+    <div class="up-status-card">
+      <div class="up-status-badge">
+        <span class="up-status-dot" aria-hidden="true"></span>
+        <span data-i18n="page.updates.status-badge">Aktuell</span>
+      </div>
+      <h2 data-i18n="page.updates.status-title">Wo HUI gerade steht</h2>
+      <p class="up-status-state" data-i18n="page.updates.status-state">Aufbau & Entwicklung</p>
+      <p class="up-status-text" data-i18n="page.updates.status-text">HUI befindet sich derzeit im Aufbau. Die Plattform, ihre Bereiche und Funktionen werden Schritt für Schritt entwickelt.</p>
+    </div>
+  </section>
+
+  <!-- 4. TIMELINE -->
+  <section class="up-tl-wrap reveal">
+    <h2 class="up-tl-title" data-i18n="page.updates.tl-title">Die Reise von HUI</h2>
+    <ol class="up-tl">
+      <!-- 01 -->
+      <li class="up-tl-item done">
+        <span class="up-tl-node" aria-hidden="true"></span>
+        <p class="up-tl-num">01</p>
+        <span class="up-tl-status" data-i18n="page.updates.tl-s1-status">Entstanden</span>
+        <h3 data-i18n="page.updates.tl-s1-title">Die Idee</h3>
+        <p data-i18n="page.updates.tl-s1-text">Ein Gedanke nahm Form an: eine Plattform für Menschen, Ideen und Möglichkeiten.</p>
+      </li>
+      <!-- 02 -->
+      <li class="up-tl-item done">
+        <span class="up-tl-node" aria-hidden="true"></span>
+        <p class="up-tl-num">02</p>
+        <span class="up-tl-status" data-i18n="page.updates.tl-s2-status">Entstanden</span>
+        <h3 data-i18n="page.updates.tl-s2-title">Die Verbindung</h3>
+        <p data-i18n="page.updates.tl-s2-text">4VisionGlobal und die Liga der Kreativen kamen zusammen. Aus zwei Kräften wurde eine gemeinsame Vision.</p>
+      </li>
+      <!-- 03 CURRENT -->
+      <li class="up-tl-item current">
+        <span class="up-tl-node" aria-hidden="true"></span>
+        <p class="up-tl-num">03</p>
+        <span class="up-tl-status" data-i18n="page.updates.tl-s3-status">Im Aufbau</span>
+        <h3 data-i18n="page.updates.tl-s3-title">Die Plattform</h3>
+        <p data-i18n="page.updates.tl-s3-text">Technik, Struktur, Inhalte und Funktionen werden Schritt für Schritt zusammengeführt.</p>
+        <div class="up-current-hl">
+          <p class="up-current-hl-title" data-i18n="page.updates.current-label">Hier entsteht gerade das Fundament</p>
+          <p class="up-current-hl-text" data-i18n="page.updates.current-text">Die zentralen Bereiche von HUI werden aufgebaut: Werke, Erlebnisse, Menschen, Talente, Ideen, Projekte und Gemeinschaft.</p>
+        </div>
+      </li>
+      <!-- 04 -->
+      <li class="up-tl-item next">
+        <span class="up-tl-node" aria-hidden="true"></span>
+        <p class="up-tl-num">04</p>
+        <span class="up-tl-status" data-i18n="page.updates.tl-s4-status">Als Nächstes</span>
+        <h3 data-i18n="page.updates.tl-s4-title">Die ersten Menschen</h3>
+        <p data-i18n="page.updates.tl-s4-text">Mit dem Start kommen die ersten Menschen, Ideen, Talente und Projekte zu HUI hinzu.</p>
+      </li>
+      <!-- 05 -->
+      <li class="up-tl-item future">
+        <span class="up-tl-node" aria-hidden="true"></span>
+        <p class="up-tl-num">05</p>
+        <span class="up-tl-status" data-i18n="page.updates.tl-s5-status">Kommt</span>
+        <h3 data-i18n="page.updates.tl-s5-title">HUI startet</h3>
+        <p data-i18n="page.updates.tl-s5-text">Die Plattform öffnet ihre Türen. Der genaue Starttermin wird bekannt gegeben, sobald er feststeht.</p>
+      </li>
+      <!-- 06 -->
+      <li class="up-tl-item future">
+        <span class="up-tl-node" aria-hidden="true"></span>
+        <p class="up-tl-num">06</p>
+        <span class="up-tl-status" data-i18n="page.updates.tl-s6-status">Zukunft</span>
+        <h3 data-i18n="page.updates.tl-s6-title">Das Ökosystem wächst</h3>
+        <p data-i18n="page.updates.tl-s6-text">Aus einzelnen Beiträgen entstehen Verbindungen, Projekte, Gemeinschaften und neue Möglichkeiten.</p>
+      </li>
+    </ol>
+  </section>
+
+  <!-- 7. WHAT'S NEXT -->
+  <section class="up-next-wrap reveal">
+    <h2 class="up-next-title" data-i18n="page.updates.next-title">Was als Nächstes entsteht</h2>
+    <div class="up-next-grid">
+      <div class="up-next-card">
+        <div class="up-next-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg>
+        </div>
+        <h3 data-i18n="page.updates.next-1-title">Plattform</h3>
+        <p data-i18n="page.updates.next-1-text">Die zentralen Bereiche und Funktionen von HUI werden weiter aufgebaut.</p>
+      </div>
+      <div class="up-next-card">
+        <div class="up-next-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>
+        </div>
+        <h3 data-i18n="page.updates.next-2-title">Erlebnis</h3>
+        <p data-i18n="page.updates.next-2-text">Aus einzelnen Bereichen soll ein zusammenhängendes Erlebnis entstehen.</p>
+      </div>
+      <div class="up-next-card">
+        <div class="up-next-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="10" r="2.5"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5M14 20c0-2 2-3.5 4-3.5s4 1.5 4 3.5"/></svg>
+        </div>
+        <h3 data-i18n="page.updates.next-3-title">Menschen</h3>
+        <p data-i18n="page.updates.next-3-text">Mit dem Start kommen die ersten Menschen, Ideen, Talente und Projekte hinzu.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. NEWS -->
+  <section class="up-news-wrap reveal">
+    <h2 class="up-news-title" data-i18n="page.updates.news-title">Neuigkeiten aus der Entwicklung</h2>
+    <p class="up-news-intro" data-i18n="page.updates.news-intro">Sobald es echte Entwicklungen gibt, teilen wir sie hier. Keine künstlichen Meldungen, keine erfundenen Meilensteine – nur das, was bei HUI tatsächlich entsteht.</p>
+    <div class="up-news-empty">
+      <div class="up-news-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16v.5"/></svg>
+      </div>
+      <h3 data-i18n="page.updates.news-empty-title">Die ersten Neuigkeiten entstehen gerade.</h3>
+      <p data-i18n="page.updates.news-empty-text">Sobald es etwas Neues zu berichten gibt, findest du es hier.</p>
+    </div>
+  </section>
+
+  <!-- 9. TRANSPARENCY -->
+  <section class="up-trans-wrap reveal">
+    <div class="up-trans-inner">
+      <h2 class="up-trans-title" data-i18n="page.updates.trans-title">Warum wir diesen Weg zeigen</h2>
+      <p class="up-trans-text" data-i18n="page.updates.trans-text">HUI soll nicht erst dann sichtbar werden, wenn alles fertig ist. Wir möchten Menschen bereits auf dem Weg mitnehmen – ehrlich, nachvollziehbar und ohne künstliche Erfolgsgeschichten.</p>
+      <div class="up-trans-grid">
+        <div class="up-trans-card">
+          <h3 data-i18n="page.updates.trans-1-title">Ehrlich</h3>
+          <p data-i18n="page.updates.trans-1-text">Wir zeigen, was wirklich entstanden ist.</p>
+        </div>
+        <div class="up-trans-card">
+          <h3 data-i18n="page.updates.trans-2-title">Nachvollziehbar</h3>
+          <p data-i18n="page.updates.trans-2-text">Wir machen Entwicklung verständlich.</p>
+        </div>
+        <div class="up-trans-card">
+          <h3 data-i18n="page.updates.trans-3-title">Gemeinsam</h3>
+          <p data-i18n="page.updates.trans-3-text">HUI wächst mit den Menschen, die Teil davon werden.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. CTA -->
+  <section class="up-cta reveal">
+    <h2 data-i18n="page.updates.cta-title">Möchtest du den Start von HUI nicht verpassen?</h2>
+    <p class="up-cta-text" data-i18n="page.updates.cta-text">Wir informieren dich, sobald es wichtige Neuigkeiten und der offizielle Starttermin feststehen.</p>
+    <span class="up-cta-btn" data-i18n="page.updates.cta-btn">Über den Start informieren lassen · bald</span>
+    <p class="up-cta-note" data-i18n="page.updates.cta-note">Kostenlos und unverbindlich.</p>
+  </section>
+
+  <div class="up-footer-transition" aria-hidden="true"></div>
+
+  <!-- SEO text for AI search -->
+  <p class="up-seo" aria-hidden="true">HUI steht für Human United Intelligence. HUI ist eine Plattform und ein Ökosystem, das Menschen, Ideen, Talente, Projekte, Werke, Erlebnisse und Gemeinschaft miteinander verbinden möchte. HUI befindet sich derzeit im Aufbau. Der offizielle Starttermin steht noch nicht fest. Auf dieser Seite werden künftig echte Entwicklungen und Neuigkeiten veröffentlicht.</p>
 </main>
 
 <footer class="footer">
