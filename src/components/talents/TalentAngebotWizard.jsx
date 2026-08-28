@@ -121,6 +121,18 @@ function Chip({ active, children, onClick, disabled }) {
   );
 }
 
+
+// Maps German DB category values to i18n keys
+const CAT_KEY_MAP = {
+  "Malerei": "cat.malerei", "Illustration": "cat.illustration", "Fotografie": "cat.fotografie",
+  "Musik": "cat.musik", "Gesang": "cat.gesang", "Handwerk": "cat.handwerk",
+  "Programmierung": "cat.programmierung", "Design": "cat.design", "Bildung": "cat.bildung",
+  "Theater": "cat.theater", "Coaching": "cat.coaching", "Naturführung": "cat.naturfuehrung",
+  "Kochen": "cat.kochen", "Film": "cat.film", "Schreiben": "cat.schreiben",
+  "Töpfern": "cat.toepfern", "Workshops": "cat.workshops", "Kunstberatung": "cat.kunstberatung",
+  "Auftragskunst": "cat.auftragskunst", "Weitere Angebote": "cat.weitere",
+};
+
 export default function TalentAngebotWizard({ userId, existingTalent = null, onClose, onSaved }) {
   const { t } = useTranslation();
   const STEP_TITLES = getStepTitles(t);
@@ -438,7 +450,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             <Lbl text={t("taw.categoryLabel")} req/>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
               {TALENT_KATEGORIEN.map(k => (
-                <Chip key={k} active={category === k} disabled={locked} onClick={() => setCategory(k)}>{k}</Chip>
+                <Chip key={k} active={category === k} disabled={locked} onClick={() => setCategory(k)}>{t(CAT_KEY_MAP[k]) || k}</Chip>
               ))}
             </div>
 

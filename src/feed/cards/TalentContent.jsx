@@ -23,6 +23,18 @@ function fmtPrice(ph, ps, currency = "EUR", t) {
   return null;
 }
 
+
+// Maps German DB category values to i18n keys for translation
+const CAT_KEY_MAP = {
+  "Malerei": "cat.malerei", "Illustration": "cat.illustration", "Fotografie": "cat.fotografie",
+  "Musik": "cat.musik", "Gesang": "cat.gesang", "Handwerk": "cat.handwerk",
+  "Programmierung": "cat.programmierung", "Design": "cat.design", "Bildung": "cat.bildung",
+  "Theater": "cat.theater", "Coaching": "cat.coaching", "Naturführung": "cat.naturfuehrung",
+  "Kochen": "cat.kochen", "Film": "cat.film", "Schreiben": "cat.schreiben",
+  "Töpfern": "cat.toepfern", "Workshops": "cat.workshops", "Kunstberatung": "cat.kunstberatung",
+  "Auftragskunst": "cat.auftragskunst", "Weitere Angebote": "cat.weitere",
+};
+
 function locLabel(type, t) {
   if (type === "online")   return t("common.online");
   if (type === "vor_ort")  return t("common.vorOrt");
@@ -156,7 +168,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
           )}
           {category && (
             <span style={{ fontSize:12.5, color:INK_SUB, fontWeight:500 }}>
-              {category}
+              {t(CAT_KEY_MAP[category]) || category}
             </span>
           )}
         </div>

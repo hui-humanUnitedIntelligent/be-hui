@@ -46,6 +46,7 @@ import { useSingleReaction } from "../../lib/useReactions.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { FeedActions } from "../../feed/cards/BaseFeedCard.jsx";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { toast } from "../../lib/useToast.jsx";
 import { shareContent } from "../../lib/shareContent.js";
 import { countComments, getComments } from "../../lib/commentsService.js";
@@ -91,6 +92,7 @@ function useMoreFromAuthor(authorId, excludeId) {
 }
 
 export default function PostFullscreenView({ item, onClose, onOpenPost }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { isSaved, toggleSave } = useSavedPostsContext();
 
@@ -376,7 +378,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
               background:"transparent", border:`1.5px solid ${T.ink}26`,
               color:T.ink, fontSize:14, fontWeight: 600,
             }}>
-              {saved ? "Gemerkt ✓" : "Merken"}
+              {saved ? t("tbf.detail.saved") : t("tbf.detail.save")}
             </button>
             {/* MOMENT-CONNECT (2026-08-25 v2): Verbinden-Button lebt hier im
                 Fullscreen-Modal statt in der Feed-Icon-Leiste (Michael-Feedback). */}
@@ -386,7 +388,7 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
                 background:"rgba(13,196,181,0.10)", color:T.teal, fontSize:14, fontWeight: 600,
                 display:"flex", alignItems:"center", justifyContent:"center",
               }}>
-                Verbinden
+                {t("pub.connect")}
               </button>
             )}
             <button className="pfv-btn" onClick={handleOpenProfile} style={{

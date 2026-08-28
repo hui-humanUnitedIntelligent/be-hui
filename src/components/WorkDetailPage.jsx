@@ -291,12 +291,12 @@ function RelatedCard({ werk, onClick }) {
 // ARIA-Label je Interaktion -- deckt alle 4 Icons der HUI Interaction Icon
 // Library v1.0 ab (nicht nur Resonanz), analog ACTION_ARIA in BaseFeedCard.jsx.
 const DETAIL_ARIA = {
-  resonanz:    { on: "Resonanz entfernen",   off: "Resonanz geben" },
-  austauschen: { on: "Kommentare schliessen", off: "Austauschen" },
-  merken:      { on: "Aus Merkliste entfernen", off: "Merken" },
-  weitergeben: { off: "Weitergeben" }, // kein Toggle -- einmalige Aktion
+  resonanz:    { on: "card.ariaResonanzOn",   off: "card.ariaResonanzOff" },
+  austauschen: { on: "card.ariaCommentsOn",    off: "hii.austauschen" },
+  merken:      { on: "card.ariaMerkenOn",      off: "tbf.detail.save" },
+  weitergeben: { off: "hii.weitergeben" }, // kein Toggle -- einmalige Aktion
 };
-function IconBtn({ Icon, label, active, color, onPress, disabled, loading, variant }) {
+function IconBtn({ Icon, label, active, color, onPress, disabled, loading, variant, t }) {
   const [pressed, setPressed] = useState(false);
   const [hover, setHover] = useState(false);
   const isResonanz = variant === "resonanz";
@@ -316,7 +316,7 @@ function IconBtn({ Icon, label, active, color, onPress, disabled, loading, varia
     setTimeout(() => setPressed(false), pressMs);
     onPress?.();
   };
-  const ariaLabel = ariaSpec ? (active && ariaSpec.on ? ariaSpec.on : ariaSpec.off) : (label || undefined);
+  const ariaLabel = ariaSpec ? (active && ariaSpec.on ? t(ariaSpec.on) : t(ariaSpec.off)) : (label || undefined);
   // v2.0 Zustände — Icon-Form bleibt immer identisch, nur Opacity/Scale ändern sich.
   const iconOpacity = disabled ? 0.28 : loading ? 0.5 : active ? 1 : hover ? 0.8 : 0.55;
   return (
@@ -751,19 +751,21 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
               Bookmark. */}
           <IconBtn
             Icon={HUIHeartIcon}
-            label={resonanceCount > 0 ? String(resonanceCount) : "Resonanz"}
+            label={resonanceCount > 0 ? String(resonanceCount) : t("hii.resonanz")}
             active={resonated}
             color={C.coral}
             variant="resonanz"
             onPress={handleLike}
+            t={t}
           />
           <IconBtn
             Icon={HUIChatIcon}
-            label={commentCount > 0 ? String(commentCount) : "Austauschen"}
+            label={commentCount > 0 ? String(commentCount) : t("hii.austauschen")}
             active={showComments}
             color={C.teal}
             variant="austauschen"
             onPress={() => { haptic("light"); setShowComments(s => !s); }}
+            t={t}
           />
           <IconBtn
             Icon={HUIShareIcon}
@@ -772,14 +774,16 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             color={C.teal}
             variant="weitergeben"
             onPress={() => { haptic("light"); handleShare(); }}
+            t={t}
           />
           <IconBtn
             Icon={HUIBookmarkIcon}
-            label={saved ? "Gemerkt" : "Merken"}
+            label={saved ? t("profile.gemerkt") : t("tbf.detail.save")}
             active={saved}
             color={C.gold}
             variant="merken"
             onPress={handleSave}
+            t={t}
           />
         </div>
 
@@ -884,7 +888,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
               background:"none", border:`1.5px solid ${C.coral}55`,
               borderRadius:16, color:C.coral, fontSize:14,
               fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
-            {saved ? "Gemerkt ✓" : "Merken"}
+            {saved ? t("tbf.detail.saved") : t("tbf.detail.save")}
           </button>
           <button
             onClick={() => {

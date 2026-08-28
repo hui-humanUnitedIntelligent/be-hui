@@ -201,7 +201,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                 fontSize: 14, fontWeight: 600, color: "rgba(26,26,46,0.55)",
                 cursor: "pointer", touchAction: "manipulation",
               }}>
-                {savedTalent ? "Gemerkt ✓" : "Merken"}
+                {savedTalent ? t("tbf.detail.saved") : t("tbf.detail.save")}
               </button>
               <button
                 onClick={handleSenden}

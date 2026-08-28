@@ -152,16 +152,16 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
             <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99,
               background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
             <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:4 }}>
-              Meine Talente & Angebote
+              {t("ts.myTalentsTitle")}
             </div>
             <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>
-              Was kannst du? Was bietest du an?
+              {t("ts.myTalentsHint")}
             </div>
             <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:20 }}>
-              {TALENT_KATEGORIEN.map((t,i) => {
-                const active = currentLabels.includes(t.label);
+              {TALENT_KATEGORIEN.map((cat,i) => {
+                const active = currentLabels.includes(cat.label);
                 return (
-                  <button key={i} onClick={() => toggle(t.label)} style={{
+                  <button key={i} onClick={() => toggle(cat.label)} style={{
                     display:"inline-flex", alignItems:"center", gap:6,
                     padding:"9px 16px", borderRadius:T.r99,
                     background: active ? T.tealSoft : T.bgCard,
@@ -171,7 +171,7 @@ export function TalentSection({ profile, isOwner = false, loading = false, onCha
                     cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
                     boxShadow: active ? T.glowTeal : T.card,
                   }}>
-                    <span style={{ fontSize:15 }}>{t.icon}</span>{t(t.key) || t.label}
+                    <span style={{ fontSize:15 }}>{cat.icon}</span>{t(cat.key) || cat.label}
                   </button>
                 );
               })}
