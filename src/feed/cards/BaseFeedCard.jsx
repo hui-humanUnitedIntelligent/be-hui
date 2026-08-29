@@ -16,6 +16,7 @@ import {
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
 import { prefetchProfile, optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
+import { CAT_KEY_MAP } from "./TalentContent.jsx";
 // LIGHTBOX+SLIDER.1 (2026-08-08): Wiederverwendbare Komponenten fuer
 // Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
 import ImageSlider from "../../components/shared/ImageSlider.jsx";
@@ -226,8 +227,14 @@ function getBegegnungsgrund(item, t) {
 
   // ── TALENT-ANGEBOT ────────────────────────────────────────────────────────
   if (type === "talent") {
-    if (cat && first)
-      return t('card.reasonTalentCat', { first, cat });
+    // BUGFIX (2026-08-29): cat kam als roher DB-Wert (deutsches Label, z.B.
+    // "Weitere Angebote") direkt aus raw.category — unabhaengig von der
+    // App-Sprache des Betrachters. Fix: ueber CAT_KEY_MAP (SSOT, siehe
+    // TalentContent.jsx) auf den i18n-Key mappen und uebersetzen; Fallback
+    // auf den Rohwert falls kein Mapping existiert.
+    const catLabel = cat ? (t(CAT_KEY_MAP[cat]) || cat) : cat;
+    if (catLabel && first)
+      return t('card.reasonTalentCat', { first, cat: catLabel });
     if (first)
       return t('card.reasonTalentFirst', { first });
     return t('card.reasonTalent');

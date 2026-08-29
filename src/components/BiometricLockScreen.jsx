@@ -235,9 +235,11 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
           </div>
 
           {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
+          {/* BREITE-FIX (2026-08-29, Michael): maxWidth 340->400 — Nutzer
+              empfand 50px Leerraum links/rechts als zu schmal/unruhig. */}
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14,
-            width: '100%', maxWidth: 340,
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16,
+            width: '100%', maxWidth: 400,
             opacity: busy ? 0.5 : 1, pointerEvents: busy ? 'none' : 'auto',
           }}>
             {["1","2","3","4","5","6","7","8","9"].map((d) => (

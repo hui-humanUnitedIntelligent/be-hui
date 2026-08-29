@@ -25,7 +25,7 @@ function fmtPrice(ph, ps, currency = "EUR", t) {
 
 
 // Maps German DB category values to i18n keys for translation
-const CAT_KEY_MAP = {
+export const CAT_KEY_MAP = {
   "Malerei": "cat.malerei", "Illustration": "cat.illustration", "Fotografie": "cat.fotografie",
   "Musik": "cat.musik", "Gesang": "cat.gesang", "Handwerk": "cat.handwerk",
   "Programmierung": "cat.programmierung", "Design": "cat.design", "Bildung": "cat.bildung",
