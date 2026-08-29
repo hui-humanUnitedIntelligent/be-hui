@@ -403,7 +403,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Haupt-Komponente ─────────────────────────────────────────
-export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false }) {
+export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false, initialView = null }) {
   const { t, lang, changeLang } = useTranslation();
   useModalRegistration(true, onClose, "SettingsModal");
 
@@ -423,7 +423,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // (z.B. wenn authCtxProfile noch nicht geladen), ueberspreng React diese
   // Hooks fuer den Render, was beim naechsten Render (profile vorhanden)
   // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
-  const [view, setView] = useState("main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets"
+  const [view, setView] = useState(initialView || "main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets" | "biometric"
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false); // SPRACHAUSWAHL (2026-08-27)
   const [showBankdaten, setShowBankdaten] = useState(false);
