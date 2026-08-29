@@ -62,6 +62,14 @@ function ProgressBar({ step }) {
 const EXAMPLES = ["Fotografin","Keramikkünstler","Vocal Coach","Digital Artist",
   "Yoga-Lehrerin","Filmemacher","Floristin","Illustrator","DJ","Köchin","Architekt","Schriftstellerin"];
 
+// i18n Keys für die Beispiel-Placeholder (rotieren im Input)
+const EXAMPLE_KEYS = [
+  "talent.example.fotografin", "talent.example.keramik", "talent.example.vocalCoach",
+  "talent.example.digitalArtist", "talent.example.yoga", "talent.example.filmemacher",
+  "talent.example.floristin", "talent.example.illustrator", "talent.example.dj",
+  "talent.example.koechin", "talent.example.architekt", "talent.example.schriftstellerin",
+];
+
 function Step1({ title, setTitle, desc, setDesc, onNext, t }) {
   const [placeholder, setPlaceholder] = useState(0);
   const EXAMPLES = EXAMPLE_KEYS.map(k => t(k));
@@ -335,8 +343,8 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error, t }) {
 /* ── Success ────────────────────────────────────────────────────────── */
 function SuccessView({ onDone, t }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 2600);
-    return () => clearTimeout(t);
+    const timer = setTimeout(onDone, 2600);
+    return () => clearTimeout(timer);
   }, [onDone]);
   return (
     <div style={{ textAlign:"center", padding:"32px 8px", animation:"toUp .4s both" }}>
@@ -363,7 +371,7 @@ function SuccessView({ onDone, t }) {
 export default function TalentOnboarding({ onClose = () => {}, onActivate = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "TalentOnboarding");
   const { user, profile, setProfile } = useAuth();
-  const t = useTranslation();
+  const { t } = useTranslation();
   const [step,    setStep]    = useState(0);
   const [title,   setTitle]   = useState("");
   const [desc,    setDesc]    = useState("");

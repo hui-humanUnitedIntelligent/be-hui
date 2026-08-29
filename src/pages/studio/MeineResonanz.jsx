@@ -573,7 +573,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
           {!loading && grouped.map(item =>
             item.isDivider
               ? <MonthDivider key={item.key} label={item.label} />
-              : <ResonanzEntry key={item.entry.id} entry={item.entry} animIndex={item.animIdx} onTap={handleTap} />
+              : <ResonanzEntry key={item.entry.id} entry={item.entry} animIndex={item.animIdx} onTap={handleTap} t={t} />
           )}
 
           {/* Footer */}

@@ -337,7 +337,7 @@ function SuccessMessage({ msg }) {
 // HAUPT-EXPORT
 // ═══════════════════════════════════════════════════════════════════
 export default function LoginPage() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation(); // DEEPLINK.1 (2026-07-09) — Rueckweg nach Login
 
@@ -595,6 +595,7 @@ export default function LoginPage() {
           display_name: fullName.trim(),
           username:     uname,
           anrede:       anrede,
+          hui_lang:     lang,
           ...(birthDate ? { birth_date: birthDate } : {}),
         },
       },
