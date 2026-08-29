@@ -221,6 +221,51 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
     }
   }, [pinStep, pinFirst, pinSecond, t]);
 
+  // ── PIN Digit Handler (eigener Ziffernblock, kein natives Keyboard) ──
+  const handlePinDigit = useCallback((digit) => {
+    setPinError(null);
+    if (pinStep === "first") {
+      setPinFirst(prev => {
+        const next = (prev + digit).slice(0, 6);
+        if (next.length === 6) {
+          // Auto-advance nach 6 Ziffern im first-step
+          setTimeout(() => { setPinStep("confirm"); setPinError(null); }, 150);
+        }
+        return next;
+      });
+    } else {
+      setPinSecond(prev => {
+        const next = (prev + digit).slice(0, 6);
+        if (next.length === 6) {
+          // Auto-submit im confirm-step
+          setTimeout(() => {
+            (async () => {
+              if (pinFirst !== next) {
+                setPinError(t("biometric.pinMismatch"));
+                setPinSecond("");
+                return;
+              }
+              await setPIN(next);
+              const { data: { session } } = await supabase.auth.getSession();
+              if (session?.refresh_token && session?.user?.email) {
+                await enableBiometric(session.user.email, session.refresh_token);
+              }
+              setBiometricEnabled(true);
+              setShowPINSetup(false);
+            })();
+          }, 150);
+        }
+        return next;
+      });
+    }
+  }, [pinStep, pinFirst, pinSecond, t]);
+
+  const handlePinBackspace = useCallback(() => {
+    setPinError(null);
+    if (pinStep === "first") setPinFirst(prev => prev.slice(0, -1));
+    else setPinSecond(prev => prev.slice(0, -1));
+  }, [pinStep]);
+
   const handleLogout = useCallback(async () => {
     setLoggingOut(true);
     try {
@@ -681,54 +726,71 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
                 })}
               </div>
 
-              {/* Verstecktes Input */}
-              <input
-                type="tel"
-                inputMode="numeric"
-                autoFocus
-                value={pinStep === "first" ? pinFirst : pinSecond}
-                onChange={(e) => {
-                  const clean = e.target.value.replace(/\D/g, "").slice(0, 6);
-                  if (pinStep === "first") setPinFirst(clean);
-                  else setPinSecond(clean);
-                }}
-                onKeyPress={(e) => { if (e.key === "Enter") handlePINSubmit(); }}
-                style={{
-                  position:"absolute", opacity:0, pointerEvents:"none",
-                  width:1, height:1, left:-9999,
-                }}
-                aria-label={t("biometric.setupPIN")}
-              />
-
               {pinError && (
                 <div style={{ fontSize:13, color:"#EF4444", textAlign:"center", marginBottom:16 }}>
                   {pinError}
                 </div>
               )}
 
-              <button
-                onClick={handlePINSubmit}
-                disabled={pinStep === "first" ? pinFirst.length < 6 : pinSecond.length < 6}
-                style={{
-                  width:"100%", padding:"15px", borderRadius:18, border:"none",
-                  background: (pinStep === "first" ? pinFirst.length < 6 : pinSecond.length < 6)
-                    ? "rgba(14,196,184,0.35)" : `linear-gradient(135deg,${T.teal},${T.tealDeep})`,
-                  color:"#fff", fontSize:16, fontWeight:600,
-                  cursor:(pinStep === "first" ? pinFirst.length < 6 : pinSecond.length < 6) ? "default" : "pointer",
-                  touchAction:"manipulation",
-                }}
-              >
-                {pinStep === "first" ? t("biometric.confirmPIN") : t("biometric.setupSuccess")}
-              </button>
+              {/* Eigener Ziffernblock — kein natives Keyboard (gleicher Fix wie
+                  BiometricLockScreen + SettingsModal, 2026-08-29) */}
+              <div style={{
+                display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12,
+                width:"100%", maxWidth:340, margin:"0 auto",
+              }}>
+                {["1","2","3","4","5","6","7","8","9"].map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => handlePinDigit(d)}
+                    style={{
+                      padding:"16px 0", borderRadius:16, border:"none",
+                      background:"rgba(26,26,24,0.05)", color:T.ink,
+                      fontSize:20, fontWeight:600,
+                      cursor:"pointer", touchAction:"manipulation",
+                      fontFamily:"Inter, sans-serif",
+                    }}
+                  >
+                    {d}
+                  </button>
+                ))}
+                <div />
+                <button
+                  onClick={() => handlePinDigit("0")}
+                  style={{
+                    padding:"16px 0", borderRadius:16, border:"none",
+                    background:"rgba(26,26,24,0.05)", color:T.ink,
+                    fontSize:20, fontWeight:600,
+                    cursor:"pointer", touchAction:"manipulation",
+                    fontFamily:"Inter, sans-serif",
+                  }}
+                >
+                  0
+                </button>
+                <button
+                  onClick={handlePinBackspace}
+                  aria-label="Backspace"
+                  style={{
+                    padding:"16px 0", borderRadius:16, border:"none",
+                    background:"none", color:"rgba(26,26,24,0.5)",
+                    fontSize:18, fontWeight:600,
+                    cursor:"pointer", touchAction:"manipulation",
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    fontFamily:"Inter, sans-serif",
+                  }}
+                >
+                  ⌫
+                </button>
+              </div>
 
               <button
                 onClick={() => { setShowPINSetup(false); setPinError(null); }}
                 style={{
-                  width:"100%", padding:"12px", marginTop:8,
+                  width:"100%", padding:"12px", marginTop:16,
                   background:"none", border:"none",
                   color:"rgba(26,26,24,0.35)", fontSize:13,
                   cursor:"pointer", textDecoration:"underline",
                   touchAction:"manipulation",
+                  fontFamily:"Inter, sans-serif",
                 }}
               >
                 {t("lock.logout") === "Abmelden" ? "Abbrechen" : "Cancel"}
