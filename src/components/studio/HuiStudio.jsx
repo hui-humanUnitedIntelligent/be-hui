@@ -19,6 +19,16 @@ import MeineTicketsPage        from "../../pages/studio/MeineTicketsPage.jsx";
 import SettingsModal    from "../settings/SettingsModal.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import {
+  checkBiometricAvailability,
+  isBiometricEnabled,
+  isPINEnabled,
+  authenticateWithBiometric,
+  enableBiometric,
+  setPIN,
+  clearSavedSession,
+} from "../../lib/biometricService.js";
+import { supabase } from "../../lib/supabaseClient.js";
 
 // ── Design Tokens ─────────────────────────────────────────────────
 const T = {
@@ -118,6 +128,13 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
   const [showSupport,          setShowSupport]          = useState(false);
   const [showMeineTickets,     setShowMeineTickets]     = useState(false);
   const [loggingOut,            setLoggingOut]            = useState(false);
+  const [biometricEnabled,      setBiometricEnabled]      = useState(false);
+  const [showPINSetup,          setShowPINSetup]          = useState(false);
+  const [pinStep,               setPinStep]               = useState("first"); // first | confirm
+  const [pinFirst,               setPinFirst]               = useState("");
+  const [pinSecond,              setPinSecond]              = useState("");
+  const [pinError,               setPinError]               = useState(null);
+  const [bioBusy,                setBioBusy]                = useState(false);
 
   // Sprint F.4C: einzige Wahrheitsquelle
   const isTalent   = isProfileTalent(profile);
@@ -128,9 +145,81 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
     return () => clearTimeout(t);
   }, []);
 
+  // Biometric/PIN Status aus Preferences laden
+  useEffect(() => {
+    (async () => {
+      const bioOn = await isBiometricEnabled();
+      const pinOn = await isPINEnabled();
+      setBiometricEnabled(bioOn || pinOn);
+    })();
+  }, []);
+
   const handleEditProfile = useCallback(() => {
     setShowProfilBearbeiten(true);
   }, []);
+
+  // ── Biometric/PIN Toggle Handler ──────────────────────────────
+  const handleBiometricToggle = useCallback(async () => {
+    if (biometricEnabled) {
+      // Deaktivieren
+      await clearSavedSession();
+      setBiometricEnabled(false);
+      return;
+    }
+
+    // Aktivieren — erst Biometrie prüfen
+    setBioBusy(true);
+    const avail = await checkBiometricAvailability();
+    if (avail.available) {
+      // Biometric verfügbar → authentifizieren
+      const success = await authenticateWithBiometric();
+      setBioBusy(false);
+      if (success) {
+        // Session holen und speichern
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.refresh_token && session?.user?.email) {
+          await enableBiometric(session.user.email, session.refresh_token);
+          setBiometricEnabled(true);
+        }
+      }
+    } else {
+      // Biometric nicht verfügbar → PIN Setup
+      setBioBusy(false);
+      setPinStep("first");
+      setPinFirst("");
+      setPinSecond("");
+      setPinError(null);
+      setShowPINSetup(true);
+    }
+  }, [biometricEnabled]);
+
+  // ── PIN Setup Handler ─────────────────────────────────────────
+  const handlePINSubmit = useCallback(async () => {
+    if (pinStep === "first") {
+      if (pinFirst.length === 6) {
+        setPinStep("confirm");
+        setPinError(null);
+      }
+      return;
+    }
+
+    // Confirm step
+    if (pinSecond.length === 6) {
+      if (pinFirst !== pinSecond) {
+        setPinError(t("biometric.pinMismatch"));
+        setPinSecond("");
+        return;
+      }
+      // PIN speichern + Session holen
+      await setPIN(pinSecond);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.refresh_token && session?.user?.email) {
+        await enableBiometric(session.user.email, session.refresh_token);
+      }
+      setBiometricEnabled(true);
+      setShowPINSetup(false);
+    }
+  }, [pinStep, pinFirst, pinSecond, t]);
 
   const handleLogout = useCallback(async () => {
     setLoggingOut(true);
@@ -215,6 +304,12 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
           <StudioRow icon={<HUIVerifIcon size={18}/>} label={t("studio.verifizierung")}
             badge={isVerified ? t("studio.verifiziertAktiv") : undefined} onPress={() => setShowVerifCS(true)} />
           <StudioRow icon={<HUISicherheitIcon size={18}/>} label={t("studio.sicherheitPasswort")} onPress={() => setShowSicherheit(true)} />
+          <StudioRow
+            icon={<HUISicherheitIcon size={18}/>}
+            label={t("biometric.settingsLabel")}
+            badge={biometricEnabled ? t("biometric.settingsOn") : undefined}
+            onPress={handleBiometricToggle}
+          />
           <StudioRow icon={<HUIMitgliedIcon size={18}/>} label={t("studio.mitgliedschaft")}
             badge={isTalent ? t("studio.huiTalent") : t("studio.huiMitglied")}
             onPress={() => setShowMitgliedschaftCS(true)} />
@@ -538,6 +633,112 @@ export default function HuiStudio({ profile, onClose, onProfileUpdate = () => {}
       )}
 
       {/* Settings Modal */}
+      {showPINSetup && createPortal(
+        <div
+          onClick={() => { setShowPINSetup(false); setPinError(null); }}
+          style={{
+            position:"fixed", inset:0, zIndex:10600,
+            background:"rgba(26,26,24,0.55)",
+            display:"flex", alignItems:"flex-end", justifyContent:"center",
+            fontFamily:"Inter,sans-serif",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width:"100%", maxWidth:480,
+              background:"#F7F5F0", borderRadius:"24px 24px 0 0",
+              padding:"0 0 calc(max(env(safe-area-inset-bottom, 0px), 16px) + 24px)",
+              boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+              overflow:"hidden",
+            }}
+          >
+            {/* Handle */}
+            <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
+              <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+            </div>
+
+            <div style={{ padding:"24px 20px 0" }}>
+              <div style={{ fontSize:20, fontWeight:600, color:T.ink, letterSpacing:-0.4, marginBottom:4 }}>
+                {t("biometric.setupPIN")}
+              </div>
+              <div style={{ fontSize:13, color:T.inkSoft, marginBottom:24 }}>
+                {pinStep === "first" ? t("biometric.setupPIN") : t("biometric.confirmPIN")}
+              </div>
+
+              {/* PIN Dots */}
+              <div style={{ display:"flex", gap:14, justifyContent:"center", marginBottom:24 }}>
+                {(pinStep === "first" ? pinFirst : pinSecond).split("").map((_, i) => {
+                  const val = pinStep === "first" ? pinFirst : pinSecond;
+                  return (
+                    <div key={i} style={{
+                      width:16, height:16, borderRadius:"50%",
+                      border:`2px solid ${i < val.length ? T.teal : "rgba(26,26,24,0.15)"}`,
+                      background: i < val.length ? T.teal : "transparent",
+                      transition:"all 0.15s ease",
+                    }} />
+                  );
+                })}
+              </div>
+
+              {/* Verstecktes Input */}
+              <input
+                type="tel"
+                inputMode="numeric"
+                autoFocus
+                value={pinStep === "first" ? pinFirst : pinSecond}
+                onChange={(e) => {
+                  const clean = e.target.value.replace(/\D/g, "").slice(0, 6);
+                  if (pinStep === "first") setPinFirst(clean);
+                  else setPinSecond(clean);
+                }}
+                onKeyPress={(e) => { if (e.key === "Enter") handlePINSubmit(); }}
+                style={{
+                  position:"absolute", opacity:0, pointerEvents:"none",
+                  width:1, height:1, left:-9999,
+                }}
+                aria-label={t("biometric.setupPIN")}
+              />
+
+              {pinError && (
+                <div style={{ fontSize:13, color:"#EF4444", textAlign:"center", marginBottom:16 }}>
+                  {pinError}
+                </div>
+              )}
+
+              <button
+                onClick={handlePINSubmit}
+                disabled={pinStep === "first" ? pinFirst.length < 6 : pinSecond.length < 6}
+                style={{
+                  width:"100%", padding:"15px", borderRadius:18, border:"none",
+                  background: (pinStep === "first" ? pinFirst.length < 6 : pinSecond.length < 6)
+                    ? "rgba(14,196,184,0.35)" : `linear-gradient(135deg,${T.teal},${T.tealDeep})`,
+                  color:"#fff", fontSize:16, fontWeight:600,
+                  cursor:(pinStep === "first" ? pinFirst.length < 6 : pinSecond.length < 6) ? "default" : "pointer",
+                  touchAction:"manipulation",
+                }}
+              >
+                {pinStep === "first" ? t("biometric.confirmPIN") : t("biometric.setupSuccess")}
+              </button>
+
+              <button
+                onClick={() => { setShowPINSetup(false); setPinError(null); }}
+                style={{
+                  width:"100%", padding:"12px", marginTop:8,
+                  background:"none", border:"none",
+                  color:"rgba(26,26,24,0.35)", fontSize:13,
+                  cursor:"pointer", textDecoration:"underline",
+                  touchAction:"manipulation",
+                }}
+              >
+                {t("lock.logout") === "Abmelden" ? "Abbrechen" : "Cancel"}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {showSettings && (
         <SettingsModal
           profile={profile}

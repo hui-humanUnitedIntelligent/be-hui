@@ -24,6 +24,7 @@ import { HUI } from './design/hui.design.js';
 // ── EAGER: Auth-kritische Seiten ───────
 import LoginPage from './pages/LoginPage';
 import { AuthGateProvider } from './components/auth/AuthGate.jsx';
+import { BiometricGate } from './components/BiometricGate.jsx';
 import { ToastContainer } from './lib/useToast.jsx';
 import ProfileCompletionFlow from './components/auth/ProfileCompletionFlow.jsx';
 import AuthCallback from './pages/AuthCallback';
@@ -942,6 +943,7 @@ export default function App() {
       <BrowserRouter>
         <AuthProvider>
           <AuthGateProvider>
+            <BiometricGate>
             <GlobalBlockGuard />
             <ProfileCompletionTrigger/>
             <AppEntryController>
@@ -975,6 +977,7 @@ export default function App() {
             <OTAUpdateBanner />
             <OTAUpdatePopup />
 
+            </BiometricGate>
           </AuthGateProvider>
         </AuthProvider>
       </BrowserRouter>
