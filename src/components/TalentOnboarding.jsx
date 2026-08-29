@@ -12,6 +12,7 @@ import { invalidateOrbStageCache } from "../hooks/useOrbGrowthStage.js";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ── Design Tokens ──────────────────────────────────────────────────── */
 const T = {
@@ -61,13 +62,14 @@ function ProgressBar({ step }) {
 const EXAMPLES = ["Fotografin","Keramikkünstler","Vocal Coach","Digital Artist",
   "Yoga-Lehrerin","Filmemacher","Floristin","Illustrator","DJ","Köchin","Architekt","Schriftstellerin"];
 
-function Step1({ title, setTitle, desc, setDesc, onNext }) {
+function Step1({ title, setTitle, desc, setDesc, onNext, t }) {
   const [placeholder, setPlaceholder] = useState(0);
+  const EXAMPLES = EXAMPLE_KEYS.map(k => t(k));
 
   useEffect(() => {
-    const t = setInterval(() => setPlaceholder(p => (p+1) % EXAMPLES.length), 2200);
-    return () => clearInterval(t);
-  }, []);
+    const timer = setInterval(() => setPlaceholder(p => (p+1) % EXAMPLES.length), 2200);
+    return () => clearInterval(timer);
+  }, [EXAMPLES.length]);
 
   const valid = title.trim().length >= 2;
 
@@ -77,10 +79,10 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
         <div style={{ fontSize:46, marginBottom:14, animation:"toFloat 3s ease-in-out infinite" }}>✦</div>
         <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.6px", lineHeight:1.2 }}>
-          Was ist<br/>dein Talent?
+          {t("talent.step1.title1")}<br/>{t("talent.step1.title2")}
         </h2>
         <p style={{ margin:0, fontSize:14, color:T.ink3, lineHeight:1.7 }}>
-          Was kannst du besonders gut?<br/>Was begeistert dich wirklich?
+          {t("talent.step1.subtitle1")}<br/>{t("talent.step1.subtitle2")}
         </p>
       </div>
 
@@ -107,7 +109,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
         <textarea
           value={desc}
           onChange={e => setDesc(e.target.value)}
-          placeholder="Was macht dich aus? Was begeistert dich? Was kannst du teilen?"
+          placeholder={t("talent.step1.descPlaceholder")}
           rows={3}
           style={{
             width:"100%", padding:"16px", borderRadius:16,
@@ -157,20 +159,20 @@ function Step1({ title, setTitle, desc, setDesc, onNext }) {
 }
 
 /* ── STEP 2: Wie möchtest du sichtbar sein? ────────────────────────── */
-const MODULES = [
-  { key:"works",       emoji:"🎨", label:"Werke zeigen",
-    sub:"Fotos, Kunst, Designs, Musik",        color:T.coral,  bg:T.coralBg },
-  { key:"experiences", emoji:"✨", label:"Experiences anbieten",
-    sub:"Erlebnisse, Sessions, Touren",         color:T.gold,   bg:T.goldBg },
-  { key:"stories",     emoji:"⚡️", label:"Storys teilen",
-    sub:"Schnelle Momente, täglich, lebendig", color:T.teal,   bg:T.tealBg },
-  { key:"workshops",   emoji:"🛠️", label:"Workshops halten",
-    sub:"Gruppen, Kurse, Wissen weitergeben",  color:T.purple, bg:T.purpleBg },
-  { key:"bookings",    emoji:"📅", label:"Buchungen annehmen",
-    sub:"Direkte Terminbuchungen",             color:T.green,  bg:T.greenBg },
-];
+function getModules(t) { return [
+  { key:"works",       emoji:"🎨", label:t("talent.module.works"),
+    sub:t("talent.module.worksSub"),        color:T.coral,  bg:T.coralBg },
+  { key:"experiences", emoji:"✨", label:t("talent.module.experiences"),
+    sub:t("talent.module.experiencesSub"),   color:T.gold,   bg:T.goldBg },
+  { key:"stories",     emoji:"⚡️", label:t("talent.module.stories"),
+    sub:t("talent.module.storiesSub"),      color:T.teal,   bg:T.tealBg },
+  { key:"workshops",   emoji:"🛠️", label:t("talent.module.workshops"),
+    sub:t("talent.module.workshopsSub"),    color:T.purple, bg:T.purpleBg },
+  { key:"bookings",    emoji:"📅", label:t("talent.module.bookings"),
+    sub:t("talent.module.bookingsSub"),     color:T.green,  bg:T.greenBg },
+]; }
 
-function Step2({ modules, onToggle, onNext, onBack }) {
+function Step2({ modules, onToggle, onNext, onBack, t }) {
   const activeCount = Object.values(modules).filter(Boolean).length;
   return (
     <div style={{ animation:"toSlide .35s both" }}>
@@ -178,15 +180,15 @@ function Step2({ modules, onToggle, onNext, onBack }) {
         <div style={{ marginBottom:12, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUITalentIcon size={40}/></div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.5px" }}>
-          Wie möchtest du<br/>sichtbar sein?
+          {t("talent.step2.title1")}<br/>{t("talent.step2.title2")}
         </h2>
         <p style={{ margin:0, fontSize:13, color:T.ink3, lineHeight:1.65 }}>
-          Keine Rollen — nur Bereiche,<br/>die du jederzeit ein- oder ausschalten kannst.
+          {t("talent.step2.subtitle1")}<br/>{t("talent.step2.subtitle2")}
         </p>
       </div>
 
       <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-        {MODULES.map((m, i) => {
+        {getModules(t).map((m, i) => {
           const on = !!modules[m.key];
           return (
             <div key={m.key} className="t-tap"
@@ -242,7 +244,7 @@ function Step2({ modules, onToggle, onNext, onBack }) {
             boxShadow: activeCount>0 ? `0 6px 24px ${T.tealGlow}` : "none",
             transition:"all .2s"
           }}>
-          {activeCount>0 ? `Weiter (${activeCount} aktiv) →` : "Mindestens einen wählen"}
+          {activeCount>0 ? `${t("talent.common.next")} (${activeCount} ${t("talent.common.active")}) →` : t("talent.step2.selectAtLeastOne")}
         </button>
       </div>
     </div>
@@ -250,17 +252,17 @@ function Step2({ modules, onToggle, onNext, onBack }) {
 }
 
 /* ── STEP 3: Gestalte dein Profil ──────────────────────────────────── */
-function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
+function Step3({ intro, setIntro, onFinish, onBack, saving, error, t }) {
   return (
     <div style={{ animation:"toSlide .35s both" }}>
       <div style={{ textAlign:"center", marginBottom:24 }}>
         <div style={{ fontSize:40, marginBottom:12 }}>🎭</div>
         <h2 style={{ margin:"0 0 8px", fontSize:24, fontWeight: 600,
           color:T.ink, letterSpacing:"-0.5px" }}>
-          Gestalte dein Profil
+          {t("talent.step3.title")}
         </h2>
         <p style={{ margin:0, fontSize:13, color:T.ink3, lineHeight:1.65 }}>
-          Wie sollen dich andere erleben?
+          {t("talent.step3.subtitle")}
         </p>
       </div>
 
@@ -268,12 +270,12 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
         <div>
           <label style={{ fontSize:11, fontWeight: 600, color:T.muted,
             letterSpacing:.5, display:"block", marginBottom:8 }}>
-            INTRO-SATZ (optional)
+            {t("talent.step3.introLabel").toUpperCase()}
           </label>
           <textarea
             value={intro}
             onChange={e => setIntro(e.target.value)}
-            placeholder="Ein Satz, der beschreibt wer du bist und was dich antreibt…"
+            placeholder={t("talent.step3.introPlaceholder")}
             rows={3}
             style={{
               width:"100%", padding:"16px", borderRadius:16,
@@ -289,8 +291,8 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
           background:`linear-gradient(135deg,${T.tealBg},${T.coralBg})`,
           border:`1px solid ${T.tealBorder}` }}>
           <div style={{ fontSize:13, color:T.ink2, lineHeight:1.6 }}>
-            <strong>Avatar & Coverfoto</strong> kannst du jederzeit<br/>
-            direkt in deinem Talentprofil hochladen. ✨
+            <strong>{t("talent.step3.avatarCover")}</strong> {t("talent.step3.avatarInfo")}<br/>
+            {t("talent.step3.uploadHint")} ✨
           </div>
         </div>
       </div>
@@ -321,9 +323,9 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
                 border:"2.5px solid rgba(255,255,255,.3)",
                 borderTop:"2.5px solid white",
                 animation:"toSpin .8s linear infinite" }}/>
-              Speichere…
+              {t("talent.common.saving")}
             </>
-          ) : "✦ Talentprofil aktivieren"}
+          ) : `✦ ${t("talent.step3.activate")}`}
         </button>
       </div>
     </div>
@@ -331,7 +333,7 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
 }
 
 /* ── Success ────────────────────────────────────────────────────────── */
-function SuccessView({ onDone }) {
+function SuccessView({ onDone, t }) {
   useEffect(() => {
     const t = setTimeout(onDone, 2600);
     return () => clearTimeout(t);
@@ -346,10 +348,10 @@ function SuccessView({ onDone }) {
         animation:"toPop .5s cubic-bezier(.34,1.4,.64,1) both"
       }}>✦</div>
       <h2 style={{ margin:"0 0 10px", fontSize:26, fontWeight: 600,
-        color:T.ink, letterSpacing:"-0.5px" }}>Dein Talent ist live!</h2>
+        color:T.ink, letterSpacing:"-0.5px" }}>{t("talent.success.title")}</h2>
       <p style={{ margin:0, fontSize:14, color:T.ink3, lineHeight:1.7 }}>
-        Willkommen in deiner kreativen Welt.<br/>
-        Du kannst jetzt teilen was dich ausmacht. ✨
+        {t("talent.success.body1")}<br/>
+        {t("talent.success.body2")} ✨
       </p>
     </div>
   );
@@ -361,6 +363,7 @@ function SuccessView({ onDone }) {
 export default function TalentOnboarding({ onClose = () => {}, onActivate = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "TalentOnboarding");
   const { user, profile, setProfile } = useAuth();
+  const t = useTranslation();
   const [step,    setStep]    = useState(0);
   const [title,   setTitle]   = useState("");
   const [desc,    setDesc]    = useState("");
@@ -407,7 +410,7 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
       invalidateOrbStageCache(user.id);
       setDone(true);
     } catch(e) {
-      setError(e.message || "Fehler beim Speichern — bitte nochmal versuchen.");
+      setError(e.message || t("talent.common.saveError"));
     } finally {
       setSaving(false);
     }
@@ -452,18 +455,18 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
         </div>
 
         {done ? (
-          <SuccessView onDone={handleDone}/>
+          <SuccessView onDone={handleDone} t={t}/>
         ) : step===0 ? (
           <Step1 title={title} setTitle={setTitle}
             desc={desc} setDesc={setDesc}
-            onNext={() => setStep(1)}/>
+            onNext={() => setStep(1)} t={t}/>
         ) : step===1 ? (
           <Step2 modules={modules} onToggle={toggleModule}
-            onNext={() => setStep(2)} onBack={() => setStep(0)}/>
+            onNext={() => setStep(2)} onBack={() => setStep(0)} t={t}/>
         ) : (
           <Step3 intro={intro} setIntro={setIntro}
             onFinish={save} onBack={() => setStep(1)}
-            saving={saving} error={error}/>
+            saving={saving} error={error} t={t}/>
         )}
 
         <div style={{ height:8 }}/>

@@ -32,6 +32,7 @@ import { PullToRefreshIndicator } from "../components/ui/PullToRefreshIndicator.
 // SettingsModal-Praezedenzfall). Fix: alle 10 Lazy-Imports durch statische
 // Eager-Imports ersetzt, alle Suspense-Boundaries in dieser Datei entfernt.
 import PublicProfilePreview from "../components/profile/PublicProfilePreview.jsx";
+import MeineResonanz from "./studio/MeineResonanz.jsx";
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
 import MerkenSection from "../components/profile/MerkenSection.jsx";
 import { AboutSection } from "../components/profile/sections/AboutSection.jsx";
@@ -59,7 +60,7 @@ import { useTranslation } from "../hooks/useTranslation.js";
 import { T, CSS } from "../components/profile/my-basis/constants.js";
 import { Gap } from "../components/profile/my-basis/atoms.jsx";
 import { MeinBereichMenu } from "../components/profile/my-basis/MeinBereich.jsx";
-import { TalentWerdenBanner } from "../components/profile/my-basis/Misc.jsx";
+import { TalentWerdenBanner, TalentOnboardingModal } from "../components/profile/my-basis/Misc.jsx";
 
 export default function MyBasisProfile({ onClose, profileId }) {
   const navigate = useNavigate();
@@ -1019,6 +1020,28 @@ export default function MyBasisProfile({ onClose, profileId }) {
           />
         ,
         document.body
+      )}
+
+      {/* ❤️ MEINE RESONANZ — via Mein-Bereich-Kachel auslösbar */}
+      {showResonanz && (
+        <MeineResonanz
+          onClose={() => setShowResonanz(false)}
+          onNavigate={(type, navId) => {
+            setShowResonanz(false);
+          }}
+        />
+      )}
+
+      {/* ✦ TALENT WERDEN — Onboarding Flow via TalentWerdenBanner */}
+      {showTalentOnboarding && (
+        <TalentOnboardingModal
+          onClose={() => setShowTalentOnboarding(false)}
+          onSuccess={() => {
+            setShowTalentOnboarding(false);
+            reload();
+            refreshProfile?.().catch(() => {});
+          }}
+        />
       )}
 
     </div>

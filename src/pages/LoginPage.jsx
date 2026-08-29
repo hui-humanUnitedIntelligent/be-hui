@@ -513,14 +513,28 @@ export default function LoginPage() {
     }
     setAgeError('');
 
-    if (!email || !pw || !username) { setErr(t("auth.fillAllFields2")); return; }
+    if (!anrede)           { setErr(t("auth.anredeRequired")); return; }
+    if (!fullName.trim())  { setErr(t("auth.firstnameRequired")); return; }
+    if (!lastName.trim())  { setErr(t("auth.lastnameRequired")); return; }
+    if (!email)             { setErr(t("auth.emailRequired")); return; }
+    if (!pw)               { setErr(t("auth.passwordReq")); return; }
+    if (pw.length < 8)     { setErr(t("auth.passwordMin8Error")); return; }
+    if (!pw2)              { setErr(t("auth.passwordRepeatRequired")); return; }
+    if (pw !== pw2)        { setErr(t("auth.passwordMismatch")); return; }
+
+    // Username normalisieren + Format prüfen
+    const uname = username.trim().toLowerCase().replace(/\s+/g, '_');
+    if (!/^[a-z0-9_]{3,30}$/.test(uname)) {
+      setErr(t("auth.usernameFormat"));
+      return;
+    }
     setLoading(true);
 
     // Username-Verfügbarkeit prüfen
     const { data: existingUser } = await supabase
       .from('profiles')
       .select('id')
-      .eq('username', username)
+      .eq('username', uname)
       .maybeSingle();
     if (existingUser) {
       setErr(t("auth.usernameTaken"));
@@ -566,6 +580,43 @@ export default function LoginPage() {
     }
 
     const combinedName = `${fullName.trim()} ${lastName.trim()}`;
+
+    // ── Supabase signUp ──
+    // mailer_autoconfirm=false → Supabase sendet Bestätigungs-Mail,
+    // KEINE Session wird zurückgegeben.
+    // handle_new_user()-Trigger (Migration 118) übernimmt Profil-Erstellung
+    // atomar aus user_metadata — kein client-seitiges upsert nötig (RLS-sicher).
+    const { error: signUpError, data: signUpData } = await supabase.auth.signUp({
+      email, password: pw,
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+        data: {
+          full_name:    combinedName,
+          display_name: fullName.trim(),
+          username:     uname,
+          anrede:       anrede,
+          ...(birthDate ? { birth_date: birthDate } : {}),
+        },
+      },
+    });
+
+    if (signUpError) {
+      const errStr = (signUpError.message || '').toLowerCase();
+      if (errStr.includes('already') || errStr.includes('user_already_exists') || errStr.includes('registered')) {
+        setErr(translateError(signUpError.message));
+        setEmailBlocked(true);
+        try {
+          await supabase.rpc('rpc_log_registration_blocked', {
+            p_email: email,
+            p_reason: 'supabase_signup_rejected',
+          });
+        } catch (e) { console.warn('[HUI Register] log error:', e); }
+      } else {
+        setErr(translateError(signUpError.message));
+      }
+      setLoading(false);
+      return;
+    }
 
     // ── KEIN Auto-Login mehr ──
     // Stattdessen: Verifikations-Modal anzeigen, das alle 3 Sekunden

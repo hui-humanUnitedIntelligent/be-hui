@@ -39,17 +39,17 @@ function getTypeConfig(t) { return {
   werk:      { icon: <HUIWerkeIcon size={18}/>,  label: t("res.werk"),          color: "#7264D6", bg: "rgba(114,100,214,0.09)" },
   erlebnis:  { icon: <HUIErlebnisIcon size={18}/>,  label: t("res.erlebnis"),      color: "#2D9E6A", bg: "rgba(45,158,106,0.09)"  },
   impact:    { icon: <HUIImpactIcon size={18}/>,  label: t("res.impact"),         color: "#0EC4B8", bg: "rgba(14,196,184,0.09)"  },
-  buchung:   { icon: <HUIKalenderIcon size={18}/>,  label: "Buchung",        color: "#F59E0B", bg: "rgba(245,158,11,0.09)"  },
-};
+  buchung:   { icon: <HUIKalenderIcon size={18}/>,  label: t("res.buchung"),        color: "#F59E0B", bg: "rgba(245,158,11,0.09)"  },
+}; }
 
 function getFilters(t) { return [
   { id: "all",      label: t("res.alle"),          icon: <HUIImpactIcon size={14}/> },
   { id: "support",  label: t("res.unterstuetzung"), icon: <HUIHeartIcon size={14}/> },
   { id: "werk",     label: t("res.werke"),         icon: <HUIWerkeIcon size={14}/> },
   { id: "erlebnis", label: t("res.erlebnisse"),    icon: <HUIErlebnisIcon size={14}/> },
-  { id: "impact",   label: "Impact",        icon: <HUIImpactIcon size={14}/> },
-  { id: "buchung",  label: "Buchungen",     icon: <HUIKalenderIcon size={14}/> },
-];
+  { id: "impact",   label: t("res.impact"),        icon: <HUIImpactIcon size={14}/> },
+  { id: "buchung",  label: t("res.buchungen"),     icon: <HUIKalenderIcon size={14}/> },
+]; }
 
 const CSS = `
   @keyframes mr-fade { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
@@ -101,7 +101,7 @@ function statusColor(status) {
   return { color:T.inkSoft, bg:"rgba(26,26,24,0.05)" };
 }
 
-async function loadTimeline(userId) {
+async function loadTimeline(userId, t) {
   const entries = [];
 
   // 1. Orders + Items (Werkekäufe + Erlebniskäufe)
@@ -122,7 +122,7 @@ async function loadTimeline(userId) {
           id:      "order-" + item.id,
           type,
           date:    order.created_at,
-          title:   snap.title || snap.name || (type==="erlebnis" ? "Erlebnis gebucht" : "Werk erworben"),
+          title:   snap.title || snap.name || (type==="erlebnis" ? t("res.erlebnisGebucht") : t("res.werkErworben")),
           desc:    snap.description || snap.short_desc || snap.caption || "",
           img:     snap.cover_url || (snap.images && snap.images[0]) || snap.media_url || null,
           amount:  safeNum(item.unit_price_eur) * safeNum(item.quantity || 1),
@@ -176,7 +176,7 @@ async function loadTimeline(userId) {
         id:          "booking-" + b.id,
         type:        "buchung",
         date:        b.created_at,
-        title:       b.service_title || b.work_title || b.service || "Buchung",
+        title:       b.service_title || b.work_title || b.service || t("res.buchung"),
         desc:        b.wirker_name ? "bei " + b.wirker_name : "",
         img:         null,
         amount:      safeNum(b.total_eur || b.subtotal_eur || b.amount),
@@ -226,8 +226,8 @@ async function loadTimeline(userId) {
         id:     "impact-app-" + a.id,
         type:   "impact",
         date:   a.created_at,
-        title:  a.project_name || "Herzensprojekt eingereicht",
-        desc:   a.short_desc || "Eigenes Projekt",
+        title:  a.project_name || t("res.herzensprojektEingereicht"),
+        desc:   a.short_desc || t("res.eigenesProjekt"),
         img:    a.cover_url || null,
         amount: null,
         status: a.status,
@@ -267,22 +267,22 @@ function MonthDivider({ label }) {
 }
 
 // ── Summary Card ──────────────────────────────────────────────────
-function ResonanzSummary({ entries }) {
-  const t = { support:0, werk:0, erlebnis:0, impact:0, buchung:0, eur:0 };
+function ResonanzSummary({ entries, t }) {
+  const counts = { support:0, werk:0, erlebnis:0, impact:0, buchung:0, eur:0 };
   for (const e of entries) {
-    t[e.type] = (t[e.type]||0) + 1;
-    if (e.amount > 0) t.eur += e.amount;
+    counts[e.type] = (counts[e.type]||0) + 1;
+    if (e.amount > 0) counts.eur += e.amount;
   }
 
   const stats = [
-    { icon:<HUIHeartIcon size={14}/>, label:t("res.unterstuetzt"), val:t.support  },
-    { icon:<HUIWerkeIcon size={14}/>, label:t("res.werke"),       val:t.werk      },
-    { icon:"🌿", label:t("res.erlebnisse"),  val:t.erlebnis  },
-    { icon:"🌍", label:t("res.impact"),      val:t.impact    },
-    { icon:"📅", label:"Buchungen",   val:t.buchung   },
+    { icon:<HUIHeartIcon size={14}/>, label:t("res.unterstuetzt"), val:counts.support  },
+    { icon:<HUIWerkeIcon size={14}/>, label:t("res.werke"),       val:counts.werk      },
+    { icon:"🌿", label:t("res.erlebnisse"),  val:counts.erlebnis  },
+    { icon:"🌍", label:t("res.impact"),      val:counts.impact    },
+    { icon:"📅", label:t("res.buchungen"),   val:counts.buchung   },
   ].filter(s => s.val > 0);
 
-  if (!stats.length && !t.eur) return null;
+  if (!stats.length && !counts.eur) return null;
 
   return (
     <div style={{
@@ -290,13 +290,13 @@ function ResonanzSummary({ entries }) {
       padding:"24px 20px", marginBottom:8,
       boxShadow:"0 2px 16px rgba(26,26,24,0.05)",
     }}>
-      {t.eur > 0 && (
+      {counts.eur > 0 && (
         <div style={{ textAlign:"center", marginBottom:stats.length ? 20 : 0 }}>
           <div style={{ fontSize:12, color:T.inkSoft, letterSpacing:"0.05em", textTransform:"uppercase", marginBottom:4 }}>
-            Gesamte Resonanz
+            {t("res.gesamteResonanz")}
           </div>
           <div className="hui-num-nowrap" style={{ fontSize:32, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em", lineHeight:1 }}>
-            {formatEUR(t.eur, { minimumFractionDigits: t.eur%1===0?0:2 })}
+            {formatEUR(counts.eur, { minimumFractionDigits: counts.eur%1===0?0:2 })}
           </div>
           <div style={{ fontSize:12, color:T.inkSoft, marginTop:6 }}>
             in {entries.length} {entries.length===1?t("res.aktivitaet"):t("res.aktivitaeten")}
@@ -322,7 +322,7 @@ function ResonanzSummary({ entries }) {
 }
 
 // ── Timeline Entry ─────────────────────────────────────────────────
-function ResonanzEntry({ entry, animIndex, onTap }) {
+function ResonanzEntry({ entry, animIndex, onTap, t }) {
   const cfg   = getTypeConfig(t)[entry.type] || getTypeConfig(t).werk;
   const st    = statusColor(entry.status);
   const sl    = statusLabel(entry.status, t);
@@ -428,7 +428,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
 }
 
 // ── Leer-State ────────────────────────────────────────────────────
-function EmptyState({ filter }) {
+function EmptyState({ filter, t }) {
   const cfg = filter !== "all" ? getTypeConfig(t)[filter] : null;
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
@@ -460,7 +460,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
     if (!uid) { setLoading(false); return; }
     let dead = false;
     setLoading(true);
-    loadTimeline(uid).then(data => {
+    loadTimeline(uid, t).then(data => {
       if (!dead) { setEntries(data); setLoading(false); }
     });
     return () => { dead = true; };
@@ -560,14 +560,14 @@ export default function MeineResonanz({ onClose, onNavigate }) {
 
           {/* Summary */}
           {!loading && filter==="all" && entries.length > 0 && (
-            <ResonanzSummary entries={entries} />
+            <ResonanzSummary entries={entries} t={t} />
           )}
 
           {/* Loading Skeletons */}
           {loading && [0,1,2,3].map(i => <EntrySkeleton key={i} />)}
 
           {/* Empty */}
-          {!loading && filtered.length === 0 && <EmptyState filter={filter} />}
+          {!loading && filtered.length === 0 && <EmptyState filter={filter} t={t} />}
 
           {/* Timeline */}
           {!loading && grouped.map(item =>
