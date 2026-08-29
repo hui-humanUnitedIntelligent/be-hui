@@ -68,6 +68,68 @@
 // nur den Vertrag fest, damit spaetere Features (Suche/Feed/Marketplace/
 // Buchungen/Impact/KI) ohne Strukturbruch andocken koennen.
 
+// ── KATEGORIE-UEBERSETZUNGEN (2026-08-29) ─────────────────────────────────
+// Nutzt den bereits vorbereiteten i18n-Erweiterungspunkt (siehe Kommentar
+// oben, 'ZUKUNFTSSICHERHEIT'). name/DE bleibt SSOT fuer legacyValues/DB-
+// Speicherwerte (works.category/experiences.category) -- NUR die Anzeige in
+// der Discovery-Suche (SearchCommandCenter.jsx) nutzt getCategoryLabel()
+// unten, um je nach aktiver UI-Sprache zu uebersetzen. Speicherlogik/
+// Create-Flows (WorkDetailsStep/ExperienceCreateStep) bleiben unveraendert
+// auf dem deutschen Freitext-Wert (kein Storage-Format-Wechsel).
+const CATEGORY_I18N = {
+  nachhaltigkeit: { en:"Sustainability", es:"Sostenibilidad", fr:"Durabilité", it:"Sostenibilità", tr:"Sürdürülebilirlik", pt:"Sustentabilidade", sq:"Qëndrueshmëria" },
+  kreativitaet: { en:"Creativity", es:"Creatividad", fr:"Créativité", it:"Creatività", tr:"Yaratıcılık", pt:"Criatividade", sq:"Krijimtaria" },
+  musik: { en:"Music", es:"Música", fr:"Musique", it:"Musica", tr:"Müzik", pt:"Música", sq:"Muzika" },
+  gemeinschaft: { en:"Community", es:"Comunidad", fr:"Communauté", it:"Comunità", tr:"Topluluk", pt:"Comunidade", sq:"Komuniteti" },
+  bildung: { en:"Education", es:"Educación", fr:"Éducation", it:"Istruzione", tr:"Eğitim", pt:"Educação", sq:"Arsimi" },
+  technologie: { en:"Technology", es:"Tecnología", fr:"Technologie", it:"Tecnologia", tr:"Teknoloji", pt:"Tecnologia", sq:"Teknologjia" },
+  business: { en:"Business", es:"Negocios", fr:"Affaires", it:"Business", tr:"İş", pt:"Negócios", sq:"Biznesi" },
+  gesundheit: { en:"Health", es:"Salud", fr:"Santé", it:"Salute", tr:"Sağlık", pt:"Saúde", sq:"Shëndeti" },
+  achtsamkeit: { en:"Mindfulness", es:"Atención plena", fr:"Pleine conscience", it:"Consapevolezza", tr:"Farkındalık", pt:"Atenção plena", sq:"Vetëdija" },
+  kochen: { en:"Cooking", es:"Cocina", fr:"Cuisine", it:"Cucina", tr:"Yemek", pt:"Cozinha", sq:"Kuzhina" },
+  garten: { en:"Garden", es:"Jardín", fr:"Jardin", it:"Giardino", tr:"Bahçe", pt:"Jardim", sq:"Kopshti" },
+  wohnen: { en:"Home & Living", es:"Vivienda", fr:"Habitat", it:"Casa", tr:"Ev yaşamı", pt:"Habitação", sq:"Banimi" },
+  kunst: { en:"Art", es:"Arte", fr:"Art", it:"Arte", tr:"Sanat", pt:"Arte", sq:"Arti" },
+  fotografie: { en:"Photography", es:"Fotografía", fr:"Photographie", it:"Fotografia", tr:"Fotoğrafçılık", pt:"Fotografia", sq:"Fotografia" },
+  film: { en:"Film", es:"Cine", fr:"Film", it:"Film", tr:"Film", pt:"Cinema", sq:"Filmi" },
+  gaming: { en:"Gaming", es:"Videojuegos", fr:"Jeux vidéo", it:"Gaming", tr:"Oyun", pt:"Jogos", sq:"Lojëra" },
+  literatur: { en:"Literature", es:"Literatura", fr:"Littérature", it:"Letteratura", tr:"Edebiyat", pt:"Literatura", sq:"Letërsia" },
+  schreiben: { en:"Writing", es:"Escritura", fr:"Écriture", it:"Scrittura", tr:"Yazı", pt:"Escrita", sq:"Shkrimi" },
+  sprache: { en:"Language", es:"Idioma", fr:"Langue", it:"Lingua", tr:"Dil", pt:"Idioma", sq:"Gjuha" },
+  reisen: { en:"Travel", es:"Viajes", fr:"Voyage", it:"Viaggi", tr:"Seyahat", pt:"Viagens", sq:"Udhëtimi" },
+  outdoor: { en:"Outdoor", es:"Aire libre", fr:"Plein air", it:"Outdoor", tr:"Doğa", pt:"Ar livre", sq:"Jashtë" },
+  sport: { en:"Sports", es:"Deporte", fr:"Sport", it:"Sport", tr:"Spor", pt:"Desporto", sq:"Sporti" },
+  tiere: { en:"Animals", es:"Animales", fr:"Animaux", it:"Animali", tr:"Hayvanlar", pt:"Animais", sq:"Kafshët" },
+  familie: { en:"Family", es:"Familia", fr:"Famille", it:"Famiglia", tr:"Aile", pt:"Família", sq:"Familja" },
+  kinder: { en:"Children", es:"Niños", fr:"Enfants", it:"Bambini", tr:"Çocuklar", pt:"Crianças", sq:"Fëmijët" },
+  senioren: { en:"Seniors", es:"Mayores", fr:"Seniors", it:"Anziani", tr:"Yaşlılar", pt:"Seniores", sq:"Të moshuar" },
+  ehrenamt: { en:"Volunteering", es:"Voluntariado", fr:"Bénévolat", it:"Volontariato", tr:"Gönüllülük", pt:"Voluntariado", sq:"Vullnetarizmi" },
+  events: { en:"Events", es:"Eventos", fr:"Événements", it:"Eventi", tr:"Etkinlikler", pt:"Eventos", sq:"Eventet" },
+  freizeit: { en:"Leisure", es:"Ocio", fr:"Loisirs", it:"Tempo libero", tr:"Boş zaman", pt:"Lazer", sq:"Koha e lirë" },
+  handmade: { en:"Handmade", es:"Hecho a mano", fr:"Fait main", it:"Fatto a mano", tr:"El yapımı", pt:"Artesanal", sq:"Punuar me dorë" },
+  diy: { en:"DIY", es:"DIY", fr:"Bricolage", it:"Fai da te", tr:"Kendin yap", pt:"Faça você mesmo", sq:"Bëje vetë" },
+  handwerk: { en:"Craft", es:"Artesanía", fr:"Artisanat", it:"Artigianato", tr:"El sanatı", pt:"Artesanato", sq:"Zeja" },
+  reparatur: { en:"Repair", es:"Reparación", fr:"Réparation", it:"Riparazione", tr:"Tamir", pt:"Reparação", sq:"Riparimi" },
+  mobilitaet: { en:"Mobility", es:"Movilidad", fr:"Mobilité", it:"Mobilità", tr:"Ulaşım", pt:"Mobilidade", sq:"Lëvizshmëria" },
+  beauty: { en:"Beauty", es:"Belleza", fr:"Beauté", it:"Bellezza", tr:"Güzellik", pt:"Beleza", sq:"Bukuria" },
+  mode: { en:"Fashion", es:"Moda", fr:"Mode", it:"Moda", tr:"Moda", pt:"Moda", sq:"Moda" },
+  schmuck: { en:"Jewelry", es:"Joyería", fr:"Bijoux", it:"Gioielli", tr:"Mücevher", pt:"Joalharia", sq:"Bizhuteri" },
+  geschenke: { en:"Gifts", es:"Regalos", fr:"Cadeaux", it:"Regali", tr:"Hediyeler", pt:"Presentes", sq:"Dhurata" },
+  dienstleistungen: { en:"Services", es:"Servicios", fr:"Services", it:"Servizi", tr:"Hizmetler", pt:"Serviços", sq:"Shërbimet" },
+  finanzen: { en:"Finance", es:"Finanzas", fr:"Finances", it:"Finanza", tr:"Finans", pt:"Finanças", sq:"Financat" },
+  recht: { en:"Law", es:"Derecho", fr:"Droit", it:"Diritto", tr:"Hukuk", pt:"Direito", sq:"Ligji" },
+  immobilien: { en:"Real Estate", es:"Inmobiliaria", fr:"Immobilier", it:"Immobiliare", tr:"Emlak", pt:"Imobiliário", sq:"Pasuritë e paluajtshme" },
+  innovation: { en:"Innovation", es:"Innovación", fr:"Innovation", it:"Innovazione", tr:"İnovasyon", pt:"Inovação", sq:"Inovacioni" },
+  ki: { en:"AI", es:"IA", fr:"IA", it:"IA", tr:"YZ", pt:"IA", sq:"IA" },
+  digitales: { en:"Digital", es:"Digital", fr:"Numérique", it:"Digitale", tr:"Dijital", pt:"Digital", sq:"Dixhitale" },
+  coaching: { en:"Coaching", es:"Coaching", fr:"Coaching", it:"Coaching", tr:"Koçluk", pt:"Coaching", sq:"Koçing" },
+  lernen: { en:"Learning", es:"Aprendizaje", fr:"Apprentissage", it:"Apprendimento", tr:"Öğrenme", pt:"Aprendizagem", sq:"Mësimi" },
+  medizin: { en:"Medicine", es:"Medicina", fr:"Médecine", it:"Medicina", tr:"Tıp", pt:"Medicina", sq:"Mjekësia" },
+  spiritualitaet: { en:"Spirituality", es:"Espiritualidad", fr:"Spiritualité", it:"Spiritualità", tr:"Maneviyat", pt:"Espiritualidade", sq:"Spiritualiteti" },
+  persoenlichkeitsentwicklung: { en:"Personal Development", es:"Desarrollo personal", fr:"Développement personnel", it:"Sviluppo personale", tr:"Kişisel gelişim", pt:"Desenvolvimento pessoal", sq:"Zhvillimi personal" },
+  sonstiges: { en:"Other", es:"Otros", fr:"Autre", it:"Altro", tr:"Diğer", pt:"Outros", sq:"Të tjera" },
+};
+
 // ── PARENT-KATEGORIEN (Discovery-Themenwelt, 50 Eintraege) ───────────────
 export const CATEGORIES = [
   cat("nachhaltigkeit",   "Nachhaltigkeit",           "🌱", "#16A34A", ["nachhaltig","natur","umwelt","klima","oekologisch"]),
@@ -189,8 +251,8 @@ export const CATEGORIES = [
 
 // ── Konstruktor-Helfer (halten die Liste oben lesbar, keine Wiederholung
 //    der Erweiterungsfelder in jeder Zeile) ───────────────────────────────
-function baseExtensions() {
-  return { synonyms:[], aiTags:[], i18n:null, region:null, personalized:null, rank:null, embedding:null };
+function baseExtensions(i18n = null) {
+  return { synonyms:[], aiTags:[], i18n, region:null, personalized:null, rank:null, embedding:null };
 }
 function cat(id, name, icon, color, keywords, extra = {}) {
   return {
@@ -199,7 +261,7 @@ function cat(id, name, icon, color, keywords, extra = {}) {
     appliesTo: extra.appliesTo || ["search"],
     hidden: !!extra.hidden,
     children: (extra.children || []).map(c => ({ ...c, parentId:id })),
-    ...baseExtensions(),
+    ...baseExtensions(CATEGORY_I18N[id] || null),
   };
 }
 function child(id, name, legacyValues, appliesTo, keywords = []) {
@@ -220,6 +282,16 @@ export const FEATURED_CATEGORIES = FEATURED_SLUGS
 // ── Baum-Zugriffshelfer ───────────────────────────────────────────────────
 export function getCategoryBySlug(slug) {
   return CATEGORIES.find(c => c.slug === slug) || null;
+}
+
+// Uebersetzte Anzeige-Label fuer einen Kategorie-Knoten (Parent oder Child).
+// 'de' liefert immer node.name (SSOT/DB-Wert). Fuer andere Sprachen: node.i18n
+// falls vorhanden, sonst Fallback auf node.name (Deutsch) -- NIE ein leerer
+// String. Reine Anzeige-Funktion, aendert NICHTS an legacyValues/DB-Werten.
+export function getCategoryLabel(node, lang = "de") {
+  if (!node) return "";
+  if (lang === "de") return node.name;
+  return node.i18n?.[lang] || node.name;
 }
 
 // Alle Knoten (Parents + Children) als flache Liste, jeweils mit Referenz

@@ -17,7 +17,7 @@ import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
-import { FEATURED_CATEGORIES, searchCategories } from "../../../lib/categories.js";
+import { FEATURED_CATEGORIES, searchCategories, getCategoryLabel } from "../../../lib/categories.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
 import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
@@ -305,7 +305,7 @@ function RadiusRow({ radius }) {
 // "kein Overlay/Portal mehr"-Architekturentscheidung von Search Experience
 // 2.0 -- diese bezog sich ausschliesslich auf die SUCHERGEBNISSE (Feed),
 // die weiterhin inline im normalen Feed erscheinen, nie in einem Overlay.
-function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose, activeIds = [] }) {
+function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose, activeIds = [], lang, t }) {
   const results = searchCategories(query);
   const visible = phase === "visible";
 
@@ -340,7 +340,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
         {/* Header + eigenes Suchfeld -- "Suche innerhalb der Kategorien" */}
         <div style={{ padding:"6px 20px 14px", flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-            <div style={{ fontSize:16.5, fontWeight: 600, color:T.ink, letterSpacing:"-0.01em" }}>Alle Kategorien</div>
+            <div style={{ fontSize:16.5, fontWeight: 600, color:T.ink, letterSpacing:"-0.01em" }}>{t("discover.allCategories")}</div>
             <button className="dc-tag" onClick={onClose} style={{
               width:28, height:28, borderRadius:"50%", background:"rgba(26,53,48,0.06)",
               border:"none", display:"flex", alignItems:"center", justifyContent:"center",
@@ -360,7 +360,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
               autoFocus={false}
               value={query}
               onChange={e=>onQueryChange(e.target.value.slice(0,200))}
-              placeholder="Kategorien durchsuchen…"
+              placeholder={t("discover.searchCategoriesPlaceholder")}
               style={{
                 flex:1, outline:"none", border:"none", background:"none",
                 fontSize:13.5, fontWeight:500, letterSpacing:"-0.01em", color:T.ink,
@@ -388,7 +388,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
         }}>
           {results.length === 0 ? (
             <div style={{ padding:"32px 8px", textAlign:"center", fontSize:13, color:T.inkF }}>
-              Keine Kategorien für „{query}"
+              {t("discover.noCategoriesFor", { query })}
             </div>
           ) : (
             <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10 }}>
@@ -405,7 +405,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
                     transform: isActive ? "scale(1.03)" : "scale(1)",
                   }}>
                     <span style={{ fontSize:22 }}>{isActive ? "✓" : cat.icon}</span>
-                    <span style={{ fontSize:11, fontWeight:600, letterSpacing:"-0.01em", color: isActive ? "#fff" : cat.color, textAlign:"center", lineHeight:1.25 }}>{cat.name}</span>
+                    <span style={{ fontSize:11, fontWeight:600, letterSpacing:"-0.01em", color: isActive ? "#fff" : cat.color, textAlign:"center", lineHeight:1.25 }}>{getCategoryLabel(cat, lang)}</span>
                   </button>
                 );
               })}
@@ -559,7 +559,7 @@ export default function SearchCommandCenter({
   // statt auf getrennten, versetzten Zeilen.
   quickActions = null,
 }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [open,       setOpen]       = useState(false);   // Suche fokussiert/aktiv
   const [query,      setQuery]      = useState("");
   const [typeFilter, setTypeFilter] = useState(null);    // null | "work" | "moment" | "experience" | "talent"
@@ -1055,7 +1055,7 @@ export default function SearchCommandCenter({
             {activeCategories.map(cat => (
               <div key={cat.id} style={{display:"inline-flex",alignItems:"center",gap:7,background:"#0EC4B8",borderRadius:99,padding:"7px 8px 7px 14px",boxShadow:"0 4px 14px rgba(14,196,184,0.28)"}}>
                 <span style={{fontSize:13}}>{cat.icon}</span>
-                <span style={{fontSize:12.5,fontWeight:600,color:"#fff",letterSpacing:"-0.01em"}}>{cat.name}</span>
+                <span style={{fontSize:12.5,fontWeight:600,color:"#fff",letterSpacing:"-0.01em"}}>{getCategoryLabel(cat, lang)}</span>
                 <button className="dc-tag" onClick={()=>removeCategory(cat.id)} style={{
                   width:18,height:18,borderRadius:"50%",background:"rgba(255,255,255,0.28)",
                   border:"none",display:"flex",alignItems:"center",justifyContent:"center",
@@ -1069,7 +1069,7 @@ export default function SearchCommandCenter({
               borderRadius:99,padding:"7px 14px",cursor:"pointer",
               fontSize:12,fontWeight:600,letterSpacing:"-0.01em",color:T.inkF,whiteSpace:"nowrap",
               WebkitTapHighlightColor:"transparent",
-            }}>+ Kategorie</button>
+            }}>+ {t("discover.category")}</button>
           </div>
         </div>
       )}
@@ -1086,7 +1086,7 @@ export default function SearchCommandCenter({
                 fontSize:12,fontWeight:600,letterSpacing:"-0.01em",color:cat.color,whiteSpace:"nowrap",
                 WebkitTapHighlightColor:"transparent",
               }}>
-                <span style={{fontSize:12.5}}>{cat.icon}</span>{cat.name}
+                <span style={{fontSize:12.5}}>{cat.icon}</span>{getCategoryLabel(cat, lang)}
               </button>
             ))}
             <button className="dc-tag" onClick={()=>setShowAllCategories(true)} style={{
@@ -1095,7 +1095,7 @@ export default function SearchCommandCenter({
               borderRadius:99,padding:"7px 14px",cursor:"pointer",
               fontSize:12,fontWeight:600,letterSpacing:"-0.01em",color:T.inkF,whiteSpace:"nowrap",
               WebkitTapHighlightColor:"transparent",
-            }}>Alle Kategorien ➡</button>
+            }}>{t("discover.allCategoriesArrow")}</button>
           </div>
         </div>
       )}
@@ -1340,6 +1340,8 @@ export default function SearchCommandCenter({
           onSelect={toggleCategory}
           onClose={()=>setShowAllCategories(false)}
           activeIds={activeCategoryIds}
+          lang={lang}
+          t={t}
         />
       )}
     </>
