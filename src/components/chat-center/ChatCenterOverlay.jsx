@@ -186,12 +186,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
   const { t } = useTranslation();
 
   const { chats: rawChats, loading } = useChatList("cco");
-  // Lokal geschlossene Chats (bis nächstem Reload)
-  const [closedChatIds, setClosedChatIds] = React.useState(new Set());
-  const chats = React.useMemo(
-    () => (rawChats || []).filter(ch => !closedChatIds.has(ch?.id)),
-    [rawChats, closedChatIds]
-  );
+  const chats = rawChats;
 
   // ── Neueste Verbindungen — echte Chat-Partner, chronologisch (neueste zuerst) ──
   // Vorher: gegenseitige Follows (falsche Datenquelle — bestehende Chat-Partner wie
@@ -401,8 +396,13 @@ if (loadingConv && !activeConv) {
               console.error("[deleteChat] Fehler:", result.error);
               // Trotz Fehler lokal entfernen, damit der Nutzer nicht stecken bleibt
             }
-            setClosedChatIds(prev => new Set([...prev, activeConv.id]));
             setActiveConv(null);
+            // Chat wird via closeChat() in der DB auf state:"closed" gesetzt.
+            // useChatList filtert closed Chats nun serverseitig via .in() —
+            // kein lokales closedChatIds-Set mehr nötig.
+            if (typeof window !== "undefined" && window.__HUI_RELOAD_CHAT_LIST__) {
+              window.__HUI_RELOAD_CHAT_LIST__();
+            }
           }}
         />
 

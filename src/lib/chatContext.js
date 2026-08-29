@@ -113,8 +113,8 @@ export function useChatList(instanceId = "default") {
         `)
         // participant_ids ist uuid[] → cs. (contains) prüft ob user.id enthalten
         .contains("participant_ids", [user.id])
-        // state-Filter: "deleted" Chats ausblenden
-        .neq("state", "deleted")
+        // state-Filter: nur aktive Chats zeigen (keine closed/deleted)
+        .in("state", ["opened", "archived", "muted", "blocked"])
         .order("last_message_at", { ascending: false, nullsFirst: false })
         .limit(50);
 
@@ -683,7 +683,7 @@ export async function findOrCreateChat({
     .from("chats")
     .select("id, participant_ids, state, last_message, last_message_at, booking_id")
     .contains("participant_ids", [userId, otherUserId])
-    .eq("state", "opened")
+    .neq("state", "deleted")
     .order("last_message_at", { ascending: false })
     .limit(5);
 
@@ -699,6 +699,13 @@ export async function findOrCreateChat({
   );
 
   if (match) {
+    // Reopen: falls Chat geschlossen ist, wieder oeffnen
+    if (match.state && match.state !== "opened") {
+      await supabase
+        .from("chats")
+        .update({ state: "opened", closed_at: null, last_message_at: new Date().toISOString() })
+        .eq("id", match.id);
+    }
     // [FCC_FOUND_EXISTING]
     const _found = { event: "FCC_FOUND_EXISTING", ..._fccMeta, chatId: match.id };
     logDebug("FCC_FOUND_EXISTING", _found);
