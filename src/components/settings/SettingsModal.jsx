@@ -487,12 +487,15 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
   // ── PIN Toggle (unabhängig von Biometrie) ─────────────────────
   const handlePinToggle = useCallback(async () => {
+    console.log('[HUI DEBUG] handlePinToggle called, pinEnabled=', pinEnabled);
     if (pinEnabled) {
       await disablePIN();
       setPinEnabled(false);
+      console.log('[HUI DEBUG] PIN disabled');
       return;
     }
     // PIN aktivieren → Setup-Dialog öffnen
+    console.log('[HUI DEBUG] Opening PIN setup dialog');
     setBioPinStep("first");
     setBioPinFirst("");
     setBioPinSecond("");
@@ -684,7 +687,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
           <div
             onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}
             style={{
-              position:"fixed", inset:0, zIndex:10600,
+              position:"fixed", inset:0, zIndex:10700,
               background:"rgba(26,26,24,0.55)",
               display:"flex", alignItems:"flex-end", justifyContent:"center",
               fontFamily:"Inter,sans-serif",
