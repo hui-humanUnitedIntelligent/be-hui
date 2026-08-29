@@ -8,6 +8,7 @@ import NutzungsbedingungenModal from '../components/auth/NutzungsbedingungenModa
 import EmailVerificationModal from '../components/auth/EmailVerificationModal.jsx';
 import { getAuthRedirectUrl } from '../lib/platform.js';
 import { useTranslation } from '../hooks/useTranslation.js';
+import { useKeyboardInset } from '../hooks/useKeyboardInset.js';
 
 // ── Design Tokens ───────────────────────────────────────────────
 const T = {
@@ -346,6 +347,18 @@ export default function LoginPage() {
 
   const { isAuthenticated, loadingAuth } = useAuth();
 
+  // KBD-INSET-FIX (2026-08-29, Michael-Report Screenshot "wird durch
+  // Systemtastatur verdeckt, laesst sich nicht scrollen"): Register-Card
+  // nutzte statisches maxHeight:"94dvh" -- die Systemtastatur schrumpft
+  // dvh in dieser Android-WebView NICHT (identischer Root Cause wie
+  // ShippingAddressModal KBD-INSET-FIX 2026-08-20). Card blieb dadurch
+  // ueber den sichtbaren Bereich hinaus hoch, unterste Felder (Email,
+  // Passwort, Weiter-Button) blieben permanent hinter der Tastatur --
+  // auch Scroll-Versuche im Card-Container konnten sie nicht erreichen,
+  // weil der Container selbst nie schrumpfte. Fix: card maxHeight jetzt
+  // dynamisch ueber --hui-keyboard-inset CSS-Var reduziert.
+  useKeyboardInset();
+
   // Modes: 'splash' | 'login' | 'register' | 'forgot' | 'onboarding'
   const [mode,       setMode]       = useState('splash');
   const [showTerms,  setShowTerms]  = useState(false);
@@ -607,10 +620,14 @@ export default function LoginPage() {
     borderRadius: 28,
     boxShadow: '0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04)',
     // Register hat mehr Felder — scrollbar wenn nötig
+    // KBD-INSET-FIX (2026-08-29): maxHeight schrumpft jetzt IM GLEICHEN
+    // MASS wie die Tastatur (--hui-keyboard-inset), damit alle Felder
+    // per Scroll erreichbar bleiben statt permanent verdeckt zu sein.
     ...(mode === 'register' ? {
-      maxHeight: '94dvh',
+      maxHeight: 'calc(94dvh - var(--hui-keyboard-inset, 0px))',
       overflowY: 'auto',
       overflowX: 'hidden',
+      transition: 'max-height .15s ease-out',
     } : {}),
   };
 
@@ -702,7 +719,7 @@ export default function LoginPage() {
                      :                       handleForgot;
 
   return (
-    <div style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', overflow: 'hidden',
+    <div data-hui-kbd-self-managed style={{ position: 'relative', minHeight: '100dvh', width: '100%', maxWidth: '100%', overflowX: 'hidden', overflow: 'hidden',
       display: 'flex', flexDirection: 'column' }}>
       <AtmosphericBackground imgIdx={bgIdx} />
 
