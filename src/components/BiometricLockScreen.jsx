@@ -237,7 +237,7 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
           {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14,
-            width: '100%', maxWidth: 280,
+            width: '100%', maxWidth: 340,
             opacity: busy ? 0.5 : 1, pointerEvents: busy ? 'none' : 'auto',
           }}>
             {["1","2","3","4","5","6","7","8","9"].map((d) => (
