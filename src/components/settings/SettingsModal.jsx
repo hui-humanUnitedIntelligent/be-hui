@@ -19,6 +19,16 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { getOTAStatus, checkForUpdate } from "../../lib/otaUpdate.js";
 import { formatDateDE } from "../../lib/formatters.js";
+import { Capacitor } from "@capacitor/core";
+import {
+  checkBiometricAvailability,
+  isBiometricEnabled,
+  isPINEnabled,
+  authenticateWithBiometric,
+  enableBiometric,
+  setPIN as saveNewPIN,
+  clearSavedSession,
+} from "../../lib/biometricService.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens ─────────────────────────────────────────────
@@ -394,6 +404,15 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false }) {
   const { t, lang, changeLang } = useTranslation();
   useModalRegistration(true, onClose, "SettingsModal");
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    (async () => {
+      const bioOn = await isBiometricEnabled();
+      const pinOn = await isPINEnabled();
+      setBiometricEnabled(bioOn || pinOn);
+    })();
+  }, []);
   // Profil aus prop ODER direkt aus AuthContext (Fallback wenn prop noch null)
   const { profile: authCtxProfile } = useAuth() || {};
   const profile = profileProp || authCtxProfile || null;
@@ -406,6 +425,13 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false); // SPRACHAUSWAHL (2026-08-27)
   const [showBankdaten, setShowBankdaten] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [showBioPINSetup,  setShowBioPINSetup]  = useState(false);
+  const [bioPinStep,       setBioPinStep]       = useState("first"); // first | confirm
+  const [bioPinFirst,      setBioPinFirst]      = useState("");
+  const [bioPinSecond,     setBioPinSecond]     = useState("");
+  const [bioPinError,      setBioPinError]      = useState(null);
+  const [bioIsNative]                           = useState(() => Capacitor.isNativePlatform());
   // BANKDATEN-LINK (2026-08-16): Wenn von Notification-Deep-Link geöffnet,
   // automatisch Bankdaten-Sub-Modal öffnen.
   useEffect(() => {
@@ -420,6 +446,55 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   }, [profile?.id]);
   const kbdInset = useKeyboardInset();
   if (!profile) return null;
+
+  const handleBiometricToggle = useCallback(async () => {
+    if (biometricEnabled) {
+      await clearSavedSession();
+      setBiometricEnabled(false);
+      return;
+    }
+    const avail = await checkBiometricAvailability();
+    if (avail.available) {
+      const success = await authenticateWithBiometric();
+      if (success) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.refresh_token && session?.user?.email) {
+          await enableBiometric(session.user.email, session.refresh_token);
+          setBiometricEnabled(true);
+        }
+      }
+    } else {
+      setBioPinStep("first");
+      setBioPinFirst("");
+      setBioPinSecond("");
+      setBioPinError(null);
+      setShowBioPINSetup(true);
+    }
+  }, [biometricEnabled]);
+
+  const handleBioPINSubmit = useCallback(async () => {
+    if (bioPinStep === "first") {
+      if (bioPinFirst.length === 6) {
+        setBioPinStep("confirm");
+        setBioPinError(null);
+      }
+      return;
+    }
+    if (bioPinSecond.length === 6) {
+      if (bioPinFirst !== bioPinSecond) {
+        setBioPinError(t("biometric.pinMismatch"));
+        setBioPinSecond("");
+        return;
+      }
+      await saveNewPIN(bioPinSecond);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.refresh_token && session?.user?.email) {
+        await enableBiometric(session.user.email, session.refresh_token);
+      }
+      setBiometricEnabled(true);
+      setShowBioPINSetup(false);
+    }
+  }, [bioPinStep, bioPinFirst, bioPinSecond, t]);
 
   const logout = async () => {
     // Push-Tokens invalidieren vor dem Logout
@@ -514,6 +589,18 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               />
               <NavItem icon={<HUISicherheitIcon size={16}/>} label={t("sm.nav.emailPw")}
                 onClick={() => setView("security")}/>
+              {bioIsNative && (
+                <NavItem
+                  icon={<HUISicherheitIcon size={16}/>}
+                  label={t("biometric.settingsLabel")}
+                  onClick={handleBiometricToggle}
+                  right={biometricEnabled ? (
+                    <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                      {t("biometric.settingsOn")}
+                    </span>
+                  ) : null}
+                />
+              )}
               <NavItem icon={<HUIKontaktIcon size={16}/>} label={t("sm.nav.support")}
                 onClick={() => setView("support")}/>
               <NavItem icon={<HUIMailIcon size={16}/>} label={t("sm.nav.tickets")}
@@ -527,7 +614,107 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 onClick={logout} danger last/>
             </Section>
 
-            {showBankdaten && (
+            {showBioPINSetup && createPortal(
+          <div
+            onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}
+            style={{
+              position:"fixed", inset:0, zIndex:10600,
+              background:"rgba(26,26,24,0.55)",
+              display:"flex", alignItems:"flex-end", justifyContent:"center",
+              fontFamily:"Inter,sans-serif",
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                width:"100%", maxWidth:480,
+                background:T.bg, borderRadius:"24px 24px 0 0",
+                padding:"0 0 calc(max(env(safe-area-inset-bottom, 0px), 16px) + 24px)",
+                boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+                overflow:"hidden",
+              }}
+            >
+              <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
+                <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+              </div>
+
+              <div style={{ padding:"24px 20px 0" }}>
+                <div style={{ fontSize:20, fontWeight:600, color:T.ink, letterSpacing:-0.4, marginBottom:4 }}>
+                  {t("biometric.setupPIN")}
+                </div>
+                <div style={{ fontSize:13, color:T.inkSoft, marginBottom:24 }}>
+                  {bioPinStep === "first" ? t("biometric.setupPIN") : t("biometric.confirmPIN")}
+                </div>
+
+                <div style={{ display:"flex", gap:14, justifyContent:"center", marginBottom:24 }}>
+                  {Array.from({ length: 6 }).map((_, i) => {
+                    const val = bioPinStep === "first" ? bioPinFirst : bioPinSecond;
+                    return (
+                      <div key={i} style={{
+                        width:16, height:16, borderRadius:"50%",
+                        border:`2px solid ${i < val.length ? T.teal : "rgba(26,26,24,0.15)"}`,
+                        background: i < val.length ? T.teal : "transparent",
+                        transition:"all 0.15s ease",
+                      }} />
+                    );
+                  })}
+                </div>
+
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  autoFocus
+                  value={bioPinStep === "first" ? bioPinFirst : bioPinSecond}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, "").slice(0, 6);
+                    if (bioPinStep === "first") setBioPinFirst(clean);
+                    else setBioPinSecond(clean);
+                  }}
+                  onKeyPress={(e) => { if (e.key === "Enter") handleBioPINSubmit(); }}
+                  style={{ position:"absolute", opacity:0, pointerEvents:"none", width:1, height:1, left:-9999 }}
+                  aria-label={t("biometric.setupPIN")}
+                />
+
+                {bioPinError && (
+                  <div style={{ fontSize:13, color:T.danger, textAlign:"center", marginBottom:16 }}>
+                    {bioPinError}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleBioPINSubmit}
+                  disabled={(bioPinStep === "first" ? bioPinFirst.length : bioPinSecond.length) < 6}
+                  style={{
+                    width:"100%", padding:"15px", borderRadius:18, border:"none",
+                    background: (bioPinStep === "first" ? bioPinFirst.length : bioPinSecond.length) < 6
+                      ? "rgba(14,196,184,0.35)" : T.teal,
+                    color:"#fff", fontSize:16, fontWeight:600,
+                    cursor:(bioPinStep === "first" ? bioPinFirst.length : bioPinSecond.length) < 6 ? "default" : "pointer",
+                    touchAction:"manipulation",
+                  }}
+                >
+                  {bioPinStep === "first" ? t("biometric.confirmPIN") : t("biometric.setupSuccess")}
+                </button>
+
+                <button
+                  onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}
+                  style={{
+                    width:"100%", padding:"12px", marginTop:8,
+                    background:"none", border:"none",
+                    color:T.inkFaint, fontSize:13,
+                    cursor:"pointer", textDecoration:"underline",
+                    touchAction:"manipulation",
+                  }}
+                >
+                  {t("sm.nav.logout") === "Abmelden" ? "Abbrechen" : "Cancel"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {showBankdaten && (
               <BankdatenModal
                 userId={profile.id}
                 onClose={() => setShowBankdaten(false)}
