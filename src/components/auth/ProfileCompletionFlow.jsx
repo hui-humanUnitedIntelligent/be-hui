@@ -13,11 +13,22 @@ const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";
 const INK   = "#1A1A2E";
 
+// KANONISCHER WERT bleibt Deutsch (wird als profiles.skills[] gespeichert,
+// DB-Format unveraendert). Anzeige-Label wird ueber INTEREST_I18N_KEYS uebersetzt
+// (i18n-Regel 2026-08-29: "ganzer Registrierungsprozess uebersetzen").
 const INTEREST_OPTIONS = [
   "Musik","Kunst","Design","Natur","Heilung","Bewegung",
   "Handwerk","Sprache","Tanz","Wirkung","Kochen","Fotografie",
   "Schreiben","Coaching","Gemeinschaft","Wissenschaft",
 ];
+const INTEREST_I18N_KEYS = {
+  "Musik": "interest.musik", "Kunst": "interest.kunst", "Design": "interest.design",
+  "Natur": "interest.natur", "Heilung": "interest.heilung", "Bewegung": "interest.bewegung",
+  "Handwerk": "interest.handwerk", "Sprache": "interest.sprache", "Tanz": "interest.tanz",
+  "Wirkung": "interest.wirkung", "Kochen": "interest.kochen", "Fotografie": "interest.fotografie",
+  "Schreiben": "interest.schreiben", "Coaching": "interest.coaching",
+  "Gemeinschaft": "interest.gemeinschaft", "Wissenschaft": "interest.wissenschaft",
+};
 
 const CSS_STR = `
 @keyframes pcfIn {
@@ -54,6 +65,7 @@ function StepDots({ total, current }) {
 }
 
 function AvatarUploader({ userId, current, onUploaded }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(current || null);
   const [error,   setError]   = useState(null);
@@ -77,9 +89,9 @@ function AvatarUploader({ userId, current, onUploaded }) {
 
   async function handleFile(file) {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert("Bild max 5MB"); return; }
-    if (!file.type.startsWith("image/")) { setError("Nur Bilder erlaubt"); return; }
-    if (file.size > 5 * 1024 * 1024)    { setError("Maximal 5 MB"); return; }
+    if (file.size > 5 * 1024 * 1024) { alert(t("pcf.imageMax5mb")); return; }
+    if (!file.type.startsWith("image/")) { setError(t("pcf.onlyImages")); return; }
+    if (file.size > 5 * 1024 * 1024)    { setError(t("pcf.max5mb")); return; }
     setLoading(true); setError(null);
     setPreview(URL.createObjectURL(file));
     try {
@@ -93,7 +105,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
       setPreview(publicUrl);
       onUploaded?.(publicUrl);
     } catch {
-      setError("Upload fehlgeschlagen — bitte erneut versuchen");
+      setError(t("pcf.uploadFailed"));
       setPreview(current || null);
     } finally { setLoading(false); }
   }
@@ -127,7 +139,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
         background:"none",border:"none",color:TEAL,fontSize:13.5,fontWeight:600,
         cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
       }}>
-        {preview ? "Anderes Foto wählen" : "Foto hochladen"}
+        {preview ? t("pcf.chooseOtherPhoto") : t("pcf.uploadPhoto")}
       </button>
       {error && <div style={{fontSize:12,color:"#EF4444",textAlign:"center"}}>{error}</div>}
     </div>
@@ -176,11 +188,11 @@ export default function ProfileCompletionFlow({ onComplete }) {
 
     if (step === 0) {
       const { ok, hint, normalized } = validateUsername(username);
-      if (!ok) { setError(hint || "Ungültiger Benutzername"); return; }
+      if (!ok) { setError(hint || t("pcf.invalidUsername")); return; }
       if (!await saveField({ username: normalized })) return;
     }
     if (step === 1) {
-      if (bio.trim().length < 10) { setError("Mindestens 10 Zeichen"); return; }
+      if (bio.trim().length < 10) { setError(t("pcf.bioMinLength")); return; }
       if (!await saveField({ bio: bio.trim() })) return;
     }
     if (step === 3) {
@@ -243,9 +255,9 @@ export default function ProfileCompletionFlow({ onComplete }) {
       }}>
         <div style={{textAlign:"center",marginBottom:8}}>
           <div style={{fontSize:13,fontWeight: 600,color:TEAL,letterSpacing:1.5,
-            textTransform:"uppercase",marginBottom:6}}>Profil einrichten</div>
+            textTransform:"uppercase",marginBottom:6}}>{t("pcf.setupProfile")}</div>
           <div style={{fontSize:22,fontWeight: 600,color:INK,letterSpacing:-0.5}}>
-            {["Dein Username","Über dich","Dein Gesicht","Deine Welt"][step]}
+            {[t("pcf.stepUsername"), t("pcf.stepAboutYou"), t("pcf.stepYourFace"), t("pcf.stepYourWorld")][step]}
           </div>
         </div>
 
@@ -257,7 +269,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           {step === 0 && (
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
               <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 4px",lineHeight:1.6}}>
-                Dein @Username ist deine einzigartige Adresse in HUI.
+                {t("pcf.usernameHint")}
               </p>
               <UsernameInput value={username} onChange={setUsername} />
             </div>
@@ -265,10 +277,10 @@ export default function ProfileCompletionFlow({ onComplete }) {
           {step === 1 && (
             <div>
               <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 12px",lineHeight:1.6}}>
-                Was bewegst du? Was macht dich aus?
+                {t("pcf.bioHint")}
               </p>
               <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={300} rows={4}
-                placeholder="Ich bin … ich erschaffe …"
+                placeholder={t("pcf.bioPlaceholder")}
                 style={{
                   width:"100%",padding:"14px 16px",
                   border:"1.5px solid rgba(26,26,46,0.12)",borderRadius:16,
@@ -286,7 +298,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           {step === 2 && (
             <div style={{textAlign:"center"}}>
               <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 20px",lineHeight:1.6}}>
-                Ein echtes Foto schafft Vertrauen.
+                {t("pcf.avatarHint")}
               </p>
               <AvatarUploader userId={user.id} current={avatar} onUploaded={url => setAvatar(url)}/>
             </div>
@@ -294,14 +306,14 @@ export default function ProfileCompletionFlow({ onComplete }) {
           {step === 3 && (
             <div>
               <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 14px",lineHeight:1.6}}>
-                Was bewegt dich? Wähle alles was passt.
+                {t("pcf.interestsHint")}
               </p>
               <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
                 {INTEREST_OPTIONS.map(tag => {
                   const active = interests.includes(tag);
                   return (
                     <button key={tag} onClick={() =>
-                      setInterests(prev => active ? prev.filter(t=>t!==tag) : [...prev,tag])
+                      setInterests(prev => active ? prev.filter(x=>x!==tag) : [...prev,tag])
                     } style={{
                       padding:"8px 16px",borderRadius:22,
                       background: active ? `linear-gradient(135deg,${TEAL},${CORAL})` : "rgba(22,215,197,0.08)",
@@ -311,7 +323,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
                       cursor:"pointer",touchAction:"manipulation",
                       transform: active ? "scale(1.04)" : "scale(1)",
                       transition:"all 0.16s ease",
-                    }}>{tag}</button>
+                    }}>{t(INTEREST_I18N_KEYS[tag] || tag)}</button>
                   );
                 })}
               </div>
@@ -341,7 +353,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
             <button onClick={() => setStep(s=>s+1)} style={{
               background:"none",border:"none",color:"rgba(26,26,46,0.35)",
               fontSize:13,cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
-            }}>Jetzt überspringen</button>
+            }}>{t("pcf.skip")}</button>
           )}
         </div>
       </div>

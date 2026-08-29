@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { platformPath } from '../../lib/platform.js';
+import { useTranslation } from '../../hooks/useTranslation.js';
 
 /**
  * EmailVerificationModal
@@ -20,8 +21,10 @@ import { platformPath } from '../../lib/platform.js';
  * Portal zu document.body, zIndex 10500 (Conform footer-navbar-zindex Regel).
  */
 export default function EmailVerificationModal({ open, email, password, onClose }) {
+  const { t } = useTranslation();
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendMsg, setResendMsg] = useState('');
+  const [resendIsError, setResendIsError] = useState(false);
   const [polling, setPolling] = useState(true);
   const [confirmed, setConfirmed] = useState(false);
   const pollRef = useRef(null);
@@ -89,6 +92,7 @@ export default function EmailVerificationModal({ open, email, password, onClose 
   // ── Mail erneut senden ──
   const handleResend = useCallback(async () => {
     if (resendCooldown > 0) return;
+    setResendMsg(''); setResendIsError(false);
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -98,9 +102,9 @@ export default function EmailVerificationModal({ open, email, password, onClose 
         },
       });
       if (error) {
-        setResendMsg('Erneutes Senden fehlgeschlagen. Bitte später versuchen.');
+        setResendMsg(t("verify.resendFailedRetry")); setResendIsError(true);
       } else {
-        setResendMsg('Bestätigungs-Mail erneut gesendet.');
+        setResendMsg(t("verify.resendSuccess")); setResendIsError(false);
         setResendCooldown(60);
         cooldownRef.current = setInterval(() => {
           setResendCooldown(prev => {
@@ -113,7 +117,7 @@ export default function EmailVerificationModal({ open, email, password, onClose 
         }, 1000);
       }
     } catch (e) {
-      setResendMsg('Erneutes Senden fehlgeschlagen.');
+      setResendMsg(t("verify.resendFailed")); setResendIsError(true);
     }
   }, [email, resendCooldown]);
 
@@ -183,7 +187,7 @@ export default function EmailVerificationModal({ open, email, password, onClose 
           marginBottom: 12,
           letterSpacing: '-0.3px',
         }}>
-          {confirmed ? 'E-Mail bestätigt!' : 'Bitte bestätige deine E-Mail-Adresse'}
+          {confirmed ? t("verify.emailConfirmed") : t("verify.confirmYourEmail")}
         </h2>
 
         {/* Text */}
@@ -194,8 +198,8 @@ export default function EmailVerificationModal({ open, email, password, onClose 
           marginBottom: 20,
         }}>
           {confirmed
-            ? 'Dein Konto wurde aktiviert. Du wirst weitergeleitet…'
-            : <>Wir haben dir eine Bestätigungs-Mail an <strong style={{ color: 'rgba(22,215,197,0.9)' }}>{email}</strong> gesendet. Öffne den Link in der Mail, um dein Konto zu aktivieren.</>
+            ? t("verify.accountActivatedRedirect")
+            : <>{t("verify.sentToPrefix")} <strong style={{ color: 'rgba(22,215,197,0.9)' }}>{email}</strong> {t("verify.sentToSuffix")}</>
           }
         </p>
 
@@ -215,7 +219,7 @@ export default function EmailVerificationModal({ open, email, password, onClose 
               background: '#16D7C5',
               animation: 'hui-verify-spin 1.5s ease-in-out infinite',
             }}/>
-            Prüfe Bestätigung…
+            {t("verify.checkingConfirmation")}
           </div>
         )}
 
@@ -239,12 +243,12 @@ export default function EmailVerificationModal({ open, email, password, onClose 
                 transition: 'all 200ms ease',
               }}
             >
-              {resendCooldown > 0 ? `Erneut senden (${resendCooldown}s)` : 'Bestätigungs-Mail erneut senden'}
+              {resendCooldown > 0 ? t("verify.resendCountdown", { s: resendCooldown }) : t("verify.resendButton")}
             </button>
             {resendMsg && (
               <div style={{
                 fontSize: 12,
-                color: resendMsg.includes('fehlgeschlagen') ? 'rgba(255,138,107,0.8)' : 'rgba(22,215,197,0.7)',
+                color: resendIsError ? 'rgba(255,138,107,0.8)' : 'rgba(22,215,197,0.7)',
                 marginTop: 8,
               }}>
                 {resendMsg}
@@ -261,7 +265,7 @@ export default function EmailVerificationModal({ open, email, password, onClose 
             marginTop: 24,
             lineHeight: 1.5,
           }}>
-            Tipp: Prüfe auch deinen Spam-Ordner.
+            {t("verify.checkSpam")}
           </p>
         )}
       </div>

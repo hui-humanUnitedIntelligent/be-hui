@@ -150,19 +150,19 @@ function AuthModal({ action, onClose, onConfirm }) {
                 color:"#fff",fontSize:16,fontWeight: 600,
                 cursor:"pointer",touchAction:"manipulation",
                 boxShadow:"0 4px 20px rgba(22,215,197,0.35)",
-              }}>Anmelden</button>
+              }}>{t("auth.signInBtn")}</button>
               <button onClick={() => setMode("signup")} style={{
                 width:"100%",padding:"15px",borderRadius:18,
                 border:"1.5px solid rgba(22,215,197,0.25)",
                 background:"rgba(22,215,197,0.06)",
                 color:TEAL,fontSize:15,fontWeight: 600,
                 cursor:"pointer",touchAction:"manipulation",
-              }}>Neu registrieren</button>
+              }}>{t("auth.registerNew")}</button>
               <button onClick={onClose} style={{
                 background:"none",border:"none",color:"rgba(26,26,46,0.35)",
                 fontSize:13,cursor:"pointer",textDecoration:"underline",
                 touchAction:"manipulation",marginTop:4,
-              }}>Lieber nicht</button>
+              }}>{t("auth.notNow")}</button>
             </div>
           </>
         )}
@@ -194,16 +194,16 @@ function AuthModal({ action, onClose, onConfirm }) {
                 color:"#fff",fontSize:16,fontWeight: 600,
                 cursor:busy?"default":"pointer",touchAction:"manipulation",
                 marginTop:4,
-              }}>{busy ? "Anmelden…" : "Anmelden"}</button>
+              }}>{busy ? t("auth.signingIn") : t("auth.signInBtn")}</button>
               <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
                 <button type="button" onClick={() => navigate("/forgot-password")} style={{
                   background:"none",border:"none",color:TEAL,fontSize:12.5,
                   cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
-                }}>Passwort vergessen?</button>
+                }}>{t("auth.forgotPassword")}</button>
                 <button type="button" onClick={() => { setMode("signup"); setErr(null); }} style={{
                   background:"none",border:"none",color:"rgba(26,26,46,0.4)",fontSize:12.5,
                   cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
-                }}>Noch kein Konto?</button>
+                }}>{t("auth.noAccountYet")}</button>
               </div>
             </form>
           </>
@@ -240,11 +240,11 @@ function AuthModal({ action, onClose, onConfirm }) {
                 background: busy ? "rgba(22,215,197,0.35)" : `linear-gradient(135deg,${TEAL},${CORAL})`,
                 color:"#fff",fontSize:16,fontWeight: 600,
                 cursor:busy?"default":"pointer",touchAction:"manipulation",marginTop:4,
-              }}>{busy ? "Registrieren…" : "Konto erstellen"}</button>
+              }}>{busy ? t("auth.signingUp") : t("auth.registerCta")}</button>
               <button type="button" onClick={() => { setMode("login"); setErr(null); }} style={{
                 background:"none",border:"none",color:"rgba(26,26,46,0.4)",fontSize:12.5,
                 cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
-              }}>Bereits ein Konto? Anmelden</button>
+              }}>{t("auth.alreadyHaveAccount")}</button>
             </form>
           </>
         )}
@@ -262,7 +262,7 @@ function AuthModal({ action, onClose, onConfirm }) {
               background:`linear-gradient(135deg,${TEAL},#0FC4B2)`,
               color:"#fff",fontSize:15,fontWeight: 600,
               cursor:"pointer",touchAction:"manipulation",
-            }}>Ok, habe ich</button>
+            }}>{t("auth.okGotIt")}</button>
           </div>
         )}
       </div>

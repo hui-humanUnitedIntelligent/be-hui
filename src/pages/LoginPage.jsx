@@ -425,9 +425,9 @@ export default function LoginPage() {
     if (msg.includes('Invalid login credentials')) return t("auth.credentialsMismatch");
     if (msg.includes('Email not confirmed'))        return t("auth.confirmEmailFirst2");
     if (msg.includes('already registered') || msg.includes('already been registered') || msg.includes('user_already_exists'))
-                                                     return 'Diese E-Mail-Adresse wird bereits verwendet. Bitte logge dich ein oder nutze Passwort-Wiederherstellung.';
-    if (msg.includes('Password should be'))         return 'Das Passwort muss mindestens 6 Zeichen haben.';
-    if (msg.includes('rate limit'))                 return 'Zu viele Versuche — bitte kurz warten.';
+                                                     return t("auth.emailAlreadyUsed");
+    if (msg.includes('Password should be'))         return t("auth.passwordTooShort");
+    if (msg.includes('rate limit'))                 return t("auth.rateLimited");
     if (msg.toLowerCase().includes('banned'))         return t('auth.accountUnderReview');
     return msg || t("auth.genericError");
   }
@@ -461,7 +461,7 @@ export default function LoginPage() {
       if (!prof && !profErr) {
         await supabase.auth.signOut();
         setLoading(false);
-        setErr("Dieses Konto existiert nicht mehr. Bitte registriere dich neu.");
+        setErr(t("auth.accountDeleted"));
         return;
       }
 
@@ -479,7 +479,7 @@ export default function LoginPage() {
     // → ConditionalRouter re-rendert → AuthenticatedApp wird angezeigt.
     // setLoading(false) als Defensive — falls onAuthStateChange verzögert feuert.
     setLoading(false);
-    setSuccess('Login erfolgreich! Du wirst weitergeleitet…');
+    setSuccess(t("auth.loginSuccessRedirect"));
   }
 
   // ── Registration ──────────────────────────────────────────────
@@ -503,7 +503,7 @@ export default function LoginPage() {
     // ALTERSSCHUTZ: Prüfe Alter VOR allem anderen
     const age = calculateAge(birthDate);
     if (!birthDate || age < 0) {
-      setErr('Bitte gib dein Geburtsdatum an.');
+      setErr(t("auth.birthdateRequired"));
       return;
     }
     if (age < 16) {
@@ -550,7 +550,7 @@ export default function LoginPage() {
     if (emailExists === true) {
       // E-Mail existiert bereits → Registrierung stoppen, kein signUp(),
       // keine Session, kein Profil, kein Login, kein Redirect.
-      setErr('Diese E-Mail-Adresse wird bereits verwendet. Bitte logge dich ein oder nutze Passwort-Wiederherstellung.');
+      setErr(t("auth.emailAlreadyUsed"));
       setEmailBlocked(true);
       setLoading(false);
       // Sicherheits-Log via RPC (Migration 113)
@@ -577,7 +577,7 @@ export default function LoginPage() {
 
   async function handleForgot(e) {
     e.preventDefault(); clearMessages();
-    if (!email) { setErr('Bitte gib deine E-Mail-Adresse ein.'); return; }
+    if (!email) { setErr(t("auth.emailRequired")); return; }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: getAuthRedirectUrl(),
@@ -585,7 +585,7 @@ export default function LoginPage() {
     if (error) {
       setErr(translateError(error.message));
     } else {
-      setSuccess('Wir haben dir einen Link gesendet. Manchmal hilft ein neuer Anfang.');
+      setSuccess(t("auth.resetLinkSent"));
     }
     setLoading(false);
   }
