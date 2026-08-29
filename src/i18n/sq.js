@@ -4512,7 +4512,7 @@ export default {
   'ks.rolle': 'Roli',
   'ks.talentVerantwortung': 'Përgjegjësi talenti',
   'ks.verantwortungHint': 'Përgjegjësitë caktohen nga ekipi HUI. Janë besim, jo status. Mund t\'i shohësh këtu.',
-  'ks.email': 'Email',
+  'ks.email': 'Email-i',
   'ks.push': 'Push',
   'ks.abmelden': 'Çkyçu',
   'ks.ueberDich': 'Rreth teje',
