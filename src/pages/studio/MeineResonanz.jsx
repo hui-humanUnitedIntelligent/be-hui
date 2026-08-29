@@ -521,7 +521,7 @@ export default function MeineResonanz({ onClose, onNavigate }) {
           )}
           <div style={{ flex:1 }}>
             <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.03em", lineHeight:1.1 }}>
-              Meine Resonanz
+              {t("res.meineResonanz")}
             </div>
             <div style={{ fontSize:13, color:T.inkSoft, marginTop:3, lineHeight:"1.4" }}>
               {t("res.resonanzIntro")}

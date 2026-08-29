@@ -2553,7 +2553,7 @@ export default {
   'sm.section.account': 'Account & Security',
   'sm.nav.editProfile': 'Modifier le profil',
   'sm.nav.bankdata': 'Bank details',
-  'sm.nav.bankdata.missing': 'missing',
+  'sm.nav.bankdata.missing': 'manquant',
   'sm.nav.emailPw': 'Email & Password',
   'sm.nav.support': 'Support & Help',
   'sm.nav.tickets': 'My tickets',

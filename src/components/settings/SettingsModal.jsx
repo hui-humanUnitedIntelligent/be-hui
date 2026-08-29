@@ -508,7 +508,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                   </span>
                 ) : (
                   <span style={{ fontSize:11, fontWeight:600, color:"#B8860B", background:"rgba(184,134,11,0.10)", padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
-                    fehlt
+                    {t("sm.nav.bankdata.missing")}
                   </span>
                 )}
               />
