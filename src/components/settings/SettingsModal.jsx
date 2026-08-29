@@ -472,29 +472,60 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     }
   }, [biometricEnabled]);
 
-  const handleBioPINSubmit = useCallback(async () => {
+  const finishBioPINSetup = useCallback(async (finalPin) => {
+    await saveNewPIN(finalPin);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.refresh_token && session?.user?.email) {
+      await enableBiometric(session.user.email, session.refresh_token);
+    }
+    setBiometricEnabled(true);
+    setShowBioPINSetup(false);
+  }, []);
+
+  // Eigener In-App-Ziffernblock statt natives System-Keyboard (KEYBOARD-VISIBILITY-FIX,
+  // 2026-08-29): Ein hidden <input autoFocus> öffnete auf Android/Xiaomi HyperOS das
+  // native Tastatur-Overlay, das den bottom-anchored PIN-Dialog (position:fixed,
+  // alignItems:"flex-end") komplett verdeckte -- der Dialog lag optisch HINTER der
+  // Systemtastatur, ohne Keyboard-Inset-Anpassung. Fix: kein natives Keyboard mehr,
+  // Ziffern werden über eigene Buttons erfasst -- Problem kann so nicht mehr auftreten.
+  const handleBioPinDigit = useCallback((digit) => {
+    setBioPinError(null);
     if (bioPinStep === "first") {
-      if (bioPinFirst.length === 6) {
-        setBioPinStep("confirm");
-        setBioPinError(null);
-      }
-      return;
+      setBioPinFirst(prev => {
+        if (prev.length >= 6) return prev;
+        const next = prev + digit;
+        if (next.length === 6) {
+          setTimeout(() => { setBioPinStep("confirm"); }, 180);
+        }
+        return next;
+      });
+    } else {
+      setBioPinSecond(prev => {
+        if (prev.length >= 6) return prev;
+        const next = prev + digit;
+        if (next.length === 6) {
+          setTimeout(() => {
+            setBioPinFirst(firstVal => {
+              if (firstVal !== next) {
+                setBioPinError(t("biometric.pinMismatch"));
+                setBioPinSecond("");
+              } else {
+                finishBioPINSetup(next);
+              }
+              return firstVal;
+            });
+          }, 180);
+        }
+        return next;
+      });
     }
-    if (bioPinSecond.length === 6) {
-      if (bioPinFirst !== bioPinSecond) {
-        setBioPinError(t("biometric.pinMismatch"));
-        setBioPinSecond("");
-        return;
-      }
-      await saveNewPIN(bioPinSecond);
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.refresh_token && session?.user?.email) {
-        await enableBiometric(session.user.email, session.refresh_token);
-      }
-      setBiometricEnabled(true);
-      setShowBioPINSetup(false);
-    }
-  }, [bioPinStep, bioPinFirst, bioPinSecond, t]);
+  }, [bioPinStep, t, finishBioPINSetup]);
+
+  const handleBioPinBackspace = useCallback(() => {
+    setBioPinError(null);
+    if (bioPinStep === "first") setBioPinFirst(prev => prev.slice(0, -1));
+    else setBioPinSecond(prev => prev.slice(0, -1));
+  }, [bioPinStep]);
 
   const logout = async () => {
     // Push-Tokens invalidieren vor dem Logout
@@ -660,44 +691,62 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                   })}
                 </div>
 
-                <input
-                  type="tel"
-                  inputMode="numeric"
-                  autoFocus
-                  value={bioPinStep === "first" ? bioPinFirst : bioPinSecond}
-                  onChange={(e) => {
-                    const clean = e.target.value.replace(/\D/g, "").slice(0, 6);
-                    if (bioPinStep === "first") setBioPinFirst(clean);
-                    else setBioPinSecond(clean);
-                  }}
-                  onKeyPress={(e) => { if (e.key === "Enter") handleBioPINSubmit(); }}
-                  style={{ position:"absolute", opacity:0, pointerEvents:"none", width:1, height:1, left:-9999 }}
-                  aria-label={t("biometric.setupPIN")}
-                />
-
                 {bioPinError && (
                   <div style={{ fontSize:13, color:T.danger, textAlign:"center", marginBottom:16 }}>
                     {bioPinError}
                   </div>
                 )}
 
-                <button
-                  onClick={handleBioPINSubmit}
-                  disabled={(bioPinStep === "first" ? bioPinFirst.length : bioPinSecond.length) < 6}
-                  style={{
-                    width:"100%", padding:"15px", borderRadius:18, border:"none",
-                    background: (bioPinStep === "first" ? bioPinFirst.length : bioPinSecond.length) < 6
-                      ? "rgba(14,196,184,0.35)" : T.teal,
-                    color:"#fff", fontSize:16, fontWeight:600,
-                    cursor:(bioPinStep === "first" ? bioPinFirst.length : bioPinSecond.length) < 6 ? "default" : "pointer",
-                    touchAction:"manipulation",
-                  }}
-                >
-                  {bioPinStep === "first" ? t("biometric.confirmPIN") : t("biometric.setupSuccess")}
-                </button>
+                {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
+                <div style={{
+                  display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12,
+                  marginBottom: bioPinError ? 8 : 24,
+                }}>
+                  {["1","2","3","4","5","6","7","8","9"].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => handleBioPinDigit(d)}
+                      style={{
+                        padding:"16px 0", borderRadius:16, border:"none",
+                        background:T.bgCard, color:T.ink,
+                        fontSize:20, fontWeight:600,
+                        cursor:"pointer", touchAction:"manipulation",
+                        boxShadow:"0 1px 2px rgba(26,26,24,0.06)",
+                      }}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                  <div />
+                  <button
+                    onClick={() => handleBioPinDigit("0")}
+                    style={{
+                      padding:"16px 0", borderRadius:16, border:"none",
+                      background:T.bgCard, color:T.ink,
+                      fontSize:20, fontWeight:600,
+                      cursor:"pointer", touchAction:"manipulation",
+                      boxShadow:"0 1px 2px rgba(26,26,24,0.06)",
+                    }}
+                  >
+                    0
+                  </button>
+                  <button
+                    onClick={handleBioPinBackspace}
+                    aria-label="Backspace"
+                    style={{
+                      padding:"16px 0", borderRadius:16, border:"none",
+                      background:"none", color:T.inkSoft,
+                      fontSize:18, fontWeight:600,
+                      cursor:"pointer", touchAction:"manipulation",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}
+                  >
+                    ⌫
+                  </button>
+                </div>
 
                 <button
-                  onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}
+                  onClick={() => { setShowBioPINSetup(false); setBioPinError(null); setBioPinFirst(""); setBioPinSecond(""); setBioPinStep("first"); }}
                   style={{
                     width:"100%", padding:"12px", marginTop:8,
                     background:"none", border:"none",
