@@ -229,6 +229,7 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       <button
         onClick={handlePress}
         aria-label="Resonanzzentrum"
+        data-tutorial="nav-resonanz"
         style={{
           flexShrink:0, width:36, height:36, borderRadius:"50%",
           background:"rgba(255,255,255,0.80)",

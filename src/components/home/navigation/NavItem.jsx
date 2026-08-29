@@ -140,6 +140,11 @@ export default function NavItem({ item, active, isActive, onPress, badge = 0 }) 
       type="button"
       aria-label={item.label}
       aria-current={isAct ? "page" : undefined}
+      data-tutorial={item.key === "feed" ? "nav-home"
+        : item.key === "discover" ? "nav-discover"
+        : item.key === "impact" ? "nav-impact"
+        : item.key === "creator" ? "nav-profile"
+        : undefined}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

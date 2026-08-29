@@ -24,6 +24,7 @@ export default function MessageButton({ count=0, onPress }) {
       onTouchStart={() => setPressed(true)}
       onTouchEnd={handleTouchEnd}
       aria-label="Nachrichten"
+      data-tutorial="nav-messages"
       style={{
         flexShrink:0, width:36, height:36, borderRadius:"50%",
         background:"rgba(255,255,255,0.80)",

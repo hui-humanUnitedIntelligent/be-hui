@@ -132,13 +132,14 @@ export function MeinBereichChooserRow({ icon, label, desc, onPress }) {
 // Punkt oben rechts vom Kreis am Kreisrand angezeigt werden". showDot ist
 // additiv/optional (Default false) -- bestehende Aufrufer ohne den Prop
 // verhalten sich unveraendert.
-export function MeinBereichTile({ icon, label, onPress, showDot = false }) {
+export function MeinBereichTile({ icon, label, onPress, showDot = false, ...rest }) {
   const { t } = useTranslation();
   return (
     <button
       onClick={onPress}
       aria-label={showDot ? `${label} — ${t("meinBereich.neuesUpdate")}` : label}
       className="mbp-press-light"
+      {...rest}
       style={{
         display:"flex", flexDirection:"column", alignItems:"center", gap:8,
         background:"none", border:"none", cursor:"pointer", fontFamily:"inherit",
@@ -281,19 +282,19 @@ export function MeinBereichMenu({
           rowGap:18, columnGap:4,
         }}>
           {isTalent && (
-            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label={t("meinBereich.meineWerke")} showDot={hasTileDot("werke")} onPress={() => openDrawerAndClearDot("werke", "werke")} />
+            <MeinBereichTile icon={<HUIWerkeIcon size={22}/>} label={t("meinBereich.meineWerke")} showDot={hasTileDot("werke")} onPress={() => openDrawerAndClearDot("werke", "werke")} data-tutorial="section-werke" />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label={t("meinBereich.talentAngebote")} showDot={hasTileDot("talente")} onPress={() => openDrawerAndClearDot("talente", "talente")} />
+            <MeinBereichTile icon={<HUITalentIcon size={22}/>} label={t("meinBereich.talentAngebote")} showDot={hasTileDot("talente")} onPress={() => openDrawerAndClearDot("talente", "talente")} data-tutorial="section-talent" />
           )}
           {isTalent && (
-            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label={t("meinBereich.erlebnisseProjekte")} showDot={hasTileDot("erlebnisse")} onPress={() => openDrawerAndClearDot("erlebnisse", "erlebnisse")} />
+            <MeinBereichTile icon={<HUIErlebnisIcon size={22}/>} label={t("meinBereich.erlebnisseProjekte")} showDot={hasTileDot("erlebnisse")} onPress={() => openDrawerAndClearDot("erlebnisse", "erlebnisse")} data-tutorial="section-erlebnisse" />
           )}
-          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label={t("meinBereich.meineMomente")} onPress={() => setActiveDrawer("momente")} />
-          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label={t("meinBereich.impactStimmen")} onPress={() => setActiveDrawer("impact")} />
-          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label={t("meinBereich.kaufeVerkaufe")} showDot={hasTileDot("finanzen")} onPress={() => openDrawerAndClearDot("finanzen", null, () => setShowFinanzModal(true))} />
-          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label={t("meinBereich.meineResonanz")} onPress={onOpenResonanz} />
-          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label={t("meinBereich.empfehlungen")} onPress={() => setActiveDrawer("empfehlungen")} />
+          <MeinBereichTile icon={<HUIFotoIcon size={22}/>} label={t("meinBereich.meineMomente")} onPress={() => setActiveDrawer("momente")} data-tutorial="section-momente" />
+          <MeinBereichTile icon={<HUIImpactIcon size={22}/>} label={t("meinBereich.impactStimmen")} onPress={() => setActiveDrawer("impact")} data-tutorial="section-impact" />
+          <MeinBereichTile icon={<HUIFinanzIcon size={22}/>} label={t("meinBereich.kaufeVerkaufe")} showDot={hasTileDot("finanzen")} onPress={() => openDrawerAndClearDot("finanzen", null, () => setShowFinanzModal(true))} data-tutorial="section-kaeufe" />
+          <MeinBereichTile icon={<HUIResonanzIcon size={22}/>} label={t("meinBereich.meineResonanz")} onPress={onOpenResonanz} data-tutorial="section-resonanz" />
+          <MeinBereichTile icon={<HUIEmpfehlungIcon size={22}/>} label={t("meinBereich.empfehlungen")} onPress={() => setActiveDrawer("empfehlungen")} data-tutorial="section-empfehlungen" />
         </div>
       </div>
 

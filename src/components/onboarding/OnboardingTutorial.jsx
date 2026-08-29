@@ -30,12 +30,12 @@ const ADVANCED_STORAGE_KEY = "hui_onboarding_advanced_v1";
 const DISABLED_KEY = "hui_onboarding_disabled_v1"; // "Nicht mehr anzeigen" — permanent deaktiviert
 
 const STEPS = [
-  { selector: 'button[aria-label="Home"]',           textKey: 'tut.step1', placement: "top" },
-  { selector: 'button[aria-label="Entdecken"]',      textKey: 'tut.step2',    placement: "top" },
-  { selector: 'button[aria-label="Impact"]',         textKey: 'tut.step3', placement: "top" },
-  { selector: 'button[aria-label="Profil"]',          textKey: 'tut.step4',                 placement: "top" },
-  { selector: 'button[aria-label="Nachrichten"]',    textKey: 'tut.step5',     placement: "bottom" },
-  { selector: 'button[aria-label="Resonanzzentrum"]', textKey: 'tut.step6', placement: "bottom" },
+  { selector: '[data-tutorial="nav-home"]',           textKey: 'tut.step1', placement: "top" },
+  { selector: '[data-tutorial="nav-discover"]',      textKey: 'tut.step2',    placement: "top" },
+  { selector: '[data-tutorial="nav-impact"]',         textKey: 'tut.step3', placement: "top" },
+  { selector: '[data-tutorial="nav-profile"]',          textKey: 'tut.step4',                 placement: "top" },
+  { selector: '[data-tutorial="nav-messages"]',    textKey: 'tut.step5',     placement: "bottom" },
+  { selector: '[data-tutorial="nav-resonanz"]', textKey: 'tut.step6', placement: "bottom" },
   // WERKEKORB-TUTORIAL-STEP (2026-08-18, Michael-Request): letzter Schritt des
   // Basis-Tutorials, direkt vor der "Erweitertes Tutorial?"-Frage. Selector
   // nutzt ^= (startsWith) statt exaktem Match, weil WerkeKorbHeaderButton.jsx
@@ -44,7 +44,7 @@ const STEPS = [
   // Text bewusst NICHT als "Warenkorb" formuliert (siehe WerkeKorb.jsx Header-
   // Kommentar: "Persönlicher Sammelraum. Kein Warenkorb. Ruhiger menschlicher
   // Raum.") — Ton bleibt konsistent mit dem Rest von HUI.
-  { selector: 'button[aria-label^="Werkekorb"]',      textKey: 'tut.step7', placement: "bottom" },
+  { selector: '[data-tutorial="nav-cart"]',      textKey: 'tut.step7', placement: "bottom" },
 ];
 
 // ── Erweitertes Tutorial (2026-08-11, TUTORIAL-PROFIL-SWITCH) ──────────
@@ -54,20 +54,20 @@ const STEPS = [
 // startAdvancedTutorial), so dass Basis-User nur die verfügbaren Kacheln
 // sehen, ohne Auto-Skip-Flicker.
 const ADVANCED_STEPS = [
-  { selector: 'button[aria-label="Meine Werke"]',        textKey: 'tut.adv1', placement: "bottom", labelKey: 'tut.label.werke' },
-  { selector: 'button[aria-label="Talent-Angebote"]',    textKey: 'tut.adv2', placement: "bottom", labelKey: 'tut.label.talente' },
-  { selector: 'button[aria-label="Erlebnisse & Projekte"]', textKey: 'tut.adv3', placement: "bottom", labelKey: 'tut.label.erlebnisse' },
-  { selector: 'button[aria-label="Meine Momente"]',      textKey: 'tut.adv4', placement: "bottom", labelKey: 'tut.label.momente' },
-  { selector: 'button[aria-label="Impact & Stimmen"]',   textKey: 'tut.adv5', placement: "bottom", labelKey: 'tut.label.impact' },
-  { selector: 'button[aria-label="K\u00e4ufe/Verk\u00e4ufe"]', textKey: 'tut.adv6', placement: "bottom", labelKey: 'tut.label.kaeufe' },
-  { selector: 'button[aria-label="Meine Resonanz"]',   textKey: 'tut.adv7', placement: "bottom", labelKey: 'tut.label.resonanz' },
-  { selector: 'button[aria-label="Empfehlungen"]',      textKey: 'tut.adv8', placement: "bottom", labelKey: 'tut.label.empfehlungen' },
+  { selector: '[data-tutorial="section-werke"]',        textKey: 'tut.adv1', placement: "bottom", labelKey: 'tut.label.werke' },
+  { selector: '[data-tutorial="section-talent"]',    textKey: 'tut.adv2', placement: "bottom", labelKey: 'tut.label.talente' },
+  { selector: '[data-tutorial="section-erlebnisse"]', textKey: 'tut.adv3', placement: "bottom", labelKey: 'tut.label.erlebnisse' },
+  { selector: '[data-tutorial="section-momente"]',      textKey: 'tut.adv4', placement: "bottom", labelKey: 'tut.label.momente' },
+  { selector: '[data-tutorial="section-impact"]',   textKey: 'tut.adv5', placement: "bottom", labelKey: 'tut.label.impact' },
+  { selector: '[data-tutorial="section-kaeufe"]', textKey: 'tut.adv6', placement: "bottom", labelKey: 'tut.label.kaeufe' },
+  { selector: '[data-tutorial="section-resonanz"]',   textKey: 'tut.adv7', placement: "bottom", labelKey: 'tut.label.resonanz' },
+  { selector: '[data-tutorial="section-empfehlungen"]',      textKey: 'tut.adv8', placement: "bottom", labelKey: 'tut.label.empfehlungen' },
 ];
 
 // Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"
 const ADVANCED_READY_SELECTORS = [
-  'button[aria-label="Meine Momente"]',
-  'button[aria-label="Meine Werke"]',
+  '[data-tutorial="section-momente"]',
+  '[data-tutorial="section-werke"]',
 ];
 
 // ══════════════════════════════════════════════════════════════

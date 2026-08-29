@@ -26,6 +26,7 @@ export default function WerkeKorbHeaderButton({ count = 0, onOpen = () => {} }) 
       onTouchStart={() => setPressed(true)}
       onTouchEnd={handleTouchEnd}
       aria-label={count > 0 ? "Werkekorb öffnen — neues Item" : "Werkekorb öffnen"}
+      data-tutorial="nav-cart"
       style={{
         flexShrink:0, width:36, height:36, borderRadius:"50%",
         background:"rgba(255,255,255,0.80)",
