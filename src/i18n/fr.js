@@ -4798,4 +4798,11 @@ export default {
   'biometric.labelBiometric': 'Biométrie',
   'biometric.labelPIN': 'Verrouillage PIN',
   'biometric.settingsOff': 'Désactivé',
+  'biometric.modalHint': 'Sécurisez votre app avec empreinte digitale ou un code PIN à 6 chiffres.',
+  'biometric.biometricAvailable': 'Scanner d\'empreintes détecté',
+  'biometric.biometricUnavailable': 'Aucun capteur biométrique sur l\'appareil',
+  'biometric.biometricActive': 'Scanner l\'empreinte au démarrage',
+  'biometric.pinSetupHint': 'Saisir un code PIN à 6 chiffres au démarrage',
+  'biometric.pinChangeHint': 'Modifier ou remplacer votre PIN',
+  'biometric.pinChange': 'Modifier le PIN',
 };

@@ -4797,4 +4797,11 @@ export default {
   'biometric.labelBiometric': 'Biometria',
   'biometric.labelPIN': 'Blocco PIN',
   'biometric.settingsOff': 'Disattivato',
+  'biometric.modalHint': 'Proteggi l\'app con impronta digitale o un PIN di 6 cifre.',
+  'biometric.biometricAvailable': 'Scanner di impronte rilevato',
+  'biometric.biometricUnavailable': 'Nessun sensore biometrico sul dispositivo',
+  'biometric.biometricActive': 'Scansiona impronta all\'avvio dell\'app',
+  'biometric.pinSetupHint': 'Inserisci un PIN di 6 cifre all\'avvio',
+  'biometric.pinChangeHint': 'Modifica o sostituisci il tuo PIN',
+  'biometric.pinChange': 'Modifica PIN',
 };

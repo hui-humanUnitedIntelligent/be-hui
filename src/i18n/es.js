@@ -4797,4 +4797,11 @@ export default {
   'biometric.labelBiometric': 'Biometría',
   'biometric.labelPIN': 'Bloqueo PIN',
   'biometric.settingsOff': 'Desactivado',
+  'biometric.modalHint': 'Asegura tu app con huella dactilar o un PIN de 6 dígitos.',
+  'biometric.biometricAvailable': 'Escáner de huellas detectado',
+  'biometric.biometricUnavailable': 'Sin sensor biométrico en el dispositivo',
+  'biometric.biometricActive': 'Escanear huella al iniciar la app',
+  'biometric.pinSetupHint': 'Introducir PIN de 6 dígitos al iniciar',
+  'biometric.pinChangeHint': 'Cambiar o reemplazar tu PIN',
+  'biometric.pinChange': 'Cambiar PIN',
 };

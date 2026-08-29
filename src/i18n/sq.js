@@ -4799,4 +4799,11 @@ export default {
   'biometric.labelBiometric': 'Biometria',
   'biometric.labelPIN': 'Bllokimi PIN',
   'biometric.settingsOff': 'Joaktiv',
+  'biometric.modalHint': 'Siguro aplikacionin me gjurmë gishti ose një PIN 6-shifror.',
+  'biometric.biometricAvailable': 'Skaner i gjurmës së gishtit i zbuluar',
+  'biometric.biometricUnavailable': 'Pa sensor biometrik në pajisje',
+  'biometric.biometricActive': 'Skanoni gjurmën në nisjen e aplikacionit',
+  'biometric.pinSetupHint': 'Vendos një PIN 6-shifror në nisje',
+  'biometric.pinChangeHint': 'Ndrysho ose zëvendëso PIN-in',
+  'biometric.pinChange': 'Ndrysho PIN',
 };

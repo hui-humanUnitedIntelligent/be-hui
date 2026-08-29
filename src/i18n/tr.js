@@ -4797,4 +4797,11 @@ export default {
   'biometric.labelBiometric': 'Biyometri',
   'biometric.labelPIN': 'PIN Kilidi',
   'biometric.settingsOff': 'Kapalı',
+  'biometric.modalHint': 'Uygulamanızı parmak izi veya 6 haneli PIN ile güven altına alın.',
+  'biometric.biometricAvailable': 'Parmak izi tarayıcı algılandı',
+  'biometric.biometricUnavailable': 'Cihazda biyometrik sensör yok',
+  'biometric.biometricActive': 'Uygulama açılışında parmak izini tara',
+  'biometric.pinSetupHint': 'Uygulama açılışında 6 haneli PIN girin',
+  'biometric.pinChangeHint': 'PIN\'i değiştir veya güncelle',
+  'biometric.pinChange': 'PIN değiştir',
 };

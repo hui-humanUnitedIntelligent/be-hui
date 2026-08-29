@@ -471,15 +471,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       setBiometricEnabled(false);
       return;
     }
-    if (!bioAvailable) {
-      // Kein Biometrie-Sensor → Hinweis, PIN verwenden
-      setBioPinStep("first");
-      setBioPinFirst("");
-      setBioPinSecond("");
-      setBioPinError(null);
-      setShowBioPINSetup(true);
-      return;
-    }
+    if (!bioAvailable) return; // Toggle ist disabled — wird durch UI blockiert
+    // Biometrie-Sensor verfügbar → Fingerabdruck-Scan auslösen
     const success = await authenticateWithBiometric();
     if (success) {
       const { data: { session } } = await supabase.auth.getSession();
@@ -591,10 +584,11 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
   // Titel je nach View
   const titles = {
-    main:     t("sm.title.main"),
-    contact:  t("sm.title.contact"),
-    security: t("sm.title.security"),
-    privacy:  t("sm.title.privacy"),
+    main:      t("sm.title.main"),
+    contact:   t("sm.title.contact"),
+    security:  t("sm.title.security"),
+    privacy:   t("sm.title.privacy"),
+    biometric: t("biometric.settingsLabel"),
   };
 
   return createPortal(
@@ -653,36 +647,16 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <NavItem icon={<HUISicherheitIcon size={16}/>} label={t("sm.nav.emailPw")}
                 onClick={() => setView("security")}/>
               {bioIsNative && (
-                <>
-                  <NavItem
-                    icon={<HUISicherheitIcon size={16}/>}
-                    label={t("biometric.labelBiometric")}
-                    onClick={handleBiometricToggle}
-                    right={biometricEnabled ? (
-                      <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
-                        {t("biometric.settingsOn")}
-                      </span>
-                    ) : (
-                      <span style={{ fontSize:11, fontWeight:500, color:T.inkFaint, background:"rgba(26,26,24,0.05)", padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
-                        {t("biometric.settingsOff")}
-                      </span>
-                    )}
-                  />
-                  <NavItem
-                    icon={<HUISicherheitIcon size={16}/>}
-                    label={t("biometric.labelPIN")}
-                    onClick={handlePinToggle}
-                    right={pinEnabled ? (
-                      <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
-                        {t("biometric.settingsOn")}
-                      </span>
-                    ) : (
-                      <span style={{ fontSize:11, fontWeight:500, color:T.inkFaint, background:"rgba(26,26,24,0.05)", padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
-                        {t("biometric.settingsOff")}
-                      </span>
-                    )}
-                  />
-                </>
+                <NavItem
+                  icon={<HUISicherheitIcon size={16}/>}
+                  label={t("biometric.settingsLabel")}
+                  onClick={() => setView("biometric")}
+                  right={(biometricEnabled || pinEnabled) ? (
+                    <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                      {t("biometric.settingsOn")}
+                    </span>
+                  ) : null}
+                />
               )}
               <NavItem icon={<HUIKontaktIcon size={16}/>} label={t("sm.nav.support")}
                 onClick={() => setView("support")}/>
@@ -1058,6 +1032,112 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           </>)}
+
+          {/* ══ BIOMETRIE / PIN ═══════════════════════════════════ */}
+          {view === "biometric" && (
+            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+
+              {/* Info-Text */}
+              <div style={{
+                fontSize:13, color:T.inkSoft, lineHeight:1.5,
+                padding:"12px 14px", background:"rgba(14,196,184,0.06)",
+                borderRadius:12,
+              }}>
+                {t("biometric.modalHint")}
+              </div>
+
+              {/* ── Biometrie ── */}
+              <div style={{
+                padding:"16px", borderRadius:16, background:T.bgCard,
+                border:`1px solid ${biometricEnabled ? "rgba(14,196,184,0.25)" : "rgba(26,26,24,0.06)"}`,
+              }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                  <div>
+                    <div style={{ fontSize:15, fontWeight:600, color:T.ink }}>{t("biometric.labelBiometric")}</div>
+                    <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
+                      {bioAvailable ? t("biometric.biometricAvailable") : t("biometric.biometricUnavailable")}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleBiometricToggle}
+                    disabled={!bioAvailable && !biometricEnabled}
+                    style={{
+                      width:44, height:26, borderRadius:13, border:"none", cursor:"pointer",
+                      padding:0, position:"relative",
+                      background: biometricEnabled ? T.teal : "rgba(26,26,24,0.15)",
+                      opacity: (!bioAvailable && !biometricEnabled) ? 0.4 : 1,
+                      transition:"background 0.2s", touchAction:"manipulation",
+                    }}
+                    aria-label={biometricEnabled ? t("biometric.settingsOff") : t("biometric.settingsOn")}
+                  >
+                    <div style={{
+                      position:"absolute", top:3, left: biometricEnabled ? 21 : 3,
+                      width:20, height:20, borderRadius:"50%", background:"#fff",
+                      boxShadow:"0 1px 3px rgba(0,0,0,0.2)",
+                      transition:"left 0.2s ease",
+                    }} />
+                  </button>
+                </div>
+                {biometricEnabled && (
+                  <div style={{ fontSize:12, color:T.teal, marginTop:4 }}>
+                    ✓ {t("biometric.biometricActive")}
+                  </div>
+                )}
+              </div>
+
+              {/* ── PIN ── */}
+              <div style={{
+                padding:"16px", borderRadius:16, background:T.bgCard,
+                border:`1px solid ${pinEnabled ? "rgba(14,196,184,0.25)" : "rgba(26,26,24,0.06)"}`,
+              }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+                  <div>
+                    <div style={{ fontSize:15, fontWeight:600, color:T.ink }}>{t("biometric.labelPIN")}</div>
+                    <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
+                      {pinEnabled ? t("biometric.pinChangeHint") : t("biometric.pinSetupHint")}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handlePinToggle}
+                    style={{
+                      width:44, height:26, borderRadius:13, border:"none", cursor:"pointer",
+                      padding:0, position:"relative",
+                      background: pinEnabled ? T.teal : "rgba(26,26,24,0.15)",
+                      transition:"background 0.2s", touchAction:"manipulation",
+                    }}
+                    aria-label={pinEnabled ? t("biometric.settingsOff") : t("biometric.settingsOn")}
+                  >
+                    <div style={{
+                      position:"absolute", top:3, left: pinEnabled ? 21 : 3,
+                      width:20, height:20, borderRadius:"50%", background:"#fff",
+                      boxShadow:"0 1px 3px rgba(0,0,0,0.2)",
+                      transition:"left 0.2s ease",
+                    }} />
+                  </button>
+                </div>
+                {pinEnabled && (
+                  <button
+                    onClick={() => {
+                      setBioPinStep("first");
+                      setBioPinFirst("");
+                      setBioPinSecond("");
+                      setBioPinError(null);
+                      setShowBioPINSetup(true);
+                    }}
+                    style={{
+                      marginTop:10, padding:"8px 14px", borderRadius:10,
+                      background:"rgba(14,196,184,0.08)", border:"1px solid rgba(14,196,184,0.2)",
+                      color:T.teal, fontSize:13, fontWeight:500,
+                      cursor:"pointer", touchAction:"manipulation",
+                    }}
+                  >
+                    {t("biometric.pinChange")}
+                  </button>
+                )}
+              </div>
+
+            </div>
+          )}
 
           {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
           {view === "privacy" && (

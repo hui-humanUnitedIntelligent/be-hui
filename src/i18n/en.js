@@ -4846,4 +4846,11 @@ export default {
   'biometric.labelBiometric': 'Biometrics',
   'biometric.labelPIN': 'PIN Lock',
   'biometric.settingsOff': 'Off',
+  'biometric.modalHint': 'Secure your app with fingerprint or a 6-digit PIN.',
+  'biometric.biometricAvailable': 'Fingerprint scanner detected',
+  'biometric.biometricUnavailable': 'No biometric sensor on this device',
+  'biometric.biometricActive': 'Scan fingerprint on app start',
+  'biometric.pinSetupHint': 'Enter a 6-digit PIN on app start',
+  'biometric.pinChangeHint': 'Change or replace your PIN',
+  'biometric.pinChange': 'Change PIN',
 };
