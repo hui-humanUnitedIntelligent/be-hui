@@ -8,8 +8,8 @@ android {
         applicationId "com.hui.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 445
-        versionName "2.1.423"
+        versionCode 446
+        versionName "2.1.424"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
