@@ -42,9 +42,13 @@ import { useTranslation } from "../hooks/useTranslation.js";
 // i18n: Greeting takes t as parameter (module-level function)
 function getGreeting(t) {
   const h = new Date().getHours();
-  if (h >= 5 && h < 12)  return t("feed.greetingMorning");
+  if (h >= 5 && h < 12) return t("feed.greetingMorning");
   if (h >= 12 && h < 17) return t("feed.greetingDay");
-  if (h >= 17 && h < 22) return t("feed.greetingEvening");
+  // GREETING-FIX (2026-08-29): Abend-Bereich war fälschlich auf h<22 begrenzt —
+  // ab 22:00 fiel es in den Night-Fallback ("Hallo"), obwohl 22-23 Uhr noch
+  // klar als Abend gilt. Jetzt: Abend 17:00–23:59, Night-Fallback nur noch
+  // für die frühen Morgenstunden 00:00–04:59 (vor "Guten Morgen" um 5 Uhr).
+  if (h >= 17) return t("feed.greetingEvening");
   return t("feed.greetingNight");
 }
 
