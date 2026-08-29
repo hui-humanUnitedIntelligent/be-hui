@@ -4795,4 +4795,7 @@ export default {
   'biometric.setupSuccess': 'Biométrie activée',
   'biometric.pinSetupSuccess': 'PIN activé',
   'biometric.settingsOn': 'Actif',
+  'biometric.labelBiometric': 'Biométrie',
+  'biometric.labelPIN': 'Verrouillage PIN',
+  'biometric.settingsOff': 'Désactivé',
 };

@@ -28,6 +28,8 @@ import {
   enableBiometric,
   setPIN as saveNewPIN,
   clearSavedSession,
+  disableBiometric,
+  disablePIN,
 } from "../../lib/biometricService.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
@@ -432,6 +434,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [bioPinSecond,     setBioPinSecond]     = useState("");
   const [bioPinError,      setBioPinError]      = useState(null);
   const [bioIsNative]                           = useState(() => Capacitor.isNativePlatform());
+  const [pinEnabled, setPinEnabled]               = useState(false);
+  const [bioAvailable, setBioAvailable]            = useState(false);
   // BANKDATEN-LINK (2026-08-16): Wenn von Notification-Deep-Link geöffnet,
   // automatisch Bankdaten-Sub-Modal öffnen.
   useEffect(() => {
@@ -447,39 +451,67 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const kbdInset = useKeyboardInset();
   if (!profile) return null;
 
+  // ── Init: Status von Biometrie + PIN laden ──────────────────────
+  useEffect(() => {
+    if (!bioIsNative) return;
+    (async () => {
+      const bioOn = await isBiometricEnabled();
+      const pinOn = await isPINEnabled();
+      const avail = await checkBiometricAvailability();
+      setBiometricEnabled(bioOn);
+      setPinEnabled(pinOn);
+      setBioAvailable(avail.available);
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Biometrie Toggle (unabhängig von PIN) ─────────────────────
   const handleBiometricToggle = useCallback(async () => {
     if (biometricEnabled) {
-      await clearSavedSession();
+      await disableBiometric();
       setBiometricEnabled(false);
       return;
     }
-    const avail = await checkBiometricAvailability();
-    if (avail.available) {
-      const success = await authenticateWithBiometric();
-      if (success) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.refresh_token && session?.user?.email) {
-          await enableBiometric(session.user.email, session.refresh_token);
-          setBiometricEnabled(true);
-        }
-      }
-    } else {
+    if (!bioAvailable) {
+      // Kein Biometrie-Sensor → Hinweis, PIN verwenden
       setBioPinStep("first");
       setBioPinFirst("");
       setBioPinSecond("");
       setBioPinError(null);
       setShowBioPINSetup(true);
+      return;
     }
-  }, [biometricEnabled]);
+    const success = await authenticateWithBiometric();
+    if (success) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.refresh_token && session?.user?.email) {
+        await enableBiometric(session.user.email, session.refresh_token);
+        setBiometricEnabled(true);
+      }
+    }
+  }, [biometricEnabled, bioAvailable]);
+
+  // ── PIN Toggle (unabhängig von Biometrie) ─────────────────────
+  const handlePinToggle = useCallback(async () => {
+    if (pinEnabled) {
+      await disablePIN();
+      setPinEnabled(false);
+      return;
+    }
+    // PIN aktivieren → Setup-Dialog öffnen
+    setBioPinStep("first");
+    setBioPinFirst("");
+    setBioPinSecond("");
+    setBioPinError(null);
+    setShowBioPINSetup(true);
+  }, [pinEnabled]);
 
   const finishBioPINSetup = useCallback(async (finalPin) => {
     await saveNewPIN(finalPin);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.refresh_token && session?.user?.email) {
-      await enableBiometric(session.user.email, session.refresh_token);
-    }
-    setBiometricEnabled(true);
+    setPinEnabled(true);
     setShowBioPINSetup(false);
+    setBioPinFirst("");
+    setBioPinSecond("");
+    setBioPinStep("first");
   }, []);
 
   // Eigener In-App-Ziffernblock statt natives System-Keyboard (KEYBOARD-VISIBILITY-FIX,
@@ -621,16 +653,36 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <NavItem icon={<HUISicherheitIcon size={16}/>} label={t("sm.nav.emailPw")}
                 onClick={() => setView("security")}/>
               {bioIsNative && (
-                <NavItem
-                  icon={<HUISicherheitIcon size={16}/>}
-                  label={t("biometric.settingsLabel")}
-                  onClick={handleBiometricToggle}
-                  right={biometricEnabled ? (
-                    <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
-                      {t("biometric.settingsOn")}
-                    </span>
-                  ) : null}
-                />
+                <>
+                  <NavItem
+                    icon={<HUISicherheitIcon size={16}/>}
+                    label={t("biometric.labelBiometric")}
+                    onClick={handleBiometricToggle}
+                    right={biometricEnabled ? (
+                      <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                        {t("biometric.settingsOn")}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize:11, fontWeight:500, color:T.inkFaint, background:"rgba(26,26,24,0.05)", padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                        {t("biometric.settingsOff")}
+                      </span>
+                    )}
+                  />
+                  <NavItem
+                    icon={<HUISicherheitIcon size={16}/>}
+                    label={t("biometric.labelPIN")}
+                    onClick={handlePinToggle}
+                    right={pinEnabled ? (
+                      <span style={{ fontSize:11, fontWeight:600, color:T.teal, background:T.tealSoft, padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                        {t("biometric.settingsOn")}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize:11, fontWeight:500, color:T.inkFaint, background:"rgba(26,26,24,0.05)", padding:"3px 8px", borderRadius:6, whiteSpace:"nowrap" }}>
+                        {t("biometric.settingsOff")}
+                      </span>
+                    )}
+                  />
+                </>
               )}
               <NavItem icon={<HUIKontaktIcon size={16}/>} label={t("sm.nav.support")}
                 onClick={() => setView("support")}/>

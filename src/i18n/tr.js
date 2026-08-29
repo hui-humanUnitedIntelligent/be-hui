@@ -4794,4 +4794,7 @@ export default {
   'biometric.setupSuccess': 'Biyometri etkin',
   'biometric.pinSetupSuccess': 'PIN etkin',
   'biometric.settingsOn': 'Aktif',
+  'biometric.labelBiometric': 'Biyometri',
+  'biometric.labelPIN': 'PIN Kilidi',
+  'biometric.settingsOff': 'Kapalı',
 };

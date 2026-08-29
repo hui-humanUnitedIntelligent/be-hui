@@ -93,6 +93,19 @@ export async function setPIN(pin) {
   await Preferences.set({ key: KEYS.PIN_ENABLED, value: 'true' });
 }
 
+// Biometrie DEAKTIVIEREN (nur Biometrie — PIN unangetastet)
+export async function disableBiometric() {
+  await Preferences.remove({ key: KEYS.ENABLED });
+  await Preferences.remove({ key: KEYS.REFRESH_TOKEN });
+  await Preferences.remove({ key: KEYS.EMAIL });
+}
+
+// PIN DEAKTIVIEREN (nur PIN — Biometrie unangetastet)
+export async function disablePIN() {
+  await Preferences.remove({ key: KEYS.PIN_ENABLED });
+  await Preferences.remove({ key: KEYS.PIN_HASH });
+}
+
 // PIN prüfen
 export async function verifyPIN(pin) {
   const { value: stored } = await Preferences.get({ key: KEYS.PIN_HASH });

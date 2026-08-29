@@ -4796,4 +4796,7 @@ export default {
   'biometric.setupSuccess': 'Biometria aktive',
   'biometric.pinSetupSuccess': 'PIN aktiv',
   'biometric.settingsOn': 'Aktiv',
+  'biometric.labelBiometric': 'Biometria',
+  'biometric.labelPIN': 'Bllokimi PIN',
+  'biometric.settingsOff': 'Joaktiv',
 };

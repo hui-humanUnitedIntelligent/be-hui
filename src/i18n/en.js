@@ -4843,4 +4843,7 @@ export default {
   'biometric.setupSuccess': 'Biometrics enabled',
   'biometric.pinSetupSuccess': 'PIN enabled',
   'biometric.settingsOn': 'On',
+  'biometric.labelBiometric': 'Biometrics',
+  'biometric.labelPIN': 'PIN Lock',
+  'biometric.settingsOff': 'Off',
 };
