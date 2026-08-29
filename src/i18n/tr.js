@@ -3683,6 +3683,8 @@ export default {
   'vis.connectionsSub': 'Sadece bağlantıların için',
   'vis.privateLabel': 'Özel',
   'vis.privateSub': 'Sadece sen',
+  'vis.question': 'Profilini kim görebilir?',
+  'vis.visibleToText': 'Bu profil {label} için görünür. Görünürlüğü ayarlarından değiştirebilirsin.',
   'vis.onlyYou': 'Sadece senin için',
   'push.ordersSales': 'Siparişler, satışlar ve destekler',
   'push.notifDesc': 'Yeni mesajlar, bağlantılar ve aktiviteler için bildirimler alıyorsun',

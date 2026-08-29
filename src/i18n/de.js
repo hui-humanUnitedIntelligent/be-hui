@@ -3676,6 +3676,8 @@ export default {
   'vis.connectionsSub': 'Nur für deine Verbindungen',
   'vis.privateLabel': 'Privat',
   'vis.privateSub': 'Nur du',
+  'vis.question': 'Wer kann dein Profil sehen?',
+  'vis.visibleToText': 'Dieses Profil ist für {label} sichtbar. Du kannst die Sichtbarkeit in deinen Einstellungen anpassen.',
   'vis.onlyYou': 'Nur für dich',
   'push.ordersSales': 'Bestellungen, Verkäufe und Unterstützungen',
   'push.notifDesc': 'Du erhältst Benachrichtigungen für neue Nachrichten, Verbindungen und Aktivitäten',

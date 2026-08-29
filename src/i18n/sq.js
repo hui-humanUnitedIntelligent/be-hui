@@ -3774,6 +3774,8 @@ export default {
   'vis.onlyYou': 'Vetëm për ty',
   'vis.privateLabel': 'Privat',
   'vis.privateSub': 'Vetëm ti',
+  'vis.question': 'Kush mund ta shohë profilin tënd?',
+  'vis.visibleToText': 'Ky profil është i dukshëm për {label}. Mund ta ndryshosh dukshmërinë në cilësimet e tua.',
   'vis.publicLabel': 'Publik',
   'vis.publicSub': 'I dukshëm për të gjithë',
   'visitor.aboutName': 'Rreth {name}.',

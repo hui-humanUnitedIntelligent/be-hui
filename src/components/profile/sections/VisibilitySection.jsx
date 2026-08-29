@@ -109,7 +109,7 @@ export function VisibilitySection({
             {isOwner ? (
               <>
                 <div style={{ fontSize:12, color:T.inkFaint, marginBottom:16 }}>
-                  Wer kann dein Profil sehen?
+                  {t("vis.question")}
                 </div>
                 {OPTIONS.map(opt => (
                   <button key={opt.key} onClick={() => handleSelect(opt.key)} disabled={saving}
@@ -133,8 +133,7 @@ export function VisibilitySection({
               </>
             ) : (
               <p style={{ fontSize:14, lineHeight:1.68, color:T.inkSoft, margin:"0 0 16px", fontStyle:"italic" }}>
-                Dieses Profil ist für {currentOpt.label.toLowerCase()} sichtbar.
-                Du kannst die Sichtbarkeit in deinen Einstellungen anpassen.
+                {t("vis.visibleToText").replace("{label}", currentOpt.label.toLowerCase())}
               </p>
             )}
             <button onClick={() => setShowSheet(false)} style={{

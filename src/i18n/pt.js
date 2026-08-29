@@ -3683,6 +3683,8 @@ export default {
   'vis.connectionsSub': 'Apenas para as tuas conexões',
   'vis.privateLabel': 'Privado',
   'vis.privateSub': 'Só tu',
+  'vis.question': 'Quem pode ver o teu perfil?',
+  'vis.visibleToText': 'Este perfil está visível para {label}. Podes ajustar a visibilidade nas tuas configurações.',
   'vis.onlyYou': 'Apenas para ti',
   'push.ordersSales': 'Encomendas, vendas e apoios',
   'push.notifDesc': 'Recebes notificações de novas mensagens, ligações e atividades',
