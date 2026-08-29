@@ -145,7 +145,7 @@ curl -s https://gxztrhvhcxhmunhhkfjd.supabase.co/functions/v1/create-payment-int
 **Pflicht-Vars:**
 ```
 VITE_SUPABASE_URL=https://gxztrhvhcxhmunhhkfjd.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
 VITE_STRIPE_PUBLIC_KEY=pk_test_51TlUr7QygHtJtH5i...
 ```
 
@@ -161,7 +161,7 @@ Nach Änderung: **Redeploy** auslösen (Vercel Dashboard → Deployments → "Re
 # .env.test erstellen (niemals committen):
 cat > .env.test << 'EOF'
 SUPABASE_URL=https://gxztrhvhcxhmunhhkfjd.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_ANON_KEY=your-anon-key-here
 STRIPE_SECRET_KEY=sk_test_51TlUr7...
 TEST_USER_EMAIL=dein-test@beispiel.de
 TEST_USER_PASS=dein-passwort
