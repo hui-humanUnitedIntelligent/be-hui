@@ -4845,4 +4845,7 @@ export default {
   'biometric.pinSetupHint': '6-stellige PIN beim App-Start eingeben',
   'biometric.pinChangeHint': 'PIN ändern oder ersetzen',
   'biometric.pinChange': 'PIN ändern',
+  'biometric.reasonNotEnrolled': 'Kein Fingerabdruck in den Handy-Einstellungen hinterlegt',
+  'biometric.reasonHwUnavailable': 'Sensor momentan nicht verfügbar',
+  'biometric.reasonLockout': 'Zu viele Fehlversuche — kurz warten',
 };

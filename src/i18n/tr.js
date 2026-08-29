@@ -4804,4 +4804,7 @@ export default {
   'biometric.pinSetupHint': 'Uygulama açılışında 6 haneli PIN girin',
   'biometric.pinChangeHint': 'PIN\'i değiştir veya güncelle',
   'biometric.pinChange': 'PIN değiştir',
+  'biometric.reasonNotEnrolled': 'Telefon ayarlarında kayıtlı parmak izi yok',
+  'biometric.reasonHwUnavailable': 'Sensör şu anda kullanılamıyor',
+  'biometric.reasonLockout': 'Çok fazla başarısız deneme — kısa süre bekleyin',
 };

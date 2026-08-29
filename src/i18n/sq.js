@@ -4806,4 +4806,7 @@ export default {
   'biometric.pinSetupHint': 'Vendos një PIN 6-shifror në nisje',
   'biometric.pinChangeHint': 'Ndrysho ose zëvendëso PIN-in',
   'biometric.pinChange': 'Ndrysho PIN',
+  'biometric.reasonNotEnrolled': 'Nuk ka gjurmë gishti të regjistruar në cilësimet e telefonit',
+  'biometric.reasonHwUnavailable': 'Sensori aktualisht i padisponueshëm',
+  'biometric.reasonLockout': 'Shumë përpjekje të dështuara — prisni një moment',
 };

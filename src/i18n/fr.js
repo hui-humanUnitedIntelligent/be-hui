@@ -4805,4 +4805,7 @@ export default {
   'biometric.pinSetupHint': 'Saisir un code PIN à 6 chiffres au démarrage',
   'biometric.pinChangeHint': 'Modifier ou remplacer votre PIN',
   'biometric.pinChange': 'Modifier le PIN',
+  'biometric.reasonNotEnrolled': 'Aucune empreinte enregistrée dans les paramètres du téléphone',
+  'biometric.reasonHwUnavailable': 'Capteur actuellement indisponible',
+  'biometric.reasonLockout': 'Trop de tentatives échouées — patientez un instant',
 };

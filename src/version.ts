@@ -3,4 +3,4 @@
 // wird dieser Wert automatisch mit package.json synchron gehalten.
 // KEIN "v"-Präfix — compareVersions() in otaUpdate.js braucht rein numerische
 // Segmente (siehe OTA-INFINITE-UPDATE-LOOP Fix, 2026-08-16).
-export const APP_VERSION = "2.1.462";
+export const APP_VERSION = "2.1.463";

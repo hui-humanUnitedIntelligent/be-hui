@@ -17,16 +17,18 @@ const KEYS = {
 
 // Biometrie verfügbar?
 export async function checkBiometricAvailability() {
-  if (!Capacitor.isNativePlatform()) return { available: false };
+  if (!Capacitor.isNativePlatform()) return { available: false, reason: 'web', code: 'web' };
   try {
     const result = await BiometricAuth.checkBiometry();
     return {
       available: result.isAvailable,
       biometryType: result.biometryType,
       strongBiometryIsAvailable: result.strongBiometryIsAvailable,
+      reason: result.reason || '',
+      code: result.code || '',
     };
-  } catch {
-    return { available: false };
+  } catch (err) {
+    return { available: false, reason: err?.message || 'exception', code: err?.code || 'exception' };
   }
 }
 

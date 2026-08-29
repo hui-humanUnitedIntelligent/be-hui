@@ -4804,4 +4804,7 @@ export default {
   'biometric.pinSetupHint': 'Inserir PIN de 6 dígitos ao iniciar',
   'biometric.pinChangeHint': 'Alterar ou substituir seu PIN',
   'biometric.pinChange': 'Alterar PIN',
+  'biometric.reasonNotEnrolled': 'Nenhuma impressão digital registrada nas configurações do telefone',
+  'biometric.reasonHwUnavailable': 'Sensor indisponível no momento',
+  'biometric.reasonLockout': 'Muitas tentativas falhadas — aguarde um momento',
 };

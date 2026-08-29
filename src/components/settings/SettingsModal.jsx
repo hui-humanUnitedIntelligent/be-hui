@@ -436,6 +436,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [bioIsNative]                           = useState(() => Capacitor.isNativePlatform());
   const [pinEnabled, setPinEnabled]               = useState(false);
   const [bioAvailable, setBioAvailable]            = useState(false);
+  const [bioReasonCode, setBioReasonCode]          = useState(null); // Diagnose: nativer code/reason wenn nicht verfügbar
   // BANKDATEN-LINK (2026-08-16): Wenn von Notification-Deep-Link geöffnet,
   // automatisch Bankdaten-Sub-Modal öffnen.
   useEffect(() => {
@@ -461,6 +462,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       setBiometricEnabled(bioOn);
       setPinEnabled(pinOn);
       setBioAvailable(avail.available);
+      setBioReasonCode(avail.available ? null : (avail.code || null));
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -589,6 +591,13 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     security:  t("sm.title.security"),
     privacy:   t("sm.title.privacy"),
     biometric: t("biometric.settingsLabel"),
+  };
+
+  // Native Diagnose-Codes (@aparajita/capacitor-biometric-auth checkBiometry) → verständlicher Text
+  const BIO_REASON_LABELS = {
+    biometryNotEnrolled: t("biometric.reasonNotEnrolled"),   // Sensor da, aber kein Fingerabdruck im System hinterlegt
+    biometryNotAvailable: t("biometric.reasonHwUnavailable"), // Hardware vorhanden, aktuell nicht verfügbar
+    biometryLockout: t("biometric.reasonLockout"),            // Zu viele Fehlversuche, temporär gesperrt
   };
 
   return createPortal(
@@ -1055,7 +1064,9 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                   <div>
                     <div style={{ fontSize:15, fontWeight:600, color:T.ink }}>{t("biometric.labelBiometric")}</div>
                     <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
-                      {bioAvailable ? t("biometric.biometricAvailable") : t("biometric.biometricUnavailable")}
+                      {bioAvailable
+                        ? t("biometric.biometricAvailable")
+                        : (BIO_REASON_LABELS[bioReasonCode] || t("biometric.biometricUnavailable"))}
                     </div>
                   </div>
                   <button
