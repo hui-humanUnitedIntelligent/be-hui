@@ -4,8 +4,10 @@
 import React from "react";
 import { createPortal } from "react-dom";
 import TalentOnboarding from "../../TalentOnboarding.jsx";
+import { useTranslation } from "../../../hooks/useTranslation.js";
 
 export function GemeinschaftsKarte({ onJoin }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding:`0 20px` }}>
       <div style={{
@@ -30,16 +32,14 @@ export function GemeinschaftsKarte({ onJoin }) {
           letterSpacing:"-0.03em", lineHeight:1.25,
           margin:"0 0 10px",
         }}>
-          Werde Teil der<br/>HUI-Gemeinschaft ✨
+          {t("community.title")}
         </h3>
 
         <p style={{
           fontSize:14, lineHeight:1.72, color:"rgba(26,26,24,0.58)",
           margin:"0 0 20px",
         }}>
-          Jeder Mensch trägt etwas Wertvolles in sich.
-          Teile deine Talente, Ideen, Werke und Erfahrungen mit anderen
-          und gestalte gemeinsam eine bessere Welt.
+          {t("community.body")}
         </p>
 
         <button
@@ -60,7 +60,7 @@ export function GemeinschaftsKarte({ onJoin }) {
           onTouchStart={e => { e.currentTarget.style.transform="scale(0.97)"; }}
           onTouchEnd={e => { e.currentTarget.style.transform="scale(1)"; }}
         >
-          <span className="hui-emoji">🤝</span> Der Gemeinschaft beitreten
+          <span className="hui-emoji">🤝</span> {t("community.joinButton")}
         </button>
       </div>
     </div>
@@ -74,6 +74,7 @@ export function GemeinschaftsKarte({ onJoin }) {
 // Öffnet den TalentOnboarding-Flow (3 Schritte, setzt is_talent=true)
 // ══════════════════════════════════════════════════════════════
 export function TalentWerdenBanner({ onStart = () => {} }) {
+  const { t } = useTranslation();
   return (
     <div style={{ padding: '0 20px' }}>
       <div style={{
@@ -105,28 +106,27 @@ export function TalentWerdenBanner({ onStart = () => {} }) {
               fontSize: 11, fontWeight: 600, color: '#FF8A6B',
               textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 4,
             }}>
-              Dein nächster Schritt
+              {t("talentBanner.nextStep")}
             </div>
             <div style={{
               fontSize: 17, fontWeight: 600, color: '#1A1A18',
               lineHeight: 1.3, letterSpacing: '-0.02em', marginBottom: 6,
             }}>
-              Werde HUI-Talent
+              {t("talentBanner.title")}
             </div>
             <div style={{
               fontSize: 13, color: 'rgba(26,26,24,0.58)',
               lineHeight: 1.65, marginBottom: 16,
             }}>
-              Teile dein Talent, biete Dienstleistungen an und verdiene
-              mit dem was du liebst — in 3 einfachen Schritten.
+              {t("talentBanner.body")}
             </div>
 
             {/* Feature-Punkte */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, marginBottom: 18 }}>
               {[
-                { icon: '🎯', text: 'Eigenes Talent-Profil erstellen' },
-                { icon: '💼', text: 'Dienstleistungen & Angebote anbieten' },
-                { icon: '💰', text: '80% der Einnahmen direkt erhalten' },
+                { icon: '🎯', text: t("talentBanner.feature1") },
+                { icon: '💼', text: t("talentBanner.feature2") },
+                { icon: '💰', text: t("talentBanner.feature3") },
               ].map(item => (
                 <div key={item.text} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 13, color: 'rgba(26,26,24,0.72)' }}>
                   <span style={{ fontSize: 15 }}>{item.icon}</span>
@@ -151,7 +151,7 @@ export function TalentWerdenBanner({ onStart = () => {} }) {
               onTouchStart={e => { e.currentTarget.style.transform = 'scale(0.97)'; }}
               onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
             >
-              Jetzt Talent werden
+              {t("talentBanner.cta")}
             </button>
           </div>
         </div>

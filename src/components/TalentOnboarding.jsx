@@ -160,7 +160,7 @@ function Step1({ title, setTitle, desc, setDesc, onNext, t }) {
           boxShadow: valid ? `0 8px 28px ${T.tealGlow}` : "none",
           transition:"all .25s"
         }}>
-        Weiter →
+        {t("talent.step1.next")}
       </button>
     </div>
   );

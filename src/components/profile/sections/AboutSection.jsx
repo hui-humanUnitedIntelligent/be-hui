@@ -95,12 +95,12 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
                 <button onClick={() => setEditing(false)}
                   style={{ padding:"6px 14px", borderRadius:T.r99, border:`1px solid ${T.border}`,
                     background:"transparent", fontSize:12, fontWeight:600, color:T.inkSoft,
-                    cursor:"pointer", fontFamily:"inherit" }}>Abbrechen</button>
+                    cursor:"pointer", fontFamily:"inherit" }}>{t("about.cancel")}</button>
                 <button onClick={handleSave}
                   style={{ padding:"6px 16px", borderRadius:T.r99, border:"none",
                     background:`linear-gradient(135deg,${T.teal},#0DBBAF)`,
                     fontSize:12, fontWeight: 600, color:"white",
-                    cursor:"pointer", fontFamily:"inherit", boxShadow:T.glowTeal }}>Speichern</button>
+                    cursor:"pointer", fontFamily:"inherit", boxShadow:T.glowTeal }}>{t("about.save")}</button>
               </div>
             </div>
           </>
@@ -114,15 +114,15 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
             style={{ background:"none", border:"none", padding:0, cursor:"pointer",
               fontFamily:"inherit", textAlign:"left", width:"100%" }}>
             <p style={{ fontSize:14, lineHeight:1.68, color:T.inkFaint, margin:0, fontStyle:"italic" }}>
-              Erzähl etwas über dich — was dich antreibt, was du liebst.
+              {t("about.emptyOwnerText")}
             </p>
             <div style={{ fontSize:12, color:T.teal, fontWeight: 600, marginTop:6 }}>
-              Jetzt hinzufügen ›
+              {t("about.addNow")}
             </div>
           </button>
         ) : (
           <p style={{ fontSize:14, lineHeight:1.68, color:T.inkFaint, margin:0, fontStyle:"italic" }}>
-            Dieses Mitglied hat noch keine Beschreibung hinterlegt.
+            {t("about.emptyVisitorText")}
           </p>
         )}
       </div>
