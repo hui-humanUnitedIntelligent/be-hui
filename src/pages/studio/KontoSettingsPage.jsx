@@ -43,7 +43,7 @@ const ROLE_LABELS = {
   guardian:   'Guardian',
   admin:      'Team',
   superadmin: 'Team',
-  member:     'Mitglied',
+  member:     'Member', // replaced by t() — kept for reference
 };
 
 export default function KontoSettingsPage() {
@@ -109,7 +109,7 @@ export default function KontoSettingsPage() {
     });
     setSaving(false);
     if (error) {
-      setToast({ text: 'Speichern fehlgeschlagen.', type: 'error' });
+      setToast({ text: t('konto.saveError'), type: 'error' });
     } else {
       setToast({ text: 'Gespeichert.', type: 'success' });
       setEditing(false);
@@ -173,7 +173,7 @@ export default function KontoSettingsPage() {
             )}
             <div>
               <div style={{ fontSize: 16, fontWeight: 600, color: C.ink }}>
-                {displayName || 'Ohne Namen'}
+                {displayName || t('konto.noName')}
               </div>
               {profile?.username && (
                 <div style={{ fontSize: 13, color: C.muted }}>@{profile.username}</div>
@@ -183,7 +183,7 @@ export default function KontoSettingsPage() {
 
           {editing ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <InputField label="Name" value={displayName} onChange={setDisplayName} placeholder="Dein Name" />
+              <InputField label={t("sm.name")} value={displayName} onChange={setDisplayName} placeholder={t("studio.namePlaceholder")} />
               <TextAreaField label={t("ks.ueberDich")} value={bio} onChange={setBio} placeholder={t("ks.erzaehlVonDir")} />
               <InputField label="Ort" value={locationLabel} onChange={setLocationLabel} placeholder="Wo du lebst" />
               <InputField label="Website" value={website} onChange={setWebsite} placeholder="https://…" />
@@ -211,7 +211,7 @@ export default function KontoSettingsPage() {
                   padding: '10px 20px', borderRadius: 10, border: 'none', cursor: 'pointer',
                   background: C.teal, color: '#fff', fontSize: 14, fontWeight: 600,
                   opacity: saving ? 0.6 : 1,
-                }}>{saving ? 'Speichert…' : 'Speichern'}</button>
+                }}>{saving ? t("konto.saving") : t("sm.save")}</button>
                 <button onClick={() => setEditing(false)} style={{
                   padding: '10px 20px', borderRadius: 10, border: `1px solid ${C.border}`,
                   background: 'transparent', cursor: 'pointer', fontSize: 14, color: C.muted,
@@ -235,7 +235,7 @@ export default function KontoSettingsPage() {
       </Section>
 
       {/* ═══ Mitgliedschaft ═══ */}
-      <Section title="Deine Mitgliedschaft" hint="Seit wann du Teil der Bewegung bist.">
+      <Section title={t("konto.membership")} hint={t("konto.membershipHint")}>
         <div style={{
           padding: '20px', borderRadius: 14, background: C.white,
           border: `1px solid ${C.border}`,
@@ -243,7 +243,7 @@ export default function KontoSettingsPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: C.ink, marginBottom: 4 }}>
-                {profile?.membership_active ? 'Aktives Mitglied' : 'Mitglied (inaktiv)'}
+                {profile?.membership_active ? t('konto.activeMember') : t('konto.inactiveMember')}
               </div>
               {memberSince && (
                 <div style={{ fontSize: 13, color: C.muted }}>
@@ -272,7 +272,7 @@ export default function KontoSettingsPage() {
           }}>
             <span style={{ fontSize: 14, color: C.ink }}>{t("ks.rolle")}</span>
             <span style={{ fontSize: 14, fontWeight: 600, color: C.teal }}>
-              {ROLE_LABELS[profile?.role] || 'Mitglied'}
+              {profile?.role === 'admin' || profile?.role === 'superadmin' ? t('ks.team') : t('konto.member')}
             </span>
           </div>
 
@@ -286,7 +286,7 @@ export default function KontoSettingsPage() {
               fontSize: 13, fontWeight: 500,
               color: isTalent ? C.green : C.muted,
             }}>
-              {isTalent ? 'Getragen' : 'Nicht getragen'}
+              {isTalent ? t("konto.carried") : t("konto.notCarried")}
             </span>
           </div>
 
@@ -320,7 +320,7 @@ export default function KontoSettingsPage() {
             border: `1px solid ${C.border}`,
           }}>
             <ToggleRow
-              label="Profil sichtbar"
+              label={t("konto.profileVisible")}
               hint={t("ks.profilFinden")}
               value={privacySettings.profile_visibility !== 'private'}
               onChange={() => togglePrivacy('profile_visibility')}
@@ -335,12 +335,12 @@ export default function KontoSettingsPage() {
             />
             <ToggleRow
               label={t("ks.verfuegbarkeitAnzeigen")}
-              hint="Zeigt, ob du Zeit hast"
+              hint={t("konto.showAvailability")}
               value={privacySettings.show_availability}
               onChange={() => togglePrivacy('show_availability')}
             />
             <ToggleRow
-              label="Nachrichten erlauben"
+              label={t("konto.allowMessages")}
               hint={t("ks.duSchreiben")}
               value={privacySettings.allow_messages}
               onChange={() => togglePrivacy('allow_messages')}
@@ -358,14 +358,14 @@ export default function KontoSettingsPage() {
             border: `1px solid ${C.border}`,
           }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 12 }}>{t("ks.email")}</div>
-            <ToggleRow label="Buchungen" hint="Wenn jemand Zeit mit dir verbringt" value={notifSettings.email_bookings} onChange={() => toggleNotif('email_bookings')} />
-            <ToggleRow label="Nachrichten" hint="Wenn dir jemand schreibt" value={notifSettings.email_messages} onChange={() => toggleNotif('email_messages')} />
-            <ToggleRow label="Impact" hint="Wenn sich an deinen Projekten etwas bewegt" value={notifSettings.email_impact} onChange={() => toggleNotif('email_impact')} last />
+            <ToggleRow label={t("konto.bookings")} hint={t("konto.bookingsHint")} value={notifSettings.email_bookings} onChange={() => toggleNotif('email_bookings')} />
+            <ToggleRow label={t("konto.messages")} hint={t("konto.messagesHint")} value={notifSettings.email_messages} onChange={() => toggleNotif('email_messages')} />
+            <ToggleRow label={t("konto.impact")} hint={t("konto.impactHint")} value={notifSettings.email_impact} onChange={() => toggleNotif('email_impact')} last />
 
             <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginTop: 16, marginBottom: 12 }}>{t("ks.push")}</div>
-            <ToggleRow label="Buchungen" hint="" value={notifSettings.push_bookings} onChange={() => toggleNotif('push_bookings')} />
-            <ToggleRow label="Nachrichten" hint="" value={notifSettings.push_messages} onChange={() => toggleNotif('push_messages')} />
-            <ToggleRow label="Impact" hint="" value={notifSettings.push_impact} onChange={() => toggleNotif('push_impact')} last />
+            <ToggleRow label={t("konto.bookings")} hint="" value={notifSettings.push_bookings} onChange={() => toggleNotif('push_bookings')} />
+            <ToggleRow label={t("konto.messages")} hint="" value={notifSettings.push_messages} onChange={() => toggleNotif('push_messages')} />
+            <ToggleRow label={t("konto.impact")} hint="" value={notifSettings.push_impact} onChange={() => toggleNotif('push_impact')} last />
           </div>
         </Section>
       )}

@@ -266,7 +266,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
 
   const save = async () => {
     setError(null); setSaved(false);
-    if (!oldEmail.trim()) { setError("Bitte aktuelle E-Mail eingeben"); return; }
+    if (!oldEmail.trim()) { setError(t("sm.emailChange.currentEmpty")); return; }
     if (!newEmail.includes("@")) { setError(t("sm.emailChange.invalid")); return; }
     setSaving(true);
     try {
@@ -284,7 +284,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
         throw new Error(t("sm.emailChange.mismatch"));
       }
       if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
-        throw new Error("Neue E-Mail ist identisch mit der aktuellen");
+        throw new Error(t("sm.emailChange.identical"));
       }
       // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail an neue Adresse).
       // BUGFIX 2026-08-15 (gleiche Klasse wie LoginPage.jsx signUp()): OHNE
@@ -321,7 +321,7 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
         onFocus={e=>e.target.style.borderColor=T.teal}
         onBlur={e=>e.target.style.borderColor=T.border}/>
       <input value={newEmail} onChange={e=>setNewEmail(e.target.value)}
-        placeholder="Neue E-Mail-Adresse" type="email" style={inp}
+        placeholder={t("sm.emailChange.new")} type="email" style={inp}
         name="new-email" autoComplete="off" autoCorrect="off" autoCapitalize="none"
         inputMode="email"
         onFocus={e=>e.target.style.borderColor=T.teal}
@@ -704,7 +704,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ MITGLIEDSCHAFT ════════════════════════════════ */}
           {view === "membership" && (<>
-            <Section title="Mitgliedschaftsinformation" icon={<HUIMitgliedIcon size={16}/>}>
+            <Section title={t("settings.membershipInfo")} icon={<HUIMitgliedIcon size={16}/>}>
               <div style={{padding:"14px 16px"}}>
                 <div style={{
                   padding:"12px 14px", borderRadius:10,
@@ -713,7 +713,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 }}>
                   <div style={{fontSize:11,fontWeight: 600,color:"#0EC4B8",marginBottom:4}}>Status</div>
                   <div style={{fontSize:14,fontWeight: 600,color:"#1A1A18"}}>
-                    {profile?.is_talent ? "✨ HUI-Talent" : "🌿 HUI-Mitglied"}
+                    {profile?.is_talent ? t("sm.talentBadge") : t("sm.memberBadge")}
                   </div>
                   {profile?.talent_since && (
                     <div style={{fontSize:11,color:"#888",marginTop:4}}>
@@ -730,7 +730,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
           {/* ══ PERSÖNLICHE DATEN ══════════════════════════════ */}
           {view === "contact" && (<>
-            <Section title="Name" icon={<HUIProfilIcon size={16}/>}>
+            <Section title={t("sm.name")} icon={<HUIProfilIcon size={16}/>}>
               <NameBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
             <Section title="Kontakt" icon={<HUIKontaktIcon size={16}/>}>
@@ -805,7 +805,7 @@ function OTAUpdateSection() {
       const res = await checkForUpdate();
       setResult(res);
     } catch (err) {
-      setResult({ available: false, error: err?.message || "Fehler" });
+      setResult({ available: false, error: err?.message || t("common.error") });
     }
     setChecking(false);
   };
