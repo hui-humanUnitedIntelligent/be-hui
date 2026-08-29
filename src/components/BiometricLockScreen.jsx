@@ -130,6 +130,23 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
     }
   }, [failedAttempts, onUnlock, onLogout]);
 
+  // Eigener In-App-Ziffernblock statt natives System-Keyboard
+  // (KEYBOARD-VISIBILITY-FIX, 2026-08-29 — gleicher Fix wie im
+  // Settings-PIN-Setup-Dialog): Ein hidden <input autoFocus> ist auf
+  // Android/Xiaomi-Geräten fragil — mal öffnet es die Systemtastatur
+  // gar nicht (dieser Screen), mal verdeckt die Systemtastatur den
+  // darüberliegenden Dialog (Settings-PIN-Setup). Fix: kein natives
+  // Keyboard mehr, Ziffern werden über eigene Buttons erfasst.
+  const handlePinDigit = useCallback((digit) => {
+    if (busy || pinInput.length >= 6) return;
+    handlePinChange(pinInput + digit);
+  }, [busy, pinInput, handlePinChange]);
+
+  const handlePinBackspace = useCallback(() => {
+    if (busy) return;
+    setPinInput(prev => prev.slice(0, -1));
+  }, [busy]);
+
   // ── Logout ──────────────────────────────────────────────────────
   const handleLogout = useCallback(async () => {
     await clearSavedSession();
@@ -217,20 +234,52 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
             ))}
           </div>
 
-          {/* Verstecktes Input für Tastatur */}
-          <input
-            type="tel"
-            inputMode="numeric"
-            autoFocus
-            value={pinInput}
-            onChange={(e) => handlePinChange(e.target.value)}
-            disabled={busy}
-            style={{
-              position: 'absolute', opacity: 0, pointerEvents: 'none',
-              width: 1, height: 1, left: -9999,
-            }}
-            aria-label={t('lock.pinInput')}
-          />
+          {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14,
+            width: '100%', maxWidth: 280,
+            opacity: busy ? 0.5 : 1, pointerEvents: busy ? 'none' : 'auto',
+          }}>
+            {["1","2","3","4","5","6","7","8","9"].map((d) => (
+              <button
+                key={d}
+                onClick={() => handlePinDigit(d)}
+                style={{
+                  padding: '16px 0', borderRadius: 16, border: 'none',
+                  background: 'rgba(26,26,46,0.05)', color: INK,
+                  fontSize: 20, fontWeight: 600,
+                  cursor: 'pointer', touchAction: 'manipulation',
+                }}
+              >
+                {d}
+              </button>
+            ))}
+            <div />
+            <button
+              onClick={() => handlePinDigit("0")}
+              style={{
+                padding: '16px 0', borderRadius: 16, border: 'none',
+                background: 'rgba(26,26,46,0.05)', color: INK,
+                fontSize: 20, fontWeight: 600,
+                cursor: 'pointer', touchAction: 'manipulation',
+              }}
+            >
+              0
+            </button>
+            <button
+              onClick={handlePinBackspace}
+              aria-label="Backspace"
+              style={{
+                padding: '16px 0', borderRadius: 16, border: 'none',
+                background: 'none', color: 'rgba(26,26,46,0.5)',
+                fontSize: 18, fontWeight: 600,
+                cursor: 'pointer', touchAction: 'manipulation',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              ⌫
+            </button>
+          </div>
 
           {/* Fehlerhinweis */}
           {failedAttempts > 0 && (
