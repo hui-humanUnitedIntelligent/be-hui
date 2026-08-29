@@ -6,7 +6,7 @@ import BankdatenModal from './BankdatenModal.jsx';
 // ── HUI Einstellungs-Modal v2 ─────────────────────────────────
 // Enthält: Profil bearbeiten | Buchungen | Privatsphäre | Abmelden
 // + Name | E-Mail | Passwort ändern
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -431,7 +431,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [showBioPINSetup,  setShowBioPINSetup]  = useState(false);
   const [bioPinStep,       setBioPinStep]       = useState("first"); // first | confirm
   const [bioPinFirst,      setBioPinFirst]      = useState("");
-  const bioPinFirstRef = useRef(""); // Ref-Mirror für asynchrone Vergleiche ohne Side-Effects in State-Updatern
   const [bioPinSecond,     setBioPinSecond]     = useState("");
   const [bioPinError,      setBioPinError]      = useState(null);
   const [bioIsNative]                           = useState(() => Capacitor.isNativePlatform());
@@ -499,7 +498,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     console.log('[HUI DEBUG] Opening PIN setup dialog');
     setBioPinStep("first");
     setBioPinFirst("");
-    bioPinFirstRef.current = "";
     setBioPinSecond("");
     setBioPinError(null);
     setShowBioPINSetup(true);
@@ -510,7 +508,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     setPinEnabled(true);
     setShowBioPINSetup(false);
     setBioPinFirst("");
-    bioPinFirstRef.current = "";
     setBioPinSecond("");
     setBioPinStep("first");
   }, []);
@@ -527,7 +524,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       setBioPinFirst(prev => {
         if (prev.length >= 6) return prev;
         const next = prev + digit;
-        bioPinFirstRef.current = next;
         if (next.length === 6) {
           setTimeout(() => { setBioPinStep("confirm"); }, 180);
         }
@@ -538,14 +534,16 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
         if (prev.length >= 6) return prev;
         const next = prev + digit;
         if (next.length === 6) {
-          const firstVal = bioPinFirstRef.current;
           setTimeout(() => {
-            if (firstVal !== next) {
-              setBioPinError(t("biometric.pinMismatch"));
-              setBioPinSecond("");
-            } else {
-              finishBioPINSetup(next);
-            }
+            setBioPinFirst(firstVal => {
+              if (firstVal !== next) {
+                setBioPinError(t("biometric.pinMismatch"));
+                setBioPinSecond("");
+              } else {
+                finishBioPINSetup(next);
+              }
+              return firstVal;
+            });
           }, 180);
         }
         return next;
@@ -684,6 +682,124 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <NavItem icon={<HUIAbmeldenIcon size={16}/>} label={t("sm.nav.logout")}
                 onClick={logout} danger last/>
             </Section>
+
+            {showBioPINSetup && createPortal(
+          <div
+            onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}
+            style={{
+              position:"fixed", inset:0, zIndex:10700,
+              background:"rgba(26,26,24,0.55)",
+              display:"flex", alignItems:"flex-end", justifyContent:"center",
+              fontFamily:"Inter,sans-serif",
+            }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{
+                width:"100%", maxWidth:480,
+                background:T.bg, borderRadius:"24px 24px 0 0",
+                padding:"0 0 calc(max(env(safe-area-inset-bottom, 0px), 16px) + 24px)",
+                boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+                overflow:"hidden",
+              }}
+            >
+              <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
+                <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+              </div>
+
+              <div style={{ padding:"24px 20px 0" }}>
+                <div style={{ fontSize:20, fontWeight:600, color:T.ink, letterSpacing:-0.4, marginBottom:4 }}>
+                  {t("biometric.setupPIN")}
+                </div>
+                <div style={{ fontSize:13, color:T.inkSoft, marginBottom:24 }}>
+                  {bioPinStep === "first" ? t("biometric.setupPIN") : t("biometric.confirmPIN")}
+                </div>
+
+                <div style={{ display:"flex", gap:14, justifyContent:"center", marginBottom:24 }}>
+                  {Array.from({ length: 6 }).map((_, i) => {
+                    const val = bioPinStep === "first" ? bioPinFirst : bioPinSecond;
+                    return (
+                      <div key={i} style={{
+                        width:16, height:16, borderRadius:"50%",
+                        border:`2px solid ${i < val.length ? T.teal : "rgba(26,26,24,0.15)"}`,
+                        background: i < val.length ? T.teal : "transparent",
+                        transition:"all 0.15s ease",
+                      }} />
+                    );
+                  })}
+                </div>
+
+                {bioPinError && (
+                  <div style={{ fontSize:13, color:T.danger, textAlign:"center", marginBottom:16 }}>
+                    {bioPinError}
+                  </div>
+                )}
+
+                {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
+                <div style={{
+                  display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12,
+                  marginBottom: bioPinError ? 8 : 24,
+                }}>
+                  {["1","2","3","4","5","6","7","8","9"].map((d) => (
+                    <button
+                      key={d}
+                      onClick={() => handleBioPinDigit(d)}
+                      style={{
+                        padding:"16px 0", borderRadius:16, border:"none",
+                        background:T.bgCard, color:T.ink,
+                        fontSize:20, fontWeight:600,
+                        cursor:"pointer", touchAction:"manipulation",
+                        boxShadow:"0 1px 2px rgba(26,26,24,0.06)",
+                      }}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                  <div />
+                  <button
+                    onClick={() => handleBioPinDigit("0")}
+                    style={{
+                      padding:"16px 0", borderRadius:16, border:"none",
+                      background:T.bgCard, color:T.ink,
+                      fontSize:20, fontWeight:600,
+                      cursor:"pointer", touchAction:"manipulation",
+                      boxShadow:"0 1px 2px rgba(26,26,24,0.06)",
+                    }}
+                  >
+                    0
+                  </button>
+                  <button
+                    onClick={handleBioPinBackspace}
+                    aria-label="Backspace"
+                    style={{
+                      padding:"16px 0", borderRadius:16, border:"none",
+                      background:"none", color:T.inkSoft,
+                      fontSize:18, fontWeight:600,
+                      cursor:"pointer", touchAction:"manipulation",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}
+                  >
+                    ⌫
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => { setShowBioPINSetup(false); setBioPinError(null); setBioPinFirst(""); setBioPinSecond(""); setBioPinStep("first"); }}
+                  style={{
+                    width:"100%", padding:"12px", marginTop:8,
+                    background:"none", border:"none",
+                    color:T.inkFaint, fontSize:13,
+                    cursor:"pointer", textDecoration:"underline",
+                    touchAction:"manipulation",
+                  }}
+                >
+                  {t("sm.nav.logout") === "Abmelden" ? "Abbrechen" : "Cancel"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
 
         {showBankdaten && (
               <BankdatenModal
@@ -1018,7 +1134,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                     onClick={() => {
                       setBioPinStep("first");
                       setBioPinFirst("");
-                      bioPinFirstRef.current = "";
                       setBioPinSecond("");
                       setBioPinError(null);
                       setShowBioPINSetup(true);
@@ -1044,126 +1159,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <PrivacyBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
           )}
-
-
-
-        {showBioPINSetup && createPortal(
-        <div
-        onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}
-        style={{
-          position:"fixed", inset:0, zIndex:10700,
-          background:"rgba(26,26,24,0.55)",
-          display:"flex", alignItems:"flex-end", justifyContent:"center",
-          fontFamily:"Inter,sans-serif",
-        }}
-        >
-        <div
-          onClick={e => e.stopPropagation()}
-          style={{
-            width:"100%", maxWidth:480,
-            background:T.bg, borderRadius:"24px 24px 0 0",
-            padding:"0 0 calc(max(env(safe-area-inset-bottom, 0px), 16px) + 24px)",
-            boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
-            overflow:"hidden",
-          }}
-        >
-          <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 0" }}>
-            <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
-          </div>
-
-          <div style={{ padding:"24px 20px 0" }}>
-            <div style={{ fontSize:20, fontWeight:600, color:T.ink, letterSpacing:-0.4, marginBottom:4 }}>
-              {t("biometric.setupPIN")}
-            </div>
-            <div style={{ fontSize:13, color:T.inkSoft, marginBottom:24 }}>
-              {bioPinStep === "first" ? t("biometric.setupPIN") : t("biometric.confirmPIN")}
-            </div>
-
-            <div style={{ display:"flex", gap:14, justifyContent:"center", marginBottom:24 }}>
-              {Array.from({ length: 6 }).map((_, i) => {
-                const val = bioPinStep === "first" ? bioPinFirst : bioPinSecond;
-                return (
-                  <div key={i} style={{
-                    width:16, height:16, borderRadius:"50%",
-                    border:`2px solid ${i < val.length ? T.teal : "rgba(26,26,24,0.15)"}`,
-                    background: i < val.length ? T.teal : "transparent",
-                    transition:"all 0.15s ease",
-                  }} />
-                );
-              })}
-            </div>
-
-            {bioPinError && (
-              <div style={{ fontSize:13, color:T.danger, textAlign:"center", marginBottom:16 }}>
-                {bioPinError}
-              </div>
-            )}
-
-            {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
-            <div style={{
-              display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12,
-              marginBottom: bioPinError ? 8 : 24,
-            }}>
-              {["1","2","3","4","5","6","7","8","9"].map((d) => (
-                <button
-                  key={d}
-                  onClick={() => handleBioPinDigit(d)}
-                  style={{
-                    padding:"16px 0", borderRadius:16, border:"none",
-                    background:T.bgCard, color:T.ink,
-                    fontSize:20, fontWeight:600,
-                    cursor:"pointer", touchAction:"manipulation",
-                    boxShadow:"0 1px 2px rgba(26,26,24,0.06)",
-                  }}
-                >
-                  {d}
-                </button>
-              ))}
-              <div />
-              <button
-                onClick={() => handleBioPinDigit("0")}
-                style={{
-                  padding:"16px 0", borderRadius:16, border:"none",
-                  background:T.bgCard, color:T.ink,
-                  fontSize:20, fontWeight:600,
-                  cursor:"pointer", touchAction:"manipulation",
-                  boxShadow:"0 1px 2px rgba(26,26,24,0.06)",
-                }}
-              >
-                0
-              </button>
-              <button
-                onClick={handleBioPinBackspace}
-                aria-label="Backspace"
-                style={{
-                  padding:"16px 0", borderRadius:16, border:"none",
-                  background:"none", color:T.inkSoft,
-                  fontSize:18, fontWeight:600,
-                  cursor:"pointer", touchAction:"manipulation",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                }}
-              >
-                ⌫
-              </button>
-            </div>
-
-            <button
-              onClick={() => { setShowBioPINSetup(false); setBioPinError(null); setBioPinFirst(""); setBioPinSecond(""); setBioPinStep("first"); }}
-              style={{
-                width:"100%", padding:"12px", marginTop:8,
-                background:"none", border:"none",
-                color:T.inkFaint, fontSize:13,
-                cursor:"pointer", textDecoration:"underline",
-                touchAction:"manipulation",
-              }}
-            >
-              {t("sm.nav.logout") === "Abmelden" ? "Abbrechen" : "Cancel"}
-            </button>
-          </div>
-        </div>
-        </div>,
-        document.body
-        )}
 
         </div>
       </div>
