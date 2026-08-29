@@ -181,14 +181,14 @@ function DetailModal({ n, onClose, onAction }) {
 
   // ── Typ-spezifische Konfiguration ─────────────────────────────────────────
   const cfg = (() => {
-    const t = n.type || "";
+    const nType = n.type || "";
 
     // Ablehnungen
-    if (t.includes("_rejected") || t === "content_rejected") {
+    if (nType.includes("_rejected") || nType === "content_rejected") {
       const typeMap = {
         talent_rejected:         { label:"Talent",           emoji:"⭐" },
       };
-      const tm = typeMap[t] || { label:t("notif.meta.entry"), emoji:"📋" };
+      const tm = typeMap[nType] || { label:t("notif.meta.entry"), emoji:"📋" };
       const reason = md.rejection_reason || md.reason
         || (n.body?.match(/Grund[:：]\s*(.+)/s)?.[1]?.trim())
         || n.body || t("notif.meta.noReason");
@@ -213,11 +213,11 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Freigaben / Annahmen
-    if (t.includes("_approved")) {
+    if (nType.includes("_approved")) {
       const approvalMap = {
         talent_approved:         { label:"Talent",         emoji:"⭐" },
       };
-      const am = approvalMap[t] || { label:"Inhalt", emoji:"✅" };
+      const am = approvalMap[nType] || { label:"Inhalt", emoji:"✅" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || n.title || `Dein ${am.label}`;
       const msg = md.message || md.admin_note || n.body || t("notif.meta.congrats");
       // entity_type-Mapping für openRef: impact_project_approved → "project"
@@ -239,7 +239,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Support
-    if (t === "support_ticket_reply" || t === "support_ticket") {
+    if (nType === "support_ticket_reply" || nType === "support_ticket") {
       const text     = md.admin_reply || md.message || md.body || n.body || "(Keine Nachricht)";
       const subject  = md.subject || n.title || "Support-Antwort";
       const ticketId = md.ticket_id || md.ticket_number || "";
@@ -255,7 +255,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Admin-Broadcast
-    if (t === "admin_broadcast" || t === "broadcast") {
+    if (nType === "admin_broadcast" || nType === "broadcast") {
       const text  = md.message || md.body || n.body || "(Keine Nachricht)";
       const title = md.title   || n.title || "Nachricht vom Admin";
       return {
@@ -270,7 +270,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // HUI Share (interne Weiterleitungen)
-    if (t === "share") {
+    if (nType === "share") {
       const sharePost  = md.post_title || md.entity_title || null;
       const shareType  = md.post_type || md.entity_type || n.entity_type || "";
       const typeLabel  = {
@@ -311,7 +311,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Meldung / Sensitiver Inhalt
-    if (t === "work_sensitive" || t === "content_flagged") {
+    if (nType === "work_sensitive" || nType === "content_flagged") {
       return {
         accentColor: "#F59E0B",
         headerIcon: "⚠️",
@@ -324,7 +324,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Meldung aufgehoben / Inhalt wiederhergestellt
-    if (t === "meldung_aufgehoben" || t === "content_restored") {
+    if (nType === "meldung_aufgehoben" || nType === "content_restored") {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✅",
@@ -337,7 +337,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Werk entfernt
-    if (t === "work_deleted") {
+    if (nType === "work_deleted") {
       return {
         accentColor: "#DC2626",
         headerIcon: "🗑",
@@ -352,9 +352,9 @@ function DetailModal({ n, onClose, onAction }) {
     // ── RESONANZ-BUCHUNG-001 + BELEG-001 (2026-08-08): Strukturiertes
 //    Buchungsdetail mit echten Daten, Link zum Angebot, Kontaktdaten
 //    (E-Mail/Webseite wenn vorhanden), Chat-Option + Beleg-Download ──
-    if (["talent_booking_paid","talent_booking_confirmed","experience_booking_paid","experience_booking_confirmed"].includes(t)) {
-      const isSellerView = t === "talent_booking_paid" || t === "experience_booking_paid";
-      const isTalent = t.startsWith("talent_booking");
+    if (["talent_booking_paid","talent_booking_confirmed","experience_booking_paid","experience_booking_confirmed"].includes(nType)) {
+      const isSellerView = nType === "talent_booking_paid" || nType === "experience_booking_paid";
+      const isTalent = nType.startsWith("talent_booking");
       const otherUserId = md.other_user_id || null;
       const otherUserLabel = isSellerView
         ? (md.buyer_name || "Der Kunde")
@@ -411,7 +411,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Neue Bestellung (Verkäufer-Sicht) — BELEG-001: strukturiert wie Buchungen
-    if (t === "new_order" || t === "new_booking" || t === "purchase") {
+    if (nType === "new_order" || nType === "new_booking" || nType === "purchase") {
       const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || md.werk_title || md.title || "dein Werk";
       const buyerName = md.buyer_name || "Jemand";
       const amount = md.amount_eur != null ? `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` : null;
@@ -435,7 +435,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Zahlung bestätigt / Unterstützung bestätigt
-    if (t === "payment_confirmed" || t === "support_confirmed") {
+    if (nType === "payment_confirmed" || nType === "support_confirmed") {
       const amount = md.amount_eur ? `${Number(md.amount_eur).toFixed(2)} €` : "";
       return {
         accentColor: "#0EC4B8",
@@ -450,7 +450,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Follower
-    if (t === "new_follower" || t === "follow" || t === "follow_request") {
+    if (nType === "new_follower" || nType === "follow" || nType === "follow_request") {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✦",
@@ -463,14 +463,14 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Kommentar / Antwort
-    if (t === "comment" || t === "comment_reply") {
+    if (nType === "comment" || nType === "comment_reply") {
       const cmEntityId   = md.post_id   || n.entity_id   || null;
       const cmEntityType = md.post_type || n.entity_type || null;
       const typeLabel = { work:"Werk", moment:"Beitrag", experience:"Erlebnis" }[cmEntityType] || "Beitrag";
       return {
         accentColor: "#0EC4B8",
         headerIcon: "💬",
-        headerTitle: n.title || (t === "comment_reply" ? "Antwort auf deinen Kommentar" : "Neuer Kommentar"),
+        headerTitle: n.title || (nType === "comment_reply" ? "Antwort auf deinen Kommentar" : "Neuer Kommentar"),
         headerSubtitle: cmEntityType ? `auf deinen ${typeLabel}` : null,
         blocks: [
           md.comment_text && { type:"label-text", label:"Kommentar", text: md.comment_text, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
@@ -483,7 +483,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // Resonanz / Like
-    if (t === "resonanz" || t === "like") {
+    if (nType === "resonanz" || nType === "like") {
       // body enthält oft den Titel des Werks/Beitrags — als Subtitle zeigen
       const resonanzTitle = n.body?.replace(/^["„“]+|["“”]+$/g, "").trim() || null;
       const typeLabel = { work:"Werk", moment:"Beitrag", experience:"Erlebnis" }[n.entity_type] || "Inhalt";
@@ -501,7 +501,7 @@ function DetailModal({ n, onClose, onAction }) {
 
     // Merken-Digest
     // Beitrag gespeichert (RESONANZ.5 — Autor bekommt Notification wenn jemand speichert)
-    if (t === "save") {
+    if (nType === "save") {
       const saveTitle  = md.post_title || n.body?.replace(/^[""]+|[""]+$/g,"").trim() || null;
       const saveType   = md.post_type || n.entity_type || null;
       const typeLabel  = { work:"Werk", moment:"Beitrag", experience:"Erlebnis", beitrag:"Beitrag" }[saveType] || "Beitrag";
@@ -517,7 +517,7 @@ function DetailModal({ n, onClose, onAction }) {
       };
     }
 
-    if (t === "save_digest") {
+    if (nType === "save_digest") {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "🔖",
@@ -531,7 +531,7 @@ function DetailModal({ n, onClose, onAction }) {
 
 
     // ── Bestellung bestätigt (Käufer-Seite) — BELEG-001: voll strukturiert ──
-    if (t === "order_confirmed") {
+    if (nType === "order_confirmed") {
       const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || null;
       const sellerName = md.seller_name || "Der Anbieter";
       const amount = md.amount_eur != null ? `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` : null;
@@ -570,7 +570,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Impact-Projekt vollständig finanziert (BELEG-001) ───────────────────
-    if (t === "impact_project_completed") {
+    if (nType === "impact_project_completed") {
       const projectName = md.project_name || n.title || "Dein Projekt";
       const funded = md.funded_amount != null ? `${Number(md.funded_amount).toFixed(2).replace(".", ",")} €` : null;
       const goal = md.goal != null ? `${Number(md.goal).toFixed(2).replace(".", ",")} €` : null;
@@ -591,7 +591,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Impact-Projekt eingereicht ─────────────────────────────────────────
-    if (t === "impact_project_submitted") {
+    if (nType === "impact_project_submitted") {
       const projectName = md.project_name || md.entry_title || n.title || "Dein Projekt";
       return {
         accentColor: "#0EC4B8",
@@ -607,7 +607,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Impact-Projekt gelöscht ────────────────────────────────────────────
-    if (t === "impact_project_deleted") {
+    if (nType === "impact_project_deleted") {
       const projectName = md.project_name || md.entry_title || n.title || "Dein Projekt";
       const reason = md.reason || md.rejection_reason || n.body || "Dein Projekt wurde entfernt.";
       return {
@@ -623,7 +623,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Inhalt gemeldet (work_flagged — SADB-Meldung) ─────────────────────
-    if (t === "work_flagged" || t === "content_flagged") {
+    if (nType === "work_flagged" || nType === "content_flagged") {
       const entryTitle = md.entry_title || md.work_title || n.body?.match(/„(.+?)"/)?.[1] || "";
       return {
         accentColor: "#F59E0B",
@@ -637,7 +637,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Inhalt gelöscht (content_deleted) ─────────────────────────────────
-    if (t === "content_deleted") {
+    if (nType === "content_deleted") {
       const entryTitle = md.entry_title || n.body?.match(/„(.+?)"/)?.[1] || "";
       const entityLabel = { work:"Werk", experience:"Erlebnis", talent:"Talent", moment:"Beitrag" }[n.entity_type] || "Inhalt";
       return {
@@ -652,7 +652,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Moment entfernt durch Admin ──────────────────────────────────────
-    if (t === "moment_removed") {
+    if (nType === "moment_removed") {
       const reason = md.reason || n.body || t("notif.momentAdminRemoved");
       const preview = md.moment_preview || md.entry_title || "";
       return {
@@ -668,7 +668,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Moment gemeldet (1 Meldung) ──────────────────────────────────────
-    if (t === "moment_reported") {
+    if (nType === "moment_reported") {
       const preview = md.moment_preview || md.entry_title || "";
       return {
         accentColor: "#F59E0B",
@@ -683,7 +683,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Moment durch mehrfache Meldungen entfernt ──────────────────────────
-    if (t === "moment_reported_removed") {
+    if (nType === "moment_reported_removed") {
       const reason = md.reason || n.body || t("notif.momentReportedRemoved");
       const preview = md.moment_preview || md.entry_title || "";
       return {
@@ -699,14 +699,14 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Moment / Talent / Erlebnis / Projekt aktualisiert ─────────────────
-    if (t === "moment_updated" || t === "talent_updated" || t === "experience_updated" || t === "project_updated") {
+    if (nType === "moment_updated" || nType === "talent_updated" || nType === "experience_updated" || nType === "project_updated") {
       const labelMap = { moment_updated:"Moment", talent_updated:"Talent-Angebot", experience_updated:"Erlebnis", project_updated:"Projekt" };
       const emojiMap = { moment_updated:"✏️", talent_updated:"⭐", experience_updated:"🌿", project_updated:"📌" };
-      const entityLabel = labelMap[t];
+      const entityLabel = labelMap[nType];
       const entryTitle = md.entry_title || md.title || "";
       return {
         accentColor: "#6366F1",
-        headerIcon: emojiMap[t],
+        headerIcon: emojiMap[nType],
         headerTitle: `${entityLabel} aktualisiert`,
         headerSubtitle: entryTitle ? `„${entryTitle}"` : null,
         blocks: [
@@ -719,7 +719,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── Inhalt freigegeben (content_approved — Generic für experience etc.) ─
-    if (t === "content_approved") {
+    if (nType === "content_approved") {
       const entryTitle = md.entry_title || n.body?.match(/„(.+?)"/)?.[1] || "";
       const entityLabel = { work:"Werk", experience:"Erlebnis", talent:"Talent", moment:"Beitrag" }[n.entity_type] || "Inhalt";
       return {
@@ -739,7 +739,7 @@ function DetailModal({ n, onClose, onAction }) {
     // ── BANKDATEN-LINK (2026-08-16): "Bankdaten fehlen" — Zahlung
     //    freigegeben aber Verkäufer hat keine Bankdaten hinterlegt.
     //    Button öffnet direkt Settings → Bankdaten-Modal. ──
-    if (t === "payout_bank_details_needed") {
+    if (nType === "payout_bank_details_needed") {
       return {
         accentColor: "#F59E0B",
         headerIcon: "🏦",
@@ -753,7 +753,7 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // ── buyer_confirmed (Zahlung erfolgreich überwiesen) — Info nur ──
-    if (t === "buyer_confirmed") {
+    if (nType === "buyer_confirmed") {
       return {
         accentColor: "#22C55E",
         headerIcon: "✓",
