@@ -167,7 +167,7 @@ export default function OnboardingTutorial() {
   const startAdvancedTutorial = useCallback(() => {
     window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "profile" } }));
     const start = Date.now();
-    const MAX_WAIT = 3000;
+    const MAX_WAIT = 8000;
     function poll() {
       const ready = ADVANCED_READY_SELECTORS.some(sel => document.querySelector(sel));
       if (ready || Date.now() - start > MAX_WAIT) {
@@ -177,7 +177,7 @@ export default function OnboardingTutorial() {
         setStep(0);
         setPhase("advanced");
       } else {
-        setTimeout(poll, 100);
+        setTimeout(poll, 150);
       }
     }
     poll();
