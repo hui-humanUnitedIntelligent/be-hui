@@ -6,7 +6,7 @@
 // Sie enthält alle App-spezifischen Provider und Routen.
 // Auf /login wird dieser Code gar nicht heruntergeladen.
 //
-// v2.4: desktopV3.css + perf-instrument + devconsole — alle nur nach Auth
+// v2.4: desktopV3.css + devconsole — alle nur nach Auth
 // von web-main.jsx hierher verschoben — nur nach Auth aktiv.
 //
 // Provider-Tree:
@@ -67,13 +67,6 @@ function AuthSuspense({ children }) {
 
 // ── AuthenticatedApp ─────────────────────────────────────────────────────────
 export default function AuthenticatedApp() {
-  // ── Performance Instrumentation (nur nach Auth) ────────────────────────────
-  useEffect(() => {
-    window.__HUI_PERF__ = true;
-    import('./components/desktop/perf-instrument.js').then(({ initPerf }) => {
-      initPerf();
-    }).catch(() => {});
-  }, []);
 
   return (
     <AppStateProvider>

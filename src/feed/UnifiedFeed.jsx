@@ -30,8 +30,6 @@ import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter
 import FeedImpactTicker from "./FeedImpactTicker.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
 
-// TEMP PERF — no-op on mobile (window.__HUI_PERF__ not set)
-import { PerfProfiler, usePerfMount, feedMark } from "../components/desktop/perf-instrument.js";
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -778,7 +776,7 @@ const LazyCard = React.memo(function LazyCard({ raw, ...handlers }) {
   return (
     <div ref={ref} style={{ minHeight: visible ? undefined : 280 }}>
       {visible
-        ? <PerfProfiler id={`FeedCard:${raw.id}`}><FeedRouter item={raw} {...handlers} /></PerfProfiler>
+        ? <FeedRouter item={raw} {...handlers} />
         : <CardSkeleton />}
     </div>
   );
@@ -818,7 +816,6 @@ export default function UnifiedFeed({
   locationQuery  = "",       // Freitext-Ort-Filter (Substring auf item.location)
   sort           = "newest", // "newest" | "oldest"
 }) {
-  usePerfMount('UnifiedFeed');
   const { t } = useTranslation();
   useEffect(() => {
     injectFeedCSS();
@@ -943,7 +940,6 @@ export default function UnifiedFeed({
   // Sections are directly imported — no lazy load needed
 
   return (
-    <PerfProfiler id="UnifiedFeed">
     <div style={{
       width: "100%",
       overflowX: "hidden",
@@ -1058,7 +1054,6 @@ export default function UnifiedFeed({
         postTitle={commentsTarget?.postTitle}
       />
     </div>
-    </PerfProfiler>
   );
 }
 

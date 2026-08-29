@@ -1,5 +1,4 @@
 // ══════════════════════════════════════════════════════════════════════════════
-import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 // DesktopRightPanel.jsx — HUI Desktop V3 — Mein Wirkungsraum
 // ══════════════════════════════════════════════════════════════════════════════
 //
@@ -36,7 +35,6 @@ function formatDate(iso) {
 
 export default function DesktopRightPanel() {
   const { t } = useTranslation();
-  usePerfMount('DesktopRightPanel');
   const navigate = useNavigate();
   const { impact, activity, discover, bookings } = useDesktopData();
 
@@ -58,7 +56,6 @@ export default function DesktopRightPanel() {
       : `Heute stehen ${openCount} Dinge an.`;
 
   return (
-    <PerfProfiler id="DesktopRightPanel">
     <aside className="hui-rightpanel">
       <div className="wr-inner">
 
@@ -142,6 +139,5 @@ export default function DesktopRightPanel() {
 
       </div>
     </aside>
-    </PerfProfiler>
   );
 }

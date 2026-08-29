@@ -17,7 +17,6 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React from 'react';
-import { PerfProfiler, usePerfMount } from './perf-instrument.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
@@ -89,7 +88,6 @@ function NavItem({ item, active, badge, onClick }) {
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
 export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
   const { t } = useTranslation();
-  usePerfMount('DesktopSidebar');
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, logout } = useAuth();
@@ -118,7 +116,6 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
     : 'Mitglied';
 
   return (
-    <PerfProfiler id="DesktopSidebar">
     <aside className="hui-sidebar">
       {/* ── Logo ─────────────────────────────────────────────────── */}
       <button className="sb-logo" onClick={() => navigate('/Home')}>
@@ -190,6 +187,5 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
         </button>
       </div>
     </aside>
-    </PerfProfiler>
   );
 }

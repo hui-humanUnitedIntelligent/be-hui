@@ -17,7 +17,6 @@
 // ══════════════════════════════════════════════════════════════════════════════
 
 import React, { Suspense, lazy, useState, useEffect, useMemo } from 'react';
-import { PerfProfiler, usePerfMount, heroMark } from './perf-instrument.js';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../lib/AuthContext.jsx';
 import { useDesktopData } from './DesktopDataContext.jsx';
@@ -61,7 +60,7 @@ function WerkHero({ work, navigate }) {
     <div className="hero-card" onClick={() => navigate(`/work/${work.id}`)} role="button" tabIndex={0}>
       <div className="hero-img-wrap">
         {work.cover_url ? (
-          <img className="hero-img" src={work.cover_url} alt={work.title} loading="lazy" onLoad={() => heroMark("imgLoadEnd")} onError={() => heroMark("imgLoadEnd")} />
+          <img className="hero-img" src={work.cover_url} alt={work.title} loading="lazy" />
         ) : (
           <div className="hero-img hero-img-fallback" />
         )}
@@ -156,11 +155,10 @@ function ImpactHero({ impact, navigate }) {
 // ── Hauptkomponente ──────────────────────────────────────────────────────────
 export default function DesktopHome() {
   const { t } = useTranslation();
-  usePerfMount('DesktopHome');
   const navigate = useNavigate();
   const { profile } = useAuth();
   const { discover, activity, impact, bookings } = useDesktopData();
-  useEffect(() => { if (discover.works?.length || discover.talents?.length) heroMark('dataLoad'); }, [discover.works, discover.talents]);
+  useEffect(() => { if (discover.works?.length || discover.talents?.length) ; }, [discover.works, discover.talents]);
 
   const firstName = (profile?.display_name || profile?.username || '').split(' ')[0] || '';
 
@@ -196,7 +194,7 @@ export default function DesktopHome() {
   useEffect(() => {
     if (heroes.length <= 1) return;
     const t = setInterval(() => {
-      heroMark('rotation');
+      ;
       setHeroVisible(false);
       setTimeout(() => {
         setHeroIndex(i => (i + 1) % heroes.length);
@@ -207,7 +205,7 @@ export default function DesktopHome() {
   }, [heroes.length]);
 
   function renderHero() {
-    heroMark('render');
+    ;
     if (heroes.length === 0 || discover.loading) return <HeroSkeleton />;
     const hero = heroes[heroIndex % heroes.length];
     if (!hero) return <HeroSkeleton />;
@@ -227,7 +225,6 @@ export default function DesktopHome() {
       </div>
 
       {/* ── Hero-Bereich ─────────────────────────────────────────── */}
-      <PerfProfiler id="DesktopHero">
       <div className={`hero-wrap ${heroVisible ? 'hero-visible' : ''}`}>
         {renderHero()}
         {heroes.length > 1 && (
@@ -243,7 +240,6 @@ export default function DesktopHome() {
           </div>
         )}
       </div>
-      </PerfProfiler>
 
       {/* ── Der Strom ────────────────────────────────────────────── */}
       <div className="stream-header">
