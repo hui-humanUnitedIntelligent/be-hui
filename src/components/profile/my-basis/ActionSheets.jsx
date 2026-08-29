@@ -4,6 +4,7 @@
 import React from "react";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 import { createPortal } from "react-dom";
+import { HUITrashIcon } from "../../../design/icons/HuiSystemIcons.jsx";
 
 export function DraftActionSheet({ label, onPublish, onEdit, onDelete = null, onCancel }) {
   // DRAFT-ACTION (2026-08-20, Michael-Request): Beim Klick auf einen Entwurf
@@ -127,32 +128,48 @@ export function ItemActionChoiceSheet({ label, onEdit, onView, onDelete = null, 
   );
 }
 
-export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
+// ════════════════════════════════════════════════════════════════
+// DELETE-MODAL-REDESIGN (2026-08-29, Michael-Feedback: "Löschen modal
+// sieht furchtbar aus"). Eine gemeinsame, hochwertige Loeschen-
+// Bestaetigung fuer Werke/Talente/Erlebnisse/Impact-Projekte statt
+// drei separater, uneinheitlicher Kopien mit rohem Emoji 🗑 (Charta:
+// Wiederverwendung vor Neuerstellung). Immer per Portal auf
+// document.body gerendert (>BottomNav, zIndex 10500) — robust gegen
+// Stacking-Context-Fallen jeglicher Ancestor-Sheets.
+// ════════════════════════════════════════════════════════════════
+export function DeleteConfirmSheet({ title, body, confirmLabel, onConfirm, onCancel }) {
   const { t } = useTranslation();
-  return (
+  return createPortal(
     <div style={{
       position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
-      background:"rgba(0,0,0,0.55)", display:"flex",
+      background:"rgba(26,26,24,0.55)", display:"flex",
       alignItems:"center", justifyContent:"center", padding:"24px",
     }} onClick={onCancel}>
       <div onClick={e => e.stopPropagation()} style={{
-        background:"#fff", borderRadius:16, padding:"24px 20px 20px",
-        maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
+        background:"#fff", borderRadius:20, padding:"28px 22px 20px",
+        maxWidth:320, width:"100%", boxShadow:"0 12px 48px rgba(26,26,24,0.22)",
+        fontFamily:"Inter, sans-serif",
       }}>
-        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
-        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
-          {t("works.deleteConfirm")}
+        <div style={{
+          width:56, height:56, borderRadius:"50%",
+          background:"rgba(255,59,59,0.10)", display:"flex",
+          alignItems:"center", justifyContent:"center", margin:"0 auto 16px",
+        }}>
+          <HUITrashIcon size={26} style={{ color:"#ff3b3b" }} />
         </div>
-        <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-          <strong>{t("as.deleteWerkDesc", { title: werk.title || t("as.deleteWerkFallback") })}</strong>
+        <div style={{ fontSize:16, fontWeight:600, textAlign:"center", marginBottom:8, color:"#1a1a18" }}>
+          {title}
+        </div>
+        <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:22 }}>
+          {body}
         </div>
         <button onClick={onConfirm} style={{
-          width:"100%", padding:"12px", borderRadius:99,
+          width:"100%", padding:"13px", borderRadius:99,
           background:"#ff3b3b", border:"none", color:"#fff",
-          fontSize:14, fontWeight: 600, cursor:"pointer",
-          fontFamily:"inherit", marginBottom:8,
+          fontSize:14, fontWeight:600, cursor:"pointer",
+          fontFamily:"inherit", marginBottom:10,
         }}>
-          {t("works.deletePermanent")}
+          {confirmLabel || t("cs.delete.confirm")}
         </button>
         <button onClick={onCancel} style={{
           width:"100%", padding:"12px", borderRadius:99,
@@ -163,47 +180,34 @@ export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
           Abbrechen
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
+  );
+}
+
+export function DeleteWerkConfirm({ werk, onConfirm, onCancel }) {
+  const { t } = useTranslation();
+  return (
+    <DeleteConfirmSheet
+      title={t("works.deleteConfirm")}
+      body={<strong>{t("as.deleteWerkDesc", { title: werk.title || t("as.deleteWerkFallback") })}</strong>}
+      confirmLabel={t("works.deletePermanent")}
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+    />
   );
 }
 
 export function DeleteTalentConfirm({ talent, onConfirm, onCancel }) {
   const { t } = useTranslation();
   return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
-      background:"rgba(0,0,0,0.55)", display:"flex",
-      alignItems:"center", justifyContent:"center", padding:"24px",
-    }} onClick={onCancel}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background:"#fff", borderRadius:16, padding:"24px 20px 20px",
-        maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
-      }}>
-        <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
-        <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
-          {t("as.deleteTalentTitle")}
-        </div>
-        <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-          <strong>{t("as.deleteTalentDesc", { title: talent.title || t("as.deleteTalentFallback") })}</strong>
-        </div>
-        <button onClick={onConfirm} style={{
-          width:"100%", padding:"12px", borderRadius:99,
-          background:"#ff3b3b", border:"none", color:"#fff",
-          fontSize:14, fontWeight: 600, cursor:"pointer",
-          fontFamily:"inherit", marginBottom:8,
-        }}>
-          {t("works.deletePermanent")}
-        </button>
-        <button onClick={onCancel} style={{
-          width:"100%", padding:"12px", borderRadius:99,
-          background:"#f0f0ee", border:"none", color:"#444",
-          fontSize:14, fontWeight:600, cursor:"pointer",
-          fontFamily:"inherit",
-        }}>
-          Abbrechen
-        </button>
-      </div>
-    </div>
+    <DeleteConfirmSheet
+      title={t("as.deleteTalentTitle")}
+      body={<strong>{t("as.deleteTalentDesc", { title: talent.title || t("as.deleteTalentFallback") })}</strong>}
+      confirmLabel={t("works.deletePermanent")}
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+    />
   );
 }
 

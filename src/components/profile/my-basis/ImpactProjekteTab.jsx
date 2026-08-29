@@ -7,6 +7,8 @@ import { optimizeCard } from "../../../lib/perfUtils.js";
 import { HUISchreibenIcon } from "../../../design/icons/HuiSystemIcons.jsx";
 import { formatDateDE, formatNumberDE } from "../../../lib/formatters.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
+import { toast } from "../../../lib/useToast.jsx";
+import { DeleteConfirmSheet } from "./ActionSheets.jsx";
 
 export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const { t } = useTranslation();
@@ -21,6 +23,17 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const [editContent, setEditContent] = React.useState("");
   const [savingEdit, setSavingEdit] = React.useState(false);
   const [editError, setEditError] = React.useState(null);
+  // DELETE-IMPACT-PROJECT (2026-08-29, Michael-Report: "kann Erlebnisse/
+  // Projekte nicht löschen"). Bisher gab es hier KEINE Löschfunktion für
+  // eigene Impact-Projekte -- Wiederverwendung derselben geprüften Logik
+  // wie in MeineProjekteModal.jsx (Studio-Bereich): Soft-Delete
+  // (status="deleted") schützt Voting-Historie (impact_votes) und
+  // Meilensteine (impact_milestones), Hard-Delete nur wenn beide leer
+  // sind. Genehmigte Projekte (approved) sind zusätzlich blockiert, da
+  // sie Teil der abgeschlossenen Impact-Pool-Ausschüttungshistorie sein
+  // können (Governance-Transparenz-Pflicht) -- gleiche Schutzschwelle
+  // wie Werke/Talente mit Buchungshistorie.
+  const [confirmProject, setConfirmProject] = React.useState(null);
 
   // impact_applications nutzt 'user_id' als User-Feld
   const userField = "user_id";
@@ -101,6 +114,47 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
       });
   }, [profile?.user_id, profile?.id]);
 
+  const handleDeleteClick = (e, proj) => {
+    e.stopPropagation();
+    if (proj.status === "approved") {
+      toast.error(t("ipt.deleteBlockedApproved"), { duration: 4000 });
+      return;
+    }
+    setConfirmProject(proj);
+  };
+
+  const handleConfirmDelete = async () => {
+    const proj = confirmProject;
+    setConfirmProject(null);
+    if (!proj?.id) return;
+    try {
+      // Sicherheitscheck identisch zu MeineProjekteModal.jsx (Studio) --
+      // gleiche Schwelle systemweit fuer impact_applications-Loeschung.
+      const { count: voteCnt } = await supabase
+        .from("impact_votes")
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", proj.id);
+      const { count: msCnt } = await supabase
+        .from("impact_milestones")
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", proj.id);
+
+      if ((voteCnt || 0) > 0 || (msCnt || 0) > 0) {
+        await supabase.from("impact_applications").update({ status: "deleted" }).eq("id", proj.id);
+        toast.success(t("mpm.toastDeletedSoft"), { duration: 3000 });
+      } else {
+        const { error } = await supabase.from("impact_applications").delete().eq("id", proj.id);
+        if (error) throw error;
+        toast.success(t("mpm.toastDeletedHard"), { duration: 3000 });
+      }
+      setProjects(prev => prev.filter(p => p.id !== proj.id));
+      if (selected?.id === proj.id) setSelected(null);
+    } catch(e) {
+      console.error("[ImpactProjekteTab] delete:", e);
+      toast.error(t("mpm.toastDeleteFailed"), { duration: 3000 });
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: 20, textAlign: "center", color: "#666" }}>
@@ -150,6 +204,21 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
                 : <div style={{ width:"100%", height:"100%", display:"flex",
                     alignItems:"center", justifyContent:"center", fontSize:24 }}>💚</div>
               }
+              {/* X-Löschen-Button oben rechts — identisch zu Werke/Talente/Erlebnisse.
+                  Bei approved-Projekten blockiert handleDeleteClick mit Hinweis-Toast
+                  statt eines Confirm-Dialogs (Governance: Historie bleibt geschützt). */}
+              <button
+                onClick={(e) => handleDeleteClick(e, proj)}
+                style={{
+                  position:"absolute", top:4, right:4,
+                  width:20, height:20, borderRadius:"50%",
+                  background:"rgba(0,0,0,0.65)", border:"none",
+                  color:"#fff", fontSize:11, fontWeight: 600,
+                  cursor:"pointer", display:"flex",
+                  alignItems:"center", justifyContent:"center",
+                  lineHeight:1, padding:0, zIndex:2,
+                }}
+              >✕</button>
               {/* Status-Badge unten */}
               <div style={{
                 position:"absolute", bottom:0, left:0, right:0,
@@ -358,6 +427,19 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
               + Update hinzufügen
             </button>
           )}
+          {selected.status !== "approved" && (
+            <button
+              onClick={(e) => handleDeleteClick(e, selected)}
+              style={{
+                width:"100%", padding:"10px 0", borderRadius:12,
+                border:"1.5px solid rgba(255,59,59,0.30)", background:"rgba(255,59,59,0.08)",
+                color:"#ff3b3b", fontSize:13, fontWeight: 600,
+                cursor:"pointer", fontFamily:"inherit", marginBottom:8,
+              }}
+            >
+              {t("as.loeschenLabel", { label: t("cs.label.erlebnis") })}
+            </button>
+          )}
           <button onClick={() => setSelected(null)} style={{
             width:"100%", padding:"10px 0", borderRadius:12,
             background:"#f0f0ee", border:"none", color:"#444",
@@ -367,6 +449,16 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           </button>
         </div>
       </div>
+    )}
+
+    {confirmProject && (
+      <DeleteConfirmSheet
+        title={t("mpm.deleteConfirmTitle")}
+        body={<strong>{t("mpm.deleteConfirmBody", { name: confirmProject.project_name || t("as.deleteWerkFallback") })}</strong>}
+        confirmLabel={t("mpm.deleteConfirmBtn")}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmProject(null)}
+      />
     )}
     </>
   );

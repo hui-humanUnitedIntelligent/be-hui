@@ -2175,6 +2175,7 @@ export default {
   'impact.zusatzmaterial': 'Zusatzmaterial ({count} Skedar{suffix})',
   'inv.errorPublish': 'Gabim te Verpubliken',
   'ipt.title': 'Titulli',
+  'ipt.deleteBlockedApproved': 'Projektet e miratuara janë pjesë e historisë së Impact dhe nuk mund të fshihen.',
   'ipt.titleEmpty': 'Titulli nuk mund të jetë bosh.',
   'ipu.titlePrompt': 'Të lutem vendos një titull.',
   'is.allUsed.sub': 'Të reja muajin e ardhshëm.',

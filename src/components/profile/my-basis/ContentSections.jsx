@@ -8,7 +8,7 @@ import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { toast } from "../../../lib/useToast.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
-import { DraftActionSheet, ItemActionChoiceSheet, DeleteWerkConfirm, DeleteTalentConfirm } from "./ActionSheets.jsx";
+import { DraftActionSheet, ItemActionChoiceSheet, DeleteWerkConfirm, DeleteTalentConfirm, DeleteConfirmSheet } from "./ActionSheets.jsx";
 import { T } from "./constants.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useTranslation } from "../../../hooks/useTranslation.js";
@@ -83,7 +83,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
             const cover = Array.isArray(tal.images) && tal.images[0]?.url;
             return (
               <div key={tal.id || i}
-                onClick={() => setChoiceTalent(t)}
+                onClick={() => setChoiceTalent(tal)}
                 style={{
                   width:"100%", aspectRatio:"1/1",
                   borderRadius:12, overflow:"hidden",
@@ -97,7 +97,7 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
                       alignItems:"center", justifyContent:"center", fontSize:24 }}>💼</div>
                 }
                 <button
-                  onClick={(e) => handleDeleteClick(e, t)}
+                  onClick={(e) => handleDeleteClick(e, tal)}
                   style={{
                     position:"absolute", top:4, right:4,
                     width:20, height:20, borderRadius:"50%",
@@ -414,40 +414,13 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
   return (
     <>
     {confirmExp && (
-      <div style={{
-        position:"fixed", inset:0, zIndex:10500, /* >BottomNav(10000) */
-        background:"rgba(0,0,0,0.55)", display:"flex",
-        alignItems:"center", justifyContent:"center", padding:"24px",
-      }} onClick={() => setConfirmExp(null)}>
-        <div onClick={e => e.stopPropagation()} style={{
-          background:"#fff", borderRadius:16, padding:"24px 20px 20px",
-          maxWidth:320, width:"100%", boxShadow:"0 8px 40px rgba(0,0,0,0.18)",
-        }}>
-          <div style={{ fontSize:36, textAlign:"center", marginBottom:8 }}><span className="hui-emoji">🗑</span>️</div>
-          <div style={{ fontSize:16, fontWeight: 600, textAlign:"center", marginBottom:6, color:"#1a1a18" }}>
-            {t("cs.delete.expTitle")}
-          </div>
-          <div style={{ fontSize:13, color:"#666", textAlign:"center", lineHeight:1.5, marginBottom:20 }}>
-            <strong>{t("cs.delete.expBody", { title: confirmExp.title || t("cs.delete.expFallback") })}</strong>
-          </div>
-          <button onClick={handleConfirmDelete} style={{
-            width:"100%", padding:"12px", borderRadius:99,
-            background:"#ff3b3b", border:"none", color:"#fff",
-            fontSize:14, fontWeight: 600, cursor:"pointer",
-            fontFamily:"inherit", marginBottom:8,
-          }}>
-            {t("cs.delete.confirm")}
-          </button>
-          <button onClick={() => setConfirmExp(null)} style={{
-            width:"100%", padding:"12px", borderRadius:99,
-            background:"#f0f0ee", border:"none", color:"#444",
-            fontSize:14, fontWeight:600, cursor:"pointer",
-            fontFamily:"inherit",
-          }}>
-            Abbrechen
-          </button>
-        </div>
-      </div>
+      <DeleteConfirmSheet
+        title={t("cs.delete.expTitle")}
+        body={<strong>{t("cs.delete.expBody", { title: confirmExp.title || t("cs.delete.expFallback") })}</strong>}
+        confirmLabel={t("cs.delete.confirm")}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmExp(null)}
+      />
     )}
     {draftExp && (
       <DraftActionSheet

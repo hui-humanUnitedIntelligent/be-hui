@@ -3674,6 +3674,7 @@ export default {
   'cs.deleteTalent': 'Talent-Angebot löschen:',
   'cs.deleteWork': 'Werk löschen:',
   'cs.deleteExperience': 'Erlebnis löschen:',
+  'ipt.deleteBlockedApproved': 'Genehmigte Projekte sind Teil der Impact-Historie und können nicht gelöscht werden.',
   'ipt.titleEmpty': 'Überschrift darf nicht leer sein.',
   'ipt.title': 'Überschrift',
   'ps.imageUnavailable': 'Bild nicht verfügbar',

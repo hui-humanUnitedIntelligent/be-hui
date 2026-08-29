@@ -3659,6 +3659,7 @@ export default {
   'cs.deleteTalent': 'Supprimer l\'offre de talent :',
   'cs.deleteWork': 'Supprimer l\'œuvre :',
   'cs.deleteExperience': 'Supprimer l\'expérience :',
+  'ipt.deleteBlockedApproved': 'Les projets approuvés font partie de l\'historique Impact et ne peuvent pas être supprimés.',
   'ipt.titleEmpty': 'Le titre ne peut pas être vide.',
   'ipt.title': 'Titre',
   'ps.imageUnavailable': 'Image non disponible',

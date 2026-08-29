@@ -3658,6 +3658,7 @@ export default {
   'cs.deleteTalent': 'Yetenek teklifini sil:',
   'cs.deleteWork': 'Eseri sil:',
   'cs.deleteExperience': 'Deneyimi sil:',
+  'ipt.deleteBlockedApproved': 'Onaylanmış projeler Impact geçmişinin bir parçasıdır ve silinemez.',
   'ipt.titleEmpty': 'Başlık boş olamaz.',
   'ipt.title': 'Başlık',
   'ps.imageUnavailable': 'Görsel mevcut değil',
