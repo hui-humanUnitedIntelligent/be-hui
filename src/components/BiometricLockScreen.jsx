@@ -163,7 +163,7 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
       alignItems: 'center', justifyContent: 'center',
       background: '#ffffff',
       fontFamily: 'Inter, sans-serif',
-      padding: '24px',
+      padding: '24px 12px',
     }}>
       {/* Logo */}
       <HUILogo size={56} style={{ marginBottom: 32 }} />
@@ -235,11 +235,11 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
           </div>
 
           {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
-          {/* BREITE-FIX (2026-08-29, Michael): maxWidth 340->400 — Nutzer
-              empfand 50px Leerraum links/rechts als zu schmal/unruhig. */}
+          {/* BREITE-FIX v2 (2026-08-30): Container-Padding 24→12px horizontal +
+              maxWidth entfernt — Ziffernblock füllt jetzt volle Bildschirmbreite. */}
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16,
-            width: '100%', maxWidth: 400,
+            width: '100%',
             opacity: busy ? 0.5 : 1, pointerEvents: busy ? 'none' : 'auto',
           }}>
             {["1","2","3","4","5","6","7","8","9"].map((d) => (
