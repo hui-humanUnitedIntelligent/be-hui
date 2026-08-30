@@ -24,16 +24,8 @@ function fmtPrice(ph, ps, currency = "EUR", t) {
 }
 
 
-// Maps German DB category values to i18n keys for translation
-export const CAT_KEY_MAP = {
-  "Malerei": "cat.malerei", "Illustration": "cat.illustration", "Fotografie": "cat.fotografie",
-  "Musik": "cat.musik", "Gesang": "cat.gesang", "Handwerk": "cat.handwerk",
-  "Programmierung": "cat.programmierung", "Design": "cat.design", "Bildung": "cat.bildung",
-  "Theater": "cat.theater", "Coaching": "cat.coaching", "Naturführung": "cat.naturfuehrung",
-  "Kochen": "cat.kochen", "Film": "cat.film", "Schreiben": "cat.schreiben",
-  "Töpfern": "cat.toepfern", "Workshops": "cat.workshops", "Kunstberatung": "cat.kunstberatung",
-  "Auftragskunst": "cat.auftragskunst", "Weitere Angebote": "cat.weitere",
-};
+// SSOT für Kategorie-Mappings in src/lib/categoryMaps.js
+import { CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 function locLabel(type, t) {
   if (type === "online")   return t("common.online");
@@ -168,7 +160,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
           )}
           {category && (
             <span style={{ fontSize:12.5, color:INK_SUB, fontWeight:500 }}>
-              {t(CAT_KEY_MAP[category]) || category}
+              {translateCategory(category, CAT_KEY_MAP, t)}
             </span>
           )}
         </div>

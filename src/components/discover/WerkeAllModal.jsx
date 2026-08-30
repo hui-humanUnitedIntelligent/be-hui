@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE } from "../../lib/formatters.js";
+import { WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -46,7 +47,7 @@ function WerkCardItem({ w, onPress, saleStatus }) {
           position:"absolute", top:8, left:8,
           background:badgeColor, color:"#fff", borderRadius:99,
           fontSize:9.5, fontWeight: 600, padding:"2px 8px"
-        }}>{badge ? (FORMAT_KEY[badge] ? t(FORMAT_KEY[badge]) : badge) : ""}</div>
+        }}>{badge ? (FORMAT_KEY[badge] ? t(FORMAT_KEY[badge]) : (WERK_CAT_KEY_MAP[badge] ? translateCategory(badge, WERK_CAT_KEY_MAP, t) : badge)) : ""}</div>
         {ss && (
           <div style={{
             position:"absolute", bottom:8, left:8,

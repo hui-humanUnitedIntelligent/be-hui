@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE } from "../../lib/formatters.js";
+import { CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -21,6 +22,7 @@ const SORT_OPTIONS = [
 const LOC_KEY = { vor_ort:"discover.vorOrt", online:"discover.online", beides:"common.vorOrtOnline" };
 
 function TalentCardItem({ t, onPress }) {
+  const { t: tFn } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
   const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
@@ -48,7 +50,7 @@ function TalentCardItem({ t, onPress }) {
             position:"absolute", top:8, left:8,
             background:T.teal, color:"#fff", borderRadius:99,
             fontSize:9.5, fontWeight: 600, padding:"2px 8px"
-          }}>{t.category}</div>
+          }}>{translateCategory(t.category, CAT_KEY_MAP, tFn)}</div>
         )}
       </div>
       <div style={{ padding:"10px 10px 8px", display:"flex", flexDirection:"column", flex:1 }}>

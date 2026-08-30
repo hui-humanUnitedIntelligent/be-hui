@@ -3,6 +3,7 @@ import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const CORAL  = "#F47355";
 const ORANGE = "#F05A28";
@@ -26,7 +27,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   // existiert. In dem Fall wäre desc identisch mit title → Dopplung. Skip desc.
   const desc     = (descRaw && title && (descRaw.trim() === title.trim() || descRaw.trim().startsWith(title.trim()))) ? null : descRaw;
   const price    = item._raw?.price ?? item.price ?? null;
-  const category = item._raw?.category || null;
+  const category = item._raw?.category ? translateCategory(item._raw.category, WERK_CAT_KEY_MAP, t) : null;
   const tags     = Array.isArray(item.tags) ? item.tags.slice(0,3) : [];
   const priceStr = formatPrice(price);
 

@@ -9,6 +9,7 @@ import { optimizeCard } from "../../lib/perfUtils.js";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { radiusLabel } from "../../hooks/useRadiusFilter.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
         {/* Kategorie-Badge oben links */}
         {talent.category && (
           <CardBadge pos="left" bg={medCol.bg} color={medCol.text} cover={cover}>
-            {talent.category}
+            {translateCategory(talent.category, CAT_KEY_MAP, t)}
           </CardBadge>
         )}
       </div>

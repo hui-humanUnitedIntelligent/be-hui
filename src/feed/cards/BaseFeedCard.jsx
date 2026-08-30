@@ -16,7 +16,7 @@ import {
 } from "../../design/icons/HuiInteractionIcons.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
 import { prefetchProfile, optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
-import { CAT_KEY_MAP } from "./TalentContent.jsx";
+import { CAT_KEY_MAP, WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 // LIGHTBOX+SLIDER.1 (2026-08-08): Wiederverwendbare Komponenten fuer
 // Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
 import ImageSlider from "../../components/shared/ImageSlider.jsx";
@@ -207,8 +207,13 @@ function getBegegnungsgrund(item, t) {
 
   // ── WERK ──────────────────────────────────────────────────────────────────
   if (type === "work") {
-    if (cat && first)
-      return t('card.reasonWorkCat', { first, cat });
+    // BUGFIX (2026-08-29): cat kam als roher DB-Wert (Ersteller-Sprache,
+    // z.B. "Malerei" oder "Painting") direkt aus raw.category — unabhaengig
+    // von der App-Sprache des Betrachters. Fix: ueber WERK_CAT_KEY_MAP auf
+    // den i18n-Key mappen und uebersetzen; Fallback auf Rohwert.
+    const catLabel = cat ? translateCategory(cat, WERK_CAT_KEY_MAP, t) : cat;
+    if (catLabel && first)
+      return t('card.reasonWorkCat', { first, cat: catLabel });
     if (first)
       return t('card.reasonWorkFirst', { first });
     return t('card.reasonWork');
@@ -232,7 +237,7 @@ function getBegegnungsgrund(item, t) {
     // App-Sprache des Betrachters. Fix: ueber CAT_KEY_MAP (SSOT, siehe
     // TalentContent.jsx) auf den i18n-Key mappen und uebersetzen; Fallback
     // auf den Rohwert falls kein Mapping existiert.
-    const catLabel = cat ? (t(CAT_KEY_MAP[cat]) || cat) : cat;
+    const catLabel = cat ? translateCategory(cat, CAT_KEY_MAP, t) : cat;
     if (catLabel && first)
       return t('card.reasonTalentCat', { first, cat: catLabel });
     if (first)
