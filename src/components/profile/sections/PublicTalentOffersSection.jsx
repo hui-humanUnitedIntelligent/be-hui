@@ -288,17 +288,26 @@ export function PublicTalentOffersSection({ profileId }) {
     <>
       <style>{CSS}</style>
 
+      {/* Header — gleiche Position/Optik wie WorksSection ("Meine Werke")
+          und MomentsSection ("Momente"): padding 0 T.px, marginBottom:12 */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+        padding:`0 ${T.px}px`, marginBottom:12 }}>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
+          {t('pub.talentOffers')}
+        </div>
+      </div>
+
       {loading ? (
         <div className="pts-scroll" style={{
           display:"flex", gap:10, overflowX:"auto",
-          padding:"0 2px", scrollSnapType:"x mandatory",
+          padding:`0 ${T.px}px 4px`, scrollSnapType:"x mandatory",
         }}>
           {[1,2,3].map(i => <Skel key={i}/>)}
         </div>
       ) : (
         <div className="pts-scroll" style={{
           display:"flex", gap:10, overflowX:"auto",
-          padding:"0 2px 4px", scrollSnapType:"x mandatory",
+          padding:`0 ${T.px}px 4px`, scrollSnapType:"x mandatory",
         }}>
           {talents.map(t => (
             <div key={t.id} style={{ scrollSnapAlign:"start" }}>
