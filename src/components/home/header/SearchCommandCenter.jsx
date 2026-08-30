@@ -475,6 +475,7 @@ function SuggestionCategory({ label, emoji, items, query, onSelect, renderAvatar
 }
 
 function SuggestionsBlock({ query, suggestions, loading, onSelectProfile, onSelectRef }) {
+  const { t } = useTranslation();
   const trimmed = query.trim();
   if (trimmed.length < SUGGESTIONS_MIN_QUERY_LEN) return null;
 
@@ -504,10 +505,10 @@ function SuggestionsBlock({ query, suggestions, loading, onSelectProfile, onSele
               </span>
             )}
           />
-          <SuggestionCategory label="Werke"      emoji="🎨" query={trimmed} items={suggestions?.works}       onSelect={(item)=>onSelectRef("work", item.id)} />
-          <SuggestionCategory label="Talente"    emoji="⭐" query={trimmed} items={suggestions?.talents}     onSelect={(item)=>onSelectRef("talent", item.id)} />
-          <SuggestionCategory label="Erlebnisse" emoji="📅" query={trimmed} items={suggestions?.experiences} onSelect={(item)=>onSelectRef("experience", item.id)} />
-          <SuggestionCategory label="Momente"    emoji="💬" query={trimmed} items={suggestions?.moments}     onSelect={(item)=>onSelectRef("moment", item.id)} />
+          <SuggestionCategory label={t("entity.work")}      emoji="🎨" query={trimmed} items={suggestions?.works}       onSelect={(item)=>onSelectRef("work", item.id)} />
+          <SuggestionCategory label={t("entity.talent")}    emoji="⭐" query={trimmed} items={suggestions?.talents}     onSelect={(item)=>onSelectRef("talent", item.id)} />
+          <SuggestionCategory label={t("entity.experience")} emoji="📅" query={trimmed} items={suggestions?.experiences} onSelect={(item)=>onSelectRef("experience", item.id)} />
+          <SuggestionCategory label={t("entity.moment")}    emoji="💬" query={trimmed} items={suggestions?.moments}     onSelect={(item)=>onSelectRef("moment", item.id)} />
         </>
       )}
     </div>

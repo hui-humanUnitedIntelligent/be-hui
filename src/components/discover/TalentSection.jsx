@@ -269,7 +269,7 @@ export function TalenteSection({
                       <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:4, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{t.title}</div>
                       <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
                         {t.category && (
-                          <span style={{ fontSize:10.5, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"2px 8px", fontWeight:600 }}>{t.category}</span>
+                          <span style={{ fontSize:10.5, background:medCol.bg, color:medCol.text, borderRadius:99, padding:"2px 8px", fontWeight:600 }}>{translateCategory(t.category, CAT_KEY_MAP, t)}</span>
                         )}
                         {priceStr && (
                           <span style={{ fontSize:12, fontWeight: 600, color:T.teal }}>{priceStr}</span>

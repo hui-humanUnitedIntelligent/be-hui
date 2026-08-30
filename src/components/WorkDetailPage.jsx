@@ -27,6 +27,7 @@ import { formatDateDE } from "../lib/formatters.js";
 import { HUILogo } from "./brand/HUILogo.jsx";
 import { NAV_CLEARANCE_CSS } from "./home/navigation/navigationGeometry.js"; // GRAU-WASCH-FIX (2026-08-18)
 import { useTranslation } from "../hooks/useTranslation.js";
+import { WERK_CAT_KEY_MAP, translateCategory } from "../lib/categoryMaps.js";
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -280,7 +281,7 @@ function RelatedCard({ werk, onClick }) {
           lineHeight:1.3, overflow:"hidden", textOverflow:"ellipsis",
           whiteSpace:"nowrap" }}>{werk.title || "Werk"}</div>
         <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>
-          {werk.category || ""}
+          {werk.category ? translateCategory(werk.category, WERK_CAT_KEY_MAP, t) : ""}
         </div>
       </div>
     </div>
@@ -640,7 +641,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             borderRadius:999, padding:"4px 12px",
             fontSize:11, fontWeight: 600, color:C.coral,
             letterSpacing:1.2, textTransform:"uppercase" }}>
-            {werk.category || "Werk"}
+            {werk.category ? translateCategory(werk.category, WERK_CAT_KEY_MAP, t) : t("entity.work")}
           </div>
           {priceStr && (
             <div style={{ fontSize:26, fontWeight: 600, color:C.ink,
@@ -818,7 +819,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                 Kategorie
               </div>
               <div style={{ fontSize:14, fontWeight: 600, color:C.ink }}>
-                {werk.category}
+                {translateCategory(werk.category, WERK_CAT_KEY_MAP, t)}
               </div>
             </div>
           )}

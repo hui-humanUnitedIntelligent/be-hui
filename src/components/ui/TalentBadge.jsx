@@ -4,6 +4,7 @@
 // Importieren: import TalentBadge from "../ui/TalentBadge";
 // ════════════════════════════════════════════════════════════════
 import React from "react";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 const SIZES = {
   xs: { badge: { fontSize:9,  padding:"1px 5px",  borderRadius:6  }, ring:16, gap:3  },
@@ -22,6 +23,7 @@ const SIZES = {
  *   showRing   boolean   — Creator Ring um Avatar (default false, separat)
  */
 export default function TalentBadge({ isTalent, size = "sm", style = {}, showLabel = true }) {
+  const { t } = useTranslation();
   if (!isTalent) return null;
   const s = SIZES[size] || SIZES.sm;
   return (
@@ -38,7 +40,7 @@ export default function TalentBadge({ isTalent, size = "sm", style = {}, showLab
       ...style,
     }}>
       <span style={{ fontSize: s.badge.fontSize * 1.1 }}>✦</span>
-      {showLabel && <span>Talent</span>}
+      {showLabel && <span>{t("role.talent")}</span>}
     </span>
   );
 }
@@ -76,6 +78,7 @@ export function CreatorRing({ isTalent, children, size = 40, style = {} }) {
  * MembershipLabel — für Feed-Cards: "Talent" oder "Mitglied"
  */
 export function MembershipLabel({ membershipType, size = "xs", style = {} }) {
+  const { t } = useTranslation();
   const s = SIZES[size] || SIZES.xs;
   // FEED-BADGE-FIX (2026-08-15): "base"/leer zeigte bisher GAR KEIN Badge —
   // dadurch fehlte bei Basis-Nutzern jeder Tag neben dem Namen, während
@@ -84,14 +87,14 @@ export function MembershipLabel({ membershipType, size = "xs", style = {} }) {
   // konsistenten Rollen-Tag neben dem Namen hat.
   const type = membershipType || "base";
   const config = {
-    base:              { label:"Basis-Nutzer",    color:"#8B93A8", bg:"rgba(139,147,168,0.10)", border:"rgba(139,147,168,0.25)", icon:"○" },
-    talent:            { label:"Talent",          color:"#16D7C5", bg:"rgba(22,215,197,0.12)",  border:"rgba(22,215,197,0.30)", icon:"✦" },
-    verified_talent:   { label:"Verifiziert",     color:"#16D7C5", bg:"rgba(22,215,197,0.18)",  border:"rgba(22,215,197,0.40)", icon:"✦✦" },
-    community_creator: { label:"Creator",         color:"#FF8A6B", bg:"rgba(255,138,107,0.12)", border:"rgba(255,138,107,0.30)", icon:"◎" },
-    raumhalter:        { label:"Raumhalter",      color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
-    guardian:          { label:"Guardian",        color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
-    team:              { label:"Team",            color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"⬡" },
-  }[type] || { label:"Mitglied", color:"#16D7C5", bg:"rgba(22,215,197,0.10)", border:"rgba(22,215,197,0.25)", icon:"·" };
+    base:              { label:t("role.base"),       color:"#8B93A8", bg:"rgba(139,147,168,0.10)", border:"rgba(139,147,168,0.25)", icon:"○" },
+    talent:            { label:t("role.talent"),     color:"#16D7C5", bg:"rgba(22,215,197,0.12)",  border:"rgba(22,215,197,0.30)", icon:"✦" },
+    verified_talent:   { label:t("role.verified"),  color:"#16D7C5", bg:"rgba(22,215,197,0.18)",  border:"rgba(22,215,197,0.40)", icon:"✦✦" },
+    community_creator: { label:t("role.creator"),   color:"#FF8A6B", bg:"rgba(255,138,107,0.12)", border:"rgba(255,138,107,0.30)", icon:"◎" },
+    raumhalter:        { label:t("role.raumhalter"),color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
+    guardian:          { label:t("role.guardian"),  color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
+    team:              { label:t("role.team"),      color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"⬡" },
+  }[type] || { label:t("role.member"), color:"#16D7C5", bg:"rgba(22,215,197,0.10)", border:"rgba(22,215,197,0.25)", icon:"·" };
 
   return (
     <span style={{

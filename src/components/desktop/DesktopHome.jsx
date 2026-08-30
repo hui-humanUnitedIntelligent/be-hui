@@ -22,6 +22,7 @@ import { useAuth } from '../../lib/AuthContext.jsx';
 import { useDesktopData } from './DesktopDataContext.jsx';
 import { formatDateDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const UnifiedFeed = lazy(() => import('../../feed/UnifiedFeed.jsx'));
 
@@ -69,7 +70,7 @@ function WerkHero({ work, navigate }) {
       <div className="hero-body">
         <span className="hero-tag">Werk des Tages</span>
         <h2 className="hero-title">{work.title || 'Ein neues Werk'}</h2>
-        {work.category && <span className="hero-meta">{work.category}</span>}
+        {work.category && <span className="hero-meta">{translateCategory(work.category, WERK_CAT_KEY_MAP, t)}</span>}
         <div className="hero-action">
           <button className="hero-btn">Entdecken →</button>
         </div>

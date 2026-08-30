@@ -37,6 +37,7 @@ import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { CAT_KEY_MAP, WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -422,7 +423,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                           background:"rgba(26,26,46,0.05)", borderRadius:99,
                           padding:"7px 16px",
                         }}>
-                          <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>{raw.category}</span>
+                          <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>{translateCategory(raw.category, CAT_KEY_MAP, t)}</span>
                         </div>
                       )}
                       {spotsStr && (
@@ -527,7 +528,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       padding:"7px 16px",
                     }}>
                       <span style={{ fontSize:13, fontWeight:600, color:T.inkSoft }}>
-                        {item._raw.category}
+                        {translateCategory(item._raw.category, WERK_CAT_KEY_MAP, t)}
                       </span>
                     </div>
                   )}

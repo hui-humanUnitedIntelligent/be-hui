@@ -186,7 +186,7 @@ function DetailModal({ n, onClose, onAction }) {
     // Ablehnungen
     if (nType.includes("_rejected") || nType === "content_rejected") {
       const typeMap = {
-        talent_rejected:         { label:"Talent",           emoji:"⭐" },
+        talent_rejected:         { label:t("entity.talent"),           emoji:"⭐" },
       };
       const tm = typeMap[nType] || { label:t("notif.meta.entry"), emoji:"📋" };
       const reason = md.rejection_reason || md.reason
@@ -215,9 +215,9 @@ function DetailModal({ n, onClose, onAction }) {
     // Freigaben / Annahmen
     if (nType.includes("_approved")) {
       const approvalMap = {
-        talent_approved:         { label:"Talent",         emoji:"⭐" },
+        talent_approved:         { label:t("entity.talent"),         emoji:"⭐" },
       };
-      const am = approvalMap[nType] || { label:"Inhalt", emoji:"✅" };
+      const am = approvalMap[nType] || { label:t("entity.content"), emoji:"✅" };
       const entryTitle = md.entry_title || md.project_name || md.werk_title || n.title || `Dein ${am.label}`;
       const msg = md.message || md.admin_note || n.body || t("notif.meta.congrats");
       // entity_type-Mapping für openRef: impact_project_approved → "project"
@@ -264,7 +264,7 @@ function DetailModal({ n, onClose, onAction }) {
         headerTitle: title,
         headerSubtitle: "Nachricht vom Admin",
         blocks: [
-          { type:"label-text", label:"Inhalt", text, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
+          { type:"label-text", label:t("entity.content"), text, color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
         ],
       };
     }
@@ -274,7 +274,7 @@ function DetailModal({ n, onClose, onAction }) {
       const sharePost  = md.post_title || md.entity_title || null;
       const shareType  = md.post_type || md.entity_type || n.entity_type || "";
       const typeLabel  = {
-        work:"Werk", talent:"Talent-Angebot", moment:"Beitrag", beitrag:"Beitrag",
+        work:t("entity.work"), talent:t("entity.talent"), moment:t("entity.moment"), beitrag:t("entity.moment"),
         experience:t("notif.meta.experience"), project:t("notif.meta.project"), event:t("notif.meta.event"),
       }[shareType] || t("notif.meta.content");
       // Unterscheide: hat diese Notif entity_id? → Autor-Sicht (Beitrag geteilt)
@@ -466,7 +466,7 @@ function DetailModal({ n, onClose, onAction }) {
     if (nType === "comment" || nType === "comment_reply") {
       const cmEntityId   = md.post_id   || n.entity_id   || null;
       const cmEntityType = md.post_type || n.entity_type || null;
-      const typeLabel = { work:"Werk", moment:"Beitrag", experience:"Erlebnis" }[cmEntityType] || "Beitrag";
+      const typeLabel = { work:t("entity.work"), moment:t("entity.moment"), experience:t("entity.experience") }[cmEntityType] || t("entity.moment");
       return {
         accentColor: "#0EC4B8",
         headerIcon: "💬",
@@ -486,7 +486,7 @@ function DetailModal({ n, onClose, onAction }) {
     if (nType === "resonanz" || nType === "like") {
       // body enthält oft den Titel des Werks/Beitrags — als Subtitle zeigen
       const resonanzTitle = n.body?.replace(/^["„“]+|["“”]+$/g, "").trim() || null;
-      const typeLabel = { work:"Werk", moment:"Beitrag", experience:"Erlebnis" }[n.entity_type] || "Inhalt";
+      const typeLabel = { work:t("entity.work"), moment:t("entity.moment"), experience:t("entity.experience") }[n.entity_type] || t("entity.content");
       return {
         accentColor: "#0EC4B8",
         headerIcon: "♡",
@@ -504,7 +504,7 @@ function DetailModal({ n, onClose, onAction }) {
     if (nType === "save") {
       const saveTitle  = md.post_title || n.body?.replace(/^[""]+|[""]+$/g,"").trim() || null;
       const saveType   = md.post_type || n.entity_type || null;
-      const typeLabel  = { work:"Werk", moment:"Beitrag", experience:"Erlebnis", beitrag:"Beitrag" }[saveType] || "Beitrag";
+      const typeLabel  = { work:t("entity.work"), moment:t("entity.moment"), experience:t("entity.experience"), beitrag:t("entity.moment") }[saveType] || t("entity.moment");
       return {
         accentColor: "#F59E0B",
         headerIcon: "🔖",
@@ -639,7 +639,7 @@ function DetailModal({ n, onClose, onAction }) {
     // ── Inhalt gelöscht (content_deleted) ─────────────────────────────────
     if (nType === "content_deleted") {
       const entryTitle = md.entry_title || n.body?.match(/„(.+?)"/)?.[1] || "";
-      const entityLabel = { work:"Werk", experience:"Erlebnis", talent:"Talent", moment:"Beitrag" }[n.entity_type] || "Inhalt";
+      const entityLabel = { work:t("entity.work"), experience:t("entity.experience"), talent:t("entity.talent"), moment:t("entity.moment") }[n.entity_type] || t("entity.content");
       return {
         accentColor: "#DC2626",
         headerIcon: "🗑",
@@ -700,7 +700,7 @@ function DetailModal({ n, onClose, onAction }) {
 
     // ── Moment / Talent / Erlebnis / Projekt aktualisiert ─────────────────
     if (nType === "moment_updated" || nType === "talent_updated" || nType === "experience_updated" || nType === "project_updated") {
-      const labelMap = { moment_updated:"Moment", talent_updated:"Talent-Angebot", experience_updated:"Erlebnis", project_updated:"Projekt" };
+      const labelMap = { moment_updated:t("entity.moment"), talent_updated:t("entity.talent"), experience_updated:t("entity.experience"), project_updated:t("entity.project") };
       const emojiMap = { moment_updated:"✏️", talent_updated:"⭐", experience_updated:"🌿", project_updated:"📌" };
       const entityLabel = labelMap[nType];
       const entryTitle = md.entry_title || md.title || "";
@@ -721,7 +721,7 @@ function DetailModal({ n, onClose, onAction }) {
     // ── Inhalt freigegeben (content_approved — Generic für experience etc.) ─
     if (nType === "content_approved") {
       const entryTitle = md.entry_title || n.body?.match(/„(.+?)"/)?.[1] || "";
-      const entityLabel = { work:"Werk", experience:"Erlebnis", talent:"Talent", moment:"Beitrag" }[n.entity_type] || "Inhalt";
+      const entityLabel = { work:t("entity.work"), experience:t("entity.experience"), talent:t("entity.talent"), moment:t("entity.moment") }[n.entity_type] || t("entity.content");
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✅",

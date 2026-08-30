@@ -8,6 +8,7 @@ import { supabase } from "../../../lib/supabaseClient.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
+import { CAT_KEY_MAP, translateCategory } from "../../../lib/categoryMaps.js";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -117,7 +118,7 @@ function TalentCard({ talent, onClick }) {
           fontSize:10, color:T.teal, fontWeight:600,
           overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
           width:100,
-        }}>{talent.category}</div>
+        }}>{translateCategory(talent.category, CAT_KEY_MAP, t)}</div>
       )}
     </div>
   );
@@ -181,7 +182,7 @@ function TalentDetailModal({ talent, onClose }) {
                 borderRadius:99, padding:"3px 10px",
                 fontSize:11, fontWeight: 600, color:T.teal,
                 marginBottom:8,
-              }}>{talent.category}</div>
+              }}>{translateCategory(talent.category, CAT_KEY_MAP, t)}</div>
             )}
 
             {/* Titel */}
