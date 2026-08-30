@@ -8,7 +8,6 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.1 2026-07-08
 import { normalizeRecommendationForPreview } from "../../../lib/previewNormalizers.js";
-import { useProfileLauncher } from '../../home/profile/ProfileLauncher.jsx';
 import RecommendModal from "../RecommendModal.jsx";
 import { RecommendationService } from "../../../services/db";
 import { supabase } from "../../../lib/supabaseClient";
@@ -50,7 +49,6 @@ export function RecommendationsSection({
 }) {
   const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowRecommendModal(false));
-  const { openCreatorProfile } = useProfileLauncher();
   const { open: openPreview } = useContentPreview();
 
   // ── Empfehlung schreiben (Visitor, nach Kauf/Buchung) ──
@@ -203,7 +201,7 @@ export function RecommendationsSection({
                 {rec.text || ""}
               </div>
               <button
-                onClick={(e) => { e.stopPropagation(); if (rec.from_user_id) openCreatorProfile(rec.from_user_id); }}
+                onClick={(e) => { e.stopPropagation(); if (rec.from_user_id && typeof window.__HUI_OPEN_PROFILE__ === "function") window.__HUI_OPEN_PROFILE__(rec.from_user_id); }}
                 style={{ display:"flex", alignItems:"center", gap:8, background:"none", border:"none",
                   padding:0, cursor:"pointer", WebkitTapHighlightColor:"transparent" }}
               >

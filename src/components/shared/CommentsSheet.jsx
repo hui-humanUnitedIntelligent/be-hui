@@ -57,7 +57,6 @@ function detectContactData(text) {
 }
 
 import { haptic } from "../../components/commerce/commerceUtils.js";
-import { useProfileLauncher } from "../home/profile/ProfileLauncher.jsx";
 import {
   getComments, createComment, updateComment, deleteComment,
   toggleCommentHeart, reportComment, subscribeComments,
@@ -272,7 +271,6 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
 
 function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdit, onDelete, onHeart, onReport, replyTargetId, onCancelReply, onSubmitReply, replyText, setReplyText, submittingReply }) {
   const { t } = useTranslation();
-  const { openCreatorProfile } = useProfileLauncher();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reportMenu, setReportMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -292,7 +290,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
     <div style={{ marginLeft: depth * 26, padding:"10px 0" }} className={comment._justAdded ? "cs-pop" : ""}>
       <div style={{ display:"flex", gap:10 }}>
         <button
-          onClick={() => { if (comment.user_id && comment.user_id !== currentUserId) openCreatorProfile(comment.user_id); }}
+          onClick={() => { if (comment.user_id && comment.user_id !== currentUserId && typeof window.__HUI_OPEN_PROFILE__ === "function") window.__HUI_OPEN_PROFILE__(comment.user_id); }}
           style={{ background:"none", border:"none", padding:0, flexShrink:0,
             cursor: comment.user_id !== currentUserId ? "pointer" : "default",
             WebkitTapHighlightColor:"transparent" }}
@@ -302,7 +300,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
             <button
-              onClick={() => { if (comment.user_id && comment.user_id !== currentUserId) openCreatorProfile(comment.user_id); }}
+              onClick={() => { if (comment.user_id && comment.user_id !== currentUserId && typeof window.__HUI_OPEN_PROFILE__ === "function") window.__HUI_OPEN_PROFILE__(comment.user_id); }}
               style={{ background:"none", border:"none", padding:0,
                 cursor: comment.user_id !== currentUserId ? "pointer" : "default",
                 fontSize:13, fontWeight: 600, color:T.ink, WebkitTapHighlightColor:"transparent" }}
