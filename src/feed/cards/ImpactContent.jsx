@@ -120,7 +120,7 @@ return (
       )}
 
       {/* Fortschrittsbalken (nur bei nicht-abgeschlossenen Projekten) */}
-      {!isCompleted && goal > 0 && <ProgressBar current={curr} goal={goal} />}
+      {!isCompleted && goal > 0 && <ProgressBar current={curr} goal={goal} t={t} />}
     </BaseFeedCard>
   );
 }
