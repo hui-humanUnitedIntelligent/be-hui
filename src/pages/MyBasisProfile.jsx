@@ -770,14 +770,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
         )}
 
         {/* ── Account-Switcher (Migration 132) ────────────────── */}
-        {orgProfiles.length > 0 && (
-          <div style={{ display:"flex", justifyContent:"center", marginTop: 8 }}>
-            <AccountSwitcherTrigger
-              onClick={() => setSwitcherOpen(true)}
-              hasOrgs={orgProfiles.length > 0}
-            />
-          </div>
-        )}
+        {/* Trigger IMMER sichtbar — auch ohne Org-Profil, damit Nutzer
+            ein erstes Org-Profil anlegen kann (Henne-Ei-Fix, 2026-08-30) */}
+        <div style={{ display:"flex", justifyContent:"center", marginTop: 8 }}>
+          <AccountSwitcherTrigger
+            onClick={() => setSwitcherOpen(true)}
+            hasOrgs={orgProfiles.length > 0}
+          />
+        </div>
         <AccountSwitcher
           open={switcherOpen}
           onClose={() => setSwitcherOpen(false)}

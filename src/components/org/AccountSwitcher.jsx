@@ -27,29 +27,28 @@ const T = {
 // ── Trigger-Button (kleiner Pfeil ▾ neben Avatar/Name) ────────────
 export function AccountSwitcherTrigger({ onClick, hasOrgs }) {
   const { t } = useTranslation();
-  if (!hasOrgs) return null;
 
   return (
     <button
       onClick={onClick}
-      aria-label={t("org.switcher.switchAccount")}
+      aria-label={hasOrgs ? t("org.switcher.switchAccount") : t("org.switcher.addAccount")}
       style={{
-        background: "rgba(0,0,0,0.04)",
+        background: hasOrgs ? "rgba(0,0,0,0.04)" : "rgba(22,215,197,0.08)",
         border: "none",
-        borderRadius: 8,
-        padding: "4px 8px",
+        borderRadius: hasOrgs ? 8 : 10,
+        padding: "6px 12px",
         cursor: "pointer",
         display: "inline-flex",
         alignItems: "center",
-        gap: 4,
+        gap: 6,
         fontFamily: "inherit",
         fontSize: 13,
-        color: T.ink2,
-        fontWeight: 500,
+        color: hasOrgs ? T.ink2 : T.teal,
+        fontWeight: 600,
         WebkitTapHighlightColor: "transparent",
       }}
     >
-      ▾
+      {hasOrgs ? "▾" : "+"} {hasOrgs ? "" : t("org.switcher.addAccount")}
     </button>
   );
 }
