@@ -86,7 +86,7 @@ export function StoryBar({ onStoryClick }) {
     const map = {};
     for (const s of data) {
       const uid = s.user_id;
-      const displayName = s.profile?.display_name || 'Anonym';
+      const displayName = s.profile?.display_name || t("story.anonym");
       const avatarUrl   = s.profile?.avatar_url   || null;
       if (!map[uid]) map[uid] = { uid, username: displayName, avatar_url: avatarUrl, stories: [] };
       map[uid].stories.push({ ...s, username: displayName, avatar_url: avatarUrl });
@@ -433,7 +433,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
               textShadow:'0 1px 6px rgba(0,0,0,.4)',
               overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap',
               maxWidth:140 }}>
-              {current.username || 'Anonym'}
+              {current.username || t("story.anonym")}
             </span>
             {creatorRole && (
               <span style={{ fontSize:10, fontWeight: 600, color:C.teal,
@@ -645,13 +645,13 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
           {sentReply ? (
             <div style={{ textAlign:'center', padding:16 }}>
               <div style={{ fontSize:28, marginBottom:8 }}>✓</div>
-              <div style={{ color:'white', fontSize:15, fontWeight: 600 }}>Antwort gesendet</div>
+              <div style={{ color:'white', fontSize:15, fontWeight: 600 }}>{t("story.replySent")}</div>
             </div>
           ) : (
             <>
               <div style={{ color:'rgba(255,255,255,.38)', fontSize:11.5, fontWeight: 600,
                 textAlign:'center', marginBottom:14, letterSpacing:.8 }}>
-                ANTWORT AN {(current.username||'').toUpperCase()}
+                {t("story.replyTo")} {(current.username||'').toUpperCase()}
               </div>
               <div style={{ display:'flex', gap:10, alignItems:'center' }}>
                 <input
@@ -715,7 +715,7 @@ export function HighlightsRow({ userId }) {
 
   if (!highlights.length) return null;
 
-  const group = { uid: userId, username: highlights[0]?.username || 'Highlights', stories: highlights };
+  const group = { uid: userId, username: highlights[0]?.username || t("story.highlights"), stories: highlights };
 
   return (
     <>

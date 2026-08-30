@@ -226,7 +226,7 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                     <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
                     <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
                   </svg>
-                  Löschen
+                  {t("common.delete")}
                 </button>
               ) : (
                 <div style={{ padding:"10px 14px" }}>
@@ -235,12 +235,12 @@ function CommentMenuPortal({ isOwn, menuOpen, setMenuOpen, confirmDelete, setCon
                     <button className="cs-btn" onClick={onDelete}
                       style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight: 600, color:"#fff",
                         background:"#E53E3E", borderRadius:8, cursor:"pointer" }}>
-                      Löschen
+                      {t("common.delete")}
                     </button>
                     <button className="cs-btn" onClick={() => setConfirmDelete(false)}
                       style={{ flex:1, padding:"7px 0", fontSize:12, fontWeight:600, color:"#666",
                         background:"#f5f5f5", borderRadius:8, cursor:"pointer" }}>
-                      Abbrechen
+                      {t("common.cancel")}
                     </button>
                   </div>
                 </div>

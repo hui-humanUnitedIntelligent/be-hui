@@ -4874,7 +4874,11 @@ export default {
   'comment.hoursAgo': 'vor {n} Std',
   'comment.daysAgo': 'vor {n} Tagen',
   'app.accountLocked': 'Konto gesperrt',
-  'story.reply': 'Antworten…',
+
+  'story.replyTo': 'ANTWORT AN',
+  'story.replySent': 'Antwort gesendet',
+  'story.anonym': 'Anonym',
+  'app.accountLockedBody': 'Dein Konto wurde blockiert und wird von unserem Team geprüft. Bei Fragen wende dich an',  'story.reply': 'Antworten…',
   'story.highlights': 'Highlights',
   'wdp.viewProfile': 'Profil ansehen',
 };

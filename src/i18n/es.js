@@ -4833,7 +4833,11 @@ export default {
   'comment.hoursAgo': 'hace {n} h',
   'comment.daysAgo': 'hace {n} días',
   'app.accountLocked': 'Cuenta bloqueada',
-  'story.reply': 'Responder…',
+
+  'story.replyTo': 'RESPONDER A',
+  'story.replySent': 'Respuesta enviada',
+  'story.anonym': 'Anónimo',
+  'app.accountLockedBody': 'Tu cuenta ha sido bloqueada y está siendo revisada por nuestro equipo. Para preguntas, contacta con',  'story.reply': 'Responder…',
   'story.highlights': 'Destacados',
   'wdp.viewProfile': 'Ver perfil',
 };

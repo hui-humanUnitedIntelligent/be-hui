@@ -4833,7 +4833,11 @@ export default {
   'comment.hoursAgo': '{n} sa önce',
   'comment.daysAgo': '{n} gün önce',
   'app.accountLocked': 'Hesap kilitli',
-  'story.reply': 'Yanıtla…',
+
+  'story.replyTo': 'YANITLA',
+  'story.replySent': 'Yanıt gönderildi',
+  'story.anonym': 'Anonim',
+  'app.accountLockedBody': 'Hesabınız engellendi ve ekibimiz tarafından inceleniyor. Sorularınız için iletişime geçin:',  'story.reply': 'Yanıtla…',
   'story.highlights': 'Öne çıkanlar',
   'wdp.viewProfile': 'Profili görüntüle',
 };

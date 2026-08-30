@@ -4834,7 +4834,11 @@ export default {
   'comment.hoursAgo': 'il y a {n} h',
   'comment.daysAgo': 'il y a {n} jours',
   'app.accountLocked': 'Compte verrouillé',
-  'story.reply': 'Répondre…',
+
+  'story.replyTo': 'RÉPONDRE À',
+  'story.replySent': 'Réponse envoyée',
+  'story.anonym': 'Anonyme',
+  'app.accountLockedBody': 'Votre compte a été bloqué et est examiné par notre équipe. Pour toute question, contactez',  'story.reply': 'Répondre…',
   'story.highlights': 'Points forts',
   'wdp.viewProfile': 'Voir le profil',
 };

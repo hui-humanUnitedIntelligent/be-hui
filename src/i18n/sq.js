@@ -4835,7 +4835,11 @@ export default {
   'comment.hoursAgo': '{n} orë më parë',
   'comment.daysAgo': '{n} ditë më parë',
   'app.accountLocked': 'Llogaria e bllokuar',
-  'story.reply': 'Përgjigju…',
+
+  'story.replyTo': 'PËRGJIGJU',
+  'story.replySent': 'Përgjigja u dërgua',
+  'story.anonym': 'Anonim',
+  'app.accountLockedBody': 'Llogaria juaj është bllokuar dhe po shqyrtohet nga ekipi ynë. Për pyetje, kontakto',  'story.reply': 'Përgjigju…',
   'story.highlights': 'Pikat kryesore',
   'wdp.viewProfile': 'Shiko profilin',
 };

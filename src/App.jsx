@@ -661,8 +661,7 @@ function BlockedScreen() {
         fontSize: 15, color: 'rgba(255,255,255,0.6)',
         maxWidth: 320, lineHeight: 1.6,
       }}>
-        Dein Konto wurde blockiert und wird von unserem Team geprüft.
-        Bei Fragen wende dich an{' '}
+        {t("app.accountLockedBody")}{' '}
         <a href="mailto:hello@be-hui.com" style={{ color: '#16D7C5', textDecoration: 'none' }}>
           hello@be-hui.com
         </a>
