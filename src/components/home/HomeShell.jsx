@@ -31,14 +31,16 @@ import HuiContextBridge from "../../core/HuiContextBridge.jsx";
 import { registerModal } from "../../lib/backButtonRegistry.js";
 
 /* ── Context ──────────────────────────────────────────────────── */
-const HomeCtx = createContext(null);
-
-export function useHome() {
-  const ctx = useContext(HomeCtx);
-  // Kein throw: TalentProfilePage/BasisProfilePage können auch außerhalb HomeShell
-  // gerendert werden (PublicProfilePreview, ProfileLauncher). null-Return ist sicher.
-  return ctx || null;
-}
+// CIRCULAR-IMPORT-FIX (2026-08-30): HomeCtx + useHome liegen jetzt in
+// HomeContext.js (eigenes Blatt-Modul), damit HuiActionProvider.jsx
+// (importiert useHome) und HomeShell.jsx (importiert HuiActionProvider
+// für <HuiActionProvider> im JSX) sich nicht mehr gegenseitig
+// importieren — das war ein echter zirkulärer Modul-Import, der beim
+// eagerem Bundling zu TDZ-Crashes im ProfileLauncher-Chunk führte
+// ("Cannot access 'Ie' before initialization"). Re-Export hier hält
+// alle 10 bestehenden Consumer (die "useHome" aus HomeShell.jsx
+// importieren) unverändert funktionsfähig.
+export { HomeCtx, useHome } from "./HomeContext.js";
 
 /* ── HomeShell ────────────────────────────────────────────────── */
 export default function HomeShell({ children }) {

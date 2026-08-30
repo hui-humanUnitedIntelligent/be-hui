@@ -15,7 +15,7 @@
 
 import React, { useMemo } from "react";
 import { ActionCtx, buildActions } from "./hui.actions.js";
-import { useHome } from "../components/home/HomeShell.jsx";
+import { useHome } from "../components/home/HomeContext.js"; // CIRCULAR-IMPORT-FIX (2026-08-30): direkt aus Blatt-Modul statt HomeShell.jsx (brach Zyklus)
 
 export default function HuiActionProvider({ children }) {
   const shell = useHome();
