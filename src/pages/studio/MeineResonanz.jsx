@@ -267,7 +267,8 @@ function MonthDivider({ label }) {
 }
 
 // ── Summary Card ──────────────────────────────────────────────────
-function ResonanzSummary({ entries, t }) {
+function ResonanzSummary({ entries }) {
+  const { t } = useTranslation();
   const counts = { support:0, werk:0, erlebnis:0, impact:0, buchung:0, eur:0 };
   for (const e of entries) {
     counts[e.type] = (counts[e.type]||0) + 1;
@@ -322,7 +323,8 @@ function ResonanzSummary({ entries, t }) {
 }
 
 // ── Timeline Entry ─────────────────────────────────────────────────
-function ResonanzEntry({ entry, animIndex, onTap, t }) {
+function ResonanzEntry({ entry, animIndex, onTap }) {
+  const { t } = useTranslation();
   const cfg   = getTypeConfig(t)[entry.type] || getTypeConfig(t).werk;
   const st    = statusColor(entry.status);
   const sl    = statusLabel(entry.status, t);
@@ -428,7 +430,8 @@ function ResonanzEntry({ entry, animIndex, onTap, t }) {
 }
 
 // ── Leer-State ────────────────────────────────────────────────────
-function EmptyState({ filter, t }) {
+function EmptyState({ filter }) {
+  const { t } = useTranslation();
   const cfg = filter !== "all" ? getTypeConfig(t)[filter] : null;
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
@@ -560,20 +563,20 @@ export default function MeineResonanz({ onClose, onNavigate }) {
 
           {/* Summary */}
           {!loading && filter==="all" && entries.length > 0 && (
-            <ResonanzSummary entries={entries} t={t} />
+            <ResonanzSummary entries={entries} />
           )}
 
           {/* Loading Skeletons */}
           {loading && [0,1,2,3].map(i => <EntrySkeleton key={i} />)}
 
           {/* Empty */}
-          {!loading && filtered.length === 0 && <EmptyState filter={filter} t={t} />}
+          {!loading && filtered.length === 0 && <EmptyState filter={filter} />}
 
           {/* Timeline */}
           {!loading && grouped.map(item =>
             item.isDivider
               ? <MonthDivider key={item.key} label={item.label} />
-              : <ResonanzEntry key={item.entry.id} entry={item.entry} animIndex={item.animIdx} onTap={handleTap} t={t} />
+              : <ResonanzEntry key={item.entry.id} entry={item.entry} animIndex={item.animIdx} onTap={handleTap} />
           )}
 
           {/* Footer */}

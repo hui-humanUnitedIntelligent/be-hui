@@ -305,7 +305,8 @@ function RadiusRow({ radius }) {
 // "kein Overlay/Portal mehr"-Architekturentscheidung von Search Experience
 // 2.0 -- diese bezog sich ausschliesslich auf die SUCHERGEBNISSE (Feed),
 // die weiterhin inline im normalen Feed erscheinen, nie in einem Overlay.
-function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose, activeIds = [], lang, t }) {
+function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, onClose, activeIds = [], lang }) {
+  const { t } = useTranslation();
   const results = searchCategories(query);
   const visible = phase === "visible";
 
@@ -1341,7 +1342,6 @@ export default function SearchCommandCenter({
           onClose={()=>setShowAllCategories(false)}
           activeIds={activeCategoryIds}
           lang={lang}
-          t={t}
         />
       )}
     </>

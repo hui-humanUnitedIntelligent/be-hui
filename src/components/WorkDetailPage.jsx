@@ -296,7 +296,8 @@ const DETAIL_ARIA = {
   merken:      { on: "card.ariaMerkenOn",      off: "tbf.detail.save" },
   weitergeben: { off: "hii.weitergeben" }, // kein Toggle -- einmalige Aktion
 };
-function IconBtn({ Icon, label, active, color, onPress, disabled, loading, variant, t }) {
+function IconBtn({ Icon, label, active, color, onPress, disabled, loading, variant }) {
+  const { t } = useTranslation();
   const [pressed, setPressed] = useState(false);
   const [hover, setHover] = useState(false);
   const isResonanz = variant === "resonanz";
@@ -756,7 +757,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             color={C.coral}
             variant="resonanz"
             onPress={handleLike}
-            t={t}
           />
           <IconBtn
             Icon={HUIChatIcon}
@@ -765,7 +765,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             color={C.teal}
             variant="austauschen"
             onPress={() => { haptic("light"); setShowComments(s => !s); }}
-            t={t}
           />
           <IconBtn
             Icon={HUIShareIcon}
@@ -774,7 +773,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             color={C.teal}
             variant="weitergeben"
             onPress={() => { haptic("light"); handleShare(); }}
-            t={t}
           />
           <IconBtn
             Icon={HUIBookmarkIcon}
@@ -783,7 +781,6 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             color={C.gold}
             variant="merken"
             onPress={handleSave}
-            t={t}
           />
         </div>
 

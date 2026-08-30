@@ -24,7 +24,8 @@ const INK_SUB    = "rgba(26,26,46,0.45)";
 const RANK_MEDAL = { 1:"🥇", 2:"🥈", 3:"🥉" };
 const RANK_LABEL = { 1:"Top 1", 2:"Top 2", 3:"Top 3" };
 
-function ProgressBar({ current, goal, t }) {
+function ProgressBar({ current, goal }) {
+  const { t } = useTranslation();
   const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0;
   return (
     <div style={{ marginTop:8 }}>
@@ -120,7 +121,7 @@ return (
       )}
 
       {/* Fortschrittsbalken (nur bei nicht-abgeschlossenen Projekten) */}
-      {!isCompleted && goal > 0 && <ProgressBar current={curr} goal={goal} t={t} />}
+      {!isCompleted && goal > 0 && <ProgressBar current={curr} goal={goal} />}
     </BaseFeedCard>
   );
 }

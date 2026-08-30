@@ -70,7 +70,8 @@ const EXAMPLE_KEYS = [
   "talent.example.koechin", "talent.example.architekt", "talent.example.schriftstellerin",
 ];
 
-function Step1({ title, setTitle, desc, setDesc, onNext, t }) {
+function Step1({ title, setTitle, desc, setDesc, onNext }) {
+  const { t } = useTranslation();
   const [placeholder, setPlaceholder] = useState(0);
   const EXAMPLES = EXAMPLE_KEYS.map(k => t(k));
 
@@ -180,7 +181,8 @@ function getModules(t) { return [
     sub:t("talent.module.bookingsSub"),     color:T.green,  bg:T.greenBg },
 ]; }
 
-function Step2({ modules, onToggle, onNext, onBack, t }) {
+function Step2({ modules, onToggle, onNext, onBack }) {
+  const { t } = useTranslation();
   const activeCount = Object.values(modules).filter(Boolean).length;
   return (
     <div style={{ animation:"toSlide .35s both" }}>
@@ -260,7 +262,8 @@ function Step2({ modules, onToggle, onNext, onBack, t }) {
 }
 
 /* ── STEP 3: Gestalte dein Profil ──────────────────────────────────── */
-function Step3({ intro, setIntro, onFinish, onBack, saving, error, t }) {
+function Step3({ intro, setIntro, onFinish, onBack, saving, error }) {
+  const { t } = useTranslation();
   return (
     <div style={{ animation:"toSlide .35s both" }}>
       <div style={{ textAlign:"center", marginBottom:24 }}>
@@ -341,7 +344,8 @@ function Step3({ intro, setIntro, onFinish, onBack, saving, error, t }) {
 }
 
 /* ── Success ────────────────────────────────────────────────────────── */
-function SuccessView({ onDone, t }) {
+function SuccessView({ onDone }) {
+  const { t } = useTranslation();
   useEffect(() => {
     const timer = setTimeout(onDone, 2600);
     return () => clearTimeout(timer);
@@ -463,18 +467,18 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
         </div>
 
         {done ? (
-          <SuccessView onDone={handleDone} t={t}/>
+          <SuccessView onDone={handleDone}/>
         ) : step===0 ? (
           <Step1 title={title} setTitle={setTitle}
             desc={desc} setDesc={setDesc}
-            onNext={() => setStep(1)} t={t}/>
+            onNext={() => setStep(1)}/>
         ) : step===1 ? (
           <Step2 modules={modules} onToggle={toggleModule}
-            onNext={() => setStep(2)} onBack={() => setStep(0)} t={t}/>
+            onNext={() => setStep(2)} onBack={() => setStep(0)}/>
         ) : (
           <Step3 intro={intro} setIntro={setIntro}
             onFinish={save} onBack={() => setStep(1)}
-            saving={saving} error={error} t={t}/>
+            saving={saving} error={error}/>
         )}
 
         <div style={{ height:8 }}/>
