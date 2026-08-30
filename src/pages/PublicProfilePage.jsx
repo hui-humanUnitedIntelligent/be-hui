@@ -478,6 +478,27 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         <Gap h={14}/>
 
+        {/* ── Org-Profil Banner (Migration 132) ─────────────────── */}
+        {profile?.account_type === "organization" && (
+          <div style={{
+            display:"flex", justifyContent:"center", alignItems:"center",
+            gap: 6, marginBottom: 12,
+          }}>
+            <span style={{
+              fontSize: 11, fontWeight: 500, color: "#16D7C5",
+              background: "rgba(22,215,197,0.08)",
+              borderRadius: 6, padding: "2px 8px",
+            }}>
+              {profile.org_type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+            </span>
+            {profile.managed_by && (
+              <span style={{ fontSize: 12, color: T.inkFaint || "rgba(0,0,0,0.35)" }}>
+                {t("org.step3.managedBy")}: {profile.managed_by}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* ── AKTIONS-BUTTONS ── */}
         {profile && !isOwnProfile && (
           <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} />

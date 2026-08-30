@@ -38,6 +38,13 @@ export function AuthProvider({ children }) {
   // Kein Ghost-Profil aus localStorage — verhindert UI-Flip und falschen isTalent-State.
   const [profile, setProfile] = useState(null);
 
+  // ── Multi-Account: Organisations-Profile (Account-Switcher) ──────
+  // activeProfileId = null → persönliches Profil aktiv
+  // activeProfileId = UUID → Org-Profil aktiv (aus orgProfiles-Liste)
+  const [activeProfileId, setActiveProfileId] = useState(null);
+  const [orgProfiles, setOrgProfiles]         = useState([]);
+
+
   const profileLoadingRef = useRef(false);
   const authSettledRef    = useRef(false);  // verhindert doppelten Bootstrap
 
@@ -74,6 +81,9 @@ export function AuthProvider({ children }) {
       if (prof) {
         setProfile(prof);
         // is_talent wird direkt aus prof geladen — kein localStorage nötig
+        // Multi-Account: Org-Profile dieses Users laden
+        const orgs = await loadOrgProfiles(userId);
+        setOrgProfiles(orgs);
       }
     } catch (e) {
       console.warn("[HUI] loadProfile:", e.message);
@@ -81,6 +91,41 @@ export function AuthProvider({ children }) {
       setLoadingProfile(false);
       profileLoadingRef.current = false;
     }
+  }, []);
+
+  // ── Org-Profile laden (Account-Switcher, Migration 132) ──────────
+  // Lädt alle Organisations-Profile die diesem User gehören.
+  // Max 1 pro User (DB-Constraint idx_profiles_owner_unique).
+  const loadOrgProfiles = useCallback(async (userId) => {
+    if (!userId) return [];
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('id, org_name, org_type, avatar_url, account_type, display_name, username')
+          .eq('owner_user_id', userId)
+          .eq('account_type', 'organization'),
+        5000
+      );
+      if (error) {
+        console.warn('[HUI] loadOrgProfiles:', error.message);
+        return [];
+      }
+      return data || [];
+    } catch (e) {
+      console.warn('[HUI] loadOrgProfiles exception:', e.message);
+      return [];
+    }
+  }, []);
+
+  // ── Account-Switcher: aktives Profil wechseln ────────────────────
+  // null = zurück zum persönlichen Profil
+  const switchProfile = useCallback((profileId) => {
+    if (!profileId) {
+      setActiveProfileId(null);
+      return;
+    }
+    setActiveProfileId(profileId);
   }, []);
 
   // ── OAuth-Profildaten-Sync (additiv, 2026-08-15) ──────────────────
@@ -202,6 +247,8 @@ export function AuthProvider({ children }) {
       }
       if (!u) {
         setProfile(null);
+        setOrgProfiles([]);
+        setActiveProfileId(null);
         profileLoadingRef.current = false;
       }
     });
@@ -420,6 +467,12 @@ export function AuthProvider({ children }) {
   const _isBaseUserCalc = !_isTalentCalc;
   const _canCreateCalc  = _isTalentCalc;
 
+  // ── Multi-Account: activeProfile berechnen ────────────────────────
+  // null → persönliches Profil, UUID → Org-Profil aus orgProfiles
+  const activeProfile = activeProfileId
+    ? orgProfiles.find(p => p.id === activeProfileId) || profile
+    : profile;
+
   // ── Debug Log (development only) ─────────────────────────────────────
   if (process.env.NODE_ENV !== "production" && profile) {
   }
@@ -448,9 +501,15 @@ export function AuthProvider({ children }) {
     loadProfile, saveProfile, refreshProfile, becomeWirker,
     activateMembership,
     setProfile,
+    // Multi-Account: Account-Switcher (Migration 132)
+    activeProfileId,
+    activeProfile,
+    orgProfiles,
+    switchProfile,
+    loadOrgProfiles,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [user, profile, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
+  }), [user, profile, activeProfileId, orgProfiles, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile
 
   return (
     <AuthContext.Provider value={ctxValue}>

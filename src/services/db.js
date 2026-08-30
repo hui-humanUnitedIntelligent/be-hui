@@ -23,7 +23,7 @@ import { safeQuery, cachedQuery, clearQueryCache, warmQueryCache, readCache, FIE
 //   follower_count, location, is_talent, header_img, skills, dna_tags
 // Hinzugefügt: location_label, member_since, profile_views
 export const IDENTITY_CONTRACT =
-  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate';
+  'id,display_name,full_name,username,avatar_url,header_img,bio,location_label,location,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views,is_ambassador,profile_modules,website,tagline,focus_type,skills,dna_tags,is_available,hourly_rate,account_type,managed_by,org_name,org_type,org_number,org_description,owner_user_id';
   // SYSTEM-BOT-TAG-FIX (2026-08-18): is_system_account NICHT mehr im
   // Fieldset -- die Spalte hat keine Column-Level-GRANT SELECT fuer die
   // Rolle 'authenticated' (Sicherheits-Policy analog zu 'phone' oben),

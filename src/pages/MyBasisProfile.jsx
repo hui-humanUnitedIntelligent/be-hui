@@ -38,6 +38,7 @@ import MerkenSection from "../components/profile/MerkenSection.jsx";
 import { AboutSection } from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 import { TalentSection } from "../components/profile/sections/TalentSection.jsx";
+import AccountSwitcher, { AccountSwitcherTrigger } from "../components/org/AccountSwitcher.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { VisibilitySection } from "../components/profile/sections/VisibilitySection.jsx";
 
@@ -70,8 +71,18 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const user            = _auth.user   ?? null;          // Sprint F.7D: user für useProfileData
   const setAuthProfile  = _auth.setProfile ?? null;
   const refreshProfile  = _auth.refreshProfile ?? null;
+  // Multi-Account: Account-Switcher (Migration 132)
+  const orgProfiles     = _auth.orgProfiles ?? [];
+  const activeProfileId = _auth.activeProfileId ?? null;
+  const switchProfile   = _auth.switchProfile ?? null;
+  const activeProfile   = _auth.activeProfile ?? null;
+  // Effektiv aktive Profil-Daten: Org-Profil wenn activeProfileId gesetzt, sonst persönlich
+  const effectiveProfile = activeProfileId ? (activeProfile || profile) : profile;
+  // userId für Content-Erstellung: Org-Profil-ID wenn aktiv, sonst persönliche ID
+  const effectiveUserId = activeProfileId || profile?.id || null;
   // Sprint F.7D: profile + loading aus useProfileData — lokale States entfernt
   const [bio,        setBio]        = useState("");
+  const [switcherOpen, setSwitcherOpen] = useState(false);  // Account-Switcher
 
   const [interests,  setInterests]  = useState([]);
   const [openFor,    setOpenFor]    = useState([]);
@@ -717,9 +728,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
         <CanonicalProfileHeader
           profile={{
-            ...profile,
-            avatar_url: localAvatar || profile?.avatar_url,
-            header_img: localCover  || profile?.header_img,
+            ...effectiveProfile,
+            avatar_url: localAvatar || effectiveProfile?.avatar_url,
+            header_img: localCover  || effectiveProfile?.header_img,
           }}
           isOwner={true}
           isTalent={!!profile?.is_talent}
@@ -727,6 +738,39 @@ export default function MyBasisProfile({ onClose, profileId }) {
           followCounts={followCounts}
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
+        />
+
+        {/* ── Org-Profil Banner "verwaltet von" (Migration 132) ── */}
+        {activeProfileId && activeProfile && (
+          <div style={{
+            display:"flex", justifyContent:"center", alignItems:"center",
+            gap: 6, marginTop: 8, marginBottom: 4,
+          }}>
+            <span style={{
+              fontSize: 11, fontWeight: 500, color: T.muted,
+              background: "rgba(22,215,197,0.06)",
+              borderRadius: 6, padding: "2px 8px",
+            }}>
+              {activeProfile.org_type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+            </span>
+            <span style={{ fontSize: 12, color: T.muted }}>
+              {t("org.step3.managedBy")}: {profile?.display_name || profile?.username || ""}
+            </span>
+          </div>
+        )}
+
+        {/* ── Account-Switcher (Migration 132) ────────────────── */}
+        {orgProfiles.length > 0 && (
+          <div style={{ display:"flex", justifyContent:"center", marginTop: 8 }}>
+            <AccountSwitcherTrigger
+              onClick={() => setSwitcherOpen(true)}
+              hasOrgs={orgProfiles.length > 0}
+            />
+          </div>
+        )}
+        <AccountSwitcher
+          open={switcherOpen}
+          onClose={() => setSwitcherOpen(false)}
         />
         {(profile?.id ?? user?.id) && (
         <OrbSignatur profileId={profile?.id ?? user?.id} />
@@ -986,10 +1030,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
         document.body
       )}
       {/* ── WIZARD RENDERS (BUGFIX 2026-08-26: fehlten nach Refactor 35ca88f2) ── */}
-      {showWerkWizard && profile?.id && createPortal(
+      {showWerkWizard && effectiveUserId && createPortal(
         
           <WerkWizard
-            userId={profile.id}
+            userId={effectiveUserId}
             existingWork={editingWerk}
             onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
             onSaved={() => { setShowWerkWizard(false); setEditingWerk(null); reload(); }}
@@ -998,10 +1042,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
         document.body
       )}
 
-      {showTalentWizard && profile?.id && createPortal(
+      {showTalentWizard && effectiveUserId && createPortal(
         
           <TalentAngebotWizard
-            userId={profile.id}
+            userId={effectiveUserId}
             existingTalent={editingTalent}
             onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
             onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); reload(); }}
@@ -1010,10 +1054,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
         document.body
       )}
 
-      {showExpWizard && profile?.id && createPortal(
+      {showExpWizard && effectiveUserId && createPortal(
         
           <ExperienceWizard
-            userId={profile.id}
+            userId={effectiveUserId}
             existingExp={editingExp}
             onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
             onSaved={() => { setShowExpWizard(false); setEditingExp(null); reload(); }}
