@@ -2074,6 +2074,7 @@ export default {
   'feed.slotsAvailable': '{avail} / {total} yer',
   'feed.buy': 'Satın al',
   'feed.sold': 'Satıldı',
+  'feed.booked': 'Tükendi',
   'feed.participate': 'Katıl',
   'feed.oclock': '',
   'feed.momentBadgeBild': 'Foto',

@@ -2090,6 +2090,7 @@ export default {
   'feed.slotsAvailable': '{avail} of {total} spots',
   'feed.buy': 'Buy',
   'feed.sold': 'Sold',
+  'feed.booked': 'Fully booked',
   'feed.participate': 'Participate',
   'feed.oclock': '',
   'feed.momentBadgeBild': 'Photo Moment',

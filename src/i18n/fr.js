@@ -2075,6 +2075,7 @@ export default {
   'feed.slotsAvailable': '{avail} sur {total} places',
   'feed.buy': 'Acheter',
   'feed.sold': 'Vendu',
+  'feed.booked': 'Complet',
   'feed.participate': 'Participer',
   'feed.oclock': '',
   'feed.momentBadgeBild': 'Photo',

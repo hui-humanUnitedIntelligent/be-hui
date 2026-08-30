@@ -494,6 +494,19 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   works-Tabelle vorhanden sind ("lückenhaft, was der Nutzer
                   gekauft hat" bei Bestellungs-Benachrichtigungen). Additiv,
                   identische Pill-Optik wie der bestehende Talent-Preis-Chip. */}
+              {/* FEED-SOLD-MARK-002 (2026-08-30): Verkauft-Hinweis fuer Werke
+                  in der Vorschau, wenn stock_available<=0. */}
+              {item.type === "work" && item._raw?.stock_available != null && item._raw.stock_available <= 0 && (
+                <div style={{
+                  width:"100%", marginBottom:12, padding:"12px 14px", borderRadius:12,
+                  background:"rgba(26,26,46,0.05)", color:"rgba(26,26,46,0.5)",
+                  fontSize:14, fontWeight:600, textAlign:"center",
+                  display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+                }}>
+                  <span>🔒</span>
+                  <span>{t("feed.sold")}</span>
+                </div>
+              )}
               {item.type === "work" && (item.price != null || item._raw?.category) && (
                 <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
                   {item.price != null && (
@@ -566,18 +579,37 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                       verankert" hinter dem TalentBookingFlow-Sheet stehen
                       zu bleiben — identisches Muster wie "Talent-Profil
                       ansehen" direkt darunter. */}
-                  {item._raw?.price_per_hour != null || item._raw?.price_per_session != null ? (
-                    <button
-                      onClick={() => { onClose?.(); onBookTalent(item._raw); }}
-                      style={{
+                  {/* FEED-SOLD-MARK-002 (2026-08-30): Talent-Buchen-Button deaktiviert
+                      wenn ausgebucht (stock_available<=0). Info-Text statt Button. */}
+                  {(() => {
+                    const tStock = item._raw?.stock_available;
+                    const tFull   = tStock != null && tStock <= 0;
+                    const hasPrice = item._raw?.price_per_hour != null || item._raw?.price_per_session != null;
+                    if (!hasPrice) return null;
+                    if (tFull) return (
+                      <div style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
-                        background:"rgba(13,196,181,1)", color:"#fff",
-                        fontSize:15, fontWeight: 600, border:"none", cursor:"pointer",
-                        letterSpacing:"-0.01em",
+                        background:"rgba(26,26,46,0.05)", color:"rgba(26,26,46,0.45)",
+                        fontSize:15, fontWeight:600, textAlign:"center", border:"none",
+                        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                       }}>
-                      Talent buchen
-                    </button>
-                  ) : null}
+                        <span>🔒</span>
+                        <span>{t("feed.booked")}</span>
+                      </div>
+                    );
+                    return (
+                      <button
+                        onClick={() => { onClose?.(); onBookTalent(item._raw); }}
+                        style={{
+                          width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
+                          background:"rgba(13,196,181,1)", color:"#fff",
+                          fontSize:15, fontWeight: 600, border:"none", cursor:"pointer",
+                          letterSpacing:"-0.01em",
+                        }}>
+                        Talent buchen
+                      </button>
+                    );
+                  })()}
                   {/* "Talent-Profil ansehen" — sekundär, KEIN onClose (würde Discover resetten) */}
                   {item.userId && (
                     <button

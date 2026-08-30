@@ -1164,6 +1164,7 @@ export default {
   'feed.reported': 'Raportuar',
   'feed.slotsAvailable': '{avail} nga {total} vende',
   'feed.sold': 'Shitjet',
+  'feed.booked': 'I mbushur',
   'feed.stockAvailable': '{avail} nga {total} i disponueshëm',
   'feed.systemProjectText': 'është fuqi nga HUI: kur shumë bashkohen, nga një ide bëhet realitet. Zbulo në Ndikim',
   'feed.toastInspire': 'Inspiriertty ✨',

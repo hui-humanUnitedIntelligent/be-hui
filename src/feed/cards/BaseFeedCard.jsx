@@ -519,7 +519,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 });
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false, blurred = false }) {
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false, blurred = false, soldStamp = null }) {
   const { t } = useTranslation();
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
@@ -666,6 +666,24 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
             filter: blurred ? "blur(24px)" : "none",
           }}
         />
+        {/* FEED-SOLD-MARK-002 (2026-08-30): Verkauft/Ausgebucht-Stempel, analog
+            zum VERKAUFT-Stempel in WorksSection.jsx (Profil) */}
+        {soldStamp && (
+          <div style={{
+            position:"absolute", inset:0, zIndex:2, pointerEvents:"none",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            background:"rgba(26,26,46,0.28)",
+          }}>
+            <span style={{
+              color:"#fff", fontSize:15, fontWeight:800,
+              letterSpacing:1.2, textTransform:"uppercase",
+              textShadow:"0 1px 4px rgba(0,0,0,0.55)",
+              border:"1.5px solid rgba(255,255,255,0.85)",
+              padding:"5px 14px", borderRadius:6,
+              transform:"rotate(-8deg)",
+            }}>{soldStamp}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -729,6 +747,25 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           zIndex: 2, pointerEvents: "none", whiteSpace: "nowrap",
         }}>
           ⚠️ Automatisch verpixelt — Inhalt wird geprüft
+        </div>
+      )}
+
+      {/* FEED-SOLD-MARK-002 (2026-08-30): Verkauft/Ausgebucht-Stempel, analog
+          zum VERKAUFT-Stempel in WorksSection.jsx (Profil) */}
+      {soldStamp && (
+        <div style={{
+          position:"absolute", inset:0, zIndex:2, pointerEvents:"none",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(26,26,46,0.28)",
+        }}>
+          <span style={{
+            color:"#fff", fontSize:15, fontWeight:800,
+            letterSpacing:1.2, textTransform:"uppercase",
+            textShadow:"0 1px 4px rgba(0,0,0,0.55)",
+            border:"1.5px solid rgba(255,255,255,0.85)",
+            padding:"5px 14px", borderRadius:6,
+            transform:"rotate(-8deg)",
+          }}>{soldStamp}</span>
         </div>
       )}
 
@@ -975,6 +1012,7 @@ export const FeedActions = memo(function FeedActions({
 export default React.memo(function BaseFeedCard({
   item, onProfile, onReaction, onShare, badge, children, extraActions, onCardClick,
   disableMediaLightbox = false, // SYSTEM-PROJECT-LINK-001: additiv, Default false
+  soldStamp = null, // FEED-SOLD-MARK-002: additiv, Default null (kein Stempel)
 }) {
   injectCardCSS();
 
@@ -1098,6 +1136,7 @@ export default React.memo(function BaseFeedCard({
           onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
           disableTapLightbox={disableMediaLightbox}
           blurred={!!(item?._raw?.moderation_blurred)}
+          soldStamp={soldStamp}
         />
       </div>
       <FeedActions

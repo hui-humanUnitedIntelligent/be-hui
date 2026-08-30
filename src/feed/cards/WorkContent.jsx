@@ -34,7 +34,13 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   // FIX: Kaufen-Button nur wenn for_sale explizit true oder nicht gesetzt (null/undefined)
   // for_sale = false → Werk als "Verkauft" markiert → kein Kaufen-Button
   const forSale  = item._raw?.for_sale;
-  const isBuyable = forSale !== false;
+  // FEED-SOLD-MARK-002 (2026-08-30, Michael-Request): Werk bleibt im Feed
+  // sichtbar auch wenn verkauft (stock_available<=0) — nur nicht mehr kaufbar.
+  // stock_available===null/undefined = kein Stock-Tracking (Altbestand/
+  // unbegrenzt) → gilt NICHT als ausverkauft.
+  const stockAvailRaw = item._raw?.stock_available;
+  const isSoldOut = stockAvailRaw != null && stockAvailRaw <= 0;
+  const isBuyable = forSale !== false && !isSoldOut;
 
   // OPEN.1 (2026-07-08): Karte antippen -> geteilte Vorschau (einheitlich
   // mit allen anderen Feed-Typen). Von dort aus fuehrt "Vollstaendige
@@ -53,6 +59,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       onReaction={onReaction}
       onShare={onShare}
       onCardClick={handleCardClick}
+      soldStamp={isSoldOut ? t("feed.sold") : null}
     >
 
       {/* Beschreibung (falls vorhanden, über dem Bild) */}

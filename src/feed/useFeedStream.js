@@ -91,13 +91,11 @@ async function fetchFeedPage(userId = null, cursors = null) {
         .select("id,title,cover_url,media_url,images,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at,is_unique,stock_total,stock_available")
         .eq("status", "published")
         .eq("approval_status", "approved")
-        // FEED-SOLD-HIDE-001 (2026-08-25, Michael-Feedback "wieso ist es immer
-        // ich im Feed" — bestätigt verkaufte Werke sollen aus dem Feed
-        // verschwinden, nicht nur "Verkauft" anzeigen): stock_available=0
-        // heisst bereits verkauft (Bestand atomar dekrementiert bei PI-
-        // Erstellung, siehe create-payment-intent). NULL = kein Stock-Tracking
-        // (Altbestand/unbegrenzt) → bleibt sichtbar.
-        .or("stock_available.is.null,stock_available.gt.0")
+        // FEED-SOLD-MARK-002 (2026-08-30, Michael-Request): Verkaufte Werke
+        // bleiben im Feed sichtbar (Modal/Infos unveraendert erreichbar),
+        // werden aber als "Verkauft" markiert und sind nicht mehr kaufbar.
+        // Vorherige FEED-SOLD-HIDE-001-Regel (stock_available-Filter, die
+        // verkaufte Werke komplett ausblendete) bewusst entfernt.
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
@@ -521,9 +519,12 @@ export function useFeedStream() {
         if (payload.new?.approval_status !== "approved") return;
         _receiveLiveItem(payload.new, normalizeWorkRow);
       })
-      // FEED-SOLD-HIDE-001 (2026-08-25): works UPDATE — sobald stock_available
-      // auf 0 faellt (Werk verkauft), Post SOFORT live aus dem Feed entfernen,
-      // ohne dass der Nutzer reloaden muss.
+      // FEED-SOLD-MARK-002 (2026-08-30, Michael-Request): works UPDATE — Werk
+      // bleibt im Feed sichtbar, auch sobald es verkauft ist (vorher hat
+      // FEED-SOLD-HIDE-001 es komplett entfernt). Stattdessen werden die
+      // aktuellen Verkaufsfelder live in das bestehende Feed-Item gemergt,
+      // damit Kaufen-Button/Verfuegbarkeits-Badge/Verkauft-Stempel sofort
+      // reagieren, ohne dass der Nutzer die App neu laden muss.
       .on("postgres_changes", {
         event: "UPDATE",
         schema: "public",
@@ -532,10 +533,12 @@ export function useFeedStream() {
         if (!mountedRef.current) return;
         const w = payload.new;
         if (!w?.id) return;
-        const soldOut = w.stock_available != null && w.stock_available <= 0;
-        if (!soldOut) return;
-        setItems(prev => prev.filter(i => i.id !== w.id));
-        setPendingItems(prev => prev.filter(i => i.id !== w.id));
+        const mergeSaleFields = (i) => {
+          if (i.id !== w.id) return i;
+          return { ...i, _raw: { ...i._raw, stock_available: w.stock_available, stock_total: w.stock_total, for_sale: w.for_sale } };
+        };
+        setItems(prev => prev.map(mergeSaleFields));
+        setPendingItems(prev => prev.map(mergeSaleFields));
       })
       .subscribe((status) => {
         if (status === "CHANNEL_ERROR") {
