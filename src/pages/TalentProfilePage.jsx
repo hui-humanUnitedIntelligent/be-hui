@@ -1150,9 +1150,6 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const activeProfileId = _auth2.activeProfileId ?? null;
   const switchProfile   = _auth2.switchProfile ?? null;
   const activeProfile   = _auth2.activeProfile ?? null;
-  // ORG-AUTHORSHIP-FIX (2026-08-30): Content-Erstellung unter aktuellem Profil
-  // (Org-Profil wenn aktiv, sonst persönliches Profil)
-  const effectiveUserId = activeProfileId || profile?.id || null;
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
   const {
@@ -1170,6 +1167,12 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     error,
     reload,
   } = useProfileData(profileId);
+
+  // ORG-AUTHORSHIP-FIX (2026-08-30): Content-Erstellung unter aktuellem Profil
+  // (Org-Profil wenn aktiv, sonst persönliches Profil)
+  // WICHTIG: Muss NACH useProfileData stehen — profile wird daraus geholt!
+  // TDZ-Crash-Prävention: const profile aus useProfileData muss VORHER destrukturiert werden.
+  const effectiveUserId = activeProfileId || profile?.id || null;
 
   // ── Lokale UI-States (kein Datenlayer) ──────────────────────
   const [mounted,           setMounted]           = useState(false);
