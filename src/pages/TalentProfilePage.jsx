@@ -54,7 +54,7 @@ import { VisibilitySection }      from "../components/profile/sections/Visibilit
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 // OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
-import AccountSwitcher, { AccountSwitcherTrigger } from "../components/org/AccountSwitcher.jsx";
+import AccountSwitcher from "../components/org/AccountSwitcher.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
@@ -1416,6 +1416,9 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       }}>
 
         {/* ── 1. ProfileHeader (Sprint B) ───────────────────── */}
+        {/* Konto-Wechsel-Icon (Pfeile) sitzt jetzt direkt links vom Namen
+            im Header selbst — ersetzt den separaten Trigger-Button unter
+            dem Header (Icon-Redesign 2026-08-30, Michael-Vorgabe). */}
         <ProfileHeader
           profile={profile}
           isOwner={isOwner}
@@ -1424,6 +1427,8 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           followCounts={followCounts}
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
+          onAccountSwitchClick={isOwner ? () => setSwitcherOpen(true) : null}
+          hasOrgs={orgProfiles.length > 0}
         />
 
         {/* ── Org-Profil Banner "verwaltet von" (Migration 132) ──
@@ -1446,23 +1451,14 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           </div>
         )}
 
-        {/* ── Account-Switcher (Migration 132) ────────────────
-             Trigger IMMER sichtbar für den Owner — auch ohne Org-Profil,
-             damit ein erstes Org-Profil angelegt werden kann. Analog
-             MyBasisProfile.jsx (Henne-Ei-Fix, 2026-08-30). */}
+        {/* ── Account-Switcher Modal (Migration 132) ──────────────
+             Trigger liegt jetzt im Header selbst (Icon links vom Namen) —
+             hier nur noch das Modal selbst gerendert, nur für den Owner. */}
         {isOwner && (
-          <>
-            <div style={{ display:"flex", justifyContent:"center", marginTop: 8 }}>
-              <AccountSwitcherTrigger
-                onClick={() => setSwitcherOpen(true)}
-                hasOrgs={orgProfiles.length > 0}
-              />
-            </div>
-            <AccountSwitcher
-              open={switcherOpen}
-              onClose={() => setSwitcherOpen(false)}
-            />
-          </>
+          <AccountSwitcher
+            open={switcherOpen}
+            onClose={() => setSwitcherOpen(false)}
+          />
         )}
 
         {profileId && (

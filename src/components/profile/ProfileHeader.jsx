@@ -5,7 +5,7 @@
 
 import {
   HUILocationIcon, HUITalentIcon, HUIImpactIcon,
-  HUILinkIcon,
+  HUILinkIcon, HUIAccountSwitchIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from "react";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES } from "../../lib/uploadUtils.js";
@@ -53,6 +53,8 @@ export function ProfileHeader({
   followCounts = { followers: 0, following: 0 },
   onEditAvatar = null,
   onEditCover  = null,
+  onAccountSwitchClick = null,
+  hasOrgs      = false,
 }) {
   const { t } = useTranslation();
   const [coverLoaded,     setCoverLoaded]     = useState(false);
@@ -128,6 +130,13 @@ export function ProfileHeader({
 
   // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
   const badgeLabel = isSuperadmin ? t('pub.badgeSuperadmin') : isTalentResolved ? t('pub.badgeTalent') : t('pub.badgeBasis');
+
+  // ── Konto-Wechsel-Hinweis (Migration 132 / Icon-Redesign 2026-08-30) ──
+  // Icon mit zwei gegenläufigen vertikalen Pfeilen links vom Namen —
+  // reiner visueller Hinweis, Klick-Ziel ist der Name selbst. Nur für
+  // den Owner sichtbar, wenn der Aufrufer eine Switch-Handler-Funktion
+  // übergibt (MyBasisProfile.jsx, TalentProfilePage.jsx).
+  const canSwitchAccount = isOwner && typeof onAccountSwitchClick === "function";
 
   const handleAvatarFile = useCallback((e) => {
     const file = e.target.files?.[0];
@@ -339,17 +348,40 @@ export function ProfileHeader({
                   display:"flex", flexDirection:"column",
                   gap:2,
                 }}>
-                  <span style={{
-                    fontSize:19, fontWeight: 600, color:T.ink,
-                    letterSpacing:"-0.025em", lineHeight:1.2,
-                    overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>
-                    {name}
-                  </span>
+                  <div
+                    onClick={canSwitchAccount ? onAccountSwitchClick : undefined}
+                    role={canSwitchAccount ? "button" : undefined}
+                    tabIndex={canSwitchAccount ? 0 : undefined}
+                    aria-label={canSwitchAccount ? (hasOrgs ? t("org.switcher.switchAccount") : t("org.switcher.addAccount")) : undefined}
+                    style={{
+                      display:"flex", alignItems:"center",
+                      cursor: canSwitchAccount ? "pointer" : "default",
+                      WebkitTapHighlightColor:"transparent",
+                      minWidth:0,
+                    }}
+                  >
+                    {canSwitchAccount && (
+                      <span style={{
+                        display:"flex", alignItems:"center", flexShrink:0,
+                        color:"#F47355" /* HUI.COLOR.coral — SSOT Design-Token */,
+                      }}>
+                        <HUIAccountSwitchIcon size={16}/>
+                      </span>
+                    )}
+                    <span style={{
+                      fontSize:19, fontWeight: 600, color:T.ink,
+                      letterSpacing:"-0.025em", lineHeight:1.2,
+                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                      marginLeft: canSwitchAccount ? 15 : 0,
+                    }}>
+                      {name}
+                    </span>
+                  </div>
                   {username && (
                     <span style={{
                       fontSize:12.5, color:T.inkFaint, fontWeight:400,
                       lineHeight:1.2,
+                      marginLeft: canSwitchAccount ? 31 : 0, /* Icon-Breite(16) + Name-Shift(15) — Ausrichtung unter dem Namen */
                     }}>
                       @{username}
                     </span>

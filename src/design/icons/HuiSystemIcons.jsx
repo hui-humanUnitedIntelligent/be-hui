@@ -679,3 +679,15 @@ export function HUITrashIcon({ size = 24, className, style }) {
     </Icon>
   );
 }
+
+/* 62. Konto-Wechsel — zwei gegenläufige vertikale Pfeile (Account-Switcher-Hinweis) */
+export function HUIAccountSwitchIcon({ size = 24, className, style }) {
+  return (
+    <Icon size={size} className={className} style={style} title="Konto wechseln">
+      <path d="M8 20V5" />
+      <path d="M5 8l3-3 3 3" />
+      <path d="M16 4v15" />
+      <path d="M19 16l-3 3-3-3" />
+    </Icon>
+  );
+}

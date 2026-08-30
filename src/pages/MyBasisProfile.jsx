@@ -38,7 +38,7 @@ import MerkenSection from "../components/profile/MerkenSection.jsx";
 import { AboutSection } from "../components/profile/sections/AboutSection.jsx";
 import { ProfileHeader as CanonicalProfileHeader } from "../components/profile/ProfileHeader.jsx";
 import { TalentSection } from "../components/profile/sections/TalentSection.jsx";
-import AccountSwitcher, { AccountSwitcherTrigger } from "../components/org/AccountSwitcher.jsx";
+import AccountSwitcher from "../components/org/AccountSwitcher.jsx";
 import { RecommendationsSection } from "../components/profile/sections/RecommendationsSection.jsx";
 import { VisibilitySection } from "../components/profile/sections/VisibilitySection.jsx";
 
@@ -736,6 +736,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
         />
 
         {/* ── HEADER — Cover + Avatar + Name ───────────────── */}
+        {/* Konto-Wechsel-Icon (Pfeile) sitzt jetzt direkt links vom Namen
+            im Header selbst — ersetzt den separaten Trigger-Button unter
+            dem Header (Icon-Redesign 2026-08-30, Michael-Vorgabe). */}
         <CanonicalProfileHeader
           profile={{
             ...effectiveProfile,
@@ -748,6 +751,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
           followCounts={followCounts}
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
+          onAccountSwitchClick={() => setSwitcherOpen(true)}
+          hasOrgs={orgProfiles.length > 0}
         />
 
         {/* ── Org-Profil Banner "verwaltet von" (Migration 132) ── */}
@@ -769,15 +774,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           </div>
         )}
 
-        {/* ── Account-Switcher (Migration 132) ────────────────── */}
-        {/* Trigger IMMER sichtbar — auch ohne Org-Profil, damit Nutzer
-            ein erstes Org-Profil anlegen kann (Henne-Ei-Fix, 2026-08-30) */}
-        <div style={{ display:"flex", justifyContent:"center", marginTop: 8 }}>
-          <AccountSwitcherTrigger
-            onClick={() => setSwitcherOpen(true)}
-            hasOrgs={orgProfiles.length > 0}
-          />
-        </div>
+        {/* ── Account-Switcher Modal (Migration 132) ──────────────
+             Trigger liegt jetzt im Header selbst (Icon links vom Namen) —
+             hier nur noch das Modal selbst gerendert. */}
         <AccountSwitcher
           open={switcherOpen}
           onClose={() => setSwitcherOpen(false)}
