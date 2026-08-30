@@ -76,10 +76,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const activeProfileId = _auth.activeProfileId ?? null;
   const switchProfile   = _auth.switchProfile ?? null;
   const activeProfile   = _auth.activeProfile ?? null;
-  // Effektiv aktive Profil-Daten: Org-Profil wenn activeProfileId gesetzt, sonst persönlich
-  const effectiveProfile = activeProfileId ? (activeProfile || profile) : profile;
-  // userId für Content-Erstellung: Org-Profil-ID wenn aktiv, sonst persönliche ID
-  const effectiveUserId = activeProfileId || profile?.id || null;
   // Sprint F.7D: profile + loading aus useProfileData — lokale States entfernt
   const [bio,        setBio]        = useState("");
   const [switcherOpen, setSwitcherOpen] = useState(false);  // Account-Switcher
@@ -407,6 +403,20 @@ export default function MyBasisProfile({ onClose, profileId }) {
     loadLazy,
     followCounts,
   } = useProfileData(user?.id, true); // includePrivate=true → phone für eigenes Profil
+
+  // TDZ-FIX (2026-08-30): effectiveProfile/effectiveUserId GEHÖREN hierher —
+  // `profile` existiert erst NACH useProfileData() (siehe F.9C-HOTFIX-Kommentar
+  // oben, gleiche Lehre). Vorher standen sie fälschlich VOR der useProfileData-
+  // Destrukturierung (Zeile ~80 alt) und referenzierten `profile`, bevor dessen
+  // `const`-Deklaration ausgeführt war → "Cannot access 'profile' before
+  // initialization" (TDZ) bei jedem Render von MyBasisProfile im
+  // ProfileLauncher-Chunk. War der tatsächliche Root Cause aller "PROFILE
+  // CRASH"-Meldungen vom 2026-08-30 — nicht die zirkulären Imports (die waren
+  // echte, aber unabhängige Bugs, zusätzlich gefixt).
+  // Effektiv aktive Profil-Daten: Org-Profil wenn activeProfileId gesetzt, sonst persönlich
+  const effectiveProfile = activeProfileId ? (activeProfile || profile) : profile;
+  // userId für Content-Erstellung: Org-Profil-ID wenn aktiv, sonst persönliche ID
+  const effectiveUserId = activeProfileId || profile?.id || null;
 
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
   // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)
