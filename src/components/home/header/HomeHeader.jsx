@@ -102,12 +102,12 @@ export default function HomeHeader({
             onSearchStateChange={onSearchStateChange}
             quickActions={
               <>
-                {/* GLOBUS — Sprachauswahl-Dropdown (2026-08-27, Michael-Request):
-                    Globus-Icon rechts neben dem Suchfeld, gleiche 36px-Kreis-Optik
-                    wie WerkeKorb/Glocke/Chat. Öffnet ein Hamburger-Dropdown zur
-                    schnellen Sprachumschaltung. Das Suchfeld wird durch die
-                    Icon-Breite automatisch schmaler (flex:1 verteilt den Rest). */}
-                <LangGlobeButton/>
+                {/* GLOBUS — Icon entfernt (2026-08-30, Michael-Request):
+                    Nur das Icon/Rendering entfernt, Logik unangetastet.
+                    LangGlobeButton.jsx bleibt vollstaendig erhalten und
+                    funktionsfaehig — Sprachumschaltung weiterhin ueber
+                    SettingsModal erreichbar. Bei Bedarf hier wieder einkommentieren:
+                    <LangGlobeButton/> */}
                 {/* MOOD-ORB — 2026-08-12: Temporär ausgeblendet.
                     Mood-System existiert (moodConfig.js, MoodSheet.jsx, MoodOrbButton.jsx)
                     aber MOOD_FEED_HINTS sind noch nicht mit Feed-Logik verknüpft.
