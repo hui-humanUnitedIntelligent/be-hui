@@ -68,12 +68,13 @@ export async function confirmAppReady() {
 export async function autoCheckOTA() {
   if (!Capacitor.isNativePlatform()) return;
 
-  // 3s Verzögerung — UI zuerst rendern lassen
-  await new Promise(r => setTimeout(r, 3000));
+  // 500ms Verzögerung — UI zuerst rendern lassen (war 3s, reduziert für schnellere OTA-Applikation)
+  await new Promise(r => setTimeout(r, 500));
 
   try {
     const resp = await fetch(UPDATE_URL, { cache: "no-store" });
     if (!resp.ok) {
+      console.warn("[OTA] app-version.json fetch failed:", resp.status);
       return;
     }
     const data = await resp.json();
@@ -81,11 +82,14 @@ export async function autoCheckOTA() {
     const bundleUrl = data.url;
 
     if (!serverVersion || !bundleUrl) {
+      console.warn("[OTA] Invalid response:", data);
       return;
     }
 
     // KRITISCH: Nur herunterladen wenn serverVersion > APP_VERSION
     const isNewer = compareVersions(serverVersion, APP_VERSION) > 0;
+
+    console.log("[OTA] Current:", APP_VERSION, "| Server:", serverVersion, "| Newer:", isNewer);
 
     if (!isNewer) {
       return;
@@ -113,6 +117,7 @@ export async function autoCheckOTA() {
 
     // Set als aktives Bundle für den nächsten Start
     await CapacitorUpdater.set({ id: update.id });
+    console.log("[OTA] ✅ Bundle v" + serverVersion + " downloaded + set — aktiv beim nächsten Start");
 
     // UI informieren
     window.dispatchEvent(new CustomEvent("ota:update-ready", {
