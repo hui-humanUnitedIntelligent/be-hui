@@ -9,6 +9,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient.js";
 import { formatDateDE } from "../lib/formatters.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 const TEAL  = "#16D7C5";
 const CORAL = "#FF8A6B";

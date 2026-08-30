@@ -11,6 +11,7 @@ import EventContent      from "./EventContent.jsx";
 // FEED-GLOBAL-001: Talente + Impact-Projekte
 import TalentContent     from "./TalentContent.jsx";
 import ImpactContent     from "./ImpactContent.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 function CardSkeleton() {
   return (
