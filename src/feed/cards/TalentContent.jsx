@@ -85,7 +85,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
           border:`1px solid rgba(139,92,246,0.22)`,
           borderRadius:99, padding:"3px 9px",
           letterSpacing:0.2, whiteSpace:"nowrap",
-        }}>TALENT</span>
+        }}>{t("feed.badgeTalent")}</span>
         {title && (
           <span style={{
             fontSize:15, fontWeight: 600, color:INK,

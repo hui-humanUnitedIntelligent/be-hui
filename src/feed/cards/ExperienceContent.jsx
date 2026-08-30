@@ -58,7 +58,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
           border:"1px solid rgba(13,196,181,0.22)",
           borderRadius:99, padding:"3px 9px",
           letterSpacing:0.2, whiteSpace:"nowrap",
-        }}>{t("feed.badgeErlelnis")}</span>
+        }}>{t("feed.badgeErlebnis")}</span>
         {title ? (
           <span style={{
             fontSize:15, fontWeight: 600, color:INK,

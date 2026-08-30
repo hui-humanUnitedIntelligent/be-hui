@@ -1106,6 +1106,8 @@ export default {
   'feed.badgeToday': 'Sot',
   'feed.badgeTomorrow': 'Nesër',
   'feed.badgeWerk': 'VEPËR',
+  'feed.badgeTalent': 'TALENT',
+  'impact.wishAmountReached': 'Shuma e dëshiruar prej €{amount} u arrit.',
   'feed.buy': 'Blije',
   'feed.createAlmostDone': 'Po përfundohet…',
   'feed.createCamera': 'Kamerë',

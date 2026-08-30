@@ -2064,6 +2064,8 @@ export default {
   'impact.muUnknownError': 'Unknown error',
   'impact.ifErrorSubmit': 'Error submitting',
   'feed.badgeWerk': 'ESER',
+  'feed.badgeTalent': 'YETENEK',
+  'impact.wishAmountReached': '€{amount} tutarındaki hedefe ulaşıldı.',
   'feed.badgeErlebnis': 'DENEYIM',
   'feed.badgeLive': '🔴 LIVE',
   'feed.badgeEvent': 'EVENT',

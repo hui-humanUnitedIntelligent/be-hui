@@ -75,7 +75,7 @@ function getMomentBadge(raw, t) {
 
   // "gedanke" oder kein Typ → Gedanke
   return {
-    label:  "Gedanke",
+    label:  t("feed.momentBadgeGedanke"),
     color:  "#5B7EC9",
     bg:     "rgba(91,126,201,0.10)",
     border: "rgba(91,126,201,0.22)",

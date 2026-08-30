@@ -9,6 +9,7 @@
 import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 import { formatNumberDE } from "../../lib/formatters.js";
 
 const GREEN      = "rgba(34,197,94,1)";
@@ -46,9 +47,17 @@ function ProgressBar({ current, goal }) {
 }
 
 export default function ImpactContent({ item, onProfile, onReaction, onShare }) {
+  // HOOK-ORDER-FIX (2026-08-30, analog MomentContent.jsx 2026-08-08):
+  // Alle Hooks MÜSSEN vor jedem early return stehen — sonst überspringt
+  // React bei kurzzeitig leerem item (Feed-Virtualisierung) Hooks für
+  // diesen Render → Hook-Reihenfolge weicht beim nächsten Render ab →
+  // "Minified React error #310".
+  const { t } = useTranslation();
+  const { open } = useContentPreview();
+
   if (!item) return null;
 
-const raw   = item._raw || {};
+  const raw   = item._raw || {};
   const title = item.title || raw.project_name || raw.name || "";
   const descRaw  = item.text  || raw.short_desc   || raw.problem || raw.description || "";
   // FIX: Normalizer setzt title=text.slice(0,60) → desc könnte identisch sein
@@ -60,9 +69,8 @@ const raw   = item._raw || {};
 
   const badgeText = rank && RANK_MEDAL[rank]
     ? `${RANK_MEDAL[rank]} ${RANK_LABEL[rank]}`
-    : "Herzensprojekt";
+    : t("impact.herzensprojektCategory");
 
-  const { open } = useContentPreview();
   const handleCardClick = () => open({
     ...item,
     canOpenFull: true,
@@ -107,7 +115,7 @@ return (
           margin:"0 0 8px", fontSize:12, fontWeight:400,
           color:INK_SUB, lineHeight:1.4,
         }}>
-          Der Wunsch-Betrag von €{formatNumberDE(goal)} wurde erreicht.
+          {t("impact.wishAmountReached", { amount: formatNumberDE(goal) })}
         </p>
       )}
 

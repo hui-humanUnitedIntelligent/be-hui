@@ -2080,6 +2080,8 @@ export default {
   'impact.muUnknownError': 'Unknown error',
   'impact.ifErrorSubmit': 'Error submitting',
   'feed.badgeWerk': 'WORK',
+  'feed.badgeTalent': 'TALENT',
+  'impact.wishAmountReached': 'The wish amount of €{amount} has been reached.',
   'feed.badgeErlebnis': 'EXPERIENCE',
   'feed.badgeLive': '🔴 LIVE',
   'feed.badgeEvent': 'EVENT',
