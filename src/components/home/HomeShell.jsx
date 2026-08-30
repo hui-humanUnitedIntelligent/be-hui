@@ -40,6 +40,7 @@ import { registerModal } from "../../lib/backButtonRegistry.js";
 // ("Cannot access 'Ie' before initialization"). Re-Export hier hält
 // alle 10 bestehenden Consumer (die "useHome" aus HomeShell.jsx
 // importieren) unverändert funktionsfähig.
+import { HomeCtx } from "./HomeContext.js";
 export { HomeCtx, useHome } from "./HomeContext.js";
 
 /* ── HomeShell ────────────────────────────────────────────────── */
