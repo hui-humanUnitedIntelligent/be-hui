@@ -191,7 +191,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
                   background:"rgba(0,0,0,0.05)", border:"none",
                   fontSize:13, color:C.ink, cursor:"pointer",
                   WebkitTapHighlightColor:"transparent",
-                }}>Abbrechen</button>
+                }}>{t("common.cancel")}</button>
               <button
                 onClick={() => { setConfirmDelete(false); setMenuOpen(false); onCloseChat?.(); }}
                 style={{
@@ -199,7 +199,7 @@ export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, o
                   background:"rgba(220,60,60,0.9)", border:"none",
                   fontSize:13, color:"#fff", fontWeight:600, cursor:"pointer",
                   WebkitTapHighlightColor:"transparent",
-                }}>Löschen</button>
+                }}>{t("common.delete")}</button>
             </div>
           </div>
         )}

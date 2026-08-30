@@ -24,12 +24,12 @@ const INK_SUB    = "rgba(26,26,46,0.45)";
 const RANK_MEDAL = { 1:"🥇", 2:"🥈", 3:"🥉" };
 const RANK_LABEL = { 1:"Top 1", 2:"Top 2", 3:"Top 3" };
 
-function ProgressBar({ current, goal }) {
+function ProgressBar({ current, goal, t }) {
   const pct = goal > 0 ? Math.min(100, (current / goal) * 100) : 0;
   return (
     <div style={{ marginTop:8 }}>
       <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-        <span style={{ fontSize:11, color:INK_SUB }}>Gesammelt</span>
+        <span style={{ fontSize:11, color:INK_SUB }}>{t("impact.collected")}</span>
         <span style={{ fontSize:11, color:GREEN, fontWeight: 600 }}>
           {pct.toFixed(0)}% · €{formatNumberDE((current || 0))}
         </span>

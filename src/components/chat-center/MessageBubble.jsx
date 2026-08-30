@@ -51,6 +51,7 @@ export function TypingBubble() {
 
 // ── Action Modal (Bearbeiten / Löschen) ──
 function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDelete = () => {}, onClose = () => {} }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "MessageActionModal");
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState(msg.text || "");
@@ -166,7 +167,7 @@ function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDele
                   fontSize:13, color:"rgba(80,80,80,0.8)",
                   WebkitTapHighlightColor:"transparent",
                 }}
-              >Abbrechen</button>
+              >{t("common.cancel")}</button>
               <button
                 onClick={() => { if (editText.trim()) { onEdit?.(msg.id, editText); onClose?.(); } }}
                 style={{
@@ -176,7 +177,7 @@ function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDele
                   color:"white", cursor:"pointer", fontSize:13, fontWeight: 600,
                   WebkitTapHighlightColor:"transparent",
                 }}
-              >Speichern</button>
+              >{t("common.save")}</button>
             </div>
           </div>
         )}

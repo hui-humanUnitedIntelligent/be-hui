@@ -108,6 +108,7 @@ function EventCard({ event, onPress, delay }) {
 
 /* ── Main Section ─────────────────────────────────────────────── */
 export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
+  const { t } = useTranslation();
   // Active system log
   React.useEffect(() => {
   }, []);
@@ -116,7 +117,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
 
   // FEED.4D FIX-6 — Badge-Logik: echtes Datum statt immer "Heute"
   function computeBadge(dateStr) {
-    if (!dateStr) return "Geplant";
+    if (!dateStr) return t("feed.planned");
     const evDate  = new Date(dateStr);
     const now     = new Date();
     // Mitternacht local → sauberer Tagesvergleich
@@ -124,8 +125,8 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
     const tomorrow= new Date(today); tomorrow.setDate(today.getDate() + 1);
     const in7days = new Date(today); in7days.setDate(today.getDate() + 7);
     const evDay   = new Date(evDate.getFullYear(), evDate.getMonth(), evDate.getDate());
-    if (evDay.getTime() === today.getTime())    return "Heute";
-    if (evDay.getTime() === tomorrow.getTime()) return "Morgen";
+    if (evDay.getTime() === today.getTime())    return t("feed.today");
+    if (evDay.getTime() === tomorrow.getTime()) return t("feed.tomorrow");
     if (evDay < in7days) {
       // z.B. "Mi 18 Jun"
       return formatDateDE(evDate, { weekday:"short", day:"numeric", month:"short" });
@@ -167,10 +168,10 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         const badge = false /* is_live n/a */ ? "Live" : computeBadge(r.date);
         return {
           id:         String(r.id),
-          title:      r.title        || "Erlebnis",
+          title:      r.title        || t("feed.eventDefault"),
           // FIX-4: echte Startzeit statt Dauer-Freitext
           time:       timeStr,
-          location:   r.location_text || "Online",
+          location:   r.location_text || t("common.online"),
           img:        r.cover_url || r.media_url || null,
           // FIX-5: Datumsdaten für spätere Nutzung verfügbar
           date:       r.date       || null,
@@ -178,9 +179,9 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
           time_end:   r.time_end   || null,
           // FIX-6: echte Badge-Logik
           badge,
-          badgeColor: badge === "Heute" ? TEAL
-                    : badge === "Morgen" ? CORAL
-                    : badge === "Geplant" ? "rgba(26,26,46,0.35)"
+          badgeColor: badge === t("feed.today") ? TEAL
+                    : badge === t("feed.tomorrow") ? CORAL
+                    : badge === t("feed.planned") ? "rgba(26,26,46,0.35)"
                     : "#8B6FE8",  // Datum: Violett
           // FIX-7: Creator-Navigation
           user_id:    r.user_id    || null,

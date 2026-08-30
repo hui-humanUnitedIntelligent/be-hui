@@ -58,6 +58,7 @@ class CardErrorBoundary extends React.Component {
 }
 
 export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBook, onDetail, onShare, itemReactions }) {
+  const { t } = useTranslation();
   const item = React.useMemo(() => {
     if (!rawItem?.id) return null;
     // Already unified shape? (has author object)
@@ -75,7 +76,7 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
   }
 
   const type       = item.type || "moment";
-  const authorName = item.author?.name || "Human";
+  const authorName = item.author?.name || t("common.unknown");
   const text       = item.text || item.title || "";
 
   // ── AUTHOR ID: aus ALLEN möglichen Quellen extrahieren ──────

@@ -10,8 +10,8 @@ const INK3   = "rgba(26,26,46,0.42)";
 
 export default function EventContent({ item, onProfile, onReaction, onShare }) {
   const { t } = useTranslation();
-  if (!item) return null;
   const { open } = useContentPreview(); // OPEN.1 2026-07-08
+  if (!item) return null;
 
   const title    = item.title || item.text || "";
   const desc     = item._raw?.description || item._raw?.caption || null;

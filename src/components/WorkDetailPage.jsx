@@ -718,7 +718,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
                     background:"rgba(13,196,181,0.12)", border:"1px solid rgba(13,196,181,0.3)",
                     borderRadius:50, fontSize:12, fontWeight: 600, color:"#0DC4B5",
                     cursor:"pointer", fontFamily:"inherit" }}
-                >Profil ansehen</button>
+                >{t("wdp.viewProfile")}</button>
               )}
               {user?.id && creator?.id && user.id !== creator.id && (
                 <button onClick={handleFollow}

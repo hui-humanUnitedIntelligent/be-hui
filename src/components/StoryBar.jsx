@@ -13,6 +13,7 @@ import { supabase } from '../lib/supabaseClient';
 import { findOrCreateChat } from '../lib/chatContext.js';
 import { useAuth } from '../lib/AuthContext';
 import { HUI } from "../design/hui.design.js";
+import { useTranslation } from "../hooks/useTranslation.js";
 import { HUILogo } from "./brand/HUILogo.jsx";
 
 const C = {
@@ -45,6 +46,7 @@ const REACTIONS = ['❤️','🔥','👏','😮'];
 
 // ── STORY BAR ────────────────────────────────────────────────────────
 export function StoryBar({ onStoryClick }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [groups, setGroups] = useState([]);
   const [viewedIds, setViewedIds] = useState(new Set());
@@ -153,6 +155,7 @@ export function StoryBar({ onStoryClick }) {
 // Neu: Ken-Burns, Story-Info-Ebene, verbesserter Header,
 //      Hold-to-pause, Action-Bar (Reaction/Reply/Profil), kein Follow-Button
 export function StoryViewer({ data: initData, onClose, onViewProfile }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const [groupIdx,   setGroupIdx]   = useState(initData?.groupIdx  ?? 0);
@@ -599,7 +602,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
                 fontSize:13.5, fontWeight:500, cursor:'pointer',
                 textAlign:'left', display:'flex', alignItems:'center', gap:8 }}>
               <HUIChatIcon size={14} style={{opacity:0.65}} />
-              <span>Antworten…</span>
+              <span>{t("story.reply")}</span>
             </button>
             {/* Share */}
             <button className="hui-sv-tap"
@@ -690,6 +693,7 @@ export function StoryViewer({ data: initData, onClose, onViewProfile }) {
 
 // ── HIGHLIGHTS ROW (für ProfilePage) ─────────────────────────────────
 export function HighlightsRow({ userId }) {
+  const { t } = useTranslation();
   const [highlights, setHighlights] = useState([]);
   const [viewing, setViewing] = useState(null);
 
@@ -718,7 +722,7 @@ export function HighlightsRow({ userId }) {
       {viewing && <StoryViewer data={{ group, startIdx: viewing, allGroups:[group], groupIdx:0 }} onClose={() => setViewing(null)} />}
       <div style={{ padding:'0 0 4px' }}>
         <div style={{ fontSize:13, fontWeight: 600, color:'#888', padding:'0 20px 10px',
-          textTransform:'uppercase', letterSpacing:.8 }}>Highlights</div>
+          textTransform:'uppercase', letterSpacing:.8 }}>{t("story.highlights")}</div>
         <div className="hui-no-scroll" style={{ display:'flex', gap:14, overflowX:'auto',
           padding:'0 20px', WebkitOverflowScrolling:'touch' }}>
           {highlights.map((h, i) => (

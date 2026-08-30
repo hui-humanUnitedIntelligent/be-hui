@@ -59,6 +59,7 @@ import { setupPushDeepLinkHandler } from "./lib/pushDeepLinkHandler.js";
 import InAppNotificationBanner from "./components/notifications/InAppNotificationBanner.jsx";
 import ImageLightbox from "./components/shared/ImageLightbox.jsx";
 import VideoFullscreenCloseButton from "./components/shared/VideoFullscreenCloseButton.jsx";
+import { useTranslation } from "./hooks/useTranslation.js";
 // HUILogoSplash entfernt — IntroVideoScreen ersetzt Splash
 
 // ── APP_ROUTES: ÜBERGANGSSTRUKTUR (NAV-001B) ─────────────────────────────────
@@ -642,6 +643,7 @@ function OwnProfileRedirect() {
 /* ── App Routes ────────────────────────────────────────────────────── */
 // ── BlockedScreen: globaler Overlay wenn Nutzer blockiert wird ───────
 function BlockedScreen() {
+  const { t } = useTranslation();
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 99999,
@@ -654,7 +656,7 @@ function BlockedScreen() {
       <div style={{
         fontSize: 22, fontWeight: 600, color: '#fff',
         marginBottom: 12, letterSpacing: -0.5,
-      }}>Konto gesperrt</div>
+      }}>{t("app.accountLocked")}</div>
       <div style={{
         fontSize: 15, color: 'rgba(255,255,255,0.6)',
         maxWidth: 320, lineHeight: 1.6,
@@ -928,6 +930,7 @@ function PushInit() {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   // ── OTA v5: confirmAppReady nach erstem erfolgreichen React-Render ──
   // Ruft notifyAppReady() beim native Plugin — "App lebt, kein Rollback".
   // Wenn React crasht → dieser useEffect läuft nie → Plugin rollt nach 3

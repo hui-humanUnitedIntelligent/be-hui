@@ -25,7 +25,7 @@ import { toast } from "../../lib/useToast.jsx";
 // ── Kontakt-Daten-Schutz: Email & Telefon im Kommentar blockieren ──────────
 // HUI-Regel: Kommentare & Anfragen dienen dem öffentlichen Austausch.
 // Keine Email-Adressen oder Telefonnummern (DSGVO + Plattform-Regeln).
-const CONTACT_BLOCK_MSG = "Aus Datenschutzgründen können keine E-Mail-Adressen, Telefonnummern oder Social-Media-Links veröffentlicht werden. Bitte halte dich an die HUI-Regeln und tausche Kontaktdaten nur über den Chat nach einer Buchung aus.";
+// Kontakt-Block-Nachricht via t('comment.contactBlock') — i18n (2026-08-30)
 
 function detectContactData(text) {
   // Email: Standard-Pattern
@@ -112,16 +112,16 @@ const CSS = `
   .cs-emoji-picker { position:absolute; bottom:62px; left:0; right:0; background:#fff; border-top:1px solid rgba(26,26,46,0.08); padding:10px 12px 8px; box-shadow:0 -4px 20px rgba(26,26,46,0.12); max-height:210px; overflow-y:auto; animation:cs-overlay-in 150ms ease; z-index:2; }
 `;
 
-function fmtTime(iso) {
+function fmtTime(iso, t) {
   if (!iso) return "";
   const d = new Date(iso);
   const diff = Math.floor((Date.now() - d) / 60000);
-  if (diff < 1)  return "gerade eben";
-  if (diff < 60) return `vor ${diff} Min`;
+  if (diff < 1)  return t("common.justNow");
+  if (diff < 60) return t("comment.minutesAgo", { n: diff });
   const h = Math.floor(diff / 60);
-  if (h < 24)   return `vor ${h} Std`;
+  if (h < 24)   return t("comment.hoursAgo", { n: h });
   const days = Math.floor(h / 24);
-  if (days < 7) return `vor ${days} Tagen`;
+  if (days < 7) return t("comment.daysAgo", { n: days });
   return formatDateDE(d, { day:"numeric", month:"short" });
 }
 
@@ -307,7 +307,7 @@ function CommentRow({ comment, depth, currentUserId, isAdmin, onReply, onSaveEdi
                 cursor: comment.user_id !== currentUserId ? "pointer" : "default",
                 fontSize:13, fontWeight: 600, color:T.ink, WebkitTapHighlightColor:"transparent" }}
             >{authorName}</button>
-            <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(comment.created_at)}</span>
+            <span style={{ fontSize:11, color:T.inkFaint }}>{fmtTime(comment.created_at, t)}</span>
             {comment.is_edited && <span style={{ fontSize:11, color:T.inkFaint }}>· {t("comment.edited")}</span>}
           </div>
 
@@ -581,7 +581,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     const text = input.trim();
     if (!text || !user?.id) return;
     if (postType !== "moment" && detectContactData(text)) {
-      toast.error(CONTACT_BLOCK_MSG);
+      toast.error(t("comment.contactBlock"));
       return;
     }
     setSubmitting(true);
@@ -604,7 +604,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     if (error || !data) {
       setItems(prev => prev.filter(c => c.id !== optimistic.id));
       setTotal(t => Math.max(0, t - 1));
-      toast.error(error?.message || "Kommentar konnte nicht gesendet werden.");
+      toast.error(error?.message || t("comment.sendError"));
       return;
     }
     setItems(prev => prev.map(c => c.id === optimistic.id ? { ...optimistic, id: data.id, created_at: data.created_at } : c));
@@ -618,7 +618,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     const text = replyText.trim();
     if (!text || !user?.id || !replyTargetId) return;
     if (postType !== "moment" && detectContactData(text)) {
-      toast.error(CONTACT_BLOCK_MSG);
+      toast.error(t("comment.contactBlock"));
       return;
     }
     setSubmittingReply(true);
@@ -649,7 +649,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     if (error || !data) {
       const removeOptim = (list) => list.map(c => ({ ...c, replies: (c.replies||[]).filter(r => r.id !== optimistic.id).map(r => r) })).map(c => ({ ...c, replies: removeOptim(c.replies||[]) }));
       setItems(prev => removeOptim(prev));
-      toast.error(error?.message || "Antwort konnte nicht gesendet werden.");
+      toast.error(error?.message || t("comment.replyError"));
       return;
     }
     const patchId = (list) => list.map(c => c.id === optimistic.id ? { ...optimistic, id: data.id, created_at: data.created_at } : { ...c, replies: patchId(c.replies||[]) });
@@ -661,13 +661,13 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     const trimmed = text.trim();
     if (!trimmed) return;
     if (postType !== "moment" && detectContactData(trimmed)) {
-      toast.error(CONTACT_BLOCK_MSG);
+      toast.error(t("comment.contactBlock"));
       return;
     }
     const patch = (list) => list.map(c => c.id === commentId ? { ...c, text: trimmed, is_edited:true } : { ...c, replies: patch(c.replies||[]) });
     setItems(prev => patch(prev));
     const { error } = await updateComment(commentId, trimmed);
-    if (error) toast.error("Änderung konnte nicht gespeichert werden.");
+    if (error) toast.error(t("comment.editError"));
   }, []);
 
   const handleDelete = useCallback(async (commentId) => {
@@ -679,7 +679,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
     haptic("light");
     const { error } = await deleteComment(commentId);
     if (error) {
-      toast.error("Kommentar konnte nicht gelöscht werden.");
+      toast.error(t("comment.deleteError"));
       // Reload bei Fehler
       // (kein Rollback nötig — deleteComment ist idempotent)
       return;
@@ -702,7 +702,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
   const handleReport = useCallback(async (commentId, reason) => {
     if (!user?.id) return;
     const { error } = await reportComment(commentId, user.id, reason);
-    error ? toast.error("Meldung nicht möglich.") : toast.success("Danke, wir prüfen das.");
+    error ? toast.error(t("comment.reportError")) : toast.success(t("comment.reportSuccess"));
   }, [user?.id]);
 
   if (!open) return null;
@@ -773,7 +773,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
             <div style={{ textAlign:"center", padding:"6px 0 14px" }}>
               <button className="cs-btn" onClick={() => load(false)} disabled={loading}
                 style={{ fontSize:12, fontWeight: 600, color:T.teal }}>
-                {loading ? "Lädt …" : "Mehr laden"}
+                {loading ? t("common.loading") : t("comment.loadMore")}
               </button>
             </div>
           )}
