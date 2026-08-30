@@ -41,7 +41,18 @@ export function AuthProvider({ children }) {
   // ── Multi-Account: Organisations-Profile (Account-Switcher) ──────
   // activeProfileId = null → persönliches Profil aktiv
   // activeProfileId = UUID → Org-Profil aktiv (aus orgProfiles-Liste)
-  const [activeProfileId, setActiveProfileId] = useState(null);
+  // ── Multi-Account: Active Profile Persistenz ────────────────────
+  // activeProfileId wird in localStorage gespeichert, damit der Account-
+  // Switcher einen Refresh/Neustart übersteht. Beim Laden wird gegen die
+  // orgProfiles-Liste validiert — existiert das Org-Profil nicht mehr,
+  // fällt der Switcher automatisch auf das persönliche Profil zurück.
+  const HUI_ACTIVE_PROFILE_KEY = "hui_active_profile_id";
+  const [activeProfileId, setActiveProfileId] = useState(() => {
+    try {
+      const stored = localStorage.getItem(HUI_ACTIVE_PROFILE_KEY);
+      return stored || null;
+    } catch { return null; }
+  });
   const [orgProfiles, setOrgProfiles]         = useState([]);
 
 
@@ -127,6 +138,29 @@ export function AuthProvider({ children }) {
     }
     setActiveProfileId(profileId);
   }, []);
+
+  // ── Persistenz: activeProfileId in localStorage sichern ──────────
+  useEffect(() => {
+    try {
+      if (activeProfileId) {
+        localStorage.setItem(HUI_ACTIVE_PROFILE_KEY, activeProfileId);
+      } else {
+        localStorage.removeItem(HUI_ACTIVE_PROFILE_KEY);
+      }
+    } catch { /* localStorage might be blocked */ }
+  }, [activeProfileId]);
+
+  // ── Validierung: gespeicherte activeProfileId gegen orgProfiles prüfen ──
+  // Falls das Org-Profil zwischenzeitlich gelöscht wurde (anderes Gerät,
+  // Server-side), fällt der Switcher automatisch auf "persönlich" zurück.
+  useEffect(() => {
+    if (activeProfileId && orgProfiles.length > 0) {
+      const stillExists = orgProfiles.some(p => p.id === activeProfileId);
+      if (!stillExists) {
+        setActiveProfileId(null);
+      }
+    }
+  }, [activeProfileId, orgProfiles]);
 
   // ── Account-Switcher: Org-Profil löschen (Migration 136) ─────────
   // Löscht NUR Organisations-Profile (Verein/Unternehmen) — der

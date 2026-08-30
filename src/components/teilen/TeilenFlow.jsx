@@ -654,7 +654,7 @@ function StepPreview({ mode, data, profile, onPublish, publishing }) {
 ══════════════════════════════════════════════════════════════ */
 export default function TeilenFlow({ onClose, onPublished, visible = true }) {
   const { t } = useTranslation();
-  const { user, profile, canCreate, isBaseUser } = useAuth();
+  const { user, profile, canCreate, isBaseUser, activeProfileId } = useAuth();
 
   // Phase 4C: Permission Guard
   // BasisUser → sofort schließen + TalentFlow öffnen
@@ -879,8 +879,12 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
       }
 
       // ── Insert (echte Spalten: user_id, src, type, caption, created_at) ──
+      // ORG-AUTHORSHIP (2026-08-31): Wenn ein Org-Profil aktiv ist, wird
+      // der Moment als Org-Profil gepostet (activeProfileId), sonst als
+      // persönlicher Nutzer (session.user.id). beitraege.user_id FK → profiles.
+      const _effectiveUid = activeProfileId || session.user.id;
       const payload = {
-        user_id:    session.user.id,
+        user_id:    _effectiveUid,
         caption:    form?.text?.trim() || null,
         src:        src,
         type:       "moment",
