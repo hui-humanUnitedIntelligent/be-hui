@@ -1150,6 +1150,9 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const activeProfileId = _auth2.activeProfileId ?? null;
   const switchProfile   = _auth2.switchProfile ?? null;
   const activeProfile   = _auth2.activeProfile ?? null;
+  // ORG-AUTHORSHIP-FIX (2026-08-30): Content-Erstellung unter aktuellem Profil
+  // (Org-Profil wenn aktiv, sonst persönliches Profil)
+  const effectiveUserId = activeProfileId || profile?.id || null;
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
   const {
@@ -1652,7 +1655,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       {/* WERK WIZARD */}
       {isOwner && showWerkWizard && profile?.id && (
         <WerkWizard
-          userId={profile.id}
+          userId={effectiveUserId}
           existingWork={editingWerk}
           onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
           onSaved={(werk) => {
@@ -1665,7 +1668,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
       {/* EXPERIENCE WIZARD */}
       {isOwner && showExpWizard && profile?.id && (
         <ExperienceWizard
-          userId={profile.id}
+          userId={effectiveUserId}
           existingExp={editingExp}
           onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
           onSaved={(exp) => {

@@ -18,6 +18,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "../hooks/useTranslation.js";
 import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient.js";
+import { useAuth } from "../lib/AuthContext.jsx";
 
 const D = {
   teal:"#0EC4B8", tealDeep:"#0A9E94", coral:"#E8573A",
@@ -237,6 +238,7 @@ async function moderateContent({ userId, mediaUrl, mediaType, text }) {
 // ════════════════════════════════════════════════════════════════
 export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'public' }) {
   const { t } = useTranslation();
+  const { activeProfileId } = useAuth();
   const [phase,     setPhase]     = useState(visible ? "open" : "hidden");
   const [text,      setText]      = useState("");
   const [mediaURL,  setMediaURL]  = useState(null);
@@ -348,9 +350,13 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       throw blockErr;
     }
 
-    // 2. Payload
+    // 2. Payload — user_id = aktives Profil (Org-Profil wenn aktiv, sonst auth.uid())
+    // ORG-AUTHORSHIP-FIX (2026-08-30): Wenn ein Verein/Unternehmen aktiv ist,
+    // wird der Moment unter dessen UUID gepostet, nicht unter Michaels persönlichem
+    // Account. RLS erlaubt das über die owner_user_id-Policy (Migration 137).
+    const postingId = activeProfileId || userId;
     const payload = {
-      user_id:          userId,
+      user_id:          postingId,
       src:              src     || null,
       type:             type    || "gedanke",
       moment_source:    momentSource || null,
@@ -394,8 +400,10 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
         type = isVideo ? "video" : "foto";
         const { data: authData } = await supabase.auth.getUser();
         const userId = authData?.user?.id;
-        if (userId) {
-          const uploadResult = await uploadToMedia(fileObj, userId);
+        // ORG-AUTHORSHIP: Storage-Pfad nutzt aktives Profil (Org-Profil wenn aktiv)
+        const uploadId = activeProfileId || userId;
+        if (uploadId) {
+          const uploadResult = await uploadToMedia(fileObj, uploadId);
           src = uploadResult?.url || null;
           storagePath = uploadResult?.path || null;
         }

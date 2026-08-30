@@ -98,6 +98,12 @@ export function isMembershipActive(profile) {
  */
 export function getFullDisplayName(profile, fallback = "Mitglied") {
   if (!profile) return fallback;
+  // ORG-AUTHORSHIP-FIX (2026-08-30): Org-Profile zeigen org_name als
+  // Anzeigenamen — nicht full_name (das gehört zum persönlichen Account).
+  if (profile.account_type === "organization") {
+    const orgName = typeof profile.org_name === "string" ? profile.org_name.trim() : "";
+    if (orgName) return orgName;
+  }
   const full = typeof profile.full_name === "string" ? profile.full_name.trim() : "";
   if (full) return full;
   const disp = typeof profile.display_name === "string" ? profile.display_name.trim() : "";
@@ -146,6 +152,14 @@ export function getProfileRoleLabel(profile) {
   // und wirkt neben dem Bot-Badge redundant/verwirrend — daher hier
   // bewusst kein Tag.
   if (profile.id === SYSTEM_ACCOUNT_ID) return null;
+  // ORG-AUTHORSHIP-FIX (2026-08-30): Org-Profile bekommen ihren Typ als
+  // Rollen-Label — "Verein" oder "Unternehmen" — statt generischem
+  // "Talent"/"Basis-Nutzer". Das erscheint im Feed unter dem Namen.
+  if (profile.account_type === "organization") {
+    if (profile.org_type === "verein") return "Verein";
+    if (profile.org_type === "unternehmen") return "Unternehmen";
+    return "Organisation";
+  }
   const custom = typeof profile.talent === "string" ? profile.talent.trim() : "";
   if (custom) return custom;
   if (isProfileTalent(profile)) return "Talent";
