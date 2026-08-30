@@ -4372,6 +4372,7 @@ export default {
   'moment.noPermission': 'Nessun permesso di caricamento. Riaccedi.',
   'moment.notLoggedIn': 'Non connesso — ricarica la pagina',
   'moment.violationReported': 'Questa immagine viola le nostre linee guida. Il tuo account è stato segnalato a un super-amministratore. L\'immagine non è stata pubblicata.',
+  'moment.checkUnavailable': 'Non siamo riusciti a verificare il tuo post (problema di connessione). Non è stato segnalato né pubblicato nulla. Riprova tra un momento.',
   'rec.back': 'Indietro',
   'rec.describePlaceholder': 'Descrivi il problema in modo più dettagliato…',
   'rec.errorNeedReason': 'Scegli un motivo o descrivi il problema.',

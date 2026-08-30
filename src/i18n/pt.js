@@ -4372,6 +4372,7 @@ export default {
   'moment.noPermission': 'Sem permissão de envio. Por favor, entra de novo.',
   'moment.notLoggedIn': 'Não conectado — recarrega a página',
   'moment.violationReported': 'Esta imagem viola as nossas diretrizes. A tua conta foi reportada a um super-administrador. A imagem não foi publicada.',
+  'moment.checkUnavailable': 'Não conseguimos verificar a tua publicação agora (problema de ligação). Nada foi reportado nem publicado. Por favor, tenta novamente dentro de momentos.',
   'rec.back': 'Voltar',
   'rec.describePlaceholder': 'Descreve o problema com mais detalhe…',
   'rec.errorNeedReason': 'Por favor, escolhe um motivo ou descreve o problema.',

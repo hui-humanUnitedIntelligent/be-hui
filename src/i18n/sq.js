@@ -4372,6 +4372,7 @@ export default {
   'moment.noPermission': 'Pa leje ngarkimi. Ju lutem kyçuni sërish.',
   'moment.notLoggedIn': 'I kyçur jo — ju lutem ringarkoni faqen',
   'moment.violationReported': 'Kjo imazh cënon udhëzimet tona. Llogaria juaj është raportuar te një super-administrator. Imazhi nuk u publikua.',
+  'moment.checkUnavailable': 'Nuk mundëm të verifikojmë postimin tënd tani (problem lidhjeje). Nuk është raportuar dhe nuk është publikuar asgjë. Provo përsëri pas një momenti.',
   'rec.back': 'Prapa',
   'rec.describePlaceholder': 'Përshkruani problemin më në detaje…',
   'rec.errorNeedReason': 'Ju lutem zgjidhni një arsye ose përshkruani problemin.',

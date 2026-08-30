@@ -4372,6 +4372,7 @@ export default {
   'moment.noPermission': 'Yükleme izni yok. Lütfen tekrar giriş yapın.',
   'moment.notLoggedIn': 'Giriş yapılmadı — sayfayı yenileyin',
   'moment.violationReported': 'Bu görüntü kurallarımızı ihlal ediyor. Hesabın bir süper yöneticiye bildirildi. Görüntü yayınlanmadı.',
+  'moment.checkUnavailable': 'Gönderini şu anda kontrol edemedik (bağlantı sorunu). Hiçbir şey bildirilmedi veya yayınlanmadı. Lütfen bir dakika içinde tekrar dene.',
   'rec.back': 'Geri',
   'rec.describePlaceholder': 'Sorunu daha ayrıntılı şekilde açıkla…',
   'rec.errorNeedReason': 'Lütfen bir sebep seç veya sorunu açıkla.',

@@ -321,13 +321,30 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
     }
 
     // 1c. MODERATION-HARD-BLOCK-001: Verstoss → nicht posten, Media BEHALTEN als Beweis für Admin
+    // FIX (2026-08-30): moderateContent() ist "fail-closed" gebaut — bei einem
+    // TECHNISCHEN Fehler (Netzwerk/Timeout/Funktion nicht erreichbar) liefert
+    // sie is_flagged=true mit flag_categories=['moderation_error'/'moderation_unavailable'],
+    // OHNE dass tatsächlich ein content_moderation-Eintrag/Report erzeugt wurde.
+    // Vorher zeigte der Client in DIESEM Fall trotzdem die "wurde gemeldet"-Meldung —
+    // sachlich falsch (niemand wurde gemeldet) und unnötig beängstigend für den Nutzer.
+    // Jetzt: technischer Fehlschlag → ehrliche "bitte erneut versuchen"-Meldung,
+    // echter Regelverstoss (google_vision/keyword_filter/ocr_keyword_filter) → weiterhin
+    // die "gemeldet"-Meldung.
     if (modResult.is_flagged) {
+      const isTechnicalFailure =
+        Array.isArray(modResult.flag_categories) &&
+        modResult.flag_categories.length > 0 &&
+        modResult.flag_categories.every(
+          (cat) => cat === "moderation_error" || cat === "moderation_unavailable"
+        );
+
       // WICHTIG: Storage-Datei wird NICHT gelöscht — der Admin braucht das Bild/Video
       // als Beweis im SADB "Inhaltsprüfung"-Dashboard (content_moderation.media_url).
       const blockErr = new Error(
-        t("moment.violationReported")
+        isTechnicalFailure ? t("moment.checkUnavailable") : t("moment.violationReported")
       );
-      blockErr.isModerationBlock = true;
+      blockErr.isModerationBlock = !isTechnicalFailure;
+      blockErr.isTechnicalFailure = isTechnicalFailure;
       throw blockErr;
     }
 

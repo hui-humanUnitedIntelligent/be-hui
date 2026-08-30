@@ -4373,6 +4373,7 @@ export default {
   'moment.noPermission': 'Pas de permission d\'envoi. Veuillez vous reconnecter.',
   'moment.notLoggedIn': 'Non connecté — veuillez recharger la page',
   'moment.violationReported': 'Cette image enfreint nos règles. Ton compte a été signalé à un super-administrateur. L\'image n\'a pas été publiée.',
+  'moment.checkUnavailable': 'Nous n\'avons pas pu vérifier ta publication (problème de connexion). Rien n\'a été signalé et rien n\'a été publié. Merci de réessayer dans un instant.',
   'rec.back': 'Retour',
   'rec.describePlaceholder': 'Décris le problème plus en détail…',
   'rec.errorNeedReason': 'Veuillez choisir un motif ou décrire le problème.',

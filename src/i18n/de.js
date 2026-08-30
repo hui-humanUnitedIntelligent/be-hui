@@ -4411,6 +4411,7 @@ export default {
   'moment.noPermission': 'Keine Upload-Berechtigung. Bitte neu einloggen.',
   'moment.notLoggedIn': 'Nicht eingeloggt — bitte Seite neu laden',
   'moment.violationReported': 'Dieses Bild verstößt gegen unsere Richtlinien. Dein Account wurde bei einem Super-Admin gemeldet. Das Bild wurde nicht gepostet.',
+  'moment.checkUnavailable': 'Wir konnten deinen Beitrag gerade nicht prüfen (Verbindungsproblem). Es wurde nichts gemeldet und nichts gepostet. Bitte versuche es gleich noch einmal.',
   'rec.back': 'Zurück',
   'rec.describePlaceholder': 'Beschreibe das Problem genauer…',
   'rec.errorNeedReason': 'Bitte wähle einen Grund oder beschreibe das Problem.',

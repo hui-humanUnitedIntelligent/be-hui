@@ -4419,6 +4419,7 @@ export default {
   'moment.noPermission': 'No upload permission. Please log in again.',
   'moment.notLoggedIn': 'Not logged in — please reload the page',
   'moment.violationReported': 'This image violates our guidelines. Your account has been reported to a super-admin. The image was not posted.',
+  'moment.checkUnavailable': 'We couldn\'t check your post right now (connection issue). Nothing was reported and nothing was posted. Please try again in a moment.',
   'rec.back': 'Back',
   'rec.describePlaceholder': 'Describe the problem in more detail…',
   'rec.errorNeedReason': 'Please choose a reason or describe the problem.',
