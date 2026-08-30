@@ -54,6 +54,7 @@ import { VisibilitySection }      from "../components/profile/sections/Visibilit
 import { MomentsSection }         from "../components/profile/sections/MomentsSection.jsx";
 // OrbSignatur lazy — verhindert Blockierung (89K-Chunk)
 import { OrbSignatur } from "../components/profile/OrbSignatur.jsx";
+import AccountSwitcher, { AccountSwitcherTrigger } from "../components/org/AccountSwitcher.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
@@ -1141,7 +1142,14 @@ function SocialContextBarTalent({ followCounts, experiences, moments, loading })
 export default function TalentProfilePage({ profileId, onClose, publicView = false }) {
   const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "TalentProfilePage");
-  const { user, setProfile: setAuthProfile } = useAuth();
+  const _auth2 = useAuth() || {};
+  const user           = _auth2.user ?? null;
+  const setAuthProfile = _auth2.setProfile ?? null;
+  // Multi-Account: Account-Switcher (Migration 132) — analog MyBasisProfile.jsx
+  const orgProfiles     = _auth2.orgProfiles ?? [];
+  const activeProfileId = _auth2.activeProfileId ?? null;
+  const switchProfile   = _auth2.switchProfile ?? null;
+  const activeProfile   = _auth2.activeProfile ?? null;
 
   // ── Sprint D: Datenlayer via useProfileData ─────────────────
   const {
@@ -1162,6 +1170,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
 
   // ── Lokale UI-States (kein Datenlayer) ──────────────────────
   const [mounted,           setMounted]           = useState(false);
+  const [switcherOpen,      setSwitcherOpen]      = useState(false);  // Account-Switcher (Migration 132)
   const [lazyLoaded,        setLazyLoaded]        = useState(false);
   const [showKompassSheet,  setShowKompassSheet]  = useState(false);
   useModalRegistration(showKompassSheet, () => setShowKompassSheet(false), "TalentProfilePage-Kompass");
@@ -1416,6 +1425,45 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           onEditAvatar={handleAvatarChange}
           onEditCover={handleCoverChange}
         />
+
+        {/* ── Org-Profil Banner "verwaltet von" (Migration 132) ──
+             Nur für den Owner sichtbar — analog MyBasisProfile.jsx */}
+        {isOwner && activeProfileId && activeProfile && (
+          <div style={{
+            display:"flex", justifyContent:"center", alignItems:"center",
+            gap: 6, marginTop: 8, marginBottom: 4,
+          }}>
+            <span style={{
+              fontSize: 11, fontWeight: 500, color: "#8a8a86",
+              background: "rgba(22,215,197,0.06)",
+              borderRadius: 6, padding: "2px 8px",
+            }}>
+              {activeProfile.org_type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+            </span>
+            <span style={{ fontSize: 12, color: "#8a8a86" }}>
+              {t("org.step3.managedBy")}: {profile?.display_name || profile?.username || ""}
+            </span>
+          </div>
+        )}
+
+        {/* ── Account-Switcher (Migration 132) ────────────────
+             Trigger IMMER sichtbar für den Owner — auch ohne Org-Profil,
+             damit ein erstes Org-Profil angelegt werden kann. Analog
+             MyBasisProfile.jsx (Henne-Ei-Fix, 2026-08-30). */}
+        {isOwner && (
+          <>
+            <div style={{ display:"flex", justifyContent:"center", marginTop: 8 }}>
+              <AccountSwitcherTrigger
+                onClick={() => setSwitcherOpen(true)}
+                hasOrgs={orgProfiles.length > 0}
+              />
+            </div>
+            <AccountSwitcher
+              open={switcherOpen}
+              onClose={() => setSwitcherOpen(false)}
+            />
+          </>
+        )}
 
         {profileId && (
         <OrbSignatur profileId={profileId} />
