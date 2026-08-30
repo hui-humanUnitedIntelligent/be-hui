@@ -125,6 +125,7 @@ function TalentCard({ talent, onClick }) {
 // Detail-Modal für ein einzelnes Talent-Angebot
 function TalentDetailModal({ talent, onClose }) {
   const { t } = useTranslation();
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const cover = Array.isArray(talent.images) && talent.images[0]?.url;
   const price = formatPrice(talent, t);
   const loc   = locationLabel(talent, t);
@@ -153,6 +154,7 @@ function TalentDetailModal({ talent, onClose }) {
           boxShadow:"0 -8px 40px rgba(26,26,24,0.16)",
           maxHeight:"85vh", overflowY:"auto",
           pointerEvents:"all",
+          transform: sheetTransform, transition: sheetTransition,
         }}>
           {/* Griff */}
           <div style={{ padding:"14px 0 0", display:"flex", justifyContent:"center" }}>
@@ -254,7 +256,6 @@ function TalentDetailModal({ talent, onClose }) {
 
 // ── Haupt-Export ──────────────────────────────────────────────────
 export function PublicTalentOffersSection({ profileId }) {
-  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setSelected(null));
   const { t } = useTranslation();
   const [talents, setTalents] = useState([]);
   const [loading, setLoading] = useState(true);
