@@ -3,6 +3,7 @@
 // 100x100px horizontaler Slider, analog zu WorksSection/MomentsSection
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
@@ -130,7 +131,7 @@ function TalentDetailModal({ talent, onClose }) {
   const price = formatPrice(talent, t);
   const loc   = locationLabel(talent, t);
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -250,7 +251,8 @@ function TalentDetailModal({ talent, onClose }) {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
