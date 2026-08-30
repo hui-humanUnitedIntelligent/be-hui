@@ -7,7 +7,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from '../hooks/useTranslation.js';
 import { HUILogo } from './brand/HUILogo.jsx';
-import { APP_VERSION } from '../version.ts';
 import {
   checkBiometricAvailability,
   isBiometricEnabled,
@@ -211,6 +210,7 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
       {mode === 'pin' && (
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24,
+          width: '100%',
           animation: shake ? 'huiShake 0.4s ease' : undefined,
         }}>
           <style>{`
@@ -334,16 +334,6 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
       >
         {t('lock.logout')}
       </button>
-
-      {/* DIAGNOSE-MARKER (temporär, 2026-08-30) — zeigt exakte Bundle-Version
-          zur zweifelsfreien OTA-Verifikation. Nach Bestätigung entfernen. */}
-      <div style={{
-        position: 'absolute', bottom: 8, left: 0, right: 0,
-        textAlign: 'center', fontSize: 10,
-        color: 'rgba(26,26,46,0.25)',
-      }}>
-        Bundle v{APP_VERSION}
-      </div>
     </div>,
     document.body
   );

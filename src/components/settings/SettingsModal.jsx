@@ -1100,12 +1100,11 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             )}
 
             {/* Eigener Ziffernblock — kein natives Keyboard (siehe Kommentar oben) */}
-            {/* BREITE-FIX (2026-08-30): width:100% + maxWidth:400 hinzugefügt,
-                analog BiometricLockScreen.jsx — Nutzer empfand schmalen Ziffernblock
-                als zu eng. SSOT: beide Keyboards gleiche Breite. */}
+            {/* BREITE-FIX v2 (2026-08-30): maxWidth entfernt, analog
+                BiometricLockScreen.jsx — volle verfügbare Breite, kein Deckel. */}
             <div style={{
               display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12,
-              width:"100%", maxWidth:400,
+              width:"100%",
               marginBottom: bioPinError ? 8 : 24,
             }}>
               {["1","2","3","4","5","6","7","8","9"].map((d) => (
