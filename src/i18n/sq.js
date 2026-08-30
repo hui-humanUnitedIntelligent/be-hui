@@ -4895,4 +4895,11 @@ export default {
   'org.switcher.organization': 'Organizate',
   'org.switcher.addAccount': 'Shto llogari',
   'org.switcher.switchAccount': 'Ndrysho llogarine',
+  'org.switcher.deleteAria': 'Fshi llogarine',
+  'org.switcher.deleteTitle': 'Te fshihet llogaria?',
+  'org.switcher.deleteMessage': 'Je i sigurt që do të fshish përfundimisht "{name}"? Të gjitha veprat, talentet, eksperiencat dhe momentet e kësaj llogarie do të fshihen plotësisht. Llogaria jote personale nuk do të preket.',
+  'org.switcher.deleteConfirm': 'Po, fshije',
+  'org.switcher.deleteCancel': 'Anulo',
+  'org.switcher.deleteError': 'Fshirja deshtoi. Provo perseri.',
+  'org.switcher.deleteErrorHasSales': 'Kjo llogari ka tashme vepra te shitura dhe per kete arsye nuk mund te fshihet.',
 };

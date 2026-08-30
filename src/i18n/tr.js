@@ -4893,4 +4893,11 @@ export default {
   'org.switcher.organization': 'Organizasyon',
   'org.switcher.addAccount': 'Hesap ekle',
   'org.switcher.switchAccount': 'Hesap degistir',
+  'org.switcher.deleteAria': 'Hesabi sil',
+  'org.switcher.deleteTitle': 'Hesap silinsin mi?',
+  'org.switcher.deleteMessage': '"{name}" hesabını kalıcı olarak silmek istediğinizden emin misiniz? Bu hesaba ait tüm eserler, yetenekler, deneyimler ve anlar tamamen silinecek. Kişisel hesabınız etkilenmeyecek.',
+  'org.switcher.deleteConfirm': 'Evet, sil',
+  'org.switcher.deleteCancel': 'Vazgec',
+  'org.switcher.deleteError': 'Silme basarisiz oldu. Lutfen tekrar deneyin.',
+  'org.switcher.deleteErrorHasSales': 'Bu hesapta zaten satilmis eserler var, bu nedenle silinemez.',
 };

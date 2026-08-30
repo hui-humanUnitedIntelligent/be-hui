@@ -128,6 +128,25 @@ export function AuthProvider({ children }) {
     setActiveProfileId(profileId);
   }, []);
 
+  // ── Account-Switcher: Org-Profil löschen (Migration 136) ─────────
+  // Löscht NUR Organisations-Profile (Verein/Unternehmen) — der
+  // persönliche Hauptaccount ist über rpc_delete_org_profile() auf
+  // DB-Ebene strukturell nie löschbar (account_type-Check + owner_user_id-
+  // Check server-seitig, siehe Migration 136). Wirft bei Fehlern (z.B.
+  // NOT_AUTHORIZED, oder wenn bereits Werke verkauft wurden und die
+  // Löschung deshalb bewusst blockiert wird) den Supabase-Error weiter,
+  // damit die UI eine klare Fehlermeldung zeigen kann statt stumm zu
+  // scheitern.
+  const deleteOrgProfile = useCallback(async (orgId) => {
+    const { error } = await supabase.rpc('rpc_delete_org_profile', { p_org_id: orgId });
+    if (error) throw error;
+
+    // Lokalen State sofort bereinigen (kein Re-Fetch nötig)
+    setOrgProfiles(prev => prev.filter(p => p.id !== orgId));
+    // Falls das gelöschte Org-Profil aktiv war → zurück zum persönlichen Profil
+    setActiveProfileId(prev => (prev === orgId ? null : prev));
+  }, []);
+
   // ── OAuth-Profildaten-Sync (additiv, 2026-08-15) ──────────────────
   // Bei Login via Google/Apple: Avatar + Name aus den OAuth-Metadaten
   // (raw_user_meta_data) in profiles uebernehmen — ABER NUR wenn das
@@ -507,6 +526,7 @@ export function AuthProvider({ children }) {
     orgProfiles,
     switchProfile,
     loadOrgProfiles,
+    deleteOrgProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [user, profile, activeProfileId, orgProfiles, isAuthenticated, loadingAuth, loadingProfile, authChecked, _isTalentCalc]); // _isTalentCalc derived from profile

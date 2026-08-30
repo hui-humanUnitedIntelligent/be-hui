@@ -4942,4 +4942,11 @@ export default {
   'org.switcher.organization': 'Organization',
   'org.switcher.addAccount': 'Add account',
   'org.switcher.switchAccount': 'Switch account',
+  'org.switcher.deleteAria': 'Delete account',
+  'org.switcher.deleteTitle': 'Delete account?',
+  'org.switcher.deleteMessage': 'Are you sure you want to permanently delete "{name}"? All works, talents, experiences and moments under this account will be permanently deleted. Your personal account will not be affected.',
+  'org.switcher.deleteConfirm': 'Yes, delete',
+  'org.switcher.deleteCancel': 'Cancel',
+  'org.switcher.deleteError': 'Deletion failed. Please try again.',
+  'org.switcher.deleteErrorHasSales': 'This account already has sold works and can therefore not be deleted.',
 };

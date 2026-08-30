@@ -4934,4 +4934,11 @@ export default {
   'org.switcher.organization': 'Organisation',
   'org.switcher.addAccount': 'Konto hinzufügen',
   'org.switcher.switchAccount': 'Konto wechseln',
+  'org.switcher.deleteAria': 'Konto löschen',
+  'org.switcher.deleteTitle': 'Konto löschen?',
+  'org.switcher.deleteMessage': 'Möchtest du "{name}" wirklich unwiderruflich löschen? Alle Werke, Talente, Erlebnisse und Momente dieses Kontos werden vollständig gelöscht. Dein persönlicher Account bleibt davon unberührt.',
+  'org.switcher.deleteConfirm': 'Ja, löschen',
+  'org.switcher.deleteCancel': 'Abbrechen',
+  'org.switcher.deleteError': 'Löschen fehlgeschlagen. Bitte versuche es erneut.',
+  'org.switcher.deleteErrorHasSales': 'Dieses Konto hat bereits verkaufte Werke und kann deshalb nicht gelöscht werden.',
 };

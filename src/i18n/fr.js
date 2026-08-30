@@ -4894,4 +4894,11 @@ export default {
   'org.switcher.organization': 'Organisation',
   'org.switcher.addAccount': 'Ajouter un compte',
   'org.switcher.switchAccount': 'Changer de compte',
+  'org.switcher.deleteAria': 'Supprimer le compte',
+  'org.switcher.deleteTitle': 'Supprimer le compte ?',
+  'org.switcher.deleteMessage': 'Veux-tu vraiment supprimer définitivement "{name}" ? Toutes les œuvres, talents, expériences et moments de ce compte seront entièrement supprimés. Ton compte personnel ne sera pas affecté.',
+  'org.switcher.deleteConfirm': 'Oui, supprimer',
+  'org.switcher.deleteCancel': 'Annuler',
+  'org.switcher.deleteError': 'La suppression a echoue. Merci de reessayer.',
+  'org.switcher.deleteErrorHasSales': 'Ce compte a deja des oeuvres vendues et ne peut donc pas etre supprime.',
 };

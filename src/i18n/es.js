@@ -4893,4 +4893,11 @@ export default {
   'org.switcher.organization': 'Organizacion',
   'org.switcher.addAccount': 'Anadir cuenta',
   'org.switcher.switchAccount': 'Cambiar cuenta',
+  'org.switcher.deleteAria': 'Eliminar cuenta',
+  'org.switcher.deleteTitle': '¿Eliminar cuenta?',
+  'org.switcher.deleteMessage': '¿Seguro que quieres eliminar definitivamente "{name}"? Todas las obras, talentos, experiencias y momentos de esta cuenta serán completamente eliminados. Tu cuenta personal no se verá afectada.',
+  'org.switcher.deleteConfirm': 'Si, eliminar',
+  'org.switcher.deleteCancel': 'Cancelar',
+  'org.switcher.deleteError': 'No se pudo eliminar. Por favor, intentalo de nuevo.',
+  'org.switcher.deleteErrorHasSales': 'Esta cuenta ya tiene obras vendidas y por eso no se puede eliminar.',
 };
