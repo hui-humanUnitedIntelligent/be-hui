@@ -97,7 +97,7 @@
     <nav class="hui-sidebar-nav" aria-label="HUI Navigation">
       <!-- ENTDECKEN -->
       <section class="hui-nav-section">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
         <ul class="hui-nav-list">
           <li><a href="/werke" class="hui-nav-link" data-page="werke">
             <span class="hui-nav-link-label" data-i18n="sidebar.nav.works">Werke</span>
@@ -126,7 +126,7 @@
 
       <!-- DIE IDEE -->
       <section class="hui-nav-section">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
         <ul class="hui-nav-list">
           <li><a href="/was-ist-hui" class="hui-nav-link hui-nav-link-primary" data-page="was-ist-hui">
             <span class="hui-nav-link-label" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</span>
@@ -141,7 +141,7 @@
 
       <!-- MITMACHEN -->
       <section class="hui-nav-section">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
         <ul class="hui-nav-list">
           <li><a href="/mitmachen/idee" class="hui-nav-action" data-page="mitmachen-idee">
             <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</span>
@@ -159,7 +159,7 @@
       </section>
 
       <section class="hui-nav-section hui-nav-section-compact">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
         <ul class="hui-nav-list-plain">
           <li><a href="/launch" data-i18n="sidebar.nav.launch">Launch</a></li>
           <li><a href="/updates" data-i18n="sidebar.nav.updates">Updates</a></li>
@@ -170,7 +170,7 @@
 
     <!-- Die Reise von HUI -->
     <div class="hui-journey">
-      <h4 class="hui-journey-title" data-i18n="sidebar.journey.title">Die Reise von HUI</h4>
+      <p class="hui-journey-title" data-i18n="sidebar.journey.title">Die Reise von HUI</p>
       <div class="hui-journey-steps">
         <div class="hui-journey-step hui-journey-active">
           <span class="hui-journey-num">01</span>
@@ -216,37 +216,75 @@
 
 <div class="cs-toast" id="csToast" role="alert" aria-live="polite">
   <button class="cs-close" id="csToastClose" aria-label="SchlieÃen" data-i18n-aria="cs.close-aria">&times;</button>
-  <h4 data-i18n="cs.title">HUI ist bald fÃ¼r dich da.</h4>
+  <p class="cs-title" data-i18n="cs.title">HUI ist bald fÃ¼r dich da.</p>
   <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.</p>
 </div>
 
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
+
+  <section class="us-hero">
+    <p class="us-hero-label" data-i18n="page.mitmachen.unterstuetzen.hero-label">Mitmachen</p>
     <h1 class="reveal" data-i18n="page.mitmachen.unterstuetzen.hero">Ich möchte unterstützen</h1>
     <p class="reveal d2" data-i18n="page.mitmachen.unterstuetzen.sub">Unterstützung hat viele Gesichter. Auf HUI wirst du wertvolle Initiativen mit deinem Know-how, Netzwerk oder Ressourcen fördern können.</p>
+    <div class="us-hero-line" aria-hidden="true"></div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.unterstuetzen.s1-title">Beiträge, die echten Wandel schaffen</h2>
-      <p data-i18n="page.mitmachen.unterstuetzen.s1-text">Nicht jeder möchte ein eigenes Projekt gründen – doch viele wollen einen Beitrag zu einer besseren Zukunft leisten. Ob durch Mentoring, Beratung oder das Bereitstellen von Ausrüstung: Deine Hilfe kann genau den Ausschlag geben, den ein Projekt benötigt.</p>
-    </section>
+  <section class="us-statement reveal">
+    <p class="us-statement-big" data-i18n="page.mitmachen.unterstuetzen.statement">Nicht jeder möchte ein eigenes Projekt gründen.</p>
+    <p class="us-statement-sub" data-i18n="page.mitmachen.unterstuetzen.statement-sub">Aber viele möchten einen Beitrag leisten.</p>
+  </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.unterstuetzen.s2-title">Gezielt und wirksam fördern</h2>
-      <p data-i18n="page.mitmachen.unterstuetzen.s2-text">HUI schafft Transparenz darüber, wo welche Unterstützung gebraucht wird. So kannst du deine Hilfe genau dort einsetzen, wo sie die größte Wirkung entfaltet und dir persönlich Freude bereitet.</p>
-    </section>  </div>
+  <section class="us-cards reveal">
+    <h2 class="us-cards-title" data-i18n="page.mitmachen.unterstuetzen.cards-title">Wie du unterstützen kannst</h2>
+    <div class="us-cards-grid">
+      <div class="us-card">
+        <div class="us-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3L4 7v6c0 4.5 3 7 8 8 5-1 8-3.5 8-8V7l-8-4z"/></svg></div>
+        <h3 data-i18n="page.mitmachen.unterstuetzen.card1-title">Mentoring</h3>
+        <p data-i18n="page.mitmachen.unterstuetzen.card1-text">Deine Erfahrung kann anderen genau den Ausschlag geben, den sie brauchen.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="10" r="2.5"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5M14 20c0-2 2-3.5 4-3.5s4 1.5 4 3.5"/></svg></div>
+        <h3 data-i18n="page.mitmachen.unterstuetzen.card2-title">Netzwerk</h3>
+        <p data-i18n="page.mitmachen.unterstuetzen.card2-text">Kontakte vermitteln und Türen öffnen, die sonst verschlossen blieben.</p>
+      </div>
+      <div class="us-card">
+        <div class="us-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3"/></svg></div>
+        <h3 data-i18n="page.mitmachen.unterstuetzen.card3-title">Ressourcen</h3>
+        <p data-i18n="page.mitmachen.unterstuetzen.card3-text">Ausrüstung, Räume oder Wissen teilen, wo es gebraucht wird.</p>
+      </div>
+    </div>
+  </section>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.mitmachen.unterstuetzen.coming">Nach dem Start wirst du geplante Vorhaben durchstöbern und gezielt deine Unterstützung in Form von Mentoring, Kontakten oder Ressourcen anbieten.</p>
-  </div>
+  <section class="us-hl-wrap reveal">
+    <div class="us-hl-card">
+      <h2 data-i18n="page.mitmachen.unterstuetzen.hl-title">Gezielt und wirksam fördern</h2>
+      <p data-i18n="page.mitmachen.unterstuetzen.hl-text">HUI schafft Transparenz darüber, wo welche Unterstützung gebraucht wird. So kannst du deine Hilfe genau dort einsetzen, wo sie die größte Wirkung entfaltet und dir persönlich Freude bereitet.</p>
+    </div>
+  </section>
 
-  <section class="hui-page-cta">
-    <span class="btn-primary" style="opacity:.7;cursor:not-allowed" data-i18n="page.mitmachen.unterstuetzen.cta" data-track="CTA Support">Über den Start informieren lassen · bald</span>
-    <p data-i18n="page.mitmachen.unterstuetzen.cta-sub">Kostenlos und unverbindlich. Sobald die Plattform startet, informieren wir dich.</p>
+  <section class="us-journey-wrap reveal">
+    <h2 class="us-journey-title" data-i18n="page.mitmachen.unterstuetzen.journey-title">So entsteht Unterstützung auf HUI</h2>
+    <div class="us-journey">
+      <span class="us-j-step" data-i18n="page.mitmachen.unterstuetzen.j1">HUI entsteht</span>
+      <div class="us-j-conn" aria-hidden="true"></div>
+      <span class="us-j-step current" data-i18n="page.mitmachen.unterstuetzen.j2">Plattform startet</span>
+      <div class="us-j-conn" aria-hidden="true"></div>
+      <span class="us-j-step" data-i18n="page.mitmachen.unterstuetzen.j3">Vorhaben entdecken</span>
+      <div class="us-j-conn" aria-hidden="true"></div>
+      <span class="us-j-step" data-i18n="page.mitmachen.unterstuetzen.j4">Unterstützung anbieten</span>
+      <div class="us-j-conn" aria-hidden="true"></div>
+      <span class="us-j-step" data-i18n="page.mitmachen.unterstuetzen.j5">Gemeinsam Wirkung entfalten</span>
+    </div>
+    <p class="us-j-note" data-i18n="page.mitmachen.unterstuetzen.j-note">HUI befindet sich im Aufbau.</p>
+  </section>
+
+  <section class="us-cta reveal">
+    <h2 data-i18n="page.mitmachen.unterstuetzen.interest-title">Interesse an HUI?</h2>
+    <p class="us-cta-text" data-i18n="page.mitmachen.unterstuetzen.interest-text">HUI befindet sich noch im Aufbau. Sobald die Plattform für die ersten Menschen geöffnet wird, informieren wir darüber.</p>
+    <span class="us-cta-btn" data-i18n="page.mitmachen.unterstuetzen.cta" data-track="CTA Support">Über den Start informieren lassen · bald</span>
+    <p class="us-cta-note" data-i18n="page.mitmachen.unterstuetzen.cta-sub">Kostenlos und unverbindlich. Sobald die Plattform startet, informieren wir dich.</p>
   </section>
 </main>
 

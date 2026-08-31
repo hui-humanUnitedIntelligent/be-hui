@@ -97,7 +97,7 @@
     <nav class="hui-sidebar-nav" aria-label="HUI Navigation">
       <!-- ENTDECKEN -->
       <section class="hui-nav-section">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
         <ul class="hui-nav-list">
           <li><a href="/werke" class="hui-nav-link" data-page="werke">
             <span class="hui-nav-link-label" data-i18n="sidebar.nav.works">Werke</span>
@@ -126,7 +126,7 @@
 
       <!-- DIE IDEE -->
       <section class="hui-nav-section">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
         <ul class="hui-nav-list">
           <li><a href="/was-ist-hui" class="hui-nav-link hui-nav-link-primary" data-page="was-ist-hui">
             <span class="hui-nav-link-label" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</span>
@@ -141,7 +141,7 @@
 
       <!-- MITMACHEN -->
       <section class="hui-nav-section">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
         <ul class="hui-nav-list">
           <li><a href="/mitmachen/idee" class="hui-nav-action" data-page="mitmachen-idee">
             <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</span>
@@ -159,7 +159,7 @@
       </section>
 
       <section class="hui-nav-section hui-nav-section-compact">
-        <h4 class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
         <ul class="hui-nav-list-plain">
           <li><a href="/launch" data-i18n="sidebar.nav.launch">Launch</a></li>
           <li><a href="/updates" data-i18n="sidebar.nav.updates">Updates</a></li>
@@ -170,7 +170,7 @@
 
     <!-- Die Reise von HUI -->
     <div class="hui-journey">
-      <h4 class="hui-journey-title" data-i18n="sidebar.journey.title">Die Reise von HUI</h4>
+      <p class="hui-journey-title" data-i18n="sidebar.journey.title">Die Reise von HUI</p>
       <div class="hui-journey-steps">
         <div class="hui-journey-step hui-journey-active">
           <span class="hui-journey-num">01</span>
@@ -216,37 +216,65 @@
 
 <div class="cs-toast" id="csToast" role="alert" aria-live="polite">
   <button class="cs-close" id="csToastClose" aria-label="SchlieÃen" data-i18n-aria="cs.close-aria">&times;</button>
-  <h4 data-i18n="cs.title">HUI ist bald fÃ¼r dich da.</h4>
+  <p class="cs-title" data-i18n="cs.title">HUI ist bald fÃ¼r dich da.</p>
   <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.</p>
 </div>
 
 <!-- PAGE CONTENT -->
 <main class="hui-page">
   <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
+
+  <section class="inf-hero">
+    <p class="inf-hero-label" data-i18n="page.mitmachen.informiert.hero-label">Mitmachen</p>
     <h1 class="reveal" data-i18n="page.mitmachen.informiert.hero">Ich möchte informiert werden</h1>
     <p class="reveal d2" data-i18n="page.mitmachen.informiert.sub">Du möchtest den Fortschritt von HUI begleiten? Wir halten dich über Meilensteine, Entwicklungen und den Plattformstart auf dem Laufenden.</p>
+    <div class="inf-hero-line" aria-hidden="true"></div>
   </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.informiert.s1-title">HUI von Anfang an begleiten</h2>
-      <p data-i18n="page.mitmachen.informiert.s1-text">Der Aufbau eines neuen Ökosystems ist eine Reise, die wir transparent gestalten möchten. Wenn du dich über den Start informieren lässt, erhältst du regelmäßige Einblicke in unsere Fortschritte und erfährst als Erste:r von neuen Entwicklungen.</p>
-    </section>
+  <section class="inf-statement reveal">
+    <p class="inf-statement-big" data-i18n="page.mitmachen.informiert.statement">Der Aufbau eines neuen Ökosystems ist eine Reise.</p>
+    <p class="inf-statement-sub" data-i18n="page.mitmachen.informiert.statement-sub">Wir gestalten sie transparent.</p>
+  </section>
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.mitmachen.informiert.s2-title">Keine Neuigkeiten verpassen</h2>
-      <p data-i18n="page.mitmachen.informiert.s2-text">Unser Update-Service bringt dir relevante Nachrichten direkt nach Hause – ohne Spams und ohne unnötigen Ballast. Wir teilen wichtige Meilensteine, Einladungen zu Pre-Launch-Events und exklusive Einblicke mit unserer Community.</p>
-    </section>  </div>
+  <section class="inf-cards reveal">
+    <h2 class="inf-cards-title" data-i18n="page.mitmachen.informiert.cards-title">Was du erhältst</h2>
+    <div class="inf-cards-grid">
+      <div class="inf-card">
+        <div class="inf-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18"/></svg></div>
+        <h3 data-i18n="page.mitmachen.informiert.card1-title">Regelmäßige Einblicke</h3>
+        <p data-i18n="page.mitmachen.informiert.card1-text">Du erhältst regelmäßige Einblicke in die Fortschritte und Entwicklung von HUI.</p>
+      </div>
+      <div class="inf-card">
+        <div class="inf-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v6l3 2"/></svg></div>
+        <h3 data-i18n="page.mitmachen.informiert.card2-title">Als Erste informiert</h3>
+        <p data-i18n="page.mitmachen.informiert.card2-text">Du erfährst als Erste:r von neuen Entwicklungen und dem offiziellen Start.</p>
+      </div>
+    </div>
+  </section>
 
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.mitmachen.informiert.coming">Nach der Anmeldung senden wir dir Updates zur Entwicklung von HUI und informieren dich direkt zum offiziellen Go-Live.</p>
-  </div>
+  <section class="inf-hl-wrap reveal">
+    <div class="inf-hl-card">
+      <h2 data-i18n="page.mitmachen.informiert.hl-title">Keine Neuigkeiten verpassen</h2>
+      <p data-i18n="page.mitmachen.informiert.hl-text">Unser Update-Service bringt dir relevante Nachrichten direkt zu dir – ohne Spam und ohne unnötigen Ballast. Wir teilen wichtige Meilensteine und Einblicke mit unserer entstehenden Community.</p>
+    </div>
+  </section>
 
-  <section class="hui-page-cta">
-    <span class="btn-primary" style="opacity:.7;cursor:not-allowed" data-i18n="page.mitmachen.informiert.cta" data-track="CTA Informed">Über den Start informieren lassen · bald</span>
-    <p data-i18n="page.mitmachen.informiert.cta-sub">Kostenlos und unverbindlich. Wir informieren dich über wichtige Meilensteine.</p>
+  <section class="inf-status-wrap reveal">
+    <div class="inf-status-card">
+      <div class="inf-status-badge">
+        <span class="inf-status-dot" aria-hidden="true"></span>
+        <span data-i18n="page.mitmachen.informiert.status-badge">Aktuell</span>
+      </div>
+      <h2 data-i18n="page.mitmachen.informiert.status-title">HUI befindet sich im Aufbau</h2>
+      <p data-i18n="page.mitmachen.informiert.status-text">Sobald die Plattform für die ersten Menschen geöffnet wird, informieren wir darüber.</p>
+    </div>
+  </section>
+
+  <section class="inf-cta reveal">
+    <h2 data-i18n="page.mitmachen.informiert.interest-title">Über den Start informieren lassen</h2>
+    <p class="inf-cta-text" data-i18n="page.mitmachen.informiert.interest-text">Wir informieren dich, sobald es wichtige Neuigkeiten und den offiziellen Starttermin gibt.</p>
+    <span class="inf-cta-btn" data-i18n="page.mitmachen.informiert.cta" data-track="CTA Informed">Über den Start informieren lassen · bald</span>
+    <p class="inf-cta-note" data-i18n="page.mitmachen.informiert.cta-sub">Kostenlos und unverbindlich. Wir informieren dich über wichtige Meilensteine.</p>
   </section>
 </main>
 

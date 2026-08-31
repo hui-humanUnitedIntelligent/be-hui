@@ -178,38 +178,6 @@
       "destination": "/ideen.html"
     },
     {
-      "source": "/inspiration/geschichten",
-      "destination": "/inspiration-geschichten.html"
-    },
-    {
-      "source": "/en/inspiration/stories",
-      "destination": "/inspiration-geschichten.html"
-    },
-    {
-      "source": "/inspiration/ideen",
-      "destination": "/inspiration-ideen.html"
-    },
-    {
-      "source": "/en/inspiration/ideas",
-      "destination": "/inspiration-ideen.html"
-    },
-    {
-      "source": "/inspiration/impulse",
-      "destination": "/inspiration-impulse.html"
-    },
-    {
-      "source": "/en/inspiration/impulses",
-      "destination": "/inspiration-impulse.html"
-    },
-    {
-      "source": "/inspiration/menschen",
-      "destination": "/inspiration-menschen.html"
-    },
-    {
-      "source": "/en/inspiration/people",
-      "destination": "/inspiration-menschen.html"
-    },
-    {
       "source": "/launch",
       "destination": "/launch.html"
     },
