@@ -528,11 +528,29 @@ export default function MyBasisProfile({ onClose, profileId }) {
     const isOrgTarget = !!targetUid && targetUid !== (profile?.id ?? user?.id);
     setSaving(true);
     try {
-      const { error: saveErr } = await supabase.from("profiles")
+      // SILENT-RLS-FAIL-FIX (2026-08-31, Migration 140 Lehre): RLS blockt
+      // ein UPDATE OHNE Fehler zurückzugeben -- PostgREST antwortet mit
+      // HTTP 200 und 0 betroffenen Zeilen, supabase-js meldet KEIN `error`.
+      // Genau das war die Ursache dafür, dass "Über uns" beim Org-Profil
+      // lautlos nicht speicherte, während die UI trotzdem "Gespeichert ✓"
+      // zeigte (echter Bug: fehlende profiles_update_org RLS-Policy, siehe
+      // sql/hui_140_org_profile_update_fix.sql -- DB-seitig behoben). Diese
+      // Absicherung fängt JEDE künftige RLS-Lücke (auf profiles ODER
+      // anderen Tabellen mit demselben Save-Pfad) ab: `.select("id")`
+      // erzwingt eine RETURNING-Klausel -- kommt eine LEERE Zeile zurück
+      // trotz fehlendem `error`, behandeln wir das explizit als Fehler statt
+      // stillschweigend Erfolg zu melden (Truth over Assumption).
+      const { data: savedRows, error: saveErr } = await supabase.from("profiles")
         .update({ ...fields, updated_at: new Date().toISOString() })
-        .eq("id", uid);
+        .eq("id", uid)
+        .select("id");
       if (saveErr) {
         setSaveErrMsg(Object.keys(fields).join(",") + ": " + saveErr.message);
+        setTimeout(() => setSaveErrMsg(""), 8000);
+      } else if (!savedRows || savedRows.length === 0) {
+        // 0 Zeilen betroffen ohne Fehler = RLS/Berechtigungs-Blockade.
+        console.error("SAVE BLOCKED (0 rows, kein Error -- RLS?):", uid, Object.keys(fields));
+        setSaveErrMsg(Object.keys(fields).join(",") + ": Speichern nicht erlaubt (Berechtigung?)");
         setTimeout(() => setSaveErrMsg(""), 8000);
       } else {
         setSaveOk(true); setTimeout(() => setSaveOk(false), 2000);
@@ -547,6 +565,8 @@ export default function MyBasisProfile({ onClose, profileId }) {
       }
     } catch (e) {
       console.error("SAVE ERROR:", e?.message);
+      setSaveErrMsg(Object.keys(fields).join(",") + ": " + (e?.message || "Unbekannter Fehler"));
+      setTimeout(() => setSaveErrMsg(""), 8000);
     }
     setSaving(false);
   }, [profile?.id, user?.id, setAuthProfile, reload, loadOrgProfiles]);
