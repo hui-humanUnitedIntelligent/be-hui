@@ -75,7 +75,7 @@ function GlobalAppFallback({ isFatal, retryCount, onRetry }) {
   );
 }
 
-function RouteFallback({ fallbackTitle, onRetry, errorMsg }) {
+function RouteFallback({ fallbackTitle, onRetry, errorMsg, errorStack }) {
   const { t } = useTranslation();
   return (
     <div style={{
@@ -96,6 +96,18 @@ function RouteFallback({ fallbackTitle, onRetry, errorMsg }) {
         }}>
           {errorMsg}
         </div>
+      )}
+      {errorStack && (
+        <details style={{ maxWidth: 600, width: '100%' }}>
+          <summary style={{ fontSize: 11, color: C.muted, cursor: 'pointer' }}>Stack-Trace anzeigen</summary>
+          <pre style={{
+            fontSize: 10, color: 'rgba(26,26,46,0.6)',
+            background: 'rgba(0,0,0,0.03)', borderRadius: 8,
+            padding: '8px 12px', overflow: 'auto', maxHeight: 300,
+            fontFamily: 'monospace', lineHeight: 1.4, whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all',
+          }}>{errorStack}</pre>
+        </details>
       )}
       <button
         onClick={onRetry}
