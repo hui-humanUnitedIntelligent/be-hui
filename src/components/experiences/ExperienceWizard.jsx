@@ -904,8 +904,16 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
 
   const [form, setForm] = useState(() => {
     if (existingExp) {
+      // EXPERIENCES-EDIT-MEDIA-FIX (2026-08-31): experiences.images ist jsonb
+      // (nicht text[]), PostgREST liefert bereits ein geparstes Array von
+      // {url, type} Objekten. JSON.parse darauf wuerfe SyntaxError (wie der
+      // WerkWizard text[]-Bug). Direkte Zuweisung + Fallback auf cover_url.
       let imgs = [];
-      try { imgs = existingExp.images ? JSON.parse(existingExp.images) : []; } catch {}
+      if (Array.isArray(existingExp.images)) {
+        imgs = existingExp.images;
+      } else if (typeof existingExp.images === 'string') {
+        try { imgs = JSON.parse(existingExp.images); } catch { imgs = []; }
+      }
       if (!imgs.length && existingExp.cover_url) imgs = [{ url: existingExp.cover_url }];
       return {
         images:               imgs,
@@ -1104,6 +1112,27 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     // FIX (2026-08-13): Erstes Erlebnis kann Orb-Stufe (3=has_content) triggern —
     // Cache invalidieren, sonst haengt der Orb bis zu 5 Min. auf altem Wert.
     invalidateOrbStageCache(userId);
+
+    // ── STORAGE-CLEANUP: Gelöschte Bilder aus Supabase Storage entfernen ──
+    // EXPERIENCES-EDIT-MEDIA-FIX (2026-08-31): Vergleicht alte images mit neuen,
+    // löscht verwaiste Dateien aus dem media-Bucket. Nur im Edit-Modus.
+    if (existingExp?.id) {
+      try {
+        const oldImgs = Array.isArray(existingExp.images) ? existingExp.images : [];
+        const oldUrls = oldImgs.map(i => typeof i === 'object' ? (i.url || '') : i).filter(Boolean);
+        const newUrls = (form.images || []).map(img => img?.url || '').filter(Boolean);
+        const deletedUrls = oldUrls.filter(u => !newUrls.includes(u));
+        for (const url of deletedUrls) {
+          const match = url.match(/\/object\/public\/media\/(.+)$/);
+          if (match) {
+            await supabase.storage.from('media').remove([match[1]]);
+          }
+        }
+      } catch (e) {
+        console.warn('[ExperienceWizard] Storage cleanup failed (non-critical):', e?.message);
+      }
+    }
+
     onSaved?.(saved);
     // pending_review: kurze Bestätigung, dann schließen
     if (saved?.status === "pending_review") {

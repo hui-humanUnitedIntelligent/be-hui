@@ -366,6 +366,27 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     // Orb bis zu 5 Min. auf altem Wert (gleiche Bug-Klasse wie WerkWizard/
     // ExperienceWizard/TalentOnboarding).
     invalidateOrbStageCache(userId);
+
+    // ── STORAGE-CLEANUP: Gelöschte Bilder aus Supabase Storage entfernen ──
+    // TALENTS-EDIT-MEDIA-FIX (2026-08-31): Vergleicht alte images mit neuen,
+    // löscht verwaiste Dateien aus dem media-Bucket. Nur im Edit-Modus.
+    if (existingTalent?.id) {
+      try {
+        const oldImgs = Array.isArray(existingTalent.images) ? existingTalent.images : [];
+        const oldUrls = oldImgs.map(i => typeof i === 'object' ? (i.url || '') : i).filter(Boolean);
+        const newUrls = (images || []).map(img => img?.url || '').filter(Boolean);
+        const deletedUrls = oldUrls.filter(u => !newUrls.includes(u));
+        for (const url of deletedUrls) {
+          const match = url.match(/\/object\/public\/media\/(.+)$/);
+          if (match) {
+            await supabase.storage.from('media').remove([match[1]]);
+          }
+        }
+      } catch (e) {
+        console.warn('[TalentAngebotWizard] Storage cleanup failed (non-critical):', e?.message);
+      }
+    }
+
     onSaved?.();
     onClose?.();
   }
