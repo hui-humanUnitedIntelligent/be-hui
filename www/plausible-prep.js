@@ -1,7 +1,6 @@
-// ═══ Plausible Analytics Preparation ═══
-// This file prepares HUI for Plausible Analytics integration.
-// To activate: add <script defer data-domain="be-hui.com" src="https://plausible.io/js/script.js"></script> to each page <head>
-// And optionally: <script defer data-domain="be-hui.com" src="https://plausible.io/js/script.tagged-events.js"></script>
+// ═══ Plausible Analytics — Event Tracking Helpers ═══
+// Plausible is activated with the official tracking code in each page <head>.
+// This file provides custom event helpers that work with window.plausible.
 
 // Custom event helpers (ready for when Plausible is activated)
 window.huiTrack = function(eventName, props) {
