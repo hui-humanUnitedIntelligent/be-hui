@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 Disallow: /app
+Disallow: /app/
+Disallow: /api/
+Disallow: /diag
+Disallow: /test-video
+Disallow: /intro-preview
+Disallow: /inspiration/
+Disallow: /en/inspiration/
+
 Sitemap: https://be-hui.com/sitemap.xml
