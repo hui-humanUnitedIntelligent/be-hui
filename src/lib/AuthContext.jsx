@@ -113,8 +113,8 @@ export function AuthProvider({ children }) {
       const { data, error } = await withTimeout(
         supabase
           .from('profiles')
-          .select('id, org_name, org_type, avatar_url, account_type, display_name, username, bio, header_img')
-          // BIO-FIX (2026-08-31): bio + header_img ergänzt -- effectiveProfile
+          .select('id, org_name, org_type, avatar_url, account_type, display_name, username, bio, header_img, full_name, location, location_label, location_lat, location_lng, website')
+          // PERSIST-FIX (2026-08-31): Alle Felder die ProfilBearbeitenModal speichert
           // (MyBasisProfile.jsx) braucht diese Felder, damit "Über dich" beim
           // aktiven Org-Profil dessen EIGENE Beschreibung zeigt statt der vom
           // Hauptaccount (die Felder fehlten hier komplett -> immer undefined).

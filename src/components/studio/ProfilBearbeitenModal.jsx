@@ -69,10 +69,15 @@ const T = {
 };
 
 // ── Tabs ───────────────────────────────────────────────────────────
-const getTabs = (t) => [
-  { key: "basis",   label: t("pbm.tabBasis"),   icon: <HUIProfilIcon size={14}/> },
-  { key: "talent",  label: t("pbm.tabTalent"),   icon: <HUITalentIcon size={14}/> },
-];
+const getTabs = (t, orgType) => {
+  const basisLabel = orgType === "verein" ? t("pbm.tabVerein")
+    : orgType === "unternehmen" ? t("pbm.tabUnternehmen")
+    : t("pbm.tabBasis");
+  return [
+    { key: "basis",   label: basisLabel,   icon: <HUIProfilIcon size={14}/> },
+    { key: "talent",  label: t("pbm.tabTalent"),   icon: <HUITalentIcon size={14}/> },
+  ];
+};
 
 // Fixe Optionen
 // (FOCUS_TYPES / CATEGORIES / SKILLS_OPTS entfernt 2026-08-06 — die Felder,
@@ -81,7 +86,8 @@ const getTabs = (t) => [
 // ── Haupt-Komponente ───────────────────────────────────────────────
 export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate = () => {}, isOrgProfile = false }) {
   const { t } = useTranslation();
-  const TABS = getTabs(t);
+  const orgType = isOrgProfile ? (profile?.org_type || null) : null;
+  const TABS = getTabs(t, orgType);
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   useModalRegistration(true, () => onClose?.(), "ProfilBearbeitenModal");
   const { saveProfile, refreshProfile, user } = useAuth() || {};
@@ -206,6 +212,8 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         bio:            bio.trim(),
         location:       locationLabel.trim(), // SSOT: profiles.location
         location_label: locationLabel.trim(), // Sync: alle Anzeige-Stellen (Feed, Discover, Karten) lesen location_label
+        location_lat:   locationLat,          // Atomar mit Text speichern — gleicher Update-Call
+        location_lng:   locationLng,          // verhindert Text/Coords-Mismatch
         website:        website.trim(),
       };
 
@@ -230,16 +238,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
 
       if (profErr) throw new Error(profErr.message || profErr);
 
-      // 2b. GPS-Koordinaten separat speichern (Spalten evtl. noch nicht in Produktion —
-      //     Migration 081 muss manuell im Supabase SQL Editor ausgeführt werden).
-      //     Fehler hierbei dürfen NICHT den gesamten Save blockieren.
-      if (locationLat != null && locationLng != null) {
-        try {
-          await supabase.from("profiles")
-            .update({ location_lat: locationLat, location_lng: locationLng })
-            .eq("id", profile?.id);
-        } catch {/* Spalte existiert noch nicht — Migration 081 ausstehen */}
-      }
+      // 2b. GPS-Koordinaten wurden bereits atomar im Haupt-Update gespeichert
+      // (location_lat, location_lng in profileUpdates). Kein separater Call mehr —
+      // verhindert State-Mismatch wenn nur Text-Update durchgeht aber Koordinaten-Update fehlschlägt.
 
       // 3. Auth Profil neu laden → live im Admin + UI
       if (refreshProfile) await refreshProfile();
@@ -290,7 +291,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-              {isTalent ? t("pbm.titleBoth") : t("pbm.titleBasis")}
+              {isTalent ? t("pbm.titleBoth") : (orgType === "verein" ? t("pbm.titleVerein") : orgType === "unternehmen" ? t("pbm.titleUnternehmen") : t("pbm.titleBasis"))}
             </div>
           </div>
           <button onClick={onClose} style={{
