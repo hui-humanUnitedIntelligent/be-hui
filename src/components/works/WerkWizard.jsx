@@ -600,8 +600,18 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   const [form,setForm]=useState(()=>{
     if (existingWork) {
       let imgs=[];
-      try { imgs=existingWork.images?JSON.parse(existingWork.images):[]; } catch {}
-      if (!imgs.length&&existingWork.cover_url) imgs=[{ url:existingWork.cover_url }];
+      // WORKS-EDIT-MEDIA-FIX (2026-08-31): works.images ist text[] (Array von
+      // URL-Strings), PostgREST liefert es bereits als JS-Array. JSON.parse
+      // auf ein Array schlaegt fehl → Bilder jenseits cover_url gingen im
+      // Edit-Modus verloren. Korrekte Behandlung:
+      if (Array.isArray(existingWork.images)) {
+        // text[] → PostgREST gibt JS-Array von URL-Strings zurueck
+        imgs = existingWork.images.map(u => ({ url: typeof u === 'object' ? (u.url || '') : u }));
+      } else if (typeof existingWork.images === 'string') {
+        // Fallback: JSON-String (Legacy oder manuell eingetragen)
+        try { imgs = JSON.parse(existingWork.images); } catch {}
+      }
+      if (!imgs.length && existingWork.cover_url) imgs = [{ url: existingWork.cover_url }];
       return {
         images:imgs, title:existingWork.title||"", shortDesc:existingWork.caption||"",
         description:existingWork.description||"", category:existingWork.category||"",
