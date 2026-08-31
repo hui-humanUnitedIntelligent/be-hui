@@ -179,7 +179,7 @@ function NameBlock({ profile = {}, onProfileUpdate = () => {} }) {
 }
 
 // ── Block: E-Mail ─────────────────────────────────────────────
-function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
+function EmailBlock({ profile = {}, onProfileUpdate = () => {}, isOrgProfile = false }) {
   const { t } = useTranslation();
   // email direkt aus Supabase Auth holen
   const [email, setEmail] = useState(profile?.email || "");
@@ -191,15 +191,25 @@ function EmailBlock({ profile = {}, onProfileUpdate = () => {} }) {
     if (!profile?.id) return;
     setSaving(true); setError(null); setSaved(false);
     if (!email.includes("@")) { setError(t("sm.email.invalid")); setSaving(false); return; }
-    // BUGFIX 2026-08-15 (gleiche Klasse wie EmailChangeBlock/LoginPage.jsx signUp()):
-    // emailRedirectTo ergänzt — ohne diese Option faellt Supabase auf den
-    // site_url-Fallback (Marketing-Landingpage) zurueck statt auf /auth/callback.
-    const { error:authErr } = await supabase.auth.updateUser(
-      { email:email.trim() },
-      { emailRedirectTo: getAuthRedirectUrl() }
-    );
-    if (authErr) { setError(authErr.message); setSaving(false); return; }
-    await supabase.from("profiles").update({ email:email.trim(), updated_at: new Date().toISOString() }).eq("id", profile.id);
+    // FIX 4 (2026-08-31): Bei Org-Profil nur die profiles.email-Spalte
+    // updaten, NICHT supabase.auth.updateUser — das würde die LOGIN-E-Mail
+    // des Hauptaccounts ändern. Org-Profile haben eine eigene Kontakt-E-Mail
+    // in profiles.email, die unabhängig vom Login gesetzt wird.
+    if (isOrgProfile) {
+      const { error: profErr } = await supabase.from("profiles")
+        .update({ email: email.trim(), updated_at: new Date().toISOString() })
+        .eq("id", profile.id);
+      if (profErr) { setError(profErr.message); setSaving(false); return; }
+    } else {
+      // BUGFIX 2026-08-15: emailRedirectTo ergänzt — ohne diese Option faellt
+      // Supabase auf den site_url-Fallback zurueck statt auf /auth/callback.
+      const { error:authErr } = await supabase.auth.updateUser(
+        { email:email.trim() },
+        { emailRedirectTo: getAuthRedirectUrl() }
+      );
+      if (authErr) { setError(authErr.message); setSaving(false); return; }
+      await supabase.from("profiles").update({ email:email.trim(), updated_at: new Date().toISOString() }).eq("id", profile.id);
+    }
     setSaving(false); setSaved(true); setTimeout(()=>setSaved(false),5000);
     onProfileUpdate?.({ ...profile, email:email.trim() });
   };
@@ -298,20 +308,29 @@ function EmailChangeBlock({ profile, onProfileUpdate }) {
       if (newEmail.trim().toLowerCase() === currentEmail.toLowerCase()) {
         throw new Error(t("sm.emailChange.identical"));
       }
-      // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail an neue Adresse).
-      // BUGFIX 2026-08-15 (gleiche Klasse wie LoginPage.jsx signUp()): OHNE
-      // emailRedirectTo faellt Supabase auf den site_url-Fallback zurueck
-      // (Marketing-Landingpage) statt auf /auth/callback zu leiten.
-      const { error: authErr } = await supabase.auth.updateUser(
-        { email: newEmail.trim() },
-        { emailRedirectTo: getAuthRedirectUrl() }
-      );
-      if (authErr) throw new Error(authErr.message);
-      // 2. profiles-Tabelle sofort mitziehen (optimistisch — die eigentliche
-      // Auth-E-Mail wechselt erst nach Bestätigung des Links, siehe unten)
-      await supabase.from("profiles")
-        .update({ email: newEmail.trim(), updated_at: new Date().toISOString() })
-        .eq("id", profile?.id);
+      // FIX 4 (2026-08-31): Bei Org-Profil nur profiles.email updaten,
+      // NICHT supabase.auth.updateUser — das ändert die Login-E-Mail.
+      if (isOrgProfile) {
+        const { error: profErr } = await supabase.from("profiles")
+          .update({ email: newEmail.trim(), updated_at: new Date().toISOString() })
+          .eq("id", profile?.id);
+        if (profErr) throw new Error(profErr.message);
+      } else {
+        // 1. Supabase Auth E-Mail ändern (sendet Bestätigungs-Mail an neue Adresse).
+        // BUGFIX 2026-08-15 (gleiche Klasse wie LoginPage.jsx signUp()): OHNE
+        // emailRedirectTo faellt Supabase auf den site_url-Fallback zurueck
+        // (Marketing-Landingpage) statt auf /auth/callback zu leiten.
+        const { error: authErr } = await supabase.auth.updateUser(
+          { email: newEmail.trim() },
+          { emailRedirectTo: getAuthRedirectUrl() }
+        );
+        if (authErr) throw new Error(authErr.message);
+        // 2. profiles-Tabelle sofort mitziehen (optimistisch — die eigentliche
+        // Auth-E-Mail wechselt erst nach Bestätigung des Links, siehe unten)
+        await supabase.from("profiles")
+          .update({ email: newEmail.trim(), updated_at: new Date().toISOString() })
+          .eq("id", profile?.id);
+      }
       // 3. UI-Zustand aktualisieren
       onProfileUpdate?.({ ...profile, email: newEmail.trim() });
       setSaved(true); setOldEmail(""); setNewEmail("");
@@ -403,7 +422,7 @@ function PrivacyBlock({ profile, onProfileUpdate }) {
 }
 
 // ── Haupt-Komponente ─────────────────────────────────────────
-export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false, initialView = null }) {
+export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false, initialView = null, isOrgProfile = false }) {
   const { t, lang, changeLang } = useTranslation();
   useModalRegistration(true, onClose, "SettingsModal");
 
@@ -892,7 +911,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <NameBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
             </Section>
             <Section title="Kontakt" icon={<HUIKontaktIcon size={16}/>}>
-              <EmailBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
+              <EmailBlock profile={profile} onProfileUpdate={onProfileUpdate} isOrgProfile={isOrgProfile}/>
             </Section>
           </>)}
 

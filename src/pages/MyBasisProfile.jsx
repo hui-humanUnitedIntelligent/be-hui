@@ -711,12 +711,22 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <div>
           <div style={{ fontSize:24, fontWeight: 600, color:T.ink, letterSpacing:"-0.04em",
             lineHeight:1.15 }}>
-            {profile?.is_talent ? t("profile.meinTalentProfil") : t("profile.meinProfil")}
+            {effectiveProfile?.account_type === "organization"
+              ? (effectiveProfile?.org_type === "verein"
+                ? t("profile.meinVereinsProfil")
+                : t("profile.meinUnternehmensProfil"))
+              : profile?.is_talent
+                ? t("profile.meinTalentProfil")
+                : t("profile.meinProfil")}
           </div>
           <div style={{ fontSize:12, color:T.inkFaint, marginTop:2, fontWeight:400 }}>
-            {profile?.is_talent
-              ? t("profile.gestalteTalentProfil")
-              : t("profile.gestalteProfil")}
+            {effectiveProfile?.account_type === "organization"
+              ? (effectiveProfile?.org_type === "verein"
+                ? t("profile.gestalteVereinsProfil")
+                : t("profile.gestalteUnternehmensProfil"))
+              : profile?.is_talent
+                ? t("profile.gestalteTalentProfil")
+                : t("profile.gestalteProfil")}
           </div>
         </div>
         {/* Header-Buttons: Icon-Only — Bookmark 👁️ ⚙️ */}
@@ -993,11 +1003,16 @@ export default function MyBasisProfile({ onClose, profileId }) {
           Michael-Report "Gespeichert + Einstellungen Buttons tun nichts") */}
       {showSettings && (
           <SettingsModal
-            profile={profile}
+            profile={effectiveProfile}
+            isOrgProfile={!!activeProfileId}
             onClose={() => { setShowSettings(false); setSettingsAutoBankdaten(false); }}
             autoOpenBankdaten={settingsAutoBankdaten}
             onProfileUpdate={(updated) => {
-              refreshProfile?.().catch(() => {});
+              if (activeProfileId) {
+                loadOrgProfiles?.(user?.id).catch?.(() => {});
+              } else {
+                refreshProfile?.().catch(() => {});
+              }
             }}
             onEditProfile={() => {
               setShowSettings(false);
@@ -1011,9 +1026,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
       )}
       {showProfilEditPage && (
           <ProfilBearbeitenModal
-            profile={profile}
+            profile={effectiveProfile}
+            isOrgProfile={!!activeProfileId}
             onClose={() => setShowProfilEditPage(false)}
-            onProfileUpdate={() => { refreshProfile?.().catch(() => {}); setShowProfilEditPage(false); }}
+            onProfileUpdate={() => {
+              if (activeProfileId) {
+                loadOrgProfiles?.(user?.id).catch?.(() => {});
+              } else {
+                refreshProfile?.().catch(() => {});
+              }
+              setShowProfilEditPage(false);
+            }}
           />
       )}
 

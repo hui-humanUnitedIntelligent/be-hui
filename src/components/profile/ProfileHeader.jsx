@@ -252,7 +252,7 @@ export function ProfileHeader({
               unten wurden zusätzlich auf Umbruch/Stapel-Layout umgestellt,
               damit sie bei langen Übersetzungen NIE über die 108px hinaus
               in die rechte Spalte hineinragen. */}
-          <div style={{ width:108, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0, justifyContent:"space-between" }}>
+          <div style={{ width:108, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0 }}>
 
             {/* Avatar */}
             <div style={{ position:"relative" }}>
@@ -341,15 +341,16 @@ export function ProfileHeader({
                 CHAT-LOGIK-v2, 2026-08-22: "Followerliste wieder einbauen"). */}
             {!loading && (
               <div style={{
-                display:"flex", flexDirection:"column", gap:2, marginTop:7,
-                fontSize:12, color:T.inkFaint, width:108,
+                display:"flex", flexDirection:"row", gap:6, marginTop:7,
+                fontSize:12, color:T.inkFaint, whiteSpace:"nowrap",
               }}>
-                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.followers ?? 0}
                   </strong>{" "}{t("profile.followers")}
                 </span>
-                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                <span style={{ color:T.inkFaint, flexShrink:0 }}>·</span>
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.following ?? 0}
                   </strong>{" "}{t("profile.followingCount")}

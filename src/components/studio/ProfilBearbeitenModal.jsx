@@ -79,7 +79,7 @@ const getTabs = (t) => [
 // die sie befüllten, wurden aus diesem Modal entfernt, siehe Kommentar oben.)
 
 // ── Haupt-Komponente ───────────────────────────────────────────────
-export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate = () => {} }) {
+export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdate = () => {}, isOrgProfile = false }) {
   const { t } = useTranslation();
   const TABS = getTabs(t);
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
@@ -219,7 +219,10 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         profileUpdates.hourly_rate        = talentRate ? parseFloat(talentRate) : null;
       }
 
-      const { error: profErr } = await (saveProfile
+      // FIX 4 (2026-08-31): Bei aktivem Org-Profil darf saveProfile() nicht
+      // verwendet werden — es schreibt immer auf user.id (Hauptaccount).
+      // Stattdessen direkt auf das Org-Profil (profile.id) speichern.
+      const { error: profErr } = await (saveProfile && !isOrgProfile
         ? saveProfile(profileUpdates)
         : supabase.from("profiles")
             .update({ ...profileUpdates, updated_at: new Date().toISOString() })
@@ -258,7 +261,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   }, [saving, usernameErr, fullName, displayName, username, bio,
       locationLabel, locationLat, locationLng, website,
       isTalent, talentTitle, talentDescription, talentRate,
-      saveProfile, refreshProfile, profile?.id, onClose, onProfileUpdate]);
+      saveProfile, refreshProfile, profile?.id, onClose, onProfileUpdate, isOrgProfile]);
 
   // ── Modal ─────────────────────────────────────────────────────────
   const modal = (
