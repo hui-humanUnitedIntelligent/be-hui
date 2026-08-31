@@ -296,10 +296,6 @@
     {
       "source": "/en/works",
       "destination": "/werke.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ],
   "functions": {
