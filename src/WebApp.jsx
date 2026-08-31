@@ -34,7 +34,7 @@ function LoadingScreen() {
 }
 
 // ── Suspense Timeout-Fallback (Punkt 10.1 — max 8s) ────────────────────────
-// Wenn ein lazy-loaded Component nach 8s nicht geladen ist,
+// Wenn ein lazy-loaded Component nach 30s nicht geladen ist,
 // zeige Fallback-UI mit Neu-Laden-Button statt ewigem Spinner.
 import { useState, useEffect } from 'react';
 import { RouteBoundary } from './lib/ErrorBoundaries.jsx';
@@ -47,11 +47,11 @@ function SuspenseWithTimeout({ children, fallback }) {
       setTimedOut(true);
       try {
         reportError('suspense_hang', {
-          message: 'Suspense-Hang: Component nach 8s nicht geladen (React.lazy/Vite)',
+          message: 'Suspense-Hang: Component nach 30s nicht geladen (React.lazy/Vite)',
           component: 'SuspenseWithTimeout',
         });
       } catch (_) {}
-    }, 8000);
+    }, 30000);
     return () => clearTimeout(timer);
   }, []);
   if (timedOut) {
