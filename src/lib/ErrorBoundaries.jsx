@@ -258,7 +258,7 @@ export class RouteBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { error };
+    return { error, errorMsg: error?.message || 'Unknown error', errorStack: error?.stack || 'No stack trace' };
   }
 
   componentDidCatch(error, errorInfo) {
@@ -276,6 +276,7 @@ export class RouteBoundary extends React.Component {
       <RouteFallback
         fallbackTitle={this.props.fallbackTitle}
         errorMsg={this.state.error?.message || ''}
+        errorStack={this.state.errorStack || ''}
         onRetry={() => window.location.reload()}
       />
     );
