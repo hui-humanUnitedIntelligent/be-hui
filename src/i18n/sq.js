@@ -2942,6 +2942,7 @@ export default {
   'ppp.publicProfile': 'Profil publik',
   'profile.aboutName': 'Rreth {name}.',
   'profile.aboutTitle': 'Për ty',
+  'profile.aboutTitleOrg': 'Për ne',  // ORG-BIO-TITLE-FIX (2026-08-31): Org-Profile zeigen 'Über uns' statt 'Über dich'
   'profile.aboutYou': 'Rreth teje',
   'profile.aboutYouPlaceholder': 'Trego diçka rreth teje…',
   'profile.bioPlaceholder': 'Bio nuk është shtuar ende…',

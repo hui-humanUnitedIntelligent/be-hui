@@ -15,7 +15,10 @@ const T = {
   border:"rgba(26,26,24,0.08)", r16:16, r99:99, px:16,
   card:"0 1px 3px rgba(0,0,0,0.04),0 4px 20px rgba(0,0,0,0.06)",
 };
-const MAX_BIO = 220;
+const MAX_BIO = 1000;  // ZEICHENLIMIT-FIX (2026-08-31): 220 -> 1000. Kein DB-Constraint
+// betroffen -- bio/talent_bio/org_description/description sind alle TEXT ohne
+// character_maximum_length (verifiziert per information_schema.columns-Query
+// gegen die Live-DB, 2026-08-31). Limit war ausschließlich hier im Frontend.
 
 function SectionTitle({ title }) {
   return (
@@ -28,6 +31,12 @@ function SectionTitle({ title }) {
 export function AboutSection({ profile, isOwner = false, loading = false, onSave }) {
   const { t } = useTranslation();
   const bio = profile?.bio || "";
+  // ORG-BIO-TITLE-FIX (2026-08-31): Organisationen (Verein/Unternehmen) sagen
+  // "Über uns" statt "Über dich" -- sprachlich korrekt für eine Gruppe statt
+  // eine Einzelperson. Kein neuer Component-Zweig (Architektur-Charta Prinzip 7:
+  // Single-Profile-Architektur) -- nur der Titel-Key wechselt je account_type.
+  const isOrgProfile = profile?.account_type === "organization";
+  const aboutTitle = isOrgProfile ? t("profile.aboutTitleOrg") : t("profile.aboutTitle");
   const [editing, setEditing] = useState(false);
   const [draft,   setDraft]   = useState(bio);
 
@@ -39,7 +48,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
   if (loading) {
     return (
       <div style={{ padding:`0 ${T.px}px` }}>
-        <SectionTitle title={t("profile.aboutTitle")}/>
+        <SectionTitle title={aboutTitle}/>
         <div style={{ background:T.bgCard, borderRadius:T.r16, padding:"14px 16px", border:`1px solid ${T.border}` }}>
           {[100, 90, 70].map((w,i) => (
             <div key={i} style={{
@@ -59,7 +68,7 @@ export function AboutSection({ profile, isOwner = false, loading = false, onSave
 
       {/* Titel außerhalb der Kachel */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{t("profile.aboutTitle")}</div>
+        <div style={{ fontSize:15, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>{aboutTitle}</div>
         {isOwner && !editing && (
           <button onClick={() => { setDraft(bio); setEditing(true); }}
             style={{ background:"none", border:"none", padding:0, fontSize:12, color:T.teal,

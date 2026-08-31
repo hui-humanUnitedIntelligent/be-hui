@@ -4131,6 +4131,7 @@ export default {
   'impact.keineStimmenMehr': 'Oy kalmadı',
   'impact.nurTalente': 'Sadece yetenekler',
   'profile.aboutTitle': 'Hakkında',
+  'profile.aboutTitleOrg': 'Hakkımızda',  // ORG-BIO-TITLE-FIX (2026-08-31): Org-Profile zeigen 'Über uns' statt 'Über dich'
   'profile.followingCount': 'Takip',
   'ww.stepOf': 'Adım {step}/{total}',
   'ww.btn.nextArrow': 'İleri →',

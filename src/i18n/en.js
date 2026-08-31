@@ -4175,6 +4175,7 @@ export default {
   'impact.keineStimmenMehr': 'No votes left',
   'impact.nurTalente': 'Talents only',
   'profile.aboutTitle': 'About you',
+  'profile.aboutTitleOrg': 'About us',  // ORG-BIO-TITLE-FIX (2026-08-31): Org-Profile zeigen 'Über uns' statt 'Über dich'
   'profile.followingCount': 'Following',
   'ww.stepOf': 'Step {step} of {total}',
   'ww.btn.nextArrow': 'Next →',
