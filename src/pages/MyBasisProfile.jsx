@@ -76,6 +76,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const activeProfileId = _auth.activeProfileId ?? null;
   const switchProfile   = _auth.switchProfile ?? null;
   const activeProfile   = _auth.activeProfile ?? null;
+  const loadOrgProfiles  = _auth.loadOrgProfiles ?? null;  // BIO-FIX (2026-08-31)
   // Sprint F.7D: profile + loading aus useProfileData — lokale States entfernt
   const [bio,        setBio]        = useState("");
   const [switcherOpen, setSwitcherOpen] = useState(false);  // Account-Switcher
@@ -510,9 +511,21 @@ export default function MyBasisProfile({ onClose, profileId }) {
   const saveTimer = useRef(null);
 
   // Gemeinsame Save-Funktion (intern, kein Debounce)
-  const _save = useCallback(async (fields) => {
-    const uid = profile?.id ?? user?.id;
+  const _save = useCallback(async (fields, targetUid) => {
+    // BIO-FIX (2026-08-31): targetUid optional -- Standard bleibt das
+    // Hauptaccount-Profil (profile?.id), UNVERÄNDERT für alle bisherigen
+    // Aufrufer (skills/focus_type/is_available/location). Wird targetUid
+    // EXPLIZIT übergeben und weicht vom Hauptaccount ab (= Org-Profil ist
+    // aktiv), schreiben wir auf die Org-Zeile und aktualisieren NICHT den
+    // AuthContext-Hauptprofil-State (setAuthProfile), da das sonst die
+    // Org-Daten fälschlich in den persönlichen Profil-State mergen würde.
+    // Root Cause des Bugs: bisher wurde IMMER auf profile?.id geschrieben,
+    // selbst wenn der Nutzer laut UI die Bio des aktiven Org-Profils
+    // bearbeitet hat -- das hätte stillschweigend die persönliche Bio
+    // überschrieben.
+    const uid = targetUid ?? (profile?.id ?? user?.id);
     if (!uid) return;
+    const isOrgTarget = !!targetUid && targetUid !== (profile?.id ?? user?.id);
     setSaving(true);
     try {
       const { error: saveErr } = await supabase.from("profiles")
@@ -523,20 +536,29 @@ export default function MyBasisProfile({ onClose, profileId }) {
         setTimeout(() => setSaveErrMsg(""), 8000);
       } else {
         setSaveOk(true); setTimeout(() => setSaveOk(false), 2000);
-        setAuthProfile(prev => prev ? { ...prev, ...fields } : prev);
-        reload();
+        if (isOrgTarget) {
+          // Org-Profil-Zweig: State-Refresh über loadOrgProfiles (setzt
+          // orgProfiles + damit activeProfile selbst, siehe AuthContext).
+          loadOrgProfiles?.(user?.id).catch?.(() => {});
+        } else {
+          setAuthProfile(prev => prev ? { ...prev, ...fields } : prev);
+          reload();
+        }
       }
     } catch (e) {
       console.error("SAVE ERROR:", e?.message);
     }
     setSaving(false);
-  }, [profile?.id, user?.id, setAuthProfile, reload]);
+  }, [profile?.id, user?.id, setAuthProfile, reload, loadOrgProfiles]);
 
   const handleBioSave = useCallback((v) => {
     setBio(v);
     clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => _save({ bio: v }), 1200);
-  }, [_save]);
+    // BIO-FIX (2026-08-31): effectiveUserId statt implizit profile?.id --
+    // schreibt auf das aktive Org-Profil wenn eines aktiv ist, sonst auf
+    // den Hauptaccount (effectiveUserId === profile?.id in dem Fall).
+    saveTimer.current = setTimeout(() => _save({ bio: v }, effectiveUserId), 1200);
+  }, [_save, effectiveUserId]);
 
   // Alias für inline onChange (debounced)
   const handleBioChange = handleBioSave;
@@ -792,8 +814,12 @@ export default function MyBasisProfile({ onClose, profileId }) {
         {profile?.is_talent ? (
           <>
             {/* T1. Über mich — kanonisch: AboutSection */}
+            {/* BIO-FIX (2026-08-31): effectiveProfile statt profile -- zeigt
+                die Bio des AKTIVEN Profils (Org wenn aktiv, sonst persönlich).
+                handleBioSave schreibt konsistent über effectiveUserId auf
+                dieselbe Zeile zurück (siehe _save). */}
         <AboutSection
-                profile={profile}
+                profile={effectiveProfile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
               />
@@ -866,8 +892,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
           <>
             {/* ══ BASIS-PROFIL-LAYOUT ══════════════════════════════ */}
             {/* B1. Über mich — kanonisch: AboutSection */}
+            {/* BIO-FIX (2026-08-31): effectiveProfile statt profile (s. T1) */}
         <AboutSection
-                profile={profile}
+                profile={effectiveProfile}
                 isOwner={true}
                 onSave={(bio) => handleBioSave(bio)}
               />

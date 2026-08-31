@@ -113,7 +113,11 @@ export function AuthProvider({ children }) {
       const { data, error } = await withTimeout(
         supabase
           .from('profiles')
-          .select('id, org_name, org_type, avatar_url, account_type, display_name, username')
+          .select('id, org_name, org_type, avatar_url, account_type, display_name, username, bio, header_img')
+          // BIO-FIX (2026-08-31): bio + header_img ergänzt -- effectiveProfile
+          // (MyBasisProfile.jsx) braucht diese Felder, damit "Über dich" beim
+          // aktiven Org-Profil dessen EIGENE Beschreibung zeigt statt der vom
+          // Hauptaccount (die Felder fehlten hier komplett -> immer undefined).
           .eq('owner_user_id', userId)
           .eq('account_type', 'organization'),
         5000

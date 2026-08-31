@@ -128,8 +128,24 @@ export function ProfileHeader({
   const isTalentResolved = isTalent || profile?.is_talent === true;
   const isSuperadmin     = ["admin","superadmin","super_admin"].includes(profile?.role);
 
-  // Badge-Label: Superadmin > HUI-Talent > Basis-Nutzer
-  const badgeLabel = isSuperadmin ? t('pub.badgeSuperadmin') : isTalentResolved ? t('pub.badgeTalent') : t('pub.badgeBasis');
+  // ORG-BADGE-FIX (2026-08-31): Badge zeigte bisher hardcoded "HUI-Talent"
+  // für JEDES Org-Profil, unabhängig von dessen account_type/org_type --
+  // weil OrgProfileCreateFlow beim Anlegen is_talent:true + role:"talent"
+  // setzt (damit Org-Content wie Talent-Content funktioniert), aber die
+  // Badge-Logik das nie vom echten Org-Typ unterschieden hat. Fix: Wenn
+  // das AKTIVE Profil (übergeben via `profile`-Prop, s. effectiveProfile
+  // in MyBasisProfile.jsx) ein Org-Profil ist, hat der Org-Typ IMMER
+  // Vorrang -- kein Fallback auf "HUI-Talent" für Organisationen.
+  const isOrgProfile = profile?.account_type === "organization";
+  const orgBadgeLabel =
+    profile?.org_type === "verein"      ? t("org.type.verein")
+    : profile?.org_type === "unternehmen" ? t("org.type.unternehmen")
+    : null;
+
+  // Badge-Label: Verein/Unternehmen (Org) > Superadmin > HUI-Talent > Basis-Nutzer
+  const badgeLabel = (isOrgProfile && orgBadgeLabel)
+    ? orgBadgeLabel
+    : isSuperadmin ? t('pub.badgeSuperadmin') : isTalentResolved ? t('pub.badgeTalent') : t('pub.badgeBasis');
 
   // ── Konto-Wechsel-Hinweis (Migration 132 / Icon-Redesign 2026-08-30) ──
   // Icon mit zwei gegenläufigen vertikalen Pfeilen links vom Namen —

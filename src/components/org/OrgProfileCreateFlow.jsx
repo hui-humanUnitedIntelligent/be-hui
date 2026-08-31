@@ -142,6 +142,14 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
           org_type: orgType,
           org_number: orgNumber.trim() || null,
           org_description: orgDescription.trim() || null,
+          // BIO-FIX (2026-08-31): Beschreibung ZUSÄTZLICH auch in `bio`
+          // speichern -- das ist das Feld, das AboutSection/"Über dich"
+          // tatsächlich rendert (einheitliches Feld für persönliche UND
+          // Org-Profile, kein zweites konkurrierendes Datenfeld). Root
+          // Cause des Bugs: org_description wurde beim Erstellen befüllt,
+          // aber bio blieb NULL -- "Über dich" zeigte dadurch leer/den
+          // Hauptaccount statt der eingegebenen Beschreibung.
+          bio: orgDescription.trim() || null,
           display_name: orgName.trim(),
           managed_by: ownerName,
           is_talent: true,
@@ -150,7 +158,7 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
-        .select("id, org_name, org_type, avatar_url, account_type, display_name, username")
+        .select("id, org_name, org_type, avatar_url, account_type, display_name, username, bio, header_img")
         .single();
 
       if (insertErr) throw insertErr;
