@@ -56,6 +56,7 @@ function HeroSkeleton() {
 
 // ── Werk des Tages ──────────────────────────────────────────────────────────────
 function WerkHero({ work, navigate }) {
+  const { t } = useTranslation();
   if (!work) return null;
   return (
     <div className="hero-card" onClick={() => navigate(`/work/${work.id}`)} role="button" tabIndex={0}>
