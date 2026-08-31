@@ -226,7 +226,17 @@ export function ProfileHeader({
         }}>
 
           {/* ══ LINKE SPALTE: Avatar + Badge + Follower ══ */}
-          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0, justifyContent:"space-between" }}>
+          {/* SPRACHWECHSEL-POSITIONS-FIX (2026-08-31): feste Breite 108px
+              (= Avatar 100px + 4px Border beidseitig) statt automatischer
+              Breite nach Inhalt. Ohne feste Breite verschob ein Sprachwechsel
+              (z.B. FR "Utilisateur de base" vs DE "Basis-Nutzer", FR
+              "Abonnés"/"Abonnements" vs DE "Follower"/"Folgt") die komplette
+              rechte Spalte (Name/@nick/Switch-Icon) horizontal, weil die
+              Spaltenbreite = breitester Kind-Inhalt war. Badge + Follower
+              unten wurden zusätzlich auf Umbruch/Stapel-Layout umgestellt,
+              damit sie bei langen Übersetzungen NIE über die 108px hinaus
+              in die rechte Spalte hineinragen. */}
+          <div style={{ width:108, flexShrink:0, display:"flex", flexDirection:"column", alignItems:"flex-start", gap:0, justifyContent:"space-between" }}>
 
             {/* Avatar */}
             <div style={{ position:"relative" }}>
@@ -287,10 +297,10 @@ export function ProfileHeader({
                   border: isSuperadmin
                     ? "1.5px solid rgba(90,50,200,0.28)"
                     : `1.5px solid ${isTalentResolved ? "rgba(14,196,184,0.32)" : "rgba(14,196,184,0.18)"}`,
-                  borderRadius:99, padding:"5px 11px",
+                  borderRadius:14, padding:"5px 11px",
                   fontSize:11, fontWeight: 600,
                   color: isSuperadmin ? "#5A32C8" : "#0AADA3",
-                  whiteSpace:"nowrap",
+                  maxWidth:108, textAlign:"center", flexWrap:"wrap", rowGap:2,
                 }}>
                   {isSuperadmin ? (
                     /* Superadmin: kleines ✦ Symbol + Label */
@@ -315,15 +325,15 @@ export function ProfileHeader({
                 CHAT-LOGIK-v2, 2026-08-22: "Followerliste wieder einbauen"). */}
             {!loading && (
               <div style={{
-                display:"flex", gap:10, marginTop:7,
-                fontSize:12, color:T.inkFaint,
+                display:"flex", flexDirection:"column", gap:2, marginTop:7,
+                fontSize:12, color:T.inkFaint, width:108,
               }}>
-                <span>
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.followers ?? 0}
                   </strong>{" "}{t("profile.followers")}
                 </span>
-                <span>
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.following ?? 0}
                   </strong>{" "}{t("profile.followingCount")}
@@ -363,7 +373,7 @@ export function ProfileHeader({
                     {canSwitchAccount && (
                       <span style={{
                         display:"flex", alignItems:"center", flexShrink:0,
-                        color:"#F47355" /* HUI.COLOR.coral — SSOT Design-Token */,
+                        color: T.teal /* HUI-Türkis statt Coral/Rot (Michael-Feedback 2026-08-31) */,
                       }}>
                         <HUIAccountSwitchIcon size={16}/>
                       </span>
