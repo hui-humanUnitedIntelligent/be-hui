@@ -86,7 +86,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
         p_bic: bic || null, p_bank_name: bankName || null,
       });
       if (e) throw e;
-      if (!data?.ok) { setError(data?.error || t("bank.saveError")); setSaving(false); return; }
+      if (!data?.ok) { setError(data?.error || "Fehler beim Speichern"); setSaving(false); return; }
 
       // Bankdaten lokal gespeichert -- jetzt Stripe-Connect-Ziel synchronisieren,
       // damit Auszahlungen bei Kaeufer-Bestaetigung wirklich ankommen.
@@ -109,7 +109,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
       await load();
       onSaved?.();
     } catch (err) {
-      setError(err?.message || t("bank.saveError"));
+      setError(err?.message || "Fehler beim Speichern");
     } finally {
       setSaving(false);
     }
@@ -149,11 +149,13 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
 
         <div style={{ padding:"18px 16px 8px" }}>
           <p style={{ fontSize:13, color:T.inkSoft, lineHeight:1.5, margin:"0 0 16px" }}>
-            {t("bank.intro")} {t("bank.einmaligHint")}
+            Hier hinterlegst du das Bankkonto, auf das dein Geld überwiesen wird, sobald eine
+            Zahlung bei dir freigegeben wurde (z.B. wenn ein Käufer den Erhalt bestätigt).
+            {t("bank.einmaligHint")}
           </p>
 
           {loading ? (
-            <div style={{ padding:20, textAlign:"center", color:T.inkFaint, fontSize:13 }}>{t("bank.loading")}</div>
+            <div style={{ padding:20, textAlign:"center", color:T.inkFaint, fontSize:13 }}>Lädt…</div>
           ) : !editing ? (
             <div style={{
               background:T.greenBg, border:`1px solid ${T.green}33`, borderRadius:T.radius,
@@ -178,7 +180,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
               background:T.bgCard, border:`1px solid ${T.border}`, borderRadius:T.radius, padding:14,
             }}>
               <div style={{ fontSize:13, fontWeight:600, color:T.ink, marginBottom:10 }}>
-                {status?.has_bank_details ? t("bank.connectionActionEdit") : t("bank.connectionActionNew")}
+                {t("bank.connectionAction", { has: status?.has_bank_details })}
               </div>
               <input value={holder} onChange={(e) => setHolder(e.target.value)}
                 placeholder={t("bank.holderPlaceholder")} style={inp}/>
@@ -198,7 +200,7 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
               {error && (
                 <div style={{ fontSize:12, color:T.danger, marginBottom:10 }}>
                   ❌ {error === "invalid_iban" ? t("bank.invalidIban")
-                    : error === "holder_required" ? t("bank.holderRequired")
+                    : error === "holder_required" ? "Bitte einen Kontoinhaber angeben."
                     : error}
                 </div>
               )}
@@ -213,13 +215,13 @@ export default function BankdatenModal({ userId, onClose = () => {}, onSaved = (
                   border:"none", color:(saving || !iban || !holder) ? T.inkFaint : "#fff",
                   fontWeight:600, fontSize:13, cursor:(saving || !iban || !holder) ? "not-allowed" : "pointer",
                   fontFamily:"inherit",
-                }}>{saving ? t("bank.saving") : t("common.save")}</button>
+                }}>{saving ? "…" : "Speichern"}</button>
                 {status?.has_bank_details && (
                   <button onClick={() => setEditing(false)} style={{
                     padding:"11px 16px", borderRadius:10, background:"transparent",
                     border:`1px solid ${T.border}`, color:T.ink, fontWeight:600, fontSize:13,
                     cursor:"pointer", fontFamily:"inherit",
-                  }}>{t("common.cancel")}</button>
+                  }}>Abbrechen</button>
                 )}
               </div>
             </div>

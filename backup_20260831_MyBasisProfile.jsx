@@ -90,14 +90,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // Lokale URL-Overrides für sofortige UI-Aktualisierung nach Upload
   const [localAvatar, setLocalAvatar] = useState(null);
   const [localCover,  setLocalCover]  = useState(null);
-  // COVER-SHARING-BUG-FIX (2026-08-31): localAvatar/localCover wurden nie
-  // zurückgesetzt, wenn der Nutzer via Account-Switcher zwischen Hauptaccount
-  // und Org-Profilen (Verein/Unternehmen/Projekt) wechselte. Dadurch blieb
-  // z.B. ein frisch hochgeladenes Hauptaccount-Cover als lokaler Override
-  // sichtbar, auch nachdem auf ein Org-Profil mit eigenem (anderem) header_img
-  // gewechselt wurde — sah aus wie "geteiltes" Bild, obwohl DB/Storage bereits
-  // korrekt pro profiles-Zeile (effectiveProfile.id) getrennt waren. Reset bei
-  // jedem Wechsel des aktiven Profils (siehe activeProfileId weiter unten).
   const [showGemeinschaft, setShowGemeinschaft] = useState(false);
   const [showMomentSheet, setShowMomentSheet]  = useState(false);
   const [showPublicPreview, setShowPublicPreview] = useState(false);
@@ -427,18 +419,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
   // userId für Content-Erstellung: Org-Profil-ID wenn aktiv, sonst persönliche ID
   const effectiveUserId = activeProfileId || profile?.id || null;
 
-  // COVER-SHARING-BUG-FIX (2026-08-31): lokale Avatar/Cover-Overrides gehören
-  // zum GERADE aktiven Profil (Hauptaccount ODER ein bestimmtes Org-Profil).
-  // Beim Profil-Wechsel (Account-Switcher) müssen sie zurückgesetzt werden,
-  // sonst zeigt die UI das zuletzt hochgeladene Bild eines ANDEREN Profils
-  // weiter an, bis die Seite neu geladen wird — sieht aus wie ein geteiltes
-  // Cover/Avatar, obwohl DB (profiles.header_img/avatar_url pro Zeile) und
-  // Storage-Pfad (covers|avatars/{profileId}/...) bereits korrekt isoliert sind.
-  useEffect(() => {
-    setLocalAvatar(null);
-    setLocalCover(null);
-  }, [effectiveUserId]);
-
   // F.9C HOTFIX: lokale Aliase erst NACH useProfileData — TDZ-Fix
   // (hooksWorks/hooksExps/hooksRecs/profile sind jetzt deklariert)
   const [localWorks,       setLocalWorks]       = useState(null);
@@ -627,42 +607,21 @@ export default function MyBasisProfile({ onClose, profileId }) {
   }, [_save]);
 
   // Sofortige lokale Anzeige + globaler AuthContext-Update nach Upload
-  //
-  // COVER-SHARING-BUG-FIX (2026-08-31): Vorher wurde setAuthProfile()
-  // IMMER aufgerufen, unabhängig davon ob gerade der Hauptaccount oder ein
-  // Org-Profil (Verein/Unternehmen/Projekt) aktiv war. setAuthProfile
-  // schreibt in den GLOBALEN AuthContext.profile — die SSOT für den
-  // Hauptaccount, die systemweit gelesen wird (StoryBar, Chat-Avatare,
-  // App.jsx-Routing etc.). Wurde ein Org-Profil-Cover/Avatar hochgeladen,
-  // hat das fälschlich den Hauptaccount-Avatar/Cover im globalen State
-  // überschrieben — die DB blieb korrekt (pro profiles-Zeile getrennt),
-  // aber der UI-State "leakte" den Org-Wert in den Hauptaccount-Kontext.
-  // Fix: Nur bei aktivem Hauptaccount (kein activeProfileId) den globalen
-  // AuthContext aktualisieren. Bei aktivem Org-Profil stattdessen die
-  // orgProfiles-Liste neu laden, damit AccountSwitcher + activeProfile
-  // (SSOT für das Org-Profil) den frischen Wert zeigen — ohne den
-  // Hauptaccount zu berühren.
   const handleAvatarChange = useCallback((url) => {
-    // Sofort lokalen State setzen — bleibt persistent bis Profil-Wechsel
-    // (wird bei Wechsel des effectiveUserId zurückgesetzt, s.o.)
+    // Sofort lokalen State setzen — bleibt persistent bis Seitenwechsel
     setLocalAvatar(url);
-    if (!activeProfileId) {
-      setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
-    } else if (user?.id && loadOrgProfiles) {
-      loadOrgProfiles(user.id);
-    }
+    setAuthProfile(prev => prev ? { ...prev, avatar_url: url } : prev);
     // Cache wurde bereits in profileMedia.js invalidiert → reload holt frische DB-Daten
-  }, [setAuthProfile, activeProfileId, user?.id, loadOrgProfiles]);
+    // KEIN reload() hier — localAvatar reicht für sofortige Anzeige
+    // reload() würde unnötig re-render triggern bevor DB geschrieben hat
+  }, [setAuthProfile]);
 
   const handleCoverChange = useCallback((url) => {
-    // Sofort lokalen State setzen — bleibt persistent bis Profil-Wechsel
+    // Sofort lokalen State setzen — bleibt persistent bis Seitenwechsel
     setLocalCover(url);
-    if (!activeProfileId) {
-      setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
-    } else if (user?.id && loadOrgProfiles) {
-      loadOrgProfiles(user.id);
-    }
-  }, [setAuthProfile, activeProfileId, user?.id, loadOrgProfiles]);
+    setAuthProfile(prev => prev ? { ...prev, header_img: url } : prev);
+    // KEIN reload() — localCover reicht für sofortige Anzeige
+  }, [setAuthProfile]);
 
   // CSS sofort in <head> injizieren — Safari-safe, kein Blink beim Lazy-Load
   useEffect(() => {
