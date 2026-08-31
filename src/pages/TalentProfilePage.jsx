@@ -1449,7 +1449,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
               background: "rgba(22,215,197,0.06)",
               borderRadius: 6, padding: "2px 8px",
             }}>
-              {activeProfile.org_type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+              {activeProfile.org_type === "verein" ? t("org.type.verein") : activeProfile.org_type === "projekt" ? t("org.type.projekt") : t("org.type.unternehmen")}
             </span>
             <span style={{ fontSize: 12, color: "#8a8a86" }}>
               {t("org.step3.managedBy")}: {profile?.display_name || profile?.username || ""}

@@ -714,7 +714,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
             {effectiveProfile?.account_type === "organization"
               ? (effectiveProfile?.org_type === "verein"
                 ? t("profile.meinVereinsProfil")
-                : t("profile.meinUnternehmensProfil"))
+                : effectiveProfile?.org_type === "projekt"
+                  ? t("profile.meinProjektProfil")
+                  : t("profile.meinUnternehmensProfil"))
               : profile?.is_talent
                 ? t("profile.meinTalentProfil")
                 : t("profile.meinProfil")}
@@ -723,7 +725,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
             {effectiveProfile?.account_type === "organization"
               ? (effectiveProfile?.org_type === "verein"
                 ? t("profile.gestalteVereinsProfil")
-                : t("profile.gestalteUnternehmensProfil"))
+                : effectiveProfile?.org_type === "projekt"
+                  ? t("profile.gestalteProjektProfil")
+                  : t("profile.gestalteUnternehmensProfil"))
               : profile?.is_talent
                 ? t("profile.gestalteTalentProfil")
                 : t("profile.gestalteProfil")}
@@ -818,7 +822,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               background: "rgba(22,215,197,0.06)",
               borderRadius: 6, padding: "2px 8px",
             }}>
-              {activeProfile.org_type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+              {activeProfile.org_type === "verein" ? t("org.type.verein") : activeProfile.org_type === "projekt" ? t("org.type.projekt") : t("org.type.unternehmen")}
             </span>
             <span style={{ fontSize: 12, color: T.muted }}>
               {t("org.step3.managedBy")}: {profile?.display_name || profile?.username || ""}

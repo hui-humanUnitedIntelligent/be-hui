@@ -60,6 +60,14 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
   const { user, profile, loadOrgProfiles, switchProfile } = useAuth();
   useWizardBodyLock(open);
 
+  // PROJEKT-ORG-TYPE (2026-08-31): Zentrale Label-Auflösung statt
+  // wiederholter Verein/Unternehmen-Ternaries — 1 Stelle, 3 Typen.
+  const orgTypeLabel = (type) =>
+    type === "verein"      ? t("org.type.verein")
+    : type === "unternehmen" ? t("org.type.unternehmen")
+    : type === "projekt"     ? t("org.type.projekt")
+    : "";
+
   const [step, setStep]         = useState(0);
   const [orgType, setOrgType]   = useState(null);
   const [orgName, setOrgName]   = useState("");
@@ -240,6 +248,29 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
             <div style={{ fontSize:13, color:T.muted, marginTop:2 }}>{t("org.type.unternehmenDesc")}</div>
           </div>
         </div>
+
+        {/* Projekt — PROJEKT-ORG-TYPE (2026-08-31) */}
+        <div
+          className="org-tap"
+          onClick={() => { setOrgType("projekt"); setStep(1); }}
+          style={{
+            display:"flex", alignItems:"center", gap:16,
+            padding:"18px 20px", borderRadius:14,
+            background:T.card, border:`1.5px solid ${T.border}`,
+          }}
+        >
+          <div style={{
+            width:48, height:48, borderRadius:12, flexShrink:0,
+            background:"rgba(255,111,97,0.10)", display:"flex", alignItems:"center", justifyContent:"center",
+            fontSize:24,
+          }}>
+            🚀
+          </div>
+          <div>
+            <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{t("org.type.projekt")}</div>
+            <div style={{ fontSize:13, color:T.muted, marginTop:2 }}>{t("org.type.projektDesc")}</div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -251,7 +282,7 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
         {t("org.step2.title")}
       </h2>
       <p style={{ fontSize:14, color:T.muted, textAlign:"center", margin:"0 0 24px" }}>
-        {orgType === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+        {orgTypeLabel(orgType)}
       </p>
 
       {/* Avatar */}
@@ -289,7 +320,11 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
         type="text"
         value={orgName}
         onChange={(e) => setOrgName(e.target.value)}
-        placeholder={orgType === "verein" ? t("org.step2.namePlaceholderVerein") : t("org.step2.namePlaceholderUnternehmen")}
+        placeholder={
+          orgType === "verein" ? t("org.step2.namePlaceholderVerein")
+          : orgType === "unternehmen" ? t("org.step2.namePlaceholderUnternehmen")
+          : t("org.step2.namePlaceholderProjekt")
+        }
         style={{
           width:"100%", padding:"12px 14px", fontSize:15, borderRadius:10,
           border:`1.5px solid ${T.border}`, outline:"none", marginBottom:16,
@@ -305,7 +340,11 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
         type="text"
         value={orgNumber}
         onChange={(e) => setOrgNumber(e.target.value)}
-        placeholder={orgType === "verein" ? t("org.step2.numberPlaceholderVerein") : t("org.step2.numberPlaceholderUnternehmen")}
+        placeholder={
+          orgType === "verein" ? t("org.step2.numberPlaceholderVerein")
+          : orgType === "unternehmen" ? t("org.step2.numberPlaceholderUnternehmen")
+          : t("org.step2.numberPlaceholderProjekt")
+        }
         style={{
           width:"100%", padding:"12px 14px", fontSize:15, borderRadius:10,
           border:`1.5px solid ${T.border}`, outline:"none", marginBottom:16,
@@ -363,7 +402,7 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
           <div>
             <div style={{ fontSize:17, fontWeight:700, color:T.ink }}>{orgName}</div>
             <div style={{ fontSize:13, color:T.muted, marginTop:2 }}>
-              {orgType === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+              {orgTypeLabel(orgType)}
             </div>
           </div>
         </div>

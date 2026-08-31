@@ -240,7 +240,7 @@ export default function AccountSwitcher({ open, onClose }) {
                         background: "rgba(22,215,197,0.08)",
                         borderRadius: 4, padding: "2px 6px", marginTop: 2,
                       }}>
-                        {entry.type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+                        {entry.type === "verein" ? t("org.type.verein") : entry.type === "unternehmen" ? t("org.type.unternehmen") : entry.type === "projekt" ? t("org.type.projekt") : t("org.switcher.organization")}
                       </span>
                     )}
                     {entry.type === "personal" && (

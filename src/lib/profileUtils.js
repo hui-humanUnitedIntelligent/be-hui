@@ -158,6 +158,7 @@ export function getProfileRoleLabel(profile) {
   if (profile.account_type === "organization") {
     if (profile.org_type === "verein") return "Verein";
     if (profile.org_type === "unternehmen") return "Unternehmen";
+    if (profile.org_type === "projekt") return "Projekt";
     return "Organisation";
   }
   const custom = typeof profile.talent === "string" ? profile.talent.trim() : "";

@@ -140,6 +140,7 @@ export function ProfileHeader({
   const orgBadgeLabel =
     profile?.org_type === "verein"      ? t("org.type.verein")
     : profile?.org_type === "unternehmen" ? t("org.type.unternehmen")
+    : profile?.org_type === "projekt"     ? t("org.type.projekt")
     : null;
 
   // Badge-Label: Verein/Unternehmen (Org) > Superadmin > HUI-Talent > Basis-Nutzer

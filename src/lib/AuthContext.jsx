@@ -104,9 +104,10 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // ── Org-Profile laden (Account-Switcher, Migration 132) ──────────
+  // ── Org-Profile laden (Account-Switcher, Migration 132/142) ──────
   // Lädt alle Organisations-Profile die diesem User gehören.
-  // Max 1 pro User (DB-Constraint idx_profiles_owner_unique).
+  // Migration 142: Mehrere Org-Profile pro User erlaubt (1 pro Typ:
+  // verein + unternehmen + projekt). Constraint idx_profiles_owner_type_unique.
   const loadOrgProfiles = useCallback(async (userId) => {
     if (!userId) return [];
     try {

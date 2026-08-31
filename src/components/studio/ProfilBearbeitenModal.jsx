@@ -72,6 +72,7 @@ const T = {
 const getTabs = (t, orgType) => {
   const basisLabel = orgType === "verein" ? t("pbm.tabVerein")
     : orgType === "unternehmen" ? t("pbm.tabUnternehmen")
+    : orgType === "projekt" ? t("pbm.tabProjekt")
     : t("pbm.tabBasis");
   return [
     { key: "basis",   label: basisLabel,   icon: <HUIProfilIcon size={14}/> },
@@ -291,7 +292,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         }}>
           <div>
             <div style={{ fontSize:18, fontWeight: 600, color:T.ink, letterSpacing:"-0.02em" }}>
-              {isTalent ? t("pbm.titleBoth") : (orgType === "verein" ? t("pbm.titleVerein") : orgType === "unternehmen" ? t("pbm.titleUnternehmen") : t("pbm.titleBasis"))}
+              {isTalent ? t("pbm.titleBoth") : (orgType === "verein" ? t("pbm.titleVerein") : orgType === "unternehmen" ? t("pbm.titleUnternehmen") : orgType === "projekt" ? t("pbm.titleProjekt") : t("pbm.titleBasis"))}
             </div>
           </div>
           <button onClick={onClose} style={{

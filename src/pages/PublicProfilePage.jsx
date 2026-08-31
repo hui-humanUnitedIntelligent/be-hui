@@ -216,7 +216,7 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
           {isFollowing
             ? t('pub.followed')
             : profile?.account_type === "organization"
-              ? (profile?.org_type === "verein" ? t('pub.followOrgVerein') : t('pub.followOrgUnternehmen'))
+              ? (profile?.org_type === "verein" ? t('pub.followOrgVerein') : profile?.org_type === "projekt" ? t('pub.followOrgProjekt') : t('pub.followOrgUnternehmen'))
               : t('pub.follow', { name: shortName })}
         </span>
       </button>
@@ -466,7 +466,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
       }}>
         <NavBar onBack={handleBack} title={t('pub.title')} subtitle={
           profile?.account_type === "organization"
-            ? (profile?.org_type === "verein" ? t("pub.discoverOrgVerein") : t("pub.discoverOrgUnternehmen"))
+            ? (profile?.org_type === "verein" ? t("pub.discoverOrgVerein") : profile?.org_type === "projekt" ? t("pub.discoverOrgProjekt") : t("pub.discoverOrgUnternehmen"))
             : t("pub.discoverPerson")
         } />
 
@@ -497,7 +497,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               background: "rgba(22,215,197,0.08)",
               borderRadius: 6, padding: "2px 8px",
             }}>
-              {profile.org_type === "verein" ? t("org.type.verein") : t("org.type.unternehmen")}
+              {profile.org_type === "verein" ? t("org.type.verein") : profile.org_type === "projekt" ? t("org.type.projekt") : t("org.type.unternehmen")}
             </span>
             {profile.managed_by && (
               <span style={{ fontSize: 12, color: T.inkFaint || "rgba(0,0,0,0.35)" }}>
