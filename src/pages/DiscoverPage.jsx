@@ -52,6 +52,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
   const [werke, setWerke]             = useState([]);
+  // WORK-SALE-STATUS-001 (2026-08-31, Michael-Bugreport): verkaufte Werke
+  // sollen im Entdecken-Feed weiterhin sichtbar sein, aber als "Verkauft"
+  // markiert werden statt einfach normal/kaufbar zu wirken. SSOT ist die
+  // bereits bestehende rpc_get_works_sale_status (siehe WorksSection.jsx /
+  // WerkeAllModal.jsx) — hier zusaetzlich fuer den Haupt-Feed verdrahtet.
+  const [werkeSaleStatus, setWerkeSaleStatus] = useState({});
   const [talente, setTalente]         = useState([]);
 
   // ── Talent-Umkreissuche -- VEREINHEITLICHT (2026-07-06) ──
@@ -178,6 +184,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         if (!cancelled) {
           if (c.people)        setPeople(c.people);
           if (c.werke)         setWerke(c.werke);
+          if (c.werkeSaleStatus) setWerkeSaleStatus(c.werkeSaleStatus);
           if (c.talente)       setTalente(c.talente);
           if (c.erlebnisse)    setErlebnisse(c.erlebnisse);
           if (c.projekte)      setProjekte(c.projekte);
@@ -315,6 +322,23 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               views:     w.views_count || 0,
             };
           }));
+
+          // WORK-SALE-STATUS-001: Verkauft/Reserviert-Status non-blocking nachladen
+          // (gleiche SSOT-RPC wie im öffentlichen Profil / WerkeAllModal).
+          const werkIds = ws.map(w => w.id).filter(Boolean);
+          if (werkIds.length > 0) {
+            supabase
+              .rpc("rpc_get_works_sale_status", { p_work_ids: werkIds })
+              .then(({ data: statusRows }) => {
+                if (cancelled) return;
+                const statusMap = {};
+                (statusRows || []).forEach(r => {
+                  if (r.sale_status) statusMap[r.work_id] = r.sale_status;
+                });
+                setWerkeSaleStatus(statusMap);
+              })
+              .catch(() => {}); // Non-blocking — kein Status = kein Badge
+          }
         } else if (!wsErr) {
           // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
           if (!cancelled) setWerke([]);
@@ -571,10 +595,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   // Wird nach jedem erfolgreichen Load ausgeführt und merkt sich die Daten für 5 Min.
   React.useEffect(() => {
     if (!loading && (people.length || werke.length || talente.length)) {
-      _discoverCache.data = { people, werke, talente, erlebnisse, projekte, momente, orte };
+      _discoverCache.data = { people, werke, werkeSaleStatus, talente, erlebnisse, projekte, momente, orte };
       _discoverCache.ts = Date.now();
     }
-  }, [loading, people, werke, talente, erlebnisse, projekte, momente, orte]);
+  }, [loading, people, werke, werkeSaleStatus, talente, erlebnisse, projekte, momente, orte]);
 
   // ── Pull-to-Refresh: feed-refresh-Event abonnieren ────────────
   // Wenn PTR (Home.jsx) ausgelöst wird, soll auch DiscoverPage neu laden.
@@ -864,6 +888,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       {_showWerke && (
       <WerkeSection
         werke={searchedWerke}
+        saleStatus={werkeSaleStatus}
         loading={loading}
         delay={100}
         view={view}

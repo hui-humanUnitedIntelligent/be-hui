@@ -11,13 +11,21 @@ import { formatNumberDE } from "../../lib/formatters.js";
 import { LocationRadiusRow } from "./TalentSection.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
-export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
+export function WerkCard({ werk, delay=0, onPress, onAuthorPress, saleStatus }) {
+  const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const cover  = (!imgErr && werk.cover) ? werk.cover : null;
   const medCol = MEDIUM_COLOR[werk.medium] || { bg:T.tealSoft, text:T.teal };
   const priceStr = werk.price != null
     ?formatNumberDE(parseFloat(werk.price), { minimumFractionDigits:0 }) + " €"
     : null;
+  // WORK-SALE-STATUS-001 (2026-08-31): Werk bleibt im Entdecken-Feed sichtbar
+  // (Michael: "nicht aus dem Entdecken löschen"), wird aber korrekt als
+  // verkauft/reserviert markiert statt normal kaufbar zu wirken. Gleiche
+  // SSOT-RPC + gleiches Badge-Muster wie WerkeAllModal.jsx / WorksSection.jsx.
+  const ss = saleStatus?.[werk.id];
+  const isSold = ss === "verkauft";
+  const isReserved = ss === "reserviert";
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(werk)} style={{
@@ -34,7 +42,8 @@ export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
       <div style={{ width:"100%", height:120, flexShrink:0, position:"relative", overflow:"hidden", background:cover ? "#1A1A18" : medCol.bg }}>
         {cover ? (
           <img loading="lazy" decoding="async" src={optimizeCard(cover)} alt={werk.title} onError={() => setImgErr(true)}
-            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}/>
+            style={{ width:"100%", height:"100%", objectFit:"cover", display:"block",
+              filter: isSold ? "grayscale(0.55) brightness(0.85)" : "none" }}/>
         ) : (
           <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
             <HUILogo size={40} style={{opacity:0.55}} />
@@ -45,6 +54,16 @@ export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
           <CardBadge pos="left" bg={medCol.bg} color={medCol.text} cover={cover}>
             {werk.medium}
           </CardBadge>
+        )}
+        {/* Verkauft/Reserviert-Badge unten links — Werk bleibt sichtbar, aber korrekt markiert */}
+        {(isSold || isReserved) && (
+          <div style={{
+            position:"absolute", bottom:6, left:6,
+            background: isSold ? "rgba(26,26,46,0.82)" : "rgba(245,166,35,0.88)",
+            color:"#fff", borderRadius:99,
+            fontSize:9.5, fontWeight:700, padding:"2px 8px",
+            backdropFilter:"blur(4px)",
+          }}>{isSold ? t("common.sold") : t("common.reserved")}</div>
         )}
       </div>
 
@@ -95,7 +114,7 @@ export function WerkCard({ werk, delay=0, onPress, onAuthorPress }) {
  * lichungs-Session, gleiches Verhalten.
  */
 export function WerkeSection({
-  werke=[], loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
+  werke=[], saleStatus={}, loading, delay=0, view='cards', onPress, onAuthorPress = () => {}, onSectionAction,
   locQuery, onLocQueryChange, locSuggest, locSearching, locActive,
   onPickLoc, onClearLoc, radiusKm, radiusStages, onRadiusChange, hiddenNoCoordsCount=0,
 }) {
@@ -128,7 +147,7 @@ export function WerkeSection({
               ))
             : werke.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>{t("werk.emptyNearby")}</div>
-            : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} />)
+            : werke.map((w, i) => <WerkCardM key={w.id} werk={w} delay={i*35+delay} onPress={onPress} onAuthorPress={onAuthorPress} saleStatus={saleStatus} />)
           }
         </div>
       ) : (
@@ -142,11 +161,14 @@ export function WerkeSection({
                 const priceStr = w.price != null
                   ?formatNumberDE(parseFloat(w.price), { minimumFractionDigits:0 }) + " €"
                   : null;
+                const listSs = saleStatus?.[w.id];
+                const listIsSold = listSs === "verkauft";
                 return (
                   <div key={w.id} className="dp-list-card" onClick={() => onPress?.(w)} style={{cursor:"pointer"}} role="button" tabIndex={0}>
                     <div className="dp-list-thumb-placeholder" style={{ background: w.cover ? "#1A1A18" : medCol.bg }}>
                       {w.cover
-                        ? <img loading="lazy" decoding="async" src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12 }} onError={e => e.currentTarget.style.display="none"}/>
+                        ? <img loading="lazy" decoding="async" src={w.cover} alt={w.title} style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:12,
+                            filter: listIsSold ? "grayscale(0.55) brightness(0.85)" : "none" }} onError={e => e.currentTarget.style.display="none"}/>
                         : <HUILogo size={20} style={{opacity:0.5}} />
                       }
                     </div>
@@ -166,6 +188,11 @@ export function WerkeSection({
                         )}
                         {priceStr && (
                           <span style={{ fontSize:12, fontWeight: 600, color:T.teal }}>{priceStr}</span>
+                        )}
+                        {(listSs === "verkauft" || listSs === "reserviert") && (
+                          <span style={{ fontSize:10.5, background: listIsSold ? "rgba(26,26,46,0.82)" : "rgba(245,166,35,0.88)", color:"#fff", borderRadius:99, padding:"2px 8px", fontWeight:700 }}>
+                            {listIsSold ? t("common.sold") : t("common.reserved")}
+                          </span>
                         )}
                       </div>
                     </div>

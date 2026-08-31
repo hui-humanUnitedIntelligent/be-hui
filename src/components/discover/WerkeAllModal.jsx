@@ -269,7 +269,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem} onAuthorPress={null}/>)}
+            {items.map(w => <WerkCardItem key={w.id} w={w} onPress={onPressItem} onAuthorPress={null} saleStatus={saleStatusMap}/>)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
