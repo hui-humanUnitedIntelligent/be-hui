@@ -109,14 +109,29 @@ export function isCacheValid() {
   return _discoverCache.data && (Date.now() - _discoverCache.ts < 60000);
 }
 
+// BUGFIX (2026-08-31, Michael-Report "Werke/Erlebnisse erscheinen nicht in
+// Discover"): Root Cause war ein Rückgabewert-Mismatch -- diese Funktion gab
+// bisher ein PLAIN ARRAY zurück, aber BEIDE Aufrufstellen in DiscoverPage.jsx
+// (Werke Zeile ~632, Erlebnisse Zeile ~634) destrukturieren
+// `const { list, hidden } = filterByRadius(...)`. Ein Array hat keine
+// .list/.hidden-Properties -> beide waren IMMER undefined, unabhängig von
+// Standort/Radius/Approval-Status. WerkeSection/ErlebnisseSection bekamen
+// dadurch immer `werke=undefined` -> Default-Param `werke=[]` -> "Noch keine
+// Werke/Erlebnisse in deiner Nähe", selbst mit korrekt approved/published
+// Content UND selbst ohne jede Standorteingabe. Fix: konsistent {list,hidden}
+// zurückgeben (hidden = Anzahl wegen fehlender Koordinaten ausgeblendeter
+// Einträge, analog zum bereits korrekten hiddenNoCoordsCount-Muster bei
+// Talenten weiter oben in DiscoverPage.jsx).
 export function filterByRadius(items, radius, isOnlineFn) {
-  if (!radius?.radiusKm || !radius?.geo) return items;
-  return items.filter(item => {
+  if (!radius?.radiusKm || !radius?.geo) return { list: items, hidden: 0 };
+  let hidden = 0;
+  const list = items.filter(item => {
     if (isOnlineFn && isOnlineFn(item)) return true;
-    if (item.lat == null || item.lng == null) return false;
+    if (item.lat == null || item.lng == null) { hidden++; return false; }
     const d = distanceKm(radius.geo.lat, radius.geo.lng, item.lat, item.lng);
     return d <= radius.radiusKm;
   });
+  return { list, hidden };
 }
 
 import { distanceKm } from "../../lib/geocoding.js";

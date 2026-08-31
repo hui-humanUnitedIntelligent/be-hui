@@ -92,7 +92,7 @@ function Skel({ w, h=14, r=8 }) {
 
 // ── Rollen-Badge ──────────────────────────────────────────────────
 // ── NavBar ────────────────────────────────────────────────────────
-function NavBar({ onBack = () => {}, title }) {
+function NavBar({ onBack = () => {}, title, subtitle }) {
   const { t } = useTranslation();
   const navTitle = title || t('pub.title');
   return (
@@ -118,7 +118,7 @@ function NavBar({ onBack = () => {}, title }) {
           {title}
         </div>
         <div style={{ fontSize:11, color:T.inkFaint, marginTop:1 }}>
-          {t("pub.discoverPerson")}
+          {subtitle || t("pub.discoverPerson")}
         </div>
       </div>
       {/* Platzhalter rechts für Symmetrie */}
@@ -213,7 +213,11 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
           }
         </svg>
         <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
-          {isFollowing ? t('pub.followed') : t('pub.follow', { name: shortName })}
+          {isFollowing
+            ? t('pub.followed')
+            : profile?.account_type === "organization"
+              ? (profile?.org_type === "verein" ? t('pub.followOrgVerein') : t('pub.followOrgUnternehmen'))
+              : t('pub.follow', { name: shortName })}
         </span>
       </button>
     </div>
@@ -460,7 +464,11 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         paddingBottom: isOwnProfile ? NAV_CLEARANCE_CSS : "calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         overflowY:"auto",
       }}>
-        <NavBar onBack={handleBack} title={t('pub.title')} />
+        <NavBar onBack={handleBack} title={t('pub.title')} subtitle={
+          profile?.account_type === "organization"
+            ? (profile?.org_type === "verein" ? t("pub.discoverOrgVerein") : t("pub.discoverOrgUnternehmen"))
+            : t("pub.discoverPerson")
+        } />
 
         {/* ── Kanonischer ProfileHeader (SSOT) — ersetzt Legacy-ProfileHero + Duplikat-Identity-Block ── */}
         {(profile || loading) && (
@@ -493,7 +501,20 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
             </span>
             {profile.managed_by && (
               <span style={{ fontSize: 12, color: T.inkFaint || "rgba(0,0,0,0.35)" }}>
-                {t("org.step3.managedBy")}: {profile.managed_by}
+                {t("org.step3.managedBy")}:{" "}
+                {profile.owner_user_id ? (
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (typeof window.__HUI_OPEN_PROFILE__ === "function") {
+                        window.__HUI_OPEN_PROFILE__(profile.owner_user_id);
+                      }
+                    }}
+                    style={{ color: T.tealDeep, fontWeight: 600, cursor: "pointer", textDecoration: "underline", textDecorationColor: "rgba(10,173,163,0.35)" }}
+                  >
+                    {profile.managed_by}
+                  </span>
+                ) : profile.managed_by}
               </span>
             )}
           </div>
