@@ -302,8 +302,11 @@ export function ProfileHeader({
               )}
             </div>
 
-            {/* Badge — unter Avatar, immer zentriert */}
-            <div style={{ marginTop:10, display:"flex", justifyContent:"center" }}>
+            {/* Badge — unter Avatar, immer zentriert (BADGE-CENTER-FIX 2026-08-31:
+                width:"100%" ergänzt — ohne feste Breite schrumpfte der Wrapper auf die
+                Content-Breite des Badges selbst, wodurch justifyContent:center wirkungslos
+                war und das Badge linksbündig zum Avatar erschien statt mittig darunter) */}
+            <div style={{ width:"100%", marginTop:10, display:"flex", justifyContent:"center" }}>
               {loading ? <Sk w={96} h={26} r={99}/> : (
                 <div style={{
                   display:"inline-flex", alignItems:"center", gap:5,
