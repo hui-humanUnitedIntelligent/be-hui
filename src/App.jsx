@@ -820,6 +820,13 @@ function AppRoutes() {
         <Route path="/veranstaltung/:id" element={
           <ProtectedRoute><RouteBoundary name="DeepLink-event"><DeepLinkOpener type="event" /></RouteBoundary></ProtectedRoute>
         }/>
+        {/* DEEPLINK.1-FIX (2026-08-31): /talent/:id fehlte komplett -- HuiShareModal
+            generiert Talent-Share-Links (buildPublicUrl case "talent"), aber es gab
+            nirgends eine Route dafuer. Der "talent"-Loader in contentPreviewLoaders.js
+            existierte bereits -- nur die Route fehlte. */}
+        <Route path="/talent/:id" element={
+          <ProtectedRoute><RouteBoundary name="DeepLink-talent"><DeepLinkOpener type="talent" /></RouteBoundary></ProtectedRoute>
+        }/>
 
         {/* Impact — EAGER */}
         <Route path="/impact" element={
