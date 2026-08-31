@@ -296,10 +296,6 @@
     {
       "source": "/en/works",
       "destination": "/werke.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/web.html"
     }
   ],
   "functions": {
@@ -504,6 +500,114 @@
           "value": "be-hui.vercel.app"
         }
       ]
+    },
+    {
+      "source": "/work/:id",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/work/:id",
+      "permanent": false
+    },
+    {
+      "source": "/profile/:username",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/profile/:username",
+      "permanent": false
+    },
+    {
+      "source": "/wirker/:username",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/wirker/:username",
+      "permanent": false
+    },
+    {
+      "source": "/werke/:slug",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/werke/:slug",
+      "permanent": false
+    },
+    {
+      "source": "/beitrag/:id",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/beitrag/:id",
+      "permanent": false
+    },
+    {
+      "source": "/projekt/:id",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/projekt/:id",
+      "permanent": false
+    },
+    {
+      "source": "/erlebnis/:id",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/erlebnis/:id",
+      "permanent": false
+    },
+    {
+      "source": "/veranstaltung/:id",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/veranstaltung/:id",
+      "permanent": false
+    },
+    {
+      "source": "/talent/:id",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|twitterbot|slackbot|telegrambot|discordbot|linkedinbot|whatsapp|applebot|googlebot|bingbot|ia_archiver|pinterest|vkshare|xing-contenttabreceiver|curl|python-requests|wget).*"
+        }
+      ],
+      "destination": "/app/talent/:id",
+      "permanent": false
     }
   ]
 }
