@@ -869,6 +869,29 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
     // FIX (2026-08-13): Erstes Werk kann Orb-Stufe (3=has_content) triggern —
     // Cache invalidieren, sonst haengt der Orb bis zu 5 Min. auf altem Wert.
     invalidateOrbStageCache(userId);
+
+    // ── STORAGE-CLEANUP: Gelöschte Bilder aus Supabase Storage entfernen ──
+    // WORKS-EDIT-MEDIA-FIX (2026-08-31): Vergleicht alte images mit neuen,
+    // löscht verwaiste Dateien aus dem media-Bucket. Nur im Edit-Modus.
+    if (existingWork?.id) {
+      try {
+        const oldUrls = (Array.isArray(existingWork.images) ? existingWork.images : [])
+          .map(u => typeof u === 'object' ? (u.url || '') : u)
+          .filter(Boolean);
+        const newUrls = (form.images || []).map(img => img?.url || '').filter(Boolean);
+        const deletedUrls = oldUrls.filter(u => !newUrls.includes(u));
+        for (const url of deletedUrls) {
+          // URL → Storage Path: .../object/public/media/{path} → {path}
+          const match = url.match(/\/object\/public\/media\/(.+)$/);
+          if (match) {
+            await supabase.storage.from('media').remove([match[1]]);
+          }
+        }
+      } catch (e) {
+        console.warn('[WerkWizard] Storage cleanup failed (non-critical):', e?.message);
+      }
+    }
+
     // WERK-CRASH-FIX (2026-08-21): "onSave?.(saved)" wurde hier aufgerufen,
     // obwohl "onSave" NIE ein Prop von WerkWizard ist (Signatur oben nur
     // onClose/onSaved) — jeder Aufruf warf "ReferenceError: onSave is not
