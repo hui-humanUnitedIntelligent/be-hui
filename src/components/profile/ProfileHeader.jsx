@@ -237,7 +237,7 @@ export function ProfileHeader({
       <div style={{ background: T.bg, padding:"0 16px 20px" }}>
 
         <div style={{
-          display:"flex", alignItems:"stretch", gap:14,
+          display:"flex", alignItems:"stretch", gap:8,
           marginTop:-52,
         }}>
 
@@ -365,7 +365,7 @@ export function ProfileHeader({
           {/* ══ RECHTE SPALTE: Name + @nick oben | Kontaktdaten unten ══ */}
           <div style={{
             flex:1, minWidth:0,
-            paddingTop:58, paddingLeft: isSuperadmin ? 10 : 4,
+            paddingTop:58, paddingLeft: isSuperadmin ? 6 : 0,
             display:"flex", flexDirection:"column",
             justifyContent:"space-between",
             /* Unterkante Kontakt = Unterkante Follower auf linker Seite */
@@ -384,7 +384,7 @@ export function ProfileHeader({
                     tabIndex={canSwitchAccount ? 0 : undefined}
                     aria-label={canSwitchAccount ? (hasOrgs ? t("org.switcher.switchAccount") : t("org.switcher.addAccount")) : undefined}
                     style={{
-                      display:"flex", alignItems:"center",
+                      display:"flex", alignItems:"flex-start",
                       cursor: canSwitchAccount ? "pointer" : "default",
                       WebkitTapHighlightColor:"transparent",
                       minWidth:0,
@@ -393,6 +393,7 @@ export function ProfileHeader({
                     {canSwitchAccount && (
                       <span style={{
                         display:"flex", alignItems:"center", flexShrink:0,
+                        marginTop:2, /* optische Zentrierung zur 1. Namenszeile bei alignItems:flex-start */
                         color: T.teal /* HUI-Türkis statt Coral/Rot (Michael-Feedback 2026-08-31) */,
                       }}>
                         <HUIAccountSwitchIcon size={16}/>
@@ -401,8 +402,12 @@ export function ProfileHeader({
                     <span style={{
                       fontSize:19, fontWeight: 600, color:T.ink,
                       letterSpacing:"-0.025em", lineHeight:1.2,
-                      overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                      marginLeft: canSwitchAccount ? 15 : 0,
+                      overflowWrap:"break-word", wordBreak:"break-word", whiteSpace:"normal",
+                      marginLeft: canSwitchAccount ? 6 : 0,
+                      /* NAME-VISIBILITY-FIX (2026-08-31): kein nowrap/ellipsis mehr —
+                         lange Vereins-/Unternehmensnamen brechen jetzt um statt
+                         abgeschnitten zu werden ("Einer für alle, alle Fair(ein)t"
+                         muss vollständig sichtbar sein, nicht nur der Anfang). */
                     }}>
                       {name}
                     </span>
@@ -411,7 +416,7 @@ export function ProfileHeader({
                     <span style={{
                       fontSize:12.5, color:T.inkFaint, fontWeight:400,
                       lineHeight:1.2,
-                      marginLeft: canSwitchAccount ? 31 : 0, /* Icon-Breite(16) + Name-Shift(15) — Ausrichtung unter dem Namen */
+                      marginLeft: canSwitchAccount ? 22 : 0, /* Icon-Breite(16) + Name-Shift(6) — Ausrichtung unter dem Namen */
                     }}>
                       @{username}
                     </span>
