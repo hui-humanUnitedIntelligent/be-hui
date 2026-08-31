@@ -491,7 +491,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
       // (works.user_id → auth.users, kein FK zu profiles → kein JOIN möglich)
       const { data: w, error: wErr } = await supabase
         .from("works")
-        .select("id,title,description,cover_url,media_url,price,category,tags,status,approval_status,user_id,creator_id,likes_count,created_at,images,caption,location_text")
+        .select("id,title,description,cover_url,media_url,price,category,tags,status,approval_status,user_id,creator_id,likes_count,created_at,images,caption,location_text,for_sale,stock_available")
         .eq("id", id)
         .single();
 
@@ -601,6 +601,14 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   /* ── Data ──────────────────────────────────────────────────────── */
   const images      = getImages(werk);
   const priceStr    = fmtPrice(werk.price);
+  // WORK-SALE-STATUS-001 (2026-08-31, Michael-Bugreport): "Jetzt kaufen" ist
+  // irreführend wenn das Werk bereits verkauft ist. Gleiche SSOT-Logik wie
+  // WorkContent.jsx (Feed-Karte): for_sale=false ODER stock_available<=0
+  // (stock_available===null/undefined = kein Stock-Tracking, gilt NICHT als
+  // ausverkauft).
+  const forSale      = werk.for_sale;
+  const stockAvailRaw = werk.stock_available;
+  const isSoldOut    = forSale === false || (stockAvailRaw != null && stockAvailRaw <= 0);
   const displayName = creator?.display_name || creator?.username || "Unbekannter Creator";
   const username    = creator?.username || "hui-user";
   const avatarUrl   = creator?.avatar_url || null;
@@ -643,12 +651,21 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             letterSpacing:1.2, textTransform:"uppercase" }}>
             {werk.category ? translateCategory(werk.category, WERK_CAT_KEY_MAP, t) : t("entity.work")}
           </div>
-          {priceStr && (
-            <div style={{ fontSize:26, fontWeight: 600, color:C.ink,
-              letterSpacing:-0.5 }}>
-              {priceStr}
-            </div>
-          )}
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {isSoldOut && (
+              <div style={{ background:"rgba(26,26,46,0.82)", color:"#fff",
+                borderRadius:999, padding:"3px 10px", fontSize:11,
+                fontWeight:700 }}>
+                {t("common.sold")}
+              </div>
+            )}
+            {priceStr && (
+              <div style={{ fontSize:26, fontWeight: 600, color:C.ink,
+                letterSpacing:-0.5 }}>
+                {priceStr}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Title */}
@@ -890,6 +907,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
           </button>
           <button
             onClick={() => {
+              if (isSoldOut) return;
               const authorInfo = creator ? {
                 id: creator.id || werk.user_id || werk.creator_id,
                 name: creator.full_name || creator.display_name || creator.username || null,
@@ -898,14 +916,15 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
               const buyPayload = {...werk, img: images[0], price: priceStr, author: authorInfo};
               onBuyWerk ? onBuyWerk(buyPayload) : onBuyWerk?.(buyPayload);
             }}
-            className="wd-tap"
+            disabled={isSoldOut}
+            className={isSoldOut ? "" : "wd-tap"}
             style={{ flex:2, padding:"14px",
-              background:`linear-gradient(135deg,${C.coral},${C.coral2})`,
-              border:"none", borderRadius:16, color:"white",
-              fontSize:14, fontWeight: 600, cursor:"pointer",
+              background: isSoldOut ? "rgba(26,26,46,0.12)" : `linear-gradient(135deg,${C.coral},${C.coral2})`,
+              border:"none", borderRadius:16, color: isSoldOut ? "rgba(26,26,46,0.45)" : "white",
+              fontSize:14, fontWeight: 600, cursor: isSoldOut ? "default" : "pointer",
               fontFamily:"inherit",
-              boxShadow:`0 4px 18px ${C.coralGlow}` }}>
-            Jetzt kaufen ✦
+              boxShadow: isSoldOut ? "none" : `0 4px 18px ${C.coralGlow}` }}>
+            {isSoldOut ? t("common.sold") : "Jetzt kaufen ✦"}
           </button>
         </div>
 
