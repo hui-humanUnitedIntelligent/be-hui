@@ -93,8 +93,8 @@ export function AuthProvider({ children }) {
         setProfile(prof);
         // is_talent wird direkt aus prof geladen — kein localStorage nötig
         // Multi-Account: Org-Profile dieses Users laden
-        const orgs = await loadOrgProfiles(userId);
-        setOrgProfiles(orgs);
+        // (setzt orgProfiles-State bereits selbst, siehe loadOrgProfiles)
+        await loadOrgProfiles(userId);
       }
     } catch (e) {
       console.warn("[HUI] loadProfile:", e.message);
@@ -122,6 +122,11 @@ export function AuthProvider({ children }) {
         console.warn('[HUI] loadOrgProfiles:', error.message);
         return [];
       }
+      // SSOT-FIX (2026-08-31): State IMMER hier setzen, nicht nur beim
+      // Aufruf aus loadProfile() -- sonst zeigt der AccountSwitcher nach
+      // OrgProfileCreateFlow.handleCreate() weiterhin die alte (leere)
+      // Liste, weil der State-Update dort fehlte.
+      setOrgProfiles(data || []);
       return data || [];
     } catch (e) {
       console.warn('[HUI] loadOrgProfiles exception:', e.message);
