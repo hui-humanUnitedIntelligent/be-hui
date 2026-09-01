@@ -87,7 +87,10 @@ export default function AuthCallback() {
 
               const hash = `#access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}&expires_in=${expiresIn}&token_type=${tokenType}&type=${otpTypeVal}`
               const v = Date.now()
-              window.location.replace(`${WEB_APP_ORIGIN}/app/Home${hash}&v=${v}`)
+              // FIX (2026-09-01, INC-004 Nebenfix): Query-Param MUSS vor dem Hash stehen —
+              // vorher landete "&v=..." fälschlich IM Hash-Fragment (harmlos für Supabase's
+              // URLSearchParams-Parsing, aber semantisch falsch für einen Cache-Buster).
+              window.location.replace(`${WEB_APP_ORIGIN}/app/Home?v=${v}${hash}`)
             }
           }, 800)
         } else {
