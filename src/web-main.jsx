@@ -33,6 +33,43 @@ try { initGlobalKeyboardHandling(); } catch (e) { console.error('[HUI] KB init f
 // ── Error Reporting System (Punkt 1-8) ────────────────────────────
 try { initErrorReporting(); } catch (e) { console.error('[HUI] ErrorReporter init failed:', e); }
 
+// ── Normalize bare /auth/callback Pfad (FIX INC-005, 2026-09-01) ──────────────
+// ROOT CAUSE (verifiziert per Live-Browser-Test, kein Raten):
+// E-Mail-Bestätigungslinks zeigen ABSICHTLICH auf bare `/auth/callback`
+// (OHNE /app-Prefix) — das ist ERFORDERLICH für Android App Links: der
+// AndroidManifest.xml intent-filter matched den gesamten Host ohne
+// Pfad-Einschränkung, und AppLinkHandler.jsx's ROUTE_PREFIXES sowie der
+// native App.jsx-Router (<BrowserRouter> OHNE basename) erwarten exakt
+// diesen bare Pfad. Native funktioniert also korrekt.
+//
+// Der WEB-Router (WebApp.jsx) läuft aber mit <BrowserRouter basename="/app">
+// — Routes matchen dort NUR unter /app/*. Ein Browser der auf
+// https://www.be-hui.app/auth/callback?token_hash=...&type=signup landet
+// matched daher KEINE Route (weder AuthCallback noch irgendeine andere) →
+// React Router rendert nichts (kein Crash, kein Error-Event) → #web-root
+// bleibt komplett leer → WhiteScreenGuard (web.html) zeigt nach 5s die
+// irreführende "Lade-Fehler / __HUI_DIAG__ is undefined" Meldung, obwohl
+// die App fehlerfrei lief — sie hat nur nie eine Route gematcht.
+// (Verifiziert: identischer Fehler live reproduziert mit echtem, per Admin-
+// API generiertem token_hash auf bare /auth/callback; derselbe token_hash-
+// Typ auf /app/auth/callback lädt den Home-Feed korrekt und fehlerfrei.)
+//
+// FIX: Bare /auth/callback wird VOR dem Router-Mount per history.replaceState
+// zu /app/auth/callback normalisiert (Query-String bleibt erhalten). Der
+// native Build importiert diese Datei nicht (eigener Entry main.jsx/App.jsx)
+// — Android bleibt unverändert und funktioniert weiterhin wie in INC-003 fixiert.
+function normalizeBareAuthCallbackPath() {
+  try {
+    if (window.location.pathname === '/auth/callback') {
+      const newUrl = '/app/auth/callback' + window.location.search + window.location.hash;
+      window.history.replaceState(null, '', newUrl);
+    }
+  } catch (e) {
+    console.error('[HUI] normalizeBareAuthCallbackPath failed:', e);
+  }
+}
+try { normalizeBareAuthCallbackPath(); } catch (e) { console.error('[HUI] normalizeBareAuthCallbackPath crashed:', e); }
+
 // ── Session-Restore aus Cross-Domain-Redirect-Hash (FIX INC-004, 2026-09-01) ──
 // ROOT CAUSE: AuthCallback.jsx (be-hui.vercel.app) übergibt die Session nach
 // erfolgreicher Bestätigung als URL-Hash (#access_token=...&refresh_token=...)
