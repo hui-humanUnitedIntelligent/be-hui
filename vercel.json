@@ -94,6 +94,10 @@
       "destination": "/api/og?path=/work/:id"
     },
     {
+      "source": "/auth/callback",
+      "destination": "/web.html"
+    },
+    {
       "source": "/app(.*)",
       "destination": "/web.html"
     },

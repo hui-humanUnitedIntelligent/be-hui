@@ -1,21 +1,36 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
+import { Capacitor } from '@capacitor/core'
 import { platformPath } from '../lib/platform.js'
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AuthCallback.jsx — Bestätigungslink-Verarbeitung (Web + Mobile)
+// ══════════════════════════════════════════════════════════════════════════════
+//
+// WIRD AUFGERUFEN bei:
+//   - /auth/callback?token_hash=...&type=signup (Mobile App Link)
+//   - /app/auth/callback?token_hash=...&type=signup (Web SPA)
+//   - /auth/callback?token_hash=...&type=signup (Desktop-Browser via vercel.json Rewrite)
+//
+// SICHERHEITSFIX (2026-09-01, INC-003): Confirm-Links zeigen auf unsere eigene
+// Domain (be-hui.vercel.app/auth/callback) statt auf Supabase /auth/v1/verify,
+// damit Android App Links greifen (nur eigene Domain → Auto-Verify).
+// Diese Seite verifiziert den Token client-seitig via supabase.auth.verifyOtp().
+//
+// WEB-FIX (2026-09-01): Desktop-Browser ohne installierte App landen hier
+// statt auf 404. Nach Verifizierung wird zur Web-App (/app/Home) weitergeleitet.
+// Im Fehlerfall: klare Meldung + "Neuen Link anfordern"-Option.
+// ══════════════════════════════════════════════════════════════════════════════
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=85'
 
 export default function AuthCallback() {
   const [status, setStatus] = useState('checking') // 'checking' | 'success' | 'error'
+  const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
     ;(async () => {
       try {
-        // SICHERHEITSFIX (2026-09-01, INC-003): Confirm-Links zeigen jetzt direkt auf
-        // diese Seite mit token_hash+type als Query-Params (statt vorher: Supabase
-        // /auth/v1/verify-Endpoint macht Redirect mit Session im URL-Hash). Grund:
-        // Android App Links greifen nur, wenn die initial angetippte URL schon auf
-        // unserer eigenen Domain liegt (siehe send-auth-email/index.ts INC-003-Kommentar).
-        // Diese Seite verifiziert den Token jetzt selbst client-seitig.
         const params = new URLSearchParams(window.location.search)
         const tokenHash = params.get('token_hash')
         const otpType = params.get('type')
@@ -31,9 +46,7 @@ export default function AuthCallback() {
           session = data?.session || null
         }
 
-        // Fallback: alte Hash-basierte Flows (z.B. OAuth-Redirects), falls kein
-        // token_hash in den Query-Params steckt — supabase-js liest Session
-        // automatisch aus dem URL-Hash.
+        // Fallback: alte Hash-basierte Flows (z.B. OAuth-Redirects)
         if (!session) {
           const { data: { session: hashSession } } = await supabase.auth.getSession()
           session = hashSession
@@ -42,29 +55,58 @@ export default function AuthCallback() {
         if (session) {
           setStatus('success')
           setTimeout(() => {
-            // Hard-Reload nach Login — verhindert Stale-Asset-Fehler nach Deployments
-            try {
-              const v = Date.now();
-              window.location.replace(platformPath('/Home') + '?v=' + v);
-            } catch (_) {
-              window.location.href = platformPath('/Home');
+            const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform?.()
+            if (isNative) {
+              // Mobile App: /Home (kein /app Prefix)
+              try {
+                const v = Date.now()
+                window.location.replace(platformPath('/Home') + '?v=' + v)
+              } catch (_) {
+                window.location.href = platformPath('/Home')
+              }
+            } else {
+              // Web-Browser (Desktop oder Mobile): /app/Home auf aktueller Domain
+              try {
+                const v = Date.now()
+                window.location.replace('/app/Home?v=' + v)
+              } catch (_) {
+                window.location.href = '/app/Home'
+              }
             }
           }, 800)
         } else {
+          setErrorMsg('Keine aktive Session gefunden.')
           setStatus('error')
-          setTimeout(() => { window.location.href = platformPath('/login') }, 1500)
         }
-      } catch {
+      } catch (err) {
+        // Klare Fehlermeldung je nach Typ
+        let msg = 'Der Bestätigungslink ist ungültig oder abgelaufen.'
+        if (err?.message?.includes('expired')) {
+          msg = 'Der Bestätigungslink ist abgelaufen.'
+        } else if (err?.message?.includes('invalid') || err?.message?.includes('Token not found')) {
+          msg = 'Der Bestätigungslink ist ungültig.'
+        } else if (err?.message?.includes('already been used')) {
+          msg = 'Dieser Link wurde bereits verwendet.'
+        }
+        setErrorMsg(msg)
         setStatus('error')
-        setTimeout(() => { window.location.href = platformPath('/login') }, 1500)
       }
     })()
   }, [])
 
+  const handleRequestNewLink = () => {
+    const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform?.()
+    if (isNative) {
+      window.location.href = platformPath('/login')
+    } else {
+      window.location.href = '/app/login'
+    }
+  }
+
   const messages = {
-    checking: { icon: '✦', text: 'Einen Moment…' },
+    checking: { icon: '', text: 'Einen Moment…' },
     success:  { icon: '✓',  text: 'Willkommen zurück.' },
-    error:    { icon: '○',  text: 'Weiterleitung…' },
+    error:    { icon: '✕',  text: 'Verifizierung fehlgeschlagen' },
   }
 
   const msg = messages[status]
@@ -89,6 +131,7 @@ export default function AuthCallback() {
         position: 'relative', zIndex: 1,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
         animation: 'hui-cb-fade 600ms ease forwards',
+        maxWidth: 380, padding: '0 24px',
       }}>
         <style>{`
           @keyframes hui-cb-fade { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -104,7 +147,7 @@ export default function AuthCallback() {
           animation: status === 'checking' ? 'hui-cb-spin 1s linear infinite' : 'none',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: status === 'checking' ? 0 : 22,
-          color: status === 'success' ? '#16D7C5' : 'rgba(255,255,255,0.5)',
+          color: status === 'success' ? '#16D7C5' : status === 'error' ? '#ff6b6b' : 'rgba(255,255,255,0.5)',
           transition: 'all 400ms ease',
         }}>
           {status !== 'checking' && msg.icon}
@@ -113,9 +156,42 @@ export default function AuthCallback() {
         <div style={{
           fontSize: 16, color: 'rgba(255,255,255,0.75)',
           letterSpacing: '-0.02em', fontWeight: 400,
+          textAlign: 'center',
         }}>
           {msg.text}
         </div>
+
+        {/* Error message + retry button */}
+        {status === 'error' && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16,
+            marginTop: 8,
+          }}>
+            <div style={{
+              fontSize: 14, color: 'rgba(255,255,255,0.55)',
+              textAlign: 'center', lineHeight: 1.5,
+            }}>
+              {errorMsg}
+            </div>
+            <button
+              onClick={handleRequestNewLink}
+              style={{
+                padding: '12px 28px',
+                background: 'rgba(22,215,197,0.15)',
+                border: '1px solid rgba(22,215,197,0.4)',
+                borderRadius: 10,
+                color: '#16D7C5',
+                fontSize: 14, fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(22,215,197,0.25)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(22,215,197,0.15)'}
+            >
+              Neuen Bestätigungslink anfordern
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
