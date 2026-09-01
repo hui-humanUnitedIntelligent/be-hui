@@ -95,6 +95,23 @@ const CONTENT: Record<string, Record<Lang, EmailContentEntry>> = {
     pt: { subject: "Confirma a alteração de e-mail HUI", heading: "Confirma o novo endereço de e-mail", body: "Confirma o teu novo endereço de e-mail para a tua conta HUI ({oldEmail} → {newEmail}).", button: "Confirmar e-mail" },
     sq: { subject: "Konfirmo ndryshimin e email-it HUI", heading: "Konfirmo adresën e re të email-it", body: "Konfirmo adresën tënde të re të email-it për llogarinë HUI ({oldEmail} → {newEmail}).", button: "Konfirmo email-in" },
   },
+  // INC-006 FIX (2026-09-01): GoTrue sendet bei email_change den Typ "email_change"
+  // (NICHT "email_change_current" / "email_change_new" — diese werden nur bei
+  // secure_email_change mit dem eingebauten Mailer verwendet). Mit aktivem Custom
+  // Hook sendet GoTrue IMMER "email_change" als email_action_type, unabhaengig
+  // von der secure_email_change Einstellung. Ohne diesen Eintrag returnierte die
+  // Function HTTP 400 ("Unknown email type") → GoTrue returnierte 500
+  // "Invalid payload sent to hook" → kein Mail-Versand, kein State-Update.
+  email_change: {
+    de: { subject: "HUI E-Mail-Änderung bestätigen", heading: "Neue E-Mail-Adresse bestätigen", body: "Bestätige deine neue E-Mail-Adresse für dein HUI-Konto ({oldEmail} → {newEmail}).", button: "E-Mail bestätigen" },
+    en: { subject: "Confirm your HUI email change", heading: "Confirm new email address", body: "Confirm your new email address for your HUI account ({oldEmail} → {newEmail}).", button: "Confirm email" },
+    es: { subject: "Confirma el cambio de correo de HUI", heading: "Confirma la nueva dirección de correo", body: "Confirma tu nueva dirección de correo para tu cuenta de HUI ({oldEmail} → {newEmail}).", button: "Confirmar correo" },
+    fr: { subject: "Confirme le changement d'e-mail HUI", heading: "Confirme la nouvelle adresse e-mail", body: "Confirme ta nouvelle adresse e-mail pour ton compte HUI ({oldEmail} → {newEmail}).", button: "Confirmer l'e-mail" },
+    it: { subject: "Confermi la modifica dell'email HUI", heading: "Confermi il nuovo indirizzo email", body: "Confermi il tuo nuovo indirizzo email per il tuo account HUI ({oldEmail} → {newEmail}).", button: "Confermare l'email" },
+    tr: { subject: "HUI e-posta değişikliğini onayla", heading: "Yeni e-posta adresini onayla", body: "HUI hesabın için yeni e-posta adresini onayla ({oldEmail} → {newEmail}).", button: "E-postayı onayla" },
+    pt: { subject: "Confirma a alteração de e-mail HUI", heading: "Confirma o novo endereço de e-mail", body: "Confirma o teu novo endereço de e-mail para a tua conta HUI ({oldEmail} → {newEmail}).", button: "Confirmar e-mail" },
+    sq: { subject: "Konfirmo ndryshimin e email-it HUI", heading: "Konfirmo adresën e re të email-it", body: "Konfirmo adresën tënde të re të email-it për llogarinë HUI ({oldEmail} → {newEmail}).", button: "Konfirmo email-in" },
+  },
   password_changed_notification: {
     de: { subject: "HUI: Dein Passwort wurde geändert", heading: "Dein Passwort wurde geändert", body: "Wir bestätigen, dass das Passwort für dein HUI-Konto {email} soeben geändert wurde.", body2: "Warst das nicht du? Dann kontaktiere umgehend unseren Support unter support@be-hui.com, damit wir dein Konto schützen können." },
     en: { subject: "HUI: Your password was changed", heading: "Your password was changed", body: "We confirm that the password for your HUI account {email} was just changed.", body2: "Wasn't you? Please contact our support immediately at support@be-hui.com so we can secure your account." },
@@ -335,56 +352,74 @@ Deno.serve(async (req) => {
     }
 
     const entry = contentMap[lang];
-
-    // SICHERHEITSFIX (2026-09-01, INC-003): Confirm-Link zeigt jetzt DIREKT auf
-    // unsere eigene Domain (.../auth/callback?token_hash=...&type=...) statt auf
-    // den Supabase /auth/v1/verify-Endpoint. Grund: Android App Links (siehe
-    // public/.well-known/assetlinks.json + AndroidManifest.xml intent-filter)
-    // greifen NUR, wenn die vom Nutzer initial angetippte URL bereits auf einer
-    // fuer die App verifizierten Domain liegt. Ein Tap auf einen Supabase-Link
-    // (gxztrhvhcxhmunhhkfjd.supabase.co) wird von Android niemals als App-Link
-    // erkannt — der anschliessende HTTP-Redirect zu redirect_to passiert intern
-    // im Browser-Tab und loest KEIN neues Android-Intent aus, das die App oeffnen
-    // koennte. AuthCallback.jsx verifiziert token_hash+type jetzt selbst
-    // client-seitig via supabase.auth.verifyOtp() (offizielles Supabase-Muster
-    // fuer Mobile-Deep-Links), statt sich auf Supabase's serverseitigen
-    // Verify+Redirect-Flow zu verlassen.
     const verifyType = toVerifyType(type);
     let callbackBase = redirectTo.replace(/\/+$/, "");
     if (!/\/auth\/callback$/.test(callbackBase)) {
       callbackBase = `${callbackBase}/auth/callback`;
     }
-    const confirmLink = `${callbackBase}?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(verifyType)}`;
 
-    // HTML bauen
-    let html = buildHTML(entry, lang, type, confirmLink, token);
+    // INC-006 FIX (2026-09-01): Bei email_change mit secure_email_change=True
+    // sendet GoTrue EINEN Hook-Call mit ZWEI Token-Saetzen:
+    //   token/token_hash       -> fuer Bestaetigung der ALTEN E-Mail-Adresse
+    //   token_new/token_hash_new -> fuer Bestaetigung der NEUEN E-Mail-Adresse
+    // Der Hook muss BEIDE Mails versenden. Payload-Beleg (function_logs):
+    //   user.email = alte Adresse, user.new_email = neue Adresse
+    //   email_data.token_hash + email_data.token_hash_new beide vorhanden
+    const isSecureEmailChange = type === "email_change" && !!(emailData.token_hash_new || emailData.token_new);
+    const currentEmail = user.email || "";
+    const userNewEmail = ((user as Record<string, unknown>).new_email as string) || "";
 
-    // Verbleibende Text-Platzhalter ersetzen (Body/Body2 können {email} etc. enthalten)
-    html = html
-      .replace(/\{email\}/g, email)
-      .replace(/\{oldEmail\}/g, oldEmail)
-      .replace(/\{newEmail\}/g, newEmail);
-
-    // Subject
-    let subject = entry.subject
-      .replace(/\{email\}/g, email)
-      .replace(/\{oldEmail\}/g, oldEmail)
-      .replace(/\{newEmail\}/g, newEmail);
-
-    // FIX Root Cause 1: Die Mail wird jetzt AKTIV über Resend versendet — nicht nur
-    // HTML zurückgegeben, das ins Leere läuft. Der Send-Email-Hook-Vertrag verlangt,
-    // dass der Hook den Versand SELBST übernimmt.
-    const sendResult = await sendViaResend(email, subject, html);
-
-    if (!sendResult.ok) {
-      console.error(`[send-auth-email] Resend send FAILED für ${email} (type=${type}): ${sendResult.error}`);
-      return new Response(JSON.stringify({ error: { http_code: 500, message: `E-Mail-Versand fehlgeschlagen: ${sendResult.error}` } }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Helper: eine einzelne Mail bauen + senden
+    async function sendOne(
+      recipient: string, tokHash: string, tok: string,
+      ctxOldEmail: string, ctxNewEmail: string
+    ): Promise<{ ok: boolean; id?: string; error?: string }> {
+      const link = `${callbackBase}?token_hash=${encodeURIComponent(tokHash)}&type=${encodeURIComponent(verifyType)}`;
+      let h = buildHTML(entry, lang, type, link, tok);
+      h = h.replace(/\{email\}/g, ctxNewEmail || recipient).replace(/\{oldEmail\}/g, ctxOldEmail).replace(/\{newEmail\}/g, ctxNewEmail);
+      let subj = entry.subject.replace(/\{email\}/g, ctxNewEmail || recipient).replace(/\{oldEmail\}/g, ctxOldEmail).replace(/\{newEmail\}/g, ctxNewEmail);
+      return sendViaResend(recipient, subj, h);
     }
 
-    console.log(`[send-auth-email] OK: ${email} (type=${type}, lang=${lang}, resend_id=${sendResult.id})`);
+    if (isSecureEmailChange && userNewEmail) {
+      // 1. Mail an ALTE Adresse mit token_hash
+      const tokenHashOld = emailData.token_hash || tokenHash;
+      const result1 = await sendOne(currentEmail, tokenHashOld, token, currentEmail, userNewEmail);
+      if (!result1.ok) {
+        console.error(`[send-auth-email] Resend send FAILED (old) for ${currentEmail} (type=${type}): ${result1.error}`);
+        return new Response(JSON.stringify({ error: { http_code: 500, message: `E-Mail-Versand fehlgeschlagen (alt): ${result1.error}` } }), {
+          status: 500, headers: { "Content-Type": "application/json" },
+        });
+      }
+      console.log(`[send-auth-email] OK (old): ${currentEmail} (type=${type}, lang=${lang}, resend_id=${result1.id})`);
+
+      // 2. Mail an NEUE Adresse mit token_hash_new
+      const tokenHashNew = emailData.token_hash_new || "";
+      const tokenNew = emailData.token_new || "";
+      const result2 = await sendOne(userNewEmail, tokenHashNew, tokenNew, currentEmail, userNewEmail);
+      if (!result2.ok) {
+        console.error(`[send-auth-email] Resend send FAILED (new) for ${userNewEmail} (type=${type}): ${result2.error}`);
+        return new Response(JSON.stringify({ error: { http_code: 500, message: `E-Mail-Versand fehlgeschlagen (neu): ${result2.error}` } }), {
+          status: 500, headers: { "Content-Type": "application/json" },
+        });
+      }
+      console.log(`[send-auth-email] OK (new): ${userNewEmail} (type=${type}, lang=${lang}, resend_id=${result2.id})`);
+    } else {
+      // Single email (signup, recovery, invite, etc.)
+      const confirmLink = `${callbackBase}?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(verifyType)}`;
+      let html = buildHTML(entry, lang, type, confirmLink, token);
+      html = html.replace(/\{email\}/g, email).replace(/\{oldEmail\}/g, oldEmail).replace(/\{newEmail\}/g, newEmail);
+      let subject = entry.subject.replace(/\{email\}/g, email).replace(/\{oldEmail\}/g, oldEmail).replace(/\{newEmail\}/g, newEmail);
+
+      const sendResult = await sendViaResend(email, subject, html);
+      if (!sendResult.ok) {
+        console.error(`[send-auth-email] Resend send FAILED for ${email} (type=${type}): ${sendResult.error}`);
+        return new Response(JSON.stringify({ error: { http_code: 500, message: `E-Mail-Versand fehlgeschlagen: ${sendResult.error}` } }), {
+          status: 500, headers: { "Content-Type": "application/json" },
+        });
+      }
+      console.log(`[send-auth-email] OK: ${email} (type=${type}, lang=${lang}, resend_id=${sendResult.id})`);
+    }
 
     // Erfolgs-Antwort (Hook-Vertrag: leerer Body / 200 = Hook erfolgreich)
     return new Response(JSON.stringify({}), {
