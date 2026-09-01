@@ -71,10 +71,26 @@ async function restoreSessionFromHashIfPresent() {
 
     if (!accessToken || !refreshToken) return;
 
-    const { error } = await supabase.auth.setSession({
+    window.__HUI_DEBUG__ = { step: 'before setSession', tokenLen: accessToken.length };
+    const { data: ssData, error } = await supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken,
     });
+    window.__HUI_DEBUG__.step = 'after setSession';
+    window.__HUI_DEBUG__.error = error ? error.message : 'none';
+    window.__HUI_DEBUG__.hasSession = !!(ssData && ssData.session);
+    // Verify session is in localStorage
+    try {
+      const stored = localStorage.getItem('hui-auth-token');
+      window.__HUI_DEBUG__.localStorageHasSession = !!stored;
+      window.__HUI_DEBUG__.localStorageParsed = stored ? JSON.parse(stored) : null;
+    } catch(e) { window.__HUI_DEBUG__.localStorageError = e.message; }
+    // Show visible debug
+    var dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#ff0;color:#000;padding:8px;font-size:11px;font-family:monospace;white-space:pre-wrap;max-height:300px;overflow:auto';
+    dbg.textContent = JSON.stringify(window.__HUI_DEBUG__, null, 2);
+    document.body.appendChild(dbg);
+    setTimeout(function(){ dbg.remove(); }, 15000);
     if (error) {
       console.error('[HUI] Session-Restore aus Hash fehlgeschlagen:', error.message);
       try {
