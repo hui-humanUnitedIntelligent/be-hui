@@ -8,9 +8,8 @@ import { platformPath } from '../lib/platform.js'
 // ══════════════════════════════════════════════════════════════════════════════
 //
 // WIRD AUFGERUFEN bei:
-//   - /auth/callback?token_hash=...&type=signup (Mobile App Link)
-//   - /app/auth/callback?token_hash=...&type=signup (Web SPA)
-//   - /auth/callback?token_hash=...&type=signup (Desktop-Browser via vercel.json Rewrite)
+//   - /auth/callback?token_hash=...&type=signup (Mobile App Link / Desktop-Browser)
+//   - /app/auth/callback?token_hash=...&type=signup (Web SPA direkt)
 //
 // SICHERHEITSFIX (2026-09-01, INC-003): Confirm-Links zeigen auf unsere eigene
 // Domain (be-hui.vercel.app/auth/callback) statt auf Supabase /auth/v1/verify,
@@ -18,11 +17,24 @@ import { platformPath } from '../lib/platform.js'
 // Diese Seite verifiziert den Token client-seitig via supabase.auth.verifyOtp().
 //
 // WEB-FIX (2026-09-01): Desktop-Browser ohne installierte App landen hier
-// statt auf 404. Nach Verifizierung wird zur Web-App (/app/Home) weitergeleitet.
-// Im Fehlerfall: klare Meldung + "Neuen Link anfordern"-Option.
+// statt auf 404. Nach Verifizierung wird zur Web-App auf www.be-hui.app
+// weitergeleitet. Da localStorage per-Origin ist (Session auf be-hui.vercel.app
+// ist nicht auf www.be-hui.app verfügbar), werden die Tokens im URL-Hash
+// übergeben (#access_token=...&refresh_token=...). Der Supabase-Client auf
+// www.be-hui.app hat detectSessionInUrl:true und stellt die Session automatisch
+// wieder her — gleicher Mechanismus wie bei OAuth-Redirects.
+//
+// Fallback: Falls der Hash nicht erkannt wird (z.B. PKCE-Modus), landet der
+// Nutzer auf www.be-hui.app/app/Home ohne Session → AuthContext leitet zum
+// Login weiter. Kein White-Screen.
+//
+// Mobile (Android App Link): Unverändert. Capacitor.isNativePlatform() → /Home.
 // ══════════════════════════════════════════════════════════════════════════════
 
 const BG = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=85'
+
+// Kanonische Web-App-Domain — Custom Domain in Vercel verifiziert
+const WEB_APP_ORIGIN = 'https://www.be-hui.app'
 
 export default function AuthCallback() {
   const [status, setStatus] = useState('checking') // 'checking' | 'success' | 'error'
@@ -57,7 +69,7 @@ export default function AuthCallback() {
           setTimeout(() => {
             const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform?.()
             if (isNative) {
-              // Mobile App: /Home (kein /app Prefix)
+              // Mobile App: /Home (kein /app Prefix, gleiche Domain)
               try {
                 const v = Date.now()
                 window.location.replace(platformPath('/Home') + '?v=' + v)
@@ -65,13 +77,17 @@ export default function AuthCallback() {
                 window.location.href = platformPath('/Home')
               }
             } else {
-              // Web-Browser (Desktop oder Mobile): /app/Home auf aktueller Domain
-              try {
-                const v = Date.now()
-                window.location.replace('/app/Home?v=' + v)
-              } catch (_) {
-                window.location.href = '/app/Home'
-              }
+              // Web-Browser: Redirect zu www.be-hui.app/app/Home
+              // Session im URL-Hash übergeben (localStorage ist per-Origin)
+              const accessToken = session.access_token || ''
+              const refreshToken = session.refresh_token || ''
+              const expiresIn = session.expires_in || 3600
+              const tokenType = session.token_type || 'bearer'
+              const otpTypeVal = otpType || 'signup'
+
+              const hash = `#access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}&expires_in=${expiresIn}&token_type=${tokenType}&type=${otpTypeVal}`
+              const v = Date.now()
+              window.location.replace(`${WEB_APP_ORIGIN}/app/Home${hash}&v=${v}`)
             }
           }, 800)
         } else {
@@ -79,7 +95,6 @@ export default function AuthCallback() {
           setStatus('error')
         }
       } catch (err) {
-        // Klare Fehlermeldung je nach Typ
         let msg = 'Der Bestätigungslink ist ungültig oder abgelaufen.'
         if (err?.message?.includes('expired')) {
           msg = 'Der Bestätigungslink ist abgelaufen.'
@@ -99,7 +114,7 @@ export default function AuthCallback() {
     if (isNative) {
       window.location.href = platformPath('/login')
     } else {
-      window.location.href = '/app/login'
+      window.location.href = `${WEB_APP_ORIGIN}/app/login`
     }
   }
 
