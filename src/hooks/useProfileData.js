@@ -20,7 +20,14 @@ const PROFILE_SELECT_PRIVATE = PROFILE_SELECT_PUBLIC;
 
 const WORKS_SELECT =
   "id,user_id,title,cover_url,thumbnail_url,category,status," +
-  "approval_status,price,for_sale,visibility,created_at";
+  "approval_status,price,for_sale,visibility,created_at," +
+  // WORKS-EDIT-IMAGES-FIX (2026-09-01): images + alle Felder die der
+  // WerkWizard im Edit-Modus aus existingWork liest. Ohne images im
+  // SELECT ist existingWork.images=undefined → Wizard fällt auf
+  // cover_url (1 Bild) zurück, alle weiteren Bilder gehen verloren.
+  // Root Cause der wiederkehrenden "nur 1 Bild im Edit"-Regression.
+  "images,caption,description,tags,file_format,is_unique," +
+  "stock_total,stock_available,location_text,lat,lng";
 
 // ERLEBNIS-INFO-FIX (2026-08-15, Michael-Report — Screenshot "Versteckis mit
 // Hunden"): "Uhrzeit fehlt, füge alles Informative hinzu". ROOT CAUSE: Diese
@@ -34,7 +41,11 @@ const EXPERIENCES_SELECT =
   "id,user_id,title,cover_url,thumbnail_url,category,date,status," +
   "approval_status,visibility,format,location_text,price,duration,created_at," +
   "caption,description,time_start,time_end,meeting_point,spots_available," +
-  "max_participants,currency,price_per,registration_required";
+  "max_participants,currency,price_per,registration_required," +
+  // WORKS-EDIT-IMAGES-FIX (2026-09-01): gleicher Bug wie WORKS_SELECT —
+  // ExperienceWizard liest images aus existingExp. Ohne images im SELECT
+  // zeigt der Edit-Modus nur cover_url statt aller hochgeladenen Bilder.
+  "images,experience_type,rejection_reason";
 
 const RECOMMENDATIONS_SELECT =
   "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at,is_positive";
