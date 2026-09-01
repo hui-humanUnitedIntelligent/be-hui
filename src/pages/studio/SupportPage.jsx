@@ -44,7 +44,7 @@ function generateTicketNumber() {
 }
 
 export default function SupportPage({ onBack, userId, userEmail, userName }) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [step,      setStep]      = useState("form"); // form | success
   const [category,  setCategory]  = useState(null);
   const [form,      setForm]      = useState({
@@ -129,6 +129,29 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
       });
 
       if (error) throw error;
+
+      // Bestätigungsmail an Nutzer senden (non-blocking — Ticket ist bereits in DB)
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-ticket-confirmation`, {
+          method:  "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${session?.access_token ?? ""}`,
+          },
+          body: JSON.stringify({
+            email:        form.email.trim(),
+            name:         form.name.trim(),
+            ticketNumber: tn,
+            subject:      form.subject.trim(),
+            message:      form.message.trim(),
+            lang,
+          }),
+        });
+      } catch (mailErr) {
+        console.warn("[SupportPage] send-ticket-confirmation (non-blocking):", mailErr);
+      }
+
       setTicketNr(tn);
       setStep("success");
     } catch {
