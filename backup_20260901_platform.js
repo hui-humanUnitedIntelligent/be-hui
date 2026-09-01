@@ -18,12 +18,6 @@
 //   - Keine Änderung am Verhalten der Mobile-App.
 // ══════════════════════════════════════════════════════════════════════════════
 
-import { Capacitor } from '@capacitor/core';
-
-// Kanonische Produktions-Domain — steht in der Supabase Auth Redirect-Allowlist
-// (siehe Supabase Dashboard → Auth → URL Configuration).
-const PRODUCTION_ORIGIN = 'https://be-hui.vercel.app';
-
 /**
  * Gibt '/app' zurück wenn der Benutzer auf der Web-Plattform ist, sonst ''.
  * Wird als Prefix für alle Pfad-Angaben verwendet.
@@ -51,23 +45,10 @@ export function platformPath(path) {
 
 /**
  * Gibt die vollständige Redirect-URL für Supabase Auth zurück.
- *
- * SICHERHEITSFIX (2026-09-01, INC-003): Innerhalb der nativen Android-App
- * (Capacitor WebView, androidScheme:"https", kein server.hostname gesetzt)
- * ist window.location.origin IMMER 'https://localhost' — eine URL, die
- * NICHT in der Supabase Redirect-Allowlist steht. Supabase ignoriert dann
- * emailRedirectTo lautlos und faellt auf die nackte Site-URL zurueck
- * (https://be-hui.vercel.app/, ohne /auth/callback-Pfad) — der
- * Bestaetigungslink landete dadurch immer auf der Marketing-Landingpage
- * im Browser statt in der App. FIX: Auf nativen Plattformen wird IMMER
- * die echte Produktions-Domain verwendet, nie window.location.origin.
- *
  * @example
- *   getAuthRedirectUrl() // → 'https://be-hui.vercel.app/app/auth/callback' (Web-Browser)
- *                       // → 'https://be-hui.vercel.app/auth/callback' (Mobile-App, nativ)
+ *   getAuthRedirectUrl() // → 'https://be-hui.vercel.app/app/auth/callback' (Web)
+ *                       // → 'https://be-hui.vercel.app/auth/callback' (Mobile)
  */
 export function getAuthRedirectUrl() {
-  const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform?.();
-  const origin = isNative ? PRODUCTION_ORIGIN : window.location.origin;
-  return origin + platformPath('/auth/callback');
+  return window.location.origin + platformPath('/auth/callback');
 }

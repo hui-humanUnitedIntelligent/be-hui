@@ -364,19 +364,7 @@ export function AuthProvider({ children }) {
 
   // ── Actions ──────────────────────────────────────────────────────
   const signUp = useCallback(async (email, password, fullName) => {
-    // BUGFIX (2026-09-01, INC-003): emailRedirectTo fehlte hier komplett —
-    // Supabase fiel dadurch auf den nackten Site-URL-Fallback zurueck
-    // (https://be-hui.vercel.app/, ohne /auth/callback-Pfad). Der
-    // Bestaetigungslink landete dadurch immer im Browser auf der
-    // Landingpage statt in der App. AuthGate.jsx (Quick-Signup-Modal)
-    // nutzt GENAU diese Funktion — betrifft also den Haupt-Registrierungs-
-    // weg. Analog zu LoginPage.jsx signUp() (Zeile ~589) und
-    // SettingsModal.jsx (Zeile ~208/325) jetzt konsistent gemacht.
-    return supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName }, emailRedirectTo: getAuthRedirectUrl() },
-    });
+    return supabase.auth.signUp({ email, password, options:{ data:{ full_name: fullName } } });
   }, []);
 
   const signIn = useCallback(async (email, password) => {

@@ -430,24 +430,13 @@ async function cleanup() {
   if (!TEST_EMAIL || !SERVICE_KEY) { warn('Kein Cleanup möglich — Credentials fehlen'); return; }
 
   try {
-    // Find user by email.
-    // SICHERHEITSFIX (2026-09-01, INC-003): Der Supabase Admin API ?email=
-    // Query-Parameter wird vom GoTrue-Server IGNORIERT — der Endpoint gibt
-    // IMMER die volle User-Liste zurück, unabhängig vom Filter. Blindes
-    // users[0] hat dadurch schon einmal einen ECHTEN Nutzer-Account
-    // (nicht den Test-User) geloescht, weil der Test-User zu diesem
-    // Zeitpunkt bereits weg war und users[0] zufaellig ein anderer Account
-    // war. PFLICHT: Email-Match explizit im Code verifizieren, niemals
-    // ungeprueft das erste Element nehmen.
+    // Find user by email
     const userRes = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(TEST_EMAIL)}`, {
       headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` }
     });
     const userData = await userRes.json();
-    const matchedUser = (userData.users || []).find(
-      u => (u.email || '').toLowerCase() === TEST_EMAIL.toLowerCase()
-    );
-    if (!matchedUser) { pass('Test-User bereits entfernt oder kein exakter Email-Treffer'); return; }
-    const userId = matchedUser.id;
+    const userId = userData.users?.[0]?.id;
+    if (!userId) { pass('Test-User bereits entfernt'); return; }
 
     // Delete orders, payments, profile, auth user
     await fetch(`${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });

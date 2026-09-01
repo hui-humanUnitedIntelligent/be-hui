@@ -6,6 +6,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { sentryCapture, Sentry } from './lib/sentry';
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries';
 import { AndroidBackButtonHandler } from './components/AndroidBackButtonHandler.jsx';
+import { AppLinkHandler } from './components/AppLinkHandler.jsx';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext';
 import { AppStateProvider } from './lib/AppStateContext';
@@ -761,6 +762,7 @@ function AppRoutes() {
     <>
     <InAppNotificationBanner />
     <AndroidBackButtonHandler>
+<AppLinkHandler>
     {/* HuiSuspense wraps all lazy routes — zeigt ruhigen Ladeindikator */}
     <HuiSuspense>
       <ScrollToTop />
@@ -862,6 +864,7 @@ function AppRoutes() {
         <Route path="*" element={<SmartNotFound />} />
       </Routes>
     </HuiSuspense>
+    </AppLinkHandler>
     </AndroidBackButtonHandler>
     </>
   );

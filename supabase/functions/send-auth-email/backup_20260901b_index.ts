@@ -213,25 +213,12 @@ serve(async (req) => {
 
     const entry = contentMap[lang];
 
-    // SICHERHEITSFIX (2026-09-01, INC-003): Confirm-Link zeigt jetzt DIREKT auf
-    // unsere eigene Domain (.../auth/callback?token_hash=...&type=...) statt auf
-    // den Supabase /auth/v1/verify-Endpoint. Grund: Android App Links (siehe
-    // public/.well-known/assetlinks.json + AndroidManifest.xml intent-filter)
-    // greifen NUR, wenn die vom Nutzer initial angetippte URL bereits auf einer
-    // fuer die App verifizierten Domain liegt. Ein Tap auf einen Supabase-Link
-    // (gxztrhvhcxhmunhhkfjd.supabase.co) wird von Android niemals als App-Link
-    // erkannt — der anschliessende HTTP-Redirect zu redirect_to passiert intern
-    // im Browser-Tab und loest KEIN neues Android-Intent aus, das die App oeffnen
-    // koennte. AuthCallback.jsx verifiziert token_hash+type jetzt selbst
-    // client-seitig via supabase.auth.verifyOtp() (offizielles Supabase-Muster
-    // fuer Mobile-Deep-Links), statt sich auf Supabase's serverseitigen
-    // Verify+Redirect-Flow zu verlassen.
+    // FIX Root Cause 2: Confirm-Link zeigt auf den offiziellen Supabase Verify-Endpoint,
+    // nicht direkt auf die App. Der Verify-Endpoint erzeugt die Session und leitet dann
+    // per Redirect (mit Session im URL-Hash) an redirect_to weiter — das kann AuthCallback.jsx
+    // korrekt verarbeiten (supabase-js SDK liest Session automatisch aus dem Hash).
     const verifyType = toVerifyType(type);
-    let callbackBase = redirectTo.replace(/\/+$/, "");
-    if (!/\/auth\/callback$/.test(callbackBase)) {
-      callbackBase = `${callbackBase}/auth/callback`;
-    }
-    const confirmLink = `${callbackBase}?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(verifyType)}`;
+    const confirmLink = `${SUPABASE_URL}/auth/v1/verify?token=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(verifyType)}&redirect_to=${encodeURIComponent(redirectTo)}`;
 
     // HTML bauen
     let html = buildHTML(entry, lang, type, confirmLink, token);

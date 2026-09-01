@@ -23,6 +23,40 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- ── Android App Links (INC-003, 2026-09-01) ─────────────────────── -->
+            <!-- E-Mail-Bestaetigungslinks (be-hui.vercel.app/auth/callback?...)  -->
+            <!-- sollen die App oeffnen statt Chrome. Voraussetzung:             -->
+            <!-- public/.well-known/assetlinks.json mit SHA256-Fingerprint des   -->
+            <!-- Release-Keystores. autoVerify=true tells Android to verify.     -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="be-hui.vercel.app" />
+            </intent-filter>
+
+            <!-- Eigene Domain (be-hui.com) — sobald DNS/assetlinks dort liegen -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="be-hui.com" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="www.be-hui.com" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="app.be-hui.com" />
+            </intent-filter>
+
         </activity>
 
         <provider

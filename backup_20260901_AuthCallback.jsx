@@ -10,37 +10,13 @@ export default function AuthCallback() {
   useEffect(() => {
     ;(async () => {
       try {
-        // SICHERHEITSFIX (2026-09-01, INC-003): Confirm-Links zeigen jetzt direkt auf
-        // diese Seite mit token_hash+type als Query-Params (statt vorher: Supabase
-        // /auth/v1/verify-Endpoint macht Redirect mit Session im URL-Hash). Grund:
-        // Android App Links greifen nur, wenn die initial angetippte URL schon auf
-        // unserer eigenen Domain liegt (siehe send-auth-email/index.ts INC-003-Kommentar).
-        // Diese Seite verifiziert den Token jetzt selbst client-seitig.
-        const params = new URLSearchParams(window.location.search)
-        const tokenHash = params.get('token_hash')
-        const otpType = params.get('type')
-
-        let session = null
-
-        if (tokenHash && otpType) {
-          const { data, error: verifyError } = await supabase.auth.verifyOtp({
-            token_hash: tokenHash,
-            type: otpType,
-          })
-          if (verifyError) throw verifyError
-          session = data?.session || null
-        }
-
-        // Fallback: alte Hash-basierte Flows (z.B. OAuth-Redirects), falls kein
-        // token_hash in den Query-Params steckt — supabase-js liest Session
-        // automatisch aus dem URL-Hash.
-        if (!session) {
-          const { data: { session: hashSession } } = await supabase.auth.getSession()
-          session = hashSession
-        }
-
+        // Supabase verarbeitet den URL-Hash automatisch
+        const { data: { session }, error } = await supabase.auth.getSession()
         if (session) {
           setStatus('success')
+          // Referral-Zuordnung nach E-Mail-Bestätigung (gespeicherter Ref-Link)
+          if (session.user?.id) {
+          }
           setTimeout(() => {
             // Hard-Reload nach Login — verhindert Stale-Asset-Fehler nach Deployments
             try {
