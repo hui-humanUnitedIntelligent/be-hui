@@ -10,7 +10,7 @@ import { T } from "./constants.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 
-export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
+export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet, onDeleteMoment }) {
   const { t } = useTranslation();
   const { openRef } = useContentPreview();
   const [moments, setMoments]       = React.useState([]);
@@ -63,6 +63,8 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet }) {
     try {
       await supabase.from("beitraege").delete().eq("id", m.id);
       setMoments(prev => prev.filter(x => x.id !== m.id));
+      // AUTO-REFRESH-FIX (2026-09-01): Hauptprofil-Momente nach Löschen synchronisieren
+      onDeleteMoment?.();
     } catch(e) { console.error("Moment löschen:", e); }
   };
 

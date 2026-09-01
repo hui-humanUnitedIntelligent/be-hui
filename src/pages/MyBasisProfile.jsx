@@ -927,13 +927,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
               experiences={experiences}
               recommendations={recommendations}
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
-              onDeleteTalent={() => reloadTalents()}
+              onDeleteTalent={() => { reloadTalents(); loadLazy?.(); }}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
-              onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
+              onDeleteWerk={(id) => { setLocalWorks(null); reload(); loadLazy?.(); }}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
-              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); loadLazy?.(); }}
               onOpenResonanz={() => setShowResonanz(true)}
               onOpenMomentSheet={() => setShowMomentSheet(true)}
+              onDeleteMoment={() => loadLazy?.()}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});
@@ -1000,13 +1001,14 @@ export default function MyBasisProfile({ onClose, profileId }) {
               experiences={experiences}
               recommendations={recommendations}
               onTalentWizard={(t) => { setEditingTalent(t || null); setShowTalentWizard(true); }}
-              onDeleteTalent={() => reloadTalents()}
+              onDeleteTalent={() => { reloadTalents(); loadLazy?.(); }}
               onWerkWizard={(w) => { setEditingWerk(w || null); setShowWerkWizard(true); }}
-              onDeleteWerk={(id) => { setLocalWorks(null); reload(); }}
+              onDeleteWerk={(id) => { setLocalWorks(null); reload(); loadLazy?.(); }}
               onErlebnisWizard={(exp) => { setEditingExp(exp || null); setShowExpWizard(true); }}
-              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); }}
+              onDeleteErlebnis={(id) => { setLocalExperiences(null); reload(); loadLazy?.(); }}
               onOpenResonanz={() => setShowResonanz(true)}
               onOpenMomentSheet={() => setShowMomentSheet(true)}
+              onDeleteMoment={() => loadLazy?.()}
               onProfileUpdate={(upd) => {
                 setAuthProfile && setAuthProfile(p => ({ ...p, ...upd }));
                 refreshProfile?.().catch(() => {});

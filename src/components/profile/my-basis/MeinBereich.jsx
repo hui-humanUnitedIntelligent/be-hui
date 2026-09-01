@@ -180,6 +180,7 @@ export function MeinBereichMenu({
   onErlebnisWizard, onDeleteErlebnis,
   onOpenResonanz = () => {},
   onOpenMomentSheet: onOpenMomentSheetProp = null,
+  onDeleteMoment = () => {},
   onProfileUpdate = () => {},
 }) {
   const { switchTab } = useHome();
@@ -372,6 +373,7 @@ export function MeinBereichMenu({
               close();
               openMomentSheet();
             }}
+            onDeleteMoment={onDeleteMoment}
           />
         </MeinBereichDrawer>
       )}
