@@ -4968,6 +4968,4 @@ export default {
   'org.switcher.deleteCancel': 'Abbrechen',
   'org.switcher.deleteError': 'Löschen fehlgeschlagen. Bitte versuche es erneut.',
   'org.switcher.deleteErrorHasSales': 'Dieses Konto hat bereits verkaufte Werke und kann deshalb nicht gelöscht werden.',
-  'upload.chooseThumbnail': 'Titelbild wählen',
-  'upload.thumbnailAlt': 'Video-Titelbild',
 };

@@ -52,7 +52,8 @@ function locationLabel(talent, t) {
 // Einzelne Kachel
 function TalentCard({ talent, onClick }) {
   const { t } = useTranslation();
-  const cover = Array.isArray(talent.images) && talent.images[0]?.url;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+  const cover = talent.thumbnail_url || (Array.isArray(talent.images) && talent.images[0]?.url);
   const price = formatPrice(talent, t);
   const loc   = locationLabel(talent, t);
 
@@ -128,7 +129,8 @@ function TalentCard({ talent, onClick }) {
 function TalentDetailModal({ talent, onClose }) {
   const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
-  const cover = Array.isArray(talent.images) && talent.images[0]?.url;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+  const cover = talent.thumbnail_url || (Array.isArray(talent.images) && talent.images[0]?.url);
   const price = formatPrice(talent, t);
   const loc   = locationLabel(talent, t);
 
@@ -269,7 +271,7 @@ export function PublicTalentOffersSection({ profileId }) {
     let cancelled = false;
     supabase
       .from("talents")
-      .select("id,title,description,category,images,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,user_id")
+      .select("id,title,description,category,images,thumbnail_url,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,user_id")
       .eq("user_id", profileId)
       .eq("status", "approved")   // nur freigegebene Angebote
       .order("created_at", { ascending: false })

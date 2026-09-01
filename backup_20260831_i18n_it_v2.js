@@ -4927,6 +4927,4 @@ export default {
   'org.switcher.deleteCancel': 'Annulla',
   'org.switcher.deleteError': 'Eliminazione non riuscita. Riprova.',
   'org.switcher.deleteErrorHasSales': 'Questo account ha gia opere vendute e quindi non puo essere eliminato.',
-  'upload.chooseThumbnail': 'Scegli l\'immagine di copertina',
-  'upload.thumbnailAlt': 'Miniatura del video',
 };

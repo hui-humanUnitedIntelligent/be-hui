@@ -4928,6 +4928,4 @@ export default {
   'org.switcher.deleteCancel': 'Annuler',
   'org.switcher.deleteError': 'La suppression a echoue. Merci de reessayer.',
   'org.switcher.deleteErrorHasSales': 'Ce compte a deja des oeuvres vendues et ne peut donc pas etre supprime.',
-  'upload.chooseThumbnail': 'Choisir une image de couverture',
-  'upload.thumbnailAlt': 'Miniature de la vidéo',
 };

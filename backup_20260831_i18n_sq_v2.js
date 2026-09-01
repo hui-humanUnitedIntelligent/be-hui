@@ -4929,6 +4929,4 @@ export default {
   'org.switcher.deleteCancel': 'Anulo',
   'org.switcher.deleteError': 'Fshirja deshtoi. Provo perseri.',
   'org.switcher.deleteErrorHasSales': 'Kjo llogari ka tashme vepra te shitura dhe per kete arsye nuk mund te fshihet.',
-  'upload.chooseThumbnail': 'Zgjidh imazhin e kopertinës',
-  'upload.thumbnailAlt': 'Miniatura e videos',
 };

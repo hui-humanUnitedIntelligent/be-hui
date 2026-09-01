@@ -226,7 +226,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
         const { data: beitr } = await supabase
           .from("beitraege")
-          .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count")
+          .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count,thumbnail_url")
           .order("created_at", { ascending:false })
           .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken (Regel: nur Home-Feed)
           .limit(getOptimalPageSize(8));
@@ -264,6 +264,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             id:         b.id,
             user_id:    b.user_id,
             src:        safeStr(b.src),
+            thumbnail_url: safeStr(b.thumbnail_url),
             caption:    safeStr(b.caption, _t("discover.fallbackMoment")),
             type:       safeStr(b.type, "foto"),
             created_at: b.created_at,
@@ -281,7 +282,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Schritt 1: Werke laden
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
+          .select("id,title,cover_url,thumbnail_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
@@ -310,7 +311,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               id:        w.id,
               user_id:   w.user_id,
               title:     safeStr(w.title, _t("discover.fallbackWerk")),
-              cover:     safeStr(w.cover_url),
+              cover:     safeStr(w.thumbnail_url || w.cover_url),
               medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, _t("discover.fallbackWerk")),
               price:     w.price != null ? safeNum(w.price, 0) : null,
               location:  safeStr(w.location_text),
@@ -348,7 +349,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
         const { data: tal, error: talErr } = await supabase
           .from("talents")
-          .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count")
+          .select("id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count")
           .eq("status", "approved")
           .order("created_at", { ascending:false })
           .limit(8);
@@ -373,7 +374,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               user_id:               t.user_id,
               title:                 safeStr(t.title, _t("discover.fallbackTalentOffer")),
               description:           safeStr(t.description),
-              cover:                 (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.images[0].url) : null,
+              cover:                 safeStr(t.thumbnail_url) || (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.thumbnail_url || t.images[0].url) : null,
               category:              safeStr(t.category),
               price_per_hour:        t.price_per_hour != null ? safeNum(t.price_per_hour, 0) : null,
               price_per_session:     t.price_per_session != null ? safeNum(t.price_per_session, 0) : null,
@@ -405,7 +406,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count,views_count")
+          .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("likes_count", { ascending:false })
@@ -439,7 +440,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               id:          e.id,
               user_id:     e.user_id,
               title:       safeStr(e.title, "Erlebnis"),
-              cover:       safeStr(e.cover_url),
+              cover:       safeStr(e.thumbnail_url || e.cover_url),
               date:        dayNum,
               month:       monthSh,
               dateStr,

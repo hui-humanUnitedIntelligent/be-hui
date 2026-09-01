@@ -12,7 +12,8 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function ErlebnisCard({ erlebnis, delay=0, onPress }) {
   const [imgErr, setImgErr] = useState(false);
-  const cover = (!imgErr && erlebnis.cover) ? erlebnis.cover : null;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+  const cover = (!imgErr && (erlebnis.thumbnail_url || erlebnis.cover)) ? (erlebnis.thumbnail_url || erlebnis.cover) : null;
 
   // Status-Farben
   const STATUS_DOT = {

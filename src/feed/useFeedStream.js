@@ -88,7 +88,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const [worksRes, expsRes, beitrRes, invRes, talentsRes, impactRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
-        .select("id,title,cover_url,media_url,images,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at,is_unique,stock_total,stock_available")
+        .select("id,title,cover_url,thumbnail_url,media_url,images,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at,is_unique,stock_total,stock_available")
         .eq("status", "published")
         .eq("approval_status", "approved")
         // FEED-SOLD-MARK-002 (2026-08-30, Michael-Request): Verkaufte Werke
@@ -101,7 +101,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     ),
     filterExps(
       supabase.from("experiences")
-        .select("id,title,cover_url,media_url,category,description,caption,meeting_point,price,duration,format,location_text,date,time_start,time_end,booking_mode,pricing_type,experience_type,participant_limit,max_participants,spots_available,currency,price_per,registration_required,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at,lat,lng,images,tags,is_unique,stock_total,stock_available")
+        .select("id,title,cover_url,thumbnail_url,media_url,category,description,caption,meeting_point,price,duration,format,location_text,date,time_start,time_end,booking_mode,pricing_type,experience_type,participant_limit,max_participants,spots_available,currency,price_per,registration_required,mood,mood_tags,social_energy,status,approval_status,visibility,user_id,created_at,lat,lng,images,tags,is_unique,stock_total,stock_available")
         .eq("status", "published")
         .eq("approval_status", "approved")
         .order("created_at", { ascending: false })
@@ -113,7 +113,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
         // dadurch wurde der volle Broadcast-Bodytext (unifiedNormalizer.js kombiniert
         // caption+content) nie an den Client geliefert, egal wie der Normalizer selbst
         // aussah. Additiv ergaenzt, keine bestehende Spalte entfernt.
-        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at,moderation_blurred,moderation_flag,moderation_categories")
+        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at,moderation_blurred,moderation_flag,moderation_categories,thumbnail_url")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
@@ -128,7 +128,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
     // FEED-GLOBAL-001: Talente (approved) — chronologisch
     filterTalents(
       supabase.from("talents")
-        .select("id,user_id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,is_unique,stock_total,stock_available")
+        .select("id,user_id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,is_unique,stock_total,stock_available")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(limit)

@@ -37,8 +37,8 @@ function WerkCardItem({ w, onPress, saleStatus }) {
       display:"flex", flexDirection:"column", cursor:"pointer",
     }}>
       <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
-        {!imgErr && w.cover_url
-          ? <img loading="lazy" decoding="async" src={w.cover_url} alt={w.title}
+        {!imgErr && (w.thumbnail_url || w.cover_url)
+          ? <img loading="lazy" decoding="async" src={w.thumbnail_url || w.cover_url} alt={w.title}
               onError={() => setImgErr(true)}
               style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
@@ -120,7 +120,7 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("works")
-        .select("id,title,cover_url,category,file_format,price,location_text,user_id,created_at,likes_count")
+        .select("id,title,cover_url,thumbnail_url,category,file_format,price,location_text,user_id,created_at,likes_count")
         .eq("status","published").eq("approval_status","approved").eq("visibility","public")
         .order(sort === "alpha" ? "title" : sort === "popular" ? "likes_count" : "created_at",
                 { ascending: sort === "alpha" })

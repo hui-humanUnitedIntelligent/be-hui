@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
-import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection, uploadThumbnail } from "../../lib/uploadUtils.js";
+import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -22,7 +22,6 @@ import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import BankdatenModal from "../settings/BankdatenModal.jsx";
-import VideoThumbnailPicker from "../shared/VideoThumbnailPicker.jsx";
 
 // ── Design-Tokens ─────────────────────────────────────────────
 const C = {
@@ -343,7 +342,7 @@ function TopBar({ onClose, step, total, isEdit }) {
 // SCHRITT 1 — BASIS
 // Titel · Typ · Kurzbeschreibung · Titelbild
 // ══════════════════════════════════════════════════════════════
-function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl }) {
+function S1({ data, onChange, userId }) {
   const { t } = useTranslation();
   const [upl, setUpl] = useState(false);
   const ref = useRef(null);
@@ -356,34 +355,25 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
     const next = [...imgs];
     const previews = [];
     for (const file of files.slice(0, 5 - next.length)) {
-      const isVid = file.type.startsWith("video/");
       const previewUrl = URL.createObjectURL(file);
-      next.push({ url: previewUrl, path: null, _preview: true, type: isVid ? "video" : "image" });
-      previews.push({ file, previewUrl, idx: next.length - 1, isVid });
+      next.push({ url: previewUrl, path: null, _preview: true });
+      previews.push({ file, previewUrl, idx: next.length - 1 });
     }
     onChange({ images: next });
-    // Upload im Hintergrund
+    // Kompression + Upload im Hintergrund
     setUpl(true);
-    for (const { file, previewUrl, idx, isVid } of previews) {
+    for (const { file, previewUrl, idx } of previews) {
       try {
-        if (isVid) {
-          // VIDEO-THUMBNAIL-001: Video direkt hochladen (keine Kompression),
-          // VideoThumbnailPicker extrahiert den Frame client-seitig aus
-          // der Blob-URL / Remote-URL.
-          const result = await uploadMediaFile(file, userId, "experiences");
-          next[idx] = { url: result.url, path: null, type: "video" };
-        } else {
-          const blob = await compressImageForUpload(file, COVER_MAX_DIM, JPEG_QUALITY);
-          const wasCompressed = blob !== file;
-          const ext = wasCompressed ? "jpg" : file.name.split(".").pop().toLowerCase();
-          const path = `experiences/${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
-          const { error } = await supabase.storage.from("media").upload(path, blob, { upsert: true, contentType: wasCompressed ? "image/jpeg" : file.type });
-          if (!error) {
-            const { data: u } = supabase.storage.from("media").getPublicUrl(path);
-            next[idx] = { url: u.publicUrl, path, type: "image" };
-          }
+        const blob = await compressImageForUpload(file, COVER_MAX_DIM, JPEG_QUALITY);
+        const wasCompressed = blob !== file;
+        const ext = wasCompressed ? "jpg" : file.name.split(".").pop().toLowerCase();
+        const path = `experiences/${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
+        const { error } = await supabase.storage.from("media").upload(path, blob, { upsert: true, contentType: wasCompressed ? "image/jpeg" : file.type });
+        if (!error) {
+          const { data: u } = supabase.storage.from("media").getPublicUrl(path);
+          next[idx] = { url: u.publicUrl, path };
+          onChange({ images: [...next] });
         }
-        onChange({ images: [...next] });
         URL.revokeObjectURL(previewUrl);
       } catch (err) {
         console.error("[ExperienceWizard] Upload-Fehler:", err?.message);
@@ -488,30 +478,6 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
       {/* Titelbild */}
       <Field label="Titelbild" req>
         {firstImg ? (
-          /\.(mp4|mov|webm|avi)(\?|$)/i.test(firstImg) || imgs[0]?.type === "video" ? (
-            <div>
-              <div style={{ position: "relative", marginBottom: 8 }}>
-                <VideoThumbnailPicker source={firstImg} initialThumbnailUrl={existingThumbnailUrl}
-                  onFrameReady={onCoverThumbFrame} label={t("upload.chooseThumbnail")} />
-                <button
-                  onClick={() => removeImg(0)}
-                  style={{
-                    position: "absolute", top: 10, right: 10, zIndex: 1,
-                    width: 30, height: 30, borderRadius: "50%",
-                    background: "rgba(0,0,0,0.60)", border: "none",
-                    color: "#fff", fontSize: 16, cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    touchAction: "manipulation",
-                  }}
-                >×</button>
-              </div>
-              <div style={{
-                background: "rgba(14,196,184,0.90)", borderRadius: 8,
-                padding: "3px 10px", fontSize: 10, fontWeight: 600, color: "#fff",
-                display: "inline-block", marginBottom: 8,
-              }}>{t("common.titelbild")} · {t("common.video")}</div>
-            </div>
-          ) : (
           <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "16/9", background: "#1A1A18" }}>
             <img loading="lazy" decoding="async" src={firstImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
             <button
@@ -531,7 +497,6 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
               padding: "3px 10px", fontSize: 10, fontWeight: 600, color: "#fff",
             }}>{t("common.titelbild")}</div>
           </div>
-          )
         ) : (
           <div
             onClick={() => !upl && ref.current?.click()}
@@ -556,7 +521,7 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
             )}
           </div>
         )}
-        <input ref={ref} type="file" accept="image/*,video/*" style={{ display: "none" }} onChange={upload}/>
+        <input ref={ref} type="file" accept="image/*" style={{ display: "none" }} onChange={upload}/>
       </Field>
 
       {/* Weitere Bilder & Videos (optional, bis zu 10) — GALERIE 2026-08-15 */}
@@ -936,8 +901,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   // siehe LocationAutocompleteInput.jsx -- direkt uebernommen statt erneut
   // zu geocodieren. Zurueckgesetzt sobald der Ort danach manuell bearbeitet wird.
   const [pickedGeo, setPickedGeo] = useState(null);
-  // VIDEO-THUMBNAIL-001 (2026-08-31)
-  const [coverThumbBlob, setCoverThumbBlob] = useState(null);
 
   const [form, setForm] = useState(() => {
     if (existingExp) {
@@ -1063,18 +1026,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
     }
 
     const cover_url = form.images?.[0]?.url || null;
-
-    // VIDEO-THUMBNAIL-001 (2026-08-31): Falls Titelbild ein Video ist,
-    // extrahierten Frame als thumbnail_url hochladen. Graceful.
-    let thumbnailUrl = existingExp?.thumbnail_url || null;
-    const coverIsVideo = form.images?.[0]?.type === "video" || /\.(mp4|mov|webm|avi)(\?|$)/i.test(cover_url || "");
-    if (coverIsVideo && coverThumbBlob) {
-      try {
-        thumbnailUrl = await uploadThumbnail(coverThumbBlob, userId, "experiences");
-      } catch (thumbErr) {
-        console.warn("[ExperienceWizard] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
-      }
-    }
     const imagesArr = (form.images || []).map(img =>
       typeof img === "object" ? img : { url: img }
     );
@@ -1102,8 +1053,6 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       caption:               form.caption             || null,
       description:           form.description         || null,
       cover_url,
-      // VIDEO-THUMBNAIL-001 (2026-08-31)
-      thumbnail_url:    thumbnailUrl,
       images:                imagesArr,
       experience_type:       form.experience_type     || null,
       category:              form.experience_type     || null,
@@ -1288,9 +1237,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         WebkitOverflowScrolling: "touch",
         padding: "24px 20px 0",
       }}>
-        {step === 1 && <S1 data={form} onChange={patch} userId={userId}
-          onCoverThumbFrame={(blob) => setCoverThumbBlob(blob)}
-          existingThumbnailUrl={existingExp?.thumbnail_url || null}/>}}
+        {step === 1 && <S1 data={form} onChange={patch} userId={userId}/>}
         {step === 2 && <S2 data={form} onChange={patch} onPickLocation={place => { patch({ location_text: place.label }); setPickedGeo({ lat: place.lat, lng: place.lng }); }}/>}
         {step === 3 && <S3 data={form} onChange={patch}/>}
         {step === 4 && <S4 data={form} onChange={patch} saving={saving}/>}

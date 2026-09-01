@@ -14,7 +14,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection, uploadThumbnail } from "../../lib/uploadUtils.js";
+import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -28,7 +28,6 @@ import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { HUI } from "../../design/hui.design.js";
 import BankdatenModal from "../settings/BankdatenModal.jsx";
-import VideoThumbnailPicker from "../shared/VideoThumbnailPicker.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
@@ -216,8 +215,6 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
 
   // 6) Bilder
   const [images, setImages] = useState(existingTalent?.images || []);
-  // VIDEO-THUMBNAIL-001 (2026-08-31)
-  const [coverThumbBlob, setCoverThumbBlob] = useState(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
 
@@ -347,27 +344,13 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       }
     }
 
-    // VIDEO-THUMBNAIL-001 (2026-08-31): Falls Titelbild ein Video ist,
-    // extrahierten Frame als thumbnail_url hochladen. Graceful.
-    let thumbnailUrl = existingTalent?.thumbnail_url || null;
-    const coverIsVideo = images[0]?.type === "video" || /\.(mp4|mov|webm|avi)(\?|$)/i.test(images[0]?.url || "");
-    if (coverIsVideo && coverThumbBlob) {
-      try {
-        thumbnailUrl = await uploadThumbnail(coverThumbBlob, userId, "talents");
-      } catch (thumbErr) {
-        console.warn("[TalentAngebotWizard] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
-      }
-    }
-
     const { error: saveErr } = isEdit
       ? await updateTalent(existingTalent.id, {
           title: title.trim(), description: description.trim() || null, category, images,
-          thumbnail_url: thumbnailUrl,
           previousStatus: existingTalent.status, ...servicePayload,
         })
       : await createTalent({
-          userId, title: title.trim(), description: description.trim(), category, images,
-          thumbnail_url: thumbnailUrl, ...servicePayload,
+          userId, title: title.trim(), description: description.trim(), category, images, ...servicePayload,
         });
     setSaving(false);
     if (saveErr) {
@@ -736,19 +719,6 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
               )}
             </div>
             <input ref={fileRef} type="file" accept="image/*,video/*" multiple style={{ display: "none" }} onChange={handleUpload}/>
-            {/* VIDEO-THUMBNAIL-001 (2026-08-31): Titelbild (images[0]) ist
-                ein Video -> Frame-Auswahl statt Play-Icon-Platzhalter. */}
-            {images[0] && (images[0].type === "video" || /\.(mp4|mov|webm|avi)(\?|$)/i.test(images[0].url || "")) && (
-              <div style={{ marginBottom: 14 }}>
-                <VideoThumbnailPicker
-                  source={images[0].url}
-                  initialThumbnailUrl={existingTalent?.thumbnail_url || null}
-                  onFrameReady={(blob) => setCoverThumbBlob(blob)}
-                  compact
-                  label={t("upload.chooseThumbnail")}
-                />
-              </div>
-            )}
           </>
         )}
 

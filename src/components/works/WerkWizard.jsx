@@ -7,7 +7,7 @@ import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "../../lib/profileMedia.js";
-import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection } from "../../lib/uploadUtils.js";
+import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection, uploadThumbnail } from "../../lib/uploadUtils.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
@@ -16,6 +16,7 @@ import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
 import BankdatenModal from "../settings/BankdatenModal.jsx";
+import VideoThumbnailPicker from "../shared/VideoThumbnailPicker.jsx";
 
 const C = {
   teal:HUI.COLOR.teal, tealD:HUI.COLOR.tealDeep, cream:HUI.COLOR.cream,
@@ -176,7 +177,7 @@ function RCard({ active, icon, label, sub, onClick }) {
 // Screen 1 – Bilder & Videos (UNIVERSELLER UPLOAD 2026-08-20)
 // Bis zu 10 Bilder/Videos, 5MB Bilder, 25MB Videos (Michael-Vorgabe).
 // ══════════════════════════════════════════════════════════════
-function S1({ data, onChange, userId, onNext }) {
+function S1({ data, onChange, userId, onNext, onCoverThumbFrame, existingThumbnailUrl }) {
   const { t } = useTranslation();
   const [upl, setUpl] = useState(false);
   const imgs = data.images || [];
@@ -272,6 +273,21 @@ function S1({ data, onChange, userId, onNext }) {
       {imgs.length > 0 && (
         <div style={{ fontSize:11, color:C.inkFade, textAlign:"center", marginBottom:14 }}>
           {t('common.uploadSummary', { current: imgs.length, max: UPLOAD_LIMITS.MAX_FILES, imgMax: UPLOAD_LIMITS.MAX_IMAGE_MB, vidMax: UPLOAD_LIMITS.MAX_VIDEO_MB })}
+        </div>
+      )}
+      {/* VIDEO-THUMBNAIL-001 (2026-08-31): Titelbild (images[0]) ist ein
+          Video -> Frame-Auswahl statt naktem Play-Icon-Platzhalter. Nutzt
+          imgs[0].url direkt als source (blob: waehrend Upload, remote-URL
+          danach/im Edit-Modus) -- funktioniert in beiden Faellen identisch. */}
+      {imgs[0] && (imgs[0].type === "video" || imgs[0].url?.match(/\.(mp4|mov|webm|avi)(\?|$)/i)) && (
+        <div style={{ marginBottom:14 }}>
+          <VideoThumbnailPicker
+            source={imgs[0].url}
+            initialThumbnailUrl={existingThumbnailUrl}
+            onFrameReady={onCoverThumbFrame}
+            compact
+            label={t("upload.chooseThumbnail")}
+          />
         </div>
       )}
       <input ref={fileRef} type="file" accept="image/*,video/*" multiple style={{ display:"none" }} onChange={(e) => {
@@ -597,6 +613,10 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   // direkt uebernommen statt erneut zu geocodieren. Zurueckgesetzt sobald der
   // Ort danach manuell weiter bearbeitet wird.
   const [pickedGeo,setPickedGeo]=useState(null);
+  // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierter Frame-Blob fuer das
+  // Titelbild, falls images[0] ein Video ist. Wird erst beim Speichern
+  // hochgeladen (analog zum bestehenden Upload-Muster der Bilder/Videos).
+  const [coverThumbBlob, setCoverThumbBlob] = useState(null);
   const [form,setForm]=useState(()=>{
     if (existingWork) {
       let imgs=[];
@@ -670,6 +690,20 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       }
     }
     const cover_url=form.images?.[0]?.url||null;
+
+    // VIDEO-THUMBNAIL-001 (2026-08-31): Falls Titelbild ein Video ist und
+    // der Nutzer einen Frame ausgewaehlt hat, diesen als thumbnail_url
+    // hochladen. Graceful — bei Fehlschlag bleibt thumbnail_url null,
+    // das Werk bleibt trotzdem speicherbar.
+    let thumbnailUrl = existingWork?.thumbnail_url || null;
+    const coverIsVideo = form.images?.[0]?.type === "video" || /\.(mp4|mov|webm|avi)(\?|$)/i.test(cover_url || "");
+    if (coverIsVideo && coverThumbBlob) {
+      try {
+        thumbnailUrl = await uploadThumbnail(coverThumbBlob, userId, "works");
+      } catch (thumbErr) {
+        console.warn("[WerkWizard] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
+      }
+    }
 
     // Geokoordinaten fuer Abholort ermitteln (Standort-Feature 2026-07-06,
     // fuer Umkreissuche auf Discover-Seite, siehe geocoding.js).
@@ -776,6 +810,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       // JEDEM Speichern (Entwurf + Einreichen). Fix: creator_id = userId,
       // exakt wie in allen bisherigen DB-Zeilen (user_id === creator_id).
       creator_id:   userId,
+      // VIDEO-THUMBNAIL-001 (2026-08-31)
+      thumbnail_url:    thumbnailUrl,
       // POST-TYPE-FIX (2026-08-20, Michael-Feedback): post_type wurde hier
       // nie gesetzt -- die DB-Spalte fiel dadurch auf ihren Default zurueck
       // (faelschlich 'moment' statt 'work'). WorkFlow.jsx (separater
@@ -1013,7 +1049,9 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         WebkitOverflowScrolling:"touch",
         padding:"20px 20px 0",
       }}>
-        {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={null}/>}
+        {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={null}
+          onCoverThumbFrame={(blob) => setCoverThumbBlob(blob)}
+          existingThumbnailUrl={existingWork?.thumbnail_url || null}/>}
         {step===2&&<S2 data={form} onChange={patch} onNext={null}/>}
         {step===3&&<S3 data={form} onChange={patch} onNext={null}/>}
         {step===4&&<S4 data={form} onChange={patch} onNext={null}/>}

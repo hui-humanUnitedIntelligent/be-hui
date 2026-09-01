@@ -165,7 +165,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
         // media_url -- KEIN src/image_url auf works (Live-Check ergab
         // 42703 "column does not exist", nicht blind uebernehmen).
         const { data, error } = await supabase.from("works")
-          .select("id,cover_url,media_url").in("id", ids.work);
+          .select("id,cover_url,thumbnail_url,media_url").in("id", ids.work);
         if (error) console.warn("[Merkliste] Cover-Load works:", error.message);
         (data || []).forEach(row => {
           const url = normalizeWorkRow(row)?.media?.[0]?.url;
@@ -174,7 +174,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
       }
       if (ids.experience.length) {
         const { data, error } = await supabase.from("experiences")
-          .select("id,cover_url,media_url").in("id", ids.experience);
+          .select("id,cover_url,thumbnail_url,media_url").in("id", ids.experience);
         if (error) console.warn("[Merkliste] Cover-Load experiences:", error.message);
         (data || []).forEach(row => {
           const url = normalizeExperienceRow(row)?.media?.[0]?.url;

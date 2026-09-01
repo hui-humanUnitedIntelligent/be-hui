@@ -25,7 +25,8 @@ function TalentCardItem({ t, onPress }) {
   const { t: tFn } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   // openCreatorProfile entfernt (2026-07-29) — Autor nicht klickbar
-  const cover = Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+  const cover = t.thumbnail_url || (Array.isArray(t.images) && t.images[0]?.url ? t.images[0].url : null);
   const price = t.price_per_session != null
     ? `${formatNumberDE(Number(t.price_per_session))} €/Sitzung`
     : t.price_per_hour != null
@@ -104,7 +105,7 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
     setLoading(true);
     try {
       let q = supabase.from("talents")
-        .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,views_count")
+        .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,views_count,thumbnail_url")
         .eq("status","approved")
         .order(sort === "alpha" ? "title" : "created_at", { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);

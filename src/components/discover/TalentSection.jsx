@@ -14,7 +14,8 @@ import { CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
   const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
-  const cover  = (!imgErr && talent.cover) ? talent.cover : null;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+  const cover  = (!imgErr && (talent.thumbnail_url || talent.cover)) ? (talent.thumbnail_url || talent.cover) : null;
   const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };
   const priceStr = talent.price_per_hour != null
     ?formatNumberDE(parseFloat(talent.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`

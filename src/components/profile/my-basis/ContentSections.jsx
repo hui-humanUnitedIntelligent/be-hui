@@ -80,7 +80,8 @@ export function TalentAngeboteSection({ talents = [], onTalentWizard, onDeleteTa
             const isPending  = tal.status === "pending";
             const badgeBg    = isApproved ? "rgba(14,196,184,0.92)" : isPending ? "rgba(234,179,8,0.92)" : "rgba(255,80,80,0.92)";
             const badgeText  = isApproved ? t("cs.badge.live") : isPending ? t("cs.badge.pruefung") : t("cs.badge.abgelehnt");
-            const cover = Array.isArray(tal.images) && tal.images[0]?.url;
+            // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+            const cover = tal.thumbnail_url || (Array.isArray(tal.images) && tal.images[0]?.url);
             return (
               <div key={tal.id || i}
                 onClick={() => setChoiceTalent(tal)}
@@ -283,8 +284,8 @@ export function MeineWerkeSection({ works, onWerkWizard, onDeleteWerk = () => {}
                   background:"#e8e4de", position:"relative", cursor:"pointer",
                   boxShadow: isApproved ? "0 0 0 2px #0EC4B8" : isPending ? "0 0 0 2px #D4A800" : isDraft ? "0 0 0 2px rgba(120,120,128,0.5)" : "0 0 0 2px #ff5050",
                 }}>
-                {w.cover_url
-                  ? <img loading="lazy" decoding="async" src={optimizeCard(w.cover_url)} alt={w.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
+                {(w.thumbnail_url || w.cover_url)
+                  ? <img loading="lazy" decoding="async" src={optimizeCard(w.thumbnail_url || w.cover_url)} alt={w.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
                   : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
                 }
                 {/* X-Löschen-Button oben rechts */}
@@ -492,8 +493,8 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
                 background:"#e8e4de", position:"relative", cursor:"pointer",
                 boxShadow: `0 0 0 2px ${borderCol}`,
               }}>
-              {exp.cover_url
-                ? <img loading="lazy" decoding="async" src={optimizeCard(exp.cover_url)} alt={exp.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
+              {(exp.thumbnail_url || exp.cover_url)
+                ? <img loading="lazy" decoding="async" src={optimizeCard(exp.thumbnail_url || exp.cover_url)} alt={exp.title||""} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e=>{e.target.style.display="none"; const sib=e.target.nextSibling; if(sib) sib.style.display="flex";}}/>
                 : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
               }
               {/* X-Löschen-Button oben rechts */}

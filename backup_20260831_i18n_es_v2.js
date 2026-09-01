@@ -4927,6 +4927,4 @@ export default {
   'org.switcher.deleteCancel': 'Cancelar',
   'org.switcher.deleteError': 'No se pudo eliminar. Por favor, intentalo de nuevo.',
   'org.switcher.deleteErrorHasSales': 'Esta cuenta ya tiene obras vendidas y por eso no se puede eliminar.',
-  'upload.chooseThumbnail': 'Elegir imagen de portada',
-  'upload.thumbnailAlt': 'Miniatura del video',
 };

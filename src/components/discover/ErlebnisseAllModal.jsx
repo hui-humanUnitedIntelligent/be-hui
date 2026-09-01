@@ -45,8 +45,8 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
       display:"flex", flexDirection:"column", cursor:"pointer",
     }}>
       <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
-        {!imgErr && ev.cover_url
-          ? <img loading="lazy" decoding="async" src={ev.cover_url} alt={ev.title}
+        {!imgErr && (ev.thumbnail_url || ev.cover_url)
+          ? <img loading="lazy" decoding="async" src={ev.thumbnail_url || ev.cover_url} alt={ev.title}
               onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
           : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>
         }
@@ -127,7 +127,7 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("experiences")
-        .select("id,title,cover_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,created_at")
+        .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,created_at")
         .eq("status","published").eq("approval_status","approved")
         .order(sort === "alpha" ? "title" : sort === "popular" ? "likes_count" : "created_at",
                 { ascending: sort === "alpha" })

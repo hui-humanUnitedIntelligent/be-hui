@@ -57,7 +57,11 @@ function MomentCardItem({ m, onPress, onOpenProfile }) {
     >
       <div style={{ width:"100%", height:130, background:T.tealSoft, position:"relative", overflow:"hidden" }}>
         <div style={{ width:"100%", height:"100%", filter: blurred ? "blur(16px)" : "none" }}>
-          {!imgErr && m.src && m.type === "video"
+          {/* VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url vor Video */}
+          {!imgErr && m.thumbnail_url
+            ? <img loading="lazy" decoding="async" src={m.thumbnail_url} alt={m.caption}
+                onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+            : !imgErr && m.src && m.type === "video"
             ? <video src={m.src} muted playsInline preload="metadata"
                 onError={() => setImgErr(true)} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
             : !imgErr && m.src
@@ -141,7 +145,7 @@ export default function MomenteAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("beitraege")
-        .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,moderation_blurred,moderation_flag")
+        .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,moderation_blurred,moderation_flag,thumbnail_url")
         .order(sort === "alpha" ? "caption" : "created_at", { ascending: sort === "alpha" })
         .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);

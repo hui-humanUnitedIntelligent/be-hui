@@ -11,7 +11,9 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 export function MomentCard({ moment, delay=0, onPress, onAuthorPress }) {
   const [imgErr, setImgErr] = useState(false);
-  const cover = (!imgErr && (moment.src || moment.media_url)) ? (moment.src || moment.media_url) : null;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url (extrahierter Frame)
+  // hat Priorität über das Video selbst.
+  const cover = (!imgErr && (moment.thumbnail_url || moment.src || moment.media_url)) ? (moment.thumbnail_url || moment.src || moment.media_url) : null;
 
   return (
     <div className="dp-press dp-in dp-card-hover" onClick={() => onPress?.(moment)} style={{
@@ -115,7 +117,7 @@ export function MomenteSection({ momente=[], loading, delay=0, view='cards', onP
             : momente.map((m) => (
                 <div key={m.id} className="dp-list-card" onClick={() => onPress?.(m)} style={{cursor:"pointer"}} role="button" tabIndex={0}>
                   {m.src
-                    ? <img loading="lazy" decoding="async" src={m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
+                    ? <img loading="lazy" decoding="async" src={m.thumbnail_url || m.src} alt={m.caption} className="dp-list-thumb" onError={e => e.target.style.display='none'} style={{ objectFit:"cover" }}/>
                     : <div className="dp-list-thumb-placeholder" style={{display:"flex",alignItems:"center",justifyContent:"center"}}><HUILogo size={34} style={{opacity:0.5}}/></div>
                   }
                   <div style={{ flex:1, overflow:"hidden" }}>

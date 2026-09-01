@@ -107,6 +107,8 @@ export async function createTalent({ userId, title, description, category, image
     description: description || null,
     category,
     images: images || [],
+    // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierter Video-Frame
+    thumbnail_url: service.thumbnail_url || null,
     status: "pending",
     ...pickServiceFields(service),
   }).select().single();
@@ -128,6 +130,7 @@ export async function updateTalent(id, { title, description, category, images, p
   if (description  !== undefined) payload.description = description;
   if (category    !== undefined) payload.category    = category;
   if (images      !== undefined) payload.images      = images;
+  if (service.thumbnail_url !== undefined) payload.thumbnail_url = service.thumbnail_url;
   if (previousStatus === "rejected") {
     payload.status = "pending";
     payload.rejection_reason = null;

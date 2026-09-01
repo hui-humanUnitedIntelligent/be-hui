@@ -14,7 +14,8 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 export function WerkCard({ werk, delay=0, onPress, onAuthorPress, saleStatus }) {
   const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
-  const cover  = (!imgErr && werk.cover) ? werk.cover : null;
+  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
+  const cover  = (!imgErr && (werk.thumbnail_url || werk.cover)) ? (werk.thumbnail_url || werk.cover) : null;
   const medCol = MEDIUM_COLOR[werk.medium] || { bg:T.tealSoft, text:T.teal };
   const priceStr = werk.price != null
     ?formatNumberDE(parseFloat(werk.price), { minimumFractionDigits:0 }) + " €"

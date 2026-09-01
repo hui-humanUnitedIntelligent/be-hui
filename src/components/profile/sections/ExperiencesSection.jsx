@@ -134,8 +134,8 @@ export function ExperiencesSection({
               style={{ flexShrink:0, width:110, cursor:"pointer" }}>
               <div style={{ width:110, height:100, borderRadius:T.r16, overflow:"hidden",
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6, position:"relative" }}>
-                {ex.cover_url
-                  ? <img loading="lazy" decoding="async" src={optimizeCard(ex.cover_url)} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
+                {(ex.thumbnail_url || ex.cover_url)
+                  ? <img loading="lazy" decoding="async" src={optimizeCard(ex.thumbnail_url || ex.cover_url)} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
                       onError={e=>{ e.target.style.display="none"; e.target.nextSibling?.style?.setProperty("display","flex"); }}/>
                   : <div style={{ width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center" }}><HUILogo size={36} style={{opacity:0.5}} /></div>}
                 {isPastDate(ex.date) && (

@@ -19,6 +19,8 @@ import { useTranslation } from "../hooks/useTranslation.js";
 import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
+import VideoThumbnailPicker from "./shared/VideoThumbnailPicker.jsx";
+import { uploadThumbnail } from "../lib/uploadUtils.js";
 
 const D = {
   teal:"#0EC4B8", tealDeep:"#0A9E94", coral:"#E8573A",
@@ -90,7 +92,7 @@ function ActionCard({ action, onSelect, delay }) {
   );
 }
 
-function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading, fileSize }) {
+function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading, fileSize, fileObj, onThumbReady }) {
   const { t } = useTranslation();
   return (
     <div style={{ animation:"hms-preview-in .30s ease both" }}>
@@ -100,8 +102,9 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
         WebkitMaskImage:"-webkit-radial-gradient(white,black)",
         overflow:"hidden" }}>
         {isVideo
-          ? <video src={mediaURL} controls playsInline
-              style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
+          ? <div style={{ width:"100%", maxHeight:280 }}>
+              <VideoThumbnailPicker source={fileObj} onFrameReady={onThumbReady} />
+            </div>
           : <img loading="lazy" decoding="async" src={mediaURL} alt="Vorschau"
               style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
         }
@@ -247,6 +250,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   const [uploading, setUploading] = useState(false);
   const [shareErr,  setShareErr]  = useState(null);
   const [momentSource, setMomentSource] = useState(null); // "foto"|"video"|"galerie"|"gedanke"
+  const [thumbBlob, setThumbBlob] = useState(null); // VIDEO-THUMBNAIL-001: extrahierter Frame-Blob
   const [moderationNotice, setModerationNotice] = useState(null); // CONTENT-MODERATION-001
   const [moderationBlocked, setModerationBlocked] = useState(false); // MODERATION-HARD-BLOCK-001
 
@@ -271,7 +275,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   function resetState() {
     setText(""); setShareErr(null); setUploading(false); setModerationNotice(null); setModerationBlocked(false);
     setMediaURL(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
-    setFileObj(null); setIsVideo(false);
+    setFileObj(null); setIsVideo(false); setThumbBlob(null);
   }
 
   const doClose = useCallback(() => {
@@ -302,7 +306,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
   }, []);
 
   // ── Kern-Logik: in beitraege inserieren ───────────────────────
-  async function _publishMoment({ src, storagePath, type, caption }) {
+  async function _publishMoment({ src, storagePath, type, caption, thumbnailUrl }) {
 
     // 1. User authentifizieren
     const { data: authData, error: authErr } = await supabase.auth.getUser();
@@ -365,6 +369,9 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       moderation_flag:       false,
       moderation_blurred:    !!modResult.is_blurred,
       moderation_categories: modResult.flag_categories || [],
+      // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierter Frame statt nacktem
+      // Play-Icon-Platzhalter -- nur bei Videos gesetzt, sonst null.
+      thumbnail_url:    thumbnailUrl || null,
     };
 
     // 3. INSERT in beitraege
@@ -395,6 +402,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       let src  = null;
       let storagePath = null;
       let type = "gedanke";
+      let thumbnailUrl = null;
 
       if (fileObj) {
         type = isVideo ? "video" : "foto";
@@ -406,11 +414,21 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
           const uploadResult = await uploadToMedia(fileObj, uploadId);
           src = uploadResult?.url || null;
           storagePath = uploadResult?.path || null;
+          // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierten Frame hochladen —
+          // graceful (kein harter Fehler), falls Extraktion fehlschlug bleibt
+          // thumbnail_url einfach null, Video bleibt trotzdem postbar.
+          if (isVideo && thumbBlob) {
+            try {
+              thumbnailUrl = await uploadThumbnail(thumbBlob, uploadId, "beitraege");
+            } catch (thumbErr) {
+              console.warn("[HuiMoment] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
+            }
+          }
         }
         // Upload-Fehler wirft jetzt bei Videos (kein graceful-Fallback mehr)
       }
 
-      await _publishMoment({ src, storagePath, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim() });
+      await _publishMoment({ src, storagePath, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim(), thumbnailUrl });
 
       if (mediaURL) URL.revokeObjectURL(mediaURL);
       setMediaURL(null);
@@ -421,7 +439,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       setShareErr(err.message);
       setUploading(false);
     }
-  }, [fileObj, isVideo, text, mediaURL, doClose]);
+  }, [fileObj, isVideo, text, mediaURL, doClose, thumbBlob]);
 
   // ── Share Gedanke ──────────────────────────────────────────────
   const doShareGedanke = useCallback(async () => {
@@ -535,7 +553,7 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
           {/* PREVIEW */}
           {isPreview && (
             <PreviewStep mediaURL={mediaURL} isVideo={isVideo} fileSize={fileObj?.size || 0}
-              text={text} setText={setText}
+              text={text} setText={setText} fileObj={fileObj} onThumbReady={(blob) => setThumbBlob(blob)}
               onShare={doShare} onDiscard={doDiscard} uploading={uploading}/>
           )}
 

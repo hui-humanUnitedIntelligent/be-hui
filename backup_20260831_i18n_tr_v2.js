@@ -4927,6 +4927,4 @@ export default {
   'org.switcher.deleteCancel': 'Vazgec',
   'org.switcher.deleteError': 'Silme basarisiz oldu. Lutfen tekrar deneyin.',
   'org.switcher.deleteErrorHasSales': 'Bu hesapta zaten satilmis eserler var, bu nedenle silinemez.',
-  'upload.chooseThumbnail': 'Kapak görseli seç',
-  'upload.thumbnailAlt': 'Video küçük resmi',
 };

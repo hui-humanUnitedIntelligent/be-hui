@@ -113,10 +113,7 @@ function extractMedia(raw){
   // Single-URL candidates: cover_url (impact_applications), image_url, src, ...
   // raw.moment_type trägt bei beitraege-Rows den ursprünglichen DB-Typ
   // (video/foto/gedanke) — siehe normalizeMomentRow weiter unten.
-  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Priorität über
-  // das Video selbst -- falls gesetzt (extrahierter Frame), wird das
-  // statische Bild gezeigt statt dem nackten <video>-Play-Icon-Platzhalter.
-  const candidates=[raw.thumbnail_url,raw.src,raw.image_url,raw.cover_url,raw.media_url,raw.expImg,raw.coverUrl,raw.thumbnail,raw.banner];
+  const candidates=[raw.src,raw.image_url,raw.cover_url,raw.media_url,raw.expImg,raw.coverUrl,raw.thumbnail,raw.banner];
   for(const c of candidates){const m=mk(c, raw.moment_type);if(m)return[m];}
   return[];
 }

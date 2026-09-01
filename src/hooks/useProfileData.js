@@ -19,7 +19,7 @@ const PROFILE_SELECT_PUBLIC = "id,display_name,full_name,username,avatar_url,hea
 const PROFILE_SELECT_PRIVATE = PROFILE_SELECT_PUBLIC;
 
 const WORKS_SELECT =
-  "id,user_id,title,cover_url,category,status," +
+  "id,user_id,title,cover_url,thumbnail_url,category,status," +
   "approval_status,price,for_sale,visibility,created_at";
 
 // ERLEBNIS-INFO-FIX (2026-08-15, Michael-Report — Screenshot "Versteckis mit
@@ -31,7 +31,7 @@ const WORKS_SELECT =
 // vorhanden waren (siehe useFeedStream.js EXPERIENCES-Select, das bereits
 // vollstaendiger war). Additiv ergaenzt, keine bestehende Spalte entfernt.
 const EXPERIENCES_SELECT =
-  "id,user_id,title,cover_url,category,date,status," +
+  "id,user_id,title,cover_url,thumbnail_url,category,date,status," +
   "approval_status,visibility,format,location_text,price,duration,created_at," +
   "caption,description,time_start,time_end,meeting_point,spots_available," +
   "max_participants,currency,price_per,registration_required";
