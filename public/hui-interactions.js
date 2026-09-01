@@ -68,10 +68,16 @@
         var responseKey = 'bring.response.' + value;
         var ctaKey = 'bring.cta.' + value;
         var ctaLink = chip.getAttribute('data-cta-link') || '/von-anfang-an-dabei';
+        var trackLabel = chip.getAttribute('data-track') || ('HUI Entry – ' + value);
 
         // Deselect others
         bringChips.forEach(function(c){ c.classList.remove('selected'); });
         chip.classList.add('selected');
+
+        // Track selection via Plausible
+        if(typeof window.huiTrack === 'function'){
+          window.huiTrack(trackLabel, { section: 'was-bringst-du-mit', selection: value });
+        }
 
         // Show response
         if(bringResponse && bringResponseText){
@@ -79,13 +85,19 @@
           bringResponse.classList.add('show');
         }
 
-        // Show CTA
+        // Show CTA with tracking
         if(bringCta){
           var ctaText = t(ctaKey);
           var ctaLinkEl = bringCta.querySelector('a');
           if(ctaLinkEl){
             ctaLinkEl.textContent = ctaText;
             ctaLinkEl.href = ctaLink;
+            // Track CTA click
+            ctaLinkEl.onclick = function(e){
+              if(typeof window.huiTrack === 'function'){
+                window.huiTrack(trackLabel + ' – CTA', { section: 'was-bringst-du-mit', selection: value, target: ctaLink });
+              }
+            };
           }
           bringCta.classList.add('show');
         }
