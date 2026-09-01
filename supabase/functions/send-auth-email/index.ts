@@ -75,15 +75,19 @@ const CONTENT: Record<string, Record<Lang, EmailContentEntry>> = {
     pt: { subject: "Recuperação de senha HUI", heading: "Redefine a tua senha", body: "Clica no link abaixo para definir uma nova senha.", button: "Definir nova senha" },
     sq: { subject: "Rikuperimi i fjalëkalimit HUI", heading: "Rivendos fjalëkalimin tënd", body: "Kliko në linkun më poshtë për të vendosur një fjalëkalim të ri.", button: "Vendos fjalëkalim të ri" },
   },
+  // INC-006 v2 (2026-09-01): Sicherheitsmitteilung an die ALTE Adresse.
+  // Klar vom "Neue E-Mail bestätigen"-Text der neuen Adresse unterschieden.
+  // Der Empfaenger bestaetigt HIERMIT, dass er die Aenderung initiiert hat
+  // (nicht, dass er die neue Adresse besitzt). Mit token_hash_new + token.
   email_change_current: {
-    de: { subject: "HUI E-Mail-Änderung bestätigen", heading: "E-Mail-Adresse ändern", body: "Bestätige die Änderung deiner E-Mail-Adresse von {oldEmail} zu {newEmail}.", button: "E-Mail bestätigen" },
-    en: { subject: "Confirm your HUI email change", heading: "Change email address", body: "Confirm the change of your email address from {oldEmail} to {newEmail}.", button: "Confirm email" },
-    es: { subject: "Confirma el cambio de correo de HUI", heading: "Cambiar dirección de correo", body: "Confirma el cambio de tu dirección de correo de {oldEmail} a {newEmail}.", button: "Confirmar correo" },
-    fr: { subject: "Confirme le changement d'e-mail HUI", heading: "Changer l'adresse e-mail", body: "Confirme le changement de ton adresse e-mail de {oldEmail} à {newEmail}.", button: "Confirmer l'e-mail" },
-    it: { subject: "Confermi la modifica dell'email HUI", heading: "Cambiare indirizzo email", body: "Confermi la modifica del tuo indirizzo email da {oldEmail} a {newEmail}.", button: "Confermare l'email" },
-    tr: { subject: "HUI e-posta değişikliğini onayla", heading: "E-posta adresini değiştir", body: "E-posta adresinin {oldEmail} adresinden {newEmail} adresine değiştirilmesini onayla.", button: "E-postayı onayla" },
-    pt: { subject: "Confirma a alteração de e-mail HUI", heading: "Alterar endereço de e-mail", body: "Confirma a alteração do teu endereço de e-mail de {oldEmail} para {newEmail}.", button: "Confirmar e-mail" },
-    sq: { subject: "Konfirmo ndryshimin e email-it HUI", heading: "Ndrysho adresën e email-it", body: "Konfirmo ndryshimin e adresës tënde të email-it nga {oldEmail} në {newEmail}.", button: "Konfirmo email-in" },
+    de: { subject: "Sicherheitshinweis: E-Mail-Änderung bei HUI", heading: "Wird deine E-Mail-Adresse geändert?", body: "Jemand versucht, deine HUI-E-Mail-Adresse von {oldEmail} zu {newEmail} zu ändern. Warst du das? Dann bestätige die Änderung. Warst du das nicht? Kontaktiere sofort unseren Support.", button: "Änderung bestätigen" },
+    en: { subject: "Security Notice: Email change at HUI", heading: "Is your email address being changed?", body: "Someone is trying to change your HUI email address from {oldEmail} to {newEmail}. Was this you? Then confirm the change. Wasn't you? Contact our support immediately.", button: "Confirm change" },
+    es: { subject: "Aviso de seguridad: Cambio de correo en HUI", heading: "¿Se está cambiando tu correo?", body: "Alguien está intentando cambiar tu correo de HUI de {oldEmail} a {newEmail}. ¿Fuiste tú? Entonces confirma el cambio. ¿No fuiste tú? Contacta con nuestro soporte inmediatamente.", button: "Confirmar cambio" },
+    fr: { subject: "Avis de sécurité: Changement d'e-mail HUI", heading: "Ton adresse e-mail est-elle modifiée ?", body: "Quelqu'un essaie de changer ton adresse e-mail HUI de {oldEmail} à {newEmail}. C'était toi ? Confirme alors le changement. Ce n'était pas toi ? Contacte notre support immédiatement.", button: "Confirmer le changement" },
+    it: { subject: "Avviso di sicurezza: Modifica email HUI", heading: "La tua email sta cambiando?", body: "Qualcuno sta cercando di cambiare la tua email HUI da {oldEmail} a {newEmail}. Sei tu? Conferma la modifica. Non sei tu? Contatta immediatamente il nostro supporto.", button: "Conferma modifica" },
+    tr: { subject: "Güvenlik bildirimi: HUI e-posta değişikliği", heading: "E-posta adresin değiştiriliyor mu?", body: "Biri HUI e-posta adresini {oldEmail} adresinden {newEmail} adresine değiştirmeye çalışıyor. Sen miydin? Değişikliği onayla. Sen değildin? Destek ekibimizle derhal iletişime geç.", button: "Değişikliği onayla" },
+    pt: { subject: "Aviso de segurança: Alteração de e-mail HUI", heading: "O teu e-mail está a ser alterado?", body: "Alguém está a tentar alterar o teu e-mail HUI de {oldEmail} para {newEmail}. Foste tu? Confirma a alteração. Não foste tu? Contacta o nosso suporte imediatamente.", button: "Confirmar alteração" },
+    sq: { subject: "Njoftim sigurie: Ndryshimi i email-it HUI", heading: "Po ndryshohet adresa jote e email-it?", body: "Dikush po përpiqet të ndryshojë adresën tënde të email-it HUI nga {oldEmail} në {newEmail}. Që ti? Atëherë konfirmo ndryshimin. Nuk që ti? Kontakto mbështetjen tonë menjëherë.", button: "Konfirmo ndryshimin" },
   },
   email_change_new: {
     de: { subject: "HUI E-Mail-Änderung bestätigen", heading: "Neue E-Mail-Adresse bestätigen", body: "Bestätige deine neue E-Mail-Adresse für dein HUI-Konto ({oldEmail} → {newEmail}).", button: "E-Mail bestätigen" },
@@ -369,22 +373,45 @@ Deno.serve(async (req) => {
     const currentEmail = user.email || "";
     const userNewEmail = ((user as Record<string, unknown>).new_email as string) || "";
 
-    // Helper: eine einzelne Mail bauen + senden
+    // Helper: eine einzelne Mail bauen + senden (mit eigenem Content-Entry)
+    async function sendOneWithContent(
+      recipient: string, tokHash: string, tok: string,
+      contentEntry: { subject: string; heading: string; body: string; button?: string },
+      ctxOldEmail: string, ctxNewEmail: string
+    ): Promise<{ ok: boolean; id?: string; error?: string }> {
+      const link = `${callbackBase}?token_hash=${encodeURIComponent(tokHash)}&type=${encodeURIComponent(verifyType)}`;
+      let h = buildHTML(contentEntry, lang, type, link, tok);
+      h = h.replace(/\{email\}/g, ctxNewEmail || recipient).replace(/\{oldEmail\}/g, ctxOldEmail).replace(/\{newEmail\}/g, ctxNewEmail);
+      let subj = contentEntry.subject.replace(/\{email\}/g, ctxNewEmail || recipient).replace(/\{oldEmail\}/g, ctxOldEmail).replace(/\{newEmail\}/g, ctxNewEmail);
+      return sendViaResend(recipient, subj, h);
+    }
+
+    // Original helper (für single-email Fälle)
     async function sendOne(
       recipient: string, tokHash: string, tok: string,
       ctxOldEmail: string, ctxNewEmail: string
     ): Promise<{ ok: boolean; id?: string; error?: string }> {
-      const link = `${callbackBase}?token_hash=${encodeURIComponent(tokHash)}&type=${encodeURIComponent(verifyType)}`;
-      let h = buildHTML(entry, lang, type, link, tok);
-      h = h.replace(/\{email\}/g, ctxNewEmail || recipient).replace(/\{oldEmail\}/g, ctxOldEmail).replace(/\{newEmail\}/g, ctxNewEmail);
-      let subj = entry.subject.replace(/\{email\}/g, ctxNewEmail || recipient).replace(/\{oldEmail\}/g, ctxOldEmail).replace(/\{newEmail\}/g, ctxNewEmail);
-      return sendViaResend(recipient, subj, h);
+      return sendOneWithContent(recipient, tokHash, tok, entry, ctxOldEmail, ctxNewEmail);
     }
 
     if (isSecureEmailChange && userNewEmail) {
-      // 1. Mail an ALTE Adresse mit token_hash
-      const tokenHashOld = emailData.token_hash || tokenHash;
-      const result1 = await sendOne(currentEmail, tokenHashOld, token, currentEmail, userNewEmail);
+      // INC-006 v2 FIX (2026-09-01): Supabase Docs — "Counterintuitive field naming"
+      //   token_hash_new → fuer ALTE Adresse (user.email) + token
+      //   token_hash     → fuer NEUE Adresse (user.new_email) + token_new
+      // Vorher waren die Tokens VERTAUSCHT (alte Adresse bekam token_hash, neue token_hash_new).
+      // Test-Beweis (2026-09-01): verify(token_hash) bestaetigt neue Email-Seite,
+      // verify(token_hash_new) bestaetigt alte Email-Seite + schliesst Aenderung ab.
+      //
+      // Content: alte Adresse bekommt email_change_current (Sicherheitshinweis),
+      // neue Adresse bekommt email_change (Bestaetigung neue Adresse).
+
+      // 1. Mail an ALTE Adresse: token + token_hash_new (Sicherheitshinweis)
+      const oldContent = CONTENT["email_change_current"][lang];
+      const tokenHashForOld = emailData.token_hash_new || "";
+      const result1 = await sendOneWithContent(
+        currentEmail, tokenHashForOld, token,
+        oldContent, currentEmail, userNewEmail
+      );
       if (!result1.ok) {
         console.error(`[send-auth-email] Resend send FAILED (old) for ${currentEmail} (type=${type}): ${result1.error}`);
         return new Response(JSON.stringify({ error: { http_code: 500, message: `E-Mail-Versand fehlgeschlagen (alt): ${result1.error}` } }), {
@@ -393,10 +420,13 @@ Deno.serve(async (req) => {
       }
       console.log(`[send-auth-email] OK (old): ${currentEmail} (type=${type}, lang=${lang}, resend_id=${result1.id})`);
 
-      // 2. Mail an NEUE Adresse mit token_hash_new
-      const tokenHashNew = emailData.token_hash_new || "";
+      // 2. Mail an NEUE Adresse: token_new + token_hash (Bestaetigung)
+      const tokenHashForNew = emailData.token_hash || "";
       const tokenNew = emailData.token_new || "";
-      const result2 = await sendOne(userNewEmail, tokenHashNew, tokenNew, currentEmail, userNewEmail);
+      const result2 = await sendOneWithContent(
+        userNewEmail, tokenHashForNew, tokenNew,
+        entry, currentEmail, userNewEmail
+      );
       if (!result2.ok) {
         console.error(`[send-auth-email] Resend send FAILED (new) for ${userNewEmail} (type=${type}): ${result2.error}`);
         return new Response(JSON.stringify({ error: { http_code: 500, message: `E-Mail-Versand fehlgeschlagen (neu): ${result2.error}` } }), {
