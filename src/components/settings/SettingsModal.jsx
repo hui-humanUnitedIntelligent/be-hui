@@ -277,7 +277,7 @@ function PasswordBlock() {
 }
 
 // ── Block: E-Mail ändern ─────────────────────────────────────
-function EmailChangeBlock({ profile, onProfileUpdate }) {
+function EmailChangeBlock({ profile, onProfileUpdate, isOrgProfile = false }) {
   const { t } = useTranslation();
   // supabase ist modul-importiert (oben in Datei), nicht aus useAuth
   const [oldEmail, setOldEmail] = useState("");
@@ -944,7 +944,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
               <PasswordBlock/>
             </Section>
             <Section title={t("sm.emailChange.section")} icon={<HUIMailIcon size={16}/>}>
-              <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
+              <EmailChangeBlock profile={profile} onProfileUpdate={onProfileUpdate} isOrgProfile={isOrgProfile}/>
             </Section>
           </>)}
 
