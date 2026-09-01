@@ -449,11 +449,69 @@ async function cleanup() {
     if (!matchedUser) { pass('Test-User bereits entfernt oder kein exakter Email-Treffer'); return; }
     const userId = matchedUser.id;
 
+    // STOCK-RESTORE-FIX (2026-09-01): Before deleting orders, find which
+    // works had their stock decremented and restore it. Without this,
+    // the CI test permanently marks works as "VERKAUFT" even though
+    // the test user and order are deleted.
+    const hdrs = { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` };
+
+    // 1. Find test user's orders
+    const ordersRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${userId}&select=id`,
+      { headers: hdrs }
+    );
+    const orders = await ordersRes.json();
+    const orderIds = (orders || []).map(o => o.id).filter(Boolean);
+
+    if (orderIds.length > 0) {
+      // 2. Get order_items to find affected works
+      const itemsRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/order_items?order_id=in.(${orderIds.join(',')})&select=work_id,item_id,item_type,quantity`,
+        { headers: hdrs }
+      );
+      const items = await itemsRes.json();
+
+      // 3. Restore stock for each affected work
+      const workIds = new Set();
+      for (const item of (items || [])) {
+        const wid = item.work_id || item.item_id;
+        if (wid && item.item_type === 'work') workIds.add(wid);
+      }
+      // Also include TEST_WORK_ID (in case order_items are already gone)
+      if (TEST_WORK_ID) workIds.add(TEST_WORK_ID);
+
+      for (const wid of workIds) {
+        const workRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/works?id=eq.${wid}&select=stock_available,stock_total`,
+          { headers: hdrs }
+        );
+        const workData = await workRes.json();
+        if (!workData || workData.length === 0) continue;
+        const w = workData[0];
+        const newAvail = Math.min((w.stock_total ?? 1), (w.stock_available ?? 0) + 1);
+        await fetch(`${SUPABASE_URL}/rest/v1/works?id=eq.${wid}`, {
+          method: 'PATCH',
+          headers: { ...hdrs, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stock_available: newAvail, for_sale: true, is_sold: false }),
+        });
+        pass(`Stock restauriert: Werk ${wid.slice(0,8)}... → ${newAvail}`);
+      }
+
+      // 4. Delete order_items (not always cascaded)
+      await fetch(
+        `${SUPABASE_URL}/rest/v1/order_items?order_id=in.(${orderIds.join(',')})`,
+        { method: 'DELETE', headers: hdrs }
+      );
+    }
+
+    // 5. Delete test user's notifications
+    await fetch(`${SUPABASE_URL}/rest/v1/notifications?user_id=eq.${userId}`, { method: 'DELETE', headers: hdrs });
+
     // Delete orders, payments, profile, auth user
-    await fetch(`${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
-    await fetch(`${SUPABASE_URL}/rest/v1/stripe_payments?user_id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
-    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
-    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'DELETE', headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}` } });
+    await fetch(`${SUPABASE_URL}/rest/v1/orders?customer_id=eq.${userId}`, { method: 'DELETE', headers: hdrs });
+    await fetch(`${SUPABASE_URL}/rest/v1/stripe_payments?user_id=eq.${userId}`, { method: 'DELETE', headers: hdrs });
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, { method: 'DELETE', headers: hdrs });
+    await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${userId}`, { method: 'DELETE', headers: hdrs });
     pass(`Test-User entfernt: ${TEST_EMAIL} (${userId})`);
   } catch (err) {
     warn(`Fehler beim Cleanup: ${err.message}`);

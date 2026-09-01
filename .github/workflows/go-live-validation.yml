@@ -1,17 +1,12 @@
 name: Go-Live Validation
 
+# CI-DISABLE (2026-09-01, Michael): Auto-Trigger entfernt — der Workflow
+# erstellte ephemere Test-User auf der LIVE-DB, kaufte echte Werke und
+# löschte danach User+Order, OHNE den Stock zu restaurieren. Linda's
+# Werk wurde dadurch fälschlich als "VERKAUFT" angezeigt.
+# Nur noch manuell über GitHub Actions Tab auslösbar.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'go-live-validation.js'
-      - 'scripts/sync-stripe-webhook.sh'
-      - '.github/workflows/go-live-validation.yml'
-  workflow_run:
-    workflows: [Run Migration 057, Deploy Supabase Edge Functions]
-    types: [completed]
-    branches: [main]
 
 concurrency:
   group: go-live-validation
@@ -132,6 +127,17 @@ jobs:
             -H "Authorization: Bearer $SERVICE_KEY" \
             | TEST_EMAIL_LOWER="${TEST_USER_EMAIL,,}" python3 -c 'import json, sys, os; d = json.load(sys.stdin); target = os.environ["TEST_EMAIL_LOWER"]; matches = [u for u in d.get("users", []) if (u.get("email") or "").lower() == target]; print(matches[0]["id"] if matches else "")')
           if [ -z "$USER_ID" ]; then echo 'Test user already gone or no exact email match found'; exit 0; fi
+          # STOCK-RESTORE-FIX (2026-09-01): Restore stock for test work BEFORE deleting order
+          if [ -n "${{ steps.testdata.outputs.work_id }}" ]; then
+            WORK_ID="${{ steps.testdata.outputs.work_id }}"
+            curl -sfS -X PATCH "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/works?id=eq.$WORK_ID" \
+              -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" -H "Content-Type: application/json" \
+              -d '{"stock_available": 1, "for_sale": true, "is_sold": false}' || true
+            echo "✅ Stock restored for work: $WORK_ID"
+          fi
+          # Delete order_items first (not always cascaded)
+          curl -sfS -X DELETE "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/order_items?order_id=in.(select id from orders where customer_id=eq.$USER_ID)" \
+            -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" || true
           # Delete orders
           curl -sfS -X DELETE "https://gxztrhvhcxhmunhhkfjd.supabase.co/rest/v1/orders?customer_id=eq.$USER_ID" \
             -H "apikey: $SERVICE_KEY" -H "Authorization: Bearer $SERVICE_KEY" || true
