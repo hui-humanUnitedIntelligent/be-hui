@@ -52,6 +52,12 @@
 .hui-interact-response.show{opacity:1;transform:translateY(0)}
 .hui-interact-response-text{font-size:16px;line-height:1.6;color:var(--ink, #1a1a2e);font-style:italic;padding-left:16px;border-left:2px solid var(--teal, #0DC4B5)}
 
+/* ── hui-interact CTA ── */
+.hui-interact-cta{margin-top:24px;opacity:0;transition:opacity .5s ease .2s}
+.hui-interact-cta.show{opacity:1}
+.hui-interact-cta a{display:inline-block;padding:12px 28px;border-radius:100px;background:var(--ink, #1a1a2e);color:#fff;font-size:14px;font-weight:600;text-decoration:none;transition:all .3s ease}
+.hui-interact-cta a:hover{background:var(--teal, #0DC4B5);transform:translateY(-1px)}
+
 /* ── "Von Anfang an dabei" timeline ── */
 .hui-timeline{margin:48px 0;position:relative;padding:0 0 0 0}
 .hui-timeline-item{position:relative;padding:0 0 40px 48px;opacity:0;transform:translateX(-12px);transition:opacity .6s ease, transform .6s ease}

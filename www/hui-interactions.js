@@ -104,7 +104,7 @@
       });
     });
 
-    // ═══ 3. Subpage micro-interactions ═══
+    // ═══ 3. Subpage micro-interactions (talente + ideen) ═══
     var interactChips = document.querySelectorAll('.hui-interact-chip');
     interactChips.forEach(function(chip){
       chip.addEventListener('click', function(){
@@ -115,6 +115,11 @@
         var responseEl = group.querySelector('.hui-interact-response');
         var responseTextEl = group.querySelector('.hui-interact-response-text');
         var responseKey = group.getAttribute('data-response-prefix') + '.' + value;
+        var ctaLink = chip.getAttribute('data-cta-link') || '';
+        var trackLabel = chip.getAttribute('data-track') || '';
+        var ctaEl = group.querySelector('.hui-interact-cta');
+        var prefix = group.getAttribute('data-response-prefix') || '';
+        var ctaPrefix = prefix.replace('.response', '.cta');
 
         // Deselect others in group
         group.querySelectorAll('.hui-interact-chip').forEach(function(c){
@@ -122,9 +127,31 @@
         });
         chip.classList.add('selected');
 
+        // Track selection via Plausible
+        if(trackLabel && typeof window.huiTrack === 'function'){
+          window.huiTrack(trackLabel, { section: 'was-kannst-du', selection: value });
+        }
+
+        // Show response
         if(responseEl && responseTextEl){
           responseTextEl.textContent = t(responseKey);
           responseEl.classList.add('show');
+        }
+
+        // Show CTA with tracking
+        if(ctaEl){
+          var ctaText = t(ctaPrefix + '.' + value);
+          var ctaLinkEl = ctaEl.querySelector('a');
+          if(ctaLinkEl){
+            ctaLinkEl.textContent = ctaText;
+            if(ctaLink){ ctaLinkEl.href = ctaLink; }
+            ctaLinkEl.onclick = function(e){
+              if(trackLabel && typeof window.huiTrack === 'function'){
+                window.huiTrack(trackLabel + ' – CTA', { section: 'was-kannst-du', selection: value, target: ctaLink });
+              }
+            };
+          }
+          ctaEl.classList.add('show');
         }
       });
     });
