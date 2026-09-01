@@ -8,6 +8,7 @@ import { HUIAnsichtIcon, HUIDatenschutzIcon } from '../../design/icons/HuiSystem
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
+import { getAuthRedirectUrl } from "../../lib/platform.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
@@ -92,7 +93,7 @@ export default function SicherheitPasswortModal({ profile, onClose }) {
     if (!profile?.email) { setResetErr(t("spm.errNoEmail")); return; }
     setResetLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(profile.email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: getAuthRedirectUrl(),
     });
     setResetLoading(false);
     if (error) { setResetErr(error.message); return; }
