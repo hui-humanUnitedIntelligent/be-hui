@@ -135,7 +135,7 @@ be-hui.vercel.app`
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'HUI <noreply@hui.app>',
+      from: 'HUI <noreply@be-hui.com>',
       to: email,
       subject: 'Dein HUI-Account wurde gelöscht',
       html,
@@ -145,10 +145,10 @@ be-hui.vercel.app`
 
   if (!resp.ok) {
     const errBody = await resp.text()
-    console.error('Resend email failed:', resp.status, errBody)
+    console.error(`[delete-account] Resend email FAILED: ${resp.status} ${errBody} (to=${email})`)
     // E-Mail-Fehler brechen nicht den Gesamterfolg ab — Account ist bereits gelöscht
   } else {
-    console.log('Deletion confirmation email sent to:', email)
+    console.log(`[delete-account] Deletion confirmation email sent to: ${email}`)
   }
 }
 
