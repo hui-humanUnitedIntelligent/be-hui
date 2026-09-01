@@ -5,7 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { APP_VERSION } from "../../version.js";
 import { supabase } from "../../lib/supabaseClient";
 
-const VIDEO_PATH = "/assets/intro-video.mp4";
+// CDN-URL statt lokalem Pfad — das 8.5MB Video muss NICHT in jedem
+// OTA-Bundle mitgeliefert werden. Lädt vom Vercel-CDN, Fallback (CSS-
+// Animation) greift automatisch falls offline. Reduziert bundle.zip
+// von ~18MB auf ~10MB.
+const VIDEO_PATH = "https://be-hui.vercel.app/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
 const FADE_DURATION = 800;
 const VIDEO_TIMEOUT = 2500;   // Wenn Video nach 2.5s nicht startet → Fallback

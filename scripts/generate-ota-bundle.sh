@@ -41,6 +41,11 @@ for root, dirs, filenames in os.walk(web_dir):
         rel = os.path.relpath(full, web_dir)
         if rel in ("bundle.zip", "app-version.json"):
             continue
+        # intro-video.mp4 (8.5MB) wird vom CDN geladen, nicht aus dem
+        # lokalen Bundle — spart ~Halfte der OTA-Download-Groesse.
+        # Siehe IntroVideoScreen.jsx VIDEO_PATH (CDN-URL).
+        if rel == "assets/intro-video.mp4":
+            continue
         files_to_zip.append((full, rel))
 
 files_to_zip.sort(key=lambda x: x[1])
