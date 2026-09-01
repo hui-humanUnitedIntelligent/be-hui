@@ -4930,4 +4930,5 @@ export default {
   'upload.chooseThumbnail': 'Scegli l\'immagine di copertina',
   'upload.thumbnailAlt': 'Miniatura del video',
   'upload.videoLoading': 'Caricamento video…',
+  'upload.thumbnailExtractFailed': 'Anteprima non generata — muovi il cursore per riprovare',
 };

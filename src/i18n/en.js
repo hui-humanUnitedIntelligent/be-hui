@@ -4979,4 +4979,5 @@ export default {
   'upload.chooseThumbnail': 'Choose thumbnail',
   'upload.thumbnailAlt': 'Video thumbnail',
   'upload.videoLoading': 'Video loading…',
+  'upload.thumbnailExtractFailed': 'Preview could not be created — move the slider to try again',
 };

@@ -4930,4 +4930,5 @@ export default {
   'upload.chooseThumbnail': 'Elegir imagen de portada',
   'upload.thumbnailAlt': 'Miniatura del video',
   'upload.videoLoading': 'Cargando video…',
+  'upload.thumbnailExtractFailed': 'No se pudo crear la vista previa — mueve el control para reintentar',
 };

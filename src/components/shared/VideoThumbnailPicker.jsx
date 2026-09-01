@@ -65,10 +65,12 @@ export default function VideoThumbnailPicker({
   const [err, setErr] = useState(false);
   const [ready, setReady] = useState(false);       // Video canplay/loadeddata erreicht
   const [extracting, setExtracting] = useState(false); // laufende Frame-Extraktion (visuelles Feedback)
+  const [extractError, setExtractError] = useState(false); // letzte Extraktion fehlgeschlagen (kein Bild verfügbar)
 
   const capturingRef = useRef(false);
   const pendingTimeRef = useRef(null);   // letzter gewünschter Zeitpunkt während eine Extraktion läuft
   const debounceRef = useRef(null);
+  const hasFrameRef = useRef(!!initialThumbnailUrl); // vermeidet stale closure in runCapture (useCallback)
 
   // Führt die eigentliche Extraktion aus — mit Nachzieh-Logik: falls
   // während des Laufs ein neuerer Zeitpunkt gewünscht wurde, wird dieser
@@ -85,10 +87,18 @@ export default function VideoThumbnailPicker({
     setExtracting(true);
     try {
       const { blob, dataUrl } = await extractVideoFrame(v, t);
+      hasFrameRef.current = true;
       setFrameUrl(dataUrl);
+      setExtractError(false);
       onFrameReady?.(blob, dataUrl);
     } catch (e) {
       console.warn("[VideoThumbnailPicker] Frame-Extraktion fehlgeschlagen:", e?.message);
+      // Nie einen Zustand hinterlassen, aus dem der Nutzer nicht mehr
+      // herauskommt: bei Fehlschlag klar sichtbares Feedback statt
+      // stillem Nichts — der Wizard selbst blockiert "Weiter" NICHT auf
+      // Basis der Thumbnail-Extraktion, daher hängt der Nutzer hier nie
+      // fest, soll das aber auch klar sehen können.
+      if (!hasFrameRef.current) setExtractError(true);
     } finally {
       capturingRef.current = false;
       const next = pendingTimeRef.current;
@@ -240,6 +250,11 @@ export default function VideoThumbnailPicker({
           {(label || !compact) && (
             <div style={{ fontSize: 11, color: "rgba(26,53,48,0.55)", marginBottom: 4 }}>
               {ready ? (label || t("upload.chooseThumbnail")) : t("upload.videoLoading")}
+            </div>
+          )}
+          {extractError && !frameUrl && (
+            <div style={{ fontSize: 11, color: "rgba(217,83,79,0.85)", marginBottom: 4 }}>
+              {t("upload.thumbnailExtractFailed")}
             </div>
           )}
           <input

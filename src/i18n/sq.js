@@ -4932,4 +4932,5 @@ export default {
   'upload.chooseThumbnail': 'Zgjidh imazhin e kopertinës',
   'upload.thumbnailAlt': 'Miniatura e videos',
   'upload.videoLoading': 'Video po ngarkohet…',
+  'upload.thumbnailExtractFailed': 'Pamja paraprake nuk u krijua — lëvize rrëshqitësin për të riprovuar',
 };

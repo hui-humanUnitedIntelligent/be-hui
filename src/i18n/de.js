@@ -4971,4 +4971,5 @@ export default {
   'upload.chooseThumbnail': 'Titelbild wählen',
   'upload.thumbnailAlt': 'Video-Titelbild',
   'upload.videoLoading': 'Video lädt …',
+  'upload.thumbnailExtractFailed': 'Vorschau konnte nicht erzeugt werden — Regler bewegen zum erneuten Versuch',
 };

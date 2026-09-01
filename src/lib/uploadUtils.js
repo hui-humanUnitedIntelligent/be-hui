@@ -324,8 +324,12 @@ export function releaseVideoElement(videoEl) {
 export function extractVideoFrame(videoEl, timeSec) {
   return new Promise((resolve, reject) => {
     const clamped = Math.max(0, Math.min(timeSec, (videoEl.duration || timeSec) - 0.05));
+    let done = false;
 
     const drawNow = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(safetyTimer);
       try {
         const canvas = document.createElement("canvas");
         canvas.width = videoEl.videoWidth || 640;
@@ -342,28 +346,40 @@ export function extractVideoFrame(videoEl, timeSec) {
       }
     };
 
-    // KERN-FIX (Ruckel-Bug): Das "seeked"-Event garantiert NUR, dass der
-    // Browser mit dem Seek fertig ist — NICHT, dass der neue Frame schon
-    // tatsächlich dekodiert und für drawImage() verfügbar ist. Bei
-    // schnellen aufeinanderfolgenden Seeks (Scrubber-Drag) führt das
-    // sichtbar zu "alten"/verwaschenen Frames oder leeren Canvas-Reads.
-    // Fix: wenn der Browser requestVideoFrameCallback unterstützt (Chrome/
-    // Android-WebView — genau die Plattform aus dem Screenshot), warten
-    // wir zusätzlich auf den nächsten tatsächlich präsentierten Frame.
-    // Fallback (Safari/ältere Browser ohne rVFC): doppelter
-    // requestAnimationFrame, das dem Decoder zwei Paint-Zyklen Zeit gibt.
+    // REGRESSION-FIX (2026-09-01, kritisch): Die vorherige Version wartete
+    // bei unterstützten Browsern auf requestVideoFrameCallback (rVFC) bevor
+    // gezeichnet wurde. Das hat auf echten Android-Geräten zu einem
+    // ENDLOSEN Spinner geführt (nie irgendein Bild) — schlimmer als der
+    // ursprüngliche Ruckel-Bug. Root Cause: loadVideoElement() hängt das
+    // <video>-Element ABSICHTLICH NIE in den DOM ("unangehängt", siehe
+    // Kommentar dort). rVFC ist an den Compositor/Präsentations-Zyklus
+    // gebunden — bei einem nie angehängten Element präsentiert der
+    // Compositor auf vielen Chromium/Android-WebView-Builds NIE einen
+    // Frame → der rVFC-Callback feuert schlicht nie → drawNow() wird nie
+    // aufgerufen → Promise löst sich nie auf → Spinner dreht ewig.
+    // requestAnimationFrame() hängt dagegen am Dokument-Render-Loop, NICHT
+    // am Video-Element — feuert zuverlässig unabhängig von DOM-Attachment.
+    // Fix: rVFC komplett entfernt, nur noch doppelter rAF nach 'seeked'.
     const onSeeked = () => {
       videoEl.removeEventListener("seeked", onSeeked);
-      if (typeof videoEl.requestVideoFrameCallback === "function") {
-        videoEl.requestVideoFrameCallback(() => drawNow());
-      } else {
-        requestAnimationFrame(() => requestAnimationFrame(drawNow));
-      }
+      requestAnimationFrame(() => requestAnimationFrame(drawNow));
     };
     videoEl.addEventListener("seeked", onSeeked);
+
+    // Zusätzliches Sicherheitsnetz: falls 'seeked' aus irgendeinem Grund
+    // (Edge Case, Geräte-/Codec-Eigenheit) NIE feuert, wird nach 2.5s
+    // trotzdem gezeichnet — lieber ein eventuell leicht veralteter Frame
+    // als ein für immer hängender Spinner, aus dem der Nutzer nicht
+    // mehr herauskommt (Punkt 5 der Anforderung).
+    const safetyTimer = setTimeout(() => {
+      videoEl.removeEventListener("seeked", onSeeked);
+      drawNow();
+    }, 2500);
+
     try {
       videoEl.currentTime = clamped;
     } catch (err) {
+      clearTimeout(safetyTimer);
       videoEl.removeEventListener("seeked", onSeeked);
       reject(err);
     }

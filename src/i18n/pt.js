@@ -4930,4 +4930,5 @@ export default {
   'upload.chooseThumbnail': 'Escolher imagem de capa',
   'upload.thumbnailAlt': 'Miniatura do vídeo',
   'upload.videoLoading': 'Carregando vídeo…',
+  'upload.thumbnailExtractFailed': 'Não foi possível criar a pré-visualização — mova o controle para tentar novamente',
 };

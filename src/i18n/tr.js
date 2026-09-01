@@ -4930,4 +4930,5 @@ export default {
   'upload.chooseThumbnail': 'Kapak görseli seç',
   'upload.thumbnailAlt': 'Video küçük resmi',
   'upload.videoLoading': 'Video yükleniyor…',
+  'upload.thumbnailExtractFailed': 'Önizleme oluşturulamadı — yeniden denemek için kaydırıcıyı hareket ettirin',
 };
