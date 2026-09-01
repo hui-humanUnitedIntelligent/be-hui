@@ -4548,6 +4548,8 @@ export default {
   'res.inBearbeitung': 'In Bearbeitung',
   'res.abgestimmt': 'Abgestimmt',
   'res.eingereicht': 'Eingereicht',
+  'res.abgelehnt': 'Abgelehnt',
+  'res.geloescht': 'Gelöscht',
   'res.herzensprojektUnterstuetzt': 'Herzensprojekt unterstützt',
   'res.stimmeFuer': 'Stimme für',
   'res.unterstuetzt': 'Unterstützt',

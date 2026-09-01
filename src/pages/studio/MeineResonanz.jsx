@@ -85,7 +85,7 @@ function statusLabel(status, t) {
     paid:t("res.bezahlt"), completed:t("res.abgeschlossen"), confirmed:t("res.bestaetigt"),
     pending:t("res.ausstehend"), cancelled:t("res.storniert"), approved:t("res.genehmigt"),
     fulfilled:t("res.erfuellt"), shipped:t("res.versandt"), delivered:t("res.geliefert"),
-    processing:t("res.inBearbeitung"), voted:t("res.abgestimmt"), submitted:t("res.eingereicht"),
+    processing:t("res.inBearbeitung"), voted:t("res.abgestimmt"), submitted:t("res.eingereicht"), rejected:t("res.abgelehnt"), deleted:t("res.geloescht"),
   };
   return map[status?.toLowerCase()] || status || "";
 }
@@ -128,6 +128,7 @@ async function loadTimeline(userId, t) {
           amount:  safeNum(item.unit_price_eur) * safeNum(item.quantity || 1),
           status:  item.fulfillment_status || order.state,
           navId:   item.item_id || order.id,
+          navType: type === "erlebnis" ? "experience" : "work",
         });
       }
     }
@@ -157,7 +158,8 @@ async function loadTimeline(userId, t) {
         img:    null,
         amount: safeNum(p.amount_eur),
         status: p.state || p.status,
-        navId:  p.id,
+        navId:  null,
+        navType: null,
       });
     }
   } catch(e) { console.warn("[Resonanz payments]", e?.message); }
@@ -181,11 +183,40 @@ async function loadTimeline(userId, t) {
         img:         null,
         amount:      safeNum(b.total_eur || b.subtotal_eur || b.amount),
         status:      b.state || b.status,
-        navId:       b.id,
+        navId:       null,
+        navType:     null,
         scheduledAt: b.scheduled_at,
       });
     }
   } catch(e) { console.warn("[Resonanz bookings]", e?.message); }
+
+  // 3b. Talent-Buchungen (neues Buchungssystem)
+  try {
+    const { data: tBookings } = await supabase
+      .from("talent_bookings")
+      .select("id, talent_id, customer_id, seller_id, selected_date, selected_time_slot, participants, status, amount_eur, created_at, cancelled_at, talents(title, images, category)")
+      .eq("customer_id", userId)
+      .order("created_at", { ascending:false })
+      .limit(30);
+
+    for (const b of tBookings || []) {
+      const talent = b.talents;
+      const img = talent?.images?.[0] || null;
+      entries.push({
+        id:          "talent-booking-" + b.id,
+        type:        "buchung",
+        date:        b.created_at,
+        title:       talent?.title || t("res.buchung"),
+        desc:        "",
+        img:         img,
+        amount:      safeNum(b.amount_eur),
+        status:      b.status,
+        navId:       b.talent_id,
+        navType:     "talent",
+        scheduledAt: b.selected_date,
+      });
+    }
+  } catch(e) { console.warn("[Resonanz talent_bookings]", e?.message); }
 
   // 4. Impact-Stimmen
   try {
@@ -208,6 +239,7 @@ async function loadTimeline(userId, t) {
         amount: null,
         status: "voted",
         navId:  v.project_id,
+        navType: "impact",
       });
     }
   } catch(e) { console.warn("[Resonanz votes]", e?.message); }
@@ -218,6 +250,7 @@ async function loadTimeline(userId, t) {
       .from("impact_applications")
       .select("id, project_name, short_desc, cover_url, status, created_at")
       .eq("user_id", userId)
+      .not("status", "in", '("deleted")')
       .order("created_at", { ascending:false })
       .limit(10);
 
@@ -232,6 +265,7 @@ async function loadTimeline(userId, t) {
         amount: null,
         status: a.status,
         navId:  a.id,
+        navType: "impact",
       });
     }
   } catch(e) { console.warn("[Resonanz own apps]", e?.message); }
@@ -309,11 +343,12 @@ function ResonanzSummary({ entries }) {
           {stats.map(s => (
             <div key={s.label} style={{
               background:"rgba(26,26,24,0.04)", borderRadius:14,
-              padding:"10px 14px", textAlign:"center", minWidth:64,
+              padding:"12px 16px", textAlign:"center", minWidth:72,
+              display:"flex", flexDirection:"column", alignItems:"center", gap:0,
             }}>
-              <div style={{ fontSize:22, marginBottom:2 }}>{s.icon}</div>
+              <div style={{ height:16, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:4 }}>{s.icon}</div>
               <div style={{ fontSize:18, fontWeight: 600, color:T.ink, lineHeight:1 }}>{s.val}</div>
-              <div style={{ fontSize:11, color:T.inkSoft, marginTop:2 }}>{s.label}</div>
+              <div style={{ fontSize:11, color:T.inkSoft, marginTop:3 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -336,7 +371,7 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
       className="mr-press mr-entry"
       role="button"
       tabIndex={0}
-      onClick={() => onTap(entry)}
+      onClick={() => { if (entry.navId && entry.navType) onTap(entry); }}
       onKeyDown={e => e.key==="Enter" && onTap(entry)}
       style={{
         animationDelay: (animIndex * 0.04) + "s",
@@ -490,12 +525,8 @@ export default function MeineResonanz({ onClose, onNavigate }) {
   }, [filtered]);
 
   function handleTap(entry) {
-    if (!onNavigate) return;
-    if (entry.type === "impact")    onNavigate("impact",  entry.navId);
-    else if (entry.type === "werk") onNavigate("work",    entry.navId);
-    else if (entry.type === "erlebnis") onNavigate("erlebnis", entry.navId);
-    else if (entry.type === "buchung")  onNavigate("buchung",  entry.navId);
-    else if (entry.type === "support")  onNavigate("support",  entry.navId);
+    if (!onNavigate || !entry.navId || !entry.navType) return;
+    onNavigate(entry.navType, entry.navId);
   }
 
   return createPortal(

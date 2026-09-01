@@ -1199,6 +1199,10 @@ export default function MyBasisProfile({ onClose, profileId }) {
           onClose={() => setShowResonanz(false)}
           onNavigate={(type, navId) => {
             setShowResonanz(false);
+            if (type === "work")          openRef({ type: "work", id: navId });
+            else if (type === "experience") openRef({ type: "experience", id: navId });
+            else if (type === "talent")     openRef({ type: "talent", id: navId });
+            else if (type === "impact")     navigate("/impact", { state: { openProjectId: navId } });
           }}
         />
       )}

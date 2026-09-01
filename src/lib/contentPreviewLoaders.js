@@ -58,8 +58,17 @@ const LOADERS = {
     return normalizePostForPreview(await injectAuthorProfile(row), "experience");
   },
   project: async (id) => {
-    const row = await one(supabase.from("impact_projects").select("*").eq("id", id));
-    return row ? normalizeProjectForPreview(row) : null;
+    // FIX (2026-09-01): impact_projects ist eine veraltete Seed/Statistik-Tabelle.
+    // Alle Projekt-Daten (Name, Beschreibung, Cover) liegen in impact_applications.
+    // Felder mappen: project_name→name, short_desc→description, cover_url→img_url.
+    const row = await one(supabase.from("impact_applications").select("*").eq("id", id));
+    if (!row) return null;
+    return normalizeProjectForPreview({
+      ...row,
+      name:        row.project_name,
+      description: row.short_desc,
+      img_url:     row.cover_url || (Array.isArray(row.media_urls) ? row.media_urls[0] : null),
+    });
   },
   recommendation: async (id) => {
     const row = await one(
