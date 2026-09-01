@@ -177,7 +177,7 @@ function RCard({ active, icon, label, sub, onClick }) {
 // Screen 1 – Bilder & Videos (UNIVERSELLER UPLOAD 2026-08-20)
 // Bis zu 10 Bilder/Videos, 5MB Bilder, 25MB Videos (Michael-Vorgabe).
 // ══════════════════════════════════════════════════════════════
-function S1({ data, onChange, userId, onNext, onCoverThumbFrame, existingThumbnailUrl }) {
+function S1({ data, onChange, userId, onNext, onCoverThumbFrame, existingThumbnailUrl, onUploadStateChange }) {
   const { t } = useTranslation();
   const [upl, setUpl] = useState(false);
   const imgs = data.images || [];
@@ -196,6 +196,7 @@ function S1({ data, onChange, userId, onNext, onCoverThumbFrame, existingThumbna
     }
     onChange({ images: next });
     setUpl(true);
+    onUploadStateChange?.(true);
 
     for (const { file, previewUrl, idx } of previews) {
       try {
@@ -204,10 +205,18 @@ function S1({ data, onChange, userId, onNext, onCoverThumbFrame, existingThumbna
         onChange({ images: [...next] });
         URL.revokeObjectURL(previewUrl);
       } catch (err) {
-        console.error("[WerkWizard] Upload-Fehler:", err?.message);
+        // SAVE-IMAGE-FIX (2026-09-01): Bei Upload-Fehler das fehlgeschlagene
+        // Bild aus dem Array entfernen — sonst wird die blob:-Preview-URL
+        // in die DB gespeichert und ist nach dem Reload ungültig.
+        console.error("[WerkWizard] Upload-Fehler — Bild entfernt:", err?.message);
+        next.splice(idx, 1);
+        // Indizes nach idx verschieben sich durch splice — previews-Indizes anpassen
+        for (const p of previews) { if (p.idx > idx) p.idx--; }
+        onChange({ images: [...next] });
       }
     }
     setUpl(false);
+    onUploadStateChange?.(false);
   }
 
   function handleRemove(idx) {
@@ -617,6 +626,9 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   // Titelbild, falls images[0] ein Video ist. Wird erst beim Speichern
   // hochgeladen (analog zum bestehenden Upload-Muster der Bilder/Videos).
   const [coverThumbBlob, setCoverThumbBlob] = useState(null);
+  // SAVE-IMAGE-FIX (2026-09-01): Upload-Status von S1 an Parent weiterleiten,
+  // damit der Save-Button deaktiviert wird solange Bilder hochladen.
+  const [isUploading, setIsUploading] = useState(false);
   const [form,setForm]=useState(()=>{
     if (existingWork) {
       let imgs=[];
@@ -760,9 +772,13 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
     // dadurch keine gültige Bild-URL mehr -> nur cover_url zeigte an,
     // kein Sliden möglich. Fix: nur noch Klartext-URL-Strings schreiben,
     // exakt wie experiences/talents es der Leseseite liefern.
+    // SAVE-IMAGE-FIX (2026-09-01): Safety-Net — falls trotz Upload-Wait
+    // noch blob:-URLs im Array sind (Upload fehlgeschlagen, Session
+    // abgelaufen etc.), diese NICHT in die DB schreiben — sie sind nach
+    // dem Reload ungültig und das Bild würde als fehlend angezeigt.
     const imagesArr = (form.images||[]).map(img =>
       typeof img === "object" ? (img.url || "") : img
-    ).filter(Boolean);
+    ).filter(u => Boolean(u) && !u.startsWith("blob:"));
 
     // ── Payload: exakt die Spalten die in public.works existieren ──
     // Bestätigt vorhanden: category, caption, cover_url, creator_id,
@@ -962,7 +978,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
   // ── Weiter-Button Validierung pro Schritt ─────────────────
   const canContinue = useCallback(() => {
     switch (step) {
-      case 1: return (form.images||[]).length > 0;
+      // SAVE-IMAGE-FIX: Step 1 blockiert solange Bilder hochladen
+      case 1: return (form.images||[]).length > 0 && !isUploading;
       case 2: return !!(form.title?.trim()) && !!form.category;
       case 3: return !!form.werktyp && (form.werktyp !== "druck" || (Number.isInteger(parseInt(form.stockCount,10)) && parseInt(form.stockCount,10) >= 1));
       case 4: return !!(form.price) && !!form.availability;
@@ -970,7 +987,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       case 6: return true;
       default: return true;
     }
-  }, [step, form]);
+  }, [step, form, isUploading]);
 
   const isLast = step === TOTAL;
 
@@ -1051,7 +1068,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       }}>
         {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={null}
           onCoverThumbFrame={(blob) => setCoverThumbBlob(blob)}
-          existingThumbnailUrl={existingWork?.thumbnail_url || null}/>}
+          existingThumbnailUrl={existingWork?.thumbnail_url || null}
+          onUploadStateChange={setIsUploading}/>}
         {step===2&&<S2 data={form} onChange={patch} onNext={null}/>}
         {step===3&&<S3 data={form} onChange={patch} onNext={null}/>}
         {step===4&&<S4 data={form} onChange={patch} onNext={null}/>}
@@ -1131,7 +1149,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
           </button>
         )}
         {isLast && (
-          <button onClick={()=>save("pending_review")} disabled={saving} style={{
+          <button onClick={()=>save("pending_review")} disabled={saving||isUploading} style={{
             flex:2, padding:"15px",
             background:saving
               ? "rgba(14,196,184,0.32)"
@@ -1152,7 +1170,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
           paddingBottom:"max(12px, max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 12px), 12px))",
           background:"#fff",
         }}>
-          <button onClick={()=>save("draft")} disabled={saving} style={{
+          <button onClick={()=>save("draft")} disabled={saving||isUploading} style={{
             background:"none", border:"none",
             color:C.teal, fontSize:13, fontWeight:600,
             cursor:"pointer", fontFamily:"inherit",

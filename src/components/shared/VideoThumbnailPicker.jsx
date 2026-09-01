@@ -118,7 +118,7 @@ export default function VideoThumbnailPicker({
           <img src={frameUrl} alt={t("upload.thumbnailAlt")}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
-          <div style={{ width: "100%", height: "100%", background: "#1A1A18" }} />
+          <div style={{ width: "100%", height: "100%", background: "#e8e4df" }} />
         )}
         {/* Play-Badge — rein dekorativ, signalisiert "das ist ein Video",
             ersetzt den nativen schwarzen Play-Icon-Platzhalter durch ein

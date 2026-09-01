@@ -1148,6 +1148,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
         <HuiMomentSheet
             visible={showMomentSheet}
             onClose={() => setShowMomentSheet(false)}
+            onSaved={() => { reload(); loadLazy?.(); }}
             visibilityScope="public"
           />
         ,
@@ -1160,7 +1161,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             userId={effectiveUserId}
             existingWork={editingWerk}
             onClose={() => { setShowWerkWizard(false); setEditingWerk(null); }}
-            onSaved={() => { setShowWerkWizard(false); setEditingWerk(null); reload(); }}
+            onSaved={() => { setShowWerkWizard(false); setEditingWerk(null); reload(); loadLazy?.(); }}
           />
         ,
         document.body
@@ -1172,7 +1173,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             userId={effectiveUserId}
             existingTalent={editingTalent}
             onClose={() => { setShowTalentWizard(false); setEditingTalent(null); }}
-            onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); reload(); }}
+            onSaved={() => { setShowTalentWizard(false); setEditingTalent(null); reloadTalents(); reload(); loadLazy?.(); }}
           />
         ,
         document.body
@@ -1184,7 +1185,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
             userId={effectiveUserId}
             existingExp={editingExp}
             onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
-            onSaved={() => { setShowExpWizard(false); setEditingExp(null); reload(); }}
+            onSaved={() => { setShowExpWizard(false); setEditingExp(null); reload(); loadLazy?.(); }}
           />
         ,
         document.body

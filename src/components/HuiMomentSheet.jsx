@@ -239,7 +239,7 @@ async function moderateContent({ userId, mediaUrl, mediaType, text }) {
 }
 
 // ════════════════════════════════════════════════════════════════
-export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'public' }) {
+export default function HuiMomentSheet({ visible, onClose, onSaved, visibilityScope = 'public' }) {
   const { t } = useTranslation();
   const { activeProfileId } = useAuth();
   const [phase,     setPhase]     = useState(visible ? "open" : "hidden");
@@ -429,6 +429,8 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
       }
 
       await _publishMoment({ src, storagePath, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim(), thumbnailUrl });
+      // AUTO-REFRESH-FIX (2026-09-01): Profil nach Posten aktualisieren
+      onSaved?.();
 
       if (mediaURL) URL.revokeObjectURL(mediaURL);
       setMediaURL(null);
@@ -447,6 +449,8 @@ export default function HuiMomentSheet({ visible, onClose, visibilityScope = 'pu
     setUploading(true); setShareErr(null);
     try {
       await _publishMoment({ src: null, type: "gedanke", momentSource: "gedanke", caption: text.trim() });
+      // AUTO-REFRESH-FIX (2026-09-01)
+      onSaved?.();
       setPhase("done");
       setTimeout(() => doClose(), 1600);
     } catch (err) {

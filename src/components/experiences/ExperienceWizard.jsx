@@ -343,7 +343,7 @@ function TopBar({ onClose, step, total, isEdit }) {
 // SCHRITT 1 — BASIS
 // Titel · Typ · Kurzbeschreibung · Titelbild
 // ══════════════════════════════════════════════════════════════
-function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl }) {
+function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl, onUploadStateChange }) {
   const { t } = useTranslation();
   const [upl, setUpl] = useState(false);
   const ref = useRef(null);
@@ -364,12 +364,10 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
     onChange({ images: next });
     // Upload im Hintergrund
     setUpl(true);
+    onUploadStateChange?.(true);
     for (const { file, previewUrl, idx, isVid } of previews) {
       try {
         if (isVid) {
-          // VIDEO-THUMBNAIL-001: Video direkt hochladen (keine Kompression),
-          // VideoThumbnailPicker extrahiert den Frame client-seitig aus
-          // der Blob-URL / Remote-URL.
           const result = await uploadMediaFile(file, userId, "experiences");
           next[idx] = { url: result.url, path: null, type: "video" };
         } else {
@@ -386,10 +384,14 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
         onChange({ images: [...next] });
         URL.revokeObjectURL(previewUrl);
       } catch (err) {
-        console.error("[ExperienceWizard] Upload-Fehler:", err?.message);
+        console.error("[ExperienceWizard] Upload-Fehler — Bild entfernt:", err?.message);
+        next.splice(idx, 1);
+        for (const p of previews) { if (p.idx > idx) p.idx--; }
+        onChange({ images: [...next] });
       }
     }
     setUpl(false);
+    onUploadStateChange?.(false);
     if (ref.current) ref.current.value = "";
   }
 
@@ -430,6 +432,7 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
     }
     onChange({ images: next });
     setUplGallery(true);
+    onUploadStateChange?.(true);
     for (const { file, previewUrl, isVideo, idx } of previews) {
       try {
         const result = await uploadMediaFile(file, userId, "experiences");
@@ -437,10 +440,14 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
         onChange({ images: [...next] });
         URL.revokeObjectURL(previewUrl);
       } catch (err) {
-        console.error("[ExperienceWizard] Galerie-Upload-Fehler:", err?.message);
+        console.error("[ExperienceWizard] Galerie-Upload-Fehler — Bild entfernt:", err?.message);
+        next.splice(idx, 1);
+        for (const p of previews) { if (p.idx > idx) p.idx--; }
+        onChange({ images: [...next] });
       }
     }
     setUplGallery(false);
+    onUploadStateChange?.(false);
     if (galleryRef.current) galleryRef.current.value = "";
   }
 
@@ -512,8 +519,8 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
               }}>{t("common.titelbild")} · {t("common.video")}</div>
             </div>
           ) : (
-          <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "16/9", background: "#1A1A18" }}>
-            <img loading="lazy" decoding="async" src={firstImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+          <div style={{ position: "relative", borderRadius: 14, overflow: "hidden", aspectRatio: "16/9", background: "#e8e4df" }}>
+            <img loading="lazy" decoding="async" src={firstImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { e.target.style.opacity = 0.3; }}/>
             <button
               onClick={() => removeImg(0)}
               style={{
@@ -565,12 +572,12 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl })
           {galleryImgs.map((img, i) => (
             <div key={img.path || img.url || i} style={{
               position: "relative", borderRadius: 12, overflow: "hidden",
-              aspectRatio: "1", background: "#1A1A18",
+              aspectRatio: "1", background: "#e8e4df",
             }}>
               {img.type === "video" ? (
                 <video src={img.url} muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
               ) : (
-                <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+                <img loading="lazy" decoding="async" src={img.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { e.target.style.opacity = 0.3; }}/>
               )}
               {img.type === "video" && (
                 <div style={{
@@ -849,8 +856,8 @@ function S4({ data, onChange, saving }) {
       <div style={{ borderRadius: 16, overflow: "hidden", border: `1.5px solid ${C.border}`, background: C.white, marginBottom: 24, boxShadow: "0 2px 16px rgba(26,26,24,0.07)" }}>
         {/* Titelbild */}
         {cover ? (
-          <div style={{ width: "100%", aspectRatio: "16/9", background: "#1A1A18", overflow: "hidden" }}>
-            <img loading="lazy" decoding="async" src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}/>
+          <div style={{ width: "100%", aspectRatio: "16/9", background: "#e8e4df", overflow: "hidden" }}>
+            <img loading="lazy" decoding="async" src={cover} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={(e) => { e.target.style.opacity = 0.3; }}/>
           </div>
         ) : (
           <div style={{ width:"100%", height:100, background:C.tealSoft, display:"flex", alignItems:"center", justifyContent:"center", opacity:0.4, color:"rgba(14,196,184,0.8)" }}><HUIKalenderIcon size={32}/></div>
@@ -938,6 +945,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
   const [pickedGeo, setPickedGeo] = useState(null);
   // VIDEO-THUMBNAIL-001 (2026-08-31)
   const [coverThumbBlob, setCoverThumbBlob] = useState(null);
+  // SAVE-IMAGE-FIX (2026-09-01): Upload-Status von S1 an Parent
+  const [isUploading, setIsUploading] = useState(false);
 
   const [form, setForm] = useState(() => {
     if (existingExp) {
@@ -1075,9 +1084,13 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         console.warn("[ExperienceWizard] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
       }
     }
-    const imagesArr = (form.images || []).map(img =>
-      typeof img === "object" ? img : { url: img }
-    );
+    // SAVE-IMAGE-FIX (2026-09-01): Safety-Net — blob:-URLs nicht speichern
+    const imagesArr = (form.images || [])
+      .filter(img => {
+        const url = typeof img === "object" ? (img?.url || "") : img;
+        return Boolean(url) && !url.startsWith("blob:");
+      })
+      .map(img => typeof img === "object" ? img : { url: img });
 
     // Geokoordinaten ermitteln (Standort-Feature 2026-07-06, fuer Umkreissuche
     // auf Discover-Seite). Nicht bei Online-Erlebnissen, nicht wenn sich der
@@ -1290,7 +1303,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       }}>
         {step === 1 && <S1 data={form} onChange={patch} userId={userId}
           onCoverThumbFrame={(blob) => setCoverThumbBlob(blob)}
-          existingThumbnailUrl={existingExp?.thumbnail_url || null}/>}}
+          existingThumbnailUrl={existingExp?.thumbnail_url || null}
+          onUploadStateChange={setIsUploading} />}
         {step === 2 && <S2 data={form} onChange={patch} onPickLocation={place => { patch({ location_text: place.label }); setPickedGeo({ lat: place.lat, lng: place.lng }); }}/>}
         {step === 3 && <S3 data={form} onChange={patch}/>}
         {step === 4 && <S4 data={form} onChange={patch} saving={saving}/>}
@@ -1359,7 +1373,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         {/* Letzer Schritt: Entwurf + Veröffentlichen */}
         {isLast && (
           <>
-            <button onClick={() => save("draft")} disabled={saving} style={{
+            <button onClick={() => save("draft")} disabled={saving||isUploading} style={{
               flex: 1, padding: "16px",
               background: "rgba(26,26,24,0.06)", border: "none",
               borderRadius: 14, fontSize: 14, fontWeight: 600,
@@ -1370,7 +1384,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
             </button>
             <button
               onClick={() => save("pending_review")}
-              disabled={saving || !form.title?.trim() || !form.visibility}
+              disabled={saving || isUploading || !form.title?.trim() || !form.visibility}
               style={{
                 flex: 2, padding: "16px",
                 background: (saving || !form.title?.trim())
