@@ -13,56 +13,54 @@
   .step-body { flex: 1; }
   .step-body h3 { font-size: 15px; margin: 2px 0 4px; }
   .step-body p { font-size: 14px; margin: 0; color: #4b5563; }
-  .step-body p code { background: #e5e7eb; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
   .warn { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 16px; margin: 20px 0; font-size: 13px; }
   .warn strong { color: #92400e; }
   .ok { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 12px 16px; margin: 20px 0; font-size: 13px; }
+  .ok strong { color: #065f46; }
+  .link-box { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 14px 16px; margin: 16px 0; }
+  .link-box a { color: #0d9488; font-weight: 600; word-break: break-all; }
   hr { border: none; border-top: 1px solid #e5e7eb; margin: 28px 0; }
   .footer { font-size: 12px; color: #9ca3af; text-align: center; margin-top: 24px; }
-  .btn { display: inline-block; padding: 12px 28px; background: #0EC4B8; color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 15px; margin: 8px 0; }
 </style>
 </head>
 <body>
 
 <h1>HUI App installieren</h1>
-<p class="sub">5 Schritte — ca. 3 Minuten</p>
+<p class="sub">4 Schritte — ca. 2 Minuten</p>
+
+<div class="link-box">
+  <strong>📥 Download-Link:</strong><br>
+  <a href="https://github.com/hui-humanUnitedIntelligent/be-hui/releases/download/v2.1.528/be-hui-v2.1.528.apk">be-hui-v2.1.528.apk</a><br>
+  <span style="font-size:13px;color:#6b7280">45 MB — direkt auf dem Handy öffnen</span>
+</div>
 
 <div class="step">
   <div class="num">1</div>
   <div class="step-body">
-    <h3>Beide Dateien herunterladen</h3>
-    <p>Lade <strong>Teil 1</strong> und <strong>Teil 2</strong> auf dein Handy herunter. Die Dateien kommen in den Download-Ordner.</p>
+    <h3>APK herunterladen</h3>
+    <p>Oben auf den Link tippen. Die Datei wird direkt auf dein Handy geladen. Falls ein Dialog erscheint: <strong>Herunterladen</strong> bestätigen.</p>
   </div>
 </div>
 
 <div class="step">
   <div class="num">2</div>
   <div class="step-body">
-    <h3>Dateien zusammenfügen</h3>
-    <p>Wenn du die Dateien nicht manuell zusammenfügen kannst: Lade dir die App <strong>ZArchiver</strong> (kostenlos im Play Store) herunter. Öffne ZArchiver, gehe zum Download-Ordner, tippe auf <code>be-hui-apk-part1.zip</code> und wähle "Entpacken". Wiederhole das mit <code>be-hui-apk-part2.zip</code> im selben Ordner. Es entstehen zwei Dateien namens <code>be-hui-apk-partaa</code> und <code>be-hui-apk-partab</code>.</p>
-    <p>In ZArchiver: Markiere beide Dateien → Menü → "Zusammenfügen". Nenne die neue Datei <code>app-release.apk</code>.</p>
+    <h3>"Unbekannte Quellen" erlauben</h3>
+    <p>Nach dem Download tippe auf die Benachrichtigung oder öffne die Datei im Download-Ordner. Android zeigt: <em>"Aus Sicherheitsgründen können Sie keine Apps aus dieser Quelle installieren"</em>. Tippe <strong>Einstellungen</strong> → aktiviere <strong>"Apps aus dieser Quelle zulassen"</strong>.</p>
+    <p style="margin-top:4px">Das gilt nur für HUI — andere Apps sind davon nicht betroffen.</p>
   </div>
 </div>
 
 <div class="step">
   <div class="num">3</div>
   <div class="step-body">
-    <h3>Unbekannte Quellen erlauben</h3>
-    <p>Beim ersten Versuch, eine App außerhalb des Play Stores zu installieren, zeigt Android einen Dialog: <em>"Aus Sicherheitsgründen können Sie keine Apps von dieser Quelle installieren"</em>. Tippe auf <strong>Einstellungen</strong> in diesem Dialog und aktiviere den Schalter <strong>"Apps aus dieser Quelle zulassen"</strong>.</p>
-    <p>Dieser Schalter gilt nur für HUI — andere Apps sind davon nicht betroffen.</p>
+    <h3>Installieren</h3>
+    <p>Android fragt: <em>"Möchten Sie diese App installieren?"</em> → <strong>Installieren</strong> tippen.</p>
   </div>
 </div>
 
 <div class="step">
   <div class="num">4</div>
-  <div class="step-body">
-    <h3>Installieren</h3>
-    <p>Tippe auf die zusammengefügte <code>app-release.apk</code>. Android fragt: <em>"Möchten Sie diese App installieren?"</em> → tippe <strong>Installieren</strong>.</p>
-  </div>
-</div>
-
-<div class="step">
-  <div class="num">5</div>
   <div class="step-body">
     <h3>App öffnen & registrieren</h3>
     <p>Öffne HUI aus der App-Übersicht. Tippe <strong>Registrieren</strong>, gib deine E-Mail ein. Du bekommst eine Bestätigungs-Mail — tippe auf den Link darin.</p>
@@ -70,15 +68,14 @@
 </div>
 
 <div class="ok">
-  <strong>Fertig!</strong> Die Bestätigungs-Mail sollte die HUI-App direkt öffnen. Falls stattdessen der Browser aufgeht: das ist auch okay — die App verifiziert automatisch und leitet dich weiter.
+  <strong>Fertig!</strong> Der Bestätigungs-Link sollte die HUI-App direkt öffnen. Falls der Browser aufgeht: kein Problem — die App verifiziert automatisch und leitet dich weiter.
 </div>
 
 <div class="warn">
-  <strong>Hinweis:</strong> Falls beim Entpacken etwas nicht klappt, schreib an support@be-hui.com — wir helfen direkt.
+  <strong>Hilfe nötig?</strong> Schreib an support@be-hui.com — wir helfen direkt weiter.
 </div>
 
 <hr>
-
 <p class="footer">HUI — Human United Intelligence</p>
 
 </body>
