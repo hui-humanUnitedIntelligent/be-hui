@@ -280,6 +280,35 @@ serve(async (req) => {
     }
 
     console.log(`[send-ticket-confirmation] Sent to ${email}, ticket=${ticketNumber}, id=${result.id}`);
+
+    // ── Base44 SadbAlert: Michael per Telegram benachrichtigen ──
+    // Non-blocking: Fehler beim Alert-Aufruf blockieren NICHT die Ticket-Erstellung.
+    try {
+      const SADB_SECRET = Deno.env.get("SADB_WEBHOOK_SECRET") ?? "";
+      const BASE44_FUNC_URL = "https://superagent-c4e431a5.base44.app/functions/supportTicketAlert";
+      const alertRes = await fetch(BASE44_FUNC_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-sadb-secret": SADB_SECRET,
+        },
+        body: JSON.stringify({
+          item_id:       ticketNumber,
+          item_title:    `[${ticketNumber}] ${subject || "Support-Anfrage"}`,
+          ticket_number: ticketNumber,
+          subject:      subject || "",
+          priority:      body?.priority || "normal",
+          category:      body?.category || "",
+          name:          name || "",
+          email:         email || "",
+        }),
+      });
+      const alertJson = await alertRes.json().catch(() => ({}));
+      console.log(`[send-ticket-confirmation] SadbAlert: ${alertRes.status}`, JSON.stringify(alertJson));
+    } catch (alertErr) {
+      console.warn("[send-ticket-confirmation] SadbAlert (non-blocking):", alertErr);
+    }
+
     return new Response(JSON.stringify({ ok: true, email_sent: true, id: result.id }), {
       status: 200, headers: { ...CORS, "Content-Type": "application/json" },
     });

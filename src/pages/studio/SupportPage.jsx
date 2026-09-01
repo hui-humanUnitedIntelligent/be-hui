@@ -146,6 +146,8 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
             subject:      form.subject.trim(),
             message:      form.message.trim(),
             lang,
+            category:     category || "",
+            priority:      PRIORITY_MAP[category] ?? "normal",
           }),
         });
       } catch (mailErr) {
