@@ -4970,4 +4970,5 @@ export default {
   'org.switcher.deleteErrorHasSales': 'Dieses Konto hat bereits verkaufte Werke und kann deshalb nicht gelöscht werden.',
   'upload.chooseThumbnail': 'Titelbild wählen',
   'upload.thumbnailAlt': 'Video-Titelbild',
+  'upload.videoLoading': 'Video lädt …',
 };

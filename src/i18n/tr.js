@@ -4929,4 +4929,5 @@ export default {
   'org.switcher.deleteErrorHasSales': 'Bu hesapta zaten satilmis eserler var, bu nedenle silinemez.',
   'upload.chooseThumbnail': 'Kapak görseli seç',
   'upload.thumbnailAlt': 'Video küçük resmi',
+  'upload.videoLoading': 'Video yükleniyor…',
 };

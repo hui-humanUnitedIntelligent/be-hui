@@ -4978,4 +4978,5 @@ export default {
   'org.switcher.deleteErrorHasSales': 'This account already has sold works and can therefore not be deleted.',
   'upload.chooseThumbnail': 'Choose thumbnail',
   'upload.thumbnailAlt': 'Video thumbnail',
+  'upload.videoLoading': 'Video loading…',
 };

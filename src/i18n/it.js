@@ -4929,4 +4929,5 @@ export default {
   'org.switcher.deleteErrorHasSales': 'Questo account ha gia opere vendute e quindi non puo essere eliminato.',
   'upload.chooseThumbnail': 'Scegli l\'immagine di copertina',
   'upload.thumbnailAlt': 'Miniatura del video',
+  'upload.videoLoading': 'Caricamento video…',
 };

@@ -225,9 +225,16 @@ export function processFileSelection(rawFiles, alreadySelected = 0) {
 export function loadVideoElement(source) {
   return new Promise((resolve, reject) => {
     const v = document.createElement("video");
-    v.preload = "metadata";
+    // preload="auto" statt "metadata" — bei "metadata" puffert der Browser
+    // NUR die Metadaten (Dauer/Abmessungen), nicht die tatsächlichen
+    // Frame-Daten. Jeder anschließende Seek muss dann live nachladen/
+    // dekodieren → das ist die Ursache des Ruckelns beim Scrubben.
+    // "auto" lässt den Browser so viel wie möglich vorladen (Video ist
+    // durch UPLOAD_LIMITS.MAX_VIDEO_MB=25MB ohnehin klein genug).
+    v.preload = "auto";
     v.muted = true;
     v.playsInline = true;
+    let objectUrl = null;
     // Remote-URL (Edit-Modus): crossOrigin nötig, damit canvas.toBlob()
     // im nächsten Schritt nicht mit "tainted canvas" (SecurityError)
     // abbricht. Supabase Storage 'media'-Bucket ist public + sendet
@@ -236,12 +243,74 @@ export function loadVideoElement(source) {
       v.crossOrigin = "anonymous";
       v.src = source;
     } else {
-      v.src = URL.createObjectURL(source);
+      objectUrl = URL.createObjectURL(source);
+      v.src = objectUrl;
     }
-    const onErr = () => reject(new Error("Video konnte nicht geladen werden"));
-    v.addEventListener("loadedmetadata", () => resolve(v), { once: true });
+
+    let settled = false;
+    const cleanup = () => {
+      v.removeEventListener("canplay", onReady);
+      v.removeEventListener("loadeddata", onReady);
+      v.removeEventListener("error", onErr);
+      clearTimeout(timeoutId);
+    };
+    // Referenz zum späteren Aufräumen des ObjectURL beim Unmount
+    // (verhindert Memory-Leak) — Aufrufer kann v.__objectUrl auslesen.
+    v.__objectUrl = objectUrl;
+
+    // WICHTIG: nicht nur auf "loadedmetadata" warten (liefert nur
+    // Dauer/Abmessungen), sondern auf "canplay" — das garantiert, dass
+    // der Decoder tatsächlich einen ersten Frame bereitgestellt hat und
+    // ein sofortiger seek()+drawImage() nicht auf ein leeres/graues Bild
+    // trifft. "loadeddata" als Fallback für Browser, die "canplay" bei
+    // sehr kurzen Videos verzögert/gar nicht feuern.
+    const onReady = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve(v);
+    };
+    const onErr = () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      reject(new Error("Video konnte nicht geladen werden"));
+    };
+    // Timeout-Fallback (15s) — falls weder canplay noch loadeddata noch
+    // error feuern (defekte/extrem langsame Quelle), statt die UI
+    // endlos im Lade-Zustand hängen zu lassen.
+    const timeoutId = setTimeout(() => {
+      if (settled) return;
+      // readyState>=1 heißt: zumindest Metadaten sind da → notfalls damit
+      // weiterarbeiten statt komplett zu scheitern.
+      if (v.readyState >= 1) { onReady(); } else { onErr(); }
+    }, 15000);
+
+    v.addEventListener("canplay", onReady, { once: true });
+    v.addEventListener("loadeddata", onReady, { once: true });
     v.addEventListener("error", onErr, { once: true });
   });
+}
+
+/**
+ * Gibt den für ein via loadVideoElement() erzeugtes <video>-Element
+ * angelegten ObjectURL wieder frei (falls vorhanden). Muss beim Unmount
+ * der Komponente bzw. bei Quellenwechsel aufgerufen werden, um Memory-
+ * Leaks zu vermeiden (File-Quellen erzeugen einen ObjectURL, Remote-URLs
+ * nicht).
+ * @param {HTMLVideoElement} videoEl
+ */
+export function releaseVideoElement(videoEl) {
+  if (!videoEl) return;
+  try {
+    videoEl.pause?.();
+    videoEl.removeAttribute("src");
+    videoEl.load?.();
+  } catch { /* noop */ }
+  if (videoEl.__objectUrl) {
+    try { URL.revokeObjectURL(videoEl.__objectUrl); } catch { /* noop */ }
+  }
 }
 
 /**
@@ -255,8 +324,8 @@ export function loadVideoElement(source) {
 export function extractVideoFrame(videoEl, timeSec) {
   return new Promise((resolve, reject) => {
     const clamped = Math.max(0, Math.min(timeSec, (videoEl.duration || timeSec) - 0.05));
-    const onSeeked = () => {
-      videoEl.removeEventListener("seeked", onSeeked);
+
+    const drawNow = () => {
       try {
         const canvas = document.createElement("canvas");
         canvas.width = videoEl.videoWidth || 640;
@@ -270,6 +339,25 @@ export function extractVideoFrame(videoEl, timeSec) {
         }, "image/jpeg", 0.82);
       } catch (err) {
         reject(err);
+      }
+    };
+
+    // KERN-FIX (Ruckel-Bug): Das "seeked"-Event garantiert NUR, dass der
+    // Browser mit dem Seek fertig ist — NICHT, dass der neue Frame schon
+    // tatsächlich dekodiert und für drawImage() verfügbar ist. Bei
+    // schnellen aufeinanderfolgenden Seeks (Scrubber-Drag) führt das
+    // sichtbar zu "alten"/verwaschenen Frames oder leeren Canvas-Reads.
+    // Fix: wenn der Browser requestVideoFrameCallback unterstützt (Chrome/
+    // Android-WebView — genau die Plattform aus dem Screenshot), warten
+    // wir zusätzlich auf den nächsten tatsächlich präsentierten Frame.
+    // Fallback (Safari/ältere Browser ohne rVFC): doppelter
+    // requestAnimationFrame, das dem Decoder zwei Paint-Zyklen Zeit gibt.
+    const onSeeked = () => {
+      videoEl.removeEventListener("seeked", onSeeked);
+      if (typeof videoEl.requestVideoFrameCallback === "function") {
+        videoEl.requestVideoFrameCallback(() => drawNow());
+      } else {
+        requestAnimationFrame(() => requestAnimationFrame(drawNow));
       }
     };
     videoEl.addEventListener("seeked", onSeeked);
