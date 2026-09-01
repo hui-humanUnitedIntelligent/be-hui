@@ -125,11 +125,11 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet, onDeleteM
 
       <div style={{ padding:`0 ${T.px}px` }}>
         {/* ── Header ────────────────────────────────────────── */}
-        <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>
-          {moments.length > 0
-            ? `${moments.length} ${moments.length === 1 ? t("meinBereich.momentSingular") : t("meinBereich.momentPlural")} ${t("meinBereich.momentsShared").toLowerCase()}`
-            : t("meinBereich.momentsEmpty")}
-        </div>
+        {moments.length > 0 && (
+          <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>
+            {moments.length} {moments.length === 1 ? t("meinBereich.momentSingular") : t("meinBereich.momentPlural")} {t("meinBereich.momentsShared").toLowerCase()}
+          </div>
+        )}
 
         {/* ── Kachel-Grid 3-spaltig ─── */}
         {moments.length > 0 && (

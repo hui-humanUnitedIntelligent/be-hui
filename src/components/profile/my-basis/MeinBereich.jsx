@@ -56,8 +56,7 @@ export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, fo
         </div>
         {/* Header: Icon + Titel nebeneinander, Subtitle darunter, dann Trennlinie */}
         <div style={{
-          padding:"8px 20px 14px", flexShrink:0,
-          borderBottom:"1px solid rgba(26,26,24,0.08)",
+          padding:"8px 20px 20px", flexShrink:0,
         }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             {/* Icon + Titel in einer Zeile */}

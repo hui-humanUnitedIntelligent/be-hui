@@ -446,8 +446,6 @@ export function ErlebnisseSection({ experiences, onErlebnisWizard, onDeleteErleb
       />
     )}
     <div style={{ padding:`0 ${T.px}px` }}>
-      <div style={{ fontSize:12, color:"#8C8C85", marginBottom:12 }}>{t("cs.momentsHint")}</div>
-
       <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)",
         gap:10, marginBottom:12 }}>
         {experiences.map((exp, i) => {
