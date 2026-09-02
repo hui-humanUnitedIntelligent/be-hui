@@ -15,8 +15,8 @@
 //   - Nur HTTP-Status + generischer Erfolgs-/Fehlercode
 // ══════════════════════════════════════════════════════════════════
 
-const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_KEY;
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const SUPABASE_SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
 // ── Erlaubte Formularfelder (Whitelist) ──
 const ALLOWED_FIELDS = {
