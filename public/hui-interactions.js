@@ -67,7 +67,7 @@
         var value = chip.getAttribute('data-bring');
         var responseKey = 'bring.response.' + value;
         var ctaKey = 'bring.cta.' + value;
-        var ctaLink = chip.getAttribute('data-cta-link') || '/von-anfang-an-dabei';
+        var ctaLink = chip.getAttribute('data-cta-link') || '';
         var trackLabel = chip.getAttribute('data-track') || ('HUI Entry – ' + value);
 
         // Deselect others
@@ -91,11 +91,18 @@
           var ctaLinkEl = bringCta.querySelector('a');
           if(ctaLinkEl){
             ctaLinkEl.textContent = ctaText;
-            ctaLinkEl.href = ctaLink;
+            if(ctaLink){
+              ctaLinkEl.href = ctaLink;
+              ctaLinkEl.classList.remove('bald');
+            } else {
+              ctaLinkEl.href = '#';
+              ctaLinkEl.classList.add('bald');
+            }
             // Track CTA click
             ctaLinkEl.onclick = function(e){
+              e.preventDefault();
               if(typeof window.huiTrack === 'function'){
-                window.huiTrack(trackLabel + ' – CTA', { section: 'was-bringst-du-mit', selection: value, target: ctaLink });
+                window.huiTrack(trackLabel + ' – CTA', { section: 'was-bringst-du-mit', selection: value, target: ctaLink || 'bald' });
               }
             };
           }
@@ -144,10 +151,17 @@
           var ctaLinkEl = ctaEl.querySelector('a');
           if(ctaLinkEl){
             ctaLinkEl.textContent = ctaText;
-            if(ctaLink){ ctaLinkEl.href = ctaLink; }
+            if(ctaLink){
+              ctaLinkEl.href = ctaLink;
+              ctaLinkEl.classList.remove('bald');
+            } else {
+              ctaLinkEl.href = '#';
+              ctaLinkEl.classList.add('bald');
+            }
             ctaLinkEl.onclick = function(e){
+              e.preventDefault();
               if(trackLabel && typeof window.huiTrack === 'function'){
-                window.huiTrack(trackLabel + ' – CTA', { section: 'was-kannst-du', selection: value, target: ctaLink });
+                window.huiTrack(trackLabel + ' \u2013 CTA', { section: 'was-bringst-du-mit', selection: value, target: ctaLink || 'bald' });
               }
             };
           }

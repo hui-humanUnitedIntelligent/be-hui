@@ -88,3 +88,9 @@
   .bring-response-text::before{width:20px;margin-right:10px}
   .hui-interact-chip{padding:8px 14px;font-size:13px}
 }
+
+/* ── "bald" CTA state (not yet available) ── */
+.bring-cta a.bald{cursor:default;opacity:.7;border:1px solid var(--border, rgba(0,0,0,.08));background:transparent;color:var(--muted, #6b6b7a)}
+.bring-cta a.bald:hover{transform:none;box-shadow:none}
+.hui-interact-cta a.bald{cursor:default;opacity:.7;background:transparent;color:var(--muted, #6b6b7a);border:1px solid var(--border, rgba(0,0,0,.08))}
+.hui-interact-cta a.bald:hover{transform:none;background:transparent}
