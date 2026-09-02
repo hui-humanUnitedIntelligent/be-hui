@@ -125,7 +125,7 @@ export default function StartphaseTab({ onNewCountChange }) {
     setStatusUpdating(true);
     const { error } = await supabase
       .from("startphase_applications")
-      .update({ status: newStatus, reviewed_at: new Date().toISOString() })
+      .update({ status: newStatus })
       .eq("id", selectedApp.id);
     if (error) { showToast("Fehler: " + error.message, false); }
     else {
@@ -230,8 +230,9 @@ export default function StartphaseTab({ onNewCountChange }) {
           <div style={{ fontWeight:600, fontSize:14, marginBottom:8, color:C.teal }}>Persoenliche Angaben</div>
           {fieldRow("Name", `${selectedApp.first_name} ${selectedApp.last_name}`)}
           {fieldRow("E-Mail", selectedApp.email)}
+          {selectedApp.interest && fieldRow("Interesse", selectedApp.interest)}
           {fieldRow("Land / Region", selectedApp.country_region)}
-          {fieldRow("Aktuelle Taetigkeit", selectedApp.current_role)}
+          {fieldRow("Aktuelle Taetigkeit", selectedApp.current_role_text)}
           {fieldRow("Ueber sich", selectedApp.about_you)}
         </div>
 

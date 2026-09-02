@@ -11,8 +11,9 @@ CREATE TABLE IF NOT EXISTS startphase_applications (
   first_name    TEXT NOT NULL,
   last_name     TEXT NOT NULL,
   email         TEXT NOT NULL,
+  interest       TEXT CHECK (interest IN ('idea','talent','experience','time','support','curiosity')),
   country_region TEXT,
-  current_role  TEXT,
+  current_role_text TEXT,
   about_you     TEXT,
 
   -- Was möchtest du zu HUI mitbringen? (Mehrfachauswahl als JSON-Array)
