@@ -133,7 +133,8 @@
 .it-cta{padding:56px 24px;text-align:center;max-width:640px;margin:0 auto}
 .it-cta h2{font-size:22px;font-weight:600;letter-spacing:-.01em;color:var(--ink);margin:0 0 16px}
 .it-cta p{font-size:15px;color:var(--ink-body);line-height:1.7;margin:0 0 28px}
-.it-cta-bald{display:inline-flex;align-items:center;padding:14px 36px;background:transparent;color:var(--muted);font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--r);border:1px solid rgba(20,20,34,.08);cursor:default}
+.it-cta-bald{display:inline-flex;align-items:center;padding:14px 36px;background:transparent;color:var(--muted);font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--r);border:1px solid rgba(20,20,34,.08);cursor:pointer;text-decoration:none;transition:all .25s var(--ease)}
+.it-cta-bald:hover{border-color:var(--teal);color:var(--teal);background:rgba(13,196,181,.04)}
 .it-cta-sub{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
 
 /* ── Sign-off ── */
@@ -700,7 +701,7 @@
   <section class="it-cta reveal">
     <h2 data-i18n="page.mitmachen.talent.cta-title">Vielleicht ist dein Talent genau das, was jemand anderes gerade sucht.</h2>
     <p data-i18n="page.mitmachen.talent.cta-text">HUI befindet sich im Aufbau. Wenn die Plattform startet, sollen Menschen ihre Fähigkeiten sichtbar machen und neue Möglichkeiten entdecken können.</p>
-    <span class="it-cta-bald" data-i18n="page.mitmachen.talent.cta-button" data-track="CTA Bald">Über den HUI-Start informieren →</span>
+    <a href="/startphase?interest=talent" class="it-cta-bald" data-i18n="page.mitmachen.talent.cta-button" data-track="CTA Startphase Talent">Über den HUI-Start informieren →</a>
     <p class="it-cta-sub" data-i18n="page.mitmachen.talent.cta-sub-note">Noch nicht verfügbar – HUI befindet sich im Aufbau.</p>
   </section>
 
