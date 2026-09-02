@@ -313,6 +313,9 @@
   "functions": {
     "api/og.js": {
       "maxDuration": 10
+    },
+    "api/startphase-submit.js": {
+      "maxDuration": 10
     }
   },
   "buildCommand": "npm run build",

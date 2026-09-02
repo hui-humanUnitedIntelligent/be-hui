@@ -1047,7 +1047,7 @@
 
     'cs.text': 'Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.',
     'cs.title': 'HUI ist bald für dich da.',
-    'cta.btn1': 'HUI entdecken →',
+    'cta.btn1': 'Für die HUI Startphase bewerben',
     'cta.btn1-coming': 'HUI entdecken · bald',
     'cta.btn2': 'Mitmachen →',
     'cta.h2': 'Vielleicht beginnt deine Geschichte hier.',
@@ -1413,7 +1413,7 @@
     'cs.close-aria': 'Close',
     'cs.text': 'The HUI app is currently being built. We’ll let you know as soon as it’s ready.',
     'cs.title': 'HUI will be here for you soon.',
-    'cta.btn1': 'Discover HUI →',
+    'cta.btn1': 'Apply for the HUI Start Phase',
     'cta.btn1-coming': 'Discover HUI · coming soon',
     'cta.btn2': 'Get involved →',
     'cta.h2': 'Perhaps your story begins here.',

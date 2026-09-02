@@ -129,6 +129,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 <!-- ── Form ── -->
 <div class="sp-form-wrap">
   <form class="sp-form" id="startphaseForm" novalidate>
+    <!-- Honeypot (hidden, bots only) -->
+    <input type="text" name="_company" id="_company" style="position:absolute;left:-9999px;top:-9999px;opacity:0;" tabindex="-1" autocomplete="off" aria-hidden="true"/>
     <div id="spError" class="sp-error"></div>
 
     <!-- ═══ PERSÖNLICHE ANGABEN ═══ -->
@@ -280,9 +282,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 (function(){
   'use strict';
 
-  // ── Supabase Config ──
-  var SUPABASE_URL = 'https://gxztrhvhcxhmunhhkfjd.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk';
+  // ── No Supabase keys in frontend — form posts to /api/startphase-submit ──
 
   var form = document.getElementById('startphaseForm');
   var submitBtn = document.getElementById('spSubmit');
@@ -312,14 +312,25 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
   }
 
   // ── Interest preselect from URL param ?interest=<value> ──
+  // Maps the 6 "Was bringst du mit?" chip values to contribution checkboxes
+  var INTEREST_MAP = {
+    'idea':       'idea',
+    'talent':     'talent',
+    'experience': 'experience',
+    'time':       'other',
+    'support':    'connector',
+    'curiosity':  'explore'
+  };
   var urlParams = new URLSearchParams(window.location.search);
   var interestParam = urlParams.get('interest');
+  var interestValue = null;
   if(interestParam){
-    var contribCheckboxes = document.querySelectorAll('input[name="contributions"]');
-    var validInterests = ['project','work','experience','talent','pioneer','idea','connector','explore','other','time','support','curiosity'];
-    if(validInterests.indexOf(interestParam) >= 0){
+    interestValue = INTEREST_MAP[interestParam] ? interestParam : null;
+    var mappedContrib = INTEREST_MAP[interestParam];
+    if(mappedContrib){
+      var contribCheckboxes = document.querySelectorAll('input[name="contributions"]');
       contribCheckboxes.forEach(function(cb){
-        if(cb.value === interestParam) cb.checked = true;
+        if(cb.value === mappedContrib) cb.checked = true;
       });
       // Scroll to form
       setTimeout(function(){
@@ -352,12 +363,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
       return;
     }
 
-    // Collect form data
+    // Collect form data — only whitelisted fields, server does final validation
     var data = {
       first_name: firstName,
       last_name: lastName,
       email: email,
-      interest: interestParam || null,
+      interest: interestValue,
       country_region: document.getElementById('country').value.trim() || null,
       current_role_text: document.getElementById('currentRole').value.trim() || null,
       about_you: document.getElementById('aboutYou').value.trim() || null,
@@ -375,28 +386,36 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
       why_hui: document.getElementById('whyHui').value.trim() || null,
       what_contribute: document.getElementById('whatContribute').value.trim() || null,
       consent_accepted: consent,
-      status: 'new'
+      _company: document.getElementById('_company') ? document.getElementById('_company').value : ''
     };
 
     submitBtn.disabled = true;
     submitBtn.textContent = tt('sp.submitting', 'Wird gesendet...');
 
     try{
-      var res = await fetch(SUPABASE_URL + '/rest/v1/startphase_applications', {
+      var res = await fetch('/api/startphase-submit', {
         method: 'POST',
         headers: {
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
       });
 
       if(!res.ok){
-        var errBody = await res.text();
-        console.error('Submit error:', res.status, errBody);
-        showError(tt('sp.error.submit', 'Beim Absenden ist ein Fehler aufgetreten. Bitte versuche es spaeter erneut.'));
+        var errJson = null;
+        try { errJson = await res.json(); } catch(e) {}
+        var errCode = errJson ? errJson.error : '';
+        if(errCode === 'rate_limited'){
+          showError(tt('sp.error.rate', 'Du hast bereits mehrere Bewerbungen abgegeben. Bitte versuche es spaeter erneut.'));
+        } else if(errCode === 'consent_required'){
+          showError(tt('sp.error.consent', 'Bitte stimme der Verarbeitung deiner Angaben zu.'));
+        } else if(errCode === 'invalid_email'){
+          showError(tt('sp.error.email', 'Bitte gib eine gueltige E-Mail-Adresse ein.'));
+        } else if(errCode === 'required_fields_missing'){
+          showError(tt('sp.error.required', 'Bitte fuelle Vorname, Nachname und E-Mail aus.'));
+        } else {
+          showError(tt('sp.error.submit', 'Beim Absenden ist ein Fehler aufgetreten. Bitte versuche es spaeter erneut.'));
+        }
         submitBtn.disabled = false;
         submitBtn.textContent = tt('sp.submit', 'Bewerbung absenden');
         return;
@@ -411,9 +430,8 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
       if(typeof window.plausible !== 'undefined'){
         window.plausible('HUI Startphase Bewerbung');
       }
-      // Also track via huiTrack if available
       if(typeof window.huiTrack === 'function'){
-        window.huiTrack('HUI Startphase – Bewerbung abgeschickt', { section: 'startphase' });
+        window.huiTrack('HUI Startphase \u2013 Bewerbung abgeschickt', { section: 'startphase' });
       }
     } catch(err){
       console.error('Network error:', err);
@@ -426,7 +444,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
   // ── Reveal animation on scroll ──
   // Track page view
   if(typeof window.huiTrack === 'function'){
-    window.huiTrack('HUI Startphase – Seite geoeffnet', { section: 'startphase' });
+    window.huiTrack('HUI Startphase \u2013 Seite geoeffnet', { section: 'startphase' });
   }
 
   var reveals = document.querySelectorAll('.reveal');
