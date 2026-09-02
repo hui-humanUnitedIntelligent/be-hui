@@ -28,6 +28,8 @@ on:
 env:
   NODE_VERSION: '20'
   BUNDLE_ID: 'com.behui.app'
+  # GITHUB_RUN_NUMBER is automatically available as env var in GitHub Actions
+  # The ruby script reads it via ENV['GITHUB_RUN_NUMBER']
 
 jobs:
   build:
@@ -189,7 +191,7 @@ jobs:
             echo "Bundle ID patched to com.behui.app"
 
             # Patch ONLY the App target with provisioning profile (standalone ruby script — no escaping hell)
-            ruby ../../scripts/patch_ios_signing.rb
+            GITHUB_RUN_NUMBER="${{ github.run_number }}" ruby ../../scripts/patch_ios_signing.rb
 
             # Archive with manual signing (NO PROVISIONING_PROFILE_SPECIFIER on command line — it leaks to Pods)
             xcodebuild -workspace App.xcworkspace \
@@ -246,6 +248,43 @@ jobs:
           path: ios/App/build/ipa/*.ipa
           retention-days: 30
 
+
+      # ── 9b. Upload to TestFlight (App Store Connect) ──
+      # Requires 3 GitHub Secrets:
+      #   APP_STORE_CONNECT_KEY_ID     - Key ID (e.g., ABC1234DEF)
+      #   APP_STORE_CONNECT_ISSUER_ID  - Issuer ID (UUID)
+      #   APP_STORE_CONNECT_API_KEY    - Base64-encoded .p8 private key
+      # Also requires the App to already exist in App Store Connect.
+      - name: Upload to TestFlight
+        if: github.event.inputs.sign == 'true' && github.event.inputs.distribution == 'app-store'
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          if [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_ISSUER_ID" ] || [ -z "$ASC_API_KEY" ]; then
+            echo "App Store Connect API key secrets not set - skipping TestFlight upload."
+            echo "  To enable: add APP_STORE_CONNECT_KEY_ID, APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_API_KEY"
+            echo "  IPA is still available as artifact for manual Transporter upload."
+            exit 0
+          fi
+
+          echo "Setting up App Store Connect API key..."
+          mkdir -p ~/private_keys
+          echo "$ASC_API_KEY" | base64 --decode > ~/private_keys/AuthKey_$ASC_KEY_ID.p8
+          chmod 600 ~/private_keys/AuthKey_$ASC_KEY_ID.p8
+
+          IPA_PATH=$(find ios/App/build/ipa -name "*.ipa" | head -1)
+          echo "Uploading to TestFlight: $IPA_PATH"
+
+          xcrun altool --upload-app \
+            -f "$IPA_PATH" \
+            -t ios \
+            --apiKey "$ASC_KEY_ID" \
+            --apiIssuer "$ASC_ISSUER_ID" \
+            --verbose
+
+          echo "Uploaded to TestFlight - check App Store Connect for processing status."
       # ── 10. Upload unsigned IPA (verification) ──
       - name: Upload unsigned IPA
         uses: actions/upload-artifact@v4
