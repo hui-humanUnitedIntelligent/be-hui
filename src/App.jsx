@@ -46,6 +46,14 @@ import Home              from './pages/Home';
 
 import ImpactPage from './pages/ImpactPage';
 const Admin             = lazy(() => import('./pages/Admin').catch(makeChunkReload("App:Admin")))
+
+// ── HUI Website Admin Pages ──
+const WebsiteOverview    = lazy(() => import('./components/admin/website/WebsiteOverview.jsx').catch(makeChunkReload("App:WebsiteOverview")));
+const WebsitePages       = lazy(() => import('./components/admin/website/WebsitePages.jsx').catch(makeChunkReload("App:WebsitePages")));
+const WebsiteSEO         = lazy(() => import('./components/admin/website/WebsiteSEO.jsx').catch(makeChunkReload("App:WebsiteSEO")));
+const WebsiteAnalytics   = lazy(() => import('./components/admin/website/WebsiteAnalytics.jsx').catch(makeChunkReload("App:WebsiteAnalytics")));
+const WebsiteConnections = lazy(() => import('./components/admin/website/WebsiteConnections.jsx').catch(makeChunkReload("App:WebsiteConnections")));
+const WebsiteTechStatus  = lazy(() => import('./components/admin/website/WebsiteTechStatus.jsx').catch(makeChunkReload("App:WebsiteTechStatus")));
 const DiagnosePage      = lazy(() => import('./pages/DiagnosePage').catch(makeChunkReload("App:DiagnosePage")))
 const PlatformDashboard = lazy(() => import('./pages/PlatformDashboard').catch(makeChunkReload("App:PlatformDashboard")))
 const CreatorStudio     = lazy(() => import('./pages/CreatorStudio').catch(makeChunkReload("App:CreatorStudio")))
@@ -81,6 +89,13 @@ export const APP_ROUTES = filterValidPages([
   createTabPage({ key:'work',      route:'/work/:id',       component:WorkDetailPage,    title:'Werk',        protectedRoute:true,  preload:false }),
   // DARK-PROFILE-REMOVE-001: Route via PublicProfileRouteWrapper (helles Profil)
   createTabPage({ key:'admin',     route:'/Admin',          component:Admin,             title:'Admin',       protectedRoute:true,  preload:false }),
+  // ── HUI Website Admin ──
+  createTabPage({ key:'ws-overview',   route:'/admin/website',             component:WebsiteOverview,    title:'HUI Website', protectedRoute:true,  preload:false }),
+  createTabPage({ key:'ws-pages',      route:'/admin/website/seiten',       component:WebsitePages,       title:'Seiten',      protectedRoute:true,  preload:false }),
+  createTabPage({ key:'ws-seo',        route:'/admin/website/seo',          component:WebsiteSEO,         title:'SEO & Google',protectedRoute:true,  preload:false }),
+  createTabPage({ key:'ws-analytics',  route:'/admin/website/analytics',     component:WebsiteAnalytics,   title:'Analytics',   protectedRoute:true,  preload:false }),
+  createTabPage({ key:'ws-links',      route:'/admin/website/verknuepfungen',component:WebsiteConnections,title:'Verknuepfungen',protectedRoute:true,preload:false }),
+  createTabPage({ key:'ws-tech',       route:'/admin/website/technik',       component:WebsiteTechStatus,  title:'Technik',     protectedRoute:true,  preload:false }),
   createTabPage({ key:'diagnose',  route:'/diagnose',       component:DiagnosePage,      title:'Diagnose',    protectedRoute:true,  preload:false }),
   createTabPage({ key:'dashboard', route:'/dashboard',      component:PlatformDashboard, title:'Dashboard',   protectedRoute:true,  preload:false }),
   createTabPage({ key:'studio',    route:'/studio',         component:CreatorStudio,     title:'Studio',      protectedRoute:true,  preload:false }),
@@ -841,6 +856,26 @@ function AppRoutes() {
         {/* Admin — LAZY */}
         <Route path="/Admin" element={
           <AdminProtectedRoute><RouteBoundary name="Admin"><Admin /></RouteBoundary></AdminProtectedRoute>
+        }/>
+
+        {/* ── HUI Website Admin — LAZY ── */}
+        <Route path="/admin/website" element={
+          <AdminProtectedRoute><RouteBoundary name="WebsiteOverview"><WebsiteOverview /></RouteBoundary></AdminProtectedRoute>
+        }/>
+        <Route path="/admin/website/seiten" element={
+          <AdminProtectedRoute><RouteBoundary name="WebsitePages"><WebsitePages /></RouteBoundary></AdminProtectedRoute>
+        }/>
+        <Route path="/admin/website/seo" element={
+          <AdminProtectedRoute><RouteBoundary name="WebsiteSEO"><WebsiteSEO /></RouteBoundary></AdminProtectedRoute>
+        }/>
+        <Route path="/admin/website/analytics" element={
+          <AdminProtectedRoute><RouteBoundary name="WebsiteAnalytics"><WebsiteAnalytics /></RouteBoundary></AdminProtectedRoute>
+        }/>
+        <Route path="/admin/website/verknuepfungen" element={
+          <AdminProtectedRoute><RouteBoundary name="WebsiteConnections"><WebsiteConnections /></RouteBoundary></AdminProtectedRoute>
+        }/>
+        <Route path="/admin/website/technik" element={
+          <AdminProtectedRoute><RouteBoundary name="WebsiteTechStatus"><WebsiteTechStatus /></RouteBoundary></AdminProtectedRoute>
         }/>
 
         {/* Diagnose — LAZY (nur Dev) */}

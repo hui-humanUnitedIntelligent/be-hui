@@ -170,15 +170,8 @@ export default function StartphaseTab({ onNewCountChange }) {
         throw new Error(err);
       }
 
-      await supabase.from("startphase_communications").insert({
-        application_id: selectedApp.id,
-        admin_id: user.id,
-        admin_name: adminName,
-        direction: "outbound",
-        subject: replySubject || "Deine Bewerbung fuer die HUI Startphase",
-        message_body: replyText,
-      });
-
+      // Communication is saved server-side by the edge function.
+      // Just re-fetch the updated communications list.
       const { data: commData } = await supabase
         .from("startphase_communications")
         .select("*")

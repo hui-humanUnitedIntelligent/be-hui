@@ -1,11 +1,11 @@
 // supabase/functions/startphase-reply/index.ts
 // HUI Startphase — Admin Antwort an Bewerber senden
 // Authentifiziert (Admin only) — sendet Email via Resend API
+// SICHERHEIT: Empfänger wird serverseitig aus der Bewerbung ermittelt,
+// nicht vom Client übergeben. Verhindert Missbrauch.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
-
-const CORS = getCorsHeaders;
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -16,30 +16,64 @@ serve(async (req) => {
     const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey     = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Auth check
+    // ── Auth check ──
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return new Response(JSON.stringify({ error: "Nicht authentifiziert" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Nicht authentifiziert" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
-    const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
     const { data: { user }, error: authErr } = await userClient.auth.getUser();
-    if (authErr || !user) return new Response(JSON.stringify({ error: "Ungueltiges Token" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: "Ungueltiges Token" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
 
-    // Admin check
+    // ── Admin check (serverseitig) ──
     const { data: profile } = await userClient.from("profiles").select("role").eq("id", user.id).single();
     if (!profile || !["admin", "superadmin", "super_admin", "employee"].includes(profile.role)) {
-      return new Response(JSON.stringify({ error: "Keine Admin-Berechtigung" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Keine Admin-Berechtigung" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    const { applicationId, to, subject, message, adminName } = await req.json();
+    // ── Request body ──
+    const { applicationId, subject, message, adminName } = await req.json();
 
-    if (!to || !message) {
-      return new Response(JSON.stringify({ error: "Empfaenger und Nachricht erforderlich" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!applicationId || !message) {
+      return new Response(JSON.stringify({ error: "ApplicationId und Nachricht erforderlich" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    // Send email via Resend
+    // ── SICHERHEIT: Empfänger aus Bewerbung lesen, nicht vom Client ──
+    const adminClient = createClient(supabaseUrl, serviceKey);
+    const { data: application, error: appErr } = await adminClient
+      .from("startphase_applications")
+      .select("email, first_name")
+      .eq("id", applicationId)
+      .single();
+
+    if (appErr || !application) {
+      return new Response(JSON.stringify({ error: "Bewerbung nicht gefunden" }), {
+        status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
+    }
+
+    const recipientEmail = application.email;
+    const finalSubject = subject || "Deine Bewerbung fuer die HUI Startphase";
+
+    // ── Email via Resend senden ──
     const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
     if (!RESEND_API_KEY) {
-      return new Response(JSON.stringify({ error: "RESEND_API_KEY nicht konfiguriert" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "RESEND_API_KEY nicht konfiguriert" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
     const htmlBody = `
@@ -54,10 +88,10 @@ serve(async (req) => {
   <div style="margin-bottom:24px">
     <img src="https://be-hui.com/hui_logo.webp" alt="HUI" width="36" height="36" style="border-radius:8px"/>
   </div>
-  <h1 style="font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 20px;color:#141422">${subject}</h1>
+  <h1 style="font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0 0 20px;color:#141422">${finalSubject}</h1>
   <div style="background:#FFF;border-radius:12px;padding:24px;border:1px solid rgba(20,20,34,.05);font-size:15px;color:#3A3A55;white-space:pre-wrap">${message}</div>
   <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(20,20,34,.05);font-size:13px;color:#8A8A9E">
-    <p>${adminName} — HUI Team</p>
+    <p>${adminName || "HUI Team"} — HUI Team</p>
     <p>Diese E-Mail wurde ueber das HUI Startphase-Dashboard gesendet.</p>
   </div>
 </div>
@@ -72,8 +106,8 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: "HUI Team <noreply@be-hui.com>",
-        to: to,
-        subject: subject,
+        to: recipientEmail,
+        subject: finalSubject,
         html: htmlBody,
         reply_to: "noreply@be-hui.com",
       }),
@@ -82,12 +116,28 @@ serve(async (req) => {
     if (!res.ok) {
       const errText = await res.text();
       console.error("[startphase-reply] Resend error:", res.status, errText);
-      return new Response(JSON.stringify({ error: "Email-Versand fehlgeschlagen" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Email-Versand fehlgeschlagen" }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
+      });
     }
 
-    return new Response(JSON.stringify({ ok: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // ── Kommunikation serverseitig speichern ──
+    await adminClient.from("startphase_communications").insert({
+      application_id: applicationId,
+      admin_id: user.id,
+      admin_name: adminName || "HUI Team",
+      direction: "outbound",
+      subject: finalSubject,
+      message_body: message,
+    });
+
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   } catch (err) {
     console.error("[startphase-reply] error:", err);
-    return new Response(JSON.stringify({ error: "Serverfehler" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "Serverfehler" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" }
+    });
   }
 });

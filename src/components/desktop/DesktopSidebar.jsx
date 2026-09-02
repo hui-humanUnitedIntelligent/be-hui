@@ -16,7 +16,7 @@
 // Keine neue Business-Logik — nur bestehende Hooks.
 // ══════════════════════════════════════════════════════════════════════════════
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { HUILogo } from '../brand/HUILogo.jsx';
 import { useAuth } from '../../lib/AuthContext.jsx';
@@ -37,6 +37,7 @@ const PATHS = {
   settings:    <><circle cx="10" cy="10" r="2.6" /><path d="M10 3.5v2M10 14.5v2M16.5 10h-2M5.5 10h-2M14.6 5.4l-1.4 1.4M6.8 13.2l-1.4 1.4M14.6 14.6l-1.4-1.4M6.8 6.8l5.4-5.4" /></>,
   create:      <path d="M10 4v12M4 10h12" />,
   logout:      <path d="M7.2 3.6H4.4a1.2 1.2 0 0 0-1.2 1.2v10.4a1.2 1.2 0 0 0 1.2 1.2h2.8M13.5 6.8l3.2 3.2-3.2 3.2M16.3 10H8" />,
+  website:     <><circle cx="10" cy="10" r="7.5" /><path d="M2.5 10h15M10 2.5c2 2.5 2 12.5 0 15M10 2.5c-2 2.5-2 12.5 0 15" /></>,
 };
 
 function Icon({ name, size = 19 }) {
@@ -70,6 +71,16 @@ const KONTO_ITEMS = [
   { key: 'settings', label: 'Einstellungen', icon: 'settings', route: '/studio/settings' },
 ];
 
+// ── Management (nur fuer Admins) ──────────────────────────────────────────────
+const WEBSITE_ITEMS = [
+  { key: 'ws-overview',   label: 'Uebersicht',         icon: 'home',      route: '/admin/website' },
+  { key: 'ws-pages',      label: 'Seiten',             icon: 'studio',    route: '/admin/website/seiten' },
+  { key: 'ws-seo',        label: 'SEO & Google',      icon: 'impact',    route: '/admin/website/seo' },
+  { key: 'ws-analytics',  label: 'Analytics',         icon: 'discover',  route: '/admin/website/analytics' },
+  { key: 'ws-links',      label: 'Verknuepfungen',    icon: 'events',    route: '/admin/website/verknuepfungen' },
+  { key: 'ws-tech',       label: 'Technischer Status', icon: 'settings', route: '/admin/website/technik' },
+];
+
 // ── Nav Item ──────────────────────────────────────────────────────────────────
 function NavItem({ item, active, badge, onClick }) {
   return (
@@ -91,7 +102,14 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, logout } = useAuth();
+  const [websiteExpanded, setWebsiteExpanded] = useState(false);
+  const isAdmin = ['admin', 'superadmin', 'super_admin', 'employee'].includes(profile?.role);
   // P0: chatUnread kommt als Prop von DesktopShell (zentrale useChatList)
+
+  // Auto-expand if on a website admin route
+  useEffect(() => {
+    if (location.pathname.startsWith('/admin/website')) setWebsiteExpanded(true);
+  }, [location.pathname]);
 
   function isActive(route) {
     if (!route) return false;
@@ -161,6 +179,35 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
           <NavItem key={item.key} item={item} active={isActive(item.route)} badge={0} onClick={() => handleClick(item)} />
         ))}
       </div>
+
+      {/* ── Management (nur fuer Admins) ───────────────────────── */}
+      {isAdmin && (
+        <div className="sb-group">
+          <div className="sb-group-label">Management</div>
+          <button
+            className={`sb-item ${websiteExpanded ? 'active' : ''}`}
+            onClick={() => setWebsiteExpanded(!websiteExpanded)}
+            style={{ background:'none', border:'none', width:'100%', cursor:'pointer', font:'inherit', color:'inherit', display:'flex', alignItems:'center', gap:10, padding:'8px 12px' }}
+          >
+            <Icon name="website" />
+            <span className="sb-item-label">HUI Website</span>
+            <span style={{ marginLeft:'auto', fontSize:11, opacity:0.5 }}>{websiteExpanded ? '▾' : '▸'}</span>
+          </button>
+          {websiteExpanded && (
+            <div style={{ paddingLeft:24 }}>
+              {WEBSITE_ITEMS.map(item => (
+                <NavItem
+                  key={item.key}
+                  item={item}
+                  active={isActive(item.route)}
+                  badge={0}
+                  onClick={() => handleClick(item)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Spacer ───────────────────────────────────────────────── */}
       <div className="sb-spacer" />

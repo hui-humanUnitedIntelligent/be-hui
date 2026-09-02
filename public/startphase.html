@@ -289,6 +289,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
   var errorEl = document.getElementById('spError');
   var successEl = document.getElementById('spSuccess');
 
+  // i18n helper (uses the same t() function from i18n.js)
+  function tt(key, fallback){
+    if(typeof window.t === 'function'){ var v = window.t(key); if(v && v !== key) return v; }
+    return fallback;
+  }
+
   function showError(msg){
     errorEl.textContent = msg;
     errorEl.classList.add('show');
@@ -299,6 +305,28 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
 
   function getCheckboxes(name){
     return Array.prototype.slice.call(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(c){ return c.value; });
+  }
+
+  function isValidEmail(email){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  // ── Interest preselect from URL param ?interest=<value> ──
+  var urlParams = new URLSearchParams(window.location.search);
+  var interestParam = urlParams.get('interest');
+  if(interestParam){
+    var contribCheckboxes = document.querySelectorAll('input[name="contributions"]');
+    var validInterests = ['project','work','experience','talent','pioneer','idea','connector','explore','other'];
+    if(validInterests.indexOf(interestParam) >= 0){
+      contribCheckboxes.forEach(function(cb){
+        if(cb.value === interestParam) cb.checked = true;
+      });
+      // Scroll to form
+      setTimeout(function(){
+        var formEl = document.getElementById('startphaseForm');
+        if(formEl) formEl.scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 300);
+    }
   }
 
   form.addEventListener('submit', async function(e){
@@ -312,11 +340,15 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
     var consent = document.getElementById('consent').checked;
 
     if(!firstName || !lastName || !email){
-      showError('Bitte fülle Vorname, Nachname und E-Mail aus.');
+      showError(tt('sp.error.required', 'Bitte fuelle Vorname, Nachname und E-Mail aus.'));
+      return;
+    }
+    if(!isValidEmail(email)){
+      showError(tt('sp.error.email', 'Bitte gib eine gueltige E-Mail-Adresse ein.'));
       return;
     }
     if(!consent){
-      showError('Bitte stimme der Verarbeitung deiner Angaben zu.');
+      showError(tt('sp.error.consent', 'Bitte stimme der Verarbeitung deiner Angaben zu.'));
       return;
     }
 
@@ -346,7 +378,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
     };
 
     submitBtn.disabled = true;
-    submitBtn.textContent = '...';
+    submitBtn.textContent = tt('sp.submitting', 'Wird gesendet...');
 
     try{
       var res = await fetch(SUPABASE_URL + '/rest/v1/startphase_applications', {
@@ -363,9 +395,9 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
       if(!res.ok){
         var errBody = await res.text();
         console.error('Submit error:', res.status, errBody);
-        showError('Beim Absenden ist ein Fehler aufgetreten. Bitte versuche es später erneut.');
+        showError(tt('sp.error.submit', 'Beim Absenden ist ein Fehler aufgetreten. Bitte versuche es spaeter erneut.'));
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Bewerbung absenden';
+        submitBtn.textContent = tt('sp.submit', 'Bewerbung absenden');
         return;
       }
 
@@ -378,15 +410,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
       if(typeof window.plausible !== 'undefined'){
         window.plausible('HUI Startphase Bewerbung');
       }
+      // Also track via huiTrack if available
+      if(typeof window.huiTrack === 'function'){
+        window.huiTrack('HUI Startphase – Bewerbung abgeschickt', { section: 'startphase' });
+      }
     } catch(err){
       console.error('Network error:', err);
-      showError('Netzwerkfehler. Bitte überprüfe deine Verbindung und versuche es erneut.');
+      showError(tt('sp.error.network', 'Netzwerkfehler. Bitte ueberpruefe deine Verbindung und versuche es erneut.'));
       submitBtn.disabled = false;
-      submitBtn.textContent = 'Bewerbung absenden';
+      submitBtn.textContent = tt('sp.submit', 'Bewerbung absenden');
     }
   });
 
   // ── Reveal animation on scroll ──
+  // Track page view
+  if(typeof window.huiTrack === 'function'){
+    window.huiTrack('HUI Startphase – Seite geoeffnet', { section: 'startphase' });
+  }
+
   var reveals = document.querySelectorAll('.reveal');
   if(reveals.length && 'IntersectionObserver' in window){
     var io = new IntersectionObserver(function(entries){

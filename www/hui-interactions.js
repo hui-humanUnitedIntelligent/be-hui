@@ -98,13 +98,16 @@
               ctaLinkEl.href = '#';
               ctaLinkEl.classList.add('bald');
             }
-            // Track CTA click
-            ctaLinkEl.onclick = function(e){
-              e.preventDefault();
+            // Track CTA click — allow navigation after tracking
+            ctaLinkEl.addEventListener('click', function(e){
               if(typeof window.huiTrack === 'function'){
                 window.huiTrack(trackLabel + ' – CTA', { section: 'was-bringst-du-mit', selection: value, target: ctaLink || 'bald' });
               }
-            };
+              // Allow navigation — don't preventDefault
+              if(!ctaLink){
+                e.preventDefault();
+              }
+            });
           }
           bringCta.classList.add('show');
         }
