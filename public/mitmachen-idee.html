@@ -93,7 +93,8 @@
 .ih-cta-text{font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.01em;line-height:1.4;margin:0 0 16px}
 .ih-cta-note{font-size:14px;color:var(--muted);margin:0 0 12px;line-height:1.6}
 .ih-cta-detail{font-size:14px;color:var(--ink-body);line-height:1.6;margin:0 0 32px;max-width:480px;margin-left:auto;margin-right:auto}
-.ih-cta-bald{display:inline-flex;align-items:center;padding:14px 36px;background:transparent;color:var(--muted);font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--r);border:1px solid rgba(20,20,34,.08);cursor:default}
+.ih-cta-bald{display:inline-flex;align-items:center;padding:14px 36px;background:transparent;color:var(--muted);font-size:15px;font-weight:600;letter-spacing:.3px;border-radius:var(--r);border:1px solid rgba(20,20,34,.08);cursor:pointer;text-decoration:none;transition:all .25s var(--ease)}
+.ih-cta-bald:hover{border-color:var(--teal);color:var(--teal);background:rgba(13,196,181,.04)}
 .ih-cta-sub{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.5}
 
 /* ── Tints ── */
@@ -505,7 +506,7 @@
     <p class="ih-cta-text" data-i18n="page.mitmachen.idee.cta-headline">Deine Idee darf beginnen.</p>
     <p class="ih-cta-note" data-i18n="page.mitmachen.idee.cta-note">Noch ist HUI im Aufbau.</p>
     <p class="ih-cta-detail" data-i18n="page.mitmachen.idee.coming">Nach dem Launch wirst du deine Idee im Portal eintragen, Feedback sammeln und passende Partner zur Umsetzung einladen können.</p>
-    <span class="ih-cta-bald" data-i18n="page.mitmachen.idee.cta-button" data-track="CTA Bald">Idee einbringen · bald</span>
+    <a href="/startphase?interest=idea" class="ih-cta-bald" data-i18n="page.mitmachen.idee.cta-button" data-track="CTA Startphase Idea">Idee einbringen · bald</a>
     <p class="ih-cta-sub" data-i18n="page.mitmachen.idee.cta-sub">Bleibe auf dem Laufenden über den Launch von HUI.</p>
   </section>
 </main>
