@@ -100,7 +100,8 @@ jobs:
       - name: Patch Podfile (disable code signing for Pod targets)
         run: |
           cd ios/App
-          # Add post_install hook to clear provisioning settings from Pod targets
+          # Replace existing post_install hook to clear provisioning settings from Pod targets
+          sed -i "/post_install do/,/^end$/d" Podfile
           cat >> Podfile << 'RUBY'
           
           post_install do |installer|
