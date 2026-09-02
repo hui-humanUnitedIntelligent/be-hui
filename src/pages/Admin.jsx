@@ -1230,7 +1230,7 @@ export default function Admin() {
               {label: t("adm.kpiBuchungen"),   value:payments.length,               icon:"📋",color:C.orange,onClick:null},
               {label: t("adm.kpiUmsatz"),      value:`${totalRevenue.toFixed(0)} €`,icon:"💰",color:C.green, onClick:null},
               {label: t("adm.kpiImpactPool"), value:`${totalImpact.toFixed(2)} €`, icon:"🌱",color:C.coral, onClick:null},
-              {label: "Startphase Bewerbungen", value:apps.filter(a=>a.status==="new").length || startphaseNew, icon:"🌟",color:C.purple,onClick:()=>setTab("startphase")},
+              {label: "Startphase Bewerbungen", value:startphaseNew, icon:"🌟",color:C.purple,onClick:()=>setTab("startphase")},
             {label: t("adm.kpiPending"), value:pending,                       icon:"📝",color:C.yellow,onClick:()=>setTab("content")},
             ].map(kpi => (
               <div key={kpi.label} onClick={kpi.onClick||undefined}
