@@ -164,7 +164,13 @@ jobs:
             cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
             echo "Provisioning profile installed: $PP_UUID"
 
-            # Archive with manual signing
+            # Patch bundle ID in Xcode project (cap sync doesn't update existing projects)
+            sed -i '' 's/com.hui.app/com.behui.app/g' App.xcodeproj/project.pbxproj
+            echo "Bundle ID patched to com.behui.app"
+
+            # Patch only the App target's provisioning profile (not pod targets)
+            
+            # Archive with manual signing — only set team + identity, NOT PROVISIONING_PROFILE (applies to all targets)
             xcodebuild -workspace App.xcworkspace \
               -scheme App \
               -configuration Release \
@@ -174,7 +180,6 @@ jobs:
               CODE_SIGN_STYLE=Manual \
               CODE_SIGN_IDENTITY="iPhone Distribution" \
               DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
-              PROVISIONING_PROFILE="$PP_UUID" \
               CODE_SIGNING_REQUIRED=YES \
               CODE_SIGNING_ALLOWED=YES
 
