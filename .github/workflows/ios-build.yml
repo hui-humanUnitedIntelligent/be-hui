@@ -27,7 +27,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  BUNDLE_ID: 'com.hui.app'
+  BUNDLE_ID: 'com.behui.app'
 
 jobs:
   build:
