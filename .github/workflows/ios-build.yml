@@ -101,7 +101,7 @@ jobs:
         run: |
           cd ios/App
           # Replace existing post_install hook to clear provisioning settings from Pod targets
-          sed -i "/post_install do/,/^end$/d" Podfile
+          sed -i '' '/post_install do/,/^end$/d' Podfile
           cat >> Podfile << 'RUBY'
           
           post_install do |installer|
