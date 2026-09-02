@@ -111,7 +111,15 @@ jobs:
             DISTRIBUTION="${{ github.event.inputs.distribution }}"
             echo "Building signed IPA ($DISTRIBUTION)..."
 
-            # Create ExportOptions.plist
+            # Decode signing certificate + provisioning profile
+            echo "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" | base64 --decode > cert.p12
+            echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
+
+            # Extract provisioning profile UUID
+            PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i profile.mobileprovision)")
+            echo "Provisioning Profile UUID: $PP_UUID"
+
+            # Create ExportOptions.plist with manual signing
             cat > ExportOptions.plist << PLIST
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -121,6 +129,18 @@ jobs:
               <string>${DISTRIBUTION}</string>
               <key>teamID</key>
               <string>${{ secrets.APPLE_TEAM_ID }}</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>provisioningProfiles</key>
+              <dict>
+                  <key>com.behui.app</key>
+                  <dict>
+                      <key>identifier</key>
+                      <string>com.behui.app</string>
+                      <key>uuid</key>
+                      <string>$PP_UUID</string>
+                  </dict>
+              </dict>
               <key>uploadSymbols</key>
               <true/>
               <key>uploadBitcode</key>
@@ -131,10 +151,6 @@ jobs:
           </plist>
           PLIST
 
-            # Decode signing certificate + provisioning profile
-            echo "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" | base64 --decode > cert.p12
-            echo "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" | base64 --decode > profile.mobileprovision
-
             # Create keychain + import certificate
             KEYCHAIN_PASSWORD="build-keychain-$(date +%s)"
             security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
@@ -143,11 +159,12 @@ jobs:
             security import cert.p12 -k build.keychain -P "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" -A
             security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
 
-            # Install provisioning profile
+            # Install provisioning profile (named with UUID)
             mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-            cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/
+            cp profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$PP_UUID.mobileprovision
+            echo "Provisioning profile installed: $PP_UUID"
 
-            # Archive
+            # Archive with manual signing
             xcodebuild -workspace App.xcworkspace \
               -scheme App \
               -configuration Release \
@@ -155,7 +172,11 @@ jobs:
               -sdk iphoneos \
               archive \
               CODE_SIGN_STYLE=Manual \
-              DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
+              CODE_SIGN_IDENTITY="iPhone Distribution" \
+              DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}" \
+              PROVISIONING_PROFILE="$PP_UUID" \
+              CODE_SIGNING_REQUIRED=YES \
+              CODE_SIGNING_ALLOWED=YES
 
             # Export IPA
             xcodebuild -exportArchive \
