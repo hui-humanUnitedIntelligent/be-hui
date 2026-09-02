@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { formatDateDE } from "../lib/formatters.js";
 import { useTranslation } from "../hooks/useTranslation.js";
+import StartphaseTab from '../components/admin/StartphaseTab.jsx';
 
 const C = {
   bg:"#0A0F1E", card:"#111827", card2:"#1A2235", border:"#1E2D45",
@@ -1113,6 +1114,7 @@ export default function Admin() {
   const [projects, setProjects] = useState([]);
   const [pending,  setPending]  = useState(0);
   const [commentReports, setCommentReports] = useState(0); // KOMMENTAR.1
+  const [startphaseNew, setStartphaseNew] = useState(0);
   const [loading,  setLoading]  = useState(true);
   const [tab,      setTab]      = useState("dashboard");
 
@@ -1228,7 +1230,8 @@ export default function Admin() {
               {label: t("adm.kpiBuchungen"),   value:payments.length,               icon:"📋",color:C.orange,onClick:null},
               {label: t("adm.kpiUmsatz"),      value:`${totalRevenue.toFixed(0)} €`,icon:"💰",color:C.green, onClick:null},
               {label: t("adm.kpiImpactPool"), value:`${totalImpact.toFixed(2)} €`, icon:"🌱",color:C.coral, onClick:null},
-              {label: t("adm.kpiPending"), value:pending,                       icon:"📝",color:C.yellow,onClick:()=>setTab("content")},
+              {label: "Startphase Bewerbungen", value:apps.filter(a=>a.status==="new").length || startphaseNew, icon:"🌟",color:C.purple,onClick:()=>setTab("startphase")},
+            {label: t("adm.kpiPending"), value:pending,                       icon:"📝",color:C.yellow,onClick:()=>setTab("content")},
             ].map(kpi => (
               <div key={kpi.label} onClick={kpi.onClick||undefined}
                 style={{...card,marginBottom:0,cursor:kpi.onClick?"pointer":"default"}}>
@@ -1310,6 +1313,10 @@ export default function Admin() {
           ))}
         </div>
       )}
+
+      {/* HUI STARTPHASE */}
+      {tab==="startphase" && <StartphaseTab onNewCountChange={setStartphaseNew} />}
+
     </div>
   );
 }

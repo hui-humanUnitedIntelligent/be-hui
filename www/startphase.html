@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
+<title>HUI Startphase — Bewerbung</title>
+<meta name="description" content="Werde Teil der frühen HUI-Phase. Wir suchen Menschen, die HUI kennenlernen, ausprobieren und mitgestalten möchten."/>
+<meta name="theme-color" content="#0DC4B5"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="stylesheet" href="/hui-shared.css"/>
+<link rel="stylesheet" href="/hui-interactions.css"/>
+<style>
+:root{
+  --teal:#0DC4B5;--teal-deep:#09A89A;--teal-pale:#E6FAF8;
+  --coral:#F47355;--coral-pale:#FFF0EB;
+  --cream:#FAF7F2;--cream-warm:#F5EEE3;--cream-soft:#FDFBF8;
+  --ink:#141422;--ink-mid:#2E2E45;--ink-body:#3A3A55;
+  --muted:#8A8A9E;--faint:#C0C0D0;
+  --white:#FFF;
+  --border:rgba(20,20,34,.05);
+  --shadow:0 1px 10px rgba(20,20,34,.035);
+  --shadow-m:0 3px 18px rgba(20,20,34,.05);
+  --shadow-l:0 8px 36px rgba(20,20,34,.08);
+  --r:12px;--rl:20px;--rx:999px;
+  --ease:cubic-bezier(.25,.46,.45,.94);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;line-height:1.6}
+
+/* ── Nav ── */
+.sp-nav{position:sticky;top:0;z-index:100;background:rgba(250,247,242,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:12px}
+.sp-nav-logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.sp-nav-logo img{width:28px;height:28px;border-radius:6px}
+.sp-nav-logo span{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.02em}
+.sp-nav-back{margin-left:auto;font-size:13px;color:var(--muted);text-decoration:none;padding:8px 16px;border-radius:var(--rx);transition:color .2s}
+.sp-nav-back:hover{color:var(--teal-deep)}
+
+/* ── Hero ── */
+.sp-hero{max-width:680px;margin:0 auto;padding:60px 24px 40px;text-align:center}
+.sp-hero h1{font-size:32px;font-weight:800;letter-spacing:-.03em;color:var(--ink);line-height:1.18;margin-bottom:20px}
+.sp-hero p{font-size:16px;color:var(--ink-body);line-height:1.7;max-width:540px;margin:0 auto}
+
+/* ── Form Container ── */
+.sp-form-wrap{max-width:680px;margin:0 auto;padding:0 24px 80px}
+.sp-form{background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);padding:40px 36px;box-shadow:var(--shadow-m)}
+
+/* ── Form Sections ── */
+.sp-section{margin-bottom:40px}
+.sp-section:last-child{margin-bottom:0}
+.sp-section-title{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.01em;margin-bottom:6px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.sp-section-intro{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+
+/* ── Form Fields ── */
+.sp-field{margin-bottom:20px}
+.sp-field:last-child{margin-bottom:0}
+.sp-label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.sp-hint{display:block;font-size:13px;color:var(--muted);margin-bottom:8px;line-height:1.5}
+.sp-input,.sp-textarea,.sp-select{width:100%;padding:14px 16px;font-family:inherit;font-size:15px;color:var(--ink);background:var(--white);border:1px solid rgba(20,20,34,.1);border-radius:var(--r);transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none}
+.sp-input:focus,.sp-textarea:focus,.sp-select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,196,181,.12)}
+.sp-textarea{min-height:120px;resize:vertical;line-height:1.6}
+.sp-input::placeholder,.sp-textarea::placeholder{color:var(--faint)}
+
+/* ── Checkbox Group ── */
+.sp-check-group{display:flex;flex-direction:column;gap:10px}
+.sp-check{display:flex;align-items:flex-start;gap:10px;padding:12px 16px;background:var(--white);border:1px solid rgba(20,20,34,.08);border-radius:var(--r);cursor:pointer;transition:border-color .2s,background .2s}
+.sp-check:hover{border-color:rgba(13,196,181,.3)}
+.sp-check input[type="checkbox"]{width:18px;height:18px;margin-top:1px;accent-color:var(--teal);cursor:pointer;flex-shrink:0}
+.sp-check-label{font-size:14px;color:var(--ink-body);line-height:1.5;cursor:pointer}
+
+/* ── Single Checkbox (Consent) ── */
+.sp-consent{display:flex;align-items:flex-start;gap:12px;padding:16px;background:var(--cream-warm);border:1px solid var(--border);border-radius:var(--r)}
+.sp-consent input[type="checkbox"]{width:18px;height:18px;margin-top:2px;accent-color:var(--teal);cursor:pointer;flex-shrink:0}
+.sp-consent label{font-size:14px;color:var(--ink-body);line-height:1.5;cursor:pointer}
+
+/* ── Submit Button ── */
+.sp-submit{width:100%;padding:16px;background:var(--teal);color:var(--white);font-size:15px;font-weight:600;border:none;border-radius:var(--rx);cursor:pointer;transition:background .25s,transform .25s;box-shadow:0 4px 16px rgba(13,196,181,.18)}
+.sp-submit:hover{background:var(--teal-deep);transform:translateY(-1px)}
+.sp-submit:disabled{opacity:.6;cursor:wait;transform:none}
+
+/* ── Success State ── */
+.sp-success{display:none;text-align:center;padding:40px 20px}
+.sp-success.show{display:block}
+.sp-success-icon{width:56px;height:56px;border-radius:50%;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:24px}
+.sp-success h2{font-size:22px;font-weight:700;color:var(--ink);margin-bottom:12px;letter-spacing:-.01em}
+.sp-success p{font-size:15px;color:var(--ink-body);line-height:1.7;max-width:420px;margin:0 auto 24px}
+.sp-success a{display:inline-block;padding:12px 28px;background:transparent;border:1px solid rgba(20,20,34,.1);border-radius:var(--rx);color:var(--ink);font-size:14px;font-weight:500;text-decoration:none;transition:border-color .2s}
+.sp-success a:hover{border-color:var(--teal)}
+
+/* ── Error ── */
+.sp-error{display:none;padding:14px 16px;background:var(--coral-pale);border:1px solid rgba(244,115,85,.2);border-radius:var(--r);font-size:14px;color:#c04030;margin-bottom:20px}
+.sp-error.show{display:block}
+
+/* ── Note Box ── */
+.sp-note{padding:16px;background:var(--cream-warm);border:1px solid var(--border);border-radius:var(--r);font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .sp-hero{padding:40px 20px 30px}
+  .sp-hero h1{font-size:26px}
+  .sp-hero p{font-size:15px}
+  .sp-form-wrap{padding:0 16px 60px}
+  .sp-form{padding:28px 20px}
+  .sp-section{margin-bottom:32px}
+  .sp-section-title{font-size:16px}
+  .sp-input,.sp-textarea,.sp-select{font-size:16px}
+  .sp-check{padding:10px 12px}
+  .sp-check-label{font-size:13px}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav class="sp-nav">
+  <a href="/" class="sp-nav-logo">
+    <img src="/hui_logo.webp" alt="HUI"/>
+    <span>HUI</span>
+  </a>
+  <a href="/" class="sp-nav-back" data-i18n="sp.nav.back">← Zurück zur Startseite</a>
+</nav>
+
+<!-- ── Hero ── -->
+<div class="sp-hero">
+  <h1 data-i18n="sp.hero.title">Werde Teil der frühen HUI-Phase.</h1>
+  <p data-i18n="sp.hero.intro">HUI befindet sich noch in der frühen Aufbauphase. Wir suchen Menschen, die HUI kennenlernen, ausprobieren, hinterfragen und mitgestalten möchten. Erzähl uns, wer du bist, was du mitbringst und was dich zu HUI führt.</p>
+</div>
+
+<!-- ── Form ── -->
+<div class="sp-form-wrap">
+  <form class="sp-form" id="startphaseForm" novalidate>
+    <div id="spError" class="sp-error"></div>
+
+    <!-- ═══ PERSÖNLICHE ANGABEN ═══ -->
+    <div class="sp-section">
+      <div class="sp-section-title" data-i18n="sp.section.personal">Persönliche Angaben</div>
+
+      <div class="sp-field">
+        <label class="sp-label" for="firstName" data-i18n="sp.field.firstName">Vorname</label>
+        <input class="sp-input" type="text" id="firstName" name="firstName" required/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="lastName" data-i18n="sp.field.lastName">Nachname</label>
+        <input class="sp-input" type="text" id="lastName" name="lastName" required/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="email" data-i18n="sp.field.email">E-Mail-Adresse</label>
+        <input class="sp-input" type="email" id="email" name="email" required/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="country" data-i18n="sp.field.country">Land / Region</label>
+        <input class="sp-input" type="text" id="country" name="country"/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="currentRole" data-i18n="sp.field.currentRole">Was machst du aktuell?</label>
+        <input class="sp-input" type="text" id="currentRole" name="currentRole"/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="aboutYou" data-i18n="sp.field.aboutYou">Erzähl uns ein paar Worte über dich.</label>
+        <textarea class="sp-textarea" id="aboutYou" name="aboutYou"></textarea>
+      </div>
+    </div>
+
+    <!-- ═══ WAS MÖCHTEST DU ZU HUI MITBRINGEN? ═══ -->
+    <div class="sp-section">
+      <div class="sp-section-title" data-i18n="sp.section.contributions">Was möchtest du zu HUI mitbringen?</div>
+      <div class="sp-check-group" id="contributionsGroup">
+        <label class="sp-check"><input type="checkbox" name="contributions" value="project"/><span class="sp-check-label" data-i18n="sp.contrib.project">Ich möchte ein Projekt einbringen.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="work"/><span class="sp-check-label" data-i18n="sp.contrib.work">Ich möchte ein Werk oder kreatives Schaffen zeigen.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="experience"/><span class="sp-check-label" data-i18n="sp.contrib.experience">Ich möchte ein Erlebnis oder Angebot anbieten.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="talent"/><span class="sp-check-label" data-i18n="sp.contrib.talent">Ich möchte mein Talent oder meine Fähigkeit einbringen.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="pioneer"/><span class="sp-check-label" data-i18n="sp.contrib.pioneer">Ich möchte als Pionier HUI testen.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="idea"/><span class="sp-check-label" data-i18n="sp.contrib.idea">Ich habe eine Idee für HUI.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="connector"/><span class="sp-check-label" data-i18n="sp.contrib.connector">Ich möchte Menschen verbinden.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="explore"/><span class="sp-check-label" data-i18n="sp.contrib.explore">Ich möchte HUI zunächst kennenlernen.</span></label>
+        <label class="sp-check"><input type="checkbox" name="contributions" value="other"/><span class="sp-check-label" data-i18n="sp.contrib.other">Etwas anderes.</span></label>
+      </div>
+    </div>
+
+    <!-- ═══ WAS KANNST DU BESONDERS GUT? ═══ -->
+    <div class="sp-section">
+      <div class="sp-section-title" data-i18n="sp.section.skills">Was kannst du besonders gut?</div>
+      <span class="sp-hint" data-i18n="sp.hint.skills">Welche Fähigkeiten, Erfahrungen oder Talente möchtest du mit anderen teilen?</span>
+      <textarea class="sp-textarea" id="skills" name="skills"></textarea>
+    </div>
+
+    <!-- ═══ WAS MÖCHTEST DU MIT HUI MÖGLICH MACHEN? ═══ -->
+    <div class="sp-section">
+      <div class="sp-section-title" data-i18n="sp.section.project">Was möchtest du mit HUI möglich machen?</div>
+      <div class="sp-field">
+        <label class="sp-label" for="projectName" data-i18n="sp.field.projectName">Wie heißt dein Projekt?</label>
+        <input class="sp-input" type="text" id="projectName" name="projectName"/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="projectOffering" data-i18n="sp.field.projectOffering">Was möchtest du anbieten oder aufbauen?</label>
+        <textarea class="sp-textarea" id="projectOffering" name="projectOffering" style="min-height:80px"></textarea>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="projectAudience" data-i18n="sp.field.projectAudience">Für wen ist es gedacht?</label>
+        <input class="sp-input" type="text" id="projectAudience" name="projectAudience"/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="projectImpact" data-i18n="sp.field.projectImpact">Was möchtest du damit bewirken?</label>
+        <textarea class="sp-textarea" id="projectImpact" name="projectImpact" style="min-height:80px"></textarea>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="projectNeeds" data-i18n="sp.field.projectNeeds">Was brauchst du dafür noch?</label>
+        <input class="sp-input" type="text" id="projectNeeds" name="projectNeeds"/>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="projectMissing" data-i18n="sp.field.projectMissing">Was fehlt dir heute, damit aus deiner Idee Realität werden kann?</label>
+        <textarea class="sp-textarea" id="projectMissing" name="projectMissing" style="min-height:80px"></textarea>
+      </div>
+    </div>
+
+    <!-- ═══ PIONIER ═══ -->
+    <div class="sp-section">
+      <div class="sp-section-title" data-i18n="sp.section.pioneer">Du möchtest HUI als Pionier testen?</div>
+      <div class="sp-field">
+        <label class="sp-label" for="pioneerReason" data-i18n="sp.field.pioneerReason">Warum möchtest du zu den ersten Menschen gehören, die HUI ausprobieren?</label>
+        <textarea class="sp-textarea" id="pioneerReason" name="pioneerReason"></textarea>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" data-i18n="sp.field.pioneerWishes">Was würdest du dir von HUI wünschen?</label>
+        <div class="sp-check-group">
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="test_features"/><span class="sp-check-label" data-i18n="sp.wish.test_features">Funktionen testen</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="give_feedback"/><span class="sp-check-label" data-i18n="sp.wish.give_feedback">Feedback geben</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="report_bugs"/><span class="sp-check-label" data-i18n="sp.wish.report_bugs">Fehler und Probleme melden</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="try_content"/><span class="sp-check-label" data-i18n="sp.wish.try_content">Eigene Inhalte ausprobieren</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="invite_people"/><span class="sp-check-label" data-i18n="sp.wish.invite_people">Andere Menschen einladen</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="test_projects"/><span class="sp-check-label" data-i18n="sp.wish.test_projects">Projekte testen</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="try_new_features"/><span class="sp-check-label" data-i18n="sp.wish.try_new_features">Neue Funktionen ausprobieren</span></label>
+          <label class="sp-check"><input type="checkbox" name="pioneerWishes" value="contribute_ideas"/><span class="sp-check-label" data-i18n="sp.wish.contribute_ideas">Ideen für die Weiterentwicklung einbringen</span></label>
+        </div>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="pioneerFirstAction" data-i18n="sp.field.pioneerFirstAction">Wenn du HUI morgen öffnen könntest – was würdest du als Erstes tun?</label>
+        <textarea class="sp-textarea" id="pioneerFirstAction" name="pioneerFirstAction"></textarea>
+      </div>
+    </div>
+
+    <!-- ═══ ABSCHLUSSFRAGEN ═══ -->
+    <div class="sp-section">
+      <div class="sp-section-title" data-i18n="sp.section.closing">Abschlussfragen</div>
+      <div class="sp-field">
+        <label class="sp-label" for="whyHui" data-i18n="sp.field.whyHui">Warum HUI?</label>
+        <span class="sp-hint" data-i18n="sp.hint.whyHui">Was suchst du bei HUI, das du bisher vielleicht nirgendwo gefunden hast?</span>
+        <textarea class="sp-textarea" id="whyHui" name="whyHui"></textarea>
+      </div>
+      <div class="sp-field">
+        <label class="sp-label" for="whatContribute" data-i18n="sp.field.whatContribute">Was möchtest du selbst beitragen?</label>
+        <span class="sp-hint" data-i18n="sp.hint.whatContribute">Was möchtest du HUI und anderen Menschen geben?</span>
+        <textarea class="sp-textarea" id="whatContribute" name="whatContribute"></textarea>
+      </div>
+    </div>
+
+    <!-- ═══ ABSCHLUSS ═══ -->
+    <div class="sp-section">
+      <div class="sp-note" data-i18n="sp.note.consent">Die Bewerbung ist keine Registrierung für eine fertige Plattform. Wir befinden uns noch in der frühen Aufbauphase und suchen Menschen, die HUI kennenlernen, ausprobieren, hinterfragen und mitgestalten möchten. Wir lesen jede Bewerbung persönlich und melden uns bei dir.</div>
+      <div class="sp-field">
+        <div class="sp-consent">
+          <input type="checkbox" id="consent" name="consent" required/>
+          <label for="consent" data-i18n="sp.consent.label">Ich stimme der Verarbeitung meiner Angaben zur Bearbeitung meiner Bewerbung für die HUI Startphase zu.</label>
+        </div>
+      </div>
+      <button type="submit" class="sp-submit" id="spSubmit" data-i18n="sp.submit">Bewerbung absenden</button>
+    </div>
+  </form>
+
+  <!-- ── Success State ── -->
+  <div class="sp-success" id="spSuccess">
+    <div class="sp-success-icon">✓</div>
+    <h2 data-i18n="sp.success.title">Danke, dass du uns erzählst, wer du bist.</h2>
+    <p data-i18n="sp.success.body">HUI entsteht durch Menschen, Ideen, Fähigkeiten und Verbindungen. Wir melden uns bei dir.</p>
+    <a href="/" data-i18n="sp.success.back">Zurück zur Startseite</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ── Supabase Config ──
+  var SUPABASE_URL = 'https://gxztrhvhcxhmunhhkfjd.supabase.co';
+  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4enRyaHZoY3hobXVuaGhrZmpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4ODI2NDIsImV4cCI6MjA5MzQ1ODY0Mn0.cq8E_NQkmeTZPIe0G0SSqEzzg6yJhyce5xpW2iwVIbk';
+
+  var form = document.getElementById('startphaseForm');
+  var submitBtn = document.getElementById('spSubmit');
+  var errorEl = document.getElementById('spError');
+  var successEl = document.getElementById('spSuccess');
+
+  function showError(msg){
+    errorEl.textContent = msg;
+    errorEl.classList.add('show');
+  }
+  function hideError(){
+    errorEl.classList.remove('show');
+  }
+
+  function getCheckboxes(name){
+    return Array.prototype.slice.call(document.querySelectorAll('input[name="'+name+'"]:checked')).map(function(c){ return c.value; });
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    hideError();
+
+    // Basic validation
+    var firstName = document.getElementById('firstName').value.trim();
+    var lastName = document.getElementById('lastName').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var consent = document.getElementById('consent').checked;
+
+    if(!firstName || !lastName || !email){
+      showError('Bitte fülle Vorname, Nachname und E-Mail aus.');
+      return;
+    }
+    if(!consent){
+      showError('Bitte stimme der Verarbeitung deiner Angaben zu.');
+      return;
+    }
+
+    // Collect form data
+    var data = {
+      first_name: firstName,
+      last_name: lastName,
+      email: email,
+      country_region: document.getElementById('country').value.trim() || null,
+      current_role: document.getElementById('currentRole').value.trim() || null,
+      about_you: document.getElementById('aboutYou').value.trim() || null,
+      contributions: getCheckboxes('contributions'),
+      skills: document.getElementById('skills').value.trim() || null,
+      project_name: document.getElementById('projectName').value.trim() || null,
+      project_offering: document.getElementById('projectOffering').value.trim() || null,
+      project_audience: document.getElementById('projectAudience').value.trim() || null,
+      project_impact: document.getElementById('projectImpact').value.trim() || null,
+      project_needs: document.getElementById('projectNeeds').value.trim() || null,
+      project_missing: document.getElementById('projectMissing').value.trim() || null,
+      pioneer_reason: document.getElementById('pioneerReason').value.trim() || null,
+      pioneer_wishes: getCheckboxes('pioneerWishes'),
+      pioneer_first_action: document.getElementById('pioneerFirstAction').value.trim() || null,
+      why_hui: document.getElementById('whyHui').value.trim() || null,
+      what_contribute: document.getElementById('whatContribute').value.trim() || null,
+      consent_accepted: consent,
+      status: 'new'
+    };
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '...';
+
+    try{
+      var res = await fetch(SUPABASE_URL + '/rest/v1/startphase_applications', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(data)
+      });
+
+      if(!res.ok){
+        var errBody = await res.text();
+        console.error('Submit error:', res.status, errBody);
+        showError('Beim Absenden ist ein Fehler aufgetreten. Bitte versuche es später erneut.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Bewerbung absenden';
+        return;
+      }
+
+      // Success
+      form.style.display = 'none';
+      successEl.classList.add('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Track with Plausible if available
+      if(typeof window.plausible !== 'undefined'){
+        window.plausible('HUI Startphase Bewerbung');
+      }
+    } catch(err){
+      console.error('Network error:', err);
+      showError('Netzwerkfehler. Bitte überprüfe deine Verbindung und versuche es erneut.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Bewerbung absenden';
+    }
+  });
+
+  // ── Reveal animation on scroll ──
+  var reveals = document.querySelectorAll('.reveal');
+  if(reveals.length && 'IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(function(el){ io.observe(el); });
+  }
+})();
+</script>
+
+<!-- ── i18n ── -->
+<script src="/i18n.js" defer></script>
+</body>
+</html>

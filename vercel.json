@@ -300,6 +300,14 @@
     {
       "source": "/en/works",
       "destination": "/werke.html"
+    },
+    {
+      "source": "/startphase",
+      "destination": "/startphase.html"
+    },
+    {
+      "source": "/en/startphase",
+      "destination": "/startphase.html"
     }
   ],
   "functions": {
