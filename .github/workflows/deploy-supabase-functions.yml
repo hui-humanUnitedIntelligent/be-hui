@@ -67,6 +67,71 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: supabase functions deploy send-push-notifications --project-ref gxztrhvhcxhmunhhkfjd
 
+      - name: Deploy delete-account
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy delete-account --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy startphase-reply
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy startphase-reply --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy send-auth-email
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy send-auth-email --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
+      - name: Deploy send-ticket-confirmation
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy send-ticket-confirmation --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
+      - name: Deploy ticket-reply
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy ticket-reply --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy moderate-content
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy moderate-content --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy report-moment
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy report-moment --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy cancel-talent-booking
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy cancel-talent-booking --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy confirm-and-transfer
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy confirm-and-transfer --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy release-escrow
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy release-escrow --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy cast-impact-vote
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy cast-impact-vote --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy sync-payout-bank-account
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy sync-payout-bank-account --project-ref gxztrhvhcxhmunhhkfjd
+
+      - name: Deploy create-support-payment
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy create-support-payment --project-ref gxztrhvhcxhmunhhkfjd --no-verify-jwt
+
       - name: Set Stripe Secrets
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -78,6 +143,18 @@ jobs:
             echo "✅ STRIPE_PUBLISHABLE_KEY gesetzt"
           else
             echo "⚠️ VITE_STRIPE_PUBLIC_KEY GitHub Secret fehlt — STRIPE_PUBLISHABLE_KEY nicht gesetzt"
+          fi
+
+      - name: Set Resend Secret
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ secrets.RESEND_API_KEY }}" ]; then
+            supabase secrets set RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}" --project-ref gxztrhvhcxhmunhhkfjd
+            echo "✅ RESEND_API_KEY gesetzt"
+          else
+            echo "⚠️ RESEND_API_KEY GitHub Secret fehlt — Email-Versand nicht möglich"
           fi
 
       - name: Verify Deployment
@@ -174,9 +251,21 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{}'
 
+          verify_function "delete-account" \
+            "$BASE_URL/delete-account" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          verify_function "startphase-reply" \
+            "$BASE_URL/startphase-reply" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
           echo "────────────────────────────────────────"
           if [ "$FAIL" -ne 0 ]; then
             echo "❌ Deployment-Verifikation fehlgeschlagen (404 oder 503)"
             exit 1
           fi
-          echo "✅ Alle fünf Commerce-Functions: Runtime aktiv (401/400)"
+          echo "✅ Alle Functions: Runtime aktiv (401/400)"
