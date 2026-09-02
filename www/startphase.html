@@ -316,7 +316,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
   var interestParam = urlParams.get('interest');
   if(interestParam){
     var contribCheckboxes = document.querySelectorAll('input[name="contributions"]');
-    var validInterests = ['project','work','experience','talent','pioneer','idea','connector','explore','other'];
+    var validInterests = ['project','work','experience','talent','pioneer','idea','connector','explore','other','time','support','curiosity'];
     if(validInterests.indexOf(interestParam) >= 0){
       contribCheckboxes.forEach(function(cb){
         if(cb.value === interestParam) cb.checked = true;
@@ -357,6 +357,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--cream);color:var(
       first_name: firstName,
       last_name: lastName,
       email: email,
+      interest: interestParam || null,
       country_region: document.getElementById('country').value.trim() || null,
       current_role: document.getElementById('currentRole').value.trim() || null,
       about_you: document.getElementById('aboutYou').value.trim() || null,
