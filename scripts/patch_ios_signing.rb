@@ -29,7 +29,7 @@ if target
     config.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = 'HUI App Store Profile'
     config.build_settings['CODE_SIGN_STYLE'] = 'Manual'
     config.build_settings['CODE_SIGN_IDENTITY'] = 'iPhone Distribution'
-    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     
     # ── Versioning ──
     config.build_settings['MARKETING_VERSION'] = marketing_version
