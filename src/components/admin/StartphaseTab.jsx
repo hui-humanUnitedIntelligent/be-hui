@@ -14,10 +14,9 @@ const C = {
 
 const STATUS_CFG = {
   new:           { label: "Neu",              color: C.teal,   bg: "rgba(42,191,172,0.12)" },
-  reviewing:     { label: "In Pruefung",       color: C.yellow, bg: "rgba(251,191,36,0.12)" },
-  query:         { label: "Rueckfrage",        color: C.blue,  bg: "rgba(59,130,246,0.12)" },
+  review:        { label: "In Pruefung",       color: C.yellow, bg: "rgba(251,191,36,0.12)" },
   accepted:      { label: "Angenommen",        color: C.green, bg: "rgba(16,185,129,0.12)" },
-  not_selected:  { label: "Nicht ausgewaehlt", color: C.red,   bg: "rgba(239,68,68,0.12)" },
+  rejected:      { label: "Nicht ausgewaehlt", color: C.red,   bg: "rgba(239,68,68,0.12)" },
   completed:     { label: "Abgeschlossen",    color: C.sub,   bg: "rgba(148,163,184,0.12)" },
 };
 

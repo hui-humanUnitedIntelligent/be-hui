@@ -43,13 +43,10 @@ CREATE TABLE IF NOT EXISTS startphase_applications (
   consent_accepted BOOLEAN NOT NULL DEFAULT false,
 
   -- Status
-  status TEXT NOT NULL DEFAULT 'new'
-    CHECK (status IN ('new', 'reviewing', 'query', 'accepted', 'not_selected', 'completed')),
+  status public.startphase_status NOT NULL DEFAULT 'new',
 
   -- Admin-Felder
   admin_notes     TEXT,
-  reviewed_by     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  reviewed_at     TIMESTAMPTZ,
 
   -- Timestamps
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -60,13 +57,15 @@ CREATE TABLE IF NOT EXISTS startphase_applications (
 CREATE TABLE IF NOT EXISTS startphase_communications (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   application_id UUID NOT NULL REFERENCES startphase_applications(id) ON DELETE CASCADE,
-  admin_id       UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  admin_id       TEXT,
   admin_name     TEXT,
   direction      TEXT NOT NULL DEFAULT 'outbound'
     CHECK (direction IN ('outbound', 'inbound', 'note')),
   subject        TEXT,
   message_body   TEXT NOT NULL,
-  sent_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  sent           BOOLEAN DEFAULT false,
+  resend_id      TEXT,
+  error          TEXT,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -74,7 +73,7 @@ CREATE TABLE IF NOT EXISTS startphase_communications (
 CREATE INDEX IF NOT EXISTS idx_startphase_applications_status ON startphase_applications(status);
 CREATE INDEX IF NOT EXISTS idx_startphase_applications_email ON startphase_applications(email);
 CREATE INDEX IF NOT EXISTS idx_startphase_applications_created ON startphase_applications(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_startphase_communications_app ON startphase_communications(application_id, sent_at DESC);
+CREATE INDEX IF NOT EXISTS idx_startphase_communications_app ON startphase_communications(application_id, created_at DESC);
 
 -- 4. Row Level Security
 ALTER TABLE startphase_applications ENABLE ROW LEVEL SECURITY;
