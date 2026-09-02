@@ -729,9 +729,9 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
         />
         {/* onLoad tracking for first image shimmer */}
         <img
-          src={firstUrl}
+          src={optimizeCard(firstUrl)}
           alt=""
-          loading="lazy"
+          loading="eager"
           style={{ display: "none" }}
           onLoad={() => setLoaded(true)}
           onError={() => setErr(true)}

@@ -96,7 +96,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
           })
         : React.createElement("img", {
-            src: optimizeCard(url), alt: (m && m.alt) || "", loading: "lazy", decoding: "async",
+            src: optimizeCard(url), alt: (m && m.alt) || "", loading: "eager", decoding: "async",
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
           })
     );
@@ -143,7 +143,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
                 style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
               })
             : React.createElement("img", {
-                src: optimizeCard(iurl), alt: (m && m.alt) || "", loading: "lazy", decoding: "async",
+                src: optimizeCard(iurl), alt: (m && m.alt) || "", loading: i === 0 ? "eager" : "lazy", decoding: "async",
                 style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
               })
         );

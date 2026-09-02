@@ -38,7 +38,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { optimizeFull } from "../../lib/perfUtils.js";
+import { optimizeFull, optimizeCard, optimizeCover } from "../../lib/perfUtils.js";
 
 const ANIM_MS = 220;
 const DOUBLE_TAP_SCALE = 1.5;
@@ -347,7 +347,10 @@ export default function ImageLightbox() {
           }
         }, "Erneut versuchen")
       ),
-      // Image container — EIN einziger Bild-Layer, direkt volle Aufloesung.
+      // Image container — PROGRESSIVE LOADING (2026-09-02):
+      // Layer 1: Cached 400px thumbnail (aus Feed, sofort sichtbar, kein Schwarz)
+      // Layer 2: 800px high-res (crossfade darüber wenn geladen)
+      // Vorher: optimizeFull(1600px/90q) → großes Bild, cache-miss → schwarzer Screen
       React.createElement("div", {
         style: {
           width:"100%", height:"100%",
@@ -366,19 +369,41 @@ export default function ImageLightbox() {
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
                 willChange: "transform" }
             })
-          : !imgError && React.createElement("img", {
-              ref: imgRef,
-              src: current ? (useRawUrl ? current.url : optimizeFull(current.url)) : "",
-              alt: current ? current.alt : "", draggable: false,
-              onLoad: onImgLoad,
-              onError: onImgError,
-              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
-                transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
-                transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
-                willChange: "transform",
-                opacity: imgLoaded ? 1 : 0,
-              }
-            })
+          : !imgError && React.createElement(React.Fragment, null,
+              // Layer 1: Low-res cached thumbnail (sofort sichtbar, aus Browser-Cache)
+              React.createElement("img", {
+                key: "thumb-" + index,
+                src: current ? optimizeCard(current.url) : "",
+                alt: "", draggable: false, "aria-hidden": true,
+                style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
+                  position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+                  transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
+                  transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
+                  willChange: "transform",
+                  opacity: imgLoaded ? 0 : 1,
+                  transitionOpacity: "0.3s ease",
+                  filter: "none",
+                }
+              }),
+              // Layer 2: High-res (800px statt 1600px — schneller, trotzdem retina)
+              React.createElement("img", {
+                ref: imgRef,
+                key: "hires-" + index,
+                src: current ? (useRawUrl ? current.url : optimizeCover(current.url)) : "",
+                alt: current ? current.alt : "", draggable: false,
+                onLoad: onImgLoad,
+                onError: onImgError,
+                style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
+                  transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
+                  transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
+                  willChange: "transform",
+                  opacity: imgLoaded ? 1 : 0,
+                  transitionProperty: "opacity, transform",
+                  transitionDuration: "0.3s",
+                  transitionTimingFunction: "ease",
+                }
+              })
+            )
       ),
       // Dot indicators
       images.length > 1 && React.createElement("div", {
