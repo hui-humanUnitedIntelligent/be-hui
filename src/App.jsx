@@ -973,6 +973,23 @@ function PushInit() {
   return null;
 }
 
+// ── IMG-DIAG-001 (2026-09-04): Einmaliger Geräte-Image-/Upload-Probe ──
+// Misst beim ersten Auth-Start einer App-Version (nur nativ, nur einmal,
+// Guard in localStorage) ob remote Bilder im <img> laden, fetch() die
+// Transform-URL erreicht und ein Storage-Upload ankommt. Ergebnis →
+// system_error_reports (error_type='img_diag'). Details: src/lib/imgDiag.js.
+// Dynamischer Import → landet im eigenen Lazy-Chunk, bläht main nicht auf.
+function ImgDiagProbe() {
+  const { user, authChecked, loadingAuth } = useAuth();
+  useEffect(() => {
+    if (loadingAuth || !authChecked || !user?.id) return;
+    import('./lib/imgDiag.js')
+      .then(({ runImgDiagOnce }) => runImgDiagOnce(user.id))
+      .catch(() => {});
+  }, [loadingAuth, authChecked, user?.id]);
+  return null;
+}
+
 export default function App() {
   const { t } = useTranslation();
   // ── OTA v5: confirmAppReady nach erstem erfolgreichen React-Render ──
@@ -995,6 +1012,7 @@ export default function App() {
             <ProfileCompletionTrigger/>
             <AppEntryController>
               <PushInit />
+              <ImgDiagProbe />
               <AppStateProvider>
                 <WorldSurfaceProvider>
                   <OrbWorldProvider>

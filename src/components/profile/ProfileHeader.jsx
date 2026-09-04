@@ -31,6 +31,30 @@ const T = {
   border:   "rgba(26,26,18,0.09)",
 };
 
+
+// ── IMG-FALLBACK-001 (2026-09-04): Stufen-Fallback für Cover/Avatar ──
+// Kontext: Auf Android-Geräten (Xiaomi/HyperOS WebView) schlugen remote
+// Supabase-Bild-URLs (Image Transform Render-API) im <img> fehl, obwohl
+// dieselben URLs serverseitig 200/valid lieferten — das Cover zeigte das
+// Chromium-Broken-Image-Glyph (weiße Ecke oben links im Screenshot vom
+// 2026-09-04). Robuster Fix statt Ursachen-Raten: Fallback-KETTE pro
+// Bild, jede Stufe bei onError weiterschalten —
+//   Stufe 0: optimierte URL (Supabase Render/Transform, width-reduziert)
+//   Stufe 1: Original-URL (raw object endpoint, keine Transformation)
+//   Stufe 2: lokales Fallback-SVG (immer im Bundle, kann nicht failen)
+// Damit zeigt der Header IMMER ein sauberes Bild oder den designeten
+// Platzhalter — niemals das Broken-Glyph. Siehe auch imgDiag.js
+// (Geräte-Diagnose) und profileMedia.js IMG-FALLBACK-002 (Upload-Body).
+function buildImageSources(rawUrl, optimizer, fallback) {
+  const raw = sv(rawUrl, fallback);
+  const sources = [];
+  const opt = optimizer(raw);
+  if (opt) sources.push(opt);
+  if (raw && raw !== opt) sources.push(raw);
+  if (fallback && !sources.includes(fallback)) sources.push(fallback);
+  return sources.length ? sources : [fallback];
+}
+
 function Sk({ w, h, r = 8 }) {
   return (
     <div style={{
@@ -59,6 +83,9 @@ export function ProfileHeader({
   const { t } = useTranslation();
   const [coverLoaded,     setCoverLoaded]     = useState(false);
   const [avatarLoaded,    setAvatarLoaded]    = useState(false);
+  // IMG-FALLBACK-001 (2026-09-04): aktive Fallback-Stufe pro Bild
+  const [coverStage,  setCoverStage]  = useState(0);
+  const [avatarStage, setAvatarStage] = useState(0);
   const coverImgRef  = useRef(null);
   const avatarImgRef = useRef(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -67,8 +94,16 @@ export function ProfileHeader({
   const avatarInputRef = useRef(null);
   const coverInputRef  = useRef(null);
 
-  const cover    = optimizeCover(sv(profile?.header_img, FB_COVER));
-  const avatar   = optimizeAvatar(sv(profile?.avatar_url, FB_AVT));
+  // IMG-FALLBACK-001 (2026-09-04): Stufen-Quellen statt einzelner URL
+  const coverSources  = buildImageSources(profile?.header_img, optimizeCover, FB_COVER);
+  const avatarSources = buildImageSources(profile?.avatar_url, optimizeAvatar, FB_AVT);
+  const cover  = coverSources[Math.min(coverStage,  coverSources.length  - 1)];
+  const avatar = avatarSources[Math.min(avatarStage, avatarSources.length - 1)];
+
+  // IMG-FALLBACK-001: Stufe + Loaded-State zurücksetzen wenn sich die
+  // Profil-Quelle ändert (Profil-Wechsel, neuer Upload, Org-Switch).
+  useEffect(() => { setCoverStage(0);  setCoverLoaded(false); },  [profile?.header_img]);
+  useEffect(() => { setAvatarStage(0); setAvatarLoaded(false); }, [profile?.avatar_url]);
 
   // ── HEADER-IMG-DELAY-FIX (2026-08-07) ─────────────────────────────
   // Root Cause: Cover/Avatar starteten immer bei opacity:0 und faded
@@ -200,7 +235,12 @@ export function ProfileHeader({
             ref={coverImgRef}
             src={cover} alt="" loading="eager" decoding="async" fetchpriority="high"
             onLoad={() => setCoverLoaded(true)}
-            onError={() => setCoverLoaded(true)}
+            onError={() => {
+              // IMG-FALLBACK-001: nächste Stufe probieren, erst die
+              // letzte Stufe als "geladen" markieren (Broken-Glyph vermeiden)
+              if (coverStage < coverSources.length - 1) setCoverStage(coverStage + 1);
+              else setCoverLoaded(true);
+            }}
             style={{
               width:"100%", height:"100%", objectFit:"cover", display:"block",
               opacity: coverLoaded ? 0.88 : 0, transition:"opacity 0.25s ease",
@@ -276,7 +316,11 @@ export function ProfileHeader({
                     ref={avatarImgRef}
                     src={avatar} alt={name} loading="eager" decoding="async" fetchpriority="high"
                     onLoad={() => setAvatarLoaded(true)}
-                    onError={() => setAvatarLoaded(true)}
+                    onError={() => {
+                      // IMG-FALLBACK-001: analog Cover — Stufen-Fallback
+                      if (avatarStage < avatarSources.length - 1) setAvatarStage(avatarStage + 1);
+                      else setAvatarLoaded(true);
+                    }}
                     style={{
                       width:"100%", height:"100%", objectFit:"cover",
                       opacity: avatarLoaded ? 1 : 0, transition:"opacity 0.2s ease",

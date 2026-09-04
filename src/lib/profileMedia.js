@@ -206,9 +206,30 @@ export async function uploadProfileImage(file, userId, folder, maxDim = COVER_MA
   const wasCompressed = uploadBlob !== file;
   const ext  = wasCompressed ? "jpg" : (file.name.split(".").pop() || "jpg");
   const path = `${folder}/${userId}/${Date.now()}.${ext}`;
+
+  // ── IMG-FALLBACK-002 (2026-09-04): Upload-Body Blob → ArrayBuffer ──
+  // Kontext: Uploads (Cover/Avatar) kamen seit dem 01.09. auf Android
+  // nicht mehr im Storage an, obwohl derselbe Flow am 31.08. (v2.1.533)
+  // funktionierte. CapacitorHttp (native fetch-Interceptor, seit Juli
+  // aktiv) hat dokumentierte Probleme mit BLOB-Bodies auf Android —
+  // Requests schlagen fehl oder laufen leer. supabase-js akzeptiert
+  // ArrayBuffer als Body gleichwertig; CapacitorHttp behandelt binäre
+  // ArrayBuffer-Bodies zuverlässig (base64-Transport). Bei jedem Fehler
+  // der Konvertierung wird der Original-Blob weiterverwendet (kein
+  // Verhärtungsgrad-Verlust gegenüber vorher).
+  let uploadBody = uploadBlob;
+  try {
+    if (typeof uploadBlob?.arrayBuffer === "function") {
+      uploadBody = await uploadBlob.arrayBuffer();
+    }
+  } catch (bodyErr) {
+    console.warn("[profileMedia] ArrayBuffer-Konvertierung fehlgeschlagen, nutze Blob:", bodyErr?.message);
+    uploadBody = uploadBlob;
+  }
+
   const { error } = await supabase.storage
     .from("media")
-    .upload(path, uploadBlob, {
+    .upload(path, uploadBody, {
       contentType: wasCompressed ? "image/jpeg" : file.type,
       upsert: true,
     });
