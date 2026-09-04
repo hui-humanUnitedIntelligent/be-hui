@@ -75,6 +75,15 @@ const KNOWN_CAUSES = {
   },
 };
 
+// ── Stille Diagnose-Typen (2026-09-04) ──────────────────────────
+// Diese Typen sind KEINE Nutzer-Fehler, sondern Hintergrund-Messungen
+// (siehe imgDiag.js Header: "ohne Nutzer-Interaktion"). Sie gehen weiter
+// an system_error_reports + Sentry (für die Auswertung), aber NIE als
+// sichtbarer Toast — und werden NICHT gegen KNOWN_CAUSES gematcht (die
+// Patterns wie "transform"/"filter" matchen sonst false-positiv gegen
+// harmlose Feldnamen wie "p1_img_transform" in der Diagnose-JSON).
+const SILENT_ERROR_TYPES = new Set(['img_diag']);
+
 // ── Error-Gruppen-Store (Punkt 3) ───────────────────────────────
 let errorGroups = new Map(); // fingerprint → group data
 
@@ -223,7 +232,9 @@ function generateErrorCode(errorType, knownCause) {
 // ── Hauptfunktion: Report erzeugen (Punkt 2) ─────────────────────
 export function createErrorReport(errorType, errorData = {}) {
   const timestamp = new Date().toISOString();
-  const knownCause = matchKnownCause({ ...errorData, errorType });
+  const knownCause = SILENT_ERROR_TYPES.has(errorType)
+    ? { matched: false, label: 'Diagnose (kein Fehler)', name: 'Hintergrund-Messung' }
+    : matchKnownCause({ ...errorData, errorType });
 
   const report = {
     // Pflichtfelder (Punkt 2)
@@ -374,10 +385,14 @@ export function sendErrorReport(report) {
     // Sentry kann disabled sein — kein Problem
   }
 
-  // Toast-UI benachrichtigen (sichtbare Fehler-Anzeige)
-  try {
-    window.dispatchEvent(new CustomEvent('hui:error-report', { detail: report }));
-  } catch (_) {}
+  // Toast-UI benachrichtigen (sichtbare Fehler-Anzeige) — NICHT für
+  // stille Diagnose-Typen (img_diag etc.), die laufen ohne Nutzer-
+  // Interaktion und dürfen niemals ein UI-Element auslösen.
+  if (!SILENT_ERROR_TYPES.has(report.errorType)) {
+    try {
+      window.dispatchEvent(new CustomEvent('hui:error-report', { detail: report }));
+    } catch (_) {}
+  }
 
   // Lokal speichern (Lernsystem, Punkt 7)
   storeReportLocally(report);
