@@ -506,17 +506,6 @@
       ]
     },
     {
-      "source": "/",
-      "destination": "/landing.html",
-      "permanent": false,
-      "has": [
-        {
-          "type": "host",
-          "value": "be-hui.vercel.app"
-        }
-      ]
-    },
-    {
       "source": "/work/:id",
       "missing": [
         {
