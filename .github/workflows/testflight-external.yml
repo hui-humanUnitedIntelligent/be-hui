@@ -1,0 +1,190 @@
+name: TestFlight External Group
+
+# Legt die EXTERNE TestFlight-Testgruppe "Beta Tester" an (inkl. Public Link),
+# assign Build #22 (2.1.541) und reicht den Build zur Beta App Review ein.
+# Nutzt ausschließlich die bestehenden APP_STORE_CONNECT_* Secrets.
+# Manuell triggern: Actions → TestFlight External Group → Run workflow
+# oder via API: POST /repos/{repo}/actions/workflows/testflight-external.yml/dispatches
+
+on:
+  workflow_dispatch:
+    inputs:
+      group_name:
+        description: 'Name der externen Testgruppe'
+        required: false
+        default: 'Beta Tester'
+      submit_for_review:
+        description: 'Build zur Beta App Review einreichen (true/false)'
+        required: false
+        default: 'true'
+
+jobs:
+  create-external-group:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      ASC_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+    steps:
+      - name: Check secrets present
+        run: |
+          if [ -z "$ASC_KEY_ID" ] || [ -z "$ASC_ISSUER_ID" ] || [ -z "$ASC_API_KEY" ]; then
+            echo "::error::APP_STORE_CONNECT_* Secrets fehlen in GitHub!"
+            exit 1
+          fi
+
+      - name: Setup Python + JWT-Lib
+        run: |
+          python3 -m pip install --quiet pyjwt cryptography requests
+
+      - name: Create external group, assign build, submit for review
+        run: |
+          mkdir -p /tmp/asc
+          echo "$ASC_API_KEY" | base64 --decode > /tmp/asc/AuthKey.p8
+          export ASC_KEY_PATH=/tmp/asc/AuthKey.p8
+          export GROUP_NAME="${{ github.event.inputs.group_name || 'Beta Tester' }}"
+          export SUBMIT_REVIEW="${{ github.event.inputs.submit_for_review || 'true' }}"
+          cat > /tmp/asc/run.py << 'PYEOF'
+          import os, json, time, requests, jwt
+
+          KEY_ID = os.environ["ASC_KEY_ID"]
+          ISSUER = os.environ["ASC_ISSUER_ID"]
+          KEY_PATH = os.environ["ASC_KEY_PATH"]
+          GROUP_NAME = os.environ["GROUP_NAME"]
+          SUBMIT_REVIEW = os.environ["SUBMIT_REVIEW"].lower() == "true"
+
+          BASE = "https://api.appstoreconnect.apple.com/v1"
+          BUNDLE_ID = "com.behui.app"
+
+          with open(KEY_PATH) as f:
+              private_key = f.read()
+
+          now = int(time.time())
+          token = jwt.encode(
+              {"iss": ISSUER, "iat": now, "exp": now + 1200, "aud": "appstoreconnect-v1"},
+              private_key, algorithm="ES256", headers={"kid": KEY_ID},
+          )
+          H = {"Authorization": "Bearer " + token, "Content-Type": "application/json"}
+
+          def api(method, path, body=None, ok=(200, 201)):
+              r = requests.request(method, BASE + path, headers=H, json=body, timeout=30)
+              print("[ASC] {} {} -> {}".format(method, path, r.status_code))
+              if r.status_code not in ok:
+                  print("[ASC] ERROR BODY: " + r.text[:2000])
+              return r
+
+          # 1. App finden
+          r = api("GET", "/apps?filter[bundleId]={}&limit=1".format(BUNDLE_ID))
+          r.raise_for_status()
+          apps = r.json()["data"]
+          assert apps, "App " + BUNDLE_ID + " nicht in App Store Connect gefunden!"
+          APP_ID = apps[0]["id"]
+          print("APP_ID: {} ({})".format(APP_ID, apps[0]["attributes"]["name"]))
+
+          # 2. Neuesten verarbeiteten Build finden
+          r = api("GET", "/apps/{}/builds?limit=20&sort=-uploadedDate".format(APP_ID))
+          r.raise_for_status()
+          builds = r.json()["data"]
+          assert builds, "Keine Builds gefunden!"
+          build = next((b for b in builds if b["attributes"].get("processingState") == "VALID"), builds[0])
+          BUILD_ID = build["id"]
+          battr = build["attributes"]
+          print("BUILD: {} uploaded: {} state: {}".format(
+              battr.get("version"), battr.get("uploadedDate"), battr.get("processingState")))
+
+          # 3. Externe Gruppe finden oder anlegen
+          r = api("GET", "/apps/{}/betaGroups?limit=50".format(APP_ID))
+          r.raise_for_status()
+          groups = r.json()["data"]
+          group = next((g for g in groups
+                        if g["attributes"]["name"] == GROUP_NAME
+                        and not g["attributes"]["isInternalGroup"]), None)
+
+          if group:
+              print("Gruppe '{}' existiert bereits: {}".format(GROUP_NAME, group["id"]))
+          else:
+              r = api("POST", "/betaGroups", {
+                  "data": {
+                      "type": "betaGroups",
+                      "attributes": {"name": GROUP_NAME, "isInternalGroup": False},
+                      "relationships": {"app": {"data": {"type": "apps", "id": APP_ID}}},
+                  }
+              }, ok=(200, 201, 409))
+              if r.status_code in (200, 201):
+                  group = r.json()["data"]
+                  print("Gruppe '{}' angelegt: {}".format(GROUP_NAME, group["id"]))
+              else:
+                  r2 = api("GET", "/apps/{}/betaGroups?limit=50".format(APP_ID))
+                  group = next((g for g in r2.json()["data"]
+                                if g["attributes"]["name"] == GROUP_NAME
+                                and not g["attributes"]["isInternalGroup"]), None)
+                  assert group, "Gruppe konnte nicht angelegt werden: " + r.text[:500]
+                  print("Gruppe nach 409 erneut gefunden: " + group["id"])
+
+          GROUP_ID = group["id"]
+
+          # 4. Public Link aktivieren (falls noch nicht)
+          if not group["attributes"].get("publicLinkEnabled"):
+              r = api("PATCH", "/betaGroups/{}".format(GROUP_ID), {
+                  "data": {"type": "betaGroups", "id": GROUP_ID,
+                           "attributes": {"publicLinkEnabled": True}}
+              })
+              if r.status_code != 200:
+                  print("[WARN] Public Link konnte nicht aktiviert werden: " + r.text[:500])
+
+          # 5. Build der Gruppe zuweisen
+          r = api("POST", "/builds/{}/relationships/betaGroups".format(BUILD_ID), {
+              "data": [{"type": "betaGroups", "id": GROUP_ID}]
+          }, ok=(200, 201, 204))
+          if r.status_code in (200, 201, 204):
+              print("BUILD der Gruppe zugewiesen ✅")
+          else:
+              print("[WARN] Build-Zuweisung fehlgeschlagen (evtl. schon zugewiesen)")
+
+          # 6. Public Link URL auslesen (Apple generiert ihn asynchron)
+          time.sleep(3)
+          r = api("GET", "/apps/{}/betaGroups?limit=50".format(APP_ID))
+          if r.status_code == 200:
+              g2 = next((g for g in r.json()["data"] if g["id"] == GROUP_ID), None)
+              if g2:
+                  link = g2["attributes"].get("publicLink")
+                  print("PUBLIC LINK: " + (link or "(noch nicht generiert — Apple asynchron, in ASC sichtbar)"))
+
+          # 7. Beta App Review: Details prüfen
+          r = api("GET", "/apps/{}/betaAppReviewDetails".format(APP_ID), ok=(200, 404))
+          details_ok = r.status_code == 200
+          if details_ok:
+              print("Beta App Review Details vorhanden ✅")
+          else:
+              print("[WARN] Beta App Review Details FEHLEN — Kontaktinfo (Name/E-Mail/Telefon) in ASC nötig")
+
+          # 8. Review-Einreichung
+          if SUBMIT_REVIEW:
+              if not details_ok:
+                  print("[SKIP] Review-Einreichung übersprungen — erst Details in App Store Connect hinterlegen:")
+                  print("        TestFlight → Beta Tester → Gruppen-Details → Kontaktinfo")
+                  print("        Danach diesen Workflow erneut triggern (submit_for_review=true).")
+              else:
+                  r = api("POST", "/betaAppReviewSubmissions", {
+                      "data": {
+                          "type": "betaAppReviewSubmissions",
+                          "relationships": {"build": {"data": {"type": "builds", "id": BUILD_ID}}},
+                      }
+                  }, ok=(201, 409))
+                  if r.status_code == 201:
+                      print("BUILD ZUR BETA APP REVIEW EINGEREICHT ✅ (Review meist einige Stunden, max. 48h)")
+                  elif r.status_code == 409:
+                      print("Review-Einreichung existiert bereits (409) ✅")
+
+          print("")
+          print("=== ZUSAMMENFASSUNG ===")
+          print(json.dumps({
+              "app": APP_ID, "build": BUILD_ID, "group": GROUP_ID,
+              "review_details": details_ok, "submitted": SUBMIT_REVIEW and details_ok,
+          }, indent=2))
+          PYEOF
+          python3 /tmp/asc/run.py
+      - name: Cleanup
+        if: always()
+        run: rm -rf /tmp/asc
