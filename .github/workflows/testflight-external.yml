@@ -17,6 +17,22 @@ on:
         description: 'Build zur Beta App Review einreichen (true/false)'
         required: false
         default: 'true'
+      contact_first:
+        description: 'Review-Kontakt Vorname (für betaAppReviewDetails, falls fehlend)'
+        required: false
+        default: ''
+      contact_last:
+        description: 'Review-Kontakt Nachname'
+        required: false
+        default: ''
+      contact_email:
+        description: 'Review-Kontakt E-Mail'
+        required: false
+        default: ''
+      contact_phone:
+        description: 'Review-Kontakt Telefon (Apple-Pflichtfeld)'
+        required: false
+        default: ''
 
 jobs:
   create-external-group:
@@ -45,6 +61,10 @@ jobs:
           export ASC_KEY_PATH=/tmp/asc/AuthKey.p8
           export GROUP_NAME="${{ github.event.inputs.group_name || 'Beta Tester' }}"
           export SUBMIT_REVIEW="${{ github.event.inputs.submit_for_review || 'true' }}"
+          export CONTACT_FIRST="${{ github.event.inputs.contact_first }}"
+          export CONTACT_LAST="${{ github.event.inputs.contact_last }}"
+          export CONTACT_EMAIL="${{ github.event.inputs.contact_email }}"
+          export CONTACT_PHONE="${{ github.event.inputs.contact_phone }}"
           cat > /tmp/asc/run.py << 'PYEOF'
           import os, json, time, requests, jwt
 
@@ -158,7 +178,27 @@ jobs:
           if details_ok:
               print("Beta App Review Details vorhanden ✅")
           else:
-              print("[WARN] Beta App Review Details FEHLEN — Kontaktinfo (Name/E-Mail/Telefon) in ASC nötig")
+              cf = os.environ.get("CONTACT_FIRST", "")
+              cl = os.environ.get("CONTACT_LAST", "")
+              ce = os.environ.get("CONTACT_EMAIL", "")
+              cp = os.environ.get("CONTACT_PHONE", "")
+              if cf and cl and ce and cp:
+                  r = api("POST", "/betaAppReviewDetails", {
+                      "data": {
+                          "type": "betaAppReviewDetails",
+                          "attributes": {
+                              "contactFirstName": cf, "contactLastName": cl,
+                              "contactEmail": ce, "contactPhone": cp,
+                          },
+                          "relationships": {"app": {"data": {"type": "apps", "id": APP_ID}}},
+                      }
+                  }, ok=(201, 409))
+                  details_ok = r.status_code in (201, 409)
+                  if details_ok:
+                      print("Beta App Review Details angelegt ✅")
+              else:
+                  print("[WARN] Beta App Review Details FEHLEN — Kontaktinfo (Name/E-Mail/Telefon) nötig")
+                  print("        Entweder in ASC UI eintragen ODER Workflow mit contact_*-Inputs triggern")
 
           # 8. Review-Einreichung
           if SUBMIT_REVIEW:
