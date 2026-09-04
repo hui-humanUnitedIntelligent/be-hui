@@ -8,6 +8,7 @@ import { HUIImpactIcon, HUIStimmeIcon,
   HUIAwardIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
+import { HUILogo } from '../components/brand/HUILogo.jsx';
 import ReactDOM from 'react-dom';
 import React from "react";
 import { ProfileService } from '../services/db';
@@ -176,9 +177,10 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
   useModalRegistration(!!detailMilestone, () => setDetailMilestone(null), "ApprovedProjectDetail-DetailMilestone");
   useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "ApprovedProjectDetail-UpdateSheet");
 
-  const img = app.cover_url
-    || (app.media_urls && app.media_urls[0])
-    || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
+  // BILD-PLATZHALTER-REGEL (2026-09-04): kein Stockfoto mehr — HUILogo-Fallback
+  const [imgErr, setImgErr] = React.useState(false);
+  const rawImg = app.cover_url || (app.media_urls && app.media_urls[0]) || null;
+  const img = (!imgErr && rawImg) ? rawImg : null;
 
   // Pool-Monat: YYYY-MM des aktuellen Monats
   const poolMonth = new Date().toISOString().slice(0, 7); // z.B. "2026-06"
@@ -365,11 +367,18 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           paddingBottom:"calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         }}>
         {/* Bild */}
-        <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden" }}>
-          <img loading="lazy" decoding="async" src={img} alt={app.project_name}
-            style={{ width:"100%", height:"100%", objectFit:"cover" }}
-            onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
-          />
+        <div style={{ position:"relative", height:220, borderRadius:"24px 24px 0 0", overflow:"hidden",
+          background: img ? undefined : "rgba(13,196,181,0.06)" }}>
+          {img ? (
+            <img loading="lazy" decoding="async" src={img} alt={app.project_name}
+              style={{ width:"100%", height:"100%", objectFit:"cover" }}
+              onError={() => setImgErr(true)}
+            />
+          ) : (
+            <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <HUILogo size={44} style={{ opacity:0.5 }} />
+            </div>
+          )}
           <button onClick={onClose} style={{
             position:"absolute", top:12, right:12,
             width:36, height:36, borderRadius:"50%",
@@ -1029,9 +1038,10 @@ function MilestoneDetailSheet({ milestone, onClose }) {
 function ApprovedAppCard({ app, onOpen }) {
   const { t } = useTranslation();
   const [hov, setHov] = React.useState(false);
-  const img = app.cover_url
-    || (app.media_urls && app.media_urls[0])
-    || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
+  // BILD-PLATZHALTER-REGEL (2026-09-04): kein Stockfoto mehr — HUILogo-Fallback
+  const [imgErr, setImgErr] = React.useState(false);
+  const rawImg = app.cover_url || (app.media_urls && app.media_urls[0]) || null;
+  const img = (!imgErr && rawImg) ? rawImg : null;
 
   return (
     <div
@@ -1050,12 +1060,19 @@ function ApprovedAppCard({ app, onOpen }) {
       }}
     >
       {/* Bild */}
-      <div style={{ height:160, overflow:"hidden", position:"relative" }}>
-        <img loading="lazy" decoding="async" src={img} alt={app.project_name}
-          style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.3s",
-            transform: hov ? "scale(1.04)" : "scale(1)" }}
-          onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }}
-        />
+      <div style={{ height:160, overflow:"hidden", position:"relative",
+        background: img ? undefined : "rgba(13,196,181,0.06)" }}>
+        {img ? (
+          <img loading="lazy" decoding="async" src={img} alt={app.project_name}
+            style={{ width:"100%", height:"100%", objectFit:"cover", transition:"transform 0.3s",
+              transform: hov ? "scale(1.04)" : "scale(1)" }}
+            onError={() => setImgErr(true)}
+          />
+        ) : (
+          <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={40} style={{ opacity:0.5 }} />
+          </div>
+        )}
         <div style={{
           position:"absolute", top:10, right:10,
           background:"rgba(13,196,181,0.90)", borderRadius:99,
@@ -2448,8 +2465,10 @@ function WeitereHerzensSection({ apps, loadingApps, seedData, seedLoading, onOpe
 // ════════════════════════════════════════════════════════════════
 function ApprovedAppCardCompact({ app, rank, onOpen }) {
   const { t } = useTranslation();
-  const img = app.cover_url || (app.media_urls && app.media_urls[0])
-    || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90";
+  // BILD-PLATZHALTER-REGEL (2026-09-04): kein Stockfoto mehr — HUILogo-Fallback
+  const [imgErr, setImgErr] = React.useState(false);
+  const rawImg = app.cover_url || (app.media_urls && app.media_urls[0]) || null;
+  const img = (!imgErr && rawImg) ? rawImg : null;
   return (
     <div onClick={() => onOpen && onOpen(app)} className="ip-p"
       style={{ display:"flex", alignItems:"center", gap:12, background:"#fff",
@@ -2460,10 +2479,16 @@ function ApprovedAppCardCompact({ app, rank, onOpen }) {
         justifyContent:"center", fontSize:11, fontWeight: 600, color:T.teal }}>
         {rank}
       </div>
-      <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0 }}>
-        <img loading="lazy" decoding="async" src={img} alt={app.project_name}
-          style={{ width:"100%", height:"100%", objectFit:"cover" }}
-          onError={e => { e.target.src = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&q=90"; }} />
+      <div style={{ width:56, height:56, borderRadius:12, overflow:"hidden", flexShrink:0,
+        background: img ? undefined : "rgba(13,196,181,0.06)", display:"flex",
+        alignItems:"center", justifyContent:"center" }}>
+        {img ? (
+          <img loading="lazy" decoding="async" src={img} alt={app.project_name}
+            style={{ width:"100%", height:"100%", objectFit:"cover" }}
+            onError={() => setImgErr(true)} />
+        ) : (
+          <HUILogo size={22} style={{ opacity:0.5 }} />
+        )}
       </div>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:13, fontWeight: 600, color:"#141422",

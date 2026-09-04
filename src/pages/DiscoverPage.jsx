@@ -511,15 +511,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             gesundheit: { bg:"rgba(239,68,68,0.12)", text:"#EF4444" },
             community: { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
           };
-          // Fallback-Cover-Pool für Projekte ohne Bild
-          const COVER_FALLBACKS = [
-            "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=280&q=75",
-            "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=280&q=75",
-            "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=280&q=75",
-            "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=280&q=75",
-            "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=280&q=75",
-            "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=280&q=75",
-          ];
+          // BILD-PLATZHALTER-REGEL (2026-09-04): Kein Stockfoto-Pool mehr —
+          // ProjektSection.jsx hat bereits eine korrekte HUILogo-Fallback-Logik
+          // (imgErr-State), die aber nie griff weil hier immer ein Fake-Cover
+          // gesetzt wurde. Jetzt: cover bleibt null wenn kein echtes Bild da ist.
           setProjekte(projData.map((p, idx) => {
             // Kategorie: aus Beschreibung/Name ableiten oder "Impact" als Fallback
             let catRaw = "";
@@ -540,7 +535,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               desc:     p.short_desc || "",
               cat:      catLabel,
               catColor: cc,
-              cover:    p.cover_url || COVER_FALLBACKS[idx % COVER_FALLBACKS.length],
+              cover:    p.cover_url || null,
               members:  votes,
               rank:     p.rank || 0,
               funding_goal:       p.funding_goal || 0,

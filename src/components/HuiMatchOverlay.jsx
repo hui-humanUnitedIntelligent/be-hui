@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput, PROFILE_FIELDS } from '../lib/perfUtils';
 import { HUI } from "../design/hui.design.js";
+import { HUILogo } from "./brand/HUILogo.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ══════════════════════════════════════════════════════
@@ -207,12 +208,15 @@ function SearchingView({ mood }) {
 ══════════════════════════════════════════════════════ */
 function ResultCard({ item, idx, onOpen, moodColor }) {
   const { t } = useTranslation();
+  const [imgErr, setImgErr] = useState(false);
   const isWirker = item.type === "wirker" || item.type === "profile";
   const isWerk   = item.type === "work"   || item.type === "werk";
   const tag      = isWirker ? t("hm.tag.talent") : isWerk ? t("hm.tag.werk") : t("hm.tag.erlebnis");
   const tagColor = isWirker ? HUI.COLOR.teal : isWerk ? HUI.COLOR.gold : HUI.COLOR.coral;
-  const img      = item.avatar_url || item.cover_url || item.img ||
-    "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80";
+  // BILD-PLATZHALTER-REGEL (2026-09-04): kein Stockfoto-Fremdgesicht mehr als
+  // Fallback — HUILogo wenn kein echtes Bild vorhanden ist oder es fehlschlägt.
+  const rawImg   = item.avatar_url || item.cover_url || item.img || null;
+  const img      = (!imgErr && rawImg) ? rawImg : null;
   const name     = item.display_name || item.name || item.title || "—";
   const sub      = item.talent || item.bio?.slice(0,55) || item.description?.slice(0,55) || "";
 
@@ -234,10 +238,18 @@ function ResultCard({ item, idx, onOpen, moodColor }) {
         e.currentTarget.style.transform = "translateY(0) scale(1)";
         e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.08)";
       }}>
-      <div style={{ position:"relative", height:120, overflow:"hidden" }}>
-        <img loading="lazy" decoding="async" src={img} alt=""
-          style={{ width:"100%", height:"100%", objectFit:"cover",
-            filter:"brightness(0.80) saturate(1.18)" }}/>
+      <div style={{ position:"relative", height:120, overflow:"hidden",
+        background: img ? undefined : "#1A1A18" }}>
+        {img ? (
+          <img loading="lazy" decoding="async" src={img} alt="" onError={() => setImgErr(true)}
+            style={{ width:"100%", height:"100%", objectFit:"cover",
+              filter:"brightness(0.80) saturate(1.18)" }}/>
+        ) : (
+          <div style={{ width:"100%", height:"100%", display:"flex",
+            alignItems:"center", justifyContent:"center" }}>
+            <HUILogo size={36} style={{ opacity:0.5 }} />
+          </div>
+        )}
         <div style={{ position:"absolute", inset:0,
           background:"linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.62))" }}/>
         {/* Accent top line */}
