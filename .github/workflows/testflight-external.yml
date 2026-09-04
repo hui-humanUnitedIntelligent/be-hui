@@ -83,10 +83,11 @@ jobs:
           print("APP_ID: {} ({})".format(APP_ID, apps[0]["attributes"]["name"]))
 
           # 2. Neuesten verarbeiteten Build finden
-          r = api("GET", "/apps/{}/builds?limit=20&sort=-uploadedDate".format(APP_ID))
+          r = api("GET", "/apps/{}/builds?limit=20".format(APP_ID))
           r.raise_for_status()
           builds = r.json()["data"]
           assert builds, "Keine Builds gefunden!"
+          builds.sort(key=lambda b: b["attributes"].get("uploadedDate") or "", reverse=True)
           build = next((b for b in builds if b["attributes"].get("processingState") == "VALID"), builds[0])
           BUILD_ID = build["id"]
           battr = build["attributes"]
