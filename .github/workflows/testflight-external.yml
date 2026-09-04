@@ -282,13 +282,13 @@ jobs:
               if de_bloc:
                   api("PATCH", "/betaBuildLocalizations/{}".format(de_bloc["id"]), {
                       "data": {"type": "betaBuildLocalizations", "id": de_bloc["id"],
-                               "attributes": {"whatsToTest": WHATS_TO_TEST}}
+                               "attributes": {"whatsNew": WHATS_TO_TEST}}
                   }, ok=(200,))
                   print("Beta Build Localization (de-DE, whatsToTest) aktualisiert")
               else:
                   r2 = api("POST", "/betaBuildLocalizations", {
                       "data": {"type": "betaBuildLocalizations",
-                               "attributes": {"locale": "de-DE", "whatsToTest": WHATS_TO_TEST},
+                               "attributes": {"locale": "de-DE", "whatsNew": WHATS_TO_TEST},
                                "relationships": {"build": {"data": {"type": "builds", "id": BUILD_ID}}}}
                   }, ok=(201, 409))
                   if r2.status_code == 201:
