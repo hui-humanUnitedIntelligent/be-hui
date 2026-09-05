@@ -222,24 +222,43 @@ jobs:
                   print("[WARN] Beta App Review Details FEHLEN — Kontaktinfo (Name/E-Mail/Telefon) nötig")
                   print("        Entweder in ASC UI eintragen ODER Workflow mit contact_*-Inputs triggern")
 
+          BBD_ID = None
+          submitted_ok = False
+          # 7a. DIAGNOSE: buildBetaDetails-Resource von Apple abfragen (Exakte Attributnamen)
+          r = api("GET", "/builds/{}?include=buildBetaDetails".format(BUILD_ID), ok=(200,))
+          if r.status_code == 200:
+              inc = r.json().get("included", [])
+              for item in inc:
+                  print("DIAGNOSE resource={} id={}".format(item.get("type"), item.get("id")))
+                  print("DIAGNOSE attributes=" + json.dumps(item.get("attributes", {}))[:800])
+                  if item.get("type") == "buildBetaDetails":
+                      BBD_ID = item.get("id")
+          else:
+              print("[WARN] include buildBetaDetails fehlgeschlagen")
+
           # 7b. Export Compliance setzen (nur Standard-HTTPS -> Standard-Exemption)
           # Apple-Fehler 422 MISSING_EXPORT_COMPLIANCE sonst bei jedem neuen Build.
           # Ab Build #24 übernimmt das ITSAppUsesNonExemptEncryption=false in der Info.plist,
           # dieser API-Patch deckt bestehende Builds ab.
-          r = api("PATCH", "/builds/{}".format(BUILD_ID), {
-              "data": {
-                  "type": "builds",
-                  "id": BUILD_ID,
-                  "attributes": {
-                      "usesEncryption": True,
-                      "encryptionComplianceExemptUsesStandardExempt": True,
-                  },
-              }
-          }, ok=(200,))
-          if r.status_code == 200:
-              print("Export Compliance gesetzt (Standard-HTTPS-Exemption) ✅")
+          export_ok = False
+          if BBD_ID:
+              r = api("PATCH", "/buildBetaDetails/{}".format(BBD_ID), {
+                  "data": {
+                      "type": "buildBetaDetails",
+                      "id": BBD_ID,
+                      "attributes": {
+                          "usesEncryption": True,
+                          "encryptionComplianceExemptUsesStandardExempt": True,
+                      },
+                  }
+              }, ok=(200,))
+              if r.status_code == 200:
+                  export_ok = True
+                  print("Export Compliance gesetzt (Standard-HTTPS-Exemption) ✅")
+              else:
+                  print("[WARN] Export Compliance PATCH fehlgeschlagen — Apple-Fehlermeldung oben")
           else:
-              print("[WARN] Export Compliance PATCH fehlgeschlagen — Apple-Fehlermeldung oben")
+              print("[WARN] buildBetaDetails-ID nicht gefunden — Export Compliance nicht gesetzt")
 
           # 8. Review-Einreichung — IMMER versuchen (Apple-Fehlermeldung = autoritative Diagnose)
           # details_ok ist nur Info: Apple hat die Kontaktinfo evtl. per UI gespeichert,
@@ -256,8 +275,10 @@ jobs:
                   }
               }, ok=(201, 409))
               if r.status_code == 201:
+                  submitted_ok = True
                   print("BUILD ZUR BETA APP REVIEW EINGEREICHT ✅ (Review meist einige Stunden, max. 48h)")
               elif r.status_code == 409:
+                  submitted_ok = True
                   print("Review-Einreichung existiert bereits (409) ✅")
 
           # 9. Beta App Beschreibung + "Was zu testen ist" (beschleunigt Apple-Review, optional aber empfohlen)
@@ -318,7 +339,7 @@ jobs:
           print("=== ZUSAMMENFASSUNG ===")
           print(json.dumps({
               "app": APP_ID, "build": BUILD_ID, "group": GROUP_ID,
-              "review_details": details_ok, "submitted": SUBMIT_REVIEW and details_ok,
+              "review_details": details_ok, "export_compliance": export_ok, "submitted": submitted_ok,
           }, indent=2))
           PYEOF
           python3 /tmp/asc/run.py
