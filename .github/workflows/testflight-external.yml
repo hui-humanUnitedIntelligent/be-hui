@@ -224,17 +224,22 @@ jobs:
 
           BBD_ID = None
           submitted_ok = False
-          # 7a. DIAGNOSE: buildBetaDetails-Resource von Apple abfragen (Exakte Attributnamen)
-          r = api("GET", "/builds/{}?include=buildBetaDetails".format(BUILD_ID), ok=(200,))
+          # 7a. DIAGNOSE: Relationships des Builds + buildBetaDetails via filter[build] suchen
+          r = api("GET", "/builds/{}".format(BUILD_ID), ok=(200,))
           if r.status_code == 200:
-              inc = r.json().get("included", [])
-              for item in inc:
-                  print("DIAGNOSE resource={} id={}".format(item.get("type"), item.get("id")))
-                  print("DIAGNOSE attributes=" + json.dumps(item.get("attributes", {}))[:800])
-                  if item.get("type") == "buildBetaDetails":
-                      BBD_ID = item.get("id")
+              rels = r.json().get("data", {}).get("relationships", {})
+              print("DIAGNOSE build-relationships=" + json.dumps(list(rels.keys())))
           else:
-              print("[WARN] include buildBetaDetails fehlgeschlagen")
+              print("[WARN] GET build fehlgeschlagen")
+          r = api("GET", "/buildBetaDetails?filter[build]={}".format(BUILD_ID), ok=(200, 400, 404))
+          if r.status_code == 200:
+              data = r.json().get("data", [])
+              for item in data:
+                  print("DIAGNOSE buildBetaDetails id={} attributes={}".format(
+                      item.get("id"), json.dumps(item.get("attributes", {}))[:800]))
+                  BBD_ID = item.get("id")
+          else:
+              print("[WARN] filter[build]-Suche fehlgeschlagen — Fehlermeldung oben")
 
           # 7b. Export Compliance setzen (nur Standard-HTTPS -> Standard-Exemption)
           # Apple-Fehler 422 MISSING_EXPORT_COMPLIANCE sonst bei jedem neuen Build.
