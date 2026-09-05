@@ -222,23 +222,24 @@ jobs:
                   print("[WARN] Beta App Review Details FEHLEN — Kontaktinfo (Name/E-Mail/Telefon) nötig")
                   print("        Entweder in ASC UI eintragen ODER Workflow mit contact_*-Inputs triggern")
 
-          # 8. Review-Einreichung
+          # 8. Review-Einreichung — IMMER versuchen (Apple-Fehlermeldung = autoritative Diagnose)
+          # details_ok ist nur Info: Apple hat die Kontaktinfo evtl. per UI gespeichert,
+          # ohne dass der API-Key sie sieht (404 bei GET trotz vorhandenem UI-Eintrag).
+          # Wenn Details wirklich fehlen, meldet Apple das beim POST mit exaktem Fehler.
           if SUBMIT_REVIEW:
               if not details_ok:
-                  print("[SKIP] Review-Einreichung übersprungen — erst Details in App Store Connect hinterlegen:")
-                  print("        TestFlight → Beta Tester → Gruppen-Details → Kontaktinfo")
-                  print("        Danach diesen Workflow erneut triggern (submit_for_review=true).")
-              else:
-                  r = api("POST", "/betaAppReviewSubmissions", {
-                      "data": {
-                          "type": "betaAppReviewSubmissions",
-                          "relationships": {"build": {"data": {"type": "builds", "id": BUILD_ID}}},
-                      }
-                  }, ok=(201, 409))
-                  if r.status_code == 201:
-                      print("BUILD ZUR BETA APP REVIEW EINGEREICHT ✅ (Review meist einige Stunden, max. 48h)")
-                  elif r.status_code == 409:
-                      print("Review-Einreichung existiert bereits (409) ✅")
+                  print("[INFO] GET betaAppReviewDetails = 404 — versuche Review-Einreichung trotzdem.")
+                  print("        Falls Apple die UI-gespeicherten Details hat, geht es trotzdem durch.")
+              r = api("POST", "/betaAppReviewSubmissions", {
+                  "data": {
+                      "type": "betaAppReviewSubmissions",
+                      "relationships": {"build": {"data": {"type": "builds", "id": BUILD_ID}}},
+                  }
+              }, ok=(201, 409))
+              if r.status_code == 201:
+                  print("BUILD ZUR BETA APP REVIEW EINGEREICHT ✅ (Review meist einige Stunden, max. 48h)")
+              elif r.status_code == 409:
+                  print("Review-Einreichung existiert bereits (409) ✅")
 
           # 9. Beta App Beschreibung + "Was zu testen ist" (beschleunigt Apple-Review, optional aber empfohlen)
           BETA_DESCRIPTION = (
