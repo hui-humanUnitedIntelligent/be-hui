@@ -33,14 +33,26 @@ function LoadingScreen() {
   );
 }
 
-// ── Suspense Timeout-Fallback (Punkt 10.1 — max 8s) ────────────────────────
-// Wenn ein lazy-loaded Component nach 30s nicht geladen ist,
-// zeige Fallback-UI mit Neu-Laden-Button statt ewigem Spinner.
+// ── Suspense Timeout-Fallback (B8-FIX 2026-09-05) ──────────────────────────
+// Wenn ein lazy-loaded Component nach 30s nicht geladen ist, zeige
+// Fallback-UI mit Neu-Laden-Button statt ewigem Spinner.
+//
+// B8-FIX (Root Cause): Der Timer lief vorher in der Wrapper-Komponente
+// UNABHÄNGIG vom Suspense-Zustand — er feuerte 30s nach Mount
+// BEDINGUNGSLOS, auch wenn der Inhalt längst geladen war, und ersetzte
+// die laufende App durch den Fehler-Screen (17× in system_error_reports,
+// u.a. 8× am 2026-09-01 /app/Home). React bietet keinen "Suspense
+// resolved"-Callback, daher läuft der Timer JETZT INNERHALB der
+// Fallback-Komponente: Suspense unmountet den Fallback automatisch, sobald
+// der Inhalt gerendert ist → useEffect-Cleanup cleart den Timer. Der Timer
+// ist damit nur aktiv, während tatsächlich geladen wird.
 import { useState, useEffect } from 'react';
 import { RouteBoundary } from './lib/ErrorBoundaries.jsx';
 import { reportError } from './lib/errorReporter.js';
 
-function SuspenseWithTimeout({ children, fallback }) {
+const SUSPENSE_TIMEOUT_MS = 30000;
+
+function SuspenseTimeoutFallback({ fallback }) {
   const [timedOut, setTimedOut] = useState(false);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,10 +60,11 @@ function SuspenseWithTimeout({ children, fallback }) {
       try {
         reportError('suspense_hang', {
           message: 'Suspense-Hang: Component nach 30s nicht geladen (React.lazy/Vite)',
-          component: 'SuspenseWithTimeout',
+          component: 'SuspenseTimeoutFallback',
         });
       } catch (_) {}
-    }, 30000);
+    }, SUSPENSE_TIMEOUT_MS);
+    // B8-FIX: Cleanup feuert bei Fallback-Unmount = Content erfolgreich geladen
     return () => clearTimeout(timer);
   }, []);
   if (timedOut) {
@@ -82,7 +95,15 @@ function SuspenseWithTimeout({ children, fallback }) {
       </div>
     );
   }
-  return <Suspense fallback={fallback}>{children}</Suspense>;
+  return fallback;
+}
+
+function SuspenseWithTimeout({ children, fallback }) {
+  return (
+    <Suspense fallback={<SuspenseTimeoutFallback fallback={fallback} />}>
+      {children}
+    </Suspense>
+  );
 }
 
 // ── Conditional Router ──────────────────────────────────────────────────────

@@ -59,3 +59,4 @@ generate_pages.py
 i18n_page_keys_*.txt
 subpage_mappings.json
 vercel_new_routes.json
+.backups_local/
