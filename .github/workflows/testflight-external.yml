@@ -235,11 +235,11 @@ jobs:
                       "encryptionComplianceExemptUsesStandardExempt": True,
                   },
               }
-          }, ok=(200, 409))
+          }, ok=(200,))
           if r.status_code == 200:
               print("Export Compliance gesetzt (Standard-HTTPS-Exemption) ✅")
           else:
-              print("[WARN] Export Compliance PATCH fehlgeschlagen — siehe Fehler oben")
+              print("[WARN] Export Compliance PATCH fehlgeschlagen — Apple-Fehlermeldung oben")
 
           # 8. Review-Einreichung — IMMER versuchen (Apple-Fehlermeldung = autoritative Diagnose)
           # details_ok ist nur Info: Apple hat die Kontaktinfo evtl. per UI gespeichert,
