@@ -12,7 +12,11 @@ import { supabase } from "../../lib/supabaseClient";
 const VIDEO_PATH = "https://be-hui.vercel.app/assets/intro-video.mp4";
 const POSTER_PATH = "/assets/intro-poster.jpg";
 const FADE_DURATION = 800;
-const VIDEO_TIMEOUT = 2500;   // Wenn Video nach 2.5s nicht startet → Fallback
+const VIDEO_TIMEOUT = 8000;   // Wenn Video nach 8s NICHT gestartet ist (offline/Stall) → Fallback.
+  // INTRO-DOUBLE-FIX (2026-09-05): War 2500ms aus der Zeit, als das Video LOKAL im Bundle
+  // lag. Seit CDN-Auslagerung braucht der 1.9MB-Download bei kaltem Cache laenger →
+  // der Fallback flackte kurz auf, der laengst laufende play() loeste spaeter doch aus
+  // → sichtbarer Doppel-Start. Fallback jetzt NUR noch bei echtem Offline/Stall.
 const FALLBACK_DURATION = 1500; // Fallback-Anzeige Dauer
 
 export default function IntroVideoScreen() {
@@ -88,6 +92,7 @@ export default function IntroVideoScreen() {
     // Timer: Wenn Video nach VIDEO_TIMEOUT nicht gestartet ist → Fallback
     const fallbackTimer = setTimeout(() => {
       if (!videoStartedRef.current && !finishedRef.current) {
+        try { video.pause(); } catch (e) { /* Best-Effort */ }
         setShowFallback(true);
         setTimeout(() => finish("fallback"), FALLBACK_DURATION);
       }
@@ -112,27 +117,25 @@ export default function IntroVideoScreen() {
     };
   }, [finish]);
 
-  // Versuche play() nach kurzer Verzögerung
-  useEffect(() => {
-    if (showFallback || done) return;
+  // INTRO-DOUBLE-FIX (2026-09-05): play() wird ERST gerufen, wenn das Video
+  // nachweislich abspielbereit ist (onCanPlayThrough) — nicht blind nach 200/1200ms.
+  // Damit gibt es keinen pending play()-Promise mehr, der waehrend des CDN-Loads
+  // laeuft und spaeter "aus dem Nichts" einsetzt (Ursache des sichtbaren Doppel-Starts).
+  // Das Poster (= exakter Frame 0 des Videos) deckt die Ladezeit nahtlos ab.
+  const handleCanPlayThrough = async () => {
+    if (videoStartedRef.current || finishedRef.current || showFallback) return;
     const video = videoRef.current;
     if (!video) return;
-
-    const tryPlay = async () => {
-      if (videoStartedRef.current || finishedRef.current) return;
-      try {
-        video.muted = true;
-        video.defaultMuted = true;
-        await video.play();
-      } catch (err) {
-        // Autoplay blockiert — Fallback übernimmt
-      }
-    };
-
-    const t1 = setTimeout(tryPlay, 200);
-    const t2 = setTimeout(tryPlay, 1200);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [showFallback, done]);
+    try {
+      video.muted = true;
+      video.defaultMuted = true;
+      await video.play();
+    } catch (err) {
+      // Autoplay blockiert — Fallback übernimmt
+      setShowFallback(true);
+      setTimeout(() => finish("autoplay-blocked"), FALLBACK_DURATION);
+    }
+  };
 
   if (done) return null;
 
@@ -150,6 +153,7 @@ export default function IntroVideoScreen() {
         playsInline
         preload="auto"
         poster={POSTER_PATH}
+        onCanPlayThrough={handleCanPlayThrough}
         onPlaying={() => { videoStartedRef.current = true; setShowFallback(false); }}
         onEnded={() => finish("ended")}
         onError={() => setShowFallback(true)}
