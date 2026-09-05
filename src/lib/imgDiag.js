@@ -99,8 +99,21 @@ async function probeUpload(userId) {
     const { size } = await uploadMediaVerified({
       path, file: probeFile, contentType: "image/jpeg", upsert: true,
     });
+    // AVATAR-MANGLE-001 (2026-09-05): P5 glaubt NICHT mehr dem HTTP-Status
+    // oder der Größen-Verifizierung allein — es wird die MAGIC-BYTE-SIGNATUR
+    // des GESPEICHERTEN Objekts geprüft (FF D8 FF = echtes JPEG). Das war der
+    // Fehler von 04./05.09.: "OK" bedeutete nur "HTTP 200", die Datei war
+    // mangled (EF BF BD). Magic-Check = nicht fälschbar.
+    let magic = "?";
+    try {
+      const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+      const res = await fetch(publicUrl, { cache: "no-store" });
+      const head = new Uint8Array(await res.clone().arrayBuffer().then((b) => b.slice(0, 4)));
+      magic = Array.from(head).map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch (e) { magic = "ERR:" + String(e && e.message || "?").substring(0, 60); }
     try { await supabase.storage.from("media").remove([path]); } catch (_) {}
-    return "OK(" + size + "B)";
+    if (magic.startsWith("ffd8ff")) return "OK(" + size + "B,magic:" + magic + ")";
+    return "MANGLED(magic:" + magic + ",stored:" + size + "B)";
   } catch (e) {
     return "EXC:" + String(e && e.message ? e.message : "unknown").substring(0, 150);
   }

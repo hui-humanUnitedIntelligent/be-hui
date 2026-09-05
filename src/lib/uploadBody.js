@@ -1,88 +1,76 @@
 // src/lib/uploadBody.js
 // ══════════════════════════════════════════════════════════════════════
-// UPLOAD-BODY-SSOT — CapacitorHttp-sicherer Storage-Upload (2026-09-05)
+// UPLOAD-BODY-SSOT — Body-Typ-Pass-through + EXAKTE Größen-Verifizierung
+// (2026-09-05, abendlicher Release-Fix "AVATAR-MANGLE-001")
 //
-// ROOT CAUSE (bewiesen, Fall "Karen Hagen", v2.1.541/542):
-// CapacitorHttp (aktiver nativer fetch-Interceptor, capacitor.config.json)
-// kann Blob-Bodies auf manchen Android-Geräten NICHT übertragen. Der Body
-// wird dabei als JSON serialisiert: JSON.stringify(new Blob()) === "{}"
-// → Storage empfängt und speichert die 2-Byte-Datei "{}" als gültiges
-// "JPEG" (HTTP 200, kein Fehler!) → DB-Write mit scheinbar valider CDN-URL
-// → <img> kann "{}" nie dekodieren → Avatar zeigt für immer den Platzhalter
-// (Karens Fall: avatars/b8a69c4e…/1788534631421.jpg, Inhalt hexdump "{}",
-// 2 Bytes).
+// EMPIRISCHE BEWEISLAGE (Storage-Magic-Byte-Sweep 05.09. abends, 80 Dateien
+// seit 28.08. — NICHT geraten, jede Datei per HTTP auf FFD8FF geprüft):
 //
-// BEWEIS-Lage (IMG-DIAG, 04.09.2026, genau auf dem fehlerhaften Gerät):
-//   • Blob-Body  → "{}" (2 Bytes)          ← kaputt auf Karens Gerät
-//   • Uint8Array → 212-Byte-echtes JPEG    ← FUNKTIONIERT auf Karens Gerät
-//     (img_diag p5, Objekt diag_1788529163521.jpg, byte-genau verifiziert)
-// Uint8Array ist damit der EINZIG geräte-proven sichere Body-Typ — nicht
-// raten, sondern exakt den belegten Pfad nutzen.
+//   Body-Typ     Transport-Ergebnis auf Android/CapacitorHttp
+//   ─────────────────────────────────────────────────────────────────
+//   Blob         ✅ GÜLTIG auf ALLEN getesteten Geräten (68/68 echte
+//                Content-Dateien 28.08.–04.09., inkl. Karens Samsung:
+//                ihre Werke/Erlebnisse 04.09. via Blob = valid)
+//   ArrayBuffer  ❌ "{}" (2 Bytes) — Karens Avatar-Versuche 04.09. 15:10
+//                (v2.1.542, IMG-FALLBACK-002)
+//   Uint8Array   ❌ UTF-8-MANGLED (EF BF BD am Dateianfang) — ALLE 7
+//                img_diag-p5-Dateien auf 3 Geräten (04.+05.09.) +
+//                Michaels 2 Avatar-Uploads + Karens Cover-Upload 05.09.
+//                (v2.1.543+, Body-SSOT-Fehlschluss)
 //
-// VERIFIZIERUNG (Defense-in-Depth für unbekannte künftige Geräte):
-// uploadMediaVerified() prüft nach dem Upload via storage.list() die
-// tatsächliche Größe des gespeicherten Objekts (JSON-Metadaten, kein
-// CORS-Header-Problem — content-length ist bei Supabase public URLs
-// NICHT exposed, list() dagegen lesbar, mit anon-Key getestet). Eine
-// korrupte Leere-Datei ("{}") wird erkannt, gelöscht und als Fehler
-// gemeldet — statt wie bisher still als "erfolgreich" durchzugehen.
+// FEHLER-KETTE (dokumentiert gegen Wiederholung):
+//   Der v2.1.543-Fix (Blob→Uint8Array) beruhte auf einem FALSCH-POSITIV:
+//   die "Beweis"-Datei diag_1788529163521.jpg (04.09., angeblich "212-Byte-
+//   echtes JPEG, byte-genau verifiziert") ist selbst MANGLED (256 Bytes,
+//   EF BF BD). Der img_diag-p5 prüfte NUR error==null, NIEMALS die
+//   gespeicherten Bytes. Uint8Array hat damit NIE funktioniert — und hat
+//   am 05.09. alle Android-Uploads global kaputtgemacht.
+//
+// FIX (dieser Stand):
+//   1. toSafeUploadBody = PASS-THROUGH (Original-Blob unverändert) — der
+//      einzige empirisch auf allen Geräten bewiesene Body-Typ.
+//   2. uploadMediaVerified: EXAKTE Größen-Verifizierung (stored !==
+//      expected → korrupt). Fängt "{}" (Schrumpfen) UND Mangel-Growth
+//      (212→256, ~60KB→91KB) ab — die 50%-Toleranz ließ Growth durch.
+//   3. imgDiag p5 verifiziert jetzt Magic Bytes des gespeicherten Objekts.
 // ══════════════════════════════════════════════════════════════════════
 
 import { supabase } from "./supabaseClient.js";
 
 /**
- * Konvertiert einen Blob/File/ArrayBuffer in einen Uint8Array — den EINZIGEN
- * Body-Typ, der auf dem nachweislich fehlerhaften Gerät (Karen Hagen,
- * Android/CapacitorHttp) korrekt übertragen wurde. Bei technischem Fehlschlag
- * der Konvertierung wird das Original durchgereicht (kein Härteverlust
- * gegenüber vorherigem Zustand).
- *
- * @param {Blob|File|ArrayBuffer|Uint8Array} input
- * @returns {Promise<Uint8Array|*>}
+ * AVATAR-MANGLE-001 (2026-09-05): PASS-THROUGH.
+ * Wandelt NICHTS mehr um. Beweislage siehe Datei-Header:
+ *   Blob = valid (68/68), ArrayBuffer = "{}" (Karen 04.09.),
+ *   Uint8Array = mangled (9/9 auf 3 Geräten).
+ * Die Funktion bleibt als SSOT-Anker für alle ~22 Aufrufstellen bestehen,
+ * damit ein künftiger Body-Typ-Wechsel wieder NUR hier passiert.
  */
 export async function toSafeUploadBody(input) {
-  try {
-    if (typeof input?.arrayBuffer === "function") {
-      const buf = await input.arrayBuffer();
-      return new Uint8Array(buf);
-    }
-    if (input instanceof ArrayBuffer) {
-      return new Uint8Array(input);
-    }
-  } catch (err) {
-    console.warn("[uploadBody] Konvertierung zu Uint8Array fehlgeschlagen, nutze Original:", err?.message);
-  }
-  return input; // Uint8Array/sonstiges unverändert durchreichen
+  return input;
 }
 
 /**
  * Verifizierter Upload in den "media"-Bucket:
- *   1. Body → Uint8Array (toSafeUploadBody — geräte-proven)
+ *   1. Body unverändert durchreichen (Blob — bewiesen, siehe oben)
  *   2. supabase.storage.upload()
- *   3. Größen-Verifizierung via storage.list() — erkennt die "{}"-Korruption
- *      (gespeicherte Größe < 64 Bytes ODER < 50% der gesendeten Bytes)
+ *   3. EXAKTE Größen-Verifizierung via storage.list():
+ *      storedBytes !== expectedBytes → korrupt (fängt "{}" UND
+ *      UTF-8-Mangel-Growth ab, die beide HTTP 200 liefern)
  *   4. Bei Korruption: Objekt löschen + Fehler werfen (mit .statusCode)
  *
  * Wirft bei jedem Fehlschlag einen Error mit .statusCode (Supabase-Status
- * oder 900 bei Korruption) — Caller prüfen err.statusCode wie bisher.
- *
- * @param {{ path: string, file: (Blob|File|ArrayBuffer|Uint8Array),
- *           contentType: string, bucket?: string, upsert?: boolean,
- *           cacheControl?: string }} opts
- * @returns {Promise<{ publicUrl: string, path: string, size: number }>}
+ * oder 900 bei Korruption).
  */
 export async function uploadMediaVerified({ path, file, contentType, bucket = "media", upsert = false, cacheControl }) {
   if (!path || !file) throw Object.assign(new Error("Ungültige Upload-Parameter"), { statusCode: 400 });
 
-  // 1. Body-Konvertierung — der eigentliche Root-Cause-Fix
   const body = await toSafeUploadBody(file);
   const expectedBytes =
-    (body?.byteLength != null) ? body.byteLength
-    : (body?.size != null) ? body.size
-    : (file?.size != null) ? file.size
-    : 0;
+    (body?.size != null)        ? body.size        : // Blob/File
+    (body?.byteLength != null)  ? body.byteLength : // ArrayBuffer/TypedArray
+    (file?.size != null)        ? file.size       :
+    0;
 
-  // 2. Upload
   const { error } = await supabase.storage
     .from(bucket)
     .upload(path, body, { contentType, upsert, cacheControl });
@@ -90,8 +78,8 @@ export async function uploadMediaVerified({ path, file, contentType, bucket = "m
     throw Object.assign(new Error(error.message), { statusCode: error.statusCode });
   }
 
-  // 3. Größen-Verifizierung (list() liefert Metadaten ohne CORS-Header-Problem;
-  //    öffentlich lesbar — mit anon-Key verifiziert, siehe Datei-Header)
+  // ── EXAKTE Größen-Verifizierung (AVATAR-MANGLE-001) ──
+  // list() liefert Metadaten ohne CORS-Header-Problem, öffentlich lesbar.
   let storedBytes = null;
   try {
     const prefix = path.includes("/") ? path.slice(0, path.lastIndexOf("/") + 1) : "";
@@ -106,12 +94,12 @@ export async function uploadMediaVerified({ path, file, contentType, bucket = "m
     console.warn("[uploadBody] Verifizierung fehlgeschlagen (nicht blockierend):", verifyErr?.message);
   }
 
-  // 4. Korruption → löschen + werfen (statt stiller Datenmüll wie bisher)
-  if (storedBytes != null && (storedBytes < 64 || (expectedBytes > 0 && storedBytes < expectedBytes * 0.5))) {
+  if (storedBytes != null && expectedBytes > 0 && storedBytes !== expectedBytes) {
     try { await supabase.storage.from(bucket).remove([path]); } catch { /* Best-Effort-Cleanup */ }
-    console.error("[uploadBody] KORRUPTE Upload-Datei erkannt und gelöscht:", { path, expectedBytes, storedBytes });
+    console.error("[uploadBody] KORRUPTE Upload-Datei erkannt und gelöscht (exakte Größen-Abweichung):",
+      { path, expectedBytes, storedBytes });
     throw Object.assign(
-      new Error("Upload beschädigt (leere Datei) — bitte erneut versuchen"),
+      new Error("Upload beschädigt (Größe weicht ab) — bitte erneut versuchen"),
       { statusCode: 900, corrupt: true, expectedBytes, storedBytes }
     );
   }
