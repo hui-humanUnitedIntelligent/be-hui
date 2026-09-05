@@ -222,6 +222,25 @@ jobs:
                   print("[WARN] Beta App Review Details FEHLEN — Kontaktinfo (Name/E-Mail/Telefon) nötig")
                   print("        Entweder in ASC UI eintragen ODER Workflow mit contact_*-Inputs triggern")
 
+          # 7b. Export Compliance setzen (nur Standard-HTTPS -> Standard-Exemption)
+          # Apple-Fehler 422 MISSING_EXPORT_COMPLIANCE sonst bei jedem neuen Build.
+          # Ab Build #24 übernimmt das ITSAppUsesNonExemptEncryption=false in der Info.plist,
+          # dieser API-Patch deckt bestehende Builds ab.
+          r = api("PATCH", "/builds/{}".format(BUILD_ID), {
+              "data": {
+                  "type": "builds",
+                  "id": BUILD_ID,
+                  "attributes": {
+                      "usesEncryption": True,
+                      "encryptionComplianceExemptUsesStandardExempt": True,
+                  },
+              }
+          }, ok=(200, 409))
+          if r.status_code == 200:
+              print("Export Compliance gesetzt (Standard-HTTPS-Exemption) ✅")
+          else:
+              print("[WARN] Export Compliance PATCH fehlgeschlagen — siehe Fehler oben")
+
           # 8. Review-Einreichung — IMMER versuchen (Apple-Fehlermeldung = autoritative Diagnose)
           # details_ok ist nur Info: Apple hat die Kontaktinfo evtl. per UI gespeichert,
           # ohne dass der API-Key sie sieht (404 bei GET trotz vorhandenem UI-Eintrag).

@@ -86,6 +86,10 @@ jobs:
                     'NSAllowsArbitraryLoads': False,
                     'NSAllowsLocalNetworking': True,
                 }
+                # Export Compliance: HUI nutzt NUR Standard-HTTPS (keine eigene Verschlüsselung)
+                # ->_exempt = True → jeder Build ist automatisch export-compliant,
+                # keine manuelle Verschlüsselungs-Frage pro Build in App Store Connect mehr.
+                plist['ITSAppUsesNonExemptEncryption'] = False
                 with open(plist_path, 'wb') as f:
                     plistlib.dump(plist, f)
                 print('Info.plist updated with permission strings')
