@@ -4931,4 +4931,5 @@ export default {
   'upload.thumbnailAlt': 'Video küçük resmi',
   'upload.videoLoading': 'Video yükleniyor…',
   'upload.thumbnailExtractFailed': 'Önizleme oluşturulamadı — yeniden denemek için kaydırıcıyı hareket ettirin',
+  'preview.contentRemoved': 'Bu içerik kaldırıldı veya artık mevcut değil.',
 };

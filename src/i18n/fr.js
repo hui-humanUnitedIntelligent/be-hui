@@ -4932,4 +4932,5 @@ export default {
   'upload.thumbnailAlt': 'Miniature de la vidéo',
   'upload.videoLoading': 'Chargement de la vidéo…',
   'upload.thumbnailExtractFailed': 'Aperçu impossible à générer — déplacez le curseur pour réessayer',
+  'preview.contentRemoved': "Ce contenu a été supprimé ou n'est plus disponible.",
 };

@@ -4933,4 +4933,5 @@ export default {
   'upload.thumbnailAlt': 'Miniatura e videos',
   'upload.videoLoading': 'Video po ngarkohet…',
   'upload.thumbnailExtractFailed': 'Pamja paraprake nuk u krijua — lëvize rrëshqitësin për të riprovuar',
+  'preview.contentRemoved': 'Ky përmbajtje është hequr ose nuk është më e disponueshme.',
 };

@@ -4974,4 +4974,5 @@ export default {
   'upload.thumbnailAlt': 'Video-Titelbild',
   'upload.videoLoading': 'Video lädt …',
   'upload.thumbnailExtractFailed': 'Vorschau konnte nicht erzeugt werden — Regler bewegen zum erneuten Versuch',
+  'preview.contentRemoved': 'Dieser Inhalt wurde entfernt oder ist nicht mehr verfügbar.',
 };

@@ -4931,4 +4931,5 @@ export default {
   'upload.thumbnailAlt': 'Miniatura del video',
   'upload.videoLoading': 'Cargando video…',
   'upload.thumbnailExtractFailed': 'No se pudo crear la vista previa — mueve el control para reintentar',
+  'preview.contentRemoved': 'Este contenido ha sido eliminado o ya no está disponible.',
 };

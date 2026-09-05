@@ -4980,4 +4980,5 @@ export default {
   'upload.thumbnailAlt': 'Video thumbnail',
   'upload.videoLoading': 'Video loading…',
   'upload.thumbnailExtractFailed': 'Preview could not be created — move the slider to try again',
+  'preview.contentRemoved': 'This content has been removed or is no longer available.',
 };

@@ -36,10 +36,13 @@ import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx";
 import ExperienceBookingFlow from "../components/commerce/ExperienceBookingFlow.jsx";
 import PostFullscreenView from "../components/shared/PostFullscreenView.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import { toast } from "../lib/useToast.jsx";
+import { useTranslation } from "../hooks/useTranslation.js";
 
 const ContentPreviewContext = createContext(null);
 
 export function ContentPreviewProvider({ children }) {
+  const { t } = useTranslation();
   const [item, setItem]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [talentBooking, setTalentBooking] = useState(null); // _raw des gebuchten Talents
@@ -57,14 +60,26 @@ export function ContentPreviewProvider({ children }) {
   // /veranstaltung) -- laedt schlank nach. Gibt seit DEEPLINK.1 zusaetzlich
   // true/false zurueck (gefunden/nicht gefunden) -- additiv, bestehende
   // Aufrufer (die den Rueckgabewert ignorieren) sind unveraendert.
-  const openRef = useCallback(async ({ type, id }) => {
+  const openRef = useCallback(async ({ type, id }, opts) => {
     if (!type || !id) return false;
     setLoading(true);
     const loaded = await loadPreviewByRef(type, id);
     setLoading(false);
     if (loaded) { setItem(loaded); return true; }
+    // B9/B10-SSOT-FIX (2026-09-05, Michael-Report "hhhh"-Notification): Click
+    // auf eine Notification/Resonanz-Zeile, deren referenzierter Inhalt
+    // inzwischen geloescht wurde, endete hier in einem STILLEN No-Op (nichts
+    // passierte). Da ALLE Deep-Link-Pfade (Notifications, Meine Resonanz,
+    // Liveticker, gespeicherte Beitraege) durch diese EINE Funktion laufen,
+    // ist hier der SSOT-Ort fuer die sichtbare Rueckmeldung -- alle Aufrufer
+    // bekommen sie automatisch, kein Einzelpatch pro Aufrufstelle noetig.
+    // Ausnahme: Aufrufer mit EIGENER Fehlerbehandlung (App.jsx/
+    // AuthenticatedApp.jsx Deep-Link-Routen rendern ContentUnavailablePage
+    // bzw. navigieren zu Home) uebergeben opts.silent=true, damit es keine
+    // Doppel-Meldung gibt. Rueckgabewert true/false bleibt unveraendert.
+    if (!opts?.silent) toast.info(t("preview.contentRemoved"));
     return false;
-  }, []);
+  }, [t]);
 
     const close = useCallback(() => setItem(null), []);
   const openTalentBooking = useCallback((raw) => setTalentBooking(raw), []);

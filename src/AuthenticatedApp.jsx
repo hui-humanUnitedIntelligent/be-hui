@@ -87,7 +87,10 @@ function WebDeepLinkOpener({ type }) {
     let cancelled = false;
     setState("loading");
     (async () => {
-      const found = await openRef({ type, id });
+      // B9/B10-SSOT-FIX (2026-09-05): silent=true — diese Route hat ihre eigene
+      // sichtbare Fehlerbehandlung (ContentUnavailablePage / Home-Redirect),
+      // der globale Toast aus openRef darf hier nicht zusaetzlich feuern.
+      const found = await openRef({ type, id }, { silent: true });
       if (!cancelled) setState(found ? "done" : "notfound");
     })();
     return () => { cancelled = true; };
