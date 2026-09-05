@@ -196,7 +196,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                 marginTop:4,
               }}>{busy ? t("auth.signingIn") : t("auth.signInBtn")}</button>
               <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-                <button type="button" onClick={() => navigate("/forgot-password")} style={{
+                <button type="button" onClick={() => navigate("/login?mode=forgot")} style={{
                   background:"none",border:"none",color:TEAL,fontSize:12.5,
                   cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
                 }}>{t("auth.forgotPassword")}</button>

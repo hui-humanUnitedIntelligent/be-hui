@@ -12,6 +12,7 @@ import { invalidateOrbStageCache } from "../hooks/useOrbGrowthStage.js";
 import { useAuth }  from "../lib/AuthContext";
 import { HUI } from "../design/hui.design.js";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
+import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { useTranslation } from "../hooks/useTranslation.js";
 
 /* ── Design Tokens ──────────────────────────────────────────────────── */
@@ -374,6 +375,15 @@ function SuccessView({ onDone }) {
 ══════════════════════════════════════════════════════════════════════ */
 export default function TalentOnboarding({ onClose = () => {}, onActivate = () => {} }) {
   useModalRegistration(true, () => onClose?.(), "TalentOnboarding");
+  // KBD-INSET-FIX (2026-09-05, Michael-Report "Tastatur verdeckt Text,
+  // muss jedes Mal Tastatur schliessen"): Diese Sheet hatte KEINE
+  // Keyboard-Inset-Behandlung -- Backdrop war starres inset:0, Sheet
+  // starres maxHeight:93vh. Exakt dasselbe Muster wie ShippingAddressModal/
+  // WerkWizard/TalentAngebotWizard (KBD-INSET-FIX 2026-08-20): Backdrop
+  // schrumpft um --hui-keyboard-inset, Sheet-maxHeight schrumpft im GLEICHEN
+  // Mass (sonst ragt das Sheet ueber den kleineren Backdrop, ohne Scroll-
+  // Moeglichkeit dorthin).
+  useKeyboardInset();
   const { user, profile, setProfile } = useAuth();
   const { t } = useTranslation();
   const [step,    setStep]    = useState(0);
@@ -434,11 +444,14 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
   }
 
   return createPortal(
-    <div style={{
-      position:"fixed", inset:0, zIndex:10500,
+    <div data-hui-kbd-self-managed style={{
+      position:"fixed", top:0, left:0, right:0,
+      bottom:"var(--hui-keyboard-inset, 0px)", // KBD-INSET-FIX (2026-09-05)
+      zIndex:10500,
       background:"rgba(8,8,8,.52)",
       backdropFilter:"blur(10px)", WebkitBackdropFilter:"blur(10px)",
       display:"flex", alignItems:"flex-end",
+      transition:"bottom .15s ease-out",
       animation:"toIn .2s both"
     }}>
       <style>{CSS}</style>
@@ -447,7 +460,9 @@ export default function TalentOnboarding({ onClose = () => {}, onActivate = () =
         background:T.warm, borderRadius:"28px 28px 0 0",
         padding:"20px 20px 0",
         paddingBottom:"max(28px,calc(max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px) + 20px))",
-        maxHeight:"93vh", overflowY:"auto",
+        maxHeight:"calc(93vh - var(--hui-keyboard-inset, 0px))", // KBD-INSET-FIX (2026-09-05)
+        overflowY:"auto",
+        transition:"max-height .15s ease-out",
         animation:"toUp .38s cubic-bezier(.34,1.3,.64,1) both"
       }} className="t-scroll">
 

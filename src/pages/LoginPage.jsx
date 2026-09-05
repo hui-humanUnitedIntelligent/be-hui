@@ -412,6 +412,19 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, loadingAuth, mode, navigate, location.state]);
 
+  // B1-FIX (2026-09-05): /login?mode=forgot öffnet direkt den Passwort-Reset.
+  // AuthGate „Passwort vergessen?" navigiert hierher — die Route /forgot-password
+  // existierte nie (landete auf SmartNotFound). LoginPage-Mode 'forgot' ist der
+  // SSOT für den Reset-Flow (resetPasswordForEmail + Recovery-Mail via
+  // send-auth-email Edge Function, Typ 'recovery', 8 Sprachen).
+  useEffect(() => {
+    if (searchParams.get('mode') === 'forgot') {
+      setMode('forgot');
+    }
+    // Bewusst nur beim ersten Mount — Query-Param ist ein Einmal-Intent.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Fade-in bei Mode-Wechsel
   useEffect(() => {
     setFadeIn(false);
