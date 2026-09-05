@@ -58,6 +58,26 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
+  // CROSS-ORIGIN-GUARD (2026-09-04, CSP-BUG-001):
+  // Der SW fing bisher ALLE Requests ab, auch zu fremden Domains (CDN-Bilder,
+  // OTA-Endpunkte auf be-hui.vercel.app, externe Bild-CDNs wie Unsplash/Pravatar).
+  // Ein fetch() INNERHALB des SW unterliegt IMMER connect-src (nie img-src/
+  // media-src, unabhängig vom Ressourcentyp der ursprünglichen Anfrage) —
+  // das blockierte reihenweise <img>/<video>-Loads zu Domains, die nur in
+  // img-src/media-src (https:-Wildcard) erlaubt waren, aber nicht explizit in
+  // connect-src stehen. Der SW-eigene .catch()-Fallback lieferte dann ein
+  // KÜNSTLICHES Response(status:503) zurück — sah wie ein Server-503 aus, war
+  // aber nur der Service-Worker, der den eigenen CSP-Fehler abfängt.
+  // FIX: Cross-Origin-Requests NIE abfangen — Browser lässt sie nativ nach
+  // img-src/media-src/connect-src (je nach Tag-Typ) laufen, kein SW-Umweg.
+  try {
+    if (new URL(url).origin !== self.location.origin) {
+      return;
+    }
+  } catch (_) {
+    return;
+  }
+
   // HTML, JS, CSS, JSON → IMMER vom Netzwerk, NIEMALS aus SW-Cache
   if (
     e.request.mode === "navigate" ||

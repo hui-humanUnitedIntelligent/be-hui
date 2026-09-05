@@ -757,12 +757,6 @@
     'page.projekte.list-3': 'Bringe deine Kenntnisse gezielt in bestehende Teams ein',
     'page.projekte.list-4': 'Verfolge Entwicklungen und Meilensteine in Echtzeit',
     'page.projekte.list-5': 'Schaffe gemeinsam nachhaltige Wirkung für Gesellschaft und Umwelt',
-    'page.projekte.list-1-title': 'Start your own initiative',
-    'page.projekte.list-2-title': 'Discover matching projects',
-    'page.projekte.list-3-title': 'Contribute knowledge and skills',
-    'page.projekte.list-4-title': 'Track progress and milestones',
-    'page.projekte.list-5-title': 'Create lasting impact',
-    'page.projekte.abschluss-headline': 'An idea might be waiting for <em>you</em>.',
     'page.projekte.list-1-title': 'Eigene Initiative starten',
     'page.projekte.list-2-title': 'Passende Vorhaben entdecken',
     'page.projekte.list-3-title': 'Wissen und Fähigkeiten einbringen',
@@ -2159,6 +2153,12 @@
     'page.projekte.list-3': 'Contribute your specific talents to existing team efforts',
     'page.projekte.list-4': 'Track developments and celebrated milestones as they happen',
     'page.projekte.list-5': 'Create meaningful impact for society and environment together',
+    'page.projekte.list-1-title': 'Start your own initiative',
+    'page.projekte.list-2-title': 'Discover matching projects',
+    'page.projekte.list-3-title': 'Contribute knowledge and skills',
+    'page.projekte.list-4-title': 'Track progress and milestones',
+    'page.projekte.list-5-title': 'Create lasting impact',
+    'page.projekte.abschluss-headline': 'An idea might be waiting for <em>you</em>.',
     'page.projekte.list-title': 'Experience Project Dynamics on HUI',
     'page.projekte.meta-desc': 'Shape impactful projects on HUI. We connect ideas with the right people, resources, and skills for lasting success.',
     'page.projekte.s1-text': 'A successful project requires diverse skills and dependable partners. HUI connects project leaders with people eager to contribute their time, experience, or resources. This builds resilient teams capable of realizing projects of any scale.',
@@ -2573,9 +2573,7 @@
     'vision.r2': 'Many ideas disappear because they find no one. HUI gives them a place and people who think them further.',
     'vision.r3': 'Sometimes a single moment is enough to set something in motion. HUI creates spaces for exactly these moments.',
     'vision.r4': 'Impact doesn\'t come from promises, but from action. HUI makes visible what people can achieve together.',
-  };
 
-  var T = {
     // ── HUI Startphase ──
     'startphase.h2': 'HUI begins with the people who believe in it.',
     'startphase.text': 'We are opening the doors for a first group of people who want to not just get to know HUI, but help shape it. Whether you have a project, bring a special talent, want to realize an idea, or are simply curious and want to test HUI as a pioneer – we want to know what brings you to HUI.',
@@ -2641,7 +2639,9 @@
     'sp.error.submit': 'An error occurred during submission. Please try again later.',
     'sp.error.network': 'Network error. Please check your connection and try again.',
     'sp.submitting': 'Sending...',
-};
+  };
+
+  var T = {};
   T[LANG_DE] = DE;
   T[LANG_EN] = EN;
 
