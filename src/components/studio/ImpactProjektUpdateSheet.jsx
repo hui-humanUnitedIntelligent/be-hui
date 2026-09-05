@@ -1,4 +1,5 @@
 import { HUIAwardIcon, HUIFortschrittIcon, HUIKalenderIcon, HUINachrichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 // ImpactProjektUpdateSheet.jsx — Bottom-Sheet zum Hinzufügen von Projekt-Updates
 // ════════════════════════════════════════════════════════════════════════════
 // Felder: Überschrift, Beschreibung, Bilder/Videos Upload (multiple),
@@ -97,7 +98,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
     const path = `updates/${projectId}/${Date.now()}_${idx}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from("impact-updates")
-      .upload(path, file, { contentType: file.type, upsert: false });
+      .upload(path, await toSafeUploadBody(file), { contentType: file.type, upsert: false });
     if (upErr) throw new Error(`Upload-Fehler: ${upErr.message}`);
     const { data: urlData } = supabase.storage.from("impact-updates").getPublicUrl(path);
     return urlData?.publicUrl;

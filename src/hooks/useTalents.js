@@ -16,6 +16,7 @@
 // abgebildet — kein Duplikat, gleiche Funktion, gleiche RLS-Pfade.
 // ══════════════════════════════════════════════════════════════════════
 import { useState, useEffect, useCallback } from "react";
+import { toSafeUploadBody } from "../lib/uploadBody.js";
 import { supabase } from "../lib/supabaseClient.js";
 
 /**
@@ -151,7 +152,7 @@ export async function deleteTalent(id) {
 export async function uploadTalentImage(userId, file) {
   const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
   const path = `talents/${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
-  const { error } = await supabase.storage.from("media").upload(path, file, { upsert: true });
+  const { error } = await supabase.storage.from("media").upload(path, await toSafeUploadBody(file), { upsert: true });
   if (error) return { url: null, path: null, error };
   const { data } = supabase.storage.from("media").getPublicUrl(path);
   return { url: data.publicUrl, path, error: null };

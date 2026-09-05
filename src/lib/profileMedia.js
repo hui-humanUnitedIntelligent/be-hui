@@ -31,6 +31,7 @@
 
 import { supabase } from "./supabaseClient.js";
 import { clearQueryCache } from "./perfUtils.js";
+import { uploadMediaVerified } from "./uploadBody.js";
 
 // ── Fallback-Assets ──────────────────────────────────────────────────
 export const FB_COVER  = "/assets/brand/fallback-cover.svg";
@@ -207,34 +208,23 @@ export async function uploadProfileImage(file, userId, folder, maxDim = COVER_MA
   const ext  = wasCompressed ? "jpg" : (file.name.split(".").pop() || "jpg");
   const path = `${folder}/${userId}/${Date.now()}.${ext}`;
 
-  // ── IMG-FALLBACK-002 (2026-09-04): Upload-Body Blob → ArrayBuffer ──
-  // Kontext: Uploads (Cover/Avatar) kamen seit dem 01.09. auf Android
-  // nicht mehr im Storage an, obwohl derselbe Flow am 31.08. (v2.1.533)
-  // funktionierte. CapacitorHttp (native fetch-Interceptor, seit Juli
-  // aktiv) hat dokumentierte Probleme mit BLOB-Bodies auf Android —
-  // Requests schlagen fehl oder laufen leer. supabase-js akzeptiert
-  // ArrayBuffer als Body gleichwertig; CapacitorHttp behandelt binäre
-  // ArrayBuffer-Bodies zuverlässig (base64-Transport). Bei jedem Fehler
-  // der Konvertierung wird der Original-Blob weiterverwendet (kein
-  // Verhärtungsgrad-Verlust gegenüber vorher).
-  let uploadBody = uploadBlob;
-  try {
-    if (typeof uploadBlob?.arrayBuffer === "function") {
-      uploadBody = await uploadBlob.arrayBuffer();
-    }
-  } catch (bodyErr) {
-    console.warn("[profileMedia] ArrayBuffer-Konvertierung fehlgeschlagen, nutze Blob:", bodyErr?.message);
-    uploadBody = uploadBlob;
-  }
-
-  const { error } = await supabase.storage
-    .from("media")
-    .upload(path, uploadBody, {
-      contentType: wasCompressed ? "image/jpeg" : file.type,
-      upsert: true,
-    });
-  if (error) throw error;
-  const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+  // ── UPLOAD-BODY-SSOT (2026-09-05): IMG-FALLBACK-002 abgelöst ──
+  // IMG-FALLBACK-002 (Blob → ArrayBuffer) war ein PLATZHALTER-Beheben:
+  // Auf dem nachweislich fehlerhaften Gerät (Fall Karen Hagen) wurde der
+  // Blob-Body von CapacitorHttp als JSON "{}" serialisiert (2-Byte-Datei
+  // im Storage, HTTP 200, scheinbar erfolgreich — Avatar für immer kaputt).
+  // Uint8Array ist der EINZIG geräte-proven Body-Typ (img_diag p5 auf
+  // Karens Gerät: 212-Byte-echtes JPEG). Alle Details + Beweislage:
+  // src/lib/uploadBody.js. uploadMediaVerified() macht zusätzlich eine
+  // Größen-Verifizierung nach dem Upload (erkennt "{}"-Korruption auf
+  // JEDEM künftigen Gerät) und wirft einen echten Fehler statt stiller
+  // Korruption.
+  const { publicUrl } = await uploadMediaVerified({
+    path,
+    file: uploadBlob,
+    contentType: wasCompressed ? "image/jpeg" : file.type,
+    upsert: true,
+  });
   return publicUrl;
 }
 

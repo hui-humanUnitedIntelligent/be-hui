@@ -11,6 +11,7 @@
 // ════════════════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useCallback } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
@@ -78,7 +79,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
     const path = `milestones/${projectId}/${milestone.id}/${Date.now()}_${idx}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from("impact-media")
-      .upload(path, file, { contentType: file.type, upsert: false });
+      .upload(path, await toSafeUploadBody(file), { contentType: file.type, upsert: false });
     if (upErr) throw new Error(`Upload-Fehler: ${upErr.message}`);
     const { data: urlData } = supabase.storage.from("impact-media").getPublicUrl(path);
     return urlData?.publicUrl;

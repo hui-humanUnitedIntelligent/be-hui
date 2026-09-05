@@ -1,6 +1,7 @@
 // src/pages/studio/SupportPage.jsx
 // HUI Support — Kontaktformular mit Ticket-System
 import React, { useState, useRef } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { HUI } from "../../design/hui.design.js";
@@ -86,7 +87,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         const ext  = file.name.split('.').pop();
         const path = `support/${ticketNumber}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { data, error } = await supabase.storage
-          .from('media').upload(path, file, { cacheControl:'3600', upsert:false });
+          .from('media').upload(path, await toSafeUploadBody(file), { cacheControl:'3600', upsert:false });
         if (!error && data) {
           const { data: urlData } = supabase.storage.from('media').getPublicUrl(path);
           urls.push({ name:file.name, url:urlData.publicUrl, type:file.type, size:file.size });

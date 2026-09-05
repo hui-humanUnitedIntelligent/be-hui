@@ -21,6 +21,7 @@ import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import VideoThumbnailPicker from "./shared/VideoThumbnailPicker.jsx";
 import { uploadThumbnail } from "../lib/uploadUtils.js";
+import { uploadMediaVerified } from "../lib/uploadBody.js";
 
 const D = {
   teal:"#0EC4B8", tealDeep:"#0A9E94", coral:"#E8573A",
@@ -180,28 +181,33 @@ async function uploadToMedia(file, userId) {
   const path = `beitraege/${userId}/${Date.now()}.${ext}`;
 
 
-  const { error } = await supabase.storage
-    .from("media")
-    .upload(path, file, { upsert: false, contentType });
-
-  if (error) {
-    console.error("[HuiMoment] Upload FEHLER →", { code:error.statusCode, msg:error.message, error });
-    // Bei Videos: KEIN graceful-Fallback — Nutzer muss es wissen
-    if (isVid) {
-      const msg = error.statusCode === 413
-        ? "Video ist zu groß"
-        : error.statusCode === 403
-        ? "Keine Berechtigung"
-        : `Upload fehlgeschlagen: ${error.message}`;
-      throw new Error(msg);
-    }
-    return null; // bei Fotos: graceful
+  // UPLOAD-BODY-SSOT (2026-09-05, Fall Karen Hagen): roher Blob-Body wurde
+  // auf Android/CapacitorHttp teils als "{}" (2 Bytes) übertragen — Moment
+  // wurde dann OHNE Bild gepostet (src=null, stiller Datenverlust, Karens
+  // "Shooting"-Moment vom 05.09.). uploadMediaVerified() konvertiert zu
+  // Uint8Array (auf Karens Gerät per img_diag p5 BEWIESEN) und verifiziert
+  // die gespeicherte Größe — "{}"-Korruption wird erkannt und gelöscht.
+  //
+  // KEIN graceful-Fallback mehr — auch nicht bei Fotos (GESTRICHEN 2026-09-05):
+  // Der bisherige `return null` bei Foto-Fehlern erzeugte genau Karens Bug
+  // (Moment sichtbar gepostet, Bild still verloren, Nutzer ahnt nichts).
+  // Jetzt: echter Fehler → Share bricht ab → Nutzer sieht "fehlgeschlagen"
+  // und kann es erneut versuchen. Wahrheit über Vermutung.
+  try {
+    const { publicUrl } = await uploadMediaVerified({ path, file, contentType, upsert: false });
+    // MODERATION-HARD-BLOCK-001: path mitgeben für Storage-Cleanup bei Verstoss
+    return { url: publicUrl, path };
+  } catch (err) {
+    console.error("[HuiMoment] Upload FEHLER →", { code: err?.statusCode, msg: err?.message, corrupt: err?.corrupt });
+    const msg = err?.statusCode === 413
+      ? "Video ist zu groß"
+      : err?.statusCode === 403
+      ? "Keine Berechtigung"
+      : err?.corrupt
+      ? "Upload beschädigt — bitte erneut versuchen"
+      : `Upload fehlgeschlagen: ${err?.message}`;
+    throw new Error(msg);
   }
-
-  const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
-  const url = urlData?.publicUrl || null;
-  // MODERATION-HARD-BLOCK-001: path mitgeben für Storage-Cleanup bei Verstoss
-  return { url, path };
 }
 
 
@@ -373,6 +379,15 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
       // Play-Icon-Platzhalter -- nur bei Videos gesetzt, sonst null.
       thumbnail_url:    thumbnailUrl || null,
     };
+
+    // 3a. MEDIA-INTEGRITAETS-GUARD (2026-09-05, Fall Karen Hagen): Ein Moment
+    // mit type "foto"/"video" OHNE src ist Datenmuell — genau das ist am
+    // 05.09. passiert (Moment "Shooting..." mit src=null im Home-Feed, Bild
+    // nie angekommen, Nutzer sah nur den Text). VOR dem Insert verhindern,
+    // nicht hinterher reparieren.
+    if ((type === "foto" || type === "video") && !src) {
+      throw new Error("Bild konnte nicht hochgeladen werden — Moment nicht veroeffentlicht. Bitte erneut versuchen.");
+    }
 
     // 3. INSERT in beitraege
     const { data: result, error: insertErr } = await supabase

@@ -10,6 +10,7 @@ import {
   HUIDateiIcon,
 } from '../../../design/icons/HuiSystemIcons.jsx';
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
+import { toSafeUploadBody } from "../../../lib/uploadBody.js";
 import React, { useState, useCallback, useEffect } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processFileSelection } from "../../../lib/uploadUtils.js";
@@ -511,7 +512,7 @@ function Step5b({ milestones, setMilestones, onNext, onBack, onClose, userId }) 
         const path = `milestones/${userId || "anon"}/${Date.now()}_${i}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
         const { error } = await supabase.storage
           .from("media")
-          .upload(path, file, { upsert: true, contentType: file.type });
+          .upload(path, await toSafeUploadBody(file), { upsert: true, contentType: file.type });
         if (!error) {
           const { data: urlData } = supabase.storage
             .from("media")
@@ -1347,7 +1348,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
       const path = `covers/${userId || "anon"}/${Date.now()}.${ext}`;
       const { error } = await supabase.storage
         .from("media")
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, await toSafeUploadBody(file), { upsert: true, contentType: file.type });
       if (error) throw error;
       const { data: urlData } = supabase.storage
         .from("media")
@@ -1373,7 +1374,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         const path = `extras/${userId || "anon"}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
         const { error } = await supabase.storage
           .from("media")
-          .upload(path, file, { upsert: true, contentType: file.type });
+          .upload(path, await toSafeUploadBody(file), { upsert: true, contentType: file.type });
         if (!error) {
           const { data: urlData } = supabase.storage
             .from("media")

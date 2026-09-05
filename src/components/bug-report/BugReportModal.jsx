@@ -7,6 +7,7 @@
 // - Speichert in bug_reports Tabelle + uploads in Supabase Storage
 // Additiv — keine bestehenden Funktionen werden berührt.
 import React, { useState, useRef, useCallback } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { APP_VERSION } from "../../version.js";
@@ -90,7 +91,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     const path = `bug-reports/${reportId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     const { error: upErr } = await supabase.storage
       .from("media")
-      .upload(path, file, { cacheControl: "3600", upsert: false });
+      .upload(path, await toSafeUploadBody(file), { cacheControl: "3600", upsert: false });
     if (upErr) throw upErr;
     const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
     return { name: file.name, url: publicUrl, type: file.type, size: file.size };

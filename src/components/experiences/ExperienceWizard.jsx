@@ -8,6 +8,7 @@ import {
   HUIPrivatIcon, HUISchreibenIcon, HUIWarnIcon,
 } from '../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -375,7 +376,7 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl, o
           const wasCompressed = blob !== file;
           const ext = wasCompressed ? "jpg" : file.name.split(".").pop().toLowerCase();
           const path = `experiences/${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
-          const { error } = await supabase.storage.from("media").upload(path, blob, { upsert: true, contentType: wasCompressed ? "image/jpeg" : file.type });
+          const { error } = await supabase.storage.from("media").upload(path, await toSafeUploadBody(blob), { upsert: true, contentType: wasCompressed ? "image/jpeg" : file.type });
           if (!error) {
             const { data: u } = supabase.storage.from("media").getPublicUrl(path);
             next[idx] = { url: u.publicUrl, path, type: "image" };

@@ -38,6 +38,7 @@ import { Capacitor } from "@capacitor/core";
 import { supabase } from "./supabaseClient.js";
 import { reportError } from "./errorReporter.js";
 import { optimizeCover } from "./perfUtils.js";
+import { uploadMediaVerified } from "./uploadBody.js";
 import { APP_VERSION } from "../version.js";
 
 const GUARD_KEY = "hui_imgdiag_v1";
@@ -84,15 +85,22 @@ async function probeFetch(url) {
 }
 
 // ── P5: Echter Storage-Upload + Remove (eigener User-Ordner) ─────────
+// UPLOAD-BODY-SSOT (2026-09-05): P5 testet jetzt DEN exakten Produktionspfad
+// (File/Blob-Body → uploadMediaVerified: Uint8Array-Konvertierung + Größen-
+// Verifizierung). Vorher testete P5 eine DIREKTE Uint8Array-Übergabe — das
+// bewies zwar den Body-Typ (Karens Gerät: 212 Bytes echt), NICHT aber den
+// Produktionspfad. Jetzt deckt der Diag-Report exakt ab, was beim echten
+// Avatar-/Moment-/Werk-Upload passiert, inkl. "{}"-Korruptionserkennung.
 async function probeUpload(userId) {
   const path = "covers/" + userId + "/diag_" + Date.now() + ".jpg";
   try {
-    const { error } = await supabase.storage
-      .from("media")
-      .upload(path, b64ToUint8(TINY_JPEG_B64), { contentType: "image/jpeg", upsert: true });
-    if (error) return "FAIL:" + String(error.message || "unknown").substring(0, 150);
+    // File statt rohem Uint8Array — derselbe Eingang, den reale Uploads haben
+    const probeFile = new File([b64ToUint8(TINY_JPEG_B64)], "diag.jpg", { type: "image/jpeg" });
+    const { size } = await uploadMediaVerified({
+      path, file: probeFile, contentType: "image/jpeg", upsert: true,
+    });
     try { await supabase.storage.from("media").remove([path]); } catch (_) {}
-    return "OK";
+    return "OK(" + size + "B)";
   } catch (e) {
     return "EXC:" + String(e && e.message ? e.message : "unknown").substring(0, 150);
   }

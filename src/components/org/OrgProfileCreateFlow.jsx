@@ -6,6 +6,7 @@
 // ══════════════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback, useRef } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { createPortal } from "react-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../lib/AuthContext";
@@ -110,7 +111,7 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
       const path = `org-avatars/${crypto.randomUUID()}.${ext}`;
       const { error: uploadErr } = await supabase.storage
         .from("media")
-        .upload(path, file, { cacheControl: "3600" });
+        .upload(path, await toSafeUploadBody(file), { cacheControl: "3600" });
       if (uploadErr) throw uploadErr;
       const { data: { publicUrl } } = supabase.storage
         .from("media")

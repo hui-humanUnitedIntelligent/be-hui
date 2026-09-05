@@ -1,6 +1,7 @@
 // src/pages/studio/MeineTicketsPage.jsx
 // Support-Tickets als E-Mail-Thread-Verlauf
 import React, { useState, useEffect, useRef } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
@@ -69,7 +70,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
           const ext  = file.name.split(".").pop();
           const path = `support/${ticketNumber}/reply-${Date.now()}.${ext}`;
           const { data: up, error: upErr } = await supabase.storage
-            .from("media").upload(path, file, { cacheControl:"3600", upsert:false });
+            .from("media").upload(path, await toSafeUploadBody(file), { cacheControl:"3600", upsert:false });
           if (!upErr && up) {
             const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
             attachments.push({ name:file.name, url:urlData.publicUrl, type:file.type, size:file.size });

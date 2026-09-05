@@ -3,6 +3,7 @@
 // Steps: username → bio → avatar → interests → done
 // Soft modal — NEVER a hard redirect or whitescreen.
 import React, { useState, useRef, useCallback } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { supabase }           from "../../lib/supabaseClient.js";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { UsernameInput, validateUsername } from "../../lib/useUsernameCheck.jsx";
@@ -98,7 +99,7 @@ function AvatarUploader({ userId, current, onUploaded }) {
       const uploadFile = file.size > 500_000 ? await compressImage(file, 600) : file;
       const ext  = (file.name.split(".").pop() || "jpg").toLowerCase();
       const path = `avatars/${userId}/${Date.now()}.${ext}`;
-      const { error: e1 } = await supabase.storage.from("media").upload(path, uploadFile, { upsert:true });
+      const { error: e1 } = await supabase.storage.from("media").upload(path, await toSafeUploadBody(uploadFile), { upsert:true });
       if (e1) throw e1;
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
       await supabase.from("profiles").update({ avatar_url:publicUrl, updated_at:new Date().toISOString() }).eq("id", userId);

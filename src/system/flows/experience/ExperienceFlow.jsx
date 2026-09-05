@@ -9,6 +9,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useState, useCallback } from "react";
+import { toSafeUploadBody } from "../../../lib/uploadBody.js";
 import { ExperienceCreateStep }  from "./ExperienceCreateStep.jsx";
 import { ExperienceDetailsStep } from "./ExperienceDetailsStep.jsx";
 import { ExperiencePublishStep } from "./ExperiencePublishStep.jsx";
@@ -152,7 +153,7 @@ export default function ExperienceFlow({ onClose }) {
         const ext  = file.name.split(".").pop();
         const path = `experiences/${user.id}/${Date.now()}_${i}.${ext}`;
         const { error: upErr } = await supabase.storage
-          .from("media").upload(path, file, { contentType: file.type });
+          .from("media").upload(path, await toSafeUploadBody(file), { contentType: file.type });
         if (upErr) throw upErr;
         const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
         uploadedUrls.push(publicUrl); // normalizeImages() wandelt zu { url, type, alt } um

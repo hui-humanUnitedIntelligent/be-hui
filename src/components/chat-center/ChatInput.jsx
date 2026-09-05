@@ -3,6 +3,7 @@
 // Props: onSend({text, msgType, mediaUrl, mediaType}), sending
 
 import React, { useRef, useState, useCallback } from "react";
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { HUI } from "../../design/hui.design.js";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -27,7 +28,7 @@ async function uploadChatMedia(file, type) {
   const path = Date.now() + "_" + Math.random().toString(36).slice(2) + "." + ext;
   const { error } = await supabase.storage
     .from("chat-media")
-    .upload(path, file, { contentType: file.type, upsert: false });
+    .upload(path, await toSafeUploadBody(file), { contentType: file.type, upsert: false });
   if (error) throw error;
   const { data: signed } = await supabase.storage
     .from("chat-media")

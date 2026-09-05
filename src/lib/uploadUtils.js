@@ -13,6 +13,11 @@
 // ══════════════════════════════════════════════════════════════════════
 import { compressImageForUpload, JPEG_QUALITY, COVER_MAX_DIM } from "./profileMedia.js";
 import { supabase } from "./supabaseClient.js";
+import { uploadMediaVerified, toSafeUploadBody } from "./uploadBody.js";
+
+// Re-Export: Alle Upload-Stellen im App-Code beziehen den sicheren Body +
+// verifizierten Upload zentral aus uploadBody.js (UPLOAD-BODY-SSOT).
+export { uploadMediaVerified, toSafeUploadBody };
 
 // ── Universelle Konstanten (Michael-Vorgabe, SSOT) ───────────────────
 export const UPLOAD_LIMITS = {
@@ -145,16 +150,18 @@ export async function uploadMediaFile(file, userId, folder, onProgress) {
   const path = `${folder}/${userId}/${ts}_${rand}.${ext || (isVid ? "mp4" : "jpg")}`;
 
   // Supabase Storage Upload mit Progress (falls unterstützt)
-  const { error } = await supabase.storage
-    .from("media")
-    .upload(path, uploadBlob, {
-      contentType: contentType,
-      upsert: false,
-    });
-
-  if (error) throw error;
-
-  const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+  // UPLOAD-BODY-SSOT (2026-09-05, Fall Karen Hagen): Blob-Body wurde auf
+  // Android/CapacitorHttp teils als "{}" serialisiert (2-Byte-Datei im
+  // Storage, still korrupt). uploadMediaVerified() konvertiert zu Uint8Array
+  // (auf dem fehlerhaften Gerät per img_diag BEWIESEN) und verifiziert die
+  // gespeicherte Größe. Wirft bei Fehlschlag — Caller verhalten sich wie bei
+  // `throw error` vorher.
+  const { publicUrl } = await uploadMediaVerified({
+    path,
+    file: uploadBlob,
+    contentType,
+    upsert: false,
+  });
 
   return {
     url: publicUrl,
@@ -400,12 +407,12 @@ export async function uploadThumbnail(blob, userId, folder) {
   const rand = Math.random().toString(36).slice(2, 8);
   const path = `thumbnails/${folder}/${userId}/${ts}_${rand}.jpg`;
 
-  const { error } = await supabase.storage
-    .from("media")
-    .upload(path, blob, { contentType: "image/jpeg", upsert: false });
-
-  if (error) throw error;
-
-  const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+  // UPLOAD-BODY-SSOT (2026-09-05): siehe uploadMedia() — gleicher Fix-Pfad.
+  const { publicUrl } = await uploadMediaVerified({
+    path,
+    file: blob,
+    contentType: "image/jpeg",
+    upsert: false,
+  });
   return publicUrl;
 }

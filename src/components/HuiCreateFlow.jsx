@@ -11,6 +11,7 @@
 // vollständig erhalten — sie sind nur in Phase 3 / Collapse-Sektionen.
 
 import { useDraftPersist } from "../lib/sessionHooks";
+import { toSafeUploadBody } from "../lib/uploadBody.js";
 import {
   HUISchreibenIcon, HUIVersandIcon, HUIStimmungIcon,
   HUIKalenderIcon, HUISpracheIcon,
@@ -323,7 +324,7 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
       setProgress(25);
 
       const { error: upErr } = await supabase.storage
-        .from("media").upload(path, file, { contentType: file.type, upsert: false });
+        .from("media").upload(path, await toSafeUploadBody(file), { contentType: file.type, upsert: false });
       if (upErr) throw upErr;
       setProgress(65);
 
@@ -1561,7 +1562,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       const path   = `posts/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error:upErr } = await supabase.storage
-        .from(bucket).upload(path, file, { contentType:file.type, upsert:false });
+        .from(bucket).upload(path, await toSafeUploadBody(file), { contentType:file.type, upsert:false });
       if (upErr) throw upErr;
 
       const { data:{ publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -1667,7 +1668,7 @@ export default function HuiCreateFlow({ onClose, onSuccess, initialType = null }
       const path = `posts/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
       const { error:upErr } = await supabase.storage
-        .from("media").upload(path, file, { contentType:file.type, upsert:false });
+        .from("media").upload(path, await toSafeUploadBody(file), { contentType:file.type, upsert:false });
       if (upErr) throw upErr;
 
       const { data:{ publicUrl } } = supabase.storage.from("media").getPublicUrl(path);

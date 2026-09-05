@@ -4,6 +4,7 @@ import { HUISettingsIcon,
   HUIWarnIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { toSafeUploadBody } from "../lib/uploadBody.js";
 import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../lib/uploadUtils.js";
@@ -117,7 +118,7 @@ export default function StoryComposer({ onClose, onSuccess }) {
 
     const { data: uploadData, error: upErr } = await supabase.storage
       .from(bucket)
-      .upload(path, file, {
+      .upload(path, await toSafeUploadBody(file), {
         contentType:  file.type,
         cacheControl: "3600",
         upsert:       false,

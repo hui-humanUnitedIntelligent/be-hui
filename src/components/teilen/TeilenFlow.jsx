@@ -5,6 +5,7 @@
 // iOS-safe: touch-action:manipulation, zIndex:10100, no overflow:hidden
 
 import { HUIAnsichtIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import React, { useState, useRef, useCallback } from "react";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useAuth } from "../../lib/AuthContext";
@@ -757,12 +758,12 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
         // Try stories-media bucket, fall back to media
         let { error: upErr } = await supabase.storage
           .from("stories-media")
-          .upload(path, form.mediaFile, { upsert: true });
+          .upload(path, await toSafeUploadBody(form.mediaFile), { upsert: true });
         if (upErr) {
           huiLog("stories-media bucket failed, trying media/stories/");
           const { error: upErr2 } = await supabase.storage
             .from("media")
-            .upload("stories/" + path, form.mediaFile, { upsert: true });
+            .upload("stories/" + path, await toSafeUploadBody(form.mediaFile), { upsert: true });
           if (!upErr2) {
             const { data: pub } = supabase.storage.from("media").getPublicUrl("stories/" + path);
             media_url = pub?.publicUrl || null;
@@ -865,7 +866,7 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
         const path = `moments/${session.user.id}/${Date.now()}.${ext}`;
         const { error: uploadError } = await supabase.storage
           .from("media")
-          .upload(path, form.mediaFile, { upsert: true });
+          .upload(path, await toSafeUploadBody(form.mediaFile), { upsert: true });
         if (uploadError) {
           huiLog("UPLOAD_ERROR: " + uploadError.message + " code=" + uploadError.statusCode);
           // Upload-Fehler ist nicht fatal — trotzdem ohne Bild posten
