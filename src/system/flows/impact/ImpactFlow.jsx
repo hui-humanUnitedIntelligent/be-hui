@@ -12,6 +12,7 @@ import {
 import { HUIChatIcon } from '../../../design/icons/HuiInteractionIcons.jsx';
 import { toSafeUploadBody } from "../../../lib/uploadBody.js";
 import React, { useState, useCallback, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { supabase } from "../../../lib/supabaseClient";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processFileSelection } from "../../../lib/uploadUtils.js";
 import { useAuth }   from "../../../lib/AuthContext.jsx";
@@ -1711,7 +1712,17 @@ export default function ImpactFlow({ onClose }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  return (
+  // PORTAL-FIX (2026-09-06, IMPACT-MODAL-VIEWPORT-BUG): Der aktive Tab-Wrapper
+  // (tabVisibilityController.getTabStyle) setzt permanent transform:"translateY(0) scale(1)"
+  // — visuell ein No-Op, aber CSS behandelt jeden transform != "none" als aktiv →
+  // erzeugt einen Containing-Block für position:fixed. Dadurch bezog sich inset:0
+  // auf die GESAMTE Impact-Seitenhöhe statt auf den Viewport: Backdrop spannte den
+  // endlosen Leerraum auf, das flex-zentrierte Modal landete auf halber Content-Höhe
+  // weit unter dem sichtbaren Bereich ("Herzensprojekt einreichen" öffnete unsichtbar).
+  // Fix nach Pflichtregel (footer-navbar-zindex): createPortal zu document.body —
+  // escapes JEDE Ancestor-Stacking-Context-Falle strukturell (gleiches Muster wie
+  // ApprovedProjectDetail + InfoSheet auf derselben Seite). zIndex:10500 bleibt.
+  const content = (
     <div style={{
       position:"fixed", inset:0, zIndex:10500,
       background:"rgba(14,14,24,0.52)",
@@ -1798,4 +1809,7 @@ export default function ImpactFlow({ onClose }) {
       </div>
     </div>
   );
+  return typeof document !== "undefined"
+    ? ReactDOM.createPortal(content, document.body)
+    : content;
 }
