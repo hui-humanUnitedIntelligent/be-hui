@@ -1738,13 +1738,22 @@ export default function ImpactFlow({ onClose }) {
   // Karte nur noch im TATSÄCHLICH sichtbaren (nicht von der Tastatur verdeckten)
   // Bereich. (2) Die Karte selbst bekommt eine keyboard-bewusste maxHeight, damit
   // sie nie über den sichtbaren Bereich hinausragt und oben abgeschnitten wird.
+  // SAFE-TOP-FIX (2026-09-06, IMPACT-STATUSBAR-OVERLAP): Backdrop hatte
+  // uniformes padding:16px auf allen Seiten — keine Safe-Area-Berücksichtigung
+  // am oberen Rand. Auf Geräten mit Statusbar/Notch/Dynamic-Island rückte die
+  // Karte zu nah an den oberen Bildschirmrand (Akku-Anzeige quasi im Modal).
+  // Fix: gleicher SSOT-Sicherheitsabstand wie bei den 3 Schwester-Wizards
+  // (WerkWizard/ExperienceWizard/TalentAngebotWizard TopBar):
+  // max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px)).
+  // NUR ImpactFlow betroffen — bewusst kein systemweiter Eingriff.
   const content = (
     <div style={{
       position:"fixed", inset:0, zIndex:10500,
       background:"rgba(14,14,24,0.52)",
       backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      padding:"16px",
+      paddingTop:"max(var(--hui-safe-top, 0px), 14px, env(safe-area-inset-top, 14px))",
+      paddingLeft:"16px", paddingRight:"16px",
       paddingBottom:"calc(16px + var(--hui-keyboard-inset, 0px))",
       transition:"padding-bottom .15s ease-out",
       animation:"ifFadeIn 0.2s ease both",
