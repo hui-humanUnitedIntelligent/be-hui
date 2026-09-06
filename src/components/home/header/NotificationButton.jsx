@@ -193,6 +193,7 @@ export default function NotificationButton({ count = 0, userId = "" }) {
       case "save_digest":
       case "support_ticket":
       case "support_ticket_reply":
+      case "bug_report_resolved":
       case "new_order":
       case "order_confirmed": {
         const oEntityId = n.entity_id || meta.work_id || null;

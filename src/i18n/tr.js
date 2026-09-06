@@ -2323,6 +2323,7 @@ export default {
   'notif.metaLabel.workFlagged': 'İçerik bildirildi',
   'notif.metaLabel.contentDeleted': 'İçerik silindi',
   'notif.metaLabel.contentApproved': 'İçerik onaylandı',
+  'notif.metaLabel.bugReportResolved': 'Hata düzeltildi',  'notif.bugReportResolved.title': 'Bildirdiğin hata düzeltildi',  'notif.bugReportResolved.yourReport': 'Bildirimin',  'notif.bugReportResolved.retest': 'Lütfen tekrar dene. Sorun sürerse «HUI’m → Hata bildir» üzerinden tekrar bildirebilirsin.',  'notif.bugReportResolved.body': 'Bildirdiğin sorun düzeltildi.',
   'notif.metaLabel.notification': 'Bildirim',
   'meinhui.label.daysSince': 'Başlangıçtan beri gün',
   'meinhui.label.days': 'gün',

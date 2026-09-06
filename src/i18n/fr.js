@@ -2324,6 +2324,7 @@ export default {
   'notif.metaLabel.workFlagged': 'Contenu signalé',
   'notif.metaLabel.contentDeleted': 'Contenu supprimé',
   'notif.metaLabel.contentApproved': 'Contenu approuvé',
+  'notif.metaLabel.bugReportResolved': 'Bug corrigé',  'notif.bugReportResolved.title': 'Le bug que tu as signalé a été corrigé',  'notif.bugReportResolved.yourReport': 'Ton signalement',  'notif.bugReportResolved.retest': 'N’hésite pas à retester. Si le problème persiste, signale-le à nouveau via « Mon HUI → Signaler un bug ».',  'notif.bugReportResolved.body': 'Le problème que tu as signalé a été corrigé.',
   'notif.metaLabel.notification': 'Notification',
   'meinhui.label.daysSince': 'Jours depuis le début',
   'meinhui.label.days': 'jours',

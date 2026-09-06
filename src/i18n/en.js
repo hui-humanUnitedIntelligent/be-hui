@@ -2339,6 +2339,7 @@ export default {
   'notif.metaLabel.workFlagged': 'Content reported',
   'notif.metaLabel.contentDeleted': 'Content deleted',
   'notif.metaLabel.contentApproved': 'Content approved',
+  'notif.metaLabel.bugReportResolved': 'Bug fixed',  'notif.bugReportResolved.title': 'Your reported bug has been fixed',  'notif.bugReportResolved.yourReport': 'Your report',  'notif.bugReportResolved.retest': 'Please give it another try. If the problem persists, feel free to report it again via “My HUI → Report a bug”.',  'notif.bugReportResolved.body': 'Your reported problem has been fixed.',
   'notif.metaLabel.notification': 'Notification',
   'meinhui.label.daysSince': 'Days since beginning',
   'meinhui.label.days': 'days',

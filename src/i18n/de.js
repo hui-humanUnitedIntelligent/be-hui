@@ -2331,6 +2331,7 @@ export default {
   'notif.metaLabel.workFlagged': 'Inhalt gemeldet',
   'notif.metaLabel.contentDeleted': 'Inhalt gelöscht',
   'notif.metaLabel.contentApproved': 'Inhalt freigegeben',
+  'notif.metaLabel.bugReportResolved': 'Fehler behoben',  'notif.bugReportResolved.title': 'Dein gemeldeter Fehler wurde behoben',  'notif.bugReportResolved.yourReport': 'Deine Meldung',  'notif.bugReportResolved.retest': 'Bitte teste es einfach noch einmal. Sollte das Problem weiterhin bestehen, melde es gerne erneut über „Mein HUI → Fehler melden“.',  'notif.bugReportResolved.body': 'Dein gemeldetes Problem wurde behoben.',
   'notif.metaLabel.notification': 'Benachrichtigung',
   'meinhui.label.daysSince': 'Tage seit Beginn',
   'meinhui.label.days': 'Tage',

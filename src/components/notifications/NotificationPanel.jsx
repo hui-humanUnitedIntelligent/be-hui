@@ -134,6 +134,8 @@ function getMetaMap(t) {
   work_flagged:            { emoji:"⚠️", label:t("notif.metaLabel.workFlagged")              },
   content_deleted:         { emoji:"🗑",  label:t("notif.metaLabel.contentDeleted")             },
   content_approved:        { emoji:"✅",  label:t("notif.metaLabel.contentApproved")          },
+  // BUG-RESOLVED-NOTIFY-001 (2026-09-06): Bug-Report vom Team behoben
+  bug_report_resolved:     { emoji:"✅",  label:t("notif.metaLabel.bugReportResolved")           },
     default:                { emoji:<HUIBenachrichtigungIcon size={18}/>, label:t("notif.metaLabel.notification")       },
   };
 }
@@ -235,6 +237,21 @@ function DetailModal({ n, onClose, onAction }) {
         entityType: approvedEntityType,
         actionUrl:  n.action_url  || md.action_url || null,
         actionLabel: "Direkt ansehen →",
+      };
+    }
+
+    // BUG-RESOLVED-NOTIFY-001 (2026-09-06): gemeldeter Fehler wurde behoben
+    if (nType === "bug_report_resolved") {
+      const excerpt = md.description_excerpt || n.body || "";
+      return {
+        accentColor: "#22C55E",
+        headerIcon: "✅",
+        headerTitle: t("notif.bugReportResolved.title"),
+        headerSubtitle: excerpt ? `„${excerpt}"` : "",
+        blocks: [
+          ...(excerpt ? [{ type:"label-text", label:t("notif.bugReportResolved.yourReport"), text: excerpt, color:"#22C55E", bg:"rgba(34,197,94,0.06)", border:"rgba(34,197,94,0.22)" }] : []),
+          { type:"info", text: t("notif.bugReportResolved.retest") },
+        ],
       };
     }
 
@@ -1016,6 +1033,15 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const meta = getMeta(n.type, t);
 
+  // BUG-RESOLVED-NOTIFY-001: Titel/Body lokalisiert rendern — der Server-Insert
+  // speichert nur einen DE-Fallback (gleiche Konvention wie support_ticket_reply).
+  // Excerpt = die eigene Fehlerbeschreibung des Nutzers (sprachneutral).
+  const isBugResolved = n.type === "bug_report_resolved";
+  const bugExcerpt = parseMeta(n.metadata).description_excerpt
+    || (typeof n.data === "object" && n.data?.description_excerpt) || "";
+  const displayTitle = isBugResolved ? t("notif.bugReportResolved.title") : n.title;
+  const displayBody  = isBugResolved ? (bugExcerpt || t("notif.bugReportResolved.body")) : n.body;
+
   const handleOpen = (e) => {
     e?.stopPropagation?.();
     if (!n.is_read) onRead?.(n.id);
@@ -1078,17 +1104,17 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
                 )}
               </div>
             )}
-            {n.title && (
+            {displayTitle && (
               <div style={{ display:"flex", alignItems:"center", gap:6, marginBottom:1 }}>
                 <div style={{ fontSize:13, fontWeight: n.is_read ? 500 : 600, color:T.ink, lineHeight:1.35 }}>
-                  {n.title}
+                  {displayTitle}
                 </div>
                 {labelDuplicatesTitle && !n.is_read && (
                   <span style={{ width:6, height:6, borderRadius:"50%", background:T.teal, display:"inline-block", flexShrink:0 }}/>
                 )}
               </div>
             )}
-            {n.body && (
+            {displayBody && (
               <div style={{
                 fontSize:12, lineHeight:1.42,
                 color: n.type?.includes("_rejected") ? "#DC2626" : T.inkSoft,

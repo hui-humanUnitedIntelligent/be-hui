@@ -77,6 +77,9 @@ const TYPE_META = {
   referral_joined:{ tab:"informativ", icon:"🎉", color:"#22C55E", label:"Empfehlung" },
   support_ticket: { tab:"informativ", icon:"🎧", color:T.teal,   label:"Support-Nachricht" },
   support_ticket_reply:{ tab:"informativ", icon:"🎧", color:T.teal, label:"Support-Antwort" },
+  // BUG-RESOLVED-NOTIFY-001 (2026-09-06): Melder-Rückmeldung beim Schließen
+  // eines Bug-Reports im Admin-Dashboard
+  bug_report_resolved:{ tab:"informativ", icon:"✅", color:"#22C55E", label:"notif.metaLabel.bugReportResolved" },
   // FREIGABEN — Werke
   work_approved:       { tab:"informativ", icon:"✅", color:"#22C55E", label:"Werk freigegeben" },
   work_rejected:       { tab:"informativ", icon:"❌", color:"#EF4444", label:"Werk abgelehnt" },

@@ -2820,6 +2820,7 @@ export default {
   'notif.metaLabel.comment': 'Koment i ri',
   'notif.metaLabel.commentReply': 'Përgjigje në komentin tënd',
   'notif.metaLabel.contentApproved': 'Përmbajtje miratuar',
+  'notif.metaLabel.bugReportResolved': 'Gabimi u rregullua',  'notif.bugReportResolved.title': 'Gabimi që raportove është rregulluar',  'notif.bugReportResolved.yourReport': 'Raporti yt',  'notif.bugReportResolved.retest': 'Provojeni përsëri. Nëse problemi vazhdon, raportoje prapë te «HUI-ja ime → Raporto gabim».',  'notif.bugReportResolved.body': 'Problemi që raportove është rregulluar.',
   'notif.metaLabel.contentDeleted': 'Përmbajtje fshirë',
   'notif.metaLabel.experienceBookingCancelled': 'Rezervimi anulluar',
   'notif.metaLabel.experienceBookingConfirmed': 'Rezervimi konfirmuar',

@@ -2323,6 +2323,7 @@ export default {
   'notif.metaLabel.workFlagged': 'Contenido reportado',
   'notif.metaLabel.contentDeleted': 'Contenido eliminado',
   'notif.metaLabel.contentApproved': 'Contenido aprobado',
+  'notif.metaLabel.bugReportResolved': 'Error corregido',  'notif.bugReportResolved.title': 'El error que reportaste ha sido corregido',  'notif.bugReportResolved.yourReport': 'Tu informe',  'notif.bugReportResolved.retest': 'Pruébalo de nuevo. Si el problema continúa, repórtalo otra vez en «Mi HUI → Reportar error».',  'notif.bugReportResolved.body': 'El problema que reportaste ha sido corregido.',
   'notif.metaLabel.notification': 'Notificación',
   'meinhui.label.daysSince': 'Días desde el inicio',
   'meinhui.label.days': 'días',

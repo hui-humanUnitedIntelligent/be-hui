@@ -320,6 +320,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
       // ── Support: kein Routing — Antwort im Modal lesen ─────────────────────
       case "support_ticket":
       case "support_ticket_reply":
+      case "bug_report_resolved":
         break;
 
       // ── Bestellung/Zahlung — BELEG-002: jetzt mit Routing ───────────────
