@@ -1722,21 +1722,42 @@ export default function ImpactFlow({ onClose }) {
   // Fix nach Pflichtregel (footer-navbar-zindex): createPortal zu document.body —
   // escapes JEDE Ancestor-Stacking-Context-Falle strukturell (gleiches Muster wie
   // ApprovedProjectDetail + InfoSheet auf derselben Seite). zIndex:10500 bleibt.
+  // KBD-INSET-FIX (2026-09-06, IMPACT-KEYBOARD-COVER-BUG): ImpactFlow war der
+  // EINZIGE der 4 mehrstufigen Wizards (Werk/Erlebnis/Talent/Herzensprojekt) ohne
+  // den KBD-INSET-FIX vom 2026-08-20 (siehe WerkWizard/ExperienceWizard/
+  // TalentAngebotWizard: bottom:"var(--hui-keyboard-inset, 0px)"). Schlimmer noch:
+  // der Backdrop trug bereits data-hui-kbd-self-managed — das weist den globalen
+  // Keyboard-Handler (globalKeyboardHandler.js) an, NICHTS zu tun (weder Push-up
+  // noch scrollIntoView), OHNE dass hier je eine eigene Ersatz-Logik existierte.
+  // Die Tastatur deckte das aktive Feld also komplett ungebremst ab.
+  // Anders als die 3 Vollbild-Wizards ist ImpactFlow ein ZENTRIERTES Dialog-Card
+  // (Backdrop mit alignItems/justifyContent:center), daher bottom:var(...) auf dem
+  // Root allein reicht nicht — die Karte bliebe mittig im vollen (unveränderten)
+  // 100vh-Bereich stehen, dessen unterer Teil jetzt von der Tastatur verdeckt ist.
+  // Fix: (1) Backdrop bekommt paddingBottom = keyboardInset → Flexbox zentriert die
+  // Karte nur noch im TATSÄCHLICH sichtbaren (nicht von der Tastatur verdeckten)
+  // Bereich. (2) Die Karte selbst bekommt eine keyboard-bewusste maxHeight, damit
+  // sie nie über den sichtbaren Bereich hinausragt und oben abgeschnitten wird.
   const content = (
     <div style={{
       position:"fixed", inset:0, zIndex:10500,
       background:"rgba(14,14,24,0.52)",
       backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      padding:"16px", animation:"ifFadeIn 0.2s ease both",
+      padding:"16px",
+      paddingBottom:"calc(16px + var(--hui-keyboard-inset, 0px))",
+      transition:"padding-bottom .15s ease-out",
+      animation:"ifFadeIn 0.2s ease both",
     }} data-hui-kbd-self-managed onClick={e => e.target === e.currentTarget && onClose?.()}>
       <style>{CSS}</style>
       <div style={{
         width:"100%", maxWidth:500,
         background:T.surfaceHi, borderRadius:24,
         boxShadow:"0 24px 80px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.08)",
-        maxHeight:"92vh", display:"flex", flexDirection:"column",
+        maxHeight:"min(92vh, calc(100vh - 32px - var(--hui-keyboard-inset, 0px)))",
+        display:"flex", flexDirection:"column",
         overflow:"hidden",
+        transition:"max-height .15s ease-out",
         animation:"ifModalIn 0.26s cubic-bezier(0.22,1,0.36,1) both",
       }}>
 
