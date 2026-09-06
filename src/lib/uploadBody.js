@@ -85,6 +85,24 @@ export async function uploadMediaVerified({ path, file, contentType, bucket = "m
     .from(bucket)
     .upload(path, body, { contentType, upsert, cacheControl });
   if (error) {
+    // ── SYMPTOM-FIX (STORAGE-NET-001, 2026-09-06) ──────────────────────
+    // CapacitorHttp-Bridge: FileReader-Fehler (reader.onerror = reject)
+    // reichen das rohe ProgressEvent als Rejection durch — storage-js
+    // stringifyt es per JSON.stringify → "{"isTrusted":true}" landete
+    // WÖRTLICH in Karens Fehler-Toast. Solche Event-Objekte (kein .message,
+    // kein .msg) sind Transport-Fehler der Bridge, keine Supabase-Fehler.
+    // Ergänzend mit dem STORAGE-BRIDGE-BYPASS in supabaseClient.js sollte
+    // dieser Fall nie mehr auftreten — die Erkennung bleibt als Absicherung.
+    const rawMsg = error?.message || "";
+    const isBridgeEvent = /^\{"isTrusted":(true|false)\}$/.test(rawMsg);
+    if (isBridgeEvent) {
+      console.error("[uploadBody] Transport-Fehler der CapacitorHttp-Bridge " +
+        "(FileReader/base64-Stufe) statt Supabase-Fehler:", { path, statusCode: error.statusCode ?? null });
+      throw Object.assign(
+        new Error("Upload konnte nicht gestartet werden (Verbindungs-/Gerätefehler) — bitte erneut versuchen"),
+        { statusCode: error.statusCode ?? 901, transportError: true }
+      );
+    }
     throw Object.assign(new Error(error.message), { statusCode: error.statusCode });
   }
 

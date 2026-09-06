@@ -468,16 +468,22 @@ function ResonanzEntry({ entry, animIndex, onTap }) {
 function EmptyState({ filter }) {
   const { t } = useTranslation();
   const cfg = filter !== "all" ? getTypeConfig(t)[filter] : null;
+  // TYPO-FIX (2026-09-06, Bug-Report Karen): getTypeConfig liefert SINGULAR-
+  // Labels ("Werk", "Erlebnis") für Eintrags-Titel — der Leer-State zeigte
+  // deshalb "Noch keine Werk". Hier stehen jetzt die PLURAL-Filter-Chips-Labels
+  // ("Werke", "Erlebnisse") — konsistent mit den Chips direkt darüber.
+  const flt = getFilters(t).find((f) => f.id === filter);
+  const emptyLabel = flt?.label || t("res.aktivitaeten");
   return (
     <div style={{ textAlign:"center", padding:"72px 32px 48px" }}>
       <div style={{ marginBottom:18, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)" }}>{cfg?.icon || <HUIResonanzIcon size={48}/>}</div>
       <div style={{ fontSize:18, fontWeight: 600, color:T.ink, marginBottom:10, letterSpacing:"-0.02em" }}>
-        {filter==="all" ? t("res.geschichteBeginnt") : t("res.nochKeine", { label: cfg?.label || t("res.aktivitaeten") })}
+        {filter==="all" ? t("res.geschichteBeginnt") : t("res.nochKeine", { label: emptyLabel })}
       </div>
       <div style={{ fontSize:14, color:T.inkSoft, lineHeight:"1.65", maxWidth:260, margin:"0 auto" }}>
         {filter==="all"
           ? t("res.emptyAllDesc")
-          : t("res.emptyFilteredDesc", { label: (cfg?.label?.toLowerCase()||t("res.etwas")) })}
+          : t("res.emptyFilteredDesc", { label: (emptyLabel.toLowerCase()||t("res.etwas")) })}
       </div>
     </div>
   );

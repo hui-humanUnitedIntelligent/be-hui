@@ -89,9 +89,16 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   const uploadFile = useCallback(async (file, reportId) => {
     const ext = file.name.split(".").pop();
     const path = `bug-reports/${reportId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    // HEADER-CACHE-FIX NACHTRAG (2026-09-06): diese Stelle wurde bei der
+    // Vereinheitlichung (c8d98fb2) übersehen — hatte noch das alte
+    // cacheControl:'3600'. Jetzt SSOT-Wert wie alle anderen Upload-Stellen.
     const { error: upErr } = await supabase.storage
       .from("media")
-      .upload(path, await toSafeUploadBody(file), { cacheControl: "3600", upsert: false });
+      .upload(path, await toSafeUploadBody(file), {
+        contentType: file.type || "application/octet-stream",
+        cacheControl: "public, max-age=31536000, immutable",
+        upsert: false,
+      });
     if (upErr) throw upErr;
     const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
     return { name: file.name, url: publicUrl, type: file.type, size: file.size };

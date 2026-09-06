@@ -10,6 +10,35 @@ const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim();
 // storageKey: eindeutiger Key → kein Konflikt mit anderen Supabase-Projekten
 // storage: localStorage explicite → kein versehentlicher sessionStorage-Fallback
 //          (Safari PWA verwendet sonst manchmal sessionStorage → geht bei Reload verloren)
+// ── STORAGE-BRIDGE-BYPASS (2026-09-06, STORAGE-NET-001) ────────────────
+// BEWEISLAGE ( Karens Samsung, 16:20-16:25 UTC, v2.1.554, Fehler-Report
+// 9f01849c): Moment-Foto-Upload scheiterte mit rawem Netzwerk-Fehler-Event
+// ("{"isTrusted":true}") — zurückverfolgt in die CapacitorHttp-native-bridge
+// (readFileAsBase64: reader.onerror = reject reicht das ProgressEvent als
+// Rejection durch, storage-js stringifyt es). Dieselbe Pipeline hat seit
+// Wochen 4 dokumentierte Fehlerklassen produziert: ArrayBuffer→"{}" (2
+// Bytes), Uint8Array→UTF-8-mangled (EF BF BD), Blob-Korruptionen, und jetzt
+// FileReader-Fehler bei echten Kamera-/Galerie-Dateien — während
+// synthetisierte/kleine Dateien durchgehen.
+//
+// FIX: Storage-API-Requests (/storage/v1/*) laufen NICHT durch die
+// CapacitorHttp-Bridge, sondern über die ORIGINALE WebView-fetch
+// (window.CapacitorWebFetch — von der Bridge selbst vor dem Patch
+// gespeichert). FormData wird dort nativ im Chromium-Netzwerk-Stack
+// verarbeitet: kein FileReader, kein base64, kein okhttp-Rebuild. Die
+// WebView kann die Datei nachweislich lesen (Preview via createObjectURL
+// funktionierte bei Karen). DB/Auth/Functions-Requests bleiben auf der
+// Bridge (funktionieren dort nachweislich stabil).
+const _storageFetch = (input, init) => {
+  let url = "";
+  if (typeof input === "string") url = input;
+  else if (input && input.url)   url = input.url;
+  const isStorageCall = url.includes("/storage/v1/");
+  const nativeFetch   = (typeof window !== "undefined" && window.CapacitorWebFetch) || null;
+  if (isStorageCall && nativeFetch) return nativeFetch(input, init);
+  return fetch(input, init);
+};
+
 const _supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -20,6 +49,7 @@ const _supabase = (supabaseUrl && supabaseAnonKey)
         storage:            typeof window !== "undefined" ? window.localStorage : undefined,
         flowType:           "pkce",   // sicherster Flow, funktioniert auch in PWA/Safari
       },
+      global: { fetch: _storageFetch },
     })
   : null;
 
