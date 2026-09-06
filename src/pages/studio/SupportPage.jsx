@@ -87,7 +87,7 @@ export default function SupportPage({ onBack, userId, userEmail, userName }) {
         const ext  = file.name.split('.').pop();
         const path = `support/${ticketNumber}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { data, error } = await supabase.storage
-          .from('media').upload(path, await toSafeUploadBody(file), { cacheControl:'3600', upsert:false });
+          .from('media').upload(path, await toSafeUploadBody(file), { cacheControl:"public, max-age=31536000, immutable", upsert:false });
         if (!error && data) {
           const { data: urlData } = supabase.storage.from('media').getPublicUrl(path);
           urls.push({ name:file.name, url:urlData.publicUrl, type:file.type, size:file.size });

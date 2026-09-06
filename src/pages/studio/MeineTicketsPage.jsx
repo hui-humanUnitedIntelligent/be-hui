@@ -70,7 +70,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
           const ext  = file.name.split(".").pop();
           const path = `support/${ticketNumber}/reply-${Date.now()}.${ext}`;
           const { data: up, error: upErr } = await supabase.storage
-            .from("media").upload(path, await toSafeUploadBody(file), { cacheControl:"3600", upsert:false });
+            .from("media").upload(path, await toSafeUploadBody(file), { cacheControl:"public, max-age=31536000, immutable", upsert:false });
           if (!upErr && up) {
             const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
             attachments.push({ name:file.name, url:urlData.publicUrl, type:file.type, size:file.size });

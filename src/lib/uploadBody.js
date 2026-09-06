@@ -61,7 +61,17 @@ export async function toSafeUploadBody(input) {
  * Wirft bei jedem Fehlschlag einen Error mit .statusCode (Supabase-Status
  * oder 900 bei Korruption).
  */
-export async function uploadMediaVerified({ path, file, contentType, bucket = "media", upsert = false, cacheControl }) {
+// ── HEADER-CACHE-FIX (2026-09-06) ──────────────────────────────────────
+// Bewiesen an Michaels Header-Bild (mehrere Sekunden Gradient-Platzhalter
+// bei JEDEM Profil-Öffnen): Uploads ohne explizites cacheControl speicherten
+// wörtlich "max-age=undefined" als Objekt-Metadatum (in storage.objects
+// nachgewiesen) — die Render-API reicht das als Response-Header durch,
+// Browser behandeln den ungültigen Wert als NICHT cachebar. Ergebnis:
+// Header-Bild wurde bei jedem Profil-Öffnen komplett neu geladen.
+// Fix: PFLICHT-Default cacheControl="public, max-age=31536000, immutable"
+// (Media-Pfade sind timestamped/eindeutig → immutable ist sicher). Wer
+// bewusst etwas anderes will, kann den Parameter weiterhin übergeben.
+export async function uploadMediaVerified({ path, file, contentType, bucket = "media", upsert = false, cacheControl = "public, max-age=31536000, immutable" }) {
   if (!path || !file) throw Object.assign(new Error("Ungültige Upload-Parameter"), { statusCode: 400 });
 
   const body = await toSafeUploadBody(file);

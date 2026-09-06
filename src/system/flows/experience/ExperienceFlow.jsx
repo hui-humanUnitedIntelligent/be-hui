@@ -153,7 +153,7 @@ export default function ExperienceFlow({ onClose }) {
         const ext  = file.name.split(".").pop();
         const path = `experiences/${user.id}/${Date.now()}_${i}.${ext}`;
         const { error: upErr } = await supabase.storage
-          .from("media").upload(path, await toSafeUploadBody(file), { contentType: file.type });
+          .from("media").upload(path, await toSafeUploadBody(file), { contentType: file.type, cacheControl:"public, max-age=31536000, immutable" });
         if (upErr) throw upErr;
         const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
         uploadedUrls.push(publicUrl); // normalizeImages() wandelt zu { url, type, alt } um
