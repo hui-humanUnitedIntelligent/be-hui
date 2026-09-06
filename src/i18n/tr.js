@@ -3836,6 +3836,8 @@ export default {
   'common.works': 'Eserler',
   'common.experience': 'Deneyim',
   'common.experiences': 'Deneyimler',
+  'common.talent': 'Yetenek',
+  'common.talents': 'Yetenekler',
   'card.ariaResonanzOn': 'Rezonansı kaldır',
   'card.ariaResonanzOff': 'Rezonans ver',
   'card.ariaAustauschenOn': 'Etkileşimi bitir',

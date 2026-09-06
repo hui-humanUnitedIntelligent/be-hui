@@ -554,6 +554,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             people_count:      p.people_count || 0,
             works_count:       p.works_count || 0,
             experiences_count: p.experiences_count || 0,
+            talents_count:     p.talents_count || 0,
             total_count:       p.total_count || 0,
           })));
         }
@@ -614,7 +615,8 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
   const displayMomente    = momente; // nur echte Daten
   const navigate           = useNavigate();
-  const { open: openPreview } = useContentPreview(); // OPEN.1 2026-07-08
+  // openRef = SSOT-Lazy-Loader (lädt Talent aus DB falls nicht im Speicher).
+  const { open: openPreview, openRef: openPreviewRef } = useContentPreview(); // OPEN.1 2026-07-08
   const { openCreatorProfile } = useProfileLauncher(); // Autor-Klick → Profil
   const baseDisplayWerke      = werke; // nur echte Daten
   const baseDisplayTalente    = talente; // nur echte Daten
@@ -1044,6 +1046,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           onPressExperience={(exp) => {
             setShowOrteModal(false);
             openPreview({ id:exp.id, type:"erlebnis", title:exp.title, experienceId:exp.id });
+          }}
+          onPressTalent={(talentId) => {
+            setShowOrteModal(false);
+            openPreviewRef({ type:"talent", id: talentId });
           }}
         />
       </Suspense>

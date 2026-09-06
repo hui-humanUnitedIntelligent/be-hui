@@ -86,6 +86,7 @@ export function OrtCard({ ort, delay=0, onPress }) {
           {ort.people_count > 0 && <span>👥 {ort.people_count}</span>}
           {ort.works_count > 0 && <span>🎨 {ort.works_count}</span>}
           {ort.experiences_count > 0 && <span>🎉 {ort.experiences_count}</span>}
+          {ort.talents_count > 0 && <span>🤝 {ort.talents_count}</span>}
         </div>
       </div>
     </div>

@@ -511,6 +511,8 @@ export default {
   'common.event': 'Event',
   'common.experience': 'Përvojë',
   'common.experiences': 'Përvoja',
+  'common.talent': 'Talenti',
+  'common.talents': 'Talentet',
   'common.followers': 'Ndjekës',
   'common.followersVisibility': 'Ndjekës',
   'common.minutesAgoShort': '{n} min më parë',

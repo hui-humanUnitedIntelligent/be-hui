@@ -3860,6 +3860,8 @@ export default {
   'common.works': 'Works',
   'common.experience': 'Experience',
   'common.experiences': 'Experiences',
+  'common.talent': 'Talent',
+  'common.talents': 'Talents',
   'card.ariaResonanzOn': 'Remove resonance',
   'card.ariaResonanzOff': 'Give resonance',
   'card.ariaAustauschenOn': 'End exchange',

@@ -70,27 +70,36 @@ function PlaceCard({ place, onPress }) {
               {place.experiences_count} {place.experiences_count === 1 ? t("common.experience") : t("common.experiences")}
             </span>
           )}
+          {place.talents_count > 0 && (
+            <span style={{ color:T.inkSoft, display:"flex", alignItems:"center", gap:2 }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#8B5CF6", display:"inline-block" }}/>
+              {place.talents_count} {place.talents_count === 1 ? t("common.talent") : t("common.talents")}
+            </span>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
+function DetailItem({ item, onPressPerson, onPressWork, onPressExperience, onPressTalent }) {
   const { t } = useTranslation();
   const [imgErr, setImgErr] = useState(false);
   const isPerson = item.item_type === "person";
   const isWork   = item.item_type === "work";
   const isExp    = item.item_type === "experience";
+  const isTalent = item.item_type === "talent";
 
   const typeBadge = isPerson ? { bg:"rgba(14,196,184,0.12)", text:T.tealDeep, label:t("common.person") }
     : isWork ? { bg:"rgba(245,166,35,0.12)", text:"#C8860D", label:t("common.work") }
+    : isTalent ? { bg:"rgba(139,92,246,0.12)", text:"#6D4FC2", label:t("common.talent") }
     : { bg:"rgba(255,111,97,0.12)", text:"#E04E3E", label:t("common.experience") };
 
   const handleClick = () => {
     if (isPerson)     onPressPerson?.(item.id);
     else if (isWork)  onPressWork?.(item.id);
     else if (isExp)   onPressExperience?.(item);
+    else if (isTalent) onPressTalent?.(item.id);
   };
 
   return (
@@ -107,6 +116,8 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
         {!imgErr && item.cover_url ? (
           <img src={item.cover_url} alt="" onError={() => setImgErr(true)}
             style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+        ) : isTalent ? (
+          <HUILogo size={20} style={{opacity:0.5}} />
         ) : (
           <span style={{ fontSize:18, opacity:0.5 }}>
             {isPerson ? "👤" : isWork ? "🎨" : "🎉"}
@@ -127,7 +138,7 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
               📍 {item.location}
             </span>
           )}
-          {isWork && item.price != null && Number(item.price) > 0 && (
+          {(isWork || isTalent) && item.price != null && Number(item.price) > 0 && (
             <span style={{ fontSize:10.5, color:T.tealDeep, fontWeight: 600 }}>
               {formatNumberDE(Number(item.price))} €
             </span>
@@ -138,7 +149,7 @@ function DetailItem({ item, onPressPerson, onPressWork, onPressExperience }) {
   );
 }
 
-export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPerson, onPressWork, onPressExperience }) {
+export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPerson, onPressWork, onPressExperience, onPressTalent }) {
   const { t } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "OrteAllModal");
@@ -265,6 +276,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
                     onPressPerson={onPressPerson}
                     onPressWork={onPressWork}
                     onPressExperience={onPressExperience}
+                    onPressTalent={onPressTalent}
                   />
                 ))}
               </div>

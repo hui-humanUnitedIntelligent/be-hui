@@ -3836,6 +3836,8 @@ export default {
   'common.works': 'Obras',
   'common.experience': 'Experiencia',
   'common.experiences': 'Experiencias',
+  'common.talent': 'Talento',
+  'common.talents': 'Talentos',
   'card.ariaResonanzOn': 'Quitar resonancia',
   'card.ariaResonanzOff': 'Dar resonancia',
   'card.ariaAustauschenOn': 'Terminar intercambio',
