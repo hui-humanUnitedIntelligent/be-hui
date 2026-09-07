@@ -52,7 +52,6 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { isProfileTalent } from "../../lib/profileUtils.js";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
-import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import DeleteAccountModal from "./DeleteAccountModal.jsx";

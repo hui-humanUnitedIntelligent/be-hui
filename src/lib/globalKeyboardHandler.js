@@ -1,12 +1,24 @@
 // ═══════════════════════════════════════════════════════════════
 // src/lib/globalKeyboardHandler.js — Globales Keyboard-Push-Up-System
 // v2 (2026-08-15): Vollständiges Push-Up für JEDES Textfeld
+// v3 (2026-09-07, UNIVERSAL-PADDING-FIX): Vollbild-Overlays werden nicht mehr
+//    komplett ignoriert, sondern bekommen automatisch paddingBottom=inset.
 // ═══════════════════════════════════════════════════════════════
 //
 // ZIEL: Sobald die Systemtastatur auf dem Smartphone erscheint, wird
 // der gesamte sichtbare Bereich nach oben geschoben. Kein Textfeld
 // darf verdeckt sein. Kein Button darf hinter der Tastatur liegen.
 // Funktioniert überall — ohne pro-Screen-Konfiguration.
+//
+// WICHTIG FÜR NEUE MODALS/SHEETS MIT TEXTFELDERN: Ihr müsst NICHTS
+// dafür tun! Dieser Handler regelt es automatisch für JEDES neue
+// createPortal(...,document.body)-Modal, egal ob Bottom-Sheet
+// (alignItems:"flex-end") oder zentriertes Dialog (alignItems:"center").
+// NUR wenn eine Komponente die Tastatur-Sicherheit LIEBER SELBST regeln
+// will (eigenes paddingBottom/maxHeight mit --hui-keyboard-inset, siehe
+// ImpactFlow.jsx als Referenz), muss sie explizit data-hui-kbd-self-managed
+// auf ihren äußersten position:fixed-Wrapper setzen, um diesen globalen
+// Mechanismus abzuschalten. Siehe .agents/rules/keyboard-safety.md.
 //
 // WIE ES FUNKTIONIERT (3 Mechanismen, alle global):
 //
@@ -17,8 +29,15 @@
 //    - Setzt --hui-keyboard-inset CSS-Variable (SSOT für alle Komponenten)
 //
 // 2) FIXED MODALS ANPASSEN (Portaled Elements):
-//    - Alle position:fixed direkten Kinder von <body> (createPortal-Modals)
-//      bekommen bottom: <keyboardInset>px statt bottom: 0
+//    - Schmale schwebende Leisten (< 70% Bildschirmhöhe, z.B. ein
+//      Speichern-Button-Balken) bekommen bottom: <keyboardInset>px.
+//    - Vollbild-Overlays (>= 70% Bildschirmhöhe — praktisch jedes
+//      Modal/Bottom-Sheet mit position:fixed;inset:0) bekommen
+//      paddingBottom: <keyboardInset>px auf den äußeren Wrapper — das
+//      schiebt einen alignItems:"flex-end"- ODER "center"-Kind-Panel
+//      automatisch über die Tastatur, ohne dass die Komponente selbst
+//      etwas dafür programmieren muss (UNIVERSAL-PADDING-FIX, 2026-09-07).
+//    - data-hui-kbd-self-managed-Elemente werden NIE angefasst.
 //    - MutationObserver fängt neu hinzugefügte Modals ab
 //    - Beim Schließen: Original-Styles wiederherstellen
 //
@@ -30,9 +49,8 @@
 // KEINE REGRESSION:
 // - Keine Komponente wird verändert — alles läuft über CSS-Variablen + body-Klasse
 // - Desktop: visualViewport.height ≈ innerHeight → inset = 0 → keine Auswirkung
-// - Bestehende Komponenten mit eigenem --hui-keyboard-inset-Usage funktionieren weiter
-// - Modals die bereits bottom: var(--hui-keyboard-inset) nutzen werden nicht
-//   doppelt ajustiert (JS setzt den gleichen Pixelwert wie die CSS-Variable)
+// - Bestehende Komponenten mit eigenem --hui-keyboard-inset-Usage (data-hui-kbd-
+//   self-managed) funktionieren unverändert weiter, keine Doppel-Anpassung
 //
 // AKTIVIERUNG: src/main.jsx + src/web-main.jsx (einmaliger Aufruf)
 // ═══════════════════════════════════════════════════════════════
@@ -140,13 +158,51 @@ function adjustFixedElements(inset) {
     try { rectHeight = child.getBoundingClientRect().height; } catch { rectHeight = 0; }
     const isFullscreenOverlay = rectHeight >= window.innerHeight * 0.7;
     if (isFullscreenOverlay) {
-      // Falls dieses Element vorher (bei einem frueheren, kleineren inset-Wert)
-      // bereits faelschlich anjustiert wurde, jetzt sauber zuruecksetzen.
-      const saved = savedStyles.get(child);
-      if (saved) {
-        child.style.bottom = saved.bottom;
-        child.style.transition = saved.transition;
-        savedStyles.delete(child);
+      // UNIVERSAL-PADDING-FIX (2026-09-07, Michael-Report: "Basis & Talent-Profil"
+      // -Modal — Eingabefeld komplett hinter Tastatur verschwunden, Screenshot).
+      // ROOT CAUSE: Vollbild-Overlays wurden hier bisher IMMER komplett ignoriert
+      // (kein bottom-Shift) -- in der Annahme, jede Komponente regele die Tastatur-
+      // Sicherheit selbst ueber die CSS-Variable (siehe data-hui-kbd-self-managed-
+      // Check oben). Das stimmt nur fuer die Handvoll Komponenten, die das
+      // TATSAECHLICH implementiert haben (ImpactFlow, ConversationRoom, ...).
+      // JEDE andere Vollbild-Sheet/Modal-Komponente (der ueberwiegende Rest, z.B.
+      // ProfilBearbeitenModal, MeinBereichDrawer) bekam dadurch GAR KEINE
+      // Tastatur-Anpassung -- ein Textfeld darin verschwand komplett hinter der
+      // Systemtastatur, sobald der Entwickler das (wie hier) nicht manuell
+      // nachgebaut hat. Das ist der wiederkehrende Bug, den Michael meldet.
+      //
+      // FIX: Statt komplett zu ueberspringen, bekommt JEDES nicht explizit
+      // selbst-verwaltete Vollbild-Overlay automatisch paddingBottom = inset auf
+      // den AEUSSEREN Backdrop-Wrapper (NICHT bottom -- das wuerde bei
+      // alignItems:"flex-end"-Sheets zusaetzlich die Wrapper-Hoehe verkuerzen UND
+      // verschieben = doppelte Wirkung, siehe KEYBOARD-DOUBLESHIFT-FIX oben).
+      // paddingBottom verkleinert nur die verfuegbare Flex-Innenflaeche von unten
+      // -- funktioniert dadurch UNIVERSELL sowohl fuer zentrierte
+      // (alignItems:"center") als auch bodenverankerte (alignItems:"flex-end")
+      // Kinder, ohne dass die Komponente selbst irgendetwas dafuer tun muss.
+      // Komponenten, die die Tastatur bereits SELBST behandeln (eigenes
+      // paddingBottom/maxHeight mit --hui-keyboard-inset), setzen weiterhin
+      // data-hui-kbd-self-managed und werden hier (siehe oben) unveraendert
+      // uebersprungen -- kein Konflikt, keine Regression fuer die bereits
+      // gefixten Faelle (ImpactFlow etc.).
+      if (inset > 0) {
+        if (!savedStyles.has(child)) {
+          savedStyles.set(child, {
+            bottom: child.style.bottom || "",
+            transition: child.style.transition || "",
+            paddingBottom: child.style.paddingBottom || "",
+          });
+        }
+        child.style.transition = "padding-bottom 0.2s ease-out";
+        child.style.paddingBottom = `calc(${inset}px + env(safe-area-inset-bottom, 0px))`;
+      } else {
+        const saved = savedStyles.get(child);
+        if (saved) {
+          child.style.bottom = saved.bottom;
+          child.style.transition = saved.transition;
+          child.style.paddingBottom = saved.paddingBottom || "";
+          savedStyles.delete(child);
+        }
       }
       continue;
     }
