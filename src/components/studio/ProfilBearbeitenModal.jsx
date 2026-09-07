@@ -28,6 +28,16 @@ import LocationAutocompleteInput from '../shared/LocationAutocompleteInput.jsx';
 //   werden jetzt tatsächlich beim Speichern mitgeschrieben (vorher: nie).
 // - `tagline` und `dna_tags` hatten keine UI zum Bearbeiten und werden von
 //   keiner Ansicht angezeigt — als totes Passthrough aus dem Save entfernt.
+// ─────────────────────────────────────────────────────────────
+// SKILLS-REAKTIVIERUNG (2026-09-07, Michaels Vorgabe): profiles.skills war
+// seit 06.08. aus diesem Modal entfernt (galt als Duplikat des separaten
+// TalentSection-Sheet-Editors auf dem eigenen Profil). Michael wollte den
+// Editor ausdrücklich HIER im Basis-Profil-Tab zurück — reaktiviert als
+// freies Tag-Feld (analog ExperienceWizard.TagsField), SCHREIBT IN DIESELBE
+// Spalte wie TalentSection.jsx/handleSkillsChange (TalentProfilePage.jsx) —
+// kein Duplikat-Datenmodell, nur ein zweiter Zugangsweg zum selben Wert.
+// Sichtbar auf dem öffentlichen Profil als "Interessen & Schwerpunkte"
+// (SkillsCard, PublicProfilePage.jsx).
 // ═══════════════════════════════════════════════════════════
 // Basis-Profil:   profiles (full_name, display_name, username, email,
 //                           bio, location, website, is_available)
@@ -106,6 +116,14 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   const [locationLng,   setLocationLng]   = useState(profile?.location_lng  || null);
   const [geoLoading,    setGeoLoading]    = useState(false);
   const [website,       setWebsite]       = useState(profile?.website         || "");
+  // SKILLS-REAKTIVIERUNG (2026-09-07): profiles.skills, Array aus Strings ODER
+  // {icon,label}-Objekten (Talent-Sheet legacy-Format) — hier auf reine Strings normalisiert.
+  const [skills,        setSkills]        = useState(
+    Array.isArray(profile?.skills)
+      ? profile.skills.map(s => typeof s === "string" ? s : (s?.label || "")).filter(Boolean)
+      : []
+  );
+  const [skillInput,    setSkillInput]    = useState("");
 
   // ── State: Kontakt-Felder ────────────────────────────────────────
   const [email,         setEmail]         = useState(profile?.email           || "");
@@ -216,6 +234,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         location_lat:   locationLat,          // Atomar mit Text speichern — gleicher Update-Call
         location_lng:   locationLng,          // verhindert Text/Coords-Mismatch
         website:        website.trim(),
+        skills:         skills,               // SKILLS-REAKTIVIERUNG (2026-09-07) — dieselbe Spalte wie TalentSection.jsx
       };
 
       // 2. Talent-Felder NUR mitschreiben, wenn Talent-User (echte, kollisionsfreie
@@ -261,7 +280,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setSaving(false);
     }
   }, [saving, usernameErr, fullName, displayName, username, bio,
-      locationLabel, locationLat, locationLng, website,
+      locationLabel, locationLat, locationLng, website, skills,
       isTalent, talentTitle, talentDescription, talentRate,
       saveProfile, refreshProfile, profile?.id, onClose, onProfileUpdate, isOrgProfile]);
 
@@ -416,9 +435,70 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   placeholder={t("pbm.phWebsite")} icon={<HUILinkIcon size={15}/>} maxLength={200} />
               </FieldGroup>
 
-              {/* "Skills" (Basis) entfernt 2026-08-06 — profiles.skills ist live
-                  die "Interessen & Werte"-Sektion (InteressenSection.jsx). Bearbeitung
-                  dort im eigenen Profil, nicht hier. */}
+              {/* SKILLS-REAKTIVIERUNG (2026-09-07, Michaels Vorgabe) — freies
+                  Tag-Feld, analog ExperienceWizard.TagsField. Schreibt in
+                  dieselbe profiles.skills-Spalte wie TalentSection.jsx
+                  (Talent-Profil-Sheet) — kein Duplikat-Datenmodell. */}
+              <FieldGroup label={t("pbm.fieldSkills")} hint={t("pbm.skillsHint")}>
+                {skills.length > 0 && (
+                  <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:8 }}>
+                    {skills.map(sk => (
+                      <div key={sk} style={{
+                        display:"inline-flex", alignItems:"center", gap:5,
+                        padding:"5px 11px", borderRadius:T.r99,
+                        background:T.tealSoft, border:`1.5px solid ${T.tealMid}`,
+                        fontSize:12.5, fontWeight:600, color:T.tealDeep,
+                      }}>
+                        {sk}
+                        <button
+                          onClick={() => setSkills(skills.filter(x => x !== sk))}
+                          style={{ background:"none", border:"none", padding:0, cursor:"pointer",
+                            color:T.tealDeep, fontSize:14, lineHeight:1, fontFamily:"inherit" }}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display:"flex", gap:8 }}>
+                  <input
+                    value={skillInput}
+                    onChange={e => setSkillInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const v = skillInput.trim().slice(0, 40);
+                        if (v.length >= 2 && skills.length < 12 && !skills.some(x => x.toLowerCase() === v.toLowerCase())) {
+                          setSkills([...skills, v]);
+                        }
+                        setSkillInput("");
+                      }
+                    }}
+                    maxLength={40}
+                    placeholder={t("pbm.skillsPh")}
+                    style={{
+                      flex:1, fontSize:14, padding:"11px 14px",
+                      border:"1.5px dashed rgba(14,196,184,0.35)", borderRadius:T.r99,
+                      background:"transparent", color:T.ink, fontFamily:T.ff, outline:"none",
+                      boxSizing:"border-box",
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      const v = skillInput.trim().slice(0, 40);
+                      if (v.length >= 2 && skills.length < 12 && !skills.some(x => x.toLowerCase() === v.toLowerCase())) {
+                        setSkills([...skills, v]);
+                      }
+                      setSkillInput("");
+                    }}
+                    disabled={skillInput.trim().length < 2 || skills.length >= 12}
+                    style={{
+                      border:"none", borderRadius:T.r99, padding:"10px 16px", fontSize:13, fontWeight:700,
+                      background: (skillInput.trim().length >= 2 && skills.length < 12) ? T.teal : "rgba(26,26,24,0.12)",
+                      color:"#fff", cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+                    }}
+                  >+</button>
+                </div>
+              </FieldGroup>
 
               {/* t("common.availability") entfernt 2026-08-07 — Duplikat der bereits live
                   funktionierenden AvailabilitySection.jsx (profiles.is_available),
