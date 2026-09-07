@@ -30,7 +30,6 @@ import { notifyWatcher } from "../lib/notificationService.js";
 
 
 // Lazy Sections — alle read-only
-import { TalentSection }      from "../components/profile/sections/TalentSection.jsx";
 import { WorksSection }       from "../components/profile/sections/WorksSection.jsx";
 import { ExperiencesSection } from "../components/profile/sections/ExperiencesSection.jsx";
 import { MomentsSection }     from "../components/profile/sections/MomentsSection.jsx";
@@ -573,15 +572,12 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         <SkillsCard profile={profile} loading={loading}/>
         <Gap h={12}/>
 
-        {/* ── TALENT-SEKTION (Skills-Chips) ── */}
-        {(profile?.has_talent_profile || profile?.is_talent) && (
-          <>
-            <SectionCard icon={<HUITalentIcon size={16}/>} title="" delay={80}>
-                <TalentSection profile={profile} isOwner={false} loading={loading} noPadding />
-            </SectionCard>
-            <Gap h={12}/>
-          </>
-        )}
+        {/* BUG-DUP-INTERESSEN-001 (2026-09-07, Michael-Report): TalentSection
+            zeigte hier exakt dieselben Chips wie SkillsCard direkt darüber —
+            beide lesen profile.skills_final, es gibt nur EINE Datenquelle.
+            Block entfernt statt Daten dedupliziert, da er keine eigene
+            Information trug (Root Cause geprüft, kein DB-Duplikat). Echte
+            Talent-Angebote (talents-Tabelle) folgen weiter unten unverändert. */}
 
         {/* ── TALENT-ANGEBOTE (aus talents-Tabelle, nur approved) ── */}
         {(profile?.has_talent_profile || profile?.is_talent) && profileId && (
