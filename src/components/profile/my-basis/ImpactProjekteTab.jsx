@@ -9,6 +9,11 @@ import { formatDateDE, formatNumberDE } from "../../../lib/formatters.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 import { toast } from "../../../lib/useToast.jsx";
 import { DeleteConfirmSheet } from "./ActionSheets.jsx";
+// IMPACT-PROJEKT-ADD-BUTTON (2026-09-07, Michaels Feature-Request): wiederverwendet
+// exakt denselben ImpactFlow-Wizard, der bereits auf ImpactPage.jsx via
+// HerzensprojektEmotional/"Herzensprojekt einreichen" verlinkt ist — kein neuer
+// Flow, nur ein zweiter Zugangsweg zum selben Modal (analog Skills-Reaktivierung).
+import ImpactFlow from "../../../system/flows/impact/ImpactFlow.jsx";
 
 export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const { t } = useTranslation();
@@ -34,9 +39,26 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   // können (Governance-Transparenz-Pflicht) -- gleiche Schutzschwelle
   // wie Werke/Talente mit Buchungshistorie.
   const [confirmProject, setConfirmProject] = React.useState(null);
+  // IMPACT-PROJEKT-ADD-BUTTON (2026-09-07): öffnet den bestehenden ImpactFlow-Wizard
+  const [showFlow, setShowFlow] = React.useState(false);
 
   // impact_applications nutzt 'user_id' als User-Feld
   const userField = "user_id";
+
+  // Liste neu laden (z.B. nach Einreichung eines neuen Projekts über ImpactFlow)
+  const reloadProjects = React.useCallback(() => {
+    const uid = profile?.user_id || profile?.id;
+    if (!uid) return;
+    supabase
+      .from("impact_applications")
+      .select("id,project_name,short_desc,funding_goal,current_amount_eur,status,rank,is_completed,created_at,cover_url")
+      .eq(userField, uid)
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (error) console.error("[ImpactProjekteTab] reload error:", error);
+        setProjects(data || []);
+      });
+  }, [profile?.user_id, profile?.id, supabase]);
 
   const loadUpdatesFor = React.useCallback(async (projectId) => {
     if (!projectId) { setUpdates([]); return; }
@@ -165,7 +187,8 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
 
   if (projects.length === 0) {
     return (
-      <div style={{ padding: "24px 20px", textAlign: "center" }}>
+      <>
+      <div style={{ padding: "24px 20px 12px", textAlign: "center" }}>
         <div style={{ fontSize: 32, marginBottom: 12 }}>💚</div>
         <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", marginBottom: 8 }}>
           Noch kein Impact-Projekt
@@ -174,6 +197,30 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           Reiche dein erstes Herzensprojekt ein und erhalte Community-Finanzierung.
         </div>
       </div>
+      {/* IMPACT-PROJEKT-ADD-BUTTON (2026-09-07) — identisches Muster zu "+ {t("cs.addErlebnis")}" */}
+      <div style={{ padding:`0 ${T.px}px` }}>
+        <button className="mbp-press-light" onClick={() => setShowFlow(true)} style={{
+          display:"flex", alignItems:"center", gap:8,
+          padding:"8px 14px", borderRadius:T.r12,
+          background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
+          fontSize:12.5, fontWeight: 600, color:"#0EC4B8",
+          cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+          width:"100%",
+        }}>
+          <span style={{
+            width:18, height:18, borderRadius:"50%", flexShrink:0,
+            background:"#0EC4B8", color:"#fff", fontSize:13, fontWeight: 600,
+            display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+          }}>+</span>
+          {t("ipt.addProject")}
+        </button>
+      </div>
+      {showFlow && (
+        <React.Suspense fallback={null}>
+          <ImpactFlow onClose={() => { setShowFlow(false); reloadProjects(); }} />
+        </React.Suspense>
+      )}
+      </>
     );
   }
 
@@ -243,7 +290,30 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           );
         })}
       </div>
+      {/* IMPACT-PROJEKT-ADD-BUTTON (2026-09-07) — identisches Muster zu "+ {t("cs.addErlebnis")}",
+          auch wenn bereits Projekte existieren (mehrere Herzensprojekte möglich) */}
+      <button className="mbp-press-light" onClick={() => setShowFlow(true)} style={{
+        display:"flex", alignItems:"center", gap:8,
+        padding:"8px 14px", borderRadius:T.r12,
+        background:"rgba(14,196,184,0.10)", border:"1px solid rgba(14,196,184,0.22)",
+        fontSize:12.5, fontWeight: 600, color:"#0EC4B8",
+        cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+        width:"100%",
+      }}>
+        <span style={{
+          width:18, height:18, borderRadius:"50%", flexShrink:0,
+          background:"#0EC4B8", color:"#fff", fontSize:13, fontWeight: 600,
+          display:"flex", alignItems:"center", justifyContent:"center", lineHeight:1,
+        }}>+</span>
+        {t("ipt.addProject")}
+      </button>
     </div>
+
+    {showFlow && (
+      <React.Suspense fallback={null}>
+        <ImpactFlow onClose={() => { setShowFlow(false); reloadProjects(); }} />
+      </React.Suspense>
+    )}
 
     {/* Detail-Overlay — Beschreibung, Fortschritt, Update-Button (per Tap auf Kachel) */}
     {selected && (
