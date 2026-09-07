@@ -153,11 +153,19 @@ export const CATEGORIES = [
   cat("business",         "Business",                 "💼", "#475569", ["business","unternehmen","startup","gruendung"]),
   cat("gesundheit",       "Gesundheit",               "❤️", "#E11D48", ["gesundheit","wellness","fitness","ernaehrung"], {
     legacyValues:["Wellness"], appliesTo:["search","profile"],
+    // CATEGORY-WELLNESS-001: Massage als Child (Talent-Angebot-Kategorie).
+    children:[ child("massage", "Massage", ["Massage"], []) ],
   }),
   cat("achtsamkeit",      "Achtsamkeit",              "🧘", "#0EC4B8", ["achtsamkeit","meditation","mindfulness","ruhe"], {
     children:[
       child("meditation", "Meditation", ["Meditation"], ["experience"]),
       child("yoga",       "Yoga",       ["Yoga"],       ["experience"]),
+      // CATEGORY-WELLNESS-001 (2026-09-07): Wellness-/Energiearbeit-Begriffe aus
+      // den Talent-Angeboten (TALENT_KATEGORIEN) auch im Such-Baum verankern,
+      // damit der Chip "Achtsamkeit" auf klangbad/energiearbeit-kategorisierte
+      // Treffer matcht (searchFilter.categoryMatches zieht Child-Werte heran).
+      child("klangbad",     "Klangbad",     ["Klangbad"],     []),
+      child("energiearbeit", "Energiearbeit", ["Energiearbeit"], []),
     ],
   }),
   cat("kochen",           "Kochen",                   "🍳", "#EA580C", ["kochen","kueche","rezept","backen"], {

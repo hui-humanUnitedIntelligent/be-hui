@@ -104,6 +104,50 @@ function Field({ label, req, hint, children }) {
   );
 }
 
+// Freie Topic-Tags (CATEGORY-WELLNESS-001) — gleiche UX wie WerkWizard-Tags:
+// Chips mit Entfernen-x + Textfeld mit Enter/Hinzufuegen. Max 10 Tags je 40 Zeichen.
+function TagsField({ data, onChange }) {
+  const { t } = useTranslation();
+  const [ti, setTi] = useState("");
+  const tags = Array.isArray(data.tags) ? data.tags : [];
+  function addTag() {
+    const v = ti.trim().slice(0, 40);
+    if (v.length >= 2 && !tags.some(x => x.toLowerCase() === v.toLowerCase())) {
+      onChange({ tags: [...tags, v].slice(0, 10) });
+    }
+    setTi("");
+  }
+  return (
+    <Field label={t("ew.tagsLabel")} hint={t("ew.tagsHint")}>
+      {tags.length > 0 && (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:8 }}>
+          {tags.map(tag => (
+            <div key={tag} style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"5px 11px",
+              borderRadius:99, background:"rgba(14,196,184,0.10)", border:"1.5px solid rgba(14,196,184,0.28)",
+              fontSize:12.5, fontWeight:600, color:C.teal }}>
+              {tag}
+              <button onClick={() => onChange({ tags: tags.filter(x => x !== tag) })}
+                style={{ background:"none", border:"none", padding:0, cursor:"pointer", color:C.teal,
+                  fontSize:14, lineHeight:1 }}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display:"flex", gap:8 }}>
+        <input value={ti} onChange={e => setTi(e.target.value)} maxLength={40}
+          onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addTag(); } }}
+          placeholder={t("ew.tagsPh")}
+          style={{ ...INP_BASE, flex:1, padding:"10px 14px", fontSize:13, borderRadius:99,
+            border:`1.5px dashed rgba(14,196,184,0.35)`, background:"transparent" }}/>
+        <button onClick={addTag} disabled={ti.trim().length < 2}
+          style={{ border:"none", borderRadius:99, padding:"9px 14px", fontSize:12, fontWeight:600,
+            background: ti.trim().length >= 2 ? C.teal : "rgba(26,26,46,0.12)",
+            color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>+</button>
+      </div>
+    </Field>
+  );
+}
+
 function TextInput({ value, onChange, placeholder, maxLen, type="text", inputMode }) {
   return (
     <div>
@@ -459,6 +503,15 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl, o
 
   return (
     <div>
+      {/* CONTEXT-HINT (CATEGORY-WELLNESS-001): Was gehoert hier rein — Erlebnisse/
+          Projekte mit Datum+Ort+Teilnahme, NICHT.physische Werke, NICHT
+          Dauer-Dienstleistungen. Verhindert Falsch-Postings. */}
+      <div style={{ display:"flex", gap:9, alignItems:"flex-start", padding:"10px 12px",
+        marginBottom:16, borderRadius:12, background:"rgba(245,166,35,0.10)",
+        border:"1.5px solid rgba(245,166,35,0.25)" }}>
+        <span style={{ fontSize:15, lineHeight:1.3 }}>💡</span>
+        <span style={{ fontSize:12.5, color:C.ink, lineHeight:1.45 }}>{t("ew.hint")}</span>
+      </div>
       <div style={{ fontSize: 22, fontWeight: 600, color: C.ink, marginBottom: 4 }}>{t("ew.s1.title")}</div>
       <div style={{ fontSize: 13, color: C.inkMid, marginBottom: 24, lineHeight: 1.5 }}>{t("ew.s1.sub")}</div>
 
@@ -492,6 +545,11 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl, o
           rows={4}
         />
       </Field>
+
+      {/* CATEGORY-WELLNESS-001: Freie Topic-Tags (z.B. Klangbad, Yoga, Meditation)
+          — Analog zum WerkWizard-Tag-Feld, schreibt in experiences.tags (text[]).
+          Macht Wellness-/Energie-Erlebnisse ueber die Discover-Suche auffindbar. */}
+      <TagsField data={data} onChange={onChange}/>
 
       {/* Titelbild */}
       <Field label="Titelbild" req>
@@ -979,10 +1037,11 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         registration_required: existingExp.registration_required ?? false,
         visibility:           existingExp.visibility          || "public",
         description:          existingExp.description         || "",
+        tags:                Array.isArray(existingExp.tags) ? [...existingExp.tags] : [],
       };
     }
     return {
-      images: [], title: "", experience_type: "", caption: "",
+      images: [], title: "", experience_type: "", caption: "", tags: [],
       date: "", time_start: "", time_end: "",
       location_text: "", format: "",
       price: "", currency: "EUR", price_per: "",
@@ -1121,6 +1180,10 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       images:                imagesArr,
       experience_type:       form.experience_type     || null,
       category:              form.experience_type     || null,
+      // CATEGORY-WELLNESS-001: Freie Topic-Tags (z.B. Klangbad, Yoga) —
+      // experiences.tags (text[], existierte ungenutzt) macht Erlebnisse
+      // ueber die Discover-Suche auffindbar.
+      tags:                  Array.isArray(form.tags) ? form.tags.slice(0, 10).map(x => String(x).slice(0, 40)) : [],
       date:                  form.date ? new Date(form.date).toISOString() : null,
       time_start:            form.time_start          || null,
       time_end:              form.time_end            || null,

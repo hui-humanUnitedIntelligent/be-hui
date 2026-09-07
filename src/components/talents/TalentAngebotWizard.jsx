@@ -128,7 +128,9 @@ const CAT_KEY_MAP = {
   "Malerei": "cat.malerei", "Illustration": "cat.illustration", "Fotografie": "cat.fotografie",
   "Musik": "cat.musik", "Gesang": "cat.gesang", "Handwerk": "cat.handwerk",
   "Programmierung": "cat.programmierung", "Design": "cat.design", "Bildung": "cat.bildung",
-  "Theater": "cat.theater", "Coaching": "cat.coaching", "Naturführung": "cat.naturfuehrung",
+  "Theater": "cat.theater", "Coaching": "cat.coaching",
+  "Klangbad": "cat.klangbad", "Yoga": "cat.yoga", "Meditation": "cat.meditation",
+  "Massage": "cat.massage", "Energiearbeit": "cat.energiearbeit", "Naturführung": "cat.naturfuehrung",
   "Kochen": "cat.kochen", "Film": "cat.film", "Schreiben": "cat.schreiben",
   "Töpfern": "cat.toepfern", "Workshops": "cat.workshops", "Kunstberatung": "cat.kunstberatung",
   "Auftragskunst": "cat.auftragskunst", "Weitere Angebote": "cat.weitere",
@@ -169,6 +171,16 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   // 1) Basisdaten
   const [title, setTitle] = useState(existingTalent?.title || "");
   const [category, setCategory] = useState(existingTalent?.category || "");
+  // CATEGORY-WELLNESS-001: Freies Feld fuer eigene Kategorie-Begriffe. Bestehende
+  // Custom-Werte (nicht in TALENT_KATEGORIEN) werden beim Bearbeiten vorausgefuellt.
+  const isCustomCat = (v) => !!v && !TALENT_KATEGORIEN.includes(v);
+  const [customCat, setCustomCat] = useState(
+    existingTalent && isCustomCat(existingTalent.category) ? existingTalent.category : ""
+  );
+  const applyCustomCat = () => {
+    const v = customCat.trim().slice(0, 40);
+    if (v.length >= 2) { setCategory(v); } else { setCustomCat(""); }
+  };
   const [description, setDescription] = useState(existingTalent?.description || "");
 
   // 2) Preis
@@ -480,17 +492,52 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
         {/* ── SCHRITT 1: Basisdaten ─────────────────────────────── */}
         {step === 1 && (
           <>
+            {/* CONTEXT-HINT (CATEGORY-WELLNESS-001): Eindeutiger Hinweis VOR dem
+                Ausfuellen, was in diesen Bereich gehoert (Dienstleistung statt
+                physisches Werk) — verhindert Falsch-Postings wie Karens Klangbad
+                als "Werk". */}
+            <div style={{ display:"flex", gap:9, alignItems:"flex-start", padding:"10px 12px",
+              marginBottom:16, borderRadius:12, background:"rgba(14,196,184,0.08)",
+              border:"1.5px solid rgba(14,196,184,0.22)" }}>
+              <span style={{ fontSize:15, lineHeight:1.3 }}>💡</span>
+              <span style={{ fontSize:12.5, color:C.ink, lineHeight:1.45 }}>{t("taw.hint")}</span>
+            </div>
+
             <Lbl text={t("taw.titleLabel")} req/>
             <input value={title} onChange={e => setTitle(e.target.value)} disabled={locked}
               placeholder={t("taw.titlePlaceholder")}
               style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
 
             <Lbl text={t("taw.categoryLabel")} req/>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
               {TALENT_KATEGORIEN.map(k => (
-                <Chip key={k} active={category === k} disabled={locked} onClick={() => setCategory(k)}>{t(CAT_KEY_MAP[k]) || k}</Chip>
+                <Chip key={k} active={category === k} disabled={locked}
+                  onClick={() => { setCategory(k); setCustomCat(""); }}>{t(CAT_KEY_MAP[k]) || k}</Chip>
               ))}
             </div>
+
+            {/* Freies Feld fuer eigene Kategorie-Begriffe (kein Zwang, nur
+                vorgegebene Optionen) — Wert landet in talents.category (Freitext). */}
+            <Lbl text={t("taw.customCatLabel")} hint={t("taw.customCatHint")}/>
+            <div style={{ display:"flex", gap:8, marginBottom:14 }}>
+              <input value={customCat} onChange={e => setCustomCat(e.target.value)} disabled={locked}
+                onBlur={applyCustomCat}
+                onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); applyCustomCat(); } }}
+                maxLength={40}
+                placeholder={t("taw.customCatPh")}
+                style={{ ...INP, flex:1, marginBottom:0,
+                  borderColor: isCustomCat(category) && category === customCat.trim() ? C.teal : C.border,
+                  background: locked ? "#f5f5f3" : "#fff" }}/>
+              <button onClick={applyCustomCat} disabled={locked || customCat.trim().length < 2}
+                style={{ border:"none", borderRadius:12, padding:"0 16px", fontSize:12.5, fontWeight:600,
+                  background: customCat.trim().length >= 2 ? C.teal : "rgba(26,26,46,0.12)",
+                  color:"#fff", cursor:"pointer", touchAction:"manipulation" }}>
+                {t("taw.customCatBtn")}
+              </button>
+            </div>
+            {isCustomCat(category) && category !== customCat.trim() && (
+              <div style={{ fontSize:12, color:C.teal, margin:"-8px 0 14px", fontWeight:600 }}>✓ {category}</div>
+            )}
 
             <Lbl text={t("taw.descLabel")}/>
             <textarea value={description} onChange={e => setDescription(e.target.value)} disabled={locked}

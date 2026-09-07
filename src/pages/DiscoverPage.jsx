@@ -282,7 +282,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Schritt 1: Werke laden
         const { data: ws, error: wsErr } = await supabase
           .from("works")
-          .select("id,title,cover_url,thumbnail_url,category,file_format,tags,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
+          .select("id,title,cover_url,thumbnail_url,category,file_format,tags,description,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public")
@@ -313,6 +313,11 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               title:     safeStr(w.title, _t("discover.fallbackWerk")),
               cover:     safeStr(w.thumbnail_url || w.cover_url),
               medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, _t("discover.fallbackWerk")),
+              // CATEGORY-WELLNESS-001: Suchfelder durchreichen — Werke-Tags
+              // (freie Begriffe aus dem WerkWizard) waren bisher NICHT durchsuchbar.
+              category:  safeStr(w.category),
+              description: safeStr(w.description),
+              tags:      Array.isArray(w.tags) ? w.tags : [],
               price:     w.price != null ? safeNum(w.price, 0) : null,
               location:  safeStr(w.location_text),
               lat:       Number.isFinite(w.lat) ? w.lat : null,
@@ -406,7 +411,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
         const { data: exps, error: expsErr } = await supabase
           .from("experiences")
-          .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,lat,lng,user_id,created_at,likes_count,views_count")
+          .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,tags,description,caption,lat,lng,user_id,created_at,likes_count,views_count")
           .eq("status", "published")
           .eq("approval_status", "approved")
           .order("likes_count", { ascending:false })
@@ -441,6 +446,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               user_id:     e.user_id,
               title:       safeStr(e.title, "Erlebnis"),
               cover:       safeStr(e.thumbnail_url || e.cover_url),
+              // CATEGORY-WELLNESS-001: Suchfelder durchreichen (freie Topic-Tags)
+              description: safeStr(e.description),
+              caption:     safeStr(e.caption),
+              tags:        Array.isArray(e.tags) ? e.tags : [],
               date:        dayNum,
               month:       monthSh,
               dateStr,
@@ -685,12 +694,16 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
   const searchedWerke = useMemo(() =>
     _searchActive ? filterDiscoveryItems(displayWerke, { query: _searchQuery, categoryFilters: _searchCats },
-      w => [w.title, w.medium, w.author, w.location]) : displayWerke,
+      // CATEGORY-WELLNESS-001: tags (freie Begriffe) + category + description
+      // machen Werk-Fundstuecke auch ueber eigene Begriffe auffindbar.
+      w => [w.title, w.medium, w.category, w.description, (w.tags || []).join(" "), w.author, w.location]) : displayWerke,
   [displayWerke, _searchActive, _searchQuery, _searchCats]);
 
   const searchedErlebnisse = useMemo(() =>
     _searchActive ? filterDiscoveryItems(displayErlebnisse, { query: _searchQuery, categoryFilters: _searchCats },
-      e => [e.title, e.typeLabel, e.location, e.dayLabel]) : displayErlebnisse,
+      // CATEGORY-WELLNESS-001: description + caption + tags (freie Topic-Tags
+      // aus dem ExperienceWizard) in die Suche aufgenommen.
+      e => [e.title, e.typeLabel, e.description, e.caption, (e.tags || []).join(" "), e.location, e.dayLabel]) : displayErlebnisse,
   [displayErlebnisse, _searchActive, _searchQuery, _searchCats]);
 
   const searchedProjekte = useMemo(() =>

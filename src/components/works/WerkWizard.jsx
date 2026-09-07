@@ -1066,6 +1066,18 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         WebkitOverflowScrolling:"touch",
         padding:"20px 20px 0",
       }}>
+        {/* CONTEXT-HINT (CATEGORY-WELLNESS-001): Eindeutiger Hinweis VOR dem
+            Ausfuellen, was in diesen Bereich gehoert — PHYSISCHE Kreationen mit
+            Stueckzahl (keine Dienstleistungen wie Klangbad/Yoga — dafuer gibt es
+            Talent-Angebote). Verhindert Falsch-Postings wie Karens Klangbad. */}
+        {step===1&&(
+          <div style={{ display:"flex", gap:9, alignItems:"flex-start", padding:"10px 12px",
+            marginBottom:16, borderRadius:12, background:"rgba(255,138,107,0.08)",
+            border:"1.5px solid rgba(255,138,107,0.22)" }}>
+            <span style={{ fontSize:15, lineHeight:1.3 }}>💡</span>
+            <span style={{ fontSize:12.5, color:C.ink, lineHeight:1.45 }}>{t("ww.hint")}</span>
+          </div>
+        )}
         {step===1&&<S1 data={form} onChange={patch} userId={userId} onNext={null}
           onCoverThumbFrame={(blob) => setCoverThumbBlob(blob)}
           existingThumbnailUrl={existingWork?.thumbnail_url || null}

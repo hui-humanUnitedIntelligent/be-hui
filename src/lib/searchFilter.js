@@ -50,7 +50,15 @@ export function categoryMatches(categoryFilters, fields = []) {
   if (!Array.isArray(categoryFilters) || categoryFilters.length === 0) return true;
   const haystack = fields.map(norm).join(" ");
   return categoryFilters.some(cat => {
-    const needles = [cat?.label, cat?.name, ...(cat?.synonyms || []), ...(cat?.legacyValues || [])].filter(Boolean);
+    // CATEGORY-WELLNESS-001: Auch CHILD-Kategorien (name + legacyValues) in die
+    // Nadeln aufnehmen — ein ausgewaehlter Parent-Chip (z.B. "Achtsamkeit")
+    // matcht damit auch Items mit Unterkategorie-Werten ("Yoga", "Klangbad",
+    // "Meditation", "Energiearbeit") in works/experiences/talents. Kinder sind
+    // in der UI unsichtbar, ihre Werte landen aber als Freitext in den Tabellen.
+    // Ohne diese Erweiterung waeren die neuen Wellness-Kategorien fuer die
+    // Chip-Filter unsichtbar (Freitext-Suche deckte sie bereits ab).
+    const childNeedles = (cat?.children || []).flatMap(ch => [ch?.name, ...(ch?.legacyValues || [])]);
+    const needles = [cat?.label, cat?.name, ...(cat?.synonyms || []), ...(cat?.legacyValues || []), ...childNeedles].filter(Boolean);
     return needles.some(n => haystack.includes(norm(n)));
   });
 }

@@ -158,9 +158,16 @@ export async function uploadTalentImage(userId, file) {
   return { url: data.publicUrl, path, error: null };
 }
 
+// CATEGORY-WELLNESS-001 (2026-09-07, Michael/Tester-Feedback): Feste Wellness-/
+// Entspannungs-Kategorien fuer Dienstleistungs-Angebote ergaenzt (Klangbad, Yoga,
+// Meditation, Massage, Energiearbeit) -- sinnvolle Taxonomie-Erweiterung, nicht
+// nur fuer den Einzelfall "Klangbad". Coaching existierte bereits.
+// Freie Eigenbegriffe: TalentAngebotWizard bietet zusaetzlich ein Freitext-Feld,
+// dessen Wert ebenfalls in talents.category (Freitext-Spalte, kein Enum) landet.
 export const TALENT_KATEGORIEN = [
   "Malerei", "Illustration", "Fotografie", "Musik", "Gesang", "Handwerk",
-  "Programmierung", "Design", "Bildung", "Theater", "Coaching", "Naturführung",
+  "Programmierung", "Design", "Bildung", "Theater", "Coaching",
+  "Klangbad", "Yoga", "Meditation", "Massage", "Energiearbeit", "Naturführung",
   "Kochen", "Film", "Schreiben", "Töpfern", "Workshops", "Kunstberatung",
   "Auftragskunst", "Weitere Angebote",
 ];
