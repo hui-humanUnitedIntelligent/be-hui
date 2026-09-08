@@ -1640,7 +1640,17 @@ function PoolCard({ pool, userImpact, onOpenVormonate }) {
               <span style={{ fontSize:13 }}>💚</span>
               <span style={{ fontSize:11, fontWeight: 600, color:T.teal }}>{t("impact.deineWirkung")}</span>
             </div>
-            <div style={{ display:"flex", gap:18 }}>
+            {/* IMPACT-DESIGN-FIX (2026-09-08, Michael-Screenshot "Inpact
+                prüfen"): Der globale Bug-Käfer (fixed, right:16, Grösse 36,
+                belegt den x-Bereich [W-52, W-16]) schwebte auf iPhone-
+                Viewports (414×896, top-scroll) exakt über der rechten
+                Metrik ("0 Projekte unterstützt") und sah aus wie Teil der
+                Karte (pixelgenau vermessen im Original-Screenshot). Fix:
+                rechte Statistik-Gruppe mit 24px Luft nach rechts — der
+                Käfer schwebt dann über freier Kartenfläche statt über
+                Text. Kein Einfluss auf breite Screens (24px Versatz der
+                beiden kleinen Zahlen ist dort nicht wahrnehmbar). */}
+            <div style={{ display:"flex", gap:18, paddingRight:24 }}>
               <div style={{ textAlign:"right" }}>
                 <div style={{ fontSize:13, fontWeight: 600, color:T.teal, lineHeight:1 }}>
                   {userImpact.eur > 0 ? fmtEur(userImpact.eur) : "0 €"}

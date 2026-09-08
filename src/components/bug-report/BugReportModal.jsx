@@ -288,10 +288,23 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   // (Begründung siehe Kommentarblock oben), + Opt-out aus dem globalen
   // Handler (Padding UND scrollIntoView-Konkurrenz). Android: leeres Objekt
   // → weder Attribut noch Style-Override, globaler Handler unverändert aktiv.
+  // IOS-JITTER-FIX v2 (2026-09-08, Michael-Report "Immernoch zuckend" auf
+  // v2.1.565): Die 4b-Entflechtung (self-managed, nur EIN Mechanismus) war
+  // richtig, aber "transition:none" machte das Auf-Folgen der Tastatur zu
+  // DISKRETEN STUFEN: visualViewport feuert auf iOS 30-60×/s mit kleinen
+  // Zwischenhöhen -> jede Stufe = ein Layout-Sprung des Backdrops
+  // ("Zucken"). Fix: kurze Retargeting-Transition — WebKit startet bei
+  // Zielwechsel NICHT von null neu, sondern interpoliert vom AKTUELLEN
+  // interpolierten Wert zum neuen Ziel (Chase) -> die Stufen werden zu
+  // einer weichen Aufwärtsbewegung geglättet, die der Tastaturkurve
+  // ~60-100ms nachläuft. Beim Schließen animiert das Padding genauso
+  // weich zurück. Der frühere "Easing-Restart"-Stotterer (vor 2.1.563)
+  // war das ZUSAMMENSPIEL mit scrollIntoView-Konkurrenz — die ist seit
+  // 4b entflechtet; die Transition allein ist stabil.
   const iosKbdStyle = IS_IOS
     ? {
         paddingBottom: "calc(var(--hui-keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))",
-        transition: "none",
+        transition: "padding-bottom 0.16s ease-out",
       }
     : {};
 
