@@ -69,8 +69,28 @@ export default function AppEntryController({ children }) {
     }
   }, [user?.id, loadingAuth, authChecked]);
 
+  // ── VORWORT-TILES-OPEN-FIX (2026-09-08, Report 0ddbab94) ──
+  // Tap auf eine der 5 Grundbereichs-Kacheln im WelcomeOverlay schließt das
+  // Overlay und navigiert zum Bereich. Da das Overlay VOR der Home-Shell
+  // gerendert wird (App noch nicht gemountet), erfolgt der Tab-Wechsel über
+  // einen sessionStorage-Entry-Key, den HomeShell beim Mount liest:
+  //   hui_entry_tab       → "impact" | "discover" (Tab-Wechsel via switchTab)
+  //   hui_discover_focus  → "werke" | "talente" | "erlebnisse" | "momente"
+  //                         (DiscoverPage scrollt zur Section)
+  function applyAreaEntry(areaKey) {
+    try {
+      if (!areaKey) return;
+      if (areaKey === "impact") {
+        sessionStorage.setItem("hui_entry_tab", "impact");
+      } else {
+        sessionStorage.setItem("hui_entry_tab", "discover");
+        sessionStorage.setItem("hui_discover_focus", areaKey);
+      }
+    } catch { /* sessionStorage nicht verfügbar — Fallback: normaler Start */ }
+  }
+
   // ── Einstieg nach Welcome (neue Nutzer) ────────────────────
-  function handleWelcomeDone() {
+  function handleWelcomeDone({ areaKey } = {}) {
     markWelcomeSeen(user?.id);
     // Neue Nutzer haben die Regeln/Kernbereiche direkt im vollen
     // WelcomeOverlay gesehen — für diese Version nicht erneut zeigen.
@@ -78,13 +98,20 @@ export default function AppEntryController({ children }) {
     setPhase("ready");
     // Sicherstellung: Feed ist der erste Screen
     navigate("/Home", { replace: true });
+    applyAreaEntry(areaKey);
   }
 
   // ── Einstieg nach Regel-Update-Hinweis (bestehende Nutzer) ──
-  function handleRulesUpdateDone() {
+  function handleRulesUpdateDone({ areaKey } = {}) {
     markRulesSeenForVersion(user?.id, APP_VERSION);
     setPhase("ready");
     // Keine Navigation — bestehender Nutzer bleibt auf seiner aktuellen Route.
+    // AUSNAHME: Expliziter Bereichs-Tap (VORWORT-TILES-OPEN-FIX) — der Nutzer
+    // hat aktiv einen Bereich gewählt und erwartet, dort zu landen.
+    if (areaKey) {
+      applyAreaEntry(areaKey);
+      navigate("/Home", { replace: true });
+    }
   }
 
   // ── Render ────────────────────────────────────────────────

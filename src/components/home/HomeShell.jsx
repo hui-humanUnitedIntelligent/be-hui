@@ -295,6 +295,24 @@ export default function HomeShell({ children }) {
     }
   }, [_setTab, tab, closeAllOverlays, mainScrollRef]);
 
+  // ── VORWORT-TILES-OPEN-FIX (2026-09-08, Report 0ddbab94) ──
+  // Einmaliger Entry-Tab: Wenn das WelcomeOverlay per Bereichs-Kachel-Tap
+  // geschlossen wurde (AppEntryController.applyAreaEntry), holt HomeShell den
+  // Ziel-Tab hier beim Mount ab. Key wird sofort konsumiert (einmalig).
+  useEffect(() => {
+    try {
+      const entryTab = sessionStorage.getItem("hui_entry_tab");
+      if (entryTab === "impact" || entryTab === "discover") {
+        sessionStorage.removeItem("hui_entry_tab");
+        // Kurzer Delay: initialer Tab-Render + Lazy-Load der Zielseite sollen
+        // zuerst stattfinden, damit der Wechsel nicht ins Leere animiert.
+        const t = setTimeout(() => switchTab(entryTab), 400);
+        return () => clearTimeout(t);
+      }
+    } catch { /* sessionStorage nicht verfügbar */ }
+    // switchTab ist stabil (useCallback) — Effekt läuft bewusst nur beim Mount
+  }, []);
+
   // BACK-BUTTON-TAB-FIX (2026-08-11): Globaler Hook fuer AndroidBackButtonHandler
   // (lebt AUSSERHALB von HomeShell, oberhalb des Routers — braucht daher einen
   // globalen Bruecken-Zugriff auf tab-state + switchTab, analog zum etablierten

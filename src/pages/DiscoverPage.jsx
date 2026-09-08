@@ -48,6 +48,25 @@ import { OrteSection } from "../components/discover/OrtSection.jsx";
 export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal, searchState = {} }) {
   const { t: _t } = useTranslation();
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
+
+  // ── VORWORT-TILES-OPEN-FIX (2026-09-08, Report 0ddbab94) ──
+  // Wenn das WelcomeOverlay per Bereichs-Kachel geschlossen wurde, setzt
+  // AppEntryController "hui_discover_focus" — hier beim Mount konsumieren
+  // und sanft zur jeweiligen Section scrollen. Wrapper-Refs sind für das
+  // Block-Layout neutral (keine Styles, nur Anker).
+  const focusRefs = useRef({ momente: null, talente: null, werke: null, erlebnisse: null });
+  useEffect(() => {
+    let focus = null;
+    try { focus = sessionStorage.getItem("hui_discover_focus"); } catch { /* sessionStorage nicht verfügbar */ }
+    if (!focus) return;
+    try { sessionStorage.removeItem("hui_discover_focus"); } catch { /* Best-Effort */ }
+    if (!["werke", "talente", "erlebnisse", "momente"].includes(focus)) return;
+    const t = setTimeout(() => {
+      const el = focusRefs.current[focus];
+      if (el && el.scrollIntoView) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 700); // Sectionen haben Staffel-Entrance-Animationen (delay bis 160ms)
+    return () => clearTimeout(t);
+  }, []);
   const [loading, setLoading] = useState(true);
   const [people, setPeople]           = useState([]);
   const [momente, setMomente]         = useState([]);
@@ -860,6 +879,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
       {/* ── 4. Momente aus deiner Nähe ── */}
       {_showMomente && (
+      <div ref={(el) => { focusRefs.current["momente"] = el; }}>
       <MomenteSection
         momente={searchedMomente}
         loading={loading}
@@ -869,10 +889,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onAuthorPress={(userId) => openCreatorProfile(userId)}
         onSectionAction={() => setShowMomenteModal(true)}
       />
+      </div>
       )}
 
       {/* ── 4b. Talente entdecken ── */}
       {_showTalente && (
+      <div ref={(el) => { focusRefs.current["talente"] = el; }}>
       <TalenteSection
         talente={searchedTalente}
         loading={loading}
@@ -893,10 +915,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={hiddenNoCoordsCount}
       />
+      </div>
       )}
 
       {/* ── 5. Werke entdecken ── */}
       {_showWerke && (
+      <div ref={(el) => { focusRefs.current["werke"] = el; }}>
       <WerkeSection
         werke={searchedWerke}
         saleStatus={werkeSaleStatus}
@@ -918,10 +942,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={werkHiddenCount}
       />
+      </div>
       )}
 
       {/* ── 6. Erlebnisse für dich ── */}
       {_showErlebnisse && (
+      <div ref={(el) => { focusRefs.current["erlebnisse"] = el; }}>
       <ErlebnisseSection
         erlebnisse={searchedErlebnisse}
         loading={loading}
@@ -941,6 +967,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         onRadiusChange={radius.setRadiusKm}
         hiddenNoCoordsCount={erlebnisHiddenCount}
       />
+      </div>
       )}
 
       {/* ── 7. Projekte & Initiativen ── */}

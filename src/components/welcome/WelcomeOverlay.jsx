@@ -74,12 +74,16 @@ function getRulesItems(t) {
 
 // ── NEU (2026-08-23): {t("wo.areas.title")} ─────────────
 function getCoreAreas(t) {
+  // VORWORT-TILES-OPEN-FIX (2026-09-08, Report 0ddbab94): key je Bereich —
+  // die Kacheln sind jetzt klickbar ("›"-Chevron war vorher rein kosmetisch,
+  // pointerEvents:none machte sie unantastbar). Tap schließt das Overlay und
+  // navigiert zum Bereich (siehe handleOpenArea + AppEntryController).
   return [
-  { icon: "🛍", bg: "rgba(149,113,244,0.10)", title: t("wo.area.werke.title"),      sub: t("wo.area.werke.sub") },
-  { icon: "🎨", bg: "rgba(212,149,42,0.10)",  title: t("wo.area.talente.title"),    sub: t("wo.area.talente.sub") },
-  { icon: "🎟", bg: "rgba(13,196,181,0.10)",  title: t("wo.area.erlebnisse.title"), sub: t("wo.area.erlebnisse.sub") },
-  { icon: "📸", bg: "rgba(244,115,85,0.10)",  title: t("wo.area.momente.title"),    sub: t("wo.area.momente.sub") },
-  { icon: "🌍", bg: "rgba(99,184,99,0.10)",   title: t("wo.area.impact.title"),     sub: t("wo.area.impact.sub") },
+  { key: "werke",      icon: "🛍", bg: "rgba(149,113,244,0.10)", title: t("wo.area.werke.title"),      sub: t("wo.area.werke.sub") },
+  { key: "talente",    icon: "🎨", bg: "rgba(212,149,42,0.10)",  title: t("wo.area.talente.title"),    sub: t("wo.area.talente.sub") },
+  { key: "erlebnisse", icon: "🎟", bg: "rgba(13,196,181,0.10)",  title: t("wo.area.erlebnisse.title"), sub: t("wo.area.erlebnisse.sub") },
+  { key: "momente",    icon: "📸", bg: "rgba(244,115,85,0.10)",  title: t("wo.area.momente.title"),    sub: t("wo.area.momente.sub") },
+  { key: "impact",     icon: "🌍", bg: "rgba(99,184,99,0.10)",   title: t("wo.area.impact.title"),     sub: t("wo.area.impact.sub") },
   ];
 }
 
@@ -146,6 +150,16 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
     setClosing(true);
     // AppEntryController übernimmt Storage + Navigation
     setTimeout(() => { onDone?.(); }, 420);
+  }
+
+  // VORWORT-TILES-OPEN-FIX (2026-09-08, Report 0ddbab94): Tap auf eine der
+  // 5 Grundbereichs-Kacheln schließt das Overlay (gleiche Closing-Animation
+  // wie "HUI entdecken") und übergibt den Bereich an AppEntryController,
+  // der nach dem Overlay zur jeweiligen App-Sektion navigiert.
+  function handleOpenArea(key) {
+    if (!key) return;
+    setClosing(true);
+    setTimeout(() => { onDone?.({ areaKey: key }); }, 420);
   }
 
   const isRulesOnly = mode === "rulesOnly";
@@ -377,8 +391,12 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                   <div
                     key={i}
                     className="hui-welcome-feature"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={f.title}
+                    onClick={() => handleOpenArea(f.key)}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOpenArea(f.key); } }}
                     style={{
-                      pointerEvents: "none",
                       display:       "flex",
                       alignItems:    "center",
                       gap:           7,
@@ -387,7 +405,8 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                       background:    "rgba(250,247,242,0.9)",
                       border:        "1px solid rgba(13,196,181,0.10)",
                       transition:    "background 0.2s",
-                      cursor:        "default",
+                      cursor:        "pointer",
+                      WebkitTapHighlightColor: "transparent",
                     }}
                   >
                     <div style={{
