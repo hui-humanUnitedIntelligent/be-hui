@@ -318,12 +318,29 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
     const userId = authData.user.id;
 
     // 1b. CONTENT-MODERATION-001: Prüfung VOR Insert
+    // FIX (2026-09-08, CONTENT-MODERATION-005): Root Cause von Michaels
+    // "Verbindungsproblem beim Teilen"-Report (36.1MB-Video, direkt nach der
+    // Upload-Limit-Erhöhung 25→50MB) — die Edge Function schickte bei Videos
+    // die ROHEN Video-Bytes an Google Vision (eine BILD-API!) und base64-
+    // kodierte sie per Spread-Operator (String.fromCharCode(...bytes)).
+    // Bei >~25MB sprengt das den Call-Stack/die Laufzeit der Deno-Function →
+    // Timeout/Crash → fail-closed "Verbindungsproblem". Fachlich war das
+    // ohnehin nie korrekt (Vision prüft keine Videos als "Bild"). Fix: bei
+    // Videos wird stattdessen der bereits extrahierte Thumbnail-Frame (echtes
+    // kleines JPEG) moderiert — das prüft jetzt TATSÄCHLICH Bildinhalt, statt
+    // nichts Sinnvolles zu tun. Fehlt der Thumbnail (Extraktion fehlgeschlagen,
+    // graceful), wird nur der Text geprüft — KEINE Video-Rohdaten mehr an
+    // Vision gesendet.
+    const moderationMediaUrl = type === "video" ? (thumbnailUrl || null) : src;
+    const moderationMediaType = type === "video"
+      ? (thumbnailUrl ? "image" : null)
+      : (type === "foto" ? "image" : null);
     let modResult = { is_flagged: false, is_blurred: false, flag_categories: [] };
-    if (src || (caption && caption.trim())) {
+    if (moderationMediaUrl || (caption && caption.trim())) {
       modResult = await moderateContent({
         userId,
-        mediaUrl: src,
-        mediaType: type === "video" ? "video" : (type === "foto" ? "image" : null),
+        mediaUrl: moderationMediaUrl,
+        mediaType: moderationMediaType,
         text: caption,
       });
     }

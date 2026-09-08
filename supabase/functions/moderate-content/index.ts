@@ -185,6 +185,28 @@ async function getGoogleVisionToken(saKeyB64) {
   }
 }
 
+// SICHERHEITSFIX (2026-09-08, CONTENT-MODERATION-005): Chunked Base64-Encoder
+// statt btoa(String.fromCharCode(...bytes)) — der Spread-Operator über einen
+// kompletten Byte-Array wirft bei großen Buffern "Maximum call stack size
+// exceeded" bzw. killt die Deno-Function-Laufzeit (bewiesener Root Cause des
+// "Verbindungsproblem"-Fails bei einem 36MB-Video, siehe HuiMomentSheet.jsx).
+// Chunk-Größe 8192 ist der etablierte sichere Wert für diesen Zweck.
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer)
+  const CHUNK_SIZE = 8192
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK_SIZE))
+  }
+  return btoa(binary)
+}
+
+// Google Vision images:annotate akzeptiert praktisch max. ~20MB Base64-Payload.
+// Zusätzliche Absicherung: Medien über dieser Rohgröße werden übersprungen
+// (graceful — kein Crash, kein fail-closed-Fehler für den Nutzer), statt sie
+// überhaupt erst herunterzuladen/zu kodieren.
+const MAX_VISION_INPUT_BYTES = 15 * 1024 * 1024; // 15MB Rohgröße (sicher unter Visions ~20MB-Base64-Limit)
+
 // ── Google Vision: SafeSearch (Bild-Inhalt) + TEXT_DETECTION (OCR) ──
 async function checkImageModeration(mediaUrl, saKeyB64) {
   try {
@@ -192,8 +214,21 @@ async function checkImageModeration(mediaUrl, saKeyB64) {
     if (!accessToken) return { flags: [], confidence: 0, details: {}, ocrText: '', ocrFlags: [] }
 
     const imgResp = await fetch(mediaUrl)
+    if (!imgResp.ok) {
+      console.warn('[moderate-content] Medium nicht abrufbar (fail-open, kein Crash):', imgResp.status)
+      return { flags: [], confidence: 0, details: {}, ocrText: '' }
+    }
+    const contentLength = Number(imgResp.headers.get('content-length') || 0)
+    if (contentLength && contentLength > MAX_VISION_INPUT_BYTES) {
+      console.warn('[moderate-content] Medium zu groß für Vision, übersprungen:', contentLength)
+      return { flags: [], confidence: 0, details: {}, ocrText: '' }
+    }
     const imgBuf = await imgResp.arrayBuffer()
-    const imgB64 = btoa(String.fromCharCode(...new Uint8Array(imgBuf)))
+    if (imgBuf.byteLength > MAX_VISION_INPUT_BYTES) {
+      console.warn('[moderate-content] Medium zu groß für Vision (nach Download), übersprungen:', imgBuf.byteLength)
+      return { flags: [], confidence: 0, details: {}, ocrText: '' }
+    }
+    const imgB64 = arrayBufferToBase64(imgBuf)
 
     const visionResp = await fetch('https://vision.googleapis.com/v1/images:annotate', {
       method: 'POST',
