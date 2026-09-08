@@ -15,6 +15,19 @@ const KEYS = {
   PIN_ENABLED: 'hui_biometric_pin_enabled',
 };
 
+// PUNKT7/8-BIOMETRY-KIND (2026-09-08, Michael): Einheitliches Kuerzel der
+// Biometrie-Art fuer UI-Texte — iOS Face ID und Android Gesichtserkennung
+// bekommen eigene Labels statt der bisherigen Fingerabdruck-Hardcodierung.
+// 'faceId' = iOS Face ID, 'face' = Android Gesicht, 'touchId' = iOS Touch ID,
+// 'fingerprint' = Android Fingerabdruck/Iris, 'none' = kein Sensor.
+export function biometryKind(type) {
+  if (type === BiometryType.faceId) return 'faceId';
+  if (type === BiometryType.faceAuthentication) return 'face';
+  if (type === BiometryType.touchId) return 'touchId';
+  if (type === BiometryType.fingerprintAuthentication || type === BiometryType.irisAuthentication) return 'fingerprint';
+  return 'none';
+}
+
 // Biometrie verfügbar?
 export async function checkBiometricAvailability() {
   if (!Capacitor.isNativePlatform()) return { available: false, reason: 'web', code: 'web' };

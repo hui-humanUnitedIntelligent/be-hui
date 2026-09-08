@@ -40,12 +40,13 @@ import { useTranslation } from "../../hooks/useTranslation.js";
    bestaetigte geometrische Referenz. Siehe Kommentar bei HEART_VARIANTS.
 
    API: HUIHeartIcon({ size=24, active=false, className, style }).
-   active steuert NUR die eingebaute Aktivierungs-Animation (Puls + sich
-   ausbreitender Lichtring, ~300ms, ease-out, ausschliesslich transform/
-   opacity -- GPU-beschleunigt, kein filter/drop-shadow). Farbe/Opacity je
-   Zustand (Default/Hover/Pressed/Active/Disabled) bleiben wie bisher
-   Aufgabe der aufrufenden Button-Komponente (ActionBtn/IconBtn) ueber
-   CSS color auf dem umschliessenden Element (currentColor). */
+   PUNKT12-FILLED-HEART (2026-09-08, Michael): active rendert das Herz
+   jetzt ZUSAEATZLICH zur Aktivierungs-Animation (Puls + Lichtring,
+   ~300ms, ease-out, transform/opacity -- GPU-beschleunigt) GEFUELLT
+   (fill=currentColor statt fill=none), damit der Nutzer sofort sieht,
+   dass er bereits Resonanz gegeben hat. inactive bleibt Outline.
+   Farbe/Opacity je Zustand bleiben Aufgabe der aufrufenden Button-
+   Komponente (ActionBtn/IconBtn) ueber CSS color (currentColor). */
 let _heartCSSInjected = false;
 function injectHeartCSS() {
   if (_heartCSSInjected || typeof document === "undefined") return;
@@ -109,7 +110,8 @@ export function HUIHeartIcon({ size = 24, active = false, className, style }) {
         </svg>
       )}
       <svg
-        width={size} height={size} viewBox="0 0 24 24" fill="none"
+        width={size} height={size} viewBox="0 0 24 24"
+        fill={active ? "currentColor" : "none"} /* PUNKT12-FILLED-HEART */
         stroke="currentColor" strokeWidth={variant.stroke}
         strokeLinecap="round" strokeLinejoin="round"
         aria-hidden="true"

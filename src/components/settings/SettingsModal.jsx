@@ -22,6 +22,7 @@ import { formatDateDE } from "../../lib/formatters.js";
 import { Capacitor } from "@capacitor/core";
 import {
   checkBiometricAvailability,
+  biometryKind,
   isBiometricEnabled,
   isPINEnabled,
   authenticateWithBiometric,
@@ -457,6 +458,8 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   const [pinEnabled, setPinEnabled]               = useState(false);
   const [bioAvailable, setBioAvailable]            = useState(false);
   const [bioReasonCode, setBioReasonCode]          = useState(null); // Diagnose: nativer code/reason wenn nicht verfügbar
+  const [bioKind, setBioKind] = useState("none"); // 'faceId'|'face'|'touchId'|'fingerprint'|'none' (PUNKT7/8)
+  const [showBioSetup, setShowBioSetup] = useState(false); // Einrichtungs-Modal bei biometryNotEnrolled (PUNKT8)
   // BANKDATEN-LINK (2026-08-16): Wenn von Notification-Deep-Link geöffnet,
   // automatisch Bankdaten-Sub-Modal öffnen.
   useEffect(() => {
@@ -483,6 +486,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       setPinEnabled(pinOn);
       setBioAvailable(avail.available);
       setBioReasonCode(avail.available ? null : (avail.code || null));
+      setBioKind(biometryKind(avail.biometryType));
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -493,8 +497,13 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
       setBiometricEnabled(false);
       return;
     }
-    if (!bioAvailable) return; // Toggle ist disabled — wird durch UI blockiert
-    // Biometrie-Sensor verfügbar → Fingerabdruck-Scan auslösen
+    if (!bioAvailable) {
+      // PUNKT7/8: Sensor vorhanden, aber nichts hinterlegt (biometryNotEnrolled)
+      // → statt stummem Abbruch das Einrichtungs-Modal mit Schritt-Anleitung.
+      if (bioReasonCode === "biometryNotEnrolled") setShowBioSetup(true);
+      return;
+    }
+    // Biometrie-Sensor verfügbar → Biometrie-Scan auslösen (Face ID/Gesicht/Fingerabdruck je Gerät)
     const success = await authenticateWithBiometric();
     if (success) {
       const { data: { session } } = await supabase.auth.getSession();
@@ -503,7 +512,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
         setBiometricEnabled(true);
       }
     }
-  }, [biometricEnabled, bioAvailable]);
+  }, [biometricEnabled, bioAvailable, bioReasonCode]);
 
   // ── PIN Toggle (unabhängig von Biometrie) ─────────────────────
   const handlePinToggle = useCallback(async () => {
@@ -600,7 +609,12 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
     paddingBottom: "max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 16px), 16px)",
   };
   const header = {
-    display: view === "support" ? "none" : "flex",
+    // PUNKT9-TICKETS-HEADER-FIX (2026-09-08, Michael): Auch in der Tickets-View
+    // ausblenden — der SettingsModal-Header zeigte dort den Fallback-Titel
+    // "Einstellungen" + X-Button (titles-Map hat keinen tickets-Eintrag).
+    // MeineTicketsPage hat einen eigenen "← Meine Tickets"-Header; nur der
+    // Zurueck-Button soll navigieren (analog zur Support-View).
+    display: (view === "support" || view === "tickets") ? "none" : "flex",
     alignItems:"center", justifyContent:"space-between",
     padding:"max(var(--hui-safe-top, 0px), 18px, env(safe-area-inset-top, 18px)) 18px 13px",
     position:"sticky", top:0,
@@ -649,7 +663,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
         </div>
 
         {/* ── Inhalt ── */}
-        <div style={{ padding: view === "support" ? 0 : "18px 14px 30px" }}>
+        <div style={{ padding: (view === "support" || view === "tickets") ? 0 : "18px 14px 30px" }}>
 
           {/* ══ MAIN VIEW ══════════════════════════════════════ */}
           {view === "main" && (<>
@@ -971,18 +985,23 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                     <div style={{ fontSize:15, fontWeight:600, color:T.ink }}>{t("biometric.labelBiometric")}</div>
                     <div style={{ fontSize:12, color:T.inkFaint, marginTop:2 }}>
                       {bioAvailable
-                        ? t("biometric.biometricAvailable")
-                        : (BIO_REASON_LABELS[bioReasonCode] || t("biometric.biometricUnavailable"))}
+                        ? (bioKind === "faceId"     ? t("biometric.availFaceId")
+                          : bioKind === "face"      ? t("biometric.availFace")
+                          : bioKind === "touchId"   ? t("biometric.availTouch")
+                          : t("biometric.biometricAvailable"))
+                        : (bioReasonCode === "biometryNotEnrolled"
+                            ? t("biometric.setupHint")
+                            : (BIO_REASON_LABELS[bioReasonCode] || t("biometric.biometricUnavailable")))}
                     </div>
                   </div>
                   <button
                     onClick={handleBiometricToggle}
-                    disabled={!bioAvailable && !biometricEnabled}
+                    disabled={!bioAvailable && bioReasonCode !== "biometryNotEnrolled" && !biometricEnabled}
                     style={{
                       width:44, height:26, borderRadius:13, border:"none", cursor:"pointer",
                       padding:0, position:"relative",
                       background: biometricEnabled ? T.teal : "rgba(26,26,24,0.15)",
-                      opacity: (!bioAvailable && !biometricEnabled) ? 0.4 : 1,
+                      opacity: (!bioAvailable && bioReasonCode !== "biometryNotEnrolled" && !biometricEnabled) ? 0.4 : 1,
                       transition:"background 0.2s", touchAction:"manipulation",
                     }}
                     aria-label={biometricEnabled ? t("biometric.settingsOff") : t("biometric.settingsOn")}
@@ -997,7 +1016,9 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 </div>
                 {biometricEnabled && (
                   <div style={{ fontSize:12, color:T.teal, marginTop:4 }}>
-                    ✓ {t("biometric.biometricActive")}
+                    ✓ {(bioKind === "faceId" || bioKind === "face")
+                      ? t("biometric.activeFace")
+                      : t("biometric.biometricActive")}
                   </div>
                 )}
               </div>
@@ -1066,6 +1087,59 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
 
 
 
+        {/* PUNKT7/8-SETUP-MODAL: Sensor vorhanden, aber Face ID/Gesicht/Finger-
+            abdruck noch nicht im System hinterlegt → Schritt-für-Schritt-Anleitung
+            statt stummem Disabled-Zustand (Michael 08.09.). */}
+        {showBioSetup && createPortal(
+        <div
+        onClick={() => setShowBioSetup(false)}
+        style={{
+          position:"fixed", inset:0, zIndex:10700,
+          background:"rgba(26,26,24,0.55)",
+          display:"flex", alignItems:"flex-end", justifyContent:"center",
+          fontFamily:"Inter,sans-serif",
+        }}
+        >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            width:"100%", maxWidth:430, background:"#FDFBF8",
+            borderRadius:"20px 20px 0 0", padding:"24px 22px calc(28px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
+            boxShadow:"0 -8px 40px rgba(0,0,0,0.18)",
+          }}
+        >
+          <div style={{ width:36, height:4, borderRadius:2, background:"rgba(0,0,0,0.12)", margin:"0 auto 14px" }} />
+          <div style={{ fontSize:17, fontWeight:700, color:T.ink, marginBottom:6 }}>
+            {bioKind === "faceId" ? t("biometric.setupTitleFaceId")
+             : bioKind === "face" ? t("biometric.setupTitleFace")
+             : t("biometric.setupTitle")}
+          </div>
+          <div style={{ fontSize:13, color:T.inkSoft, lineHeight:1.55, marginBottom:12 }}>
+            {t("biometric.setupIntro")}
+          </div>
+          <div style={{ background:"rgba(14,196,184,0.06)", borderRadius:12, padding:"14px 14px", marginBottom:16 }}>
+            {(Capacitor.getPlatform() === "ios" ? t("biometric.setupStepsIOS") : t("biometric.setupStepsAndroid"))
+              .split("\n").map((line, i) => (
+                <div key={i} style={{ fontSize:12.5, color:T.ink, lineHeight:1.7, display:"flex", gap:8 }}>
+                  <span style={{ color:T.teal, fontWeight:600, minWidth:14 }}>{i + 1}.</span>
+                  <span>{line}</span>
+                </div>
+              ))}
+          </div>
+          <button
+            onClick={() => setShowBioSetup(false)}
+            style={{
+              width:"100%", padding:"13px 0", borderRadius:12, border:"none", cursor:"pointer",
+              background:T.teal, color:"#fff", fontSize:14, fontWeight:600,
+              touchAction:"manipulation",
+            }}
+          >
+            {t("biometric.setupBtnOk")}
+          </button>
+        </div>
+        </div>,
+        document.body
+        )}
         {showBioPINSetup && createPortal(
         <div
         onClick={() => { setShowBioPINSetup(false); setBioPinError(null); }}

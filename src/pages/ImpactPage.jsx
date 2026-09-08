@@ -5,10 +5,15 @@
 import { useStripeImpactPool } from "../hooks/useStripeImpactPool";
 import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.jsx";
 import { HUIImpactIcon, HUIStimmeIcon,
-  HUIAwardIcon,
+  HUIAwardIcon, HUIProfilIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { HUILogo } from '../components/brand/HUILogo.jsx';
+// PUNKT5-IMPACT-TABLET (2026-09-08): SSOT-Tablet-Erkennung (geteilt mit
+// BaseFeedCard/TABLET-MEDIA-3X) — Impact-Projektkarten zeigen ihr Cover-Bild
+// auf Tablets doppelt so hoch statt es bei gleicher 180px-Höhe massiv zu
+// beschneiden (iPad: "Bilder nicht zu erkennen", Lars/Michael).
+import { useIsTabletScreen } from "../lib/useIsTabletScreen.js";
 import ReactDOM from 'react-dom';
 import React from "react";
 import { ProfileService } from '../services/db';
@@ -18,7 +23,7 @@ import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { isProfileTalent } from "../lib/profileUtils.js";
 import { useImageGallery } from "../context/ImageGalleryContext.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
@@ -1151,10 +1156,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   // ── Back-Button: Impact-Detail-Overlays registrieren ──
   useModalRegistration(!!detailApp, () => setDetailApp(null), "ImpactPage-DetailApp");
   useModalRegistration(showVormonate, () => setShowVormonate(false), "ImpactPage-Vormonate");
-  // Flag: wurde Detail per Deep-Link (aus Discover) geöffnet?
-  // → onClose navigiert dann zurück zu "/" statt nur Modal schließen
-  const _openedViaDeepLink = React.useRef(false);
-  const navigate = useNavigate();
   const location = useLocation();
 
   // ── Deep-Link aus Router-State: /impact navigieren mit state.openProjectId ──
@@ -1163,8 +1164,6 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     if (!pid) return;
     // State sofort leeren (verhindert Re-open bei Back-Navigation)
     window.history.replaceState({ ...window.history.state, usr: {} }, '');
-    // Merken: Detail via Deep-Link geöffnet → Close = zurück zu Home
-    _openedViaDeepLink.current = true;
     // Projekt aus impact_applications laden und Detail öffnen
     supabase
       .from("impact_applications")
@@ -1176,15 +1175,18 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       });
   }, [location.state?.openProjectId]);
 
-  // ── Close-Handler: Deep-Link → zurück zu Home; normaler Klick → nur Modal schließen ──
+  // ── Close-Handler: IMMER im Impact-Bereich bleiben (PUNKT6-DETAIL-CLOSE-STAY,
+  // 2026-09-08, Michael) — vorher navigierte der Deep-Link-Pfad zu navigate("/"):
+  // Home-Remount zog bei veralteten Lazy-Chunks (mehrere OTA-Deploys am selben
+  // Tag) einen ChunkLoadError nach sich → ErrorBoundary-Auto-Reload ("App wird
+  // aktualisiert…") → wirkte wie ein App-Neustart. Gewünschtes Verhalten:
+  // Schließen = zurück zum Impact-Bereich, ohne Navigation. Deep-Link-Nutzer
+  // kommen per Hardware-Back weiterhin nach Home zurück (navigate("/impact")
+  // war ein Push auf den History-Stack). Die useModalRegistration-Zeile oben
+  // (Hardware-Back) schließt ohnehin nur das Modal — beide Pfade jetzt identisch.
   const handleDetailClose = React.useCallback(() => {
     setDetailApp(null);
-    if (_openedViaDeepLink.current) {
-      _openedViaDeepLink.current = false;
-      // Zurück zu Home (Discover) — sofort, ohne Impact-Page im Vordergrund zu lassen
-      navigate("/", { replace: true });
-    }
-  }, [navigate]);
+  }, []);
 
   // ── Projekte: Admin-Monatsauswahl (Priority) → Fallback Top-3 ──
   React.useEffect(() => {
@@ -1943,6 +1945,7 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
 
 function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen, canVote = true }) {
   const { t } = useTranslation();
+  const isTabletScreen = useIsTabletScreen(); // PUNKT5-IMPACT-TABLET (2026-09-08)
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
   const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
@@ -1951,8 +1954,9 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
   const RANK_C = [T.teal, T.coral, T.violet];
   const rc = RANK_C[rank] || T.teal;
 
-  // Supporter-Avatare
-  const AVTS = ["https://i.pravatar.cc/28?img=1","https://i.pravatar.cc/28?img=5","https://i.pravatar.cc/28?img=12"];
+  // Supporter-Avatare — BILD-PLATZHALTER-REGEL (2026-09-08): Die bisherigen
+  // pravatar.cc-Stockfotos täuschten echte Supporter-Gesichter vor, die es
+  // nicht gibt. Erlaubtes Avatar-Muster stattdessen: HUIProfilIcon-Silhouette.
 
   return (
     <div id={`project-${p.id}`}
@@ -1963,8 +1967,12 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
         animation:"ipFade 0.38s ease both", animationDelay:`${rank*0.08}s`,
         cursor: onOpen ? "pointer" : "default",
       }}>
-      {/* Bild — gross */}
-      <div style={{ position:"relative", height:180, overflow:"hidden",
+      {/* Bild — gross. PUNKT5-IMPACT-TABLET (2026-09-08): auf Tablets
+          (min(W,H) >= 700, gleiche SSOT-Erkennung wie Feed TABLET-MEDIA-3X)
+          2x so hoch — auf iPad sind die Karten stark verbreitert und das
+          Cover wurde bei fixen 180px extrem beschnitten ("nicht zu
+          erkennen"). 360px haelt das Seitenverhaeltnis proportional. */}
+      <div style={{ position:"relative", height: isTabletScreen ? 360 : 180, overflow:"hidden",
         background:`${accent}12` }}>
         {p.img && !imgErr
           ? <img loading="lazy" decoding="async" src={p.img} alt={p.name} onError={() => setImgErr(true)}
@@ -2016,9 +2024,13 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
         {/* Supporter-Zeile */}
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
           <div style={{ display:"flex" }}>
-            {AVTS.map((av,j) => (
-              <img loading="lazy" decoding="async" key={j} src={av} alt="" style={{ width:22, height:22, borderRadius:"50%",
-                border:"1.5px solid white", marginLeft:j>0?-7:0, objectFit:"cover" }}/>
+            {[0,1,2].map((j) => (
+              <div key={j} style={{ width:22, height:22, borderRadius:"50%",
+                border:"1.5px solid white", marginLeft:j>0?-7:0,
+                background:"rgba(14,196,184,0.10)",
+                display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <HUIProfilIcon size={12} style={{opacity:0.45, color:T.teal}} />
+              </div>
             ))}
           </div>
           <span style={{ fontSize:11, color:T.muted }}>

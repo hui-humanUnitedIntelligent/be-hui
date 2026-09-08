@@ -81,6 +81,10 @@ jobs:
                 plist['NSPhotoLibraryUsageDescription'] = 'HUI benötigt Zugriff auf deine Fotobibliothek zum Auswählen von Bildern.'
                 plist['NSPhotoLibraryAddUsageDescription'] = 'HUI benötigt Zugriff zum Speichern von Bildern in deiner Fotobibliothek.'
                 plist['NSLocationWhenInUseUsageDescription'] = 'HUI verwendet deinen Standort für die Umkreissuche und lokale Entdeckungen.'
+                # PUNKT7-FACE-ID (2026-09-08, Michael): Ohne NSFaceIDUsageDescription
+                # verweigert iOS jeden Face-ID-Prompt mit Fehler — Pflicht fuer die
+                # biometrische Entsperrung (BiometricGate/biometricService).
+                plist['NSFaceIDUsageDescription'] = 'HUI nutzt Face ID, um die App schnell und sicher zu entsperren.'
                 # App Transport Security — allow Supabase + Vercel
                 plist['NSAppTransportSecurity'] = {
                     'NSAllowsArbitraryLoads': False,

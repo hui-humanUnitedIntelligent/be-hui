@@ -26,6 +26,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { MembershipLabel } from "../../ui/TalentBadge.jsx";
 import { useAppState } from "../../lib/AppStateContext.jsx";
 
 const T = {
@@ -44,7 +45,7 @@ const SORT_OPTIONS = [
 
 // 51bbd017: "Folge ich"-Badge auch im Alle-anzeigen-Grid — gleicher SSOT
 // (followedIds via useAppState) wie PeopleSection, konsistentes Bild.
-function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false }) {
+function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false, membershipType="base" }) {
   const [imgErr, setImgErr] = useState(false);
   const { t } = useTranslation();
   const av = (!imgErr && p.avatar_url) ? p.avatar_url : null;
@@ -56,9 +57,13 @@ function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false })
       display:"flex", flexDirection:"column", alignItems:"center",
       padding:"16px 10px 12px", cursor:"pointer", position:"relative",
     }}>
+      {/* PUNKT4-FOLLOWING-BADGE-IN-FLOW (2026-09-08, Michael): Das "✓ Folge
+          ich"-Badge war position:absolute (top:8/right:8) und schwebte ÜBER
+          dem Avatar (Karte zu schmal im 2er-Grid). Jetzt eigene Zeile im
+          Fluss — Überlappung auf jeder Breite ausgeschlossen. */}
       {isFollowing && (
         <div style={{
-          position:"absolute", top:8, right:8,
+          alignSelf:"flex-end", marginBottom:6,
           display:"inline-flex", alignItems:"center", gap:2.5,
           fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
           color:T.tealDeep, background:"rgba(14,196,184,0.12)",
@@ -85,6 +90,13 @@ function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false })
         overflow:"hidden", display:"-webkit-box", WebkitLineClamp:1, WebkitBoxOrient:"vertical",
       }}>
         {name}
+      </div>
+      {/* PUNKT14-ACCOUNT-TYPE (2026-09-08, Michael): Account-Typ (Talent/
+          Mitglied/Team) unter jedem Profil — MembershipLabel als SSOT
+          (gleiche Komponente wie in Feed-Karten), Quelle: role/is_talent
+          über rpc_discover_people (neue Spalte membership_type). */}
+      <div style={{ marginBottom:4 }}>
+        <MembershipLabel membershipType={membershipType} size="xs" />
       </div>
       {/* Bio — immer 2 Zeilen Platz reserviert, auch wenn leer */}
       <div style={{
@@ -249,7 +261,8 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={p.total_likes || 0} isFollowing={followedIds.includes(p.id)} />)}
+            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={p.total_likes || 0} isFollowing={followedIds.includes(p.id)}
+              membershipType={p.membership_type || "base"} />)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>

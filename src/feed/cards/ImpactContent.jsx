@@ -1,6 +1,11 @@
 /**
  * ImpactContent.jsx — Feed-Karte für Herzensprojekte
  * IMPACT-CLICK-002 (2026-07-16) — BaseFeedCard-konformes Layout
+ * PUNKT2-HERZENSPROJEKT-CTA (2026-09-08, Michael): Karte jetzt visuell
+ * eigenständig (sanfter Grün-Tint + grüne Border via BaseFeedCard-cardStyle),
+ * Badge zeigt IMMER "💚 Herzensprojekt" (Rank-Medaille zusätzlich) und unter
+ * dem Fortschritt steht ein Voting-CTA, der direkt in den Impact-Bereich
+ * ("hui:navigate:tab") führt — der Post wirkt so nicht mehr wie jeder andere.
  *
  * Identischer Aufbau wie WorkContent/ExperienceContent/TalentContent:
  * Header + Bild (via BaseFeedCard.FeedMedia) + Badge + Titel + Progress
@@ -68,9 +73,11 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
   const curr  = raw.current_amount_eur || 0;
   const isCompleted = raw.is_completed === true || (goal > 0 && curr >= goal);
 
-  const badgeText = rank && RANK_MEDAL[rank]
-    ? `${RANK_MEDAL[rank]} ${RANK_LABEL[rank]}`
-    : t("impact.herzensprojektCategory");
+  // PUNKT2-HERZENSPROJEKT-CTA (2026-09-08): Badge zeigt IMMER die Kategorie
+  // "Herzensprojekt" (erkennbar auf einen Blick); eine Top-Rank-Medaille wird
+  // zusätzlich dahinter angehängt statt sie zu ersetzen.
+  const badgeText = t("impact.herzensprojektCategory")
+    + (rank && RANK_MEDAL[rank] ? ` · ${RANK_MEDAL[rank]} ${RANK_LABEL[rank]}` : "");
 
   const handleCardClick = () => open({
     ...item,
@@ -81,13 +88,28 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
     },
   });
 
-return (
+  // PUNKT2-HERZENSPROJEKT-CTA (2026-09-08): direkter Sprung in den
+  // Impact-Bereich (gleicher SSOT-Event wie _onOpenFull oben) — stopPropagation,
+  // damit nicht zusätzlich die Karten-Klick-Vorschau (ContentPreviewSheet) auf geht.
+  const handleVoteCta = (e) => {
+    e.stopPropagation();
+    window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
+  };
+
+  return (
     <BaseFeedCard
       item={item}
       onProfile={onProfile}
       onReaction={onReaction}
       onShare={onShare}
       onCardClick={handleCardClick}
+      cardStyle={{
+        // Sanfter Grün-Tint (Kategorie-Farbe Impact) statt purem Weiß —
+        // Design-System: Farben der Kategorie GREEN aus dieser Datei, kein
+        // neuer Farb-Token nötig.
+        background: "linear-gradient(180deg, rgba(34,197,94,0.10) 0%, rgba(34,197,94,0.03) 38%, #FFFFFF 100%)",
+        border: "1px solid rgba(34,197,94,0.30)",
+      }}
     >
       {/* Badge — alleine auf einer Zeile */}
       <div style={{ marginBottom:6 }}>
@@ -122,6 +144,28 @@ return (
 
       {/* Fortschrittsbalken (nur bei nicht-abgeschlossenen Projekten) */}
       {!isCompleted && goal > 0 && <ProgressBar current={curr} goal={goal} />}
+
+      {/* PUNKT2-HERZENSPROJEKT-CTA (2026-09-08): Voting-Hinweis + CTA in
+          der Karte — führt direkt in den Impact-Bereich zum Abstimmen.
+          Bei abgeschlossenen Projekten kein CTA (Abstimmung beendet). */}
+      {!isCompleted && (
+        <div
+          onClick={handleVoteCta}
+          style={{
+            marginTop: 12, display: "flex", alignItems: "center", gap: 10,
+            padding: "10px 12px", borderRadius: 12, cursor: "pointer",
+            background: GREEN_SOFT, border: `1px solid rgba(34,197,94,0.22)`,
+          }}
+        >
+          <span style={{ fontSize: 18, lineHeight: 1 }}>🗳️</span>
+          <span style={{ flex: 1, fontSize: 12, lineHeight: 1.35, color: INK_SUB }}>
+            {t("feed.impactVoteHint")}
+          </span>
+          <span style={{
+            fontSize: 12, fontWeight: 600, color: GREEN, whiteSpace: "nowrap",
+          }}>{t("feed.impactVoteCta")} ›</span>
+        </div>
+      )}
     </BaseFeedCard>
   );
 }

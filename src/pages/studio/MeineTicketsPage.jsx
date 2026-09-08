@@ -3,6 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { supabase } from "../../lib/supabaseClient.js";
+// PUNKT11-TICKETS-PULL-REFRESH (2026-09-08, Michael): SSOT-Pull-to-Refresh
+// (gleicher Hook wie Home, usePullToRefresh d2697d55) fuer Liste UND Chat —
+// aktiver Chat bleibt dabei geoeffnet (kein activeThread-Reset beim Refresh).
+import { usePullToRefresh } from "../../hooks/usePullToRefresh.js";
+import { PullToRefreshIndicator } from "../../components/ui/PullToRefreshIndicator.jsx";
 import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { useImageGallery } from "../../context/ImageGalleryContext.jsx";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
@@ -78,6 +83,18 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
         } catch { /* optional */ }
       }
 
+      // PUNKT10-EMAIL-FALLBACK (2026-09-08): Follow-ups speicherten die E-Mail aus
+      // profile.email — ist die dort nicht gepflegt, landete "" in der DB und die
+      // Ticket-Antwort-E-Mail des Supports fiel still aus (Beweisfall Sascha,
+      // HUI-20260908-876). Backfill aus der Login-Session (Auth-E-Mail ist immer da).
+      let contactEmail = userEmail ?? "";
+      if (!contactEmail.trim()) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          contactEmail = session?.user?.email ?? "";
+        } catch { /* Session-Lookup fehlgeschlagen — nicht kritisch */ }
+      }
+
       // Direkt via Supabase insert (RLS WITH CHECK erlaubt user eigene Einträge)
       const { error } = await supabase.from("notifications").insert({
         user_id:  userId,
@@ -87,7 +104,7 @@ function ReplySheet({ ticketNumber, subject, adminReply, userId, userEmail, user
         data: {
           ticket_number:    ticketNumber,
           name:             userName ?? "",
-          email:            userEmail ?? "",
+          email:            contactEmail,
           category:         "anfrage",
           priority:         "normal",
           subject:          `RE: ${subject}`,
@@ -289,9 +306,18 @@ function MessageBubble({ role, text, time, attachments }) {
 }
 
 // ── Thread-Ansicht — alle Nachrichten einer Ticket-Nummer ────────────────────
-function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
+function TicketThread({ ticketNumber, subject, allTickets, profile, onBack, onRefresh }) {
   const [showReply, setShowReply] = useState(false);
   const bottomRef = useRef(null);
+  const threadScrollRef = useRef(null);
+  // PUNKT11: Pull-to-Refresh im Chat — aktualisiert die Tickets, ohne den
+  // geoeffneten Chat zu schliessen (activeThread bleibt im Parent gesetzt).
+  const { pullDistance, isRefreshing, isTriggered } = usePullToRefresh({
+    onRefresh: onRefresh ?? (async () => {}),
+    scrollRef: threadScrollRef,
+    threshold: 72,
+    maxPull:   110,
+  });
 
   // Alle Notifications dieser Ticket-Nummer chronologisch sortieren
   const thread = allTickets
@@ -369,8 +395,10 @@ function TicketThread({ ticketNumber, subject, allTickets, profile, onBack }) {
       </div>
 
       {/* Thread-Verlauf */}
-      <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+      <div ref={threadScrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", position:"relative",
         padding:"16px 16px 160px", display:"flex", flexDirection:"column", gap:16 }}>
+        {/* PUNKT11: Pull-to-Refresh Indikator im Chat */}
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} isTriggered={isTriggered} />
 
         {/* Kategorie-Meta einmalig oben */}
         {thread[0] && (
@@ -500,6 +528,15 @@ export default function MeineTicketsPage({ onBack, userId, profile }) {
   const [tickets,       setTickets]       = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [activeThread,  setActiveThread]  = useState(null); // { ticketNumber, subject }
+  const listScrollRef = useRef(null);
+  // PUNKT11: Pull-to-Refresh auf der Ticket-Liste — onRefresh laedt die
+  // Tickets neu; der ggf. offene ChatThread (activeThread) bleibt unberuehrt.
+  const { pullDistance, isRefreshing, isTriggered } = usePullToRefresh({
+    onRefresh: async () => { await load(); },
+    scrollRef: listScrollRef,
+    threshold: 72,
+    maxPull:   110,
+  });
 
   const load = async () => {
     if (!userId) { setLoading(false); return; }
@@ -540,6 +577,7 @@ export default function MeineTicketsPage({ onBack, userId, profile }) {
       <TicketThread
         ticketNumber={activeThread.ticketNumber}
         subject={activeThread.subject}
+        onRefresh={load}
         allTickets={tickets.filter(t => (t.data?.ticket_number ?? "") === activeThread.ticketNumber)}
         profile={profile}
         onBack={handleThreadBack}
@@ -568,8 +606,10 @@ export default function MeineTicketsPage({ onBack, userId, profile }) {
           padding:"3px 9px", borderRadius:6 }}>{threadNumbers.length}</span>
       </div>
 
-      <div style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch",
+      <div ref={listScrollRef} style={{ flex:1, overflowY:"auto", WebkitOverflowScrolling:"touch", position:"relative",
         padding:"16px 16px 48px" }}>
+        {/* PUNKT11: Pull-to-Refresh Indikator oben im Scroll-Container */}
+        <PullToRefreshIndicator pullDistance={pullDistance} isRefreshing={isRefreshing} isTriggered={isTriggered} />
         {loading ? (
           <div style={{ textAlign:"center", padding:60, color:C.muted, fontSize:13 }}>
             ⏳ Lade Tickets…

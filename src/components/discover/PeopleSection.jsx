@@ -37,10 +37,13 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
       WebkitTapHighlightColor:"transparent",
       position:"relative",
     }}>
-      {/* "Folge ich"-Badge (51bbd017) — nur sichtbar wenn eingeloggt + gefolgt */}
+      {/* "Folge ich"-Badge (51bbd017) — nur sichtbar wenn eingeloggt + gefolgt.
+          PUNKT4-FOLLOWING-BADGE-IN-FLOW (2026-09-08): vorher absolute
+          (top:8/right:8) → schwebte über dem Avatar. Jetzt eigene Zeile im
+          Fluss — konsistent mit MenschenAllModal, keine Überlappung. */}
       {isFollowing && (
         <div style={{
-          position:"absolute", top:8, right:8,
+          alignSelf:"flex-end", marginBottom:6,
           display:"inline-flex", alignItems:"center", gap:2.5,
           fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
           color:T.tealDeep, background:"rgba(14,196,184,0.12)",
