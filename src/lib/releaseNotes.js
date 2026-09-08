@@ -17,6 +17,22 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.578 — von Michael am 08.09.2026 vor Deploy geprueft und freigegeben
+  // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
+  "2.1.578": {
+    de: [
+      "Folgen ist jetzt zuverlässig: Entfolgen wird überall sofort angezeigt",
+      "Das „Folge ich“-Zeichen sitzt jetzt über den Herzen auf Profil-Karten",
+      "Herzensprojekte: Profilbilder der Unterstützer sind sichtbar",
+      "Profil-Bezeichnungen korrigiert: Talent, Projekt, Verein, Unternehmen",
+    ],
+    en: [
+      "Following is now reliable: unfollows show everywhere instantly",
+      "The „Following“ label now sits above the hearts on profile cards",
+      "Heart projects: profile pictures of supporters are now visible",
+      "Profile labels corrected: Talent, Project, Association, Company",
+    ],
+  },
   // 2.1.577 — erstes Release mit WhatsNewModal. Fasst die Highlights der
   // Bug-Queue-Batches 2.1.572-577 zusammen (User haben diese OTAs teils
   // einzeln, teils kumulativ gezogen — das Sheet deckt alles Sichtbare ab).
