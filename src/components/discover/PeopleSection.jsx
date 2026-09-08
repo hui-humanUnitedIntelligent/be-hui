@@ -7,9 +7,19 @@ import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcon
 import { formatPresence } from "../../lib/usePresence.js";
 import { optimizeAvatar } from "../../lib/perfUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useAppState } from "../../lib/AppStateContext.jsx";
 
-export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers=0, likes=0 }) {
+// DISCOVER-FOLLOW-BADGE (2026-09-08, Bug-Käfer 51bbd017 "Folgen wird auf dem
+// Profil erkannt aber nicht bei Entdecken"): Die Discover-Menschenkarten
+// zeigten NIE den Folgestatus des eingeloggten Nutzers — man folgte jemandem
+// auf dessen Profil, zurück im Entdecken-Tab war davon nichts zu sehen.
+// isFollowing kommt als Prop von PeopleSection (unten), Quelle ist der
+// globale SSOT followedIds aus AppStateContext (derselbe State, den auch
+// das Profil für seinen "Folge ich"-Button nutzt — optimistic updates und
+// hui:follow:changed-Events greifen dadurch automatisch auch hier).
+export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers=0, likes=0, isFollowing=false }) {
   const [imgErr, setImgErr] = useState(false);
+  const { t } = useTranslation();
   const av = (!imgErr && person.avatar) ? person.avatar : null;
   const presence = formatPresence(person.last_seen_at);
 
@@ -27,6 +37,18 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
       WebkitTapHighlightColor:"transparent",
       position:"relative",
     }}>
+      {/* "Folge ich"-Badge (51bbd017) — nur sichtbar wenn eingeloggt + gefolgt */}
+      {isFollowing && (
+        <div style={{
+          position:"absolute", top:8, right:8,
+          display:"inline-flex", alignItems:"center", gap:2.5,
+          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
+          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
+          border:"1px solid rgba(14,196,184,0.22)",
+          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
+        }}>✓ {t("profile.following")}</div>
+      )}
+
       {/* Avatar + Online-Dot */}
       <div style={{ position:"relative", marginBottom:10 }}>
         <div style={{
@@ -116,6 +138,8 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
 
 export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
   const { t } = useTranslation();
+  // 51bbd017: Folgestatus aus globalem SSOT (siehe Kommentar bei PersonCard)
+  const { followedIds = [] } = useAppState();
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
@@ -143,7 +167,7 @@ export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers || 0} likes={p.likes || 0} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers || 0} likes={p.likes || 0} isFollowing={followedIds.includes(p.id)} />
               ))
           }
         </div>
@@ -165,6 +189,13 @@ export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       {p.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{p.location}</span>}
                       <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>⚡ {fmtImpact(p.impact)}</span>
+                      {followedIds.includes(p.id) && (
+                        <span style={{
+                          fontSize:9.5, fontWeight:600, color:T.tealDeep,
+                          background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.22)",
+                          borderRadius:99, padding:"2px 7px", whiteSpace:"nowrap",
+                        }}>✓ {t("profile.following")}</span>
+                      )}
                     </div>
                   </div>
                 </div>

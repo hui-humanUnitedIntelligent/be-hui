@@ -26,6 +26,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { useAppState } from "../../lib/AppStateContext.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -41,8 +42,11 @@ const SORT_OPTIONS = [
   { key:"alpha",     label:"A–Z",   icon:"🔤" },
 ];
 
-function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
+// 51bbd017: "Folge ich"-Badge auch im Alle-anzeigen-Grid — gleicher SSOT
+// (followedIds via useAppState) wie PeopleSection, konsistentes Bild.
+function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false }) {
   const [imgErr, setImgErr] = useState(false);
+  const { t } = useTranslation();
   const av = (!imgErr && p.avatar_url) ? p.avatar_url : null;
   const name = p.display_name || p.username || "HUI Mitglied";
   return (
@@ -50,8 +54,18 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
       background:T.white, borderRadius:16, overflow:"hidden",
       boxShadow:T.cardShadow, border:`1px solid ${T.border}`,
       display:"flex", flexDirection:"column", alignItems:"center",
-      padding:"16px 10px 12px", cursor:"pointer",
+      padding:"16px 10px 12px", cursor:"pointer", position:"relative",
     }}>
+      {isFollowing && (
+        <div style={{
+          position:"absolute", top:8, right:8,
+          display:"inline-flex", alignItems:"center", gap:2.5,
+          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
+          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
+          border:"1px solid rgba(14,196,184,0.22)",
+          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
+        }}>✓ {t("profile.following")}</div>
+      )}
       <div style={{
         width:64, height:64, borderRadius:"50%", overflow:"hidden", marginBottom:10,
         border:`2px solid ${T.white}`, boxShadow:`0 0 0 2px rgba(14,196,184,0.28)`,
@@ -114,6 +128,7 @@ function PersonCardItem({ p, onPress, followers=0, likes=0 }) {
 
 export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
   const { t } = useTranslation();
+  const { followedIds = [] } = useAppState(); // 51bbd017: Folgestatus-SSOT
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "MenschenAllModal");
   const [items, setItems]       = useState([]);
@@ -234,7 +249,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
             </div>
           )}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={p.total_likes || 0} />)}
+            {items.map(p => <PersonCardItem key={p.id} p={p} onPress={onPressPerson} followers={p.followers_count || 0} likes={p.total_likes || 0} isFollowing={followedIds.includes(p.id)} />)}
           </div>
           {loading && items.length > 0 && (
             <div style={{ textAlign:"center", padding:16, color:T.inkFaint, fontSize:13 }}>{t("common.loadingMore")}</div>
