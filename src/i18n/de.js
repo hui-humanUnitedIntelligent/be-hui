@@ -1992,7 +1992,7 @@ export default {
   'impact.egSumDesc': 'Beschreibung',
   'impact.egSumCategory': 'Kategorie',
   'impact.egSumFunding': 'Förderwunsch',
-  'impact.egButton': 'Weiter → Wirkungsnetzwerk',
+  'impact.egButton': 'Weiter → Persönliche Angaben',
   'impact.rejPersonalBadge': 'PERSÖNLICHER NUTZEN',
   'impact.rejPersonalTitle': 'Dieses Projekt ist nicht für den HUI Impact Pool geeignet.',
   'impact.rejPersonalErkl': 'HUI fördert ausschließlich Projekte mit gemeinwohlorientierter Wirkung — für Gemeinschaft, Umwelt, Bildung, Gesundheit oder Kultur.',

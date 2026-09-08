@@ -1586,7 +1586,10 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
 }
 
 // ═══ HAUPT-ORCHESTRATOR ═══════════════════════════════════════
-// Steps: 0–5 = Wizard, 6 = KI, 7 = Ergebnis, 7.5(=9) = Persönliche Angaben, 8 = Wirkungsnetzwerk
+// Steps: 0–5 = Wizard, 6 = Fördersumme, 7 = KI-Prüfung, 8 = Ergebnis,
+// 9 = Persönliche Angaben (Standort/E-Mail/Name/Telefon, Pflichtfelder),
+// 11 = Medien (Titelbild Pflicht + Zusatzmaterial optional), 10 = Wirkungsnetz + Submit.
+// Reihenfolge bei 'geeignet': 8 → 9 → 11 → 10 (siehe HERZENSPROJEKT-PFLICHTFELDER-FIX 2026-09-08).
 export default function ImpactFlow({ onClose }) {
   const { t } = useTranslation();
   const { user, isBaseUser } = useAuth();
@@ -1787,8 +1790,18 @@ export default function ImpactFlow({ onClose }) {
         )}
 
         {!isBaseUser && !done && step === 8 && aiRes?.geeignet && (
+          // HERZENSPROJEKT-PFLICHTFELDER-FIX (2026-09-08, Michael: "warum fehlt
+          // Standort Name Telefon.. bitte nach Punkt 7 einbauen"): Vorher sprang
+          // dieser Button DIREKT zu Schritt 10 (Wirkungsnetz+Sofort-Submit) und
+          // überging Schritt 9 (Persönliche Angaben) UND Schritt 11 (Medien)
+          // komplett -- kontakt.standort/name/telefon blieben in handleSubmit()
+          // bei ihren Initialwerten "" (nur contact_email hatte einen Fallback
+          // auf user.email, deshalb war NUR die E-Mail im Admin-Dashboard
+          // gefüllt). Fix: geht jetzt zu Schritt 9 -- der vollständig gebaute
+          // Persönliche-Angaben-Screen mit Pflichtfeld-Validierung existierte
+          // bereits, war nur nie im Erfolgspfad erreichbar.
           <ErgebnisGeeignet form={form} aiRes={aiRes}
-            onNetworkConfirm={() => setStep(10)} onClose={onClose} />
+            onNetworkConfirm={() => setStep(9)} onClose={onClose} />
         )}
         {!isBaseUser && !done && step === 8 && aiRes && !aiRes.geeignet && (
           <ErgebnisNichtGeeignet form={form} aiRes={aiRes} user={user} onClose={onClose}
@@ -1806,12 +1819,18 @@ export default function ImpactFlow({ onClose }) {
 
         {/* Step 10 — Medien & Dateien */}
         {!isBaseUser && !done && step === 11 && (
+          // HERZENSPROJEKT-PFLICHTFELDER-FIX (2026-09-08): onWeiter zeigte
+          // vorher RÜCKWÄRTS auf Schritt 9 (Persönliche Angaben) statt
+          // VORWÄRTS zu Schritt 10 (Wirkungsnetz+Submit) -- Wirkungsnetz war
+          // dadurch aus diesem Pfad nie erreichbar. Korrekte Reihenfolge
+          // deckt sich mit goBack() weiter unten (9→8, 11→9, 10→11):
+          // 8 (Ergebnis) → 9 (Persönliche Angaben) → 11 (Medien) → 10 (Wirkungsnetz/Submit).
           <MedienUploadStep
             coverUrl={coverUrl}
             setCoverUrl={setCoverUrl}
             attachments={attachments}
             setAttachments={setAttachments}
-            onWeiter={() => setStep(9)}
+            onWeiter={() => setStep(10)}
             onClose={onClose}
             userId={user?.id}
           />

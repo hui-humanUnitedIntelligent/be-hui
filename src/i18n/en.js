@@ -2000,7 +2000,7 @@ export default {
   'impact.egSumDesc': 'Description',
   'impact.egSumCategory': 'Category',
   'impact.egSumFunding': 'Funding request',
-  'impact.egButton': 'Next → Impact Network',
+  'impact.egButton': 'Next → Personal Details',
   'impact.rejPersonalBadge': 'PERSONAL BENEFIT',
   'impact.rejPersonalTitle': 'This project is not suitable for the HUI Impact Pool.',
   'impact.rejPersonalErkl': 'HUI exclusively funds projects with public benefit impact — for community, environment, education, health or culture.',

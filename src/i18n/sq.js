@@ -1609,7 +1609,7 @@ export default {
   'impact.echteProjekte': 'Projekte reale. Ndikim real. Falë juve.',
   'impact.egBadgeDirect': 'PËRCJELLJE DREJTPËRDREJT',
   'impact.egBadgeManual': 'SHQYRTIM MANUAL',
-  'impact.egButton': 'Vazhdo → Rrjeti i ndikimit',
+  'impact.egButton': 'Vazhdo → Të dhënat personale',
   'impact.egDirectText': 'përcjellur drejtpërdrejt ekipit HUI.',
   'impact.egManualText': 'përcjellur ekipit HUI për shqyrtim manual.',
   'impact.egSumCategory': 'Kategori',

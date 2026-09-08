@@ -1984,7 +1984,7 @@ export default {
   'impact.egSumDesc': 'Descrição',
   'impact.egSumCategory': 'Categoria',
   'impact.egSumFunding': 'Pedido de financiamento',
-  'impact.egButton': 'Continuar → Rede de impacto',
+  'impact.egButton': 'Continuar → Dados pessoais',
   'impact.rejPersonalBadge': 'BENEFÍCIO PESSOAL',
   'impact.rejPersonalTitle': 'Este projeto não é adequado para o fundo de impacto HUI.',
   'impact.rejPersonalErkl': 'A HUI financia exclusivamente projetos com impacto de benefício público — para a comunidade, ambiente, educação, saúde ou cultura.',

@@ -1984,7 +1984,7 @@ export default {
   'impact.egSumDesc': 'Açıklama',
   'impact.egSumCategory': 'Kategori',
   'impact.egSumFunding': 'Finansman talebi',
-  'impact.egButton': 'Devam → Etki ağı',
+  'impact.egButton': 'Devam → Kişisel bilgiler',
   'impact.rejPersonalBadge': 'KİŞİSEL YARAR',
   'impact.rejPersonalTitle': 'Bu proje HUI etki havuzu için uygun değil.',
   'impact.rejPersonalErkl': 'HUI yalnızca kamu yararı etkisi olan projeleri finanse eder — topluluk, çevre, eğitim, sağlık veya kültür için.',
