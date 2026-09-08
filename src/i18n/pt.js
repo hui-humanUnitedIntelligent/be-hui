@@ -4202,7 +4202,7 @@ export default {
   'pub.groupOffer': 'Reserva em grupo',
   'pub.interests': 'Interesses & Foco',
   'pub.loadError': 'Não foi possível carregar este perfil.',
-  'pub.maxPersons': '👥 Máx. {n} {n, plural, one {pessoa} other {pessoas}}',
+  'pub.maxPersons': '👥 Máx. {n} pessoas',
   'pub.moments': 'Momentos',
   'pub.notFound': 'Perfil não encontrado',
   'pub.notFoundSub': 'Este perfil não existe ou não está visível publicamente.',

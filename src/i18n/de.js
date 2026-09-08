@@ -4241,7 +4241,7 @@ export default {
   'pub.groupOffer': 'Gruppenangebot',
   'pub.interests': 'Interessen & Schwerpunkte',
   'pub.loadError': 'Dieses Profil konnte nicht geladen werden.',
-  'pub.maxPersons': '👥 Max. {n} {n, plural, one {Person} other {Personen}}',
+  'pub.maxPersons': '👥 Max. {n} Personen',
   'pub.moments': 'Momente',
   'pub.notFound': 'Profil nicht gefunden',
   'pub.notFoundSub': 'Dieses Profil existiert nicht oder ist nicht öffentlich sichtbar.',

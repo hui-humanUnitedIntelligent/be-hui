@@ -4202,7 +4202,7 @@ export default {
   'pub.groupOffer': 'Grup rezervasyonu',
   'pub.interests': 'İlgi alanları & Odak',
   'pub.loadError': 'Bu profil yüklenemedi.',
-  'pub.maxPersons': '👥 Maks. {n} {n, plural, one {kişi} other {kişi}}',
+  'pub.maxPersons': '👥 Maks. {n} kişi',
   'pub.moments': 'Anlar',
   'pub.notFound': 'Profil bulunamadı',
   'pub.notFoundSub': 'Bu profil mevcut değil veya herkese açık değil.',

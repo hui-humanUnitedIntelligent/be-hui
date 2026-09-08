@@ -4202,7 +4202,7 @@ export default {
   'pub.groupOffer': 'Prenotazione di gruppo',
   'pub.interests': 'Interessi & Focus',
   'pub.loadError': 'Impossibile caricare questo profilo.',
-  'pub.maxPersons': '👥 Max. {n} {n, plural, one {persona} other {persone}}',
+  'pub.maxPersons': '👥 Max. {n} persone',
   'pub.moments': 'Momenti',
   'pub.notFound': 'Profilo non trovato',
   'pub.notFoundSub': 'Questo profilo non esiste o non è visibile pubblicamente.',

@@ -4203,7 +4203,7 @@ export default {
   'pub.groupOffer': 'Offre de groupe',
   'pub.interests': 'Intérêts & Centres',
   'pub.loadError': 'Ce profil n\'a pas pu être chargé.',
-  'pub.maxPersons': '👥 Max. {n} {n, plural, one {personne} other {personnes}}',
+  'pub.maxPersons': '👥 Max. {n} personnes',
   'pub.moments': 'Moments',
   'pub.notFound': 'Profil introuvable',
   'pub.notFoundSub': 'Ce profil n\'existe pas ou n\'est pas public.',

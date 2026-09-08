@@ -4202,7 +4202,7 @@ export default {
   'pub.groupOffer': 'Rezervim grupi',
   'pub.interests': 'Interesa & Fokusi',
   'pub.loadError': 'Ky profil nuk u ngarkua dot.',
-  'pub.maxPersons': '👥 Maks. {n} {n, plural, one {person} other {persona}}',
+  'pub.maxPersons': '👥 Maks. {n} persona',
   'pub.moments': 'Momentet',
   'pub.notFound': 'Profili nuk u gjet',
   'pub.notFoundSub': 'Ky profil nuk ekziston ose nuk është publik.',

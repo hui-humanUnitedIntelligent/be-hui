@@ -4249,7 +4249,7 @@ export default {
   'pub.groupOffer': 'Group booking',
   'pub.interests': 'Interests & Focus',
   'pub.loadError': 'This profile could not be loaded.',
-  'pub.maxPersons': '👥 Max. {n} {n, plural, one {person} other {people}}',
+  'pub.maxPersons': '👥 Max. {n} people',
   'pub.moments': 'Moments',
   'pub.notFound': 'Profile not found',
   'pub.notFoundSub': 'This profile does not exist or is not publicly visible.',
