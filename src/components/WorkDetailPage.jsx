@@ -28,6 +28,7 @@ import { HUILogo } from "./brand/HUILogo.jsx";
 import { NAV_CLEARANCE_CSS } from "./home/navigation/navigationGeometry.js"; // GRAU-WASCH-FIX (2026-08-18)
 import { useTranslation } from "../hooks/useTranslation.js";
 import { WERK_CAT_KEY_MAP, translateCategory } from "../lib/categoryMaps.js";
+import { isVideoUrl } from "../lib/uploadUtils.js"; // WERK-SLIDER-VIDEO-FIX (2026-09-08)
 
 /* ── Design Tokens ─────────────────────────────────────────────────── */
 const C = {
@@ -155,6 +156,22 @@ function ImageGallery({ images, title }) {
   }, [next, prev]);
 
   const img = images[idx];
+  // WERK-SLIDER-VIDEO-FIX (2026-09-08, Sascha-Bug "letzte 3-4 Bilder nicht zu
+  // sehen"): werk.images ist ein gemischtes Bild+Video-Array ohne separates
+  // Typ-Feld pro Eintrag (siehe getImages() oben) — Werke/Talente/Erlebnisse
+  // können per Wizard sowohl Fotos als auch Videos hochladen. Diese Galerie
+  // rendert bisher IMMER <img>, auch wenn die URL auf ein .mp4 zeigt — der
+  // Browser zeigt dann sein natives "Bild kaputt"-Icon, obwohl die Datei
+  // selbst valide ist (verifiziert: HTTP 200, video/mp4, korrekte Bytes).
+  const isVid = isVideoUrl(img);
+  const openLightbox = useCallback(() => {
+    if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
+      window.__HUI_LIGHTBOX__.open(
+        images.map(function(u) { return { url: u, type: isVideoUrl(u) ? "video" : "image" }; }),
+        idx
+      );
+    }
+  }, [images, idx]);
 
   return (
     <div className="wd-swipe" ref={trackRef}
@@ -162,18 +179,23 @@ function ImageGallery({ images, title }) {
         height:"clamp(280px, 42vh, 480px)", overflow:"hidden",
         background:"#111" }}>
 
-      {/* Image */}
+      {/* Image / Video */}
       {img ? (
-        <img loading="lazy" decoding="async" key={idx} src={img} alt={`${title} ${idx+1}`}
-          onClick={() => {
-            if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
-              window.__HUI_LIGHTBOX__.open(images.map(function(u) { return { url: u, type: "image" }; }), idx);
-            }
-          }}
-          style={{ width:"100%", height:"100%", objectFit:"cover",
-            cursor:"pointer",
-            animation:"wdFadeUp 0.35s both",
-            filter:"brightness(0.88) saturate(1.1)" }}/>
+        isVid ? (
+          <video key={idx} src={img} playsInline muted loop autoPlay preload="metadata"
+            onClick={openLightbox}
+            style={{ width:"100%", height:"100%", objectFit:"cover",
+              cursor:"pointer",
+              animation:"wdFadeUp 0.35s both",
+              filter:"brightness(0.88) saturate(1.1)" }}/>
+        ) : (
+          <img loading="lazy" decoding="async" key={idx} src={img} alt={`${title} ${idx+1}`}
+            onClick={openLightbox}
+            style={{ width:"100%", height:"100%", objectFit:"cover",
+              cursor:"pointer",
+              animation:"wdFadeUp 0.35s both",
+              filter:"brightness(0.88) saturate(1.1)" }}/>
+        )
       ) : (
         <div style={{ width:"100%", height:"100%",
           background:"linear-gradient(135deg,#E6FAF8,#FFF2EE)",

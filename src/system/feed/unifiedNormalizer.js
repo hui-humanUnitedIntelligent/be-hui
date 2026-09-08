@@ -2,6 +2,7 @@ import { isProfileTalent, getFullDisplayName, getProfileRoleLabel } from "../../
 import { OrbEngine } from "../../core/orbEngine.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { extractWorkImageUrl } from "../../lib/perfUtils.js";
+import { isVideoUrl } from "../../lib/uploadUtils.js"; // SSOT (2026-09-08, war lokal dupliziert)
 // HUI Pillars: dezente Grundpfeiler-Zuordnung für Feed-Items
 // Lazy-Import um keine Circular Dependencies zu erzeugen
 let _pillars = null;
@@ -17,7 +18,6 @@ const safeStr=(v,fb)=>{if(v==null||v==="")return fb!==undefined?fb:"";return Str
 const safeNum=(v,fb)=>{const n=Number(v);return isNaN(n)?(fb!==undefined?fb:0):n;};
 const safeBool=(v)=>Boolean(v);
 const safeUrl=(v)=>(typeof v==="string"&&v.startsWith("http"))?v:null;
-const isVideoUrl=(v)=>typeof v==="string"&&/\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(v);
 
 function relTime(ts){
   if(!ts)return"";

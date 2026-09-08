@@ -50,6 +50,21 @@ export function isImageFile(file) {
 }
 
 /**
+ * WERK-SLIDER-VIDEO-FIX (2026-09-08): Erkennt ob eine gespeicherte Medien-URL
+ * (z.B. aus works.images / talents.images — gemischte Bild+Video-Arrays ohne
+ * separates Typ-Feld pro Eintrag) ein VIDEO ist, anhand der Dateiendung.
+ * SSOT — vorher gab es dieselbe Regex-Logik doppelt (unifiedNormalizer.js
+ * lokal, CommentsSheet.jsx inline) statt zentral. Root Cause des Bugs
+ * "letzte 3-4 Bilder nicht zu sehen" (Sascha, 08.09.2026): WorkDetailPage
+ * rendert Medien-Slider-Einträge IMMER als <img>, auch wenn die URL auf ein
+ * .mp4 zeigt — der Browser zeigt dann sein natives "Bild kaputt"-Icon
+ * (blaues Fragezeichen), obwohl die Datei selbst valide ist.
+ */
+export function isVideoUrl(url) {
+  return typeof url === "string" && /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(url);
+}
+
+/**
  * Validiert eine einzelne Datei gegen die universellen Limits.
  * @returns {{ valid: boolean, error?: string }}
  */

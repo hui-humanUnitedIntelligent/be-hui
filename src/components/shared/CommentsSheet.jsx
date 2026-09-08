@@ -80,6 +80,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { isVideoUrl } from "../../lib/uploadUtils.js"; // SSOT (2026-09-08, war lokal dupliziert)
 
 const T = {
   ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
@@ -733,7 +734,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
             maxHeight:220, position:"relative", flexShrink:0,
             background:"rgba(26,26,46,0.06)",
           }}>
-            {(mediaType === "video" || /\.mp4|\.webm|\.mov/i.test(mediaUrl)) ? (
+            {(mediaType === "video" || isVideoUrl(mediaUrl)) ? (
               <video
                 src={mediaUrl} style={{ width:"100%", maxHeight:220, objectFit:"cover", display:"block" }}
                 autoPlay muted loop playsInline
