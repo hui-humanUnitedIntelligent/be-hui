@@ -91,13 +91,29 @@ function useHeuteStats() {
         ? (city ? t("feed.memberJoinedWithCity", { name, city }) : t("feed.memberJoined", { name }))
         : t("feed.newContent");
 
+      // HEUTE-STATS-ZERO-FIX (2026-09-08, Michael: "steht alles auf null"):
+      // Root Cause bewiesen (headless Node-Repro): Diese Zeile deklarierte
+      // vorher `const t = talentsRes.count ?? 0;` — exakt derselbe Name wie
+      // der useTranslation()-Hook `t` weiter oben in DERSELBEN Funktion
+      // (loadStats). Durch let/const-TDZ wird `t` im GESAMTEN Funktions-Body
+      // an die lokale (hier unten deklarierte) Variable gebunden — der
+      // t("feed.newContent")-Aufruf WEITER OBEN griff dadurch auf die noch
+      // uninitialisierte lokale Variable und warf "Cannot access 't' before
+      // initialization". Der äußere try/catch verschluckte den Fehler
+      // silent ("Platzhalter bleiben") → loadStats brach VOR dem
+      // setStats()-Aufruf ab → Stats blieben für immer beim Initialwert
+      // {works:0, talents:0, experiences:0, moments:0}. Fix: umbenannt zu
+      // talentsCount, kein Shadowing mehr. Die Query selbst war immer schon
+      // korrekt (.gte("created_at", <heute 00:00 Uhr>)) — der Fix wirkt
+      // dadurch automatisch RÜCKWIRKEND: er zählt alle heute bereits
+      // erstellten Werke/Talente/Erlebnisse/Momente, nicht nur künftige.
       const w = worksRes.count   ?? 0;
-      const t = talentsRes.count ?? 0;
+      const talentsCount = talentsRes.count ?? 0;
       const e = expRes.count     ?? 0;
       const m = momentsRes.count ?? 0;
 
       setStats({
-        works: w, talents: t, experiences: e, moments: m,
+        works: w, talents: talentsCount, experiences: e, moments: m,
         liveText,
         isLive: true, // REGEL: alle 4 Bereiche sind immer live
       });
