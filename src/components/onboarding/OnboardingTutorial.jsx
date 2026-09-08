@@ -8,8 +8,41 @@
 //             Basis-User: Advanced-Steps vorgefiltert (kein Auto-Skip-Flicker).
 import React, { useState, useLayoutEffect, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { Capacitor } from "@capacitor/core";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+
+// ── IOS-LAYOUT-FIX (2026-09-08, iOS-BUG-001) ───────────────────────────
+// "Ruckelt + visuell verzogen" auf iOS, nicht von Android bekannt.
+// Bewiesene Differenzen Android/Chromium vs. iOS/WebKit:
+// (a) SAFE-AREA: FOX_MARGIN=20px < iOS-Insets (Home-Indikator ~34px,
+//     Dynamic Island ~47-59px) → Fuchs-Blase/Weiter-Button klebten auf
+//     notched iPhones IM Home-Indicator ("verzogen"). Android: Inset 0-20px
+//     → nie aufgefallen. Fix: iOS-margins = max(FOX_MARGIN, echte Insets),
+//     gemessen per env()-Probe-Element (einmal pro Mount).
+// (b) RUCKELN: iOS Rubber-Band-Scroll feuert Scroll-Events in Serie →
+//     jeder Event triggerte sofort measure() → setState-Sturm → sichtbares
+//     Gezappel. Android: OVER_SCROLL_NEVER (Pull-to-Refresh-Fix) → keine
+//     Overscroll-Events → Problem unsichtbar. Fix: iOS misst via
+//     requestAnimationFrame-Coalescing (max 1 Messung/Frame) und OHNE die
+//     teuren transition:all-Animationen auf left/top/width/height (nicht
+//     komponierte Layout-Animationen = WebKit-Jank).
+// Android-Pfad: in jedem Zweig identisch (IS_IOS greift dort nie).
+const IS_IOS = typeof window !== "undefined" && Capacitor.getPlatform?.() === "ios";
+
+// env()-Werte sind per JS nicht direkt lesbar → Probe-Element misst sie in px.
+function probeSafeInset(side) {
+  try {
+    const probe = document.createElement("div");
+    probe.style.cssText =
+      "position:fixed;left:-9999px;top:0;visibility:hidden;pointer-events:none;" +
+      "height:env(safe-area-inset-" + side + ", 0px);width:0;";
+    document.body.appendChild(probe);
+    const px = parseFloat(getComputedStyle(probe).height) || 0;
+    probe.remove();
+    return px;
+  } catch (err) { console.debug("[Tutorial] safe-area probe nicht verfügbar:", err); return 0; }
+}
 
 // ══════════════════════════════════════════════════════════════
 // DESIGN-KONSTANTEN — systemweit für ALLE Tutorials identisch
@@ -199,6 +232,12 @@ export default function OnboardingTutorial() {
 
     let cancelled = false;
 
+    // IOS-LAYOUT-FIX (2026-09-08): effektive Ränder = FOX_MARGIN bzw. auf iOS
+    // max(FOX_MARGIN, echte Safe-Area-Insets). Android: exakt FOX_MARGIN wie
+    // bisher (IS_IOS=false → probe läuft nie).
+    const M_TOP    = IS_IOS ? Math.max(FOX_MARGIN, probeSafeInset("top"))    : FOX_MARGIN;
+    const M_BOTTOM = IS_IOS ? Math.max(FOX_MARGIN, probeSafeInset("bottom")) : FOX_MARGIN;
+
     function measure() {
       if (cancelled) return;
       const r = getTargetRect(stepData.selector);
@@ -209,8 +248,8 @@ export default function OnboardingTutorial() {
         // Kein Spotlight → Fuchs zentriert
         setSpotRect(null);
         setFoxPos({
-          left: Math.max(FOX_MARGIN, (vw - BUBBLE_MAX_W) / 2),
-          top: Math.max(FOX_MARGIN, (vh - CONTAINER_H) / 2),
+          left: Math.max(M_TOP, (vw - BUBBLE_MAX_W) / 2),
+          top: Math.max(M_TOP, (vh - CONTAINER_H) / 2),
         });
         return;
       }
@@ -221,18 +260,20 @@ export default function OnboardingTutorial() {
         // Fuchs+Blase über dem Spotlight — Blase zeigt nach unten.
         // Fuchs überlappt die UNTERE linke Ecke der Blase (siehe renderSteps) —
         // das bleibt innerhalb von CONTAINER_H, kein Extra-Puffer nötig.
+        // IOS: M_TOP statt FOX_MARGIN — Dynamic Island wird respektiert.
         let top = r.top - CONTAINER_H;
-        if (top < FOX_MARGIN) top = FOX_MARGIN;
+        if (top < M_TOP) top = M_TOP;
         let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
         setFoxPos({ left, top });
       } else {
         // Fuchs+Blase unter dem Spotlight — Blase zeigt nach oben.
         // Fuchs überlappt die OBERE linke Ecke → pokt über den Flow-Anfang
         // hinaus → zusätzlicher Puffer FOX_PEEK nach oben nötig.
+        // IOS: M_BOTTOM statt FOX_MARGIN — Home-Indicator wird respektiert.
         let top = r.bottom + FOX_BUBBLE_GAP + 8;
-        let maxTop = vh - CONTAINER_H - FOX_MARGIN;
+        let maxTop = vh - CONTAINER_H - M_BOTTOM;
         if (top > maxTop) top = maxTop;
-        if (top < FOX_MARGIN + FOX_PEEK) top = FOX_MARGIN + FOX_PEEK;
+        if (top < M_TOP + FOX_PEEK) top = M_TOP + FOX_PEEK;
         let left = Math.max(FOX_MARGIN, Math.min(r.centerX - BUBBLE_MAX_W / 2, vw - BUBBLE_MAX_W - FOX_MARGIN));
         setFoxPos({ left, top });
       }
@@ -247,12 +288,22 @@ export default function OnboardingTutorial() {
       measure();
     }
 
+    // IOS-RUCKEL-FIX (2026-09-08): iOS Rubber-Band-Scroll feuert Scroll-Events
+    // in Serie — jede sofortige measure() = setState = Gezappel. iOS misst nur
+    // max 1× pro Animations-Frame (rAF-Coalescing). Android: direkt wie bisher.
+    let rafPending = 0;
+    const measureCoalesced = () => {
+      if (rafPending) return;
+      rafPending = requestAnimationFrame(() => { rafPending = 0; measure(); });
+    };
+    const onScroll = IS_IOS ? measureCoalesced : measure;
     window.addEventListener("resize", measure);
-    window.addEventListener("scroll", measure, true);
+    window.addEventListener("scroll", onScroll, true);
     return () => {
       cancelled = true;
+      if (rafPending) cancelAnimationFrame(rafPending);
       window.removeEventListener("resize", measure);
-      window.removeEventListener("scroll", measure, true);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, [phase, step, advancedSteps]);
 
@@ -279,7 +330,9 @@ export default function OnboardingTutorial() {
             width: spotRect.width + SPOT_PAD * 2, height: spotRect.height + SPOT_PAD * 2,
             borderRadius: 16, background: "transparent",
             boxShadow: `0 0 0 9999px rgba(0,0,0,${OVERLAY_ALPHA})`,
-            transition: "all 0.35s cubic-bezier(0.22,1,0.36,1)",
+            // IOS-RUCKEL-FIX: transition nur auf Android — auf iOS animieren
+            // left/top/width/height (nicht komponiert) sichtbar janky.
+            transition: IS_IOS ? "none" : "all 0.35s cubic-bezier(0.22,1,0.36,1)",
             zIndex: 10600, pointerEvents: "none",
           }}>
             <div style={{
@@ -303,7 +356,9 @@ export default function OnboardingTutorial() {
             Randabstand) endet — kein zusätzlicher Clamp nötig. */}
         <div style={{
           position: "fixed", left: foxPos.left, top: foxPos.top,
-          zIndex: 10601, transition: "all 0.3s cubic-bezier(0.22,1,0.36,1)",
+          zIndex: 10601,
+          // IOS-RUCKEL-FIX: siehe Spotlight-Kommentar oben.
+          transition: IS_IOS ? "none" : "all 0.3s cubic-bezier(0.22,1,0.36,1)",
           maxWidth: BUBBLE_MAX_W + FOX_PEEK,
         }}>
           {/* Label (nur erweitertes Tutorial) */}

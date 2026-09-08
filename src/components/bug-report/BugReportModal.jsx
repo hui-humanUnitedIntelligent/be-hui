@@ -9,10 +9,35 @@
 import React, { useState, useRef, useCallback } from "react";
 import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { createPortal } from "react-dom";
+import { Capacitor } from "@capacitor/core";
 import { supabase } from "../../lib/supabaseClient.js";
 import { APP_VERSION } from "../../version.js";
 import BugIcon from "./BugIcon.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
+
+// ── IOS-RESILIENZ (2026-09-08, iOS-BUG-002) ─────────────────────────────
+// Beweislage 08.09.: DB-Inserts funktionieren auf iOS (img_diag-Reports kamen
+// durch), aber Storage-Uploads scheiterten auf einem iPhone mit
+// "EXC:Load failed" — es existierte NULL bug_reports von iOS, obwohl Tester
+// aktiv waren. Der bisherige Flow brach bei Anhang-Fehlern GESAMT ab →
+// Tester verlor die ganze Meldung.
+// iOS-only: (a) Anhang-Uploads werden einzeln try/catch'd — ein fehlgeschlagener
+// Upload verhindert NIE mehr das Absenden des Text-Reports (Warnung statt
+// Gesamtfehler). (b) Diagnostik 1×/Session: Modal-Öffnung wird geloggt →
+// beweist serverseitig, ob das Modal auf iOS überhaupt öffnet.
+// Android-Pfad: unverändert (strikte Fehlerbehandlung bleibt exklusiv aktiv).
+const IS_IOS = typeof window !== "undefined" && Capacitor.getPlatform?.() === "ios";
+
+let iosModalLogged = false;
+function logIosModalOpen() {
+  if (iosModalLogged) return;
+  iosModalLogged = true;
+  try {
+    import("../../lib/errorReporter.js").then(({ reportError }) => {
+      reportError("ios_diag", { message: "BUG-MODAL-OPEN: Modal geöffnet (iOS)", component: "BugReportModal" });
+    });
+  } catch (err) { console.debug("[BugReport] iOS-Modal-Diagnostik nicht verfügbar:", err); }
+}
 
 const MAX_FILES = 10;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "video/mp4"];
@@ -154,10 +179,31 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       if (!report?.id) throw new Error("Keine Report-ID erhalten");
 
       // 2. Upload files (if any)
+      // iOS-RESILIENZ (2026-09-08): Nur auf iOS pro Datei try/catch — ein
+      // fehlgeschlagener Anhang-Upload bricht das Absenden NICHT mehr ab.
+      // Bewiesener Fall: "EXC:Load failed" auf iPhone (18.7) am 08.09. —
+      // ohne diesen Zweig wäre der gesamte Report verloren gegangen.
+      // Android: striktes Verhalten unverändert (iOS-Zweig greift dort nie).
       const attachments = [];
-      for (const f of files) {
-        const att = await uploadFile(f, report.id);
-        attachments.push(att);
+      if (IS_IOS) {
+        let failedCount = 0;
+        for (const f of files) {
+          try {
+            const att = await uploadFile(f, report.id);
+            attachments.push(att);
+          } catch (fileErr) {
+            failedCount++;
+            console.error("[BugReport][iOS] attachment upload failed:", fileErr);
+          }
+        }
+        if (failedCount > 0) {
+          setAttachmentWarning(t('bug.errorPartial'));
+        }
+      } else {
+        for (const f of files) {
+          const att = await uploadFile(f, report.id);
+          attachments.push(att);
+        }
       }
 
       // 3. Update report with attachments
@@ -210,6 +256,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   }, [onClose]);
 
   if (!open) return null;
+  if (IS_IOS) logIosModalOpen(); // iOS-Diagnostik (Android: unverändert)
 
   return createPortal(
     <div
