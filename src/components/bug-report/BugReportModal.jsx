@@ -14,6 +14,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { APP_VERSION } from "../../version.js";
 import BugIcon from "./BugIcon.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 
 // ── IOS-RESILIENZ (2026-09-08, iOS-BUG-002) ─────────────────────────────
 // Beweislage 08.09.: DB-Inserts funktionieren auf iOS (img_diag-Reports kamen
@@ -48,6 +49,9 @@ const MAX_FILE_SIZE = MAX_FILE_SIZE_VIDEO; // kompatibel mit bestehendem Code
 
 export default function BugReportModal({ open = false, onClose = () => {}, user = null }) {
   const { t } = useTranslation();
+  // IOS-JITTER-FIX v3 (siehe Kommentarblock bei sheetStyle unten) — JS-Wert
+  // des Tastatur-Insets fuer die dynamische Padding-Reduktion auf iOS.
+  const kbdInset = useKeyboardInset();
   const [description, setDescription] = useState("");
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -308,6 +312,79 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       }
     : {};
 
+  // ── IOS-JITTER-FIX v3 (2026-09-08, Michael-Report "Kein fix" auf v2.1.566,
+  // 09:01) ──────────────────────────────────────────────────────────────
+  // v1 (transition:none) UND v2 (transition:0.16s) waren beide wirkungslos,
+  // weil beide am FALSCHEN Mechanismus drehten. ROOT CAUSE gefunden durch
+  // Vergleich mit der bereits PROVEN-WORKING ConversationRoom-Struktur
+  // (SCROLL-DRAG-FIX, 2026-08-17): Dort liegt das Eingabefeld (ChatInput)
+  // NIEMALS innerhalb eines overflowY:"auto"-Vorfahren — es sitzt als
+  // eigenstaendiges flexShrink:0-Element UNTER dem separat scrollenden
+  // Nachrichten-Bereich. BugReportModal dagegen hatte Header+Textarea+
+  // Upload+Button ALLE zusammen in EINEM Div mit overflowY:"auto" +
+  // maxHeight:"85vh". iOS/WebKit scrollt bei Fokus eines Feldes automatisch
+  // den naechstgelegenen SCROLLBAREN VORFAHREN, um den Cursor sichtbar zu
+  // halten — das ist native WebKit-Logik, komplett unabhaengig von unserem
+  // eigenen JS/CSS (weder von der scrollIntoView-Konkurrenz aus Bug 4b, die
+  // bereits entflechtet ist, noch von der padding-bottom-Transition aus v1/
+  // v2). Diese native Auto-Scroll-Bewegung lief UNKOORDINIERT parallel zur
+  // eigenen padding-bottom-Bewegung des Backdrops -> Doppelbewegung = das
+  // beobachtete Zucken, unabhaengig davon ob unsere eigene Transition an
+  // oder aus war (deshalb wirkten v1 UND v2 nicht).
+  //
+  // FIX (nur iOS): Kopf + Textfeld liegen jetzt NIE in einem overflow:auto-
+  // Vorfahren (kein WebKit-Autoscroll-Ziel dafuer moeglich). Nur der von
+  // Natur aus kleine Upload-Dateien-Bereich (Button+Dateiliste) bekommt
+  // eine eigene, kleine, gedeckelte Scrollbox (maxHeight 160px) — er
+  // enthaelt nie das fokussierte Textfeld, kann also nie von WebKit als
+  // Autoscroll-Ziel fuer die Tastatur-Sichtbarkeit gewaehlt werden. Das
+  // aeussere Sheet bleibt zusaetzlich als Sicherheitsnetz overflowY:"auto"
+  // mit generoesem, tastaturabhaengigem maxHeight — im UEBLICHEN Fall
+  // (0-3 Dateien) ist der Inhalt kleiner als dieses Limit, wodurch dessen
+  // overflow in der PRAXIS nie tatsaechlich scrollt (scrollHeight<=
+  // clientHeight) und WebKit dort ebenfalls nichts zum Autoscrollen hat.
+  //
+  // Zusaetzlich: Die feste 88px-Navbar-Clearance im Sheet-Padding (siehe
+  // Navbar-Abstandsregel) ist nur relevant wenn die Bottom-Navbar sichtbar
+  // ist. Bei offener Tastatur ist sie bereits global ausgeblendet
+  // (body.hui-keyboard-open [data-hui-bottom-navigation], translateY150%)
+  // — daher auf iOS bei offener Tastatur auf 20px reduziert. Das senkt die
+  // Gesamthoehe des Inhalts spuerbar und verkleinert damit zusaetzlich die
+  // Wahrscheinlichkeit, dass das aeussere Sheet ueberhaupt scrollen muss.
+  //
+  // Android: strukturell 1:1 unveraendert — weiterhin EIN Div mit
+  // overflowY:"auto" + maxHeight:"85vh" + fixem 88px-Padding, exakt wie vor
+  // diesem Fix (kein neuer Code-Pfad, reiner IS_IOS-Zweig).
+  const sheetPaddingBottom = (IS_IOS && kbdInset > 0)
+    ? "calc(20px + env(safe-area-inset-bottom, 0px))"
+    : "calc(88px + env(safe-area-inset-bottom, 0px))";
+
+  const sheetStyle = IS_IOS
+    ? {
+        width: "100%", maxWidth: 500,
+        maxHeight: "calc(94dvh - var(--hui-keyboard-inset, 0px))",
+        overflowY: "auto",
+        background: "#FAF7F2", borderRadius: "20px 20px 0 0",
+        padding: `20px 20px ${sheetPaddingBottom}`,
+        boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+        animation: "huiSlideUp 0.3s ease",
+      }
+    : {
+        width: "100%", maxWidth: 500,
+        maxHeight: "85vh", overflowY: "auto",
+        background: "#FAF7F2", borderRadius: "20px 20px 0 0",
+        padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
+        boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
+        animation: "huiSlideUp 0.3s ease",
+      };
+
+  // Upload-Dateien-Bereich: eigene kleine Scrollbox NUR auf iOS (siehe
+  // Begruendung oben) — enthaelt bewusst nie das Textfeld. Android:
+  // unveraendert (nur marginBottom, kein eigenes Scrollen).
+  const uploadAreaStyle = IS_IOS
+    ? { marginBottom: 16, maxHeight: 160, overflowY: "auto", WebkitOverflowScrolling: "touch" }
+    : { marginBottom: 16 };
+
   return createPortal(
     <div
       onClick={handleClose}
@@ -326,17 +403,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: 500,
-          maxHeight: "85vh",
-          overflowY: "auto",
-          background: "#FAF7F2",
-          borderRadius: "20px 20px 0 0",
-          padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
-          boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
-          animation: "huiSlideUp 0.3s ease",
-        }}
+        style={sheetStyle}
       >
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
@@ -438,7 +505,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
             </div>
 
             {/* B) Upload-Bereich */}
-            <div style={{ marginBottom: 16 }}>
+            <div style={uploadAreaStyle}>
               <label style={{
                 display: "block", fontSize: 13, fontWeight: 600,
                 color: "#1a1a2e", fontFamily: "Inter, sans-serif", marginBottom: 8,
