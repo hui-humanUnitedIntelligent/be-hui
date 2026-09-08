@@ -472,7 +472,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           {displayMediaUrls && displayMediaUrls.length > 0 && (
             <div style={{ marginBottom:16 }}>
               <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:8 }}>
-                {t("impact.zusatzmaterial", { count: displayMediaUrls.length, suffix: displayMediaUrls.length !== 1 ? "s" : "" })}
+                {t("impact.zusatzmaterial", { count: displayMediaUrls.length })}
               </div>
               <div style={{ display:"flex", flexWrap:"wrap", gap:8 }}>
                 {displayMediaUrls.map((url, idx) => {

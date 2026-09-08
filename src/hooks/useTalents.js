@@ -136,6 +136,23 @@ export async function updateTalent(id, { title, description, category, images, p
     payload.status = "pending";
     payload.rejection_reason = null;
   }
+  // TALENT-REEDIT-UNLOCK-001 (2026-09-08, Karens Bug-Report "kann meine Talente
+  // nicht bearbeiten" -- headless verifiziert wahr): Werke (WerkWizard) und
+  // Erlebnisse (ExperienceWizard) erlauben das Bearbeiten bereits freigegebener
+  // Eintraege IMMER und schicken sie danach automatisch zur Re-Pruefung zurueck
+  // (trg_sadb_works_update / trg_sadb_experiences_update feuern exakt bei
+  // new.status='pending_review' AND old.status DISTINCT FROM 'pending_review').
+  // talents hatte den exakt analogen DB-Trigger (trg_sadb_talents_update, WHEN
+  // new.status='pending' AND old.status DISTINCT FROM 'pending') schon fertig
+  // eingerichtet -- nur DIESE Zeile fehlte, um ihn jemals auszuloesen, weil der
+  // Wizard bislang ALLE Felder hart deaktivierte statt wie bei Werke/Erlebnisse
+  // erneut einzureichen. Jetzt konsistent: Bearbeiten eines approved Talents
+  // schickt es automatisch zurueck zu 'pending' -> loest den bestehenden SADB-
+  // Trigger aus -> Michael bekommt "bearbeitet & neu eingereicht" wie bei
+  // Werke/Erlebnisse (Workflow "SADB Alert -> Telegram" ist dafuer bereits da).
+  if (previousStatus === "approved") {
+    payload.status = "pending";
+  }
   return supabase.from("talents").update(payload).eq("id", id).select().single();
 }
 

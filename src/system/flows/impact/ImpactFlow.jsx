@@ -1482,7 +1482,7 @@ function MedienUploadStep({ coverUrl, setCoverUrl, attachments, setAttachments, 
         {/* ── Zusatzmaterial ────────────────────────────── */}
         <div style={{ marginBottom:16 }}>
           <div style={{ fontSize:12, fontWeight: 600, color:T.ink3, marginBottom:4, letterSpacing:0.3 }}>
-            {t("impact.zusatzmaterial")} <span style={{ color:T.ink4, fontWeight:400 }}>{t("impact.optional")}</span>
+            {t("impact.zusatzmaterial", { count: attachments.length })} <span style={{ color:T.ink4, fontWeight:400 }}>{t("impact.optional")}</span>
           </div>
           <div style={{ fontSize:11.5, color:T.ink3, marginBottom:10, lineHeight:1.5 }}>
             {t("impact.zusatzHint")}

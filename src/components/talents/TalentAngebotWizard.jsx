@@ -160,7 +160,16 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
   const isEdit = !!existingTalent?.id;
   const wasRejected = existingTalent?.status === "rejected";
   const isApproved = existingTalent?.status === "approved";
-  const locked = isApproved;
+  // TALENT-REEDIT-UNLOCK-001 (2026-09-08, Karens Bug-Report "kann meine Talente
+  // nicht bearbeiten" -- bestaetigt: locked=isApproved deaktivierte VORHER jedes
+  // Feld + entfernte den Speichern-Button komplett, sobald status='approved' --
+  // ohne jeden Ausweg (der angezeigte Hinweistext versprach einen "Rueckzug", den
+  // es nirgends gab). Werke/Erlebnisse sperren approved NIE, sie erlauben Editieren
+  // und schicken beim Speichern automatisch zurueck zur Re-Pruefung (siehe
+  // useTalents.js updateTalent: previousStatus==="approved" -> status="pending").
+  // talents jetzt konsistent zu diesem bereits etablierten Muster -- locked bleibt
+  // bewusst NICHT mehr an isApproved gekoppelt.
+  const locked = false;
 
   const [step, setStep] = useState(1);
   // KBD-INSET-FIX (2026-08-20, gleicher Root Cause wie WerkWizard/ExperienceWizard):
@@ -479,7 +488,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       <div className="hui-scroll" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "18px 20px" }}>
         {isApproved && (
           <div style={{ background: "rgba(14,196,184,0.10)", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: C.teal, fontWeight: 600, marginBottom: 14 }}>
-            {t("taw.approvedNotice")}
+            {t("taw.approvedNoticeEditable")}
           </div>
         )}
         {wasRejected && existingTalent?.rejection_reason && (
