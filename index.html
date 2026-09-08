@@ -246,11 +246,61 @@
     <!-- ════════════════════════════════════════════════════════ -->
 
   <!-- ══ DIAGNOSTIC ERROR OVERLAY (White-Screen Debug) ══════════ -->
+  <!-- BUG5-WHITESCREEN-RESUME-IOS (2026-09-08): Nutzerbericht (iPad) — nach
+       Resume aus dem Hintergrund zeigt die App einen dauerhaften weissen
+       Screen. Mitgelieferter Screenshot BEWEIST den Root Cause: Dieses
+       Overlay zeigte "Root children: 3" (React hatte also erfolgreich
+       gerendert, KEIN leerer Screen) + 2x "Script error. (:0:0)" — ein
+       generisches, von WebKit maskiertes Fehlerbild (type="module" ohne
+       crossorigin unterdrueckt bei JEDER Exception Zeile/Spalte/Message).
+       D.h. NICHT "React rendert nicht", sondern: window.onerror ueberschrieb
+       hier den Chunk-Recovery-v2-Handler weiter oben KOMPLETT (kein
+       Chaining) und legte bei JEDEM einzelnen Laufzeitfehler — auch NACH
+       erfolgreichem Rendern — einen vollflaechigen weissen Diagnose-Screen
+       (z-index 999999) OHNE jede Selbstheilung darueber. Auf iOS reklamiert
+       WKWebView den Speicher beim Backgrounding aggressiver als Android,
+       wodurch beim Resume eher solche generischen Exceptions feuern
+       (z.B. aus einem beim Suspend stale gewordenen WebSocket/Timer).
+       FIX (iOS-only ueber UA-Sniff — Capacitor-JS ist an dieser Stelle im
+       <head>, vor main.jsx, noch nicht verfuegbar; Android-Zweig bleibt
+       BYTE-IDENTISCH zum vorherigen Verhalten):
+        1. Vollflaechiger Overlay erscheint auf iOS nur noch, wenn die App
+           NIE erfolgreich gerendert hat (Root children === 0) — ein
+           Laufzeitfehler NACH erfolgreichem Rendern loggt nur noch in die
+           Konsole (React-ErrorBoundary + errorReporter.js in App.jsx
+           uebernehmen dafuer bereits Recovery inkl. Auto-Retry via
+           visibilitychange).
+        2. window.onerror verkettet auf iOS zum vorherigen Handler (Chunk
+           Recovery v2 bekommt weiterhin seine Chance auf Auto-Reload).
+        3. Neuer Resume-Listener (iOS-only) raeumt einen evtl. sichtbaren
+           #hui-error-overlay automatisch weg, sobald die App wieder in den
+           Vordergrund kommt UND der Root sichtbar Kinder hat. Redundant zu
+           useIOSResumeRecovery.js (React-Seite) — schadet nicht doppelt. -->
   <script>
     (function() {
       var errors = [];
+      var UA = (navigator.userAgent || "");
+      var IS_IOS = /iPad|iPhone|iPod/.test(UA) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+      function hasRendered() {
+        var root = document.getElementById("root");
+        return !!(root && root.children.length > 0);
+      }
+
       function showErrors() {
         if (!errors.length) return;
+        // iOS + App hat schon erfolgreich gerendert → kein Vollflaechen-
+        // Overlay mehr, nur Konsole (React-ErrorBoundary uebernimmt).
+        // Android/Web: bewusst UNVERAENDERT (kein hasRendered()-Gate).
+        if (IS_IOS && hasRendered()) {
+          console.error("[HUI DIAG] iOS-Laufzeitfehler nach Render (Overlay unterdrückt):", errors[errors.length - 1]);
+          return;
+        }
+        if (IS_IOS) {
+          var existing = document.getElementById("hui-error-overlay");
+          if (existing) existing.remove(); // kein Stapeln mehrerer Overlays
+        }
         var div = document.createElement("div");
         div.id = "hui-error-overlay";
         div.style.cssText = "position:fixed;inset:0;z-index:999999;background:#fff;color:#000;font-family:monospace;font-size:13px;padding:16px;overflow:auto;white-space:pre-wrap;word-break:break-all;";
@@ -264,9 +314,15 @@
         div.innerHTML = html.replace(/\n/g, "<br>");
         document.body ? document.body.appendChild(div) : document.documentElement.appendChild(div);
       }
+      var _prevOnerror = window.onerror;
       window.onerror = function(msg, src, line, col, err) {
         errors.push(msg + " (" + src + ":" + line + ":" + col + ")" + (err && err.stack ? "\n" + err.stack : ""));
         showErrors();
+        // Chaining zum Chunk-Recovery-v2-Handler — iOS-only (Android: kein
+        // Chaining, exakt wie vorher, siehe Kommentar oben).
+        if (IS_IOS && typeof _prevOnerror === "function") {
+          try { return _prevOnerror(msg, src, line, col, err); } catch (e) {}
+        }
       };
       window.addEventListener("unhandledrejection", function(e) {
         var r = e.reason;
@@ -291,6 +347,16 @@
           }
         }
       }, 10000);
+
+      // Resume-Cleanup (iOS-only): haengenden Overlay beim Foreground-Kommen
+      // entfernen, wenn die App inhaltlich wieder/noch lebt.
+      if (IS_IOS) {
+        document.addEventListener("visibilitychange", function() {
+          if (document.visibilityState !== "visible") return;
+          var overlay = document.getElementById("hui-error-overlay");
+          if (overlay && hasRendered()) overlay.remove();
+        }, { passive: true });
+      }
     })();
   </script>
   <!-- ════════════════════════════════════════════════════════ -->

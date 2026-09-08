@@ -6,6 +6,7 @@ import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { sentryCapture, Sentry } from './lib/sentry';
 import { RouteBoundary, OverlayBoundary } from './lib/ErrorBoundaries';
 import { AndroidBackButtonHandler } from './components/AndroidBackButtonHandler.jsx';
+import { useIOSResumeRecovery } from './hooks/useIOSResumeRecovery.js';
 import { AppLinkHandler } from './components/AppLinkHandler.jsx';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext';
@@ -1004,6 +1005,10 @@ export default function App() {
       window.__HUI_CONFIRM_APP_READY__();
     }
   }, []);
+
+  // BUG5-WHITESCREEN-RESUME-IOS (2026-09-08, iOS-only): siehe
+  // src/hooks/useIOSResumeRecovery.js. No-Op auf Android/Web.
+  useIOSResumeRecovery();
 
   return (
     <ErrorBoundary>
