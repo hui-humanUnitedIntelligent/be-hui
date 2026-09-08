@@ -193,6 +193,11 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   const [talentBooking, setTalentBooking] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
   const { requireAuth } = useAuthGate();
 
+  // ── DISCOVER-STALE-DELETE-FIX (2026-09-08, Report cd6e89af) ──
+  // Ref auf forceLoad — ermöglicht Event-getriebene Revalidierung (Tab-Rückkehr,
+  // Pull-to-Refresh), ohne den Mount-Effekt neu zu triggern.
+  const forceLoadRef = useRef(null);
+
   // ── Daten laden ─────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -601,6 +606,8 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       _discoverCache.ts = 0; // Cache invalidieren
       load();
     }
+    // DISCOVER-STALE-DELETE-FIX: forceLoad für Event-Listener exponieren
+    forceLoadRef.current = forceLoad;
     load();
     // Safety: force loading=false after 10s regardless of what happens
     const safetyTimer = setTimeout(() => {
@@ -625,15 +632,24 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
     }
   }, [loading, people, werke, werkeSaleStatus, talente, erlebnisse, projekte, momente, orte]);
 
-  // ── Pull-to-Refresh: feed-refresh-Event abonnieren ────────────
-  // Wenn PTR (Home.jsx) ausgelöst wird, soll auch DiscoverPage neu laden.
-  // Trick: reloadKey-Counter → useEffect-Dependency triggert Reload.
-  const [discoverReloadKey, setDiscoverReloadKey] = React.useState(0);
-
-  React.useEffect(() => {
-    const handler = () => setDiscoverReloadKey(k => k + 1);
-    window.addEventListener("feed-refresh", handler);
-    return () => window.removeEventListener("feed-refresh", handler);
+  // ── Pull-to-Refresh + Tab-Revalidierung (DISCOVER-STALE-DELETE-FIX) ──
+  // (a) feed-refresh (PTR in Home.jsx) lädt DiscoverPage frisch — der alte
+  //     reloadKey-Counter war TOT (State wurde erhöht, aber nie konsumiert).
+  // (b) hui:tab-activated (HomeShell.switchTab): Keep-Alive-Tabs remounten
+  //     nicht — bei Rückkehr zum Entdecken-Tab wird ein abgelaufener/
+  //     invalidierter Cache (z.B. nach Moment-Löschung) revalidiert.
+  //     Gültiger Cache (<60s) wird NICHT neu geladen (keine Query-Spam).
+  useEffect(() => {
+    const onFeedRefresh = () => forceLoadRef.current?.();
+    const onTabActivated = (e) => {
+      if (e?.detail?.tab === "discover" && !isCacheValid()) forceLoadRef.current?.();
+    };
+    window.addEventListener("feed-refresh", onFeedRefresh);
+    window.addEventListener("hui:tab-activated", onTabActivated);
+    return () => {
+      window.removeEventListener("feed-refresh", onFeedRefresh);
+      window.removeEventListener("hui:tab-activated", onTabActivated);
+    };
   }, []);
 
   // ── People: nur echte DB-Daten (kein Seed-Fallback — verhindert Klick-Bug)

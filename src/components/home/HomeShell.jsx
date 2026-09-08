@@ -288,6 +288,11 @@ export default function HomeShell({ children }) {
     setCarryOver({ from: tab, to: newTab, timestamp: Date.now() });
     closeAllOverlays();
     _setTab(newTab);
+    // DISCOVER-STALE-DELETE-FIX (2026-09-08, Report cd6e89af): Keep-Alive-Tabs
+    // remounten nicht — gelöschter Content blieb sichtbar, bis ein manueller
+    // Pull-to-Refresh kam. Tab-Aktivierungs-Event für Seiten, die bei
+    // Rückkehr ihren (invalidierten) Cache revalidieren wollen (DiscoverPage).
+    try { window.dispatchEvent(new CustomEvent("hui:tab-activated", { detail: { tab: newTab } })); } catch { /* Best-Effort */ }
     // SCROLL-RESET: Jeder Tab-Wechsel beginnt immer bei Position 0
     // (scrollTop sofort — kein rAF — damit kein Flicker)
     if (mainScrollRef?.current) {

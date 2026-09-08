@@ -7,6 +7,7 @@ import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { supabase } from "../../../lib/supabaseClient.js";
 import { HUIFotoIcon } from "../../../design/icons/HuiSystemIcons.jsx";
 import { T } from "./constants.js";
+import { _discoverCache } from "../../../components/discover/constants.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 
@@ -65,6 +66,11 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet, onDeleteM
       setMoments(prev => prev.filter(x => x.id !== m.id));
       // AUTO-REFRESH-FIX (2026-09-01): Hauptprofil-Momente nach Löschen synchronisieren
       onDeleteMoment?.();
+      // DISCOVER-STALE-DELETE-FIX (2026-09-08, Report cd6e89af): Der gelöschte
+      // Moment blieb im Entdecken-Tab sichtbar, weil DiscoverPage keep-alive
+      // ist und _discoverCache bei der Löschung nie invalidiert wurde. Cache
+      // hier invalidieren — die nächste Tab-Aktivierung lädt frische Daten.
+      _discoverCache.ts = 0;
     } catch(e) { console.error("Moment löschen:", e); }
   };
 
