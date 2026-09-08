@@ -364,7 +364,18 @@ export function ProfileHeader({
                   borderRadius:14, padding:"5px 11px",
                   fontSize:11, fontWeight: 600,
                   color: isSuperadmin ? "#5A32C8" : "#0AADA3",
-                  maxWidth:108, textAlign:"center", flexWrap:"wrap", rowGap:2,
+                  /* SUPERADMIN-BADGE-WRAP-FIX (2026-09-08, Michael-Report
+                     "Stern soll links daneben sein, nicht darüber"): Der alte
+                     flexWrap:"wrap" + maxWidth:108 brach bei schmalem Screen
+                     (iOS-Schrift-Rendering) den ✦ Stern auf eine EIGENE Zeile
+                     oberhalb des Labels — statt links daneben. Fix: Badge darf
+                     NIE umbrechen (Icon bleibt garantiert links vom Text),
+                     maxWidth von 108 auf 132 erhöht (alle realen Labels —
+                     "Superadmin", "HUI-Talent", "Verein", "Unternehmen" —
+                     passen damit einzeilig), Label mit nowrap+ellipsis als
+                     Safety-Net für extrem lange Ausnahmefälle. */
+                  maxWidth:132, textAlign:"center",
+                  whiteSpace:"nowrap", overflow:"hidden",
                 }}>
                   {isSuperadmin ? (
                     /* Superadmin: kleines ✦ Symbol + Label */
@@ -379,7 +390,7 @@ export function ProfileHeader({
                       {isTalentResolved ? <HUITalentIcon size={13}/> : <HUIImpactIcon size={13}/>}
                     </span>
                   )}
-                  <span>{badgeLabel}</span>
+                  <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>{badgeLabel}</span>
                 </div>
               )}
             </div>
