@@ -112,8 +112,17 @@ export function AppStateProvider({ children }) {
       .catch(() => {}); // silent
   }, [user?.id]);
 
+  // PUNKT2-FOLLOW-SYNC (2026-09-08, Michael): Karen-Bug — Unfollow auf dem
+  // Profil aenderte NICHT den globalen followedIds-State (beide RelationButtons
+  // hatten eigene lokale States) → Discover-"✓ Folge ich"-Badge zeigte den
+  // Folgestatus STALE weiter. Fix: ctx ist der SSOT — toggleFollow haertet
+  // das DB-Resultat ab (upsert onConflict statt insert, Rueckgabe true/false
+  // fuer Caller-Callbacks), reconcileFollow erlaubt externe Abgleichs-Queries
+  // (Profil-Refresh), und ein globaler "hui:follow:changed"-Listener synchronisiert
+  // followedIds auch bei Legacy-Mutatoren (SystemBotProfile, HuiConnectionEngine),
+  // die das Event dispatchen. Idempotent: add/remove ohne Duplikate.
   const toggleFollow = useCallback(async (targetId) => {
-    if (!user?.id || !targetId) return;
+    if (!user?.id || !targetId) return false;
     const isFollowing = followedIds.includes(targetId);
     // Optimistic update
     setFollowedIds(prev =>
@@ -121,27 +130,50 @@ export function AppStateProvider({ children }) {
     );
     try {
       if (isFollowing) {
-        await supabase.from("follows")
+        const { error } = await supabase.from("follows")
           .delete()
           .eq("follower_id", user.id)
           .eq("followed_id", targetId);
+        if (error) throw error;
         window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId, action: "unfollow" } }));
       } else {
-        await supabase.from("follows")
-          .insert({ follower_id: user.id, followed_id: targetId });
+        const { error } = await supabase.from("follows")
+          .upsert({ follower_id: user.id, followed_id: targetId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
+        if (error) throw error;
         window.dispatchEvent(new CustomEvent("hui:follow:changed", { detail: { targetId, action: "follow" } }));
-        // Notification an gefolgten User
-        const { data: me } = await supabase
-          .from("profiles").select("display_name").eq("id", user.id).single();
-        // notifyFollow removed — function not defined
       }
+      return true;
     } catch {
       // Rollback bei Fehler
       setFollowedIds(prev =>
         isFollowing ? [...prev, targetId] : prev.filter(id => id !== targetId)
       );
+      return false;
     }
   }, [user?.id, followedIds]);
+
+  // Externer Abgleich: setzt den Folgestatus EINES Nutzers im globalen SSOT
+  // (idempotent, kein Duplikat moeglich). Caller: RelationButtons-Reconcile-Effekt.
+  const reconcileFollow = useCallback((targetId, following) => {
+    setFollowedIds(prev => {
+      const has = prev.includes(targetId);
+      if (following && !has) return [...prev, targetId];
+      if (!following && has) return prev.filter(id => id !== targetId);
+      return prev;
+    });
+  }, []);
+
+  // Listener: Legacy-Mutatoren (die follows-Tabelle direkt aendern) dispatchen
+  // "hui:follow:changed" — hiermit bleibt der SSOT auch ohne ctx-Aufruf aktuell.
+  useEffect(() => {
+    const h = (e) => {
+      const { targetId, action } = e?.detail || {};
+      if (!targetId) return;
+      reconcileFollow(targetId, action === "follow");
+    };
+    window.addEventListener("hui:follow:changed", h);
+    return () => window.removeEventListener("hui:follow:changed", h);
+  }, [reconcileFollow]);
 
   // ── Context Value ──────────────────────────────────────────────
   // useMemo verhindert unnötige Re-renders aller Consumer bei jedem Provider-Render
@@ -155,6 +187,7 @@ export function AppStateProvider({ children }) {
     // Follow
     followedIds,
     toggleFollow,
+    reconcileFollow,
     // Phase 2 placeholders — NOOP bis aktiviert
     feedItems:       [],
     feedLoading:     false,

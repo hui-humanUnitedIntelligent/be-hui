@@ -1946,6 +1946,23 @@ function VotingSection({ projects, userVotes, daysLeft, totalVotes, remainVotes,
 function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, onOpen, canVote = true }) {
   const { t } = useTranslation();
   const isTabletScreen = useIsTabletScreen(); // PUNKT5-IMPACT-TABLET (2026-09-08)
+  // PUNKT3-HERZENSPROJEKT-VOTERS (2026-09-08, Michael): echte Profilbilder der
+  // letzten Voter statt 3 dekorativer Leer-Platzhalter. SECURITY-DEFINER-RPC
+  // rpc_get_project_voters (impact_votes ist RLS-geschützt, s. Migration 104/119).
+  const [voterAvatars, setVoterAvatars] = React.useState([]);
+  React.useEffect(() => {
+    if (!p?.id) return;
+    let dead = false;
+    supabase
+      .rpc("rpc_get_project_voters", {
+        p_project_ids: [p.id],
+        p_pool_month: new Date().toISOString().slice(0, 7),
+        p_limit: 3,
+      })
+      .then(({ data }) => { if (!dead && Array.isArray(data)) setVoterAvatars(data.map(v => v.avatar_url).filter(Boolean)); })
+      .catch(() => {});
+    return () => { dead = true; };
+  }, [p?.id]);
   const accent = p.color || T.teal;
   const fundedEur = safeNum(p.current_amount_eur) || 0;
   const goalEur   = safeNum(p.awarded_eur) || safeNum(p.funding_goal) || 2000;
@@ -2021,21 +2038,30 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
             transition:"width 1.4s cubic-bezier(0.22,1,0.36,1)" }}/>
         </div>
 
-        {/* Supporter-Zeile */}
+        {/* PUNKT3-HERZENSPROJEKT-VOTERS: Supporter-Zeile — echte Voter-Avatare
+            (max 3, ueberlappend) statt Deko-Platzhalter; die Stimmen-Zahl steht
+            jetzt NUR EINMAL im Text (vorher: `${p.votes} ${t(..., {count})}` =
+            doppelte Zahl, da das Template {count} bereits enthaelt). Ohne Stimmen:
+            nur "Sei der Erste"-Text, KEINE leeren Kreise. */}
         <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-          <div style={{ display:"flex" }}>
-            {[0,1,2].map((j) => (
-              <div key={j} style={{ width:22, height:22, borderRadius:"50%",
-                border:"1.5px solid white", marginLeft:j>0?-7:0,
-                background:"rgba(14,196,184,0.10)",
-                display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <HUIProfilIcon size={12} style={{opacity:0.45, color:T.teal}} />
-              </div>
-            ))}
-          </div>
+          {(p.votes||0) > 0 && voterAvatars.length > 0 && (
+            <div style={{ display:"flex", flexShrink:0 }}>
+              {voterAvatars.slice(0,3).map((av, j) => (
+                <div key={j} style={{ width:22, height:22, borderRadius:"50%",
+                  border:"1.5px solid white", marginLeft:j>0?-7:0,
+                  background:"rgba(14,196,184,0.10)", overflow:"hidden",
+                  display:"flex", alignItems:"center", justifyContent:"center", position:"relative" }}>
+                  <HUIProfilIcon size={12} style={{opacity:0.45, color:T.teal}} />
+                  <img loading="lazy" decoding="async" src={av} alt=""
+                    onError={e => { e.currentTarget.style.display = "none"; }}
+                    style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" }}/>
+                </div>
+              ))}
+            </div>
+          )}
           <span style={{ fontSize:11, color:T.muted }}>
             {(p.votes||0) > 0
-              ? `${p.votes} ${p.votes === 1 ? t("impact.menschenMoechte", {count: p.votes}) : t("impact.menschenMoechten", {count: p.votes})}`
+              ? (p.votes === 1 ? t("impact.menschenMoechte", {count: p.votes}) : t("impact.menschenMoechten", {count: p.votes}))
               : t("impact.seiErste")}
           </span>
         </div>

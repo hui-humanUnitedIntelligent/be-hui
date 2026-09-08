@@ -37,21 +37,6 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
       WebkitTapHighlightColor:"transparent",
       position:"relative",
     }}>
-      {/* "Folge ich"-Badge (51bbd017) — nur sichtbar wenn eingeloggt + gefolgt.
-          PUNKT4-FOLLOWING-BADGE-IN-FLOW (2026-09-08): vorher absolute
-          (top:8/right:8) → schwebte über dem Avatar. Jetzt eigene Zeile im
-          Fluss — konsistent mit MenschenAllModal, keine Überlappung. */}
-      {isFollowing && (
-        <div style={{
-          alignSelf:"flex-end", marginBottom:6,
-          display:"inline-flex", alignItems:"center", gap:2.5,
-          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
-          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
-          border:"1px solid rgba(14,196,184,0.22)",
-          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
-        }}>✓ {t("profile.following")}</div>
-      )}
-
       {/* Avatar + Online-Dot */}
       <div style={{ position:"relative", marginBottom:10 }}>
         <div style={{
@@ -112,12 +97,28 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
         )}
       </div>
 
+      {/* PUNKT1-FOLLOWING-BADGE (2026-09-08, Michael): "✓ Folge ich"Badge
+          sitzt jetzt DIREKT OBERHALB der Follower+Likes-Zeile ("Herzen") am
+          unteren Kartenrand statt oben ueber dem Avatar. marginTop:auto
+          dockt die Gruppe an den Kartenbottom (Statistikzeile hat ihr
+          marginTop:auto dafuer abgegeben). */}
+      {isFollowing && (
+        <div style={{
+          marginTop:"auto", alignSelf:"center", marginBottom:2,
+          display:"inline-flex", alignItems:"center", gap:2.5,
+          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
+          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
+          border:"1px solid rgba(14,196,184,0.22)",
+          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
+        }}>✓ {t("profile.following")}</div>
+      )}
+
       {/* Follower + Likes — immer nebeneinander in 1 Zeile, IMMER am unteren Kartenrand
           (marginTop:auto schiebt die Zeile nach unten; da .dp-hscroll ein Flex-Row mit
           Default-align-items:stretch ist, haben alle Karten in der Reihe bereits dieselbe
           Höhe — die Badges docken so bei jeder Karte exakt an der gleichen Y-Position an,
           unabhängig davon ob Bio/Ort kürzer sind) */}
-      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center", marginTop:"auto", paddingTop:4, width:"100%" }}>
+      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center", paddingTop:4, width:"100%" }}>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
           background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",

@@ -93,6 +93,12 @@ export function MembershipLabel({ membershipType, size = "xs", style = {} }) {
     community_creator: { label:t("role.creator"),   color:"#FF8A6B", bg:"rgba(255,138,107,0.12)", border:"rgba(255,138,107,0.30)", icon:"◎" },
     raumhalter:        { label:t("role.raumhalter"),color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
     guardian:          { label:t("role.guardian"),  color:"#C084FC", bg:"rgba(192,132,252,0.12)", border:"rgba(192,132,252,0.30)", icon:"◈" },
+    // PUNKT4-ACCOUNT-TYPES (2026-09-08, Michael): echte HUI-Kategorien —
+    // Talent, Projekt, Verein, Unternehmen (Quelle: account_type/org_type via
+    // rpc_discover_people). 'team' entfaellt (war falsches Superadmin-Mapping).
+    projekt:           { label:t("role.projekt"),     color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"◇" },
+    verein:            { label:t("role.verein"),      color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"◇" },
+    unternehmen:       { label:t("role.unternehmen"), color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"◇" },
     team:              { label:t("role.team"),      color:"#F5A623", bg:"rgba(245,166,35,0.12)",  border:"rgba(245,166,35,0.30)",  icon:"⬡" },
   }[type] || { label:t("role.member"), color:"#16D7C5", bg:"rgba(22,215,197,0.10)", border:"rgba(22,215,197,0.25)", icon:"·" };
 

@@ -37,6 +37,8 @@ import { RecommendationsSection } from "../components/profile/sections/Recommend
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
+import { invalidateOrbStageCache } from "../hooks/useOrbGrowthStage.js";
+import { useAppState, useFollowStatus } from "../lib/AppStateContext.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
 
 // UNTERSTÜTZEN-BUTTON TEMPORÄR VERSTECKT (2026-08-18, Michael-Request):
@@ -130,13 +132,19 @@ function NavBar({ onBack = () => {}, title, subtitle }) {
 // CHAT-LOGIK-v2 (2026-08-22, Michael): "Verbinden"-Button entfernt — Chat
 // ist ab sofort ausschließlich nach Buchung/Kauf verfügbar (öffnet automatisch
 // nach Bezahlung), nicht mehr per Klick von einem beliebigen Profil aus.
+// PUNKT2-FOLLOW-SYNC (2026-09-08, Michael, Karen-Bug): isFollowing kommt jetzt
+// aus dem globalen SSOT (useFollowStatus aus AppStateContext) statt eigenem
+// lokalen State — Follow/Unfollow hier aktualisiert damit auch den Discover-
+// "✓ Folge ich"-Badge (gleicher State). Mount-Effekt gleicht den SSOT per
+// Direkt-Query einmalig ab (reconcileFollow, deckt Geraete-/Session-Differenzen).
 function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
   const { t } = useTranslation();
-  const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const { isFollowing, toggle } = useFollowStatus(profileId);
+  const { reconcileFollow } = useAppState();
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
 
-  // Prüfe ob bereits gefolgt
+  // Einmaliger SSOT-Abgleich gegen die DB (idempotent).
   useEffect(() => {
     if (!profileId || !currentUserId || profileId === currentUserId) return;
     supabase
@@ -145,9 +153,12 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
       .eq("follower_id", currentUserId)
       .eq("followed_id", profileId)
       .maybeSingle()
-      .then(({ data }) => setIsFollowing(!!data))
+      .then(({ data, error }) => {
+        if (error) { console.warn("[Follow] check error:", error.message); return; }
+        reconcileFollow(profileId, !!data);
+      })
       .catch(() => {});
-  }, [profileId, currentUserId]);
+  }, [profileId, currentUserId, reconcileFollow]);
 
   if (!currentUserId || profileId === currentUserId) return null;
 
@@ -157,32 +168,17 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
     setFollowLoading(true);
     const prevFollowing = isFollowing;
     try {
-      if (isFollowing) {
-        setIsFollowing(false);
-        onFollowChange?.(-1);
-        const { error } = await supabase.from("follows")
-          .delete()
-          .eq("follower_id", currentUserId)
-          .eq("followed_id", profileId);
-        if (error) {
-          console.warn("[Follow] delete error:", error.message);
-          setIsFollowing(true);
-          onFollowChange?.(+1);
-        }
+      onFollowChange?.(prevFollowing ? -1 : +1);
+      const ok = await toggle();
+      if (!ok) {
+        // DB-Fehler → ctx hat den SSOT zurueckgerollt, nur Count zurueckrollen
+        onFollowChange?.(prevFollowing ? +1 : -1);
       } else {
-        setIsFollowing(true);
-        onFollowChange?.(+1);
-        const { error } = await supabase.from("follows")
-          .upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
-        if (error) {
-          console.warn("[Follow] upsert error:", error.message);
-          setIsFollowing(false);
-          onFollowChange?.(-1);
-        }
+        invalidateOrbStageCache(currentUserId);
       }
     } catch(e) {
       console.warn("[Follow] exception:", e);
-      setIsFollowing(prevFollowing);
+      onFollowChange?.(prevFollowing ? +1 : -1);
     }
     finally { setFollowLoading(false); }
   };

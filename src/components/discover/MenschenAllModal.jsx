@@ -57,20 +57,6 @@ function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false, m
       display:"flex", flexDirection:"column", alignItems:"center",
       padding:"16px 10px 12px", cursor:"pointer", position:"relative",
     }}>
-      {/* PUNKT4-FOLLOWING-BADGE-IN-FLOW (2026-09-08, Michael): Das "✓ Folge
-          ich"-Badge war position:absolute (top:8/right:8) und schwebte ÜBER
-          dem Avatar (Karte zu schmal im 2er-Grid). Jetzt eigene Zeile im
-          Fluss — Überlappung auf jeder Breite ausgeschlossen. */}
-      {isFollowing && (
-        <div style={{
-          alignSelf:"flex-end", marginBottom:6,
-          display:"inline-flex", alignItems:"center", gap:2.5,
-          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
-          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
-          border:"1px solid rgba(14,196,184,0.22)",
-          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
-        }}>✓ {t("profile.following")}</div>
-      )}
       <div style={{
         width:64, height:64, borderRadius:"50%", overflow:"hidden", marginBottom:10,
         border:`2px solid ${T.white}`, boxShadow:`0 0 0 2px rgba(14,196,184,0.28)`,
@@ -115,8 +101,21 @@ function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false, m
           </>
         )}
       </div>
+      {/* PUNKT1-FOLLOWING-BADGE (2026-09-08, Michael): "✓ Folge ich"-Badge
+          jetzt DIREKT OBERHALB der Follower+Likes-Zeile ("Herzen") am unteren
+          Kartenrand statt oben ueber dem Avatar. */}
+      {isFollowing && (
+        <div style={{
+          marginTop:"auto", alignSelf:"center", marginBottom:2,
+          display:"inline-flex", alignItems:"center", gap:2.5,
+          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
+          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
+          border:"1px solid rgba(14,196,184,0.22)",
+          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
+        }}>✓ {t("profile.following")}</div>
+      )}
       {/* Follower + Likes — immer nebeneinander in 1 Zeile */}
-      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center", marginTop:"auto" }}>
+      <div style={{ display:"flex", gap:4, flexWrap:"nowrap", justifyContent:"center" }}>
         <div style={{
           display:"flex", alignItems:"center", gap:3,
           background:"rgba(14,196,184,0.08)", borderRadius:99, padding:"3px 8px",

@@ -17,6 +17,16 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
+import { useAppState, useFollowStatus } from "../../lib/AppStateContext.jsx";
+
+// PUNKT2-FOLLOW-SYNC (2026-09-08, Michael, Karen-Bug): Dieser Button hatte einen
+// EIGENEN lokalen isFollowing-State — Unfollow hier erreichte den globalen
+// SSOT (AppStateContext.followedIds) nie → der Discover-"✓ Folge ich"-Badge
+// zeigte den Folgestatus stale weiter. Fix: isFollowing kommt jetzt aus dem
+// globalen SSOT (useFollowStatus), toggle() laeuft durch ctx.toggleFollow
+// (DB-Op + Rollback + hui:follow:changed-Event dort zentral). Der Mount-Effekt
+// gleicht den SSOT per Direkt-Query einmalig ab (reconcileFollow) — deckt auch
+//Quer-aenderungen ab (z.B. Follow von einem anderen Geraet in derselben Session).
 
 const T = {
   tealDeep: "#0AA89B",
@@ -34,22 +44,25 @@ export default function ProfileRelationButtons({
   onFollowChange,
   onClose, // eslint-disable-line no-unused-vars -- Signatur bewusst beibehalten (Aufrufer übergeben ihn weiterhin)
 }) {
-  const [isFollowing,   setIsFollowing]   = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  // PUNKT2-FOLLOW-SYNC: isFollowing aus globalem SSOT statt lokalem State
+  const { isFollowing, toggle } = useFollowStatus(profileId);
+  const { reconcileFollow } = useAppState();
 
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
   const shortName   = displayName.split(" ")[0] || displayName;
 
-  // Prüfe ob bereits gefolgt
+  // Einmaliger Abgleich des globalen SSOT gegen die DB (kreuzt Geraete-/Session-
+  // Differenzen aus; idempotent — kein Dublikat moeglich).
   useEffect(() => {
     if (!profileId || !currentUserId || profileId === currentUserId) return;
     supabase.from("follows").select("follower_id")
       .eq("follower_id", currentUserId).eq("followed_id", profileId)
       .maybeSingle().then(({ data, error }) => {
         if (error) { console.warn("[Follow] check error:", error.message); return; }
-        setIsFollowing(!!data);
+        reconcileFollow(profileId, !!data);
       }).catch(() => {});
-  }, [profileId, currentUserId]);
+  }, [profileId, currentUserId, reconcileFollow]);
 
   if (!currentUserId || profileId === currentUserId) return null;
 
@@ -59,39 +72,22 @@ export default function ProfileRelationButtons({
     setFollowLoading(true);
     const prevFollowing = isFollowing;
     try {
-      if (isFollowing) {
-        // Optimistic update
-        setIsFollowing(false);
-        onFollowChange?.(-1);
-        const { error } = await supabase.from("follows").delete()
-          .eq("follower_id", currentUserId).eq("followed_id", profileId);
-        if (error) {
-          // Rollback
-          console.warn("[Follow] delete error:", error.message);
-          setIsFollowing(true);
-          onFollowChange?.(+1);
-        }
+      // Optimistischer Follower-Count fuer die aufrufende Profilseite
+      onFollowChange?.(prevFollowing ? -1 : +1);
+      // DB-Op + globaler SSOT (inkl. Rollback + Event) macht ctx.toggleFollow
+      const ok = await toggle();
+      if (!ok) {
+        // DB-Fehler → ctx hat den SSOT zurueckgerollt, hier nur den Count zurueckrollen
+        onFollowChange?.(prevFollowing ? +1 : -1);
       } else {
-        // Optimistic update
-        setIsFollowing(true);
-        onFollowChange?.(+1);
-        const { error } = await supabase.from("follows")
-          .upsert({ follower_id: currentUserId, followed_id: profileId }, { onConflict: "follower_id,followed_id", ignoreDuplicates: true });
-        if (error) {
-          // Rollback
-          console.warn("[Follow] upsert error:", error.message);
-          setIsFollowing(false);
-          onFollowChange?.(-1);
-        } else {
-          // FIX (2026-08-13): Follow zaehlt in rpc_get_orb_growth_stage als
-          // Aktivitaet des Followers (currentUserId) -> Cache invalidieren,
-          // sonst haengt der Orb bis zu 5 Min. auf altem Wert.
-          invalidateOrbStageCache(currentUserId);
-        }
+        // FIX (2026-08-13): Follow zaehlt in rpc_get_orb_growth_stage als
+        // Aktivitaet des Followers (currentUserId) -> Cache invalidieren,
+        // sonst haengt der Orb bis zu 5 Min. auf altem Wert.
+        invalidateOrbStageCache(currentUserId);
       }
     } catch(e) {
       console.warn("[Follow] exception:", e);
-      setIsFollowing(prevFollowing);
+      onFollowChange?.(prevFollowing ? +1 : -1);
     }
     finally { setFollowLoading(false); }
   };
