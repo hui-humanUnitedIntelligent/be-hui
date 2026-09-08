@@ -1503,20 +1503,37 @@ function BigHero({ pool }) {
       position:"relative", overflow:"hidden", minHeight:320,
       background:`linear-gradient(172deg,#FCF0DE 0%,#F8EFE0 50%,#F3E9D6 100%)`,
     }}>
-      {/* Hintergrundbild — rechte Hälfte */}
+      {/* Hintergrundbild — rechte Hälfte.
+          IMPACT-HERO-WASH-FIX (2026-09-08, Bug-Käfer beef0f64 "Bild steht
+          über der Schrift!!", iOS 18.7): Vorher überlagerte ein separat
+          absolut positioniertes Overlay-Div (linear-gradient, cream) die
+          linke Foto-Kante. Bewiesen im Original-Screenshot des Reporters
+          (pixelgenau vermessen): Auf iOS 18.7 WKWebView wird dieses
+          Overlay-Div NICHT gezeichnet — das Foto lief mit hartem Rand
+          an die Headline heran ("Bild steht über der Schrift"). Der Code
+          war korrekt im 2.1.568-Bundle enthalten und rendert in Chromium
+          sowie auf iOS 18.2.1 korrekt (Verifikation 2026-09-08 morgens).
+          Struktureller Fix statt Workaround: Die Waschung ist jetzt eine
+          ALPHA-MASKE AUF DEM <img> selbst (transparent 0% → 40% bei 35%
+          → deckend 70%) — identische Blend-Mathematik wie der frühere
+          Overlay (photoAnteil(x) = 1 - waschAlpha(x), identische
+          Stützstellen), kann aber von keinem Paint-Order-/Stacking-
+          Problem mehr "verloren gehen", weil sie Teil der Bildfläche
+          selbst ist. Der Container hat als Fallback solid #FCF0DE als
+          Hintergrund — Maskierung nicht verfügbar → Foto deckend →
+          exakt der alte Zustand, niemals schlimmer. */}
       <div style={{
         position:"absolute", top:0, right:0, width:"52%", height:"100%",
-        overflow:"hidden",
+        overflow:"hidden", background:"#FCF0DE",
       }}>
         <img src={HERO_IMG} alt="" loading="eager" decoding="sync" style={{
           width:"100%", height:"100%", objectFit:"cover",
           objectPosition:"center",
           filter:"saturate(0.82) brightness(0.90)",
-        }}/>
-        {/* Gradient-Überblendung nach links */}
-        <div style={{
-          position:"absolute", inset:0,
-          background:"linear-gradient(to right,#FCF0DE 0%,rgba(252,240,222,0.6) 35%,transparent 70%)",
+          WebkitMaskImage:"linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 35%,#000 70%)",
+          maskImage:"linear-gradient(to right,transparent 0%,rgba(0,0,0,0.4) 35%,#000 70%)",
+          WebkitMaskSize:"100% 100%", maskSize:"100% 100%",
+          WebkitMaskRepeat:"no-repeat", maskRepeat:"no-repeat",
         }}/>
       </div>
 
