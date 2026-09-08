@@ -258,9 +258,47 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   if (!open) return null;
   if (IS_IOS) logIosModalOpen(); // iOS-Diagnostik (Android: unverändert)
 
+  // ── IOS-BUG-4b-FIX (2026-09-08): Textfeld sprang beim Tastatur-Öffnen
+  // abrupt nach oben statt sich sanft zu bewegen (Michael-Report,
+  // Screenshot). ROOT CAUSE: Dieses Modal war NICHT self-managed →
+  // ZWEI Mechanismen griffen gleichzeitig unkoordiniert ein: (1) der
+  // globale Handler schob den äusseren Backdrop per paddingBottom hoch
+  // (das Full-Overlay-Padding — an sich seit v2.1.563 iOS-glatt), UND
+  // (2) globalKeyboardHandler.onFocusIn löste ZUSÄTZLICH ein natives
+  // el.scrollIntoView({behavior:"smooth"}) auf dem Textfeld aus, welches
+  // den NÄCHSTEN scrollbaren Vorfahren (hier: das eigene innere Sheet-
+  // Panel mit overflowY:"auto") separat verschob — zwei konkurrierende
+  // Layout-Verschiebungen gegeneinander = sichtbarer Sprung. Exakt das
+  // bereits bewiesene Konfliktmuster aus SCROLL-DRAG-FIX (2026-08-17,
+  // ConversationRoom) — dort bereits über data-hui-kbd-self-managed
+  // gelöst (scrollFieldIntoView() überspringt Felder in einem solchen
+  // Container explizit, siehe globalKeyboardHandler.js).
+  // FIX (NUR iOS, Android unverändert): Backdrop bekommt auf iOS
+  // data-hui-kbd-self-managed → globaler Handler fasst weder den
+  // Wrapper an (kein zweites paddingBottom) noch die scrollIntoView-
+  // Konkurrenz (Textfeld liegt jetzt "in einem self-managed Container").
+  // Eigenes paddingBottom folgt direkt der SSOT-CSS-Variable
+  // --hui-keyboard-inset (vom globalen Handler weiterhin aktuell
+  // gehalten), ohne Transition (identische Begründung wie
+  // IOS-KEYBOARD-SMOOTH-FIX: visualViewport feuert pro Frame → jede
+  // Transition würde pro Frame neu starten = ruckeln statt 1:1 folgen).
+  // Android: weder das Attribut noch die Inline-Styles werden gesetzt —
+  // der globale Handler behandelt das Modal exakt wie bisher.
+  // Nur auf iOS: eigenes paddingBottom (SSOT-CSS-Var), keine Transition
+  // (Begründung siehe Kommentarblock oben), + Opt-out aus dem globalen
+  // Handler (Padding UND scrollIntoView-Konkurrenz). Android: leeres Objekt
+  // → weder Attribut noch Style-Override, globaler Handler unverändert aktiv.
+  const iosKbdStyle = IS_IOS
+    ? {
+        paddingBottom: "calc(var(--hui-keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))",
+        transition: "none",
+      }
+    : {};
+
   return createPortal(
     <div
       onClick={handleClose}
+      {...(IS_IOS ? { "data-hui-kbd-self-managed": "" } : {})}
       style={{
         position: "fixed",
         inset: 0,
@@ -270,6 +308,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
         alignItems: "flex-end",
         justifyContent: "center",
         animation: "huiFadeIn 0.2s ease",
+        ...iosKbdStyle,
       }}
     >
       <div

@@ -82,7 +82,16 @@ const KNOWN_CAUSES = {
 // sichtbarer Toast — und werden NICHT gegen KNOWN_CAUSES gematcht (die
 // Patterns wie "transform"/"filter" matchen sonst false-positiv gegen
 // harmlose Feldnamen wie "p1_img_transform" in der Diagnose-JSON).
-const SILENT_ERROR_TYPES = new Set(['img_diag']);
+// BUG-4a-FIX (2026-09-08): 'ios_diag' ergänzt — die temporären iOS-Tap-
+// Diagnosemarker (BUG-BUTTON-TAP, BUG-MODAL-OPEN, siehe BugReportButton.jsx/
+// BugReportModal.jsx) liefen bisher OHNE Eintrag hier durch die normale
+// sichtbare Toast-Pipeline → echte TestFlight-Tester sahen interne
+// UNK-999-Diagnose-Toasts im "Fehler melden"-Formular (Michael-Report,
+// Screenshot 2026-09-08). Diagnose läuft weiter STILL in system_error_reports
+// (Michael beobachtet dort serverseitig, ob iOS-Taps ankommen — Zweck noch
+// nicht abgeschlossen), nur der sichtbare Toast entfällt — exakt dasselbe
+// Muster wie img_diag.
+const SILENT_ERROR_TYPES = new Set(['img_diag', 'ios_diag']);
 
 // ── Error-Gruppen-Store (Punkt 3) ───────────────────────────────
 let errorGroups = new Map(); // fingerprint → group data
