@@ -26,7 +26,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
-import { MembershipLabel } from "../../ui/TalentBadge.jsx";
+import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 import { useAppState } from "../../lib/AppStateContext.jsx";
 
 const T = {
