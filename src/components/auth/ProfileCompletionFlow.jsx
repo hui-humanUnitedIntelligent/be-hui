@@ -4,6 +4,7 @@
 // Soft modal — NEVER a hard redirect or whitescreen.
 import React, { useState, useRef, useCallback } from "react";
 import { toSafeUploadBody } from "../../lib/uploadBody.js";
+import { MAX_IMAGE_BYTES } from "../../lib/uploadUtils.js";
 import { supabase }           from "../../lib/supabaseClient.js";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { UsernameInput, validateUsername } from "../../lib/useUsernameCheck.jsx";
@@ -90,9 +91,9 @@ function AvatarUploader({ userId, current, onUploaded }) {
 
   async function handleFile(file) {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert(t("pcf.imageMax5mb")); return; }
+    if (file.size > MAX_IMAGE_BYTES) { alert(t("pcf.imageMax5mb")); return; }
     if (!file.type.startsWith("image/")) { setError(t("pcf.onlyImages")); return; }
-    if (file.size > 5 * 1024 * 1024)    { setError(t("pcf.max5mb")); return; }
+    if (file.size > MAX_IMAGE_BYTES)    { setError(t("pcf.max5mb")); return; }
     setLoading(true); setError(null);
     setPreview(URL.createObjectURL(file));
     try {

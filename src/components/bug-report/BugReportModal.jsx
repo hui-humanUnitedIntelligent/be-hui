@@ -8,6 +8,7 @@
 // Additiv — keine bestehenden Funktionen werden berührt.
 import React, { useState, useRef, useCallback } from "react";
 import { toSafeUploadBody } from "../../lib/uploadBody.js";
+import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { createPortal } from "react-dom";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "../../lib/supabaseClient.js";
@@ -42,9 +43,10 @@ function logIosModalOpen() {
 
 const MAX_FILES = 10;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "video/mp4"];
-// UNIVERSELLER UPLOAD (2026-08-20): 5MB Bilder, 25MB Videos (Michael-Vorgabe)
-const MAX_FILE_SIZE_IMAGE = 5 * 1024 * 1024;
-const MAX_FILE_SIZE_VIDEO = 25 * 1024 * 1024;
+// UNIVERSELLER UPLOAD (2026-08-20): Limits aus dem SSOT (uploadUtils.js).
+// 2026-09-08: 10MB Bilder / 50MB Videos (Michael-Vorgabe — Limits erhöht).
+const MAX_FILE_SIZE_IMAGE = MAX_IMAGE_BYTES;
+const MAX_FILE_SIZE_VIDEO = MAX_VIDEO_BYTES;
 const MAX_FILE_SIZE = MAX_FILE_SIZE_VIDEO; // kompatibel mit bestehendem Code
 
 export default function BugReportModal({ open = false, onClose = () => {}, user = null }) {

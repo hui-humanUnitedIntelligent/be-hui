@@ -19,11 +19,15 @@ import { uploadMediaVerified, toSafeUploadBody } from "./uploadBody.js";
 // verifizierten Upload zentral aus uploadBody.js (UPLOAD-BODY-SSOT).
 export { uploadMediaVerified, toSafeUploadBody };
 
-// ── Universelle Konstanten (Michael-Vorgabe, SSOT) ───────────────────
+// ── Universelle Konstanten (SSOT) ──────────────────────────────────────
+// 2026-09-08 (Michael): Limits erhöht — Bilder 5→10MB, Videos 25→50MB
+// (Root Cause Kay-Upload-Bug: große Fotos/Videos wurden abgelehnt).
+// GILT SYSTEMWEIT — alle Komponenten beziehen die Werte ausschließlich
+// von hier (MAX_IMAGE_BYTES/MAX_VIDEO_BYTES derivieren automatisch).
 export const UPLOAD_LIMITS = {
   MAX_FILES:       10,            // max 10 Bilder+Videos gesamt
-  MAX_IMAGE_MB:     5,            // 5MB pro Bild
-  MAX_VIDEO_MB:    25,            // 25MB pro Video
+  MAX_IMAGE_MB:    10,            // 10MB pro Bild (2026-09-08, war 5MB)
+  MAX_VIDEO_MB:    50,            // 50MB pro Video (2026-09-08, war 25MB)
   IMAGE_MAX_DIM:  1600,           // Maximalauflösung nach Kompression
   IMAGE_QUALITY:   0.82,          // JPEG-Qualität nach Kompression
 };
