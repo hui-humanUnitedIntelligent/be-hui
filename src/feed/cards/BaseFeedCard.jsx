@@ -75,6 +75,44 @@ export function getAdaptiveMediaHeight(aspect, containerWidth, relaxed) {
   return Math.min(Math.max(natural, MEDIA.portraitMin), MEDIA.portraitMax + boost);
 }
 
+// ── Tablet-Screen Detection (TABLET-MEDIA-3X, 2026-09-08) ──────────
+// Michaels Vorgabe: Auf Tablets sollen NUR die Feed-Bilder (nicht der
+// Text) auf Home dreimal so hoch sein. Erkennung ueber die KLEINERE der
+// beiden Viewport-Dimensionen -- die bleibt bei Rotation konstant:
+//   iPad (jede Ausrichtung):    min(1024,1366) = 1024  -> Tablet
+//   iPhone Pro Max (Querformat): min(926,428)  = 428   -> Phone (bleibt klein!)
+// Ein reiner Breiten-Check (window.innerWidth) waere unzuverlaessig, weil
+// ein Phone im Querformat breiter sein kann als ein iPad im Hochformat.
+// Schwelle 700px liegt sicher zwischen dem groessten Phone (~430) und dem
+// kleinsten echten Tablet (iPad mini: 744). EIN geteilter Listener statt
+// einem pro Feed-Karte (Performance bei langen Feeds mit vielen Karten).
+const TABLET_MIN_DIM = 700;
+function getIsTabletScreen() {
+  if (typeof window === "undefined") return false;
+  return Math.min(window.innerWidth, window.innerHeight) >= TABLET_MIN_DIM;
+}
+const _tabletScreenSubscribers = new Set();
+let _tabletScreenValue = getIsTabletScreen();
+function _notifyTabletScreenSubscribers() {
+  const next = getIsTabletScreen();
+  if (next === _tabletScreenValue) return;
+  _tabletScreenValue = next;
+  _tabletScreenSubscribers.forEach(fn => fn(next));
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("resize", _notifyTabletScreenSubscribers);
+  window.addEventListener("orientationchange", _notifyTabletScreenSubscribers);
+}
+function useIsTabletScreen() {
+  const [val, setVal] = useState(_tabletScreenValue);
+  useEffect(() => {
+    setVal(_tabletScreenValue); // Re-Sync beim Mount (falls sich seit Modul-Load geaendert hat)
+    _tabletScreenSubscribers.add(setVal);
+    return () => { _tabletScreenSubscribers.delete(setVal); };
+  }, []);
+  return val;
+}
+
 // ── CSS injection (once) ──────────────────────────────────────
 const CARD_CSS = `
 @keyframes huiHeartBurst {
@@ -528,6 +566,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   const lightboxTimerRef = useRef(null);
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(0);
+  const isTabletScreen = useIsTabletScreen(); // TABLET-MEDIA-3X (2026-09-08)
 
   injectCardCSS();
 
@@ -565,7 +604,11 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   const isVideo = imgs[0].type === "video";
 
   // FEED-UNIFORM-FIX (2026-08-07): Feste Hoehe fuer alle Karten.
-  const h = relaxed ? 340 : T.mediaH;
+  // TABLET-MEDIA-3X (2026-09-08, Michael): Auf Tablets wird NUR das Bild
+  // (nicht der Text/Titel/Beschreibung oberhalb) dreimal so hoch --
+  // siehe useIsTabletScreen() oben fuer die Erkennungslogik.
+  const baseH = relaxed ? 340 : T.mediaH;
+  const h = isTabletScreen ? baseH * 3 : baseH;
 
   function handleTouchStart(e) {
     if (e.touches && e.touches[0]) {
