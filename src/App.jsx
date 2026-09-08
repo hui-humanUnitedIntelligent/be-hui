@@ -1,6 +1,7 @@
 import { HUIImpactIcon } from './design/icons/HuiSystemIcons.jsx';
 import OTAUpdateBanner from './components/system/OTAUpdateBanner.jsx';
 import OTAUpdatePopup from './components/system/OTAUpdatePopup.jsx';
+import WhatsNewModal from './components/system/WhatsNewModal.jsx';
 import { makeChunkReload } from "./lib/chunkReload.js";
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { sentryCapture, Sentry } from './lib/sentry';
@@ -1049,6 +1050,11 @@ export default function App() {
             <ToastContainer/>
             <OTAUpdateBanner />
             <OTAUpdatePopup />
+            {/* WAS-IST-NEU (Michael 08.09.): einmalige Update-Highlights pro
+                Version — SSOT: src/lib/releaseNotes.js. Wartet auf Auth +
+                kein offenes Sheet, liegt unterm Biometrie-Lock (zIndex 10800
+                < 20000 LockScreen). */}
+            <WhatsNewModal />
 
             </BiometricGate>
           </AuthGateProvider>
