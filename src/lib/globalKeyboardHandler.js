@@ -55,12 +55,116 @@
 // AKTIVIERUNG: src/main.jsx + src/web-main.jsx (einmaliger Aufruf)
 // ═══════════════════════════════════════════════════════════════
 
+import { Capacitor } from "@capacitor/core";
+
 let started = false;
 let closeTimer = null;
 let currentInset = 0;
 
-// Map: element → { bottom, transition } — für Restore beim Keyboard-Close
+// Map: element → { bottom, transition, paddingBottom } — für Restore beim Keyboard-Close
 const savedStyles = new Map();
+
+// ─── IOS-KEYBOARD-SMOOTH-FIX (2026-09-08, iOS-BUG-003) ───────────────────
+// Symptom: Modal bewegt sich bei geöffneter Systemtastatur ruckelig (nur iOS).
+// Bewiesene Ursachen im geteilten Code-Pfad (auf Android unsichtbar, weil die
+// Native-Bridge dort nur wenige, grobe Inset-Updates liefert):
+//   (1) TRANSITION-RESTART-STOTTERER: Auf iOS feuert visualViewport pro Frame
+//       der Tastatur-Animation (~30-60 Events/s). Jedes Update setzt ein neues
+//       padding-bottom-Ziel → die laufende 0.2s-Easing-Transition startet pro
+//       Frame neu → das Modal hinkt der Tastatur in nichtlinearer, ruckelnder
+//       Kurve hinterher (statt sie 1:1 zu folgen).
+//   (2) LAYOUT-THRASHING PRO FRAME: adjustFixedElements machte pro Update pro
+//       Body-Kind getComputedStyle + getBoundingClientRect (erzwungene
+//       Reflows) — 30-60×/s während der Animation = sichtbares Gezappel.
+// iOS-Only-Fix (Android-Pfad bleibt zu 100% unverändert):
+//   - Keine Transition auf iOS: padding folgt der Tastatur-Animation 1:1
+//     (die Tastatur selbst ist die Animation — sanfter geht es nicht).
+//     GPU/transform wäre hier NICHT korrekt: translateY(-inset) auf dem
+//     Vollbild-Wrapper würde bei hohen Bottom-Sheets den Header über den
+//     oberen Bildschirmrand clippen und den Backdrop vom Boden abheben —
+//     padding-basiertes Reflow ist die bewiesene, semantisch richtige
+//     Lösung (Elemente bleiben sichtbar, Inhalt scrollt innerhalb).
+//   - Ziel-Wrapper werden EINMAL pro Keyboard-Episode gecacht (volles
+//     Probing nur beim Öffnen + bei DOM-Änderungen), danach pro Frame
+//     NUR Style-Writes — null erzwungene Reflows im Animations-Loop.
+//   - rAF-Coalescing als zusätzliche Absicherung (max 1 Update/Frame).
+//   - body.hui-ios-Klasse für die zugehörige CSS-Override-Regel (index.css:
+//     .hui-scroll-Transition ebenfalls deaktiviert).
+const IS_IOS = typeof window !== "undefined" && Capacitor.getPlatform?.() === "ios";
+
+// iOS-Ziel-Caches (null = ungültig → nächstes Update re-probiert DOM)
+let iosFullOverlays = null; // Vollbild-Wrapper (padding-bottom-Pfad)
+let iosThinBars = null;     // Schmale Leisten (bottom-Pfad)
+
+let iosRafPending = 0;
+
+// ─── iOS: Vollbild-Overlays + schmale Leisten, ohne per-Frame-Reflows ───
+function adjustFixedElementsIOS(inset) {
+  // Keyboard geschlossen: Original-Styles restaurieren (einmalig), Caches freigeben
+  if (inset <= 0) {
+    for (const [child, saved] of savedStyles) {
+      try {
+        child.style.bottom = saved.bottom;
+        child.style.transition = saved.transition;
+        child.style.paddingBottom = saved.paddingBottom || "";
+      } catch { continue; } /* detached node — Original-Style irrelevant */
+    }
+    savedStyles.clear();
+    iosFullOverlays = null;
+    iosThinBars = null;
+    return;
+  }
+
+  // Ziel-Wrapper einmal pro Episode ermitteln (PROBING — nur hier, nie pro Frame)
+  if (!iosFullOverlays || !iosThinBars) {
+    iosFullOverlays = [];
+    iosThinBars = [];
+    for (const child of document.body.children) {
+      if (child.id === "root") continue;
+      if (["SCRIPT", "STYLE", "LINK", "NOSCRIPT"].includes(child.tagName)) continue;
+      if (child.id && child.id.startsWith("eruda")) continue;
+      let computed;
+      try { computed = getComputedStyle(child); } catch { continue; }
+      if (computed.position !== "fixed") continue;
+      // Selbst-verwaltete Container: NIE anfassen (gleiche Regel wie Android-Pfad)
+      if (child.hasAttribute && child.hasAttribute("data-hui-kbd-self-managed")) continue;
+      let rectHeight = 0;
+      try { rectHeight = child.getBoundingClientRect().height; } catch { rectHeight = 0; }
+      if (!savedStyles.has(child)) {
+        savedStyles.set(child, {
+          bottom: child.style.bottom || "",
+          transition: child.style.transition || "",
+          paddingBottom: child.style.paddingBottom || "",
+        });
+      }
+      if (rectHeight >= window.innerHeight * 0.7) {
+        iosFullOverlays.push(child);
+      } else {
+        iosThinBars.push(child);
+      }
+    }
+  }
+
+  // PER-FRAME: NUR Style-Writes — folgt der Tastatur-Animation 1:1.
+  // KEINE Transition auf iOS (Restart-Stotterer, siehe Kopfkommentar).
+  for (const child of iosFullOverlays) {
+    child.style.transition = "none";
+    child.style.paddingBottom = `calc(${inset}px + env(safe-area-inset-bottom, 0px))`;
+  }
+  for (const child of iosThinBars) {
+    child.style.transition = "none";
+    child.style.bottom = inset + "px";
+  }
+}
+
+// iOS: rAF-Coalescing — max 1 Anpassung pro Animations-Frame
+function scheduleAdjustIOS(inset) {
+  if (iosRafPending) return;
+  iosRafPending = requestAnimationFrame(() => {
+    iosRafPending = 0;
+    adjustFixedElementsIOS(inset);
+  });
+}
 
 // ─── Helpers ────────────────────────────────────────────────────
 
@@ -246,7 +350,13 @@ function onKeyboardChange(rawInset) {
     document.body.classList.remove("hui-keyboard-open");
   }
 
-  adjustFixedElements(inset);
+  // IOS-KEYBOARD-SMOOTH-FIX: iOS läuft über den rAF-gecoaleschten, gecachten
+  // Pfad (kein Reflow-Thrash, keine Transition). Android: unverändert.
+  if (IS_IOS) {
+    scheduleAdjustIOS(inset);
+  } else {
+    adjustFixedElements(inset);
+  }
 }
 
 // ─── Focus-Events (scroll into view) ────────────────────────────
@@ -300,7 +410,15 @@ function setupKeyboardWatcher() {
 function setupMutationObserver() {
   const observer = new MutationObserver(function() {
     if (currentInset > 0) {
-      adjustFixedElements(currentInset);
+      // IOS-KEYBOARD-SMOOTH-FIX: neue/entfernte Modals → Ziel-Caches neu
+      // aufbauen (Probing) und Anpassung coalesced anwenden.
+      if (IS_IOS) {
+        iosFullOverlays = null;
+        iosThinBars = null;
+        scheduleAdjustIOS(currentInset);
+      } else {
+        adjustFixedElements(currentInset);
+      }
     }
   });
   observer.observe(document.body, { childList: true, subtree: false });
@@ -311,6 +429,10 @@ function setupMutationObserver() {
 export function initGlobalKeyboardHandling() {
   if (started || typeof document === "undefined") return;
   started = true;
+
+  // IOS-KEYBOARD-SMOOTH-FIX: Marker-Klasse für die CSS-Override-Regel in
+  // index.css (.hui-scroll-Transition ohne Restart-Stotterer).
+  if (IS_IOS) document.body.classList.add("hui-ios");
 
   document.addEventListener("focusin", onFocusIn, true);
   document.addEventListener("focusout", onFocusOut, true);

@@ -589,6 +589,20 @@ body.hui-keyboard-open [data-hui-kbd-self-managed] .hui-scroll {
   transition: none !important;
 }
 
+/* IOS-KEYBOARD-SMOOTH-FIX (2026-09-08, iOS-BUG-003): Auf iOS feuert
+   visualViewport pro Frame der Tastatur-Animation → --hui-keyboard-inset
+   ändert sich pro Frame → die 0.2s-Transition auf padding-bottom startet
+   bei jedem Frame neu (Easing-Restart) = sichtbares Ruckeln des Scroll-
+   Containers hinter dem Modal. Auf iOS (body.hui-ios, gesetzt in
+   globalKeyboardHandler.js) wird die Transition deaktiviert — das Padding
+   folgt der Tastatur-Animation dann 1:1 und ist dadurch sanfter als jede
+   nachstarrende Easing-Kurve. Android: unverändert (Native-Bridge liefert
+   nur wenige, grobe Updates — dort ist die Transition erwünscht, weil sie
+   die Sprünge glättet). */
+body.hui-ios.hui-keyboard-open .hui-scroll {
+  transition: none !important;
+}
+
 /* 2) Bottom Navigation: ausblenden wenn Tastatur offen */
 body.hui-keyboard-open [data-hui-bottom-navigation] {
   transform: translateY(150%) !important;
