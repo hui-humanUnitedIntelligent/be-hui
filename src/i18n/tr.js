@@ -4997,4 +4997,5 @@ export default {
   'followmodal.following': 'Takip',
   'followmodal.emptyFollowers': 'Henüz kimse bu profili takip etmiyor.',
   'followmodal.emptyFollowing': 'Henüz kimseyi takip etmiyor.',
+  'discover.orteKeinErgebnis': 'Hiçbir yer bulunamadı',
 };

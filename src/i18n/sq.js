@@ -4999,4 +4999,5 @@ export default {
   'followmodal.following': 'Ndjek',
   'followmodal.emptyFollowers': 'Askush nuk ndjek ende këtë profil.',
   'followmodal.emptyFollowing': 'Nuk ndjek ende askënd.',
+  'discover.orteKeinErgebnis': 'Nuk u gjet asnjë vend',
 };

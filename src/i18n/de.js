@@ -5040,4 +5040,5 @@ export default {
   'followmodal.following': 'Folgt',
   'followmodal.emptyFollowers': 'Noch niemand folgt diesem Profil.',
   'followmodal.emptyFollowing': 'Folgt noch niemandem.',
+  'discover.orteKeinErgebnis': 'Kein Ort gefunden',
 };

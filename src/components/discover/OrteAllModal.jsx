@@ -298,7 +298,7 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
             ) : places.length === 0 ? (
               <div style={{ textAlign:"center", padding:"40px 20px", color:T.inkFaint }}>
                 <div style={{ fontSize:28, marginBottom:10 }}>📍</div>
-                <div style={{ fontSize:15, fontWeight:600 }}>Kein Ort gefunden</div>
+                <div style={{ fontSize:15, fontWeight:600 }}>{t("discover.orteKeinErgebnis")}</div>
                 <div style={{ fontSize:12, marginTop:4 }}>{t("common.tryOtherSearch")}</div>
               </div>
             ) : (

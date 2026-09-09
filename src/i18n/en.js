@@ -1582,9 +1582,9 @@ export default {
   'impact.msVideo': '🎬 Video {count}',
   'impact.mehrErfahren': 'Learn more →',
   'impact.heroBadge': 'HUI Impact Pool',
-  'impact.heroHeadline1': 'Together',
-  'impact.heroHeadline2': 'Impact',
-  'impact.heroHeadline3': 'created.',
+  'impact.heroHeadline1': 'Together we create',
+  'impact.heroHeadline2': 'Impact.',
+  'impact.heroHeadline3': '',
   'impact.heroSub1': 'Every booking on HUI helps make real heart projects possible.',
   'impact.heroSub2': 'No booking goes empty.',
   'impact.heroHand1': 'Your decisions',
@@ -5046,4 +5046,5 @@ export default {
   'followmodal.following': 'Following',
   'followmodal.emptyFollowers': 'No followers yet.',
   'followmodal.emptyFollowing': 'Not following anyone yet.',
+  'discover.orteKeinErgebnis': 'No place found',
 };
