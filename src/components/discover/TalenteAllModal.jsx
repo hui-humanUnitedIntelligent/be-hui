@@ -75,7 +75,7 @@ function TalentCardItem({ t, onPress }) {
 }
 
 export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
-  const { t } = useTranslation();
+  const { t, lang: _appLang } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "TalenteAllModal");
   const [items, setItems]       = useState([]);
@@ -105,11 +105,17 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
     setLoading(true);
     try {
       let q = supabase.from("talents")
-        .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,views_count,thumbnail_url")
+        .select("id,title,description,category,images,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,booking_type,min_participants,max_participants,booking_window_start,booking_window_end,views_count,thumbnail_url,language")
         .eq("status","approved")
         .order(sort === "alpha" ? "title" : "created_at", { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
+      // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Filter — nur ohne aktive
+      // Suche (Spec: explizite Suche sieht ALLE Sprachversionen) und nur wenn
+      // der Nutzer nicht den "Alle Sprachen"-Toggle aktiviert hat.
+      if (!debouncedSearch && localStorage.getItem("hui_discover_show_all_langs") !== "1") {
+        q = q.or(`language.eq.${_appLang},language.is.null`);
+      }
       if (debouncedSearch) {
         q = q.or(`title.ilike.%${debouncedSearch}%,category.ilike.%${debouncedSearch}%,description.ilike.%${debouncedSearch}%`);
       }

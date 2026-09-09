@@ -5023,4 +5023,13 @@ export default {
   'upload.videoLoading': 'Video loading…',
   'upload.thumbnailExtractFailed': 'Preview could not be created — move the slider to try again',
   'preview.contentRemoved': 'This content has been removed or is no longer available.',
+
+  // ── MULTILANG-CONTENT-001 (2026-09-09): Sprach-Versioning Werke/Talente/Erlebnisse ──
+  'contentLang.all': 'All',
+  'contentLang.label': 'In which language do you offer this content?',
+  'contentLang.none': 'No selection (visible to everyone)',
+  'contentLang.hintSet': 'Visible only to users with the app language {lang}.',
+  'contentLang.hintNone': 'Without selection, all users see this content.',
+  'discover.langFilter': 'All languages',
+  'discover.langFilterOn': 'My language only',
 };

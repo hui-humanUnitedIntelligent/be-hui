@@ -4974,4 +4974,13 @@ export default {
   'upload.videoLoading': 'Video yükleniyor…',
   'upload.thumbnailExtractFailed': 'Önizleme oluşturulamadı — yeniden denemek için kaydırıcıyı hareket ettirin',
   'preview.contentRemoved': 'Bu içerik kaldırıldı veya artık mevcut değil.',
+
+  // ── MULTILANG-CONTENT-001 (2026-09-09): Sprach-Versioning Werke/Talente/Erlebnisse ──
+  'contentLang.all': 'Tümü',
+  'contentLang.label': 'Bu içeriği hangi dilde sunuyorsun?',
+  'contentLang.none': 'Belirtilmedi (herkese görünür)',
+  'contentLang.hintSet': 'Yalnızca {lang} dilini kullanan üyeler görebilir.',
+  'contentLang.hintNone': 'Belirtilmezse tüm üyeler bu içeriği görür.',
+  'discover.langFilter': 'Tüm diller',
+  'discover.langFilterOn': 'Sadece benim dilim',
 };

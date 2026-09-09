@@ -4974,4 +4974,13 @@ export default {
   'upload.videoLoading': 'Cargando video…',
   'upload.thumbnailExtractFailed': 'No se pudo crear la vista previa — mueve el control para reintentar',
   'preview.contentRemoved': 'Este contenido ha sido eliminado o ya no está disponible.',
+
+  // ── MULTILANG-CONTENT-001 (2026-09-09): Sprach-Versioning Werke/Talente/Erlebnisse ──
+  'contentLang.all': 'Todos',
+  'contentLang.label': '¿En qué idioma ofreces este contenido?',
+  'contentLang.none': 'Sin indicar (visible para todos)',
+  'contentLang.hintSet': 'Visible solo para usuarios con el idioma {lang}.',
+  'contentLang.hintNone': 'Sin indicar, todos los usuarios ven este contenido.',
+  'discover.langFilter': 'Todos los idiomas',
+  'discover.langFilterOn': 'Solo mi idioma',
 };

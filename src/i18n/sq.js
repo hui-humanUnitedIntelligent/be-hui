@@ -4976,4 +4976,13 @@ export default {
   'upload.videoLoading': 'Video po ngarkohet…',
   'upload.thumbnailExtractFailed': 'Pamja paraprake nuk u krijua — lëvize rrëshqitësin për të riprovuar',
   'preview.contentRemoved': 'Ky përmbajtje është hequr ose nuk është më e disponueshme.',
+
+  // ── MULTILANG-CONTENT-001 (2026-09-09): Sprach-Versioning Werke/Talente/Erlebnisse ──
+  'contentLang.all': 'Të gjitha',
+  'contentLang.label': 'Në cilën gjuhë ofron këtë përmbajtje?',
+  'contentLang.none': 'Pa tregim (e dukshme për të gjithë)',
+  'contentLang.hintSet': 'E dukshme vetëm për përdoruesit me gjuhën {lang}.',
+  'contentLang.hintNone': 'Pa tregim, të gjithë përdoruesit e shohin këtë përmbajtje.',
+  'discover.langFilter': 'Të gjitha gjuhët',
+  'discover.langFilterOn': 'Vetëm gjuha ime',
 };

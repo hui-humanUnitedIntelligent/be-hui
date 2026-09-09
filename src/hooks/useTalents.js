@@ -85,6 +85,9 @@ export const useTalentServices = useTalents;
 function pickServiceFields(src = {}) {
   const out = {};
   const keys = [
+    // MULTILANG-CONTENT-001 (2026-09-09): Auslieferungssprache des Angebots
+    // (NULL = keine Angabe = fuer alle Nutzer sichtbar). Analog works/experiences.
+    "language",
     "price_per_hour", "price_per_session", "currency",
     "location_type", "location_address", "location_notes", "map_link", "lat", "lng",
     "available_dates", "available_time_slots", "recurring", "duration_minutes",

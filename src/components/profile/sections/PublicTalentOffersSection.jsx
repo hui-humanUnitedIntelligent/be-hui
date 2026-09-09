@@ -8,6 +8,7 @@ import { supabase } from "../../../lib/supabaseClient.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
+import LangFilterChips from "../../shared/LangFilterChips.jsx";
 import { CAT_KEY_MAP, translateCategory } from "../../../lib/categoryMaps.js";
 
 const T = {
@@ -263,6 +264,8 @@ function TalentDetailModal({ talent, onClose }) {
 export function PublicTalentOffersSection({ profileId }) {
   const { t } = useTranslation();
   const [talents, setTalents] = useState([]);
+  // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Kategorisierung im Profil
+  const [langFilter, setLangFilter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
 
@@ -271,7 +274,7 @@ export function PublicTalentOffersSection({ profileId }) {
     let cancelled = false;
     supabase
       .from("talents")
-      .select("id,title,description,category,images,thumbnail_url,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,user_id")
+      .select("id,title,description,category,images,thumbnail_url,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,user_id,language")
       .eq("user_id", profileId)
       .eq("status", "approved")   // nur freigegebene Angebote
       .order("created_at", { ascending: false })
@@ -308,16 +311,21 @@ export function PublicTalentOffersSection({ profileId }) {
           {[1,2,3].map(i => <Skel key={i}/>)}
         </div>
       ) : (
+        <>
+        {/* MULTILANG-CONTENT-001: Sprach-Chips NUR bei 2+ Sprachen */}
+        <LangFilterChips items={talents} getLang={t => t.language}
+          value={langFilter} onChange={setLangFilter} theme={{ px: T.px }}/>
         <div className="pts-scroll" style={{
           display:"flex", gap:10, overflowX:"auto",
           padding:`0 ${T.px}px 4px`, scrollSnapType:"x mandatory",
         }}>
-          {talents.map(t => (
+          {(langFilter ? talents.filter(t => t.language === langFilter) : talents).map(t => (
             <div key={t.id} style={{ scrollSnapAlign:"start" }}>
               <TalentCard talent={t} onClick={() => setSelected(t)}/>
             </div>
           ))}
         </div>
+        </>
       )}
 
       {/* Detail-Modal */}

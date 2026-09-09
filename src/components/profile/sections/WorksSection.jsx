@@ -16,6 +16,7 @@ import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; 
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 import { useModalRegistration } from "../../../hooks/useModalRegistration.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
+import LangFilterChips from "../../shared/LangFilterChips.jsx";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -74,9 +75,16 @@ export function WorksSection({
   useModalRegistration(!!confirmWork, () => setConfirmWork(null), "WorksSection-DeleteConfirm");
   const { open: openPreview } = useContentPreview();
   // Visitor: nur freigegebene Werke
-  const visible = isOwner
+  const baseVisible = isOwner
     ? works
     : works.filter(w => w.approval_status === "approved");
+
+  // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Kategorisierung im Profil —
+  // Chip-Leiste nur wenn Werke in 2+ Sprachen vorliegen (Annes Feedback).
+  const [langFilter, setLangFilter] = useState(null);
+  const visible = langFilter
+    ? baseVisible.filter(w => w.language === langFilter)
+    : baseVisible;
 
   const handleConfirmDelete = async () => {
     const w = confirmWork;
@@ -173,6 +181,10 @@ export function WorksSection({
             </div>
           )
         ) : (
+          <>
+          {/* MULTILANG-CONTENT-001: Sprach-Chips NUR bei 2+ Sprachen (siehe LangFilterChips) */}
+          <LangFilterChips items={baseVisible} getLang={w => w.language}
+            value={langFilter} onChange={setLangFilter} theme={{ px: T.px }}/>
           <div className="ws-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
             {visible.slice(0,8).map((w, i) => {
               const isApproved  = w.approval_status === "approved";
@@ -311,6 +323,7 @@ export function WorksSection({
               </div>
             )}
           </div>
+          </>
         )}
       </div>
     </>

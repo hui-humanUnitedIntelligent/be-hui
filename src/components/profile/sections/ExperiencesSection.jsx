@@ -5,13 +5,14 @@
 // Visitor: Read-only. Empty-State statt null.
 // Filter: Visitor sieht nur published/active/approved.
 // ══════════════════════════════════════════════════════════════════════
-import React from "react";
+import React, { useState } from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { formatDateDE } from "../../../lib/formatters.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
+import LangFilterChips from "../../shared/LangFilterChips.jsx";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -66,9 +67,15 @@ export function ExperiencesSection({
 }) {
   const { t } = useTranslation();
   const { open: openPreview } = useContentPreview();
-  const visible = isOwner
+  const baseVisible = isOwner
     ? experiences
     : experiences.filter(e => ["published","active","approved"].includes(e.status));
+
+  // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Kategorisierung im Profil
+  const [langFilter, setLangFilter] = useState(null);
+  const visible = langFilter
+    ? baseVisible.filter(e => e.language === langFilter)
+    : baseVisible;
 
   if (loading) {
     return (
@@ -127,6 +134,10 @@ export function ExperiencesSection({
           </div>
         )
       ) : (
+        <>
+        {/* MULTILANG-CONTENT-001: Sprach-Chips NUR bei 2+ Sprachen */}
+        <LangFilterChips items={baseVisible} getLang={e => e.language}
+          value={langFilter} onChange={setLangFilter} theme={{ px: T.px }}/>
         <div className="es-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {visible.slice(0,6).map((ex,i) => (
             <div key={ex.id||i} className="es-press"
@@ -176,6 +187,7 @@ export function ExperiencesSection({
             </div>
           )}
         </div>
+        </>
       )}
     </div>
   );

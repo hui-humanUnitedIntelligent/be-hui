@@ -85,7 +85,7 @@ function WerkCardItem({ w, onPress, saleStatus }) {
 }
 
 export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
-  const { t } = useTranslation();
+  const { t, lang: _appLang } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "WerkeAllModal");
   // openCreatorProfile entfernt (2026-07-29) — Autor-Namen nicht mehr klickbar
@@ -120,12 +120,18 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("works")
-        .select("id,title,cover_url,thumbnail_url,category,file_format,price,location_text,user_id,created_at,likes_count")
+        .select("id,title,cover_url,thumbnail_url,category,file_format,price,location_text,user_id,created_at,likes_count,language")
         .eq("status","published").eq("approval_status","approved").eq("visibility","public")
         .order(sort === "alpha" ? "title" : sort === "popular" ? "likes_count" : "created_at",
                 { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
+      // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Filter — nur ohne aktive
+      // Suche (Spec: explizite Suche sieht ALLE Sprachversionen) und nur wenn
+      // der Nutzer nicht den "Alle Sprachen"-Toggle aktiviert hat.
+      if (!debouncedSearch && localStorage.getItem("hui_discover_show_all_langs") !== "1") {
+        q = q.or(`language.eq.${_appLang},language.is.null`);
+      }
       if (debouncedSearch) {
         q = q.or(`title.ilike.%${debouncedSearch}%,category.ilike.%${debouncedSearch}%`);
       }

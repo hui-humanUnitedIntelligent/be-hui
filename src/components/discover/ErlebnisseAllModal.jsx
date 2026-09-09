@@ -95,7 +95,7 @@ function ErlebnisCardItem({ e: ev, onPress, onAuthorPress }) {
 }
 
 export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
-  const { t } = useTranslation();
+  const { t, lang: _appLang } = useTranslation();
   useWizardBodyLock(isOpen);
   useModalRegistration(isOpen, onClose, "ErlebnisseAllModal");
   const { openCreatorProfile } = useProfileLauncher();
@@ -127,12 +127,18 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
     setLoading(true);
     try {
       let q = supabase.from("experiences")
-        .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,created_at")
+        .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,created_at,language")
         .eq("status","published").eq("approval_status","approved")
         .order(sort === "alpha" ? "title" : sort === "popular" ? "likes_count" : "created_at",
                 { ascending: sort === "alpha" })
         .range(pageNum * PAGE_SIZE, (pageNum+1) * PAGE_SIZE - 1);
 
+      // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Filter — nur ohne aktive
+      // Suche (Spec: explizite Suche sieht ALLE Sprachversionen) und nur wenn
+      // der Nutzer nicht den "Alle Sprachen"-Toggle aktiviert hat.
+      if (!debouncedSearch && localStorage.getItem("hui_discover_show_all_langs") !== "1") {
+        q = q.or(`language.eq.${_appLang},language.is.null`);
+      }
       if (debouncedSearch) {
         q = q.or(`title.ilike.%${debouncedSearch}%,category.ilike.%${debouncedSearch}%`);
       }

@@ -19,6 +19,7 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
+import LanguageSelect from "../shared/LanguageSelect.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
@@ -551,6 +552,9 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl, o
           Macht Wellness-/Energie-Erlebnisse ueber die Discover-Suche auffindbar. */}
       <TagsField data={data} onChange={onChange}/>
 
+      {/* MULTILANG-CONTENT-001 (2026-09-09): Auslieferungssprache (Annes Feedback) */}
+      <LanguageSelect value={data.language || ""} onChange={v => onChange({ language: v })} theme={C}/>
+
       {/* Titelbild */}
       <Field label="Titelbild" req>
         {firstImg ? (
@@ -1038,6 +1042,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         visibility:           existingExp.visibility          || "public",
         description:          existingExp.description         || "",
         tags:                Array.isArray(existingExp.tags) ? [...existingExp.tags] : [],
+        // MULTILANG-CONTENT-001: Auslieferungssprache (NULL = alle Sprachen)
+        language:            existingExp.language            || "",
       };
     }
     return {
@@ -1047,6 +1053,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       price: "", currency: "EUR", price_per: "",
       max_participants: "", registration_required: false,
       visibility: "public", description: "",
+      language: "",
     };
   });
 
@@ -1197,6 +1204,8 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       max_participants:      form.max_participants ? parseInt(form.max_participants, 10) : null,
       registration_required: form.registration_required ?? false,
       visibility:            form.visibility          || "public",
+      // MULTILANG-CONTENT-001: "" → NULL = keine Angabe = fuer alle sichtbar
+      language:              form.language            || null,
       status,
       updated_at:            new Date().toISOString(),
       // ── Freigabe-System (identisch zu WerkWizard) ──────────

@@ -15,6 +15,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { UPLOAD_LIMITS, uploadMediaFile, processFileSelection, uploadThumbnail } from "../../lib/uploadUtils.js";
+import LanguageSelect from "../shared/LanguageSelect.jsx";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
@@ -191,6 +192,9 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
     if (v.length >= 2) { setCategory(v); } else { setCustomCat(""); }
   };
   const [description, setDescription] = useState(existingTalent?.description || "");
+  // MULTILANG-CONTENT-001 (2026-09-09): Auslieferungssprache des Angebots
+  // ("" = keine Angabe = fuer alle sichtbar; geht ueber pickServiceFields-Whitelist)
+  const [language, setLanguage] = useState(existingTalent?.language || "");
 
   // 2) Preis
   const [pricePerHour, setPricePerHour] = useState(existingTalent?.price_per_hour ?? "");
@@ -338,6 +342,8 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
       min_participants: num(minParticipants),
       booking_window_start: windowStart || null,
       booking_window_end: windowEnd || null,
+      // MULTILANG-CONTENT-001: "" → NULL = fuer alle sichtbar
+      language: language || null,
       // COMMERCE-STOCK-001: Bestandslogik
       is_unique:        bookingType === "einzel",
       stock_total:      bookingType === "einzel" ? 1 : Math.max(1, num(maxParticipants) || 1),
@@ -552,6 +558,9 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
             <textarea value={description} onChange={e => setDescription(e.target.value)} disabled={locked}
               placeholder={t("taw.descPlaceholder")} rows={5}
               style={{ ...INP, marginBottom: 14, resize: "vertical", background: locked ? "#f5f5f3" : "#fff" }}/>
+
+            {/* MULTILANG-CONTENT-001: Auslieferungssprache (Annes Feedback) */}
+            <LanguageSelect value={language} onChange={setLanguage} theme={C}/>
           </>
         )}
 

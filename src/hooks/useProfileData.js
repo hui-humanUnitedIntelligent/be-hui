@@ -27,7 +27,7 @@ const WORKS_SELECT =
   // cover_url (1 Bild) zurück, alle weiteren Bilder gehen verloren.
   // Root Cause der wiederkehrenden "nur 1 Bild im Edit"-Regression.
   "images,caption,description,tags,file_format,is_unique," +
-  "stock_total,stock_available,location_text,lat,lng";
+  "stock_total,stock_available,location_text,lat,lng,language";
 
 // ERLEBNIS-INFO-FIX (2026-08-15, Michael-Report — Screenshot "Versteckis mit
 // Hunden"): "Uhrzeit fehlt, füge alles Informative hinzu". ROOT CAUSE: Diese
@@ -45,7 +45,7 @@ const EXPERIENCES_SELECT =
   // WORKS-EDIT-IMAGES-FIX (2026-09-01): gleicher Bug wie WORKS_SELECT —
   // ExperienceWizard liest images aus existingExp. Ohne images im SELECT
   // zeigt der Edit-Modus nur cover_url statt aller hochgeladenen Bilder.
-  "images,experience_type,rejection_reason";
+  "images,experience_type,rejection_reason,language";
 
 const RECOMMENDATIONS_SELECT =
   "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at,is_positive";

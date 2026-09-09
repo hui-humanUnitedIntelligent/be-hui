@@ -15,6 +15,7 @@ import { searchPlaces, geocodeWithFallback } from "../../lib/geocoding.js";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
+import LanguageSelect from "../shared/LanguageSelect.jsx";
 import BankdatenModal from "../settings/BankdatenModal.jsx";
 import VideoThumbnailPicker from "../shared/VideoThumbnailPicker.jsx";
 
@@ -326,6 +327,8 @@ function S2({ data, onChange, onNext }) {
           stillschweigend geloescht werden -- lediglich das Eingabefeld verschwindet. */}
       <FTA label={t("ww.field.description")} value={data.description||""} onChange={v=>onChange({description:v})} placeholder={t("ww.ph.description")} maxLen={1000} rows={4}/>
       <FSel label={t("ww.field.category")} req value={data.category||""} onChange={v=>onChange({category:v})} options={getKategorien(t)}/>
+      {/* MULTILANG-CONTENT-001 (2026-09-09): Auslieferungssprache des Werks */}
+      <LanguageSelect value={data.language||""} onChange={v=>onChange({language:v})} theme={C}/>
       <div style={{ marginBottom:14 }}>
         <Lbl text={t("ww.field.tags")}/>
         <div style={{ display:"flex", flexWrap:"wrap", gap:7, marginBottom:8 }}>
@@ -664,6 +667,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
         abholung:existingWork.abholung||false,
         abholort:existingWork.location_text||"",
         sichtbarkeit:existingWork.visibility||"public",
+        // MULTILANG-CONTENT-001: Auslieferungssprache (NULL = alle Sprachen)
+        language:existingWork.language||"",
       };
     }
     return {
@@ -673,6 +678,7 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       versand:false, versandNational:"", versandInternational:"",
       versandkosten:"", versandFrei:"", abholung:false, abholort:"",
       sichtbarkeit:"public",
+      language:"",
     };
   });
 
@@ -868,6 +874,8 @@ export default function WerkWizard({ userId, existingWork=null, onClose = () => 
       lat:          geoLat,
       lng:          geoLng,
       visibility:   form.sichtbarkeit  || "public",
+      // MULTILANG-CONTENT-001: "" → NULL = keine Angabe = fuer alle sichtbar
+      language:     form.language || null,
       status,
       // Beim Einreichen: nie direkt veröffentlichen
       published_at: status === "published" ? new Date().toISOString() : null,

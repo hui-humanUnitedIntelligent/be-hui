@@ -46,7 +46,31 @@ import { ProjekteSection } from "../components/discover/ProjektSection.jsx";
 import { OrteSection } from "../components/discover/OrtSection.jsx";
 
 export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal, searchState = {} }) {
-  const { t: _t } = useTranslation();
+  const { t: _t, lang: _appLang } = useTranslation();
+
+  // ── MULTILANG-CONTENT-001 (2026-09-09): Sprach-Filter fuer Werke/Talente/Erlebnisse ──
+  // Standard: Nur Inhalte in der App-Sprache des Nutzers ODER ohne Sprachangabe
+  // (NULL = Bestands-Content bleibt fuer alle sichtbar). Toggle "Alle Sprachen"
+  // fuer Mehrsprachler (persistiert in localStorage).
+  const [showAllLangs, setShowAllLangs] = useState(
+    () => typeof localStorage !== "undefined" && localStorage.getItem("hui_discover_show_all_langs") === "1"
+  );
+  // Ref statt State-Dependency: load() laeuft in einem []-Effect (SWR-Cache-
+  // Architektur) — der Filter wird ueber den Ref current gehalten, aenderungen
+  // invalidieren den Cache + triggern forceLoad (gleiches Muster wie feed-refresh).
+  const langFilterRef = useRef(null);
+  const firstLangRunRef = useRef(true);
+  useEffect(() => {
+    langFilterRef.current = showAllLangs
+      ? null
+      : `language.eq.${_appLang},language.is.null`;
+  }, [showAllLangs, _appLang]);
+  useEffect(() => {
+    // Mount-Run nicht neu laden (Haupt-Effect laedt ohnehin)
+    if (firstLangRunRef.current) { firstLangRunRef.current = false; return; }
+    _discoverCache.ts = 0; // Cache invalidieren
+    forceLoadRef.current?.();
+  }, [showAllLangs, _appLang]);
   const view = "cards"; // Fest auf Kacheln — Listenansicht-Umschaltung 2026-08-06 entfernt (Buttons raus)
 
   // ── VORWORT-TILES-OPEN-FIX (2026-09-08, Report 0ddbab94) ──
@@ -304,12 +328,16 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
         // Werke — 2-Schritt-Query (kein FK von works.user_id → profiles)
         // Schritt 1: Werke laden
-        const { data: ws, error: wsErr } = await supabase
+        // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
+        // (language.eq.<appLang> OR language.is.null — NULL-BestandContent bleibt sichtbar)
+        let wsQuery = supabase
           .from("works")
-          .select("id,title,cover_url,thumbnail_url,category,file_format,tags,description,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count")
+          .select("id,title,cover_url,thumbnail_url,category,file_format,tags,description,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count,language")
           .eq("status", "published")
           .eq("approval_status", "approved")
-          .eq("visibility", "public")
+          .eq("visibility", "public");
+        if (langFilterRef.current) wsQuery = wsQuery.or(langFilterRef.current);
+        const { data: ws, error: wsErr } = await wsQuery
           .order("likes_count", { ascending:false })
           .limit(8);
 
@@ -376,10 +404,13 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
         // Talente — freigegebene Dienstleistungsangebote (TALENT-OFFERS-001/TALENT-SERVICES-001)
         // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
-        const { data: tal, error: talErr } = await supabase
+        // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
+        let talQuery = supabase
           .from("talents")
-          .select("id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count")
-          .eq("status", "approved")
+          .select("id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count,language")
+          .eq("status", "approved");
+        if (langFilterRef.current) talQuery = talQuery.or(langFilterRef.current);
+        const { data: tal, error: talErr } = await talQuery
           .order("created_at", { ascending:false })
           .limit(8);
 
@@ -433,11 +464,14 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         }
 
         // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
-        const { data: exps, error: expsErr } = await supabase
+        // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
+        let expsQuery = supabase
           .from("experiences")
-          .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,tags,description,caption,lat,lng,user_id,created_at,likes_count,views_count")
+          .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,tags,description,caption,lat,lng,user_id,created_at,likes_count,views_count,language")
           .eq("status", "published")
-          .eq("approval_status", "approved")
+          .eq("approval_status", "approved");
+        if (langFilterRef.current) expsQuery = expsQuery.or(langFilterRef.current);
+        const { data: exps, error: expsErr } = await expsQuery
           .order("likes_count", { ascending:false })
           .limit(8);
 
@@ -826,6 +860,14 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
     if (profileId && typeof onView === "function") onView(profileId);
   }, [onBook, onView]);
 
+  // MULTILANG-CONTENT-001: Sprach-Filter-Toggle (persistiert)
+  const toggleShowAllLangs = useCallback(() => {
+    setShowAllLangs(v => {
+      localStorage.setItem("hui_discover_show_all_langs", v ? "0" : "1");
+      return !v;
+    });
+  }, []);
+
   // Projekt-Karte (OPEN.1, 2026-07-08): zeigte bisher IMMER nur die
   // allgemeine Impact-Seite, unabhaengig davon welches Projekt angetippt
   // wurde. Jetzt: Vorschau des konkreten Projekts (Name/Beschreibung/Bild);
@@ -879,6 +921,26 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       {/* ── 1b. Live Activity Bar ── */}
       <div style={{ marginBottom:8 }}>
         <HuiLiveTicker/>
+      </div>
+
+      {/* ── 1c. Sprach-Filter (MULTILANG-CONTENT-001, Annes Feedback) ──
+          Standard: Inhalte nur in der App-Sprache (+ ohne Angabe).
+          Toggle fuer Mehrsprachler, die bewusst ALLE Versionen sehen wollen. */}
+      <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10, padding:"0 16px" }}>
+        <button
+          onClick={toggleShowAllLangs}
+          style={{
+            display:"inline-flex", alignItems:"center", gap:6,
+            padding:"6px 12px", borderRadius:99, cursor:"pointer",
+            fontSize:12, fontWeight:600, fontFamily:"inherit",
+            background: showAllLangs ? "rgba(14,196,184,0.12)" : "transparent",
+            border:`1.5px solid ${showAllLangs ? "rgba(14,196,184,0.45)" : T.border || "rgba(26,26,42,0.10)"}`,
+            color: showAllLangs ? T.teal || "#0EC4B8" : "rgba(26,26,42,0.55)",
+            touchAction:"manipulation",
+          }}
+        >
+          {showAllLangs ? _t("discover.langFilter") : _t("discover.langFilterOn")}
+        </button>
       </div>
 
       {/* ── 3. Menschen entdecken ── */}

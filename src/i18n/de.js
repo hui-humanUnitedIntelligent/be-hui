@@ -5017,4 +5017,13 @@ export default {
   'upload.videoLoading': 'Video lädt …',
   'upload.thumbnailExtractFailed': 'Vorschau konnte nicht erzeugt werden — Regler bewegen zum erneuten Versuch',
   'preview.contentRemoved': 'Dieser Inhalt wurde entfernt oder ist nicht mehr verfügbar.',
+
+  // ── MULTILANG-CONTENT-001 (2026-09-09): Sprach-Versioning Werke/Talente/Erlebnisse ──
+  'contentLang.all': 'Alle',
+  'contentLang.label': 'In welcher Sprache bietest du diesen Inhalt an?',
+  'contentLang.none': 'Keine Angabe (für alle sichtbar)',
+  'contentLang.hintSet': 'Sichtbar nur für Nutzer mit der App-Sprache {lang}.',
+  'contentLang.hintNone': 'Ohne Angabe sehen alle Nutzer diesen Inhalt.',
+  'discover.langFilter': 'Alle Sprachen',
+  'discover.langFilterOn': 'Nur meine Sprache',
 };
