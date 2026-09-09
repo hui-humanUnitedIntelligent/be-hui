@@ -17,6 +17,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { processFileSelection, UPLOAD_LIMITS } from "../../lib/uploadUtils.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // ── Design Tokens (konsistent mit HUI Design) ─────────────────────
 const T = {
@@ -41,13 +42,16 @@ const T = {
   card: "0 1px 6px rgba(20,20,34,0.07)",
 };
 
+// Labels kommen aus i18n (msu.statusInProgress / msu.statusCompleted),
+// Emojis bleiben fest im Label-Rendering
 const STATUS_OPTIONS = [
-  { key: "in_progress", label: "🔄 In Arbeit",    color: T.teal,  bg: T.tealSoft },
-  { key: "completed",   label: "✅ Abgeschlossen",  color: T.green, bg: T.greenSoft },
+  { key: "in_progress", labelKey: "msu.statusInProgress", emoji: "🔄", color: T.teal,  bg: T.tealSoft },
+  { key: "completed",   labelKey: "msu.statusCompleted",   emoji: "✅", color: T.green, bg: T.greenSoft },
 ];
 
 // ── Komponente ────────────────────────────────────────────────────
 export default function MilestoneUpdateSheet({ milestone, projectId, authorId, onClose, onSubmitted = () => {} }) {
+  const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "MilestoneUpdateSheet");
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   const [content,        setContent]        = useState("");
@@ -80,17 +84,17 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
     const { error: upErr } = await supabase.storage
       .from("impact-media")
       .upload(path, await toSafeUploadBody(file), { contentType: file.type, upsert: false });
-    if (upErr) throw new Error(`Upload-Fehler: ${upErr.message}`);
+    if (upErr) throw new Error(t("ipu.errorUpload", { msg: upErr.message }));
     const { data: urlData } = supabase.storage.from("impact-media").getPublicUrl(path);
     return urlData?.publicUrl;
   };
 
   // ── Submit ───────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (!content.trim()) { setError("Bitte beschreibe den Fortschritt."); return; }
-    if (!milestone?.id)  { setError("Meilenstein-ID fehlt."); return; }
-    if (!projectId)      { setError("Projekt-ID fehlt."); return; }
-    if (!authorId)       { setError("Du musst angemeldet sein."); return; }
+    if (!content.trim()) { setError(t("msu.errorContentRequired")); return; }
+    if (!milestone?.id)  { setError(t("msu.errorMilestoneIdMissing")); return; }
+    if (!projectId)      { setError(t("ipu.errorProjectIdMissing")); return; }
+    if (!authorId)       { setError(t("ipu.errorMustBeLoggedIn")); return; }
 
     setSubmitting(true);
     setError(null);
@@ -98,11 +102,11 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
       // 1. Medien hochladen
       const urls = [];
       for (let i = 0; i < mediaFiles.length; i++) {
-        setUploadProgress(`Lade Medien hoch... (${i + 1}/${mediaFiles.length})`);
+        setUploadProgress(t("ipu.uploadProgress", { current: i + 1, total: mediaFiles.length }));
         const url = await uploadFile(mediaFiles[i], i);
         if (url) urls.push(url);
       }
-      setUploadProgress("Speichere Update...");
+      setUploadProgress(t("ipu.savingProgress"));
 
       // 2. INSERT impact_milestone_updates
       const { error: insErr } = await supabase
@@ -116,7 +120,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
           status_update: statusUpdate,
         });
 
-      if (insErr) throw new Error(`Speichern fehlgeschlagen: ${insErr.message}`);
+      if (insErr) throw new Error(t("ipu.errorSaveFailed", { msg: insErr.message }));
 
       // 3. UPDATE impact_milestones SET status = status_update
       const { error: msErr } = await supabase
@@ -136,7 +140,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
       onClose?.();
     } catch (e) {
       console.error("[MilestoneUpdateSheet] submit:", e);
-      setError(e.message || "Ein Fehler ist aufgetreten.");
+      setError(e.message || t("ipu.errorGeneric"));
     } finally {
       setSubmitting(false);
       setUploadProgress("");
@@ -176,7 +180,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
-              🏁 Meilenstein aktualisieren
+              🏁 {t("msu.title")}
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
               {milestone?.title}
@@ -196,7 +200,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
           {/* Status-Update Chips */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 8 }}>
-              Status-Update
+              {t("msu.statusLabel")}
             </label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {STATUS_OPTIONS.map(s => (
@@ -213,7 +217,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
                     display: "flex", alignItems: "center", gap: 4,
                   }}
                 >
-                  {s.label}
+                  {s.emoji} {t(s.labelKey)}
                 </button>
               ))}
             </div>
@@ -222,12 +226,12 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
           {/* Beschreibung */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
-              Beschreibung *
+              {t("msu.descLabel")} *
             </label>
             <textarea
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder="Beschreibe den aktuellen Fortschritt dieses Meilensteins..."
+              placeholder={t("msu.descPlaceholder")}
               rows={4}
               maxLength={2000}
               style={{
@@ -266,10 +270,10 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
             >
               <span style={{ fontSize: 22 }}>📎</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: T.inkSoft }}>
-                Dateien auswählen
+                {t("ipu.mediaButton")}
               </span>
               <span style={{ fontSize: 11, color: T.inkFaint }}>
-                Bilder und Videos (mehrere möglich)
+                {t("ipu.mediaHint")}
               </span>
             </button>
 
@@ -310,7 +314,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
               padding: "10px 14px", background: T.coralSoft,
               borderRadius: T.r8, border: `1px solid rgba(255,107,107,0.20)`,
             }}>
-              
+              {error}
             </div>
           )}
 
@@ -348,7 +352,7 @@ export default function MilestoneUpdateSheet({ milestone, projectId, authorId, o
               transition: "all .2s",
             }}
           >
-            {submitting ? "⏳ Wird gesendet..." : "✅ Update speichern"}
+            {submitting ? `⏳ ${t("msu.savingButton")}` : `✅ ${t("msu.saveButton")}`}
           </button>
         </div>
       </div>

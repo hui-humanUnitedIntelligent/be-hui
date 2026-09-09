@@ -728,7 +728,7 @@ export function useApprovedApplications() {
       const currentPoolMonth = new Date().toISOString().slice(0, 7);
       const { data: rawApps } = await supabase
         .from("impact_applications")
-        .select("id,project_name,short_desc,problem,vision,why_support,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,is_completed,created_at,contact_name,contact_email,user_id")
+        .select("id,project_name,short_desc,problem,vision,funding_goal,current_amount_eur,funding_use,cover_url,media_urls,status,is_completed,created_at,contact_name,contact_email,user_id")
         .eq("status", "approved").order("created_at", { ascending: false }).limit(50);
       const appList = (rawApps || []).filter(a =>
         !a.is_completed && safeNum(a.current_amount_eur) < safeNum(a.funding_goal)

@@ -99,7 +99,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
     const { error: upErr } = await supabase.storage
       .from("impact-updates")
       .upload(path, await toSafeUploadBody(file), { contentType: file.type, upsert: false });
-    if (upErr) throw new Error(`Upload-Fehler: ${upErr.message}`);
+    if (upErr) throw new Error(t("ipu.errorUpload", { msg: upErr.message }));
     const { data: urlData } = supabase.storage.from("impact-updates").getPublicUrl(path);
     return urlData?.publicUrl;
   };
@@ -107,8 +107,8 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
   // ── Submit ───────────────────────────────────────────────────────
   const handleSubmit = async () => {
     if (!title.trim()) { setError(t("ipu.titlePrompt")); return; }
-    if (!projectId)    { setError("Projekt-ID fehlt."); return; }
-    if (!authorId)     { setError("Du musst angemeldet sein."); return; }
+    if (!projectId)    { setError(t("ipu.errorProjectIdMissing")); return; }
+    if (!authorId)     { setError(t("ipu.errorMustBeLoggedIn")); return; }
 
     setSubmitting(true);
     setError(null);
@@ -116,11 +116,11 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
       // 1. Medien hochladen
       const urls = [];
       for (let i = 0; i < mediaFiles.length; i++) {
-        setUploadProgress(`Lade Medien hoch... (${i + 1}/${mediaFiles.length})`);
+        setUploadProgress(t("ipu.uploadProgress", { current: i + 1, total: mediaFiles.length }));
         const url = await uploadFile(mediaFiles[i], i);
         if (url) urls.push(url);
       }
-      setUploadProgress("Speichere Update...");
+      setUploadProgress(t("ipu.savingProgress"));
 
       // 2. Insert in impact_project_updates
       const insertData = {
@@ -142,7 +142,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
         .from("impact_project_updates")
         .insert(insertData);
 
-      if (insErr) throw new Error(`Speichern fehlgeschlagen: ${insErr.message}`);
+      if (insErr) throw new Error(t("ipu.errorSaveFailed", { msg: insErr.message }));
 
       // Cleanup
       mediaPreviews.forEach(p => { if (p.url?.startsWith("blob:")) URL.revokeObjectURL(p.url); });
@@ -151,7 +151,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
       onClose?.();
     } catch (e) {
       console.error("[ImpactProjektUpdateSheet] submit:", e);
-      setError(e.message || "Ein Fehler ist aufgetreten.");
+      setError(e.message || t("ipu.errorGeneric"));
     } finally {
       setSubmitting(false);
       setUploadProgress("");
@@ -190,10 +190,10 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
         }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
-              
+              {t("ipu.headerTitle")}
             </div>
             <div style={{ fontSize: 12, color: T.inkSoft, marginTop: 2 }}>
-              Halte deine Unterstützer auf dem Laufenden
+              {t("ipu.headerSubtitle")}
             </div>
           </div>
           <button onClick={() => { if (!submitting) onClose?.(); }} style={{
@@ -210,13 +210,13 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
           {/* Ueberschrift */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
-              Überschrift *
+              {t("ipu.overschriftLabel")} *
             </label>
             <input
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="z.B. Erster Meilenstein erreicht!"
+              placeholder={t("ipu.overschriftPlaceholder")}
               maxLength={120}
               style={{
                 width: "100%", padding: "12px 14px",
@@ -231,13 +231,14 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
 
           {/* Beschreibung */}
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
-              Beschreibung
+            <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}
+            >
+              {t("ipu.beschreibungLabel")}
             </label>
             <textarea
               value={content}
               onChange={e => setContent(e.target.value)}
-              placeholder="Erzaehl mehr ueber dieses Update..."
+              placeholder={t("ipu.beschreibungPlaceholder")}
               rows={4}
               maxLength={2000}
               style={{
@@ -255,7 +256,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
           {/* Typ-Chips */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 8 }}>
-              Typ
+              {t("ipu.typLabel")}
             </label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {UPDATE_TYPES.map(ut => (
@@ -281,7 +282,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
           {/* Datum */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 6 }}>
-              Datum (optional)
+              {t("ipu.datumLabel")}
             </label>
             <input
               type="date"
@@ -297,14 +298,14 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               onBlur={e => e.target.style.borderColor = T.border}
             />
             <div style={{ fontSize: 11, color: T.inkFaint, marginTop: 4 }}>
-              Standard: heute ({fmtDisplayDate(fmtToday())})
+              {t("ipu.datumDefault", { date: fmtDisplayDate(fmtToday()) })}
             </div>
           </div>
 
           {/* Medien-Upload */}
           <div style={{ marginBottom: 16 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: T.inkSoft, display: "block", marginBottom: 8 }}>
-              Bilder / Videos
+              {t("ipu.mediaLabel")}
             </label>
             <input
               ref={fileInputRef}
@@ -326,10 +327,10 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
             >
               <span style={{ fontSize: 22 }}>📎</span>
               <span style={{ fontSize: 13, fontWeight: 600, color: T.inkSoft }}>
-                Dateien auswählen
+                {t("ipu.mediaButton")}
               </span>
               <span style={{ fontSize: 11, color: T.inkFaint }}>
-                Bilder und Videos (mehrere moeglich)
+                {t("ipu.mediaHint")}
               </span>
             </button>
 
@@ -370,7 +371,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               padding: "10px 14px", background: T.coralSoft,
               borderRadius: T.r8, border: `1px solid rgba(255,107,107,0.20)`,
             }}>
-              
+              {error}
             </div>
           )}
 
@@ -408,7 +409,7 @@ export default function ImpactProjektUpdateSheet({ projectId, authorId, onClose,
               transition: "all .2s",
             }}
           >
-            {submitting ? "⏳ Wird gesendet..." : "✅ Update veroeffentlichen"}
+            {submitting ? `⏳ ${t("ipu.sendingButton")}` : `✅ ${t("ipu.publishButton")}`}
           </button>
         </div>
       </div>

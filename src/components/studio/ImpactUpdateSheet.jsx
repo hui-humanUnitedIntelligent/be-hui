@@ -10,6 +10,9 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
+// UPDATE_TYPES: interne DB-Enum-Werte (update_type-Spalte) — Anzeige-Labels
+// kommen ausschliesslich ueber die bereits bestehenden impact.updateType*-Keys
+// (siehe ImpactProjektUpdateSheet.jsx, gleiche Konvention)
 const UPDATE_TYPES = ["Meilenstein", "Fortschritt", "Neuigkeit", "Geplant"];
 
 export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuccess }) {
@@ -27,11 +30,11 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError("Bitte einen Titel eingeben.");
+      setError(t("ius.errorTitleRequired"));
       return;
     }
     if (!project?.id) {
-      setError("Projekt-ID fehlt — Update kann nicht gespeichert werden.");
+      setError(t("ius.errorProjectIdMissing"));
       return;
     }
     setSaving(true);
@@ -49,7 +52,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
         });
       if (insertError) {
         console.error("[ImpactUpdateSheet] insert error:", insertError);
-        setError("Fehler beim Speichern: " + insertError.message);
+        setError(t("ius.errorSaveFailed", { msg: insertError.message }));
         setSaving(false);
         return;
       }
@@ -58,7 +61,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
       onClose?.();
     } catch (e) {
       console.error("[ImpactUpdateSheet] submit error:", e);
-      setError("Unerwarteter Fehler: " + e.message);
+      setError(t("ius.errorUnexpected", { msg: e.message }));
       setSaving(false);
     }
   };
@@ -118,7 +121,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
             flexShrink: 0,
           }}
         >
-          <div style={{ fontSize: 18, fontWeight: 600, display:"flex", alignItems:"center", gap:6 }}><HUINachrichtIcon size={18}/>Projekt-Update</div>
+          <div style={{ fontSize: 18, fontWeight: 600, display:"flex", alignItems:"center", gap:6 }}><HUINachrichtIcon size={18}/>{t("ius.title")}</div>
           <button
             onClick={onClose}
             style={{
@@ -157,29 +160,30 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
                 fontWeight: 600,
                 color: "#444",
                 marginBottom: 8,
+                textTransform: "uppercase",
               }}
             >
-              TYP
+              {t("ius.typeLabel")}
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {UPDATE_TYPES.map((t) => (
+              {UPDATE_TYPES.map((ut) => (
                 <button
-                  key={t}
-                  onClick={() => setUpdateType(t)}
+                  key={ut}
+                  onClick={() => setUpdateType(ut)}
                   style={{
                     padding: "6px 14px",
                     borderRadius: 99,
                     border: "1.5px solid",
-                    borderColor: updateType === t ? "#0DC4B5" : "rgba(0,0,0,0.15)",
-                    background: updateType === t ? "#0DC4B515" : "transparent",
-                    color: updateType === t ? "#0DC4B5" : "#666",
+                    borderColor: updateType === ut ? "#0DC4B5" : "rgba(0,0,0,0.15)",
+                    background: updateType === ut ? "#0DC4B515" : "transparent",
+                    color: updateType === ut ? "#0DC4B5" : "#666",
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
                     fontFamily: "inherit",
                   }}
                 >
-                  {t}
+                  {t("impact.updateType" + ut)}
                 </button>
               ))}
             </div>
@@ -193,14 +197,15 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
                 fontWeight: 600,
                 color: "#444",
                 marginBottom: 8,
+                textTransform: "uppercase",
               }}
             >
-              TITEL *
+              {t("ius.titleLabel")} *
             </div>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="z.B. Zaun ist fertiggestellt"
+              placeholder={t("ius.titlePlaceholder")}
               style={{
                 width: "100%",
                 padding: "12px 14px",
@@ -222,14 +227,15 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
                 fontWeight: 600,
                 color: "#444",
                 marginBottom: 8,
+                textTransform: "uppercase",
               }}
             >
-              BESCHREIBUNG
+              {t("ius.descriptionLabel")}
             </div>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Beschreibe den Fortschritt..."
+              placeholder={t("ius.descriptionPlaceholder")}
               rows={4}
               style={{
                 width: "100%",
@@ -279,7 +285,7 @@ export default function ImpactUpdateSheet({ project, currentUser, onClose, onSuc
               fontFamily: "inherit",
             }}
           >
-            {saving ? "⏳ Wird gespeichert..." : t("ius.publishUpdate")}
+            {saving ? `⏳ ${t("ius.savingButton")}` : t("ius.publishUpdate")}
           </button>
         </div>
       </div>

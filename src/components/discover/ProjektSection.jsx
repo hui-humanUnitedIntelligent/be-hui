@@ -15,7 +15,7 @@ export function ProjektCard({ projekt, delay=0, onPress }) {
   const cover = (!imgErr && projekt.cover) ? projekt.cover : null;
   const cc = projekt.catColor || { bg:"rgba(34,197,94,0.12)", text:"#16A34A" };
   const membersStr = projekt.members != null
-    ? (projekt.members > 0 ?formatNumberDE(projekt.members) + " Stimmen" : t("proj.supportNow"))
+    ? (projekt.members > 0 ? `${formatNumberDE(projekt.members)} ${t("discover.stimmen")}` : t("proj.supportNow"))
     : null;
 
   return (
@@ -67,7 +67,7 @@ export function ProjektCard({ projekt, delay=0, onPress }) {
               <span style={{ fontSize:10.5, fontWeight:600, color:"rgba(34,197,94,0.9)" }}>{membersStr}</span>
             </>
           ) : (
-            <span style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Mitmachen</span>
+            <span style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>{t("proj.joinIn")}</span>
           )}
         </div>
       </div>
@@ -115,7 +115,7 @@ export function ProjekteSection({ projekte=[], loading, delay=0, view='cards', o
                 background:"#D97706", borderRadius:99,
                 padding:"3px 10px", fontSize:9.5, fontWeight: 600,
                 color:"white", letterSpacing:".04em",
-              }}>🔥 Projekt der Woche</div>
+              }}>🔥 {t("proj.projectOfWeek")}</div>
               {/* Content */}
               <div style={{ position:"absolute",bottom:14,left:14,right:14 }}>
                 <div style={{ fontSize:17, fontWeight: 600, color:"white", letterSpacing:"-0.03em", marginBottom:4, lineHeight:1.2 }}>
@@ -126,7 +126,7 @@ export function ProjekteSection({ projekte=[], loading, delay=0, view='cards', o
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                   <div style={{ fontSize:11, color:"rgba(255,255,255,0.80)", display:"flex", alignItems:"center", gap:4 }}>
-                    <span style={{display:"flex",alignItems:"center",gap:4}}><HUIPersonenIcon size={14}/><span>{hero.members > 0 ? `${hero.members} Stimmen` : "Jetzt unterstützen"}</span></span>
+                    <span style={{display:"flex",alignItems:"center",gap:4}}><HUIPersonenIcon size={14}/><span>{hero.members > 0 ? `${hero.members} ${t("discover.stimmen")}` : t("proj.supportNow")}</span></span>
                   </div>
                   <div onClick={() => onPress?.(hero)} style={{
                     background:"rgba(14,196,184,0.90)", backdropFilter:"blur(8px)",
@@ -134,7 +134,7 @@ export function ProjekteSection({ projekte=[], loading, delay=0, view='cards', o
                     fontSize:11, fontWeight: 600, color:"white",
                     cursor:"pointer", touchAction:"manipulation",
                     WebkitTapHighlightColor:"transparent",
-                  }}>Projekt ansehen →</div>
+                  }}>{t("proj.viewProject")} →</div>
                 </div>
               </div>
             </div>
@@ -173,7 +173,7 @@ export function ProjekteSection({ projekte=[], loading, delay=0, view='cards', o
                       <div style={{ fontSize:11.5, color:T.inkSoft, marginBottom:5, overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis" }}>{p.desc}</div>
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <span style={{ fontSize:11, background:cc.bg, color:cc.text, borderRadius:99, padding:"1px 7px", fontWeight:600 }}>{p.cat}</span>
-                        <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUIPersonenIcon size={11}/>{p.members} Mitgl.</span>
+                        <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUIPersonenIcon size={11}/>{p.members} {t("proj.membersAbbrev")}</span>
                       </div>
                     </div>
                   </div>

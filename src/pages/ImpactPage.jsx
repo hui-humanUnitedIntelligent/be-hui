@@ -421,12 +421,6 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.vision}</p>
             </div>
           )}
-          {app.why_support && (
-            <div style={{ marginBottom:12 }}>
-              <div style={{ fontSize:10, fontWeight: 600, color:"#999", textTransform:"uppercase", letterSpacing:"0.6px", marginBottom:4 }}>{t("impact.warumFoerdern")}</div>
-              <p style={{ margin:0, fontSize:13, color:"#333", lineHeight:1.6 }}>{app.why_support}</p>
-            </div>
-          )}
 
           {/* Meta-Infos */}
           <div style={{
