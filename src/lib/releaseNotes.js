@@ -17,6 +17,24 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.579 — von Michael am 09.09.2026 vor Deploy geprueft und freigegeben
+  // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
+  "2.1.579": {
+    de: [
+      "Sprachauswahl für Inhalte: Du kannst Werken, Talent-Angeboten und Erlebnissen jetzt eine Sprache zuordnen",
+      "Entdecken zeigt Inhalte passend zu deiner App-Sprache — über „Alle Sprachen“ siehst du alles",
+      "In Profilen: Wenn jemand in mehreren Sprachen postet, kannst du oben per Filter wechseln",
+      "Videos in Momenten werden jetzt zuverlässig mit Vorschaubild angezeigt",
+      "Gefüllte Herzen bleiben jetzt zuverlässig gefüllt",
+    ],
+    en: [
+      "Language selection: You can now assign a language to works, talent offers and experiences",
+      "Discover shows content matching your app language — switch to „All languages“ to see everything",
+      "In profiles: If someone posts in several languages, you can switch with a filter",
+      "Videos in moments now display reliably with preview images",
+      "Filled hearts now stay filled",
+    ],
+  },
   // 2.1.578 — von Michael am 08.09.2026 vor Deploy geprueft und freigegeben
   // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
   "2.1.578": {
