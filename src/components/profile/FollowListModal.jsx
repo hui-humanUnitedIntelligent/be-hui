@@ -118,10 +118,15 @@ export default function FollowListModal({ userId, initialTab = "followers", onCl
       const rows = followsRes?.data || [];
       const ids = rows.map(r => activeTab === "followers" ? r.follower_id : r.followed_id).filter(Boolean);
       if (!ids.length) { setPeople([]); setLoading(false); return; }
+      // PRIVACY-FILTER (2026-09-09, Michaels Testwoche-Check): exakt
+      // dieselbe Semantik wie die SSOT-Menschen-Suche rpc_discover_people
+      // (COALESCE(focus_type,'public') <> 'private') — private Accounts
+      // werden in oeffentlichen Follower-/Folgt-Listen NICHT aufgelistet.
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id,display_name,username,avatar_url,account_type,org_type,is_talent")
+        .select("id,display_name,username,avatar_url,account_type,org_type,is_talent,focus_type")
         .in("id", ids)
+        .or("focus_type.is.null,focus_type.neq.private")
         .limit(500);
       setPeople(profiles || []);
     } catch {
