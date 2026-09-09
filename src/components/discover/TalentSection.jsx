@@ -5,6 +5,7 @@ import { T, safeStr, safeNum, safeArr, CARD_RADIUS, MEDIUM_COLOR, TALENT_LOCATIO
 import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atoms.jsx";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { HUITalentIcon, HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIcons.jsx";
+import { HUIHeartIcon, HUIChatIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { radiusLabel } from "../../hooks/useRadiusFilter.js";
@@ -80,8 +81,10 @@ export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
               <div style={{ fontSize:10.5, color:T.inkFaint, fontStyle:"italic" }}>Preis auf Anfrage</div>
             )}
           </div>
-          {/* Views */}
+          {/* Likes + Kommentare + Views */}
           <div className="dp-engage">
+            <span><HUIHeartIcon size={12} /> {talent.likes ?? 0}</span>
+            <span><HUIChatIcon size={12} /> {talent.comments ?? 0}</span>
             <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{talent.views ?? 0}</span>
           </div>
         </div>

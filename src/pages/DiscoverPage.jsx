@@ -378,6 +378,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               author:    safeStr(prof.full_name || prof.display_name, _t("discover.fallbackTalent")),
               avatar_url: prof.avatar_url || null,
               likes:     w.likes_count || 0,
+              comments:  0,  // Werke haben keine Kommentarfunktion -> statisch 0
               views:     w.views_count || 0,
             };
           }));
@@ -457,6 +458,8 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               booking_type:          safeStr(t.booking_type, "einzel"),
               booking_window_start:  safeStr(t.booking_window_start),
               booking_window_end:    safeStr(t.booking_window_end),
+              likes:                 0,  // Talente haben keine Likes-Funktion -> statisch 0
+              comments:              0,  // Talente haben keine Kommentarfunktion -> statisch 0
               views:                 t.views_count || 0,
             })));
           }
@@ -523,6 +526,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
               lat:         Number.isFinite(e.lat) ? e.lat : null,
               lng:         Number.isFinite(e.lng) ? e.lng : null,
               likes:       e.likes_count || 0,
+              comments:    0,  // Erlebnisse haben keine Kommentarfunktion -> statisch 0
               views:       e.views_count || 0,
             };
           }));
@@ -808,6 +812,13 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
     const werkId = werk.id;
     const isRealId = werkId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(werkId));
     if (!isRealId) return; // Seed-Karte: nichts tun
+    // ENGAGEMENT-UNIFY-001: KEIN eigener increment_work_views-RPC-Call hier —
+    // WorkDetailPage.jsx inkrementiert bereits beim Mount (Zeile ~475). Ein
+    // zusaetzlicher Call hier wuerde JEDEN Discover-Klick doppelt zaehlen,
+    // da navigate() sofort danach WorkDetailPage mounted. Nur optimistisches
+    // lokales UI-Update, damit der Discover-Counter sich sofort aktuell fuehlt
+    // (die echte DB-Zahl kommt zuverlaessig aus WorkDetailPage).
+    setWerke(prev => prev.map(w => w.id === werkId ? { ...w, views: (w.views || 0) + 1 } : w));
     // Direkt zur WorkDetailPage navigieren (zuverlässiger als Sheet-Normalisierung)
     navigate(`/work/${werkId}`);
   }, [navigate]);
@@ -818,7 +829,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
     const talentId = talent.id;
     const isRealId = talentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(talentId));
     const hasPrice = talent.price_per_hour != null || talent.price_per_session != null;
-    if (isRealId) { try { supabase.rpc("increment_talent_views", { talent_id: talentId }); } catch {} }
+    if (isRealId) {
+      try { supabase.rpc("increment_talent_views", { talent_id: talentId }); } catch {}
+      setTalente(prev => prev.map(t => t.id === talentId ? { ...t, views: (t.views || 0) + 1 } : t));
+    }
     requireAuth(hasPrice ? "ein Talent zu buchen" : "ein Talent zu kontaktieren", () => {
       if (!isRealId) return;
       if (hasPrice) setTalentBooking(talent);
@@ -832,7 +846,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   // die Vorschau ersetzt, die Titelbild/Text/Datum des Moments zeigt.
   const handleMomentPress = useCallback((moment) => {
     const isRealId = moment?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(moment.id));
-    if (isRealId) { try { supabase.rpc("increment_moment_views", { moment_id: moment.id }); } catch {} }
+    if (isRealId) {
+      try { supabase.rpc("increment_moment_views", { moment_id: moment.id }); } catch {}
+      setMomente(prev => prev.map(m => m.id === moment.id ? { ...m, views: (m.views || 0) + 1 } : m));
+    }
     // NAME-FIX: normalizePostForPreview → extractAuthor() sucht raw.profile/creator/author/user
     // — Moment-Objekt aus DiscoverPage hat aber nur flaches `name` Feld, kein profile-Objekt.
     // Ohne Injection fällt extractAuthor auf "Mitglied" zurück. Profil-Daten werden hier
@@ -853,7 +870,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   // Erlebnis-Karte: öffne ExperienceBookingFlow (Detail + Buchen)
   const handleErlebnisPress = useCallback((erlebnis) => {
     const isRealId = erlebnis?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(erlebnis.id));
-    if (isRealId) { try { supabase.rpc("increment_experience_views", { experience_id: erlebnis.id }); } catch {} }
+    if (isRealId) {
+      try { supabase.rpc("increment_experience_views", { experience_id: erlebnis.id }); } catch {}
+      setErlebnisse(prev => prev.map(e => e.id === erlebnis.id ? { ...e, views: (e.views || 0) + 1 } : e));
+    }
     if (isRealId) {
       if (typeof onBook === "function") { onBook(erlebnis); return; }
     }

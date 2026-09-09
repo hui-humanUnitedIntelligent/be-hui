@@ -6,7 +6,7 @@ import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atom
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
-import { HUIHeartIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { HUIHeartIcon, HUIChatIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { LocationRadiusRow } from "./TalentSection.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
@@ -101,11 +101,12 @@ export function ErlebnisCard({ erlebnis, delay=0, onPress }) {
             </div>
           )}
           <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-            {erlebnis.likes > 0 && (
-              <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight: 600 }}>
-                <HUIHeartIcon size={11} /> {erlebnis.likes}
-              </span>
-            )}
+            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.coral, fontWeight: 600 }}>
+              <HUIHeartIcon size={11} /> {erlebnis.likes ?? 0}
+            </span>
+            <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.inkFaint, fontWeight:600 }}>
+              <HUIChatIcon size={11} /> {erlebnis.comments ?? 0}
+            </span>
             <span style={{ display:"flex", alignItems:"center", gap:3, fontSize:10.5, color:T.inkFaint, fontWeight:600 }}>
               <HUIAnsichtIcon size={11} /> {erlebnis.views ?? 0}
             </span>

@@ -6,7 +6,7 @@ import { Skel, SectionHead, CardBadge, CardTitle, CardLocationRow } from "./atom
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { HUILocationIcon, HUIAnsichtIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
-import { HUIHeartIcon } from "../../design/icons/HuiInteractionIcons.jsx";
+import { HUIHeartIcon, HUIChatIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { LocationRadiusRow } from "./TalentSection.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
@@ -98,6 +98,7 @@ export function WerkCard({ werk, delay=0, onPress, onAuthorPress, saleStatus }) 
           {/* Likes + Views */}
           <div className="dp-engage">
             <span><HUIHeartIcon size={12} /> {werk.likes ?? 0}</span>
+            <span><HUIChatIcon size={12} /> {werk.comments ?? 0}</span>
             <span style={{display:"flex",alignItems:"center",gap:2}}><HUIAnsichtIcon size={12}/>{werk.views ?? 0}</span>
           </div>
         </div>
