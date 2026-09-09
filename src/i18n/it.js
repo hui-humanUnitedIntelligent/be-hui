@@ -3835,6 +3835,7 @@ export default {
   'discover.momenteSearchPlaceholder': 'Cerca momenti…',
   'discover.erlebnisseSearchPlaceholder': 'Cerca esperienze…',
   'discover.orteSearchPlaceholder': 'Cerca luogo…',
+  'discover.orteCountryHint': 'Tutti i luoghi in {country}',
   'discover.projekteSearchPlaceholder': 'Cerca progetti…',
   'common.likes': 'Mi piace',
   'discover.worldwide': 'In tutto il mondo',

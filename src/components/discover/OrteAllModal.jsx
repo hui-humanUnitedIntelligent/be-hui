@@ -7,6 +7,10 @@ import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+// ORTE-COUNTRY-BBOX-001 (2026-09-09): Land-Erkennung fuer die Orte-Suche —
+// "Spanien"/"Zypern" etc. zeigen alle registrierten Orte im Land (Bbox-Query),
+// statt nur exakte Text-Treffer. Statischer Laender-Katalog + Nominatim-Fallback.
+import { findCountryMatchAsync } from "../../lib/countryBounds.js";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -157,6 +161,8 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
   const [sort, setSort]           = useState("active");
   const [places, setPlaces]       = useState([]);
   const [loading, setLoading]     = useState(true);
+  // ORTE-COUNTRY-BBOX-001: {code,name,bbox} wenn der Suchtext ein Land trifft
+  const [countryHit, setCountryHit] = useState(null);
 
   // Detail-View State
   const [selectedPlace, setSelectedPlace] = useState(null);
@@ -173,23 +179,60 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
     }
   }, [isOpen, initialPlace]);
 
-  // Places laden
+  // ORTE-COUNTRY-BBOX-001: Ist der Suchtext ein Land? (debounced 300ms,
+  // damit nicht bei jedem Tippen geprueft wird — der statische Katalog-
+  // Teil ist synchron/O(1), der Nominatim-Fallback nur fuer exotische
+  // Laender ausserhalb des Katalogs und 1h gecacht)
+  useEffect(() => {
+    const q = search.trim();
+    if (!q) { setCountryHit(null); return; }
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      const hit = await findCountryMatchAsync(q);
+      if (!cancelled) setCountryHit(hit);
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [search]);
+
+  // Places laden — Land-Treffer: Bbox-Query (alle Orte des Landes),
+  // sonst: bisheriger Text-Match
   const loadPlaces = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.rpc("rpc_discover_places", {
-      p_search: search.trim() || null,
-      p_sort: sort,
-      p_limit: 50,
-      p_offset: 0,
-    });
-    setPlaces(data || []);
-    setLoading(false);
-  }, [search, sort]);
+    try {
+      if (countryHit) {
+        const { data } = await supabase.rpc("rpc_discover_places_bbox", {
+          p_lat_min: countryHit.bbox.latMin,
+          p_lat_max: countryHit.bbox.latMax,
+          p_lng_min: countryHit.bbox.lngMin,
+          p_lng_max: countryHit.bbox.lngMax,
+          p_sort: sort,
+          p_limit: 50,
+          p_offset: 0,
+        });
+        setPlaces(data || []);
+      } else {
+        const { data } = await supabase.rpc("rpc_discover_places", {
+          p_search: search.trim() || null,
+          p_sort: sort,
+          p_limit: 50,
+          p_offset: 0,
+        });
+        setPlaces(data || []);
+      }
+    } catch {
+      setPlaces([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, sort, countryHit]);
 
   useEffect(() => {
     if (!isOpen) return;
     if (selectedPlace) return; // Im Detail-View keine Places neu laden
-    loadPlaces();
+    // ORTE-COUNTRY-BBOX-001: debounce 350ms — Laender-Erkennung (300ms)
+    // soll vor der Query stehen; verhindert zusaetzlich ein RPC pro Tastenschlag
+    const timer = setTimeout(() => { loadPlaces(); }, 350);
+    return () => clearTimeout(timer);
   }, [isOpen, selectedPlace, loadPlaces]);
 
   // Detail laden
@@ -250,8 +293,18 @@ export default function OrteAllModal({ isOpen, onClose, initialPlace, onPressPer
           {!showDetail && (
             <input value={search} onChange={e => setSearch(e.target.value)}
               placeholder={t("discover.orteSearchPlaceholder")}
-              style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${T.border}`,
+              style={{ width:"100%", padding:"9px 14px", borderRadius:12, border:`1px solid ${countryHit ? T.teal : T.border}`,
                 background:"#f8fafc", fontSize:14, color:T.ink, outline:"none", boxSizing:"border-box" }}/>
+          )}
+          {!showDetail && search.trim() && countryHit && (
+            <div style={{ marginTop:6, fontSize:11.5, color:T.tealDeep, fontWeight:600 }}>
+              {t("discover.orteCountryHint", {
+                country: (() => {
+                  const a = countryHit.matchedAlias || countryHit.name || "";
+                  return a.charAt(0).toUpperCase() + a.slice(1);
+                })(),
+              })}
+            </div>
           )}
         </div>
 

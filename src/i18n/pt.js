@@ -3835,6 +3835,7 @@ export default {
   'discover.momenteSearchPlaceholder': 'Buscar momentos…',
   'discover.erlebnisseSearchPlaceholder': 'Buscar experiências…',
   'discover.orteSearchPlaceholder': 'Buscar local…',
+  'discover.orteCountryHint': 'Todos os lugares em {country}',
   'discover.projekteSearchPlaceholder': 'Buscar projetos…',
   'common.likes': 'Curtidas',
   'discover.worldwide': 'Mundial',

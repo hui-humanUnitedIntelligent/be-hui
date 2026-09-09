@@ -3835,6 +3835,7 @@ export default {
   'discover.momenteSearchPlaceholder': 'An ara…',
   'discover.erlebnisseSearchPlaceholder': 'Deneyim ara…',
   'discover.orteSearchPlaceholder': 'Yer ara…',
+  'discover.orteCountryHint': '{country} içindeki tüm mekânlar',
   'discover.projekteSearchPlaceholder': 'Proje ara…',
   'common.likes': 'Beğeniler',
   'discover.worldwide': 'Dünya çapında',

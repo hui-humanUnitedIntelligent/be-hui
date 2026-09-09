@@ -839,6 +839,7 @@ export default {
   'discover.ortEingebenPlaceholder': 'Shkruaj vendin…',
   'discover.orte': 'Zbulo vendet',
   'discover.orteSearchPlaceholder': 'Kërko vend…',
+  'discover.orteCountryHint': 'Të gjitha vendet në {country}',
   'discover.orteSub': 'Vende reale nga profilet HUI, veprat & përvojat.',
   'discover.ph1': 'Njerëz, vepra ose përvoja',
   'discover.ph2': 'Gjej njerëz',
