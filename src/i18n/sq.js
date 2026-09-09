@@ -306,6 +306,8 @@ export default {
   'bug.errorAuth': 'Duhet të jeni i kyçur për të raportuar një gabim.',
   'bug.errorEmpty': 'Ju lutem përshkruani gabimin.',
   'bug.errorPartial': 'Përshkrimi juaj u ruajt, por imazhet ose videot nuk mund t\'i bashkëngjiteshin. Ju lutem raportoni gabimin përsëri — idealisht pa bashkëngjitje ose kontaktoni suportin.',
+  'bug.errorPartialSome': 'Raportimi juaj u dërgua — {failed} nga {total} skedarë nuk u ngarkuan. Provoni përsëri me më pak skedarë ose skedarë më të vegjël nëse nevojitet.',
+  'bug.errorPartialAll': 'Raportimi juaj u dërgua, por skedarët nuk u ngarkuan. Ju lutem raportoni gabimin përsëri — idealisht me më pak skedarë ose skedarë më të vegjël.',
   'bug.errorSubmit': 'Gabim gjatë dërgimit. Ju lutem provoni përsëri.',
   'bug.label': 'Përshkruaj gabimin',
   'bug.maxReached': 'Maksimumi është arritur',

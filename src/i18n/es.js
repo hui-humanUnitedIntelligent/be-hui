@@ -4129,6 +4129,8 @@ export default {
   'bug.errorAuth': 'Debes iniciar sesión para reportar un error.',
   'bug.errorSubmit': 'Error al enviar. Por favor inténtalo de nuevo.',
   'bug.errorPartial': 'Tu descripción se ha guardado, pero las imágenes/videos no se pudieron adjuntar. Por favor reporta el error de nuevo — idealmente sin adjuntos o contacta con soporte.',
+  'bug.errorPartialSome': 'Tu reporte se envió — {failed} de {total} archivos no se pudieron subir. Intenta de nuevo con menos archivos o más pequeños si es necesario.',
+  'bug.errorPartialAll': 'Tu reporte se envió, pero los archivos no se pudieron subir. Por favor reporta el error de nuevo — idealmente con menos archivos o más pequeños.',
   'pbm.deleteAccount': 'Eliminar cuenta definitivamente',
   'cat.malerei': 'Pintura',
   'cat.illustration': 'Ilustración',

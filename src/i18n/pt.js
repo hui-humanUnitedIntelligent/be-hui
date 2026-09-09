@@ -4129,6 +4129,8 @@ export default {
   'bug.errorAuth': 'Tens de estar autenticado para reportar um erro.',
   'bug.errorSubmit': 'Erro ao enviar. Por favor tenta novamente.',
   'bug.errorPartial': 'A tua descrição foi guardada, mas as imagens/vídeos não foram anexados. Por favor reporta o erro novamente — idealmente sem anexos ou contacta o suporte.',
+  'bug.errorPartialSome': 'O teu relatório foi enviado — {failed} de {total} ficheiros não puderam ser enviados. Tenta novamente com menos ficheiros ou ficheiros mais pequenos, se necessário.',
+  'bug.errorPartialAll': 'O teu relatório foi enviado, mas os ficheiros não puderam ser enviados. Por favor reporta o erro novamente — idealmente com menos ficheiros ou ficheiros mais pequenos.',
   'pbm.deleteAccount': 'Eliminar conta definitivamente',
   'cat.malerei': 'Pintura',
   'cat.illustration': 'Ilustração',

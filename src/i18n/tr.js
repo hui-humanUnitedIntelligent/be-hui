@@ -4129,6 +4129,8 @@ export default {
   'bug.errorAuth': 'Hata bildirmek için giriş yapmış olmalısın.',
   'bug.errorSubmit': 'Gönderme hatası. Lütfen tekrar deneyin.',
   'bug.errorPartial': 'Açıklaman kaydedildi ama görüntüler/videolar eklenemedi. Lütfen hatayı tekrar bildir — ideal olarak eklentisiz veya destekle iletişime geç.',
+  'bug.errorPartialSome': 'Bildirimin gönderildi — {total} dosyadan {failed} tanesi yüklenemedi. Gerekirse daha az veya daha küçük dosyalarla tekrar dene.',
+  'bug.errorPartialAll': 'Bildirimin gönderildi, ama dosyalar yüklenemedi. Lütfen hatayı tekrar bildir — ideal olarak daha az veya daha küçük dosyalarla.',
   'pbm.deleteAccount': 'Hesabı kalıcı olarak sil',
   'cat.malerei': 'Resim',
   'cat.illustration': 'İllüstrasyon',

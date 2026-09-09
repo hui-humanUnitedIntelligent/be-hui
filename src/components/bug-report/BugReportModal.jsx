@@ -23,12 +23,48 @@ import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 // "EXC:Load failed" — es existierte NULL bug_reports von iOS, obwohl Tester
 // aktiv waren. Der bisherige Flow brach bei Anhang-Fehlern GESAMT ab →
 // Tester verlor die ganze Meldung.
-// iOS-only: (a) Anhang-Uploads werden einzeln try/catch'd — ein fehlgeschlagener
-// Upload verhindert NIE mehr das Absenden des Text-Reports (Warnung statt
-// Gesamtfehler). (b) Diagnostik 1×/Session: Modal-Öffnung wird geloggt →
-// beweist serverseitig, ob das Modal auf iOS überhaupt öffnet.
-// Android-Pfad: unverändert (strikte Fehlerbehandlung bleibt exklusiv aktiv).
+// iOS-only (unverändert): Diagnostik 1×/Session — Modal-Öffnung wird
+// geloggt, beweist serverseitig, ob das Modal auf iOS überhaupt öffnet.
 const IS_IOS = typeof window !== "undefined" && Capacitor.getPlatform?.() === "ios";
+
+// ── ANHANG-UPLOAD-HAENGER-FIX (2026-09-09, Michael-Report Android) ──────
+// Michaels Report (Android 16, v2.1.582): Sobald mehr als 1 Bild ausgewählt
+// wird, hängt der Bug-Report-Dialog mit endlos drehendem Spinner — die
+// Meldung geht danach zwar ab, aber OHNE die Screenshots, nur der Text.
+// ROOT CAUSE: (1) Die Resilienz aus iOS-BUG-002 (try/catch pro Datei,
+// weiterlaufen bei Einzel-Fehler) war NUR für iOS aktiv — Android nutzte
+// eine strikte for-Schleife OHNE try/catch: warf EINE Datei einen Fehler,
+// brach die GESAMTE Schleife ab (throw propagiert aus der Schleife raus)
+// und Schritt 3 (Attachments an den DB-Report anhängen) wurde komplett
+// übersprungen — selbst bereits erfolgreich hochgeladene Dateien gingen
+// verloren. (2) Es gab KEIN Timeout auf dem Storage-Upload-Call — hängt
+// die Android-WebView-Bridge bei einem Request (bekanntes Muster, siehe
+// STORAGE-BRIDGE-BYPASS in supabaseClient.js), wartet das await für IMMER
+// → das ist der "dreht endlos"-Spinner. Der Report selbst existiert dabei
+// bereits in der DB (Schritt 1 = Insert läuft VOR der Upload-Schleife und
+// war längst durch) — für Michael sah es im SADB so aus, als sei die
+// Meldung "schon rausgegangen", während der Client noch für immer wartete.
+// FIX (gilt jetzt für ALLE Plattformen, nicht mehr iOS-exklusiv):
+//   (a) uploadFileWithTimeout() begrenzt JEDEN Anhang-Upload auf maximal
+//       UPLOAD_TIMEOUT_MS — eine gehängte Bridge blockiert nie mehr die
+//       gesamte Einreichung.
+//   (b) Die per-Datei try/catch-Resilienz (vormals iOS-only) läuft jetzt
+//       platform-unabhängig: EIN fehlgeschlagener/getimeouteter Anhang
+//       bricht die Einreichung nie ab, alle ERFOLGREICHEN Anhänge werden
+//       trotzdem an den Report gehängt (statt "alles oder nichts").
+const UPLOAD_TIMEOUT_MS = 40000; // 40s pro Anhang — großzügig für 50MB-Videos auf mobilen Netzen, aber nie "endlos"
+
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(Object.assign(new Error(`Zeitüberschreitung beim Hochladen (${label})`), { isTimeout: true }));
+    }, ms);
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
 
 let iosModalLogged = false;
 function logIosModalOpen() {
@@ -135,6 +171,13 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     return { name: file.name, url: publicUrl, type: file.type, size: file.size };
   }, []);
 
+  // ANHANG-UPLOAD-HAENGER-FIX: Timeout-Wrapper — begrenzt jeden Upload auf
+  // UPLOAD_TIMEOUT_MS, damit eine gehängte Android-WebView-Bridge (siehe
+  // Kommentarblock oben) den Bug-Report-Dialog nie mehr endlos blockiert.
+  const uploadFileWithTimeout = useCallback((file, reportId) => {
+    return withTimeout(uploadFile(file, reportId), UPLOAD_TIMEOUT_MS, file.name);
+  }, [uploadFile]);
+
   const handleSubmit = useCallback(async () => {
     if (!description.trim()) {
       setError(t('bug.errorEmpty'));
@@ -190,26 +233,27 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       // Bewiesener Fall: "EXC:Load failed" auf iPhone (18.7) am 08.09. —
       // ohne diesen Zweig wäre der gesamte Report verloren gegangen.
       // Android: striktes Verhalten unverändert (iOS-Zweig greift dort nie).
+      // ANHANG-UPLOAD-HAENGER-FIX: EINE Schleife für ALLE Plattformen —
+      // pro Datei try/catch + Timeout, ein Fehlschlag stoppt nie mehr die
+      // gesamte Einreichung (vormals nur auf iOS so, Android hing/verlor
+      // alles bei einer einzigen fehlerhaften Datei — Michaels Android-Report).
       const attachments = [];
-      if (IS_IOS) {
-        let failedCount = 0;
-        for (const f of files) {
-          try {
-            const att = await uploadFile(f, report.id);
-            attachments.push(att);
-          } catch (fileErr) {
-            failedCount++;
-            console.error("[BugReport][iOS] attachment upload failed:", fileErr);
-          }
-        }
-        if (failedCount > 0) {
-          setAttachmentWarning(t('bug.errorPartial'));
-        }
-      } else {
-        for (const f of files) {
-          const att = await uploadFile(f, report.id);
+      let failedCount = 0;
+      for (const f of files) {
+        try {
+          const att = await uploadFileWithTimeout(f, report.id);
           attachments.push(att);
+        } catch (fileErr) {
+          failedCount++;
+          console.error("[BugReport] attachment upload failed:", f.name, fileErr);
         }
+      }
+      if (failedCount > 0) {
+        setAttachmentWarning(
+          attachments.length > 0
+            ? t('bug.errorPartialSome', { failed: String(failedCount), total: String(files.length) })
+            : t('bug.errorPartialAll')
+        );
       }
 
       // 3. Update report with attachments
@@ -227,9 +271,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
           .maybeSingle();
         if (updErr || !updData) {
           console.error("[BugReport] attachments update failed:", updErr || "kein Zeilen-Match (RLS?)");
-          setAttachmentWarning(
-            t('bug.errorPartial')
-          );
+          setAttachmentWarning(t('bug.errorPartialAll'));
         }
       }
 
@@ -249,7 +291,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     } finally {
       setUploading(false);
     }
-  }, [description, user, files, getDeviceInfo, uploadFile]);
+  }, [description, user, files, getDeviceInfo, uploadFileWithTimeout]);
 
   const handleClose = useCallback(() => {
     setDescription("");
