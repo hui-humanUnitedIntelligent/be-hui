@@ -2,6 +2,8 @@
 // Erlaubte Origins: HUI App Domains + Capacitor + Dev
 const ALLOWED_ORIGINS = [
   'https://be-hui.vercel.app',
+  'https://be-hui.app',
+  'https://www.be-hui.app',
   'https://be-hui.com',
   'https://www.be-hui.com',
   'https://app.be-hui.com',
