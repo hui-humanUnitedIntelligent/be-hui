@@ -37,6 +37,7 @@ import { RecommendationsSection } from "../components/profile/sections/Recommend
 import { PublicTalentOffersSection } from "../components/profile/sections/PublicTalentOffersSection.jsx";
 import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
+import SupportModal from "../components/SupportModal.jsx";
 import { invalidateOrbStageCache } from "../hooks/useOrbGrowthStage.js";
 import { useAppState, useFollowStatus } from "../lib/AppStateContext.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
@@ -140,6 +141,7 @@ function NavBar({ onBack = () => {}, title, subtitle }) {
 function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
   const { t } = useTranslation();
   const [followLoading, setFollowLoading] = useState(false);
+  const [showProjectSupport, setShowProjectSupport] = useState(false);
   const { isFollowing, toggle } = useFollowStatus(profileId);
   const { reconcileFollow } = useAppState();
   const displayName = profile?.display_name || profile?.full_name || profile?.username || "diese Person";
@@ -186,7 +188,17 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
   // Kurzname für Button-Labels
   const shortName = (displayName || "").split(" ")[0] || displayName;
 
+  // SUPPORT-PROJECT-001 (2026-09-09): eigenstaendiger Projekt-Support-Button,
+  // NICHT zu verwechseln mit dem bestehenden SupportFlow.jsx (echter Stripe-
+  // Checkout fuer Creator/Talent-Unterstuetzung, seit 18.08. via
+  // SHOW_SUPPORT_BUTTON=false von Michael bewusst versteckt). Dieser Button
+  // ist bewusst getrennt: nur fuer Projekt-Profile (org_type==="projekt"),
+  // noch ohne Zahlungsanbindung (SupportModal zeigt nur den
+  // support.notYetActive-Hinweis). Siehe Commit-Notiz fuer Details.
+  const isProjekt = profile?.org_type === "projekt";
+
   return (
+    <>
     <div style={{ display:"flex", flexDirection:"row", gap:8, padding:`0 ${T.px}px`, marginBottom:4 }}>
       {/* Folgen Button — einziger Aktions-Button (Verbinden entfernt, CHAT-LOGIK-v2) */}
       <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
@@ -215,7 +227,36 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
               : t('pub.follow', { name: shortName })}
         </span>
       </button>
+
+      {/* Unterstuetzen Button — nur bei Projekt-Profilen (Anforderung 2) */}
+      {isProjekt && (
+        <button onClick={() => setShowProjectSupport(true)} className="ppp-press" style={{
+          flex:1, height:36, borderRadius:T.r99,
+          background:"transparent",
+          border:`1.5px solid ${T.tealDeep}`,
+          color:T.tealDeep,
+          fontWeight:600, fontSize:12, cursor:"pointer",
+          touchAction:"manipulation", fontFamily:"inherit",
+          display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+          transition:"all .18s ease",
+          whiteSpace:"nowrap", overflow:"hidden",
+          paddingLeft:10, paddingRight:12,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+            {t('pub.supportProject')}
+          </span>
+        </button>
+      )}
     </div>
+
+    {/* Support-Modal — conditional gemountet (Anforderung 3+4) */}
+    {showProjectSupport && (
+      <SupportModal onClose={() => setShowProjectSupport(false)} />
+    )}
+    </>
   );
 }
 
