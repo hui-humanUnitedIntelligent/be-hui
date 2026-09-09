@@ -22,6 +22,13 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
   const [myTypes,  setMyTypes]  = useState(new Set()); // which types current user has set
   const [loading,  setLoading]  = useState(false);
   const mounted = useRef(true);
+  // HERZ-RACE-GUARD (2026-09-09, Bug "ausgefuelltes Herz bleibt nicht
+  // ausgefuellt"): Versions-Zaehler fuer optimistische Toggles. Der Load-
+  // Effect liest ihn VOR seinen DB-Requests und prueft ihn NACH den
+  // Antworten — hat der Nutzer zwischenzeitlich getoggelt, sind die
+  // Antworten stale (Vor-Klick-Zustand) und duerfen myTypes/counts NICHT
+  // ueberschreiben (sonst leert das eben gefuellte Herz wieder).
+  const mutVersionRef = useRef(0);
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
@@ -29,23 +36,40 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
   useEffect(() => {
     if (!postId) return;
     let cancelled = false;
+    let attempts  = 0; // HERZ-RACE-GUARD: max 3 Konsistenz-Nachladen
 
     async function load() {
       try {
+        // HERZ-RACE-GUARD: Stand VOR den Requests merken.
+        const v0 = mutVersionRef.current;
+
         // Counts (public)
         const { data: cData } = await supabase
           .rpc("reaction_counts", { p_post_id: postId });
-        if (!cancelled && cData) setCounts(cData);
 
         // My reactions (if logged in)
+        let myData = null;
         if (user?.id) {
-          const { data: myData } = await supabase
+          const res = await supabase
             .from("post_reactions")
             .select("type")
             .eq("post_id", postId)
             .eq("user_id", user.id);
-          if (!cancelled && myData) setMyTypes(new Set(myData.map(r => r.type)));
+          myData = res.data;
         }
+        if (cancelled) return;
+
+        // HERZ-RACE-GUARD: Toggle waehrend der Requests? -> beide Antworten
+        // sind stale und wuerden das optimistisch gefuellte Herz wieder
+        // leeren (der DB-Write des Toggles laeuft/ lief parallel). Dann
+        // NICHT ueberschreiben, sondern konsistent nachladen (max 3x).
+        if (v0 !== mutVersionRef.current) {
+          if (attempts++ < 3) load();
+          return;
+        }
+
+        if (cData) setCounts(cData);
+        if (myData) setMyTypes(new Set(myData.map(r => r.type)));
       } catch { /* silent */ }
     }
     load();
@@ -91,6 +115,10 @@ export function useSingleReaction(postId, postType = "post", authorId = null, po
   const toggle = useCallback(async (type) => {
     if (!user?.id || !postId) return;
     if (loading) return;
+
+    // HERZ-RACE-GUARD: synchron VOR dem optimistischen Update — jede
+    // laufende/ausstehende Load-Antwort ist ab jetzt stale.
+    mutVersionRef.current++;
 
     const wasActive = myTypes.has(type);
 

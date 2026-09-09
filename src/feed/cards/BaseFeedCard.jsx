@@ -1068,7 +1068,15 @@ export default React.memo(function BaseFeedCard({
       // Aendern von inspireCount/touchCount/commentCount (oder Reload)
       // auf dem alten Wert stehen, weil dieser Effect fuer save-Aenderungen
       // gar nicht erneut lief.
-      item?._reactions?.saveCount, item?._reactions?.saved]);
+      item?._reactions?.saveCount, item?._reactions?.saved,
+      // HERZ-SYNC-FIX (2026-09-09): inspired/touched fehlten als Deps --
+      // aendert sich NUR der eigene Reaktions-Zustand (hook-Nachlauf nach
+      // Mount, z.B. myTypes trifft spaet ein), OHNE dass sich zugleich ein
+      // Count aendert, lief dieser Effect nie -> localReactions blieb auf
+      // dem Mount-Snapshot stehen -> gefuelltes Herz wurde nicht
+      // uebernommen. Mit beiden Flags feuert er auch bei reiner
+      // Zustands-Aenderung.
+      item?._reactions?.inspired, item?._reactions?.touched]);
 
   // HOOK-ORDER-FIX (2026-08-08): handleReaction/handleDoubleTap muessen
   // VOR dem fruehen "return null" stehen. Vorher standen sie danach --
