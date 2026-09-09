@@ -54,7 +54,7 @@ export default function DiscoverFilterSheet({
   const [manualOpen, setManualOpen] = useState(false);
   const [manualQuery, setManualQuery] = useState("");
 
-  useWizardBodyLock();
+  useWizardBodyLock(open);
 
   if (!open) return null;
 
