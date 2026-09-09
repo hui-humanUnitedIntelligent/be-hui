@@ -238,6 +238,19 @@ function HomeInner() {
     return () => window.removeEventListener("hui:navigate:tab", handler);
   }, [handleTab]);
 
+  // ── IMPACT-NAVBAR-FIX: Deep-Link-/impact → Home-Tab aktivieren ──
+  // ImpactDeepLinkRedirect (App.jsx) setzt hui_pending_tab=impact und navigiert
+  // auf /Home — hier beim Home-Mount einmalig auslesen und Tab aktivieren.
+  // Flag wird sofort gelöscht (kein Re-Trigger bei späteren Mounts/Reloads).
+  React.useEffect(() => {
+    let pendingTab = null;
+    try { pendingTab = sessionStorage.getItem("hui_pending_tab"); } catch { /* Best-Effort */ }
+    if (pendingTab) {
+      try { sessionStorage.removeItem("hui_pending_tab"); } catch { /* Best-Effort */ }
+      handleTab(pendingTab);
+    }
+  }, [handleTab]);
+
   // SHARE.2: hui:share CustomEvent → HuiShareModal öffnen
   React.useEffect(() => {
     window.__HUI_SHARE_REGISTERED = true;

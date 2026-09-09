@@ -430,16 +430,23 @@ function AdminProtectedRoute({ children }) {
 // nicht scrollen. FIX additiv: eigener Scroll-Container NUR fuer die
 // Standalone-Route (analog WorkDetailPage.jsx-Pattern), ImpactPage.jsx bleibt
 // unveraendert -- die Tab-eingebettete Nutzung in Home.jsx ist nicht betroffen. ──
-function ImpactPageStandalone(props) {
-  return (
-    <div style={{
-      height: "100dvh", overflowY: "auto", overflowX: "hidden",
-      WebkitOverflowScrolling: "touch",
-      background: "#F9F7F4",
-    }}>
-      <ImpactPage {...props} />
-    </div>
-  );
+// ── IMPACT-NAVBAR-FIX (2026-09-09, Michael-Report "Navbar verschwindet im Projekt") ──
+// ROOT CAUSE: Die Standalone-Route /impact (historisch als Scroll-Fix angelegt)
+// renderte ImpactPage OHNE HUIBottomNavigation und OHNE Back-Button. Projekt-
+// Deep-Links (Resonanzzentrum z.B. "Projekt abgelehnt") landen exakt dort —
+// der Nutzer war ohne Navbar und ohne Zurück-Möglichkeit gestrandet (auch
+// Lars' iPad-Report "Tabbar verschwunden" passt dazu: 0% Teal-Pixel im
+// Screenshot = Navbar+Orb fehlen physisch).
+// FIX: /impact leitet jetzt auf /Home um und aktiviert den Impact-Tab dort
+// (Navbar sichtbar + etablierter .hui-scroll-Wrapper von Home — die originale
+// Intention des Scroll-Fix bleibt voll erhalten, nur in der Tab-Ansicht).
+function ImpactDeepLinkRedirect() {
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    try { sessionStorage.setItem("hui_pending_tab", "impact"); } catch { /* Best-Effort */ }
+    navigate("/Home", { replace: true });
+  }, [navigate]);
+  return null;
 }
 
 function ContentUnavailablePage() {
@@ -852,7 +859,7 @@ function AppRoutes() {
 
         {/* Impact — EAGER */}
         <Route path="/impact" element={
-          <ProtectedRoute><RouteBoundary name="Impact"><ImpactPageStandalone /></RouteBoundary></ProtectedRoute>
+          <ProtectedRoute><RouteBoundary name="Impact"><ImpactDeepLinkRedirect /></RouteBoundary></ProtectedRoute>
         }/>
 
         {/* Legacy redirect */}
