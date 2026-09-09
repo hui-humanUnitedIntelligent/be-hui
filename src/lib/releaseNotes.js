@@ -70,6 +70,29 @@ export const RELEASE_NOTES = {
       "Profile labels corrected: Talent, Project, Association, Company",
     ],
   },
+  "2.1.582": {
+    de: [
+      "Neu: Teilen — Werke, Talente, Erlebnisse & Projekte jetzt in den eigenen Feed reposten",
+      "Neu: „Unterstützen“-Button auf Projekt-Profilen — mehr dazu bald",
+      "Entdecken: Orte-Suche erkennt ganze Länder (z. B. „Spanien“, „Zypern“)",
+      "Entdecken: Umkreis-Filter zeigt zuverlässig Inhalte aus deiner Region",
+      "Entdecken: Einheitliche Likes-, Kommentar- und Aufruf-Zahlen auf allen Karten",
+      "Mehr Sprachen: Noch mehr Texte jetzt in deiner Sprache (u. a. Projekt-Bereich)",
+      "Performance: Optimierte Ladezeiten und sofort reagierende Interaktionen — spürbar schneller auf dem Handy",
+      "Stabilität: Fehlermeldungen jetzt sichtbar, geschlechtsneutrale Formulierungen",
+    ],
+    en: [
+      "New: Repost works, talents, experiences & projects to your own feed",
+      "New: \"Support\" button on project profiles — more coming soon",
+      "Discover: Place search recognizes whole countries (e.g. \"Spain\", \"Cyprus\")",
+      "Discover: Radius filter reliably shows content from your region",
+      "Discover: Consistent like, comment and view counts on all cards",
+      "More languages: even more texts in your language (incl. project area)",
+      "Performance: Optimized loading times and instant interactions — noticeably snappier on mobile",
+      "Stability: error messages now visible, gender-neutral wording",
+    ],
+  },
+
   // 2.1.577 — erstes Release mit WhatsNewModal. Fasst die Highlights der
   // Bug-Queue-Batches 2.1.572-577 zusammen (User haben diese OTAs teils
   // einzeln, teils kumulativ gezogen — das Sheet deckt alles Sichtbare ab).
