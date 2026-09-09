@@ -4984,4 +4984,18 @@ export default {
   'contentLang.hintNone': 'Sans indication, tous les utilisateurs voient ce contenu.',
   'discover.langFilter': 'Toutes les langues',
   'discover.langFilterOn': 'Ma langue uniquement',
+
+  'discover.filterSheetTitle': 'Filtre',
+  'discover.filterReset': 'Réinitialiser',
+  'discover.filterRegion': 'Région',
+  'discover.filterLanguage': 'Langue',
+  'discover.filterPlaceSearch': 'Rechercher un lieu',
+  'discover.filterCancel': 'Annuler',
+  'discover.filterDone': 'Terminé',
+  'discover.langFilterAllSub': 'Affiche le contenu dans toutes les langues',
+  'followmodal.title': 'Connexions',
+  'followmodal.followers': 'Abonnés',
+  'followmodal.following': 'Abonnements',
+  'followmodal.emptyFollowers': 'Personne ne suit ce profil pour le moment.',
+  'followmodal.emptyFollowing': 'Ne suit personne pour le moment.',
 };

@@ -37,6 +37,7 @@ const OrteAllModal = lazy(() => import("../components/discover/OrteAllModal.jsx"
 // ── Extracted sub-components ────────────────────────────────────
 import { T, CSS, SYSTEM_USER_ID, safeStr, safeNum, _discoverCache, isCacheValid, filterByRadius, resetStaleLoading } from "../components/discover/constants.js";
 import { DiscoverTitleBar } from "../components/discover/DiscoverTitleBar.jsx";
+import DiscoverFilterSheet from "../components/discover/DiscoverFilterSheet.jsx";
 import { PeopleSection } from "../components/discover/PeopleSection.jsx";
 import { MomenteSection } from "../components/discover/MomenteSection.jsx";
 import { TalenteSection } from "../components/discover/TalentSection.jsx";
@@ -897,6 +898,10 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   useEffect(() => {
     if (openMenschenSignal) setShowMenschenModal(true);
   }, [openMenschenSignal]);
+  // DISCOVER-FILTER-SHEET (2026-09-09, Punkt 1): modernes Filter-UI
+  // (Region + Sprache). Ersetzt den alten rechtsbuendigen Sprach-Toggle.
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const activeFilterCount = (!radius.isWorldwide ? 1 : 0) + (radius.geo ? 1 : 0) + (showAllLangs ? 1 : 0);
   const [showWerkeModal,      setShowWerkeModal]      = useState(false);
   const [showTalenteModal,    setShowTalenteModal]     = useState(false);
   const [showErlebnisseModal, setShowErlebnisseModal]  = useState(false);
@@ -923,23 +928,40 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         <HuiLiveTicker/>
       </div>
 
-      {/* ── 1c. Sprach-Filter (MULTILANG-CONTENT-001, Annes Feedback) ──
-          Standard: Inhalte nur in der App-Sprache (+ ohne Angabe).
-          Toggle fuer Mehrsprachler, die bewusst ALLE Versionen sehen wollen. */}
+      {/* ── 1c. Filter-Pill (DISCOVER-FILTER-SHEET, 2026-09-09 Punkt 1) ──
+          Ersetzt den alten rechtsbuendigen Sprach-Toggle (Michael: sah
+          'bloed' aus). Oeffnet das moderne Filter-Sheet (Region + Sprache).
+          Badge zeigt die Zahl aktiver Filter (Umkreis aktiv, Standort gesetzt,
+          Alle-Sprachen-Modus). */}
       <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:10, padding:"0 16px" }}>
         <button
-          onClick={toggleShowAllLangs}
+          onClick={() => setShowFilterSheet(true)}
           style={{
-            display:"inline-flex", alignItems:"center", gap:6,
-            padding:"6px 12px", borderRadius:99, cursor:"pointer",
-            fontSize:12, fontWeight:600, fontFamily:"inherit",
-            background: showAllLangs ? "rgba(14,196,184,0.12)" : "transparent",
-            border:`1.5px solid ${showAllLangs ? "rgba(14,196,184,0.45)" : T.border || "rgba(26,26,42,0.10)"}`,
-            color: showAllLangs ? T.teal || "#0EC4B8" : "rgba(26,26,42,0.55)",
-            touchAction:"manipulation",
+            display:"inline-flex", alignItems:"center", gap:7,
+            padding:"7px 14px", borderRadius:99, cursor:"pointer",
+            fontSize:12.5, fontWeight:600, fontFamily:"inherit", letterSpacing:"-0.01em",
+            background: activeFilterCount > 0 ? "rgba(14,196,184,0.12)" : "rgba(26,53,48,0.04)",
+            border:`1.5px solid ${activeFilterCount > 0 ? "rgba(14,196,184,0.40)" : "rgba(26,53,48,0.09)"}`,
+            color: activeFilterCount > 0 ? (T.teal || "#0EC4B8") : "rgba(26,53,48,0.60)",
+            boxShadow: activeFilterCount > 0 ? "0 2px 10px rgba(14,196,184,0.14)" : "none",
+            transition:"background .18s ease, border-color .18s ease, color .18s ease",
+            WebkitTapHighlightColor:"transparent", touchAction:"manipulation",
           }}
         >
-          {showAllLangs ? _t("discover.langFilter") : _t("discover.langFilterOn")}
+          {/* Filter-Trichter-Icon */}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
+            <path d="M3 5h18l-7 8v6l-4-2v-4L3 5z" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          {_t("discover.filterSheetTitle")}
+          {activeFilterCount > 0 && (
+            <span style={{
+              minWidth:17, height:17, padding:"0 5px", borderRadius:99,
+              background:T.teal || "#0EC4B8", color:"#fff",
+              display:"inline-flex", alignItems:"center", justifyContent:"center",
+              fontSize:10, fontWeight:700, flexShrink:0, lineHeight:1,
+            }}>{activeFilterCount}</span>
+          )}
         </button>
       </div>
 
@@ -1171,6 +1193,17 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           }}
         />
       </Suspense>
+
+      {/* DISCOVER-FILTER-SHEET (2026-09-09, Punkt 1): modernes Filter-UI
+          (Region + Sprache). Portal-Component, State showAllLangs bleibt
+          hier in DiscoverPage (langFilterRef/Cache-Invalidierung unangetastet). */}
+      <DiscoverFilterSheet
+        open={showFilterSheet}
+        onClose={() => setShowFilterSheet(false)}
+        showAllLangs={showAllLangs}
+        onToggleShowAllLangs={toggleShowAllLangs}
+        appLang={_appLang}
+      />
     </div>
   );
 }

@@ -4985,4 +4985,18 @@ export default {
   'contentLang.hintNone': 'Pa tregim, të gjithë përdoruesit e shohin këtë përmbajtje.',
   'discover.langFilter': 'Të gjitha gjuhët',
   'discover.langFilterOn': 'Vetëm gjuha ime',
+
+  'discover.filterSheetTitle': 'Filtri',
+  'discover.filterReset': 'Rivendos',
+  'discover.filterRegion': 'Rajoni',
+  'discover.filterLanguage': 'Gjuha',
+  'discover.filterPlaceSearch': 'Kërko një vend',
+  'discover.filterCancel': 'Anulo',
+  'discover.filterDone': 'U krye',
+  'discover.langFilterAllSub': 'Shfaq përmbajtje në të gjitha gjuhët',
+  'followmodal.title': 'Lidhjet',
+  'followmodal.followers': 'Ndjekësit',
+  'followmodal.following': 'Ndjek',
+  'followmodal.emptyFollowers': 'Askush nuk ndjek ende këtë profil.',
+  'followmodal.emptyFollowing': 'Nuk ndjek ende askënd.',
 };

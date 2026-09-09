@@ -4983,4 +4983,18 @@ export default {
   'contentLang.hintNone': 'Belirtilmezse tüm üyeler bu içeriği görür.',
   'discover.langFilter': 'Tüm diller',
   'discover.langFilterOn': 'Sadece benim dilim',
+
+  'discover.filterSheetTitle': 'Filtre',
+  'discover.filterReset': 'Sıfırla',
+  'discover.filterRegion': 'Bölge',
+  'discover.filterLanguage': 'Dil',
+  'discover.filterPlaceSearch': 'Yer ara',
+  'discover.filterCancel': 'İptal',
+  'discover.filterDone': 'Tamam',
+  'discover.langFilterAllSub': 'Tüm dillerdeki içerikleri gösterir',
+  'followmodal.title': 'Bağlantılar',
+  'followmodal.followers': 'Takipçiler',
+  'followmodal.following': 'Takip',
+  'followmodal.emptyFollowers': 'Henüz kimse bu profili takip etmiyor.',
+  'followmodal.emptyFollowing': 'Henüz kimseyi takip etmiyor.',
 };

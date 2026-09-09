@@ -5032,4 +5032,18 @@ export default {
   'contentLang.hintNone': 'Without selection, all users see this content.',
   'discover.langFilter': 'All languages',
   'discover.langFilterOn': 'My language only',
+
+  'discover.filterSheetTitle': 'Filter',
+  'discover.filterReset': 'Reset',
+  'discover.filterRegion': 'Region',
+  'discover.filterLanguage': 'Language',
+  'discover.filterPlaceSearch': 'Choose location',
+  'discover.filterCancel': 'Cancel',
+  'discover.filterDone': 'Done',
+  'discover.langFilterAllSub': 'Shows content in all languages',
+  'followmodal.title': 'Connections',
+  'followmodal.followers': 'Followers',
+  'followmodal.following': 'Following',
+  'followmodal.emptyFollowers': 'No followers yet.',
+  'followmodal.emptyFollowing': 'Not following anyone yet.',
 };

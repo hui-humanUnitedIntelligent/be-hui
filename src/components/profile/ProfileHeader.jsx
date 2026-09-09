@@ -16,6 +16,7 @@ import {
 } from "../../lib/profileMedia.js";
 import { optimizeCover, optimizeAvatar } from "../../lib/perfUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import FollowListModal from "./FollowListModal.jsx";
 
 const FB_AVT = FB_AVATAR;
 
@@ -81,6 +82,9 @@ export function ProfileHeader({
   hasOrgs      = false,
 }) {
   const { t } = useTranslation();
+  // FOLLOWER-MODAL (2026-09-09, Punkt 3): Follower-/Folgt-Zahlen klickbar
+  const [followListTab, setFollowListTab] = useState(null); // null=zu, "followers"|"following"
+
   const [coverLoaded,     setCoverLoaded]     = useState(false);
   const [avatarLoaded,    setAvatarLoaded]    = useState(false);
   // IMG-FALLBACK-001 (2026-09-04): aktive Fallback-Stufe pro Bild
@@ -403,17 +407,23 @@ export function ProfileHeader({
                 display:"flex", flexDirection:"row", gap:6, marginTop:7,
                 fontSize:12, color:T.inkFaint, whiteSpace:"nowrap",
               }}>
-                <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+                <button onClick={() => setFollowListTab("followers")}
+                  style={{ overflow:"hidden", textOverflow:"ellipsis", background:"none",
+                    border:"none", padding:0, font:"inherit", color:"inherit", cursor:"pointer",
+                    WebkitTapHighlightColor:"transparent", touchAction:"manipulation" }}>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.followers ?? 0}
                   </strong>{" "}{t("profile.followers")}
-                </span>
+                </button>
                 <span style={{ color:T.inkFaint, flexShrink:0 }}>·</span>
-                <span style={{ overflow:"hidden", textOverflow:"ellipsis" }}>
+                <button onClick={() => setFollowListTab("following")}
+                  style={{ overflow:"hidden", textOverflow:"ellipsis", background:"none",
+                    border:"none", padding:0, font:"inherit", color:"inherit", cursor:"pointer",
+                    WebkitTapHighlightColor:"transparent", touchAction:"manipulation" }}>
                   <strong style={{ color:T.ink, fontWeight: 600 }}>
                     {followCounts.following ?? 0}
                   </strong>{" "}{t("profile.followingCount")}
-                </span>
+                </button>
               </div>
             )}
           </div>
@@ -512,6 +522,14 @@ export function ProfileHeader({
           </div>
         </div>
       </div>
+      {/* FOLLOWER-MODAL (2026-09-09): Follower-/Folgt-Listen */}
+      {followListTab && profile?.id && (
+        <FollowListModal
+          userId={profile.id}
+          initialTab={followListTab}
+          onClose={() => setFollowListTab(null)}
+        />
+      )}
     </>
   );
 }
