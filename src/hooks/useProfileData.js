@@ -50,8 +50,12 @@ const EXPERIENCES_SELECT =
 const RECOMMENDATIONS_SELECT =
   "id,from_user_id,to_user_id,text,is_public,order_id,booking_id,deleted_at,created_at,is_positive";
 
+// VIDEO-THUMBNAIL-GRID-FIX (2026-09-09): thumbnail_url ergänzt — das Profil-
+// Momente-Grid rendert für Videos bisher das volle <video>-Element (43MB .mov
+// im Kachel-Grid!), was langsam ist und je nach WebView keinen sichtbaren
+// Frame zeigt (Screenshot-Report "kaputte Video-Thumbnails im Profil").
 const MOMENTS_SELECT =
-  "id,user_id,src,type,moment_source,caption,content,created_at,moderation_blurred,moderation_flag";
+  "id,user_id,src,thumbnail_url,type,moment_source,caption,content,created_at,moderation_blurred,moderation_flag";
 
 // ── Hilfsfunktionen ───────────────────────────────────────────────────
 function mergeUnique(primary = [], secondary = []) {

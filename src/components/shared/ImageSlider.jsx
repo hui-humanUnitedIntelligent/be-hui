@@ -92,7 +92,10 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
     },
       isVideo
         ? React.createElement("video", {
-            src: url, muted: true, loop: true, playsInline: true, autoPlay: true,
+            // VIDEO-MOMENT-POSTER-FIX (2026-09-09): poster = extrahierter
+            // Frame (aus unifiedNormalizer extractMedia), sofort sichtbar.
+            src: url, poster: (m && m.poster) || undefined,
+            muted: true, loop: true, playsInline: true, autoPlay: true,
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
           })
         : React.createElement("img", {
@@ -139,7 +142,9 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
         },
           iVideo
             ? React.createElement("video", {
-                src: iurl, muted: true, loop: true, playsInline: true, autoPlay: true,
+                // VIDEO-MOMENT-POSTER-FIX (2026-09-09)
+                src: iurl, poster: (m && m.poster) || undefined,
+                muted: true, loop: true, playsInline: true, autoPlay: true,
                 style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
               })
             : React.createElement("img", {

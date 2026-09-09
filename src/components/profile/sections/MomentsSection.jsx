@@ -105,8 +105,18 @@ export function MomentsSection({
               }}>
               {m.src || m.media_url
                 ? (m.type === "video"
-                  ? <video src={m.src||m.media_url} muted playsInline preload="metadata"
-                      style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                  // VIDEO-THUMBNAIL-GRID-FIX (2026-09-09): Kachel rendert das
+                  // leichte extrahierte Thumbnail-JPG statt des vollen Video-
+                  // Elements (vorher: 43MB .mov im 100px-Grid geladen + je
+                  // nach WebView kein sichtbarer Frame). Video erst in der
+                  // Preview (normalizePostForPreview) öffnen. Fallback: Video
+                  // ohne Thumbnail (alte Einträge) wie bisher als <video>.
+                  ? (m.thumbnail_url
+                    ? <img loading="lazy" decoding="async" src={optimizeCard(m.thumbnail_url)} alt=""
+                        style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                        onError={e=>{ e.target.style.display="none"; }}/>
+                    : <video src={m.src||m.media_url} muted playsInline preload="metadata"
+                        style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)
                   : <img loading="lazy" decoding="async" src={optimizeCard(m.src||m.media_url)} alt=""
                       style={{ width:"100%", height:"100%", objectFit:"cover" }}
                       onError={e=>e.target.style.display="none"}/>)

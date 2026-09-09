@@ -668,6 +668,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
         )}
         <video
           src={firstUrl}
+          poster={imgs[0].poster || undefined}
           muted
           loop
           playsInline

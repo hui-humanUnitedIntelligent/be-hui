@@ -110,12 +110,33 @@ function extractMedia(raw){
   if(Array.isArray(raw.media_urls)&&raw.media_urls.length>0){
     return raw.media_urls.map(u=>mk(u)).filter(Boolean);
   }
+  // VIDEO-MOMENT-POSTER-FIX (2026-09-09, Kay-Report "Momente falsch angezeigt"):
+  // ROOT CAUSE des vorherigen VIDEO-THUMBNAIL-001-Codes (2026-08-31): thumbnail_url
+  // (ein STATISCHES JPG, der extrahierte Video-Frame) wurde als ERSTER Kandidat
+  // an mk(c, raw.moment_type) übergeben -- explicitType="video" (aus raw.moment_type)
+  // ueberschrieb dabei blind den tatsaechlichen Dateityp, auch wenn die URL selbst
+  // gar kein Video war. Ergebnis: media=[{type:"video", url:"...thumb.jpg"}] --
+  // FeedMedia rendert <video src=".../thumb.jpg">, der Browser kann ein JPG nicht
+  // als Video laden -> onError -> FeedMedia gibt NULL zurueck -> die komplette
+  // Moment-Karte blieb leer (kein Bild, kein Video, nicht mal ein Broken-Icon).
+  // FIX: Bei einem Video-Moment MIT thumbnail_url wird die ECHTE Videodatei
+  // (raw.src) als type:"video" zurückgegeben, das Thumbnail wandert in ein
+  // zusätzliches poster-Feld (Sofort-Vorschaubild, kein Warten auf Video-Buffering).
+  if(raw.moment_type==="video"){
+    const videoUrl=safeUrl(raw.src);
+    if(videoUrl){
+      const posterUrl=safeUrl(raw.thumbnail_url)||null;
+      return[{type:"video",url:videoUrl,poster:posterUrl}];
+    }
+  }
+
   // Single-URL candidates: cover_url (impact_applications), image_url, src, ...
   // raw.moment_type trägt bei beitraege-Rows den ursprünglichen DB-Typ
   // (video/foto/gedanke) — siehe normalizeMomentRow weiter unten.
-  // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Priorität über
-  // das Video selbst -- falls gesetzt (extrahierter Frame), wird das
-  // statische Bild gezeigt statt dem nackten <video>-Play-Icon-Platzhalter.
+  // (Der obige Video-Sonderfall fängt alle raw.moment_type==="video"-Momente
+  // bereits ab; dieser Rest-Loop bedient Fotos/Gedanken UND alle anderen
+  // Content-Typen ohne moment_type, wo thumbnail_url/image_url/cover_url immer
+  // echte Bilder sind -- dort ist explicitType="video" korrekt nie treffend.)
   const candidates=[raw.thumbnail_url,raw.src,raw.image_url,raw.cover_url,raw.media_url,raw.expImg,raw.coverUrl,raw.thumbnail,raw.banner];
   for(const c of candidates){const m=mk(c, raw.moment_type);if(m)return[m];}
   return[];

@@ -23,7 +23,7 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet, onDeleteM
     if (!profile?.id) return;
     supabase
       .from("beitraege")
-      .select("id, src, type, caption, content, moment_source, created_at")
+      .select("id, src, thumbnail_url, type, caption, content, moment_source, created_at")
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(50)
@@ -160,8 +160,15 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet, onDeleteM
                 {/* Bild / Video-Vorschau */}
                 {mediaSrc
                   ? (isVideo
-                    ? <video src={mediaSrc} muted playsInline preload="metadata"
-                        style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
+                    // VIDEO-THUMBNAIL-GRID-FIX (2026-09-09): leichte Thumbnail-
+                    // JPG statt vollem Video in der kleinen Kachel; Fallback
+                    // <video> fuer alte Eintraege ohne thumbnail_url.
+                    ? (m.thumbnail_url
+                      ? <img loading="lazy" decoding="async" src={m.thumbnail_url} alt=""
+                          style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                          onError={e => e.target.style.display = "none"}/>
+                      : <video src={mediaSrc} muted playsInline preload="metadata"
+                          style={{ width:"100%", height:"100%", objectFit:"cover" }}/>)
                     : <img loading="lazy" decoding="async" src={mediaSrc} alt=""
                         style={{ width:"100%", height:"100%", objectFit:"cover" }}
                         onError={e => e.target.style.display = "none"}/>)
