@@ -1463,6 +1463,8 @@ export default {
   'repost.notifTitle': 'Dikush ndau postimin tënd',
   'repost.sharedBy': '{name} e ndau këtë',
   'repost.youShared': 'Ti e ndave këtë',
+  'repost.sharedAction': 'ndau këtë',
+  'repost.more': 'Më shumë',
   'repost.modal.title': 'Ndaj postimin',
   'repost.modal.placeholder': 'Thuaj komunitetit tënd pse po e ndan këtë…',
   'repost.modal.btn': 'Ndaj tani',

@@ -3422,6 +3422,8 @@ export default {
   'repost.notifTitle': 'Someone shared your post',
   'repost.sharedBy': '{name} shared this',
   'repost.youShared': 'You shared this',
+  'repost.sharedAction': 'shared this',
+  'repost.more': 'More',
   'repost.modal.title': 'Share post',
   'repost.modal.placeholder': 'Tell your community why you are sharing this…',
   'repost.modal.btn': 'Share now',

@@ -3406,6 +3406,8 @@ export default {
   'repost.notifTitle': 'Qualcuno ha condiviso il tuo post',
   'repost.sharedBy': '{name} ha condiviso questo',
   'repost.youShared': 'Hai condiviso questo',
+  'repost.sharedAction': 'ha condiviso questo',
+  'repost.more': 'Altro',
   'repost.modal.title': 'Condividi il post',
   'repost.modal.placeholder': 'Dì alla tua community perché lo condividi…',
   'repost.modal.btn': 'Condividi ora',

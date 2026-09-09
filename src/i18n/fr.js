@@ -3407,6 +3407,8 @@ export default {
   'repost.notifTitle': 'Quelqu\'un a partagé votre publication',
   'repost.sharedBy': '{name} a partagé ceci',
   'repost.youShared': 'Vous avez partagé ceci',
+  'repost.sharedAction': 'a partagé ceci',
+  'repost.more': 'Plus',
   'repost.modal.title': 'Partager la publication',
   'repost.modal.placeholder': 'Dites à votre communauté pourquoi vous partagez ceci…',
   'repost.modal.btn': 'Partager maintenant',

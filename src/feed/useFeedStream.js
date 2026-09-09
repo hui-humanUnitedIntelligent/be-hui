@@ -548,6 +548,21 @@ export function useFeedStream() {
         if (!mountedRef.current) return;
         _receiveLiveItem(payload.new, normalizeRepostRow);
       })
+      // REPOST-V2 (2026-09-09): Repost-DELETE — entfernte Reposts verschwinden
+      // live aus dem Feed (eigener Entfernen-Flow feuert ZUSAETZLICH das
+      // deterministische Custom-Event unten, Realtime deckt den Rest ab).
+      .on("postgres_changes", {
+        event: "DELETE",
+        schema: "public",
+        table: "reposts",
+      }, (payload) => {
+        if (!mountedRef.current) return;
+        const rid = String(payload?.old?.id || "");
+        if (!rid) return;
+        const isNotRemoved = (i) => !(i.type === "repost" && String(i.id) === rid);
+        setItems(prev => prev.filter(isNotRemoved));
+        setPendingItems(prev => prev.filter(isNotRemoved));
+      })
       // FEED-SOLD-MARK-002 (2026-08-30, Michael-Request): works UPDATE — Werk
       // bleibt im Feed sichtbar, auch sobald es verkauft ist (vorher hat
       // FEED-SOLD-HIDE-001 es komplett entfernt). Stattdessen werden die
@@ -602,6 +617,22 @@ export function useFeedStream() {
       _schedulePrefetch(user.id);
     }
   }, [user?.id, _schedulePrefetch]);
+
+  // ── REPOST-V2 (2026-09-09): Entfernte Reposts sofort raus (Event-SSOT) ──
+  // RepostFeedCard feuert "hui:repost:deleted" nach erfolgreicher Delete —
+  // deterministisch und ohne Realtime-Lag. Realtime-DELETE (oben im Channel)
+  // deckt denselben Fall fuer alle Viewer ab; beide Wege sind idempotent.
+  useEffect(() => {
+    function onRepostDeleted(e) {
+      const rid = String(e?.detail?.id || "");
+      if (!rid) return;
+      const isNotRemoved = (i) => !(i.type === "repost" && String(i.id) === rid);
+      setItems(prev => prev.filter(isNotRemoved));
+      setPendingItems(prev => prev.filter(isNotRemoved));
+    }
+    window.addEventListener("hui:repost:deleted", onRepostDeleted);
+    return () => window.removeEventListener("hui:repost:deleted", onRepostDeleted);
+  }, []);
 
   // ── Hard Refresh (pull-to-refresh, manuell) ────────────────────────────────
   const refresh = useCallback(async () => {

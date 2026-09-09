@@ -3406,6 +3406,8 @@ export default {
   'repost.notifTitle': 'Alguien compartió tu publicación',
   'repost.sharedBy': '{name} compartió esto',
   'repost.youShared': 'Compartiste esto',
+  'repost.sharedAction': 'compartió esto',
+  'repost.more': 'Más',
   'repost.modal.title': 'Compartir publicación',
   'repost.modal.placeholder': 'Dile a tu comunidad por qué compartes esto…',
   'repost.modal.btn': 'Compartir ahora',

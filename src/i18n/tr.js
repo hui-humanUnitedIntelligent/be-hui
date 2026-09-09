@@ -3406,6 +3406,8 @@ export default {
   'repost.notifTitle': 'Biri gönderini paylaştı',
   'repost.sharedBy': '{name} bunu paylaştı',
   'repost.youShared': 'Bunu sen paylaştın',
+  'repost.sharedAction': 'bunu paylaştı',
+  'repost.more': 'Daha fazla',
   'repost.modal.title': 'Gönderiyi paylaş',
   'repost.modal.placeholder': 'Topluluğuna neden paylaştığını anlat…',
   'repost.modal.btn': 'Şimdi paylaş',

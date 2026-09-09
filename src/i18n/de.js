@@ -3414,6 +3414,8 @@ export default {
   'repost.notifTitle': 'Jemand hat deinen Beitrag geteilt',
   'repost.sharedBy': '{name} hat das geteilt',
   'repost.youShared': 'Du hast das geteilt',
+  'repost.sharedAction': 'hat das geteilt',
+  'repost.more': 'Mehr',
   'repost.modal.title': 'Post teilen',
   'repost.modal.placeholder': 'Sag deiner Community, warum du das teilst…',
   'repost.modal.btn': 'Jetzt teilen',
