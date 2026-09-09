@@ -17,6 +17,25 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.580 — von Michael am 09.09.2026 freigegeben ("deploy mit text")
+  // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
+  "2.1.580": {
+    de: [
+      "Entdecken: Neues Filter-Menü — Region & Sprache",
+      "Profile: Follower- und Folgt-Listen per Antippen der Zahlen",
+      "Projekt-Benachrichtigungen: Navigation repariert",
+      "Übersetzungen verbessert",
+      "Stabilität: Kommentare & Standortsuche für Web-Nutzer repariert",
+    ],
+    en: [
+      "Discover: New filter menu — region & language",
+      "Profiles: Tap the follower numbers to see follower & following lists",
+      "Project notifications: navigation fixed",
+      "Translations improved",
+      "Stability: comments & location search fixed for web users",
+    ],
+  },
+
   // 2.1.579 — von Michael am 09.09.2026 vor Deploy geprueft und freigegeben
   // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
   "2.1.579": {
