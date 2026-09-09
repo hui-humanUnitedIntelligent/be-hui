@@ -46,6 +46,22 @@ import { ErlebnisseSection } from "../components/discover/ErlebnisSection.jsx";
 import { ProjekteSection } from "../components/discover/ProjektSection.jsx";
 import { OrteSection } from "../components/discover/OrtSection.jsx";
 
+// REGIONFILTER-BBOX-001 (2026-09-09): Kein PostGIS in der DB verfuegbar ->
+// serverseitiger Geo-Filter ueber eine einfache Bounding-Box (Grad-Naeherung,
+// 1 Grad ≈ 111km). filterByRadius() bleibt als exakte client-seitige zweite
+// Stufe erhalten -- die Bbox reduziert nur die Kandidatenmenge server-seitig,
+// damit ein aktiver Umkreis nicht durch das globale limit=8/queryLimit vor
+// dem eigentlichen Distanz-Filter "verhungert" (Root Cause des 0-Ergebnisse-
+// Bugs: Top-8 weltweit waren alle ausserhalb der gewaehlten Region).
+function buildBbox(geo, radiusKm) {
+  if (!geo?.lat || !geo?.lng) return null;
+  const delta = (radiusKm || 50) / 111;
+  return {
+    latMin: geo.lat - delta, latMax: geo.lat + delta,
+    lngMin: geo.lng - delta, lngMax: geo.lng + delta,
+  };
+}
+
 export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal, searchState = {} }) {
   const { t: _t, lang: _appLang } = useTranslation();
 
@@ -115,6 +131,26 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   // beim Anklicken wird die gewaehlte Zeile per radius.setGeo() direkt in
   // den globalen Zustand geschrieben (kein zweites Geocoding).
   const radius = useRadiusFilter();
+  // REGIONFILTER-BBOX-001: load() laeuft (wie langFilterRef) in einem
+  // []-Effect -- radius.geo/radiusKm/isWorldwide sind dort NICHT ueber
+  // Closure erreichbar (der Wert vom Mount-Zeitpunkt wuerde einfrieren).
+  // Gleiches Ref-Muster wie langFilterRef: aktueller Wert im Ref, Aenderung
+  // invalidiert den Cache + triggert forceLoad. Eigener firstGeoRunRef statt
+  // Wiederverwendung von firstLangRunRef -- unabhaengige Erst-Lauf-Sperre,
+  // nicht von der Deklarations-/Ausfuehrungsreihenfolge zweier eigentlich
+  // unabhaengiger Effects abhaengig.
+  const radiusGeoRef   = useRef(radius.geo);
+  const radiusKmRef    = useRef(radius.radiusKm);
+  const radiusWorldRef = useRef(radius.isWorldwide);
+  const firstGeoRunRef = useRef(true);
+  useEffect(() => {
+    radiusGeoRef.current   = radius.geo;
+    radiusKmRef.current    = radius.radiusKm;
+    radiusWorldRef.current = radius.isWorldwide;
+    if (firstGeoRunRef.current) { firstGeoRunRef.current = false; return; } // Mount-Run nicht neu laden
+    _discoverCache.ts = 0; // Cache invalidieren -- Region hat sich geaendert
+    forceLoadRef.current?.();
+  }, [radius.geo, radius.radiusKm, radius.isWorldwide]);
   const [talentLocQuery, setTalentLocQuery]     = useState("");
   const [talentLocSuggest, setTalentLocSuggest] = useState([]);
   const [talentLocSearching, setTalentLocSearching] = useState(false);
@@ -227,6 +263,14 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      // REGIONFILTER-BBOX-001: aktueller Geo-Zustand ueber Refs (siehe oben) --
+      // bei aktivem, nicht-weltweitem Radius groesseres Limit + Bbox-Filter in
+      // den Queries, damit regionale Inhalte nicht durch das globale Top-8-
+      // Ranking vor dem Distanz-Filter verdraengt werden.
+      const activeGeo  = radiusGeoRef.current && !radiusWorldRef.current;
+      const queryLimit = activeGeo ? 100 : 8;
+      const bbox       = activeGeo ? buildBbox(radiusGeoRef.current, radiusKmRef.current) : null;
+
       // Stale-While-Revalidate: Cache sofort anzeigen, dann im Hintergrund aktualisieren
       if (isCacheValid() && _discoverCache.data) {
         const c = _discoverCache.data;
@@ -273,6 +317,14 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         }
 
         // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
+        // REGIONFILTER-BBOX-001: Momente haben KEIN lat/lng in der DB -> kein
+        // Bbox-Filter moeglich, displayMomente bleibt bewusst global (siehe
+        // Aufgabe 3). Limit hier BEWUSST NICHT auf queryLimit(100) angehoben:
+        // jedes Moment loest 2 zusaetzliche RPC-Calls aus (reaction_counts +
+        // count_comments, siehe beitrEngagement unten) UND wird ungekuerzt
+        // gerendert (kein slice() am Call-Ort) -- eine Anhebung auf 100 haette
+        // bei aktivem Radius 200 statt 16 RPC-Roundtrips pro Discover-Load
+        // bedeutet, ohne jeden Nutzen (die Sektion bleibt ohnehin unfiltriert).
         const { data: beitr } = await supabase
           .from("beitraege")
           .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count,thumbnail_url")
@@ -337,10 +389,15 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           .eq("status", "published")
           .eq("approval_status", "approved")
           .eq("visibility", "public");
+        if (bbox) {
+          wsQuery = wsQuery
+            .gte("lat", bbox.latMin).lte("lat", bbox.latMax)
+            .gte("lng", bbox.lngMin).lte("lng", bbox.lngMax);
+        }
         if (langFilterRef.current) wsQuery = wsQuery.or(langFilterRef.current);
         const { data: ws, error: wsErr } = await wsQuery
           .order("likes_count", { ascending:false })
-          .limit(8);
+          .limit(queryLimit);
 
         if (!cancelled && ws?.length > 0) {
           // Schritt 2: Profile für alle Autoren nachladen (public_profiles = öffentlich lesbar)
@@ -411,10 +468,15 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           .from("talents")
           .select("id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count,language")
           .eq("status", "approved");
+        if (bbox) {
+          // Online-Talente immer einschliessen (kein Standortbezug) --
+          // sonst wuerden Online-Angebote bei aktivem Radius verschwinden.
+          talQuery = talQuery.or(`location_type.eq.online,and(lat.gte.${bbox.latMin},lat.lte.${bbox.latMax},lng.gte.${bbox.lngMin},lng.lte.${bbox.lngMax})`);
+        }
         if (langFilterRef.current) talQuery = talQuery.or(langFilterRef.current);
         const { data: tal, error: talErr } = await talQuery
           .order("created_at", { ascending:false })
-          .limit(8);
+          .limit(queryLimit);
 
         if (talErr) {
         }
@@ -474,10 +536,14 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
           .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,tags,description,caption,lat,lng,user_id,created_at,likes_count,views_count,language")
           .eq("status", "published")
           .eq("approval_status", "approved");
+        if (bbox) {
+          // Online-Erlebnisse immer einschliessen (kein Standortbezug)
+          expsQuery = expsQuery.or(`format.eq.online,and(lat.gte.${bbox.latMin},lat.lte.${bbox.latMax},lng.gte.${bbox.lngMin},lng.lte.${bbox.lngMax})`);
+        }
         if (langFilterRef.current) expsQuery = expsQuery.or(langFilterRef.current);
         const { data: exps, error: expsErr } = await expsQuery
           .order("likes_count", { ascending:false })
-          .limit(8);
+          .limit(queryLimit);
 
         if (expsErr) {
         }
