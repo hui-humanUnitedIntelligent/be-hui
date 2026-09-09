@@ -24,6 +24,7 @@ import {
   normalizeExperienceRow,
   normalizeWorkRow,
   normalizeEventRow      as normalizeInvitationRow,
+  normalizeRepostRow, // REPOST-SYSTEM-001 (2026-09-09)
   toFeedItem,
 } from "../system/feed/unifiedNormalizer.js";
 
@@ -85,7 +86,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
 
   // ── Step 1: Plain queries — kein JOIN ──────────────────────────────────
   const queryStart = performance.now();
-  const [worksRes, expsRes, beitrRes, invRes, talentsRes, impactRes] = await Promise.allSettled([
+  const [worksRes, expsRes, beitrRes, invRes, talentsRes, impactRes, repostsRes] = await Promise.allSettled([
     filterWorks(
       supabase.from("works")
         .select("id,title,cover_url,thumbnail_url,media_url,images,category,description,caption,tags,price,for_sale,status,approval_status,user_id,creator_id,created_at,is_unique,stock_total,stock_available")
@@ -141,6 +142,14 @@ async function fetchFeedPage(userId = null, cursors = null) {
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
+    // REPOST-SYSTEM-001 (2026-09-09): Reposts (Werke/Talente/Erlebnisse/
+    // Projekte — Momente sind DB-seitig per CHECK-Constraint ausgeschlossen).
+    // Kein Cursor-Paging noetig: neue Tabelle, geringes Volumen. post_data-
+    // Snapshot wird mitgeliefert — RepostFeedCard rendert ohne Zusatz-Join.
+    supabase.from("reposts")
+      .select("id,user_id,original_type,original_id,caption,post_data,created_at")
+      .order("created_at", { ascending: false })
+      .limit(limit),
   ]);
 
   const works   = worksRes.status   === "fulfilled" ? (worksRes.value?.data   || []) : [];
@@ -149,6 +158,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
   const invs    = invRes.status     === "fulfilled" ? (invRes.value?.data     || []) : [];
   const talents = talentsRes.status === "fulfilled" ? (talentsRes.value?.data || []) : [];
   const impacts = impactRes.status  === "fulfilled" ? (impactRes.value?.data  || []) : [];
+  const reposts = repostsRes.status === "fulfilled" ? (repostsRes.value?.data || []) : []; // REPOST-SYSTEM-001
 
   const beitrErr = beitrRes.status === "rejected"
     ? beitrRes.reason?.message
@@ -169,7 +179,7 @@ async function fetchFeedPage(userId = null, cursors = null) {
   }
 
   // ── Step 2: Profile-Enrichment — optional, nie blockierend ─────────────
-  const allRows = [...works, ...exps, ...beitr, ...invs, ...talents, ...impacts];
+  const allRows = [...works, ...exps, ...beitr, ...invs, ...talents, ...impacts, ...reposts]; // REPOST-SYSTEM-001: Reposter-Profile mit-anreichern
   const userIds = [...new Set(allRows.map(r => r.user_id || r.creator_id).filter(Boolean))];
 
   let profileMap = {};
@@ -226,6 +236,12 @@ async function fetchFeedPage(userId = null, cursors = null) {
           _extra_media_urls: Array.isArray(r.media_urls) && r.media_urls.length > 0 ? r.media_urls : null,
         });
       } catch { return null; }
+    }).filter(Boolean),
+    // REPOST-SYSTEM-001 (2026-09-09): Reposts als eigene Feed-Items
+    // (type: "repost" — gerendert von RepostFeedCard, NICHT von den
+    // Content-Komponenten; deshalb dedizierter Normalizer statt toFeedItem).
+    ...reposts.map(r => {
+      try { return normalizeRepostRow(injectProfile(r)); } catch { return null; }
     }).filter(Boolean),
   ];
   // SORT.STRICT-001: Strikte Sortierung nach created_at DESC
@@ -518,6 +534,19 @@ export function useFeedStream() {
         // JS-Guard: approval_status analog zur Feed-Query prüfen
         if (payload.new?.approval_status !== "approved") return;
         _receiveLiveItem(payload.new, normalizeWorkRow);
+      })
+      // REPOST-SYSTEM-001 (2026-09-09): Repost-INSERT live in den Feed
+      // (Anforderung 8). Der Realtime-Payload enthaelt kein profile-Objekt —
+      // der Reposter-Name faellt bis zum naechsten Soft-Hydrate auf den
+      // Normalizer-Fallback zurueck (gleiches Verhalten wie alle anderen
+      // Live-Items in diesem Channel).
+      .on("postgres_changes", {
+        event: "INSERT",
+        schema: "public",
+        table: "reposts",
+      }, (payload) => {
+        if (!mountedRef.current) return;
+        _receiveLiveItem(payload.new, normalizeRepostRow);
       })
       // FEED-SOLD-MARK-002 (2026-08-30, Michael-Request): works UPDATE — Werk
       // bleibt im Feed sichtbar, auch sobald es verkauft ist (vorher hat

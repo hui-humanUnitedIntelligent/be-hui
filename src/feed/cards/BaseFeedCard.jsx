@@ -163,7 +163,9 @@ export function CardSkeleton() {
 }
 
 // ── Avatar ────────────────────────────────────────────────────
-const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false }) {
+// REPOST-SYSTEM-001 (2026-09-09): exportiert fuer Wiederverwendung in
+// RepostFeedCard (Erweitern statt duplizieren — Initialen-Fallback inklusive)
+export const CardAvatar = memo(function CardAvatar({ src, name, size = 38, isTalent = false }) {
   const [err, setErr] = useState(false);
   const letter = ((name || "H")[0] || "H").toUpperCase();
   return (
@@ -817,6 +819,13 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
 // ausgedrueckt (Referenzgrafik gibt keine Toggle-Farbvariante vor).
 // ARIA-Label je Interaktion (Toggle-Paar wo zutreffend) -- deckt alle 4
 // Icons der HUI Interaction Icon Library v1.0 ab, nicht nur Resonanz.
+// REPOST-SYSTEM-001 (2026-09-09): Nur diese Feed-Typen sind repostbar.
+// Momente sind bewusst NICHT enthalten (Michaels Anforderung 1) — Momente
+// sind kurzlebige Status-Updates, keine republizierbaren Werke.
+// "impact" = Projekt-Karten im Feed (impact_applications), in der DB heisst
+// der Typ original_type "project" (Mapping im RepostButton).
+const REPOSTABLE_TYPES = ["work", "talent", "experience", "impact", "project"];
+
 function getActionAria(t) {
   return {
     resonanz:    { on: t('card.ariaResonanzOn'),   off: t('card.ariaResonanzOff') },
@@ -825,8 +834,14 @@ function getActionAria(t) {
     weitergeben: { off: t('hii.weitergeben') }, // kein Toggle -- einmalige Aktion
     // KOMMENTAR.1 (2026-07-09): oeffnet die Kommentarfunktion, kein Toggle
     kommentieren: { off: t('card.ariaKommentierenOff') },
+    // REPOST-SYSTEM-001 (2026-09-09): Repost-Toggle -- aktiv = bereits
+    // gerepostet (Klick dann: Entfernen-Bestaetigung)
+    repost:      { on: t('card.ariaRepostOn'), off: t('card.ariaRepostOff') },
   };
 }
+// REPOST-SYSTEM-001 (2026-09-09): Repost-Button in der Action-Leiste
+import RepostButton from "./RepostButton.jsx";
+
 export const ActionBtn = memo(function ActionBtn({
   Icon, label, count, active, onClick, activeColor, inactiveColor, variant, disabled, loading
 }) {
@@ -967,7 +982,11 @@ function getResonanzText(r, t) {
 
 // ── Actions bar ───────────────────────────────────────────────
 export const FeedActions = memo(function FeedActions({
-  reactions, onReaction, onShare, extraActions
+  reactions, onReaction, onShare, extraActions,
+  // REPOST-SYSTEM-001 (2026-09-09): repostItem = das normalisierte Feed-Item,
+  // wenn dessen Typ repostbar ist (work/talent/experience/projekt) — sonst
+  // null (Momente + alle nicht-listed Typen bekommen KEINEN Repost-Button).
+  repostItem = null
 }) {
   const { t } = useTranslation();
   const r = reactions || {};
@@ -1012,6 +1031,10 @@ export const FeedActions = memo(function FeedActions({
         <ActionBtn Icon={HUIHeartIcon}    count={r.inspireCount||null} active={r.inspired} activeColor={T.coral}  inactiveColor={T.coral}  variant="resonanz"    onClick={() => { haptic(r.inspired ? "selection" : "light"); onReaction?.("inspire"); }} />
         <ActionBtn Icon={HUIChatIcon}     count={r.commentCount||null} active={false}      activeColor={T.teal}  inactiveColor={T.teal}   variant="austauschen" onClick={() => { haptic("light"); onReaction?.("touch"); }} />
         <ActionBtn Icon={HUIShareIcon}    count={r.shareCount||null} activeColor={T.teal}  inactiveColor={T.teal}   variant="weitergeben" onClick={() => { haptic("light"); onShare?.(); }} />
+        {/* REPOST-SYSTEM-001 (2026-09-09): Repost (nur Werke/Talente/
+            Erlebnisse/Projekte — Momente bewusst ausgeschlossen). Position
+            zwischen Weitergeben und Merken, analog Michaels Anforderung 1. */}
+        {repostItem ? <RepostButton item={repostItem} /> : null}
         <ActionBtn Icon={HUIBookmarkIcon} count={r.saveCount||null} active={r.saved} activeColor={"#F59E0B"} inactiveColor={"#F59E0B"} variant="merken" onClick={() => { haptic(r.saved ? "selection" : "light"); onReaction?.("save"); }} />
         {extraActions || null}
       </div>
@@ -1179,6 +1202,7 @@ export default React.memo(function BaseFeedCard({
         onReaction={handleReaction}
         onShare={onShare}
         extraActions={extraActions}
+        repostItem={REPOSTABLE_TYPES.includes(item?.type) ? item : null}
       />
     </article>
   );

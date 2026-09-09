@@ -219,3 +219,37 @@ export const normalizeMomentRow    =(raw)=>toFeedItem({...raw,moment_type:raw.ty
 export const normalizeExperienceRow=(raw)=>toFeedItem({...raw,type:"experience"});
 export const normalizeWorkRow      =(raw)=>toFeedItem({...raw,type:"work"});
 export const normalizeEventRow     =(raw)=>toFeedItem({...raw,type:"event"});
+
+// ── REPOST-SYSTEM-001 (2026-09-09) ──────────────────────────────────────────
+// Repost-Zeilen (Tabelle `reposts`) in das Feed-Item-Format heben.
+// Ein Repost ist KEIN eigener Content, sondern eine Huelse: Reposter
+// (author) + optionale Caption (text) + Verweis auf den Original-Post
+// (_repost: originalType/originalId + postData-Snapshot, analog dem
+// saved_posts.post_data-Muster). Die Visualisierung uebernimmt
+// RepostFeedCard.jsx; der Klick auf den Original-Inhalt laeuft ueber
+// den bestehenden ContentPreview-SSOT (openRef).
+export function normalizeRepostRow(raw) {
+  if (!raw?.id) return null;
+  const p  = raw.profile || {};
+  const pd = (raw.post_data && typeof raw.post_data === "object") ? raw.post_data : {};
+  return {
+    id: String(raw.id),
+    type: "repost",
+    author: {
+      id:     raw.user_id || p.id || null,
+      name:   safeStr(getFullDisplayName(p, "")) || safeStr(p.name) || "Mitglied",
+      avatar: safeUrl(p.avatar_url || p.avatar || null),
+    },
+    title: null,
+    text:  safeStr(raw.caption) || null,
+    media: [],
+    createdAt: raw.created_at || null,
+    location: null,
+    _repost: {
+      originalType: raw.original_type || null,
+      originalId:   raw.original_id || pd.id || null,
+      postData:     pd,
+    },
+    _raw: raw,
+  };
+}

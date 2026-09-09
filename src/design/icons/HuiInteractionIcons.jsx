@@ -419,3 +419,33 @@ export function HUIReportIcon({ size = 24, active = false, className, style }) {
     </svg>
   );
 }
+
+/* ── HUIRepostIcon — REPOST-SYSTEM-001 (2026-09-09) ──────────────────────────
+   Repost-Symbol: zwei Pfeile im Kreis (klassisches republizieren-Symbol).
+   Stil exakt wie die uebrigen Interaktions-Icons (stroke-basiert, round
+   caps, Groessen-Logik + Aktivierungs-Pulse ueber dieselben Helfer). */
+export function HUIRepostIcon({ size = 24, active = false, className, style }) {
+  injectIconFamilyCSS();
+  const stroke = pickIconStroke(size);
+  const pulse = useActivationPulse(active);
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={stroke}
+      strokeLinecap="round" strokeLinejoin="round"
+      className={className} aria-hidden="true"
+      style={{
+        animation:
+          pulse === "in"  ? "hui-share-forward-in 320ms ease-out"  :
+          pulse === "out" ? "hui-share-forward-out 280ms ease-out" : "none",
+        ...style,
+      }}
+    >
+      {/* Zwei gebogene Pfeile im Kreis (Repost-Loop) */}
+      <path d="M17 2 L21 6 L17 10" />
+      <path d="M3 11 V9 a3 3 0 0 1 3 -3 H21" />
+      <path d="M7 22 L3 18 L7 14" />
+      <path d="M21 13 V15 a3 3 0 0 1 -3 3 H3" />
+    </svg>
+  );
+}

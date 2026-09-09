@@ -11,6 +11,9 @@
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import FeedRouter              from "./cards/FeedRouter.jsx";
+// REPOST-SYSTEM-001 (2026-09-09): Repost-Karte — eager Import (REGEL 807,
+// kein React.lazy im Feed), wird in FeedList vor ReactionCard dispatcht.
+import RepostFeedCard          from "./cards/RepostFeedCard.jsx";
 import { CardSkeleton }        from "./cards/BaseFeedCard.jsx";
 import { useFeedStream }       from "./useFeedStream.js";
 import { FeedSoftHydrationBadge } from "./FeedSoftHydrationBadge.jsx";
@@ -715,6 +718,13 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               animationDelay: Math.min(idx * 40, 300) + "ms",
             }}
           >
+            {/* REPOST-SYSTEM-001 (2026-09-09): Reposts rendern ueber die
+                eigene Karte VOR ReactionCard — sie sind KEINE reaktions-
+                faehigen Entitaeten (kein useSingleReaction auf repost-Zeilen,
+                kein Repost-von-Repost). Rhythm/Lazy-Verhalten identisch. */}
+            {item.type === "repost" ? (
+              <RepostFeedCard item={item} />
+            ) : (
             <ReactionCard
               item={{
                 ...item,
@@ -729,6 +739,7 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
               onDepth={onDepth}
               onOpenComments={onOpenComments}
             />
+            )}
           </div>
         );
       })}
