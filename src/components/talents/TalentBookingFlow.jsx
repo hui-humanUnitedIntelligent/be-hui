@@ -426,36 +426,36 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 {talent.title}
               </div>
               {talent.author && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("tbf.success.provider")}</span> {talent.author}
                 </div>
               )}
               {selectedDate && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("tbf.success.date")}</span> {fmtDate(selectedDate)}
                 </div>
               )}
               {selectedSlot && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("tbf.success.time")}</span> {selectedSlot.start}–{selectedSlot.end}
                 </div>
               )}
               {participants > 1 && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("tbf.success.participants")}</span> {participants}
                 </div>
               )}
               {amountEur > 0 && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("tbf.success.amount")}</span> {fmtEur(amountEur)}
                 </div>
               )}
               {note.trim() && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("tbf.success.note")}</span> {note.trim()}
                 </div>
               )}
-              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
+              <div style={{ fontSize: 13, color: "#55556B", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
                 {t("tbf.success.notified")}
               </div>
             </div>
@@ -532,7 +532,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
                 {t("tbf.chatConfirm.title", { name: talent.author || t("tbf.chatConfirm.defaultSellerName") })}
               </div>
-              <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
+              <div style={{ fontSize: 14, color: "#55556B", lineHeight: 1.5, marginBottom: 20 }}>
                 {t("tbf.chatConfirm.body")}
               </div>
               <div style={{ display: "flex", gap: 10 }}>
@@ -616,7 +616,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   {talent.title}
                 </div>
                 {talent.author && (
-                  <div style={{ fontSize: 13, color: "rgba(26,26,46,0.45)", marginTop: 3 }}>
+                  <div style={{ fontSize: 13, color: "#55556B", marginTop: 3 }}>
                     {t("tbf.detail.at", { name: talent.author })}
                   </div>
                 )}
@@ -634,7 +634,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               }}>
                 {talent.description && (
                   <div style={{
-                    fontSize: 13, color: "rgba(26,26,46,0.62)", lineHeight: 1.5, marginBottom: 9,
+                    fontSize: 13, color: "#55556B", lineHeight: 1.5, marginBottom: 9,
                     overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical",
                   }}>
                     {talent.description}
@@ -683,7 +683,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
 
                 {/* Eine schlanke Meta-Zeile statt separater breiter Pills */}
                 {(recurringDesc || (talent.location_address && talent.location_type !== "online") || talent.location_notes) && (
-                  <div style={{ fontSize: 11.5, color: "rgba(26,26,46,0.5)", marginTop: 8, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 11.5, color: "#55556B", marginTop: 8, lineHeight: 1.5 }}>
                     {[
                       recurringDesc,
                       talent.location_type !== "online" ? talent.location_address : null,
@@ -698,7 +698,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     marginTop: 10, paddingTop: 10, borderTop: "1px solid rgba(26,26,46,0.07)",
                   }}>
-                    <span style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)" }}>{t("tbf.detail.price")}</span>
+                    <span style={{ fontSize: 12.5, color: "#55556B" }}>{t("tbf.detail.price")}</span>
                     <span style={{ fontSize: 17, fontWeight: 600, color: TEAL }}>{priceStr}</span>
                   </div>
                 )}
@@ -724,7 +724,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                     }}
                   />
                   {talent.home_visit_radius_km != null && (
-                    <div style={{ fontSize: 11.5, color: "rgba(26,26,46,0.45)", marginTop: 6 }}>
+                    <div style={{ fontSize: 11.5, color: "#55556B", marginTop: 6 }}>
                       {t("tbf.detail.radius", { radius: talent.home_visit_radius_km })}
                     </div>
                   )}
@@ -866,7 +866,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   </div>
                   {/* Uhrzeit direkt bei Teilnehmer sichtbar (Michael-Vorgabe 2026-08-08) */}
                   {selectedDate && (
-                    <div style={{ fontSize: 12.5, color: "rgba(26,26,46,0.5)", marginTop: 8 }}>
+                    <div style={{ fontSize: 12.5, color: "#55556B", marginTop: 8 }}>
                       {t("tbf.detail.time")} {hasSlots
                         ? (selectedSlot ? t("tbf.detail.timeSlot", { start: selectedSlot.start, end: selectedSlot.end }) : t("tbf.detail.timeSelect"))
                         : t("tbf.detail.timeFlexible")}
@@ -896,7 +896,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                   padding: "12px 16px", borderRadius: 14, background: "rgba(255,138,107,0.08)",
                   border: "1px solid rgba(255,138,107,0.18)",
                 }}>
-                  <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>{t("tbf.detail.total")}</span>
+                  <span style={{ fontSize: 13, color: "#55556B" }}>{t("tbf.detail.total")}</span>
                   <span style={{ fontSize: 20, fontWeight: 600, color: CORAL }}>{fmtEur(previewAmount)}</span>
                 </div>
               )}
@@ -924,7 +924,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
               <button onClick={handleSave} style={{
                 flex: 1, background: "transparent", border: "1.5px solid rgba(26,26,46,0.15)",
                 borderRadius: 14, padding: "13px 0", fontSize: 14, fontWeight: 600,
-                color: "rgba(26,26,46,0.55)", cursor: "pointer", touchAction: "manipulation",
+                color: "#55556B", cursor: "pointer", touchAction: "manipulation",
               }}>
                 {saved ? t("tbf.detail.saved") : t("tbf.detail.save")}
               </button>

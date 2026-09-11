@@ -563,7 +563,7 @@ const dialogCardStyle = {
 };
 const dialogTitleStyle = { fontSize: 20, fontWeight: 700, color: "#1A1A18", margin: "0 0 8px", fontFamily: "Inter, sans-serif" };
 const dialogTextStyle = { fontSize: 15, fontWeight: 600, color: "#1A1A18", margin: "0 0 4px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
-const dialogSubTextStyle = { fontSize: 13, fontWeight: 400, color: "rgba(26,26,24,0.6)", margin: "0 0 20px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
+const dialogSubTextStyle = { fontSize: 13, fontWeight: 400, color: "#55556B", margin: "0 0 20px", lineHeight: 1.45, fontFamily: "Inter, sans-serif" };
 const dialogButtonsStyle = { display: "flex", gap: 8, flexWrap: "wrap" };
 const btnNoStyle = {
   flex: 1, padding: "13px 20px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
@@ -578,7 +578,7 @@ const btnYesStyle = {
 };
 const btnDisableStyle = {
   flex: 1, padding: "13px 14px", borderRadius: 14, border: "1.5px solid rgba(26,26,24,0.12)",
-  background: "transparent", color: "rgba(26,26,24,0.45)", fontSize: 13, fontWeight: 600,
+  background: "transparent", color: "#55556B", fontSize: 13, fontWeight: 600,
   fontFamily: "Inter, sans-serif", cursor: "pointer", touchAction: "manipulation",
   WebkitTapHighlightColor: "transparent", whiteSpace: "nowrap",
 };

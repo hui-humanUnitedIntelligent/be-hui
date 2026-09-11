@@ -226,7 +226,7 @@ export function MeinMomenteDrawerContent({ profile, onOpenMomentSheet, onDeleteM
               alignItems:"center", justifyContent:"center", gap:4,
             }}>
               <HUIFotoIcon size={22} style={{color:"rgba(14,196,184,0.55)"}}/>
-              <div style={{ fontSize:9, fontWeight:600, color:"rgba(26,26,24,0.4)",
+              <div style={{ fontSize:9, fontWeight:600, color:"#808098",
                 textAlign:"center", lineHeight:1.2, padding:"0 4px" }}>
                 {t("meinBereich.firstMoment")}
               </div>

@@ -32,7 +32,7 @@ export function OrbSignatur({ profileId }) {
       <div style={{ textAlign: "center" }}>
         <p style={{
           fontSize: 10.5,
-          color: "rgba(26,26,46,0.40)",
+          color: "#808098",
           fontWeight: 500,
           letterSpacing: "0.05em",
           textTransform: "uppercase",

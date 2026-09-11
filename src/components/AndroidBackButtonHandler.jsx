@@ -48,7 +48,7 @@ function ExitConfirmDialog({ onConfirm, onCancel }) {
           App wirklich schließen?
         </div>
         <div style={{
-          fontSize: 14, color: "rgba(26,26,24,0.52)",
+          fontSize: 14, color: "#55556B",
           lineHeight: 1.5, marginBottom: 24,
         }}>
           Du bist auf der Startseite. Möchtest du HUI verlassen?

@@ -97,8 +97,8 @@ function EventCard({ event, onPress, delay }) {
           padding: "7px 10px 9px",
           display: "flex", alignItems: "center", gap: 5,
         }}>
-          <span style={{ fontSize: 10, color: "rgba(26,26,46,0.42)" }}>🕐</span>
-          <span style={{ fontSize: 10.5, color: "rgba(26,26,46,0.55)", fontWeight: 500 }}>
+          <span style={{ fontSize: 10, color: "#55556B" }}>🕐</span>
+          <span style={{ fontSize: 10.5, color: "#55556B", fontWeight: 500 }}>
             {event.time} · {event.location}
           </span>
         </div>
@@ -233,7 +233,7 @@ export default function FeedEventsSection({ onEventPress, onMoreEvents }) {
         </div>
         <p style={{
           margin: 0, padding: 0,
-          fontSize: 12.5, color: "rgba(20,20,34,0.46)", fontWeight: 400,
+          fontSize: 12.5, color: "#55556B", fontWeight: 400,
         }}>
           Menschen treffen. Gemeinsam erleben.
         </p>

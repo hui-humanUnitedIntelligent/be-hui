@@ -155,7 +155,7 @@ function CountryPickerSheet({ currentValue, onSelect, onClose }) {
             onClick={onClose}
             style={{
               width: 32, height: 32, borderRadius: "50%", border: "none",
-              background: "rgba(26,26,24,0.06)", color: "rgba(26,26,24,0.45)",
+              background: "rgba(26,26,24,0.06)", color: "#55556B",
               fontSize: 16, cursor: "pointer", lineHeight: 1, flexShrink: 0,
             }}
           >✕</button>
@@ -353,7 +353,7 @@ export default function ShippingAddressModal({ onConfirm = () => {}, onCancel = 
             onClick={onCancel}
             style={{
               width: 32, height: 32, borderRadius: "50%", border: "none",
-              background: "rgba(26,26,24,0.06)", color: "rgba(26,26,24,0.45)",
+              background: "rgba(26,26,24,0.06)", color: "#55556B",
               fontSize: 16, cursor: "pointer", lineHeight: 1, flexShrink: 0,
             }}
           >✕</button>

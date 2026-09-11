@@ -119,10 +119,10 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
             <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
               Anfrage gesendet
             </div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 8, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: "#55556B", marginBottom: 8, lineHeight: 1.5 }}>
               {providerName} wurde benachrichtigt und meldet sich bei dir.
             </div>
-            <div style={{ fontSize: 12, color: "rgba(26,26,46,0.38)", marginBottom: 28 }}>
+            <div style={{ fontSize: 12, color: "#808098", marginBottom: 28 }}>
               Status: Ausstehend
             </div>
             <button onClick={onClose} style={{
@@ -146,7 +146,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                 {title}
               </div>
               {providerName && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.45)", marginTop: 3 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginTop: 3 }}>
                   bei {providerName}
                 </div>
               )}
@@ -161,7 +161,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                 marginBottom: 18,
                 display: "flex", justifyContent: "space-between", alignItems: "center",
               }}>
-                <span style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>Preis</span>
+                <span style={{ fontSize: 13, color: "#55556B" }}>Preis</span>
                 <span style={{ fontSize: 18, fontWeight: 600, color: TEAL }}>{priceStr}</span>
               </div>
             )}
@@ -201,7 +201,7 @@ export default function TalentAnfrageFlow({ talent, onClose }) {
                 flex: 1, background: "transparent",
                 border: "1.5px solid rgba(26,26,46,0.15)",
                 borderRadius: 14, padding: "12px 0",
-                fontSize: 14, fontWeight: 600, color: "rgba(26,26,46,0.55)",
+                fontSize: 14, fontWeight: 600, color: "#55556B",
                 cursor: "pointer", touchAction: "manipulation",
               }}>
                 {savedTalent ? t("tbf.detail.saved") : t("tbf.detail.save")}

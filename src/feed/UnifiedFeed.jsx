@@ -382,7 +382,7 @@ function EmptyFeed() {
         {t("feed.emptyTitle")}
       </div>
       <div style={{
-        fontSize: 13, color: "rgba(26,26,46,0.45)",
+        fontSize: 13, color: "#55556B",
         maxWidth: 220, lineHeight: 1.55,
       }}>
         {t("feed.emptyText")}
@@ -772,10 +772,10 @@ function FeedList({ items, onProfile, onReaction, onBook, onDetail, onShare, loa
           gap:           10,
         }}>
           <div style={{ fontSize: 16, color: "rgba(13,196,181,0.45)", letterSpacing: 2 }}>✦</div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(26,53,48,0.55)", letterSpacing: -0.1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "#55556B", letterSpacing: -0.1 }}>
             {t("feed.endReached")}
           </div>
-          <div style={{ fontSize: 12, color: "rgba(26,53,48,0.35)", fontWeight: 400, lineHeight: 1.55, maxWidth: 240 }}>
+          <div style={{ fontSize: 12, color: "#808098", fontWeight: 400, lineHeight: 1.55, maxWidth: 240 }}>
             {t("feed.endSubtext")}
           </div>
         </div>
@@ -1062,7 +1062,7 @@ export default function UnifiedFeed({
       {((searchActive && (searchQuery || typeFilter || (categoryFilters && categoryFilters.length > 0))) ||
         typeFilter || (locationQuery && locationQuery.trim())) &&
        !streamLoading && displayItems.length === 0 && (
-        <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
+        <div style={{ padding:"60px 24px", textAlign:"center", color:"#808098" }}>
           <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>{t("feed.noResults")}</div>
           <div style={{ fontSize:13 }}>
             {searchQuery

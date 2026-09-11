@@ -308,14 +308,14 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                         opacity: quantity >= maxQty ? 0.4 : 1, fontFamily: "inherit",
                       }}
                     >+</button>
-                    <span style={{ fontSize: 11, color: "rgba(26,26,46,0.40)" }}>max. {maxQty}</span>
+                    <span style={{ fontSize: 11, color: "#808098" }}>max. {maxQty}</span>
                   </div>
                 )}
 
                 {/* Versandkosten-Anzeige */}
                 {hasShipping && (
                   <div style={{
-                    fontSize: 12, color: "rgba(26,26,46,0.55)", marginBottom: 4,
+                    fontSize: 12, color: "#55556B", marginBottom: 4,
                   }}>
                     Versand: {shippingCost.toFixed(2).replace(".", ",")} EUR
                     {quantity > 1 && ` x ${quantity} = ${totalShipping.toFixed(2).replace(".", ",")} EUR`}
@@ -371,7 +371,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E" }}>{v.name}</div>
                         {v.description && (
-                          <div style={{ fontSize: 12, color: "rgba(26,26,46,0.45)", marginTop: 2 }}>{v.description}</div>
+                          <div style={{ fontSize: 12, color: "#55556B", marginTop: 2 }}>{v.description}</div>
                         )}
                         <div style={{ fontSize: 11.5, color: TEAL, fontWeight: 600, marginTop: 3 }}>
                           {t("wkf.variantStock", { avail: v.stock_available, total: v.stock_total })}
@@ -386,7 +386,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               </div>
             )}
             {hasVariants && availableVariants.length === 0 && (
-              <div style={{ fontSize: 14, color: "rgba(26,26,46,0.45)", marginBottom: 20, textAlign: "center" }}>
+              <div style={{ fontSize: 14, color: "#55556B", marginBottom: 20, textAlign: "center" }}>
                 Alle Varianten sind ausverkauft.
               </div>
             )}
@@ -412,7 +412,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   LIEFERADRESSE
                 </div>
                 {shippingAddress.full.split("\n").map((line, i) => (
-                  <div key={i} style={{ fontSize: 13, color: "rgba(26,26,46,0.55)" }}>{line}</div>
+                  <div key={i} style={{ fontSize: 13, color: "#55556B" }}>{line}</div>
                 ))}
                 <button
                   onClick={() => setShowAddressModal(true)}
@@ -455,7 +455,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             <div style={{ width: 44, height: 44, border: `3px solid ${TEAL}33`, borderTopColor: TEAL,
               borderRadius: "50%", animation: "wkfSpin 0.8s linear infinite", margin: "0 auto 16px" }} />
             <style>{`@keyframes wkfSpin { to { transform: rotate(360deg); } }`}</style>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)" }}>{t("wkf.loadingPayment")}</div>
+            <div style={{ fontSize: 14, color: "#55556B" }}>{t("wkf.loadingPayment")}</div>
           </div>
         )}
 
@@ -494,25 +494,25 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
               borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
             }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
-              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+              <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                 <span style={{ fontWeight: 600 }}>{t("wkf.labelSeller")}</span> {werk.author?.name || werk.author?.displayName || t("wkf.fallbackCreator")}
               </div>
               {quantity > 1 && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("wkf.labelQuantity")}</span> {quantity} x {displayPrice.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
               {totalShipping > 0 && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("wkf.labelShipping")}</span> {totalShipping.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
               {grandTotal > 0 && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>{t("wkf.labelTotal")}</span> {grandTotal.toFixed(2).replace(".", ",")} EUR
                 </div>
               )}
-              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
+              <div style={{ fontSize: 13, color: "#55556B", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
                 {t("wkf.escrowInfoShort")}
               </div>
             </div>
@@ -529,7 +529,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   <div style={{ fontSize: 14, fontWeight: 600, color: "#1A1A2E", marginBottom: 2 }}>
                     Mit Verkäufer schreiben
                   </div>
-                  <div style={{ fontSize: 12, color: "rgba(26,26,46,0.55)", lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 12, color: "#55556B", lineHeight: 1.5 }}>
                     Tausch dich über das Werk aus.
                   </div>
                 </div>
@@ -565,7 +565,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                   <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
                     Mit {werk.author?.name || werk.author?.displayName || t("wkf.fallbackCreator")} chatten?
                   </div>
-                  <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
+                  <div style={{ fontSize: 14, color: "#55556B", lineHeight: 1.5, marginBottom: 20 }}>
                     {t("wkf.chatDesc")}
                   </div>
                   <div style={{ display: "flex", gap: 10 }}>
@@ -658,7 +658,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
         {phase === "error" && (
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
             <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>{t("wkf.errTitle")}</div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: "#55556B", marginBottom: 28, lineHeight: 1.5 }}>
               {errMsg || t("wkf.errGeneric")}
             </div>
             <button
@@ -680,7 +680,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
             style={{
               position: "absolute", top: 16, right: 16,
               width: 32, height: 32, borderRadius: "50%", border: "none",
-              background: "rgba(26,26,46,0.06)", color: "rgba(26,26,46,0.45)",
+              background: "rgba(26,26,46,0.06)", color: "#55556B",
               fontSize: 16, cursor: "pointer", lineHeight: 1,
             }}
           >✕</button>

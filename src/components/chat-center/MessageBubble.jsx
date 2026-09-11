@@ -367,7 +367,7 @@ function ReactionBadges({ msg = {}, own = false }) {
           fontSize:13, lineHeight:1,
         }}>
           <span style={{ fontSize:14 }}>{emoji}</span>
-          {count > 1 && <span style={{ fontSize:11, color:"rgba(80,80,80,0.5)", fontWeight: 500 }}>{count}</span>}
+          {count > 1 && <span style={{ fontSize:11, color:"#55556B", fontWeight: 500 }}>{count}</span>}
         </div>
       ))}
     </div>
@@ -548,11 +548,11 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
           display:"flex", alignItems:"center", gap:6,
           flexDirection: own ? "row-reverse" : "row",
         }}>
-          <span style={{ fontSize:10.5, color:"rgba(80,80,80,0.42)" }}>
+          <span style={{ fontSize:10.5, color:"#55556B" }}>
             {formatTime(msg.created_at)}
           </span>
           {msg.edited_at && !isDeleted && (
-            <span style={{ fontSize:10, color:"rgba(80,80,80,0.35)", fontStyle:"italic" }}>
+            <span style={{ fontSize:10, color:"#808098", fontStyle:"italic" }}>
               bearbeitet
             </span>
           )}

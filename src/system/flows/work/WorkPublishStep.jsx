@@ -77,7 +77,7 @@ function WorkPreviewCard({ form, mediaFiles, profile }) {
             flexDirection:"column", gap:8,
           }}>
             <div style={{ display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.4)" }}><HUIFotoIcon size={36}/></div>
-            <div style={{ fontSize:12, color:"rgba(26,26,46,0.30)" }}>
+            <div style={{ fontSize:12, color:"#808098" }}>
               Kein Bild hochgeladen
             </div>
           </div>

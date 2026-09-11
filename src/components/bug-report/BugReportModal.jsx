@@ -501,7 +501,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
             <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "#1a1a2e", fontFamily: "Inter, sans-serif" }}>
               {t('bug.report')}
             </h2>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(20,20,34,0.5)", fontFamily: "Inter, sans-serif", lineHeight: 1.4 }}>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#55556B", fontFamily: "Inter, sans-serif", lineHeight: 1.4 }}>
               {t('bug.body')}
             </p>
           </div>
@@ -539,7 +539,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
             {uploadProgress && (
               <div style={{
                 marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 8, fontSize: 12.5, color: "rgba(20,20,34,0.55)", fontFamily: "Inter, sans-serif",
+                gap: 8, fontSize: 12.5, color: "#55556B", fontFamily: "Inter, sans-serif",
               }}>
                 <div style={{
                   width: 12, height: 12, borderRadius: "50%",
@@ -648,7 +648,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                         color: "rgba(20,20,34,0.7)",
                         overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                       }}>{f.name}</span>
-                      <span style={{ fontSize: 11, color: "rgba(20,20,34,0.4)", fontFamily: "Inter, sans-serif" }}>
+                      <span style={{ fontSize: 11, color: "#808098", fontFamily: "Inter, sans-serif" }}>
                         {(f.size / 1024 / 1024).toFixed(1)} MB
                       </span>
                       <button
@@ -664,7 +664,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
                   ))}
                 </div>
               )}
-              <p style={{ fontSize: 11, color: "rgba(20,20,34,0.35)", fontFamily: "Inter, sans-serif", margin: "4px 0 0" }}>
+              <p style={{ fontSize: 11, color: "#808098", fontFamily: "Inter, sans-serif", margin: "4px 0 0" }}>
                 {t('bug.mediaInfo')} · {files.length}/{MAX_FILES}
               </p>
             </div>

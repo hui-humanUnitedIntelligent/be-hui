@@ -32,7 +32,7 @@ export default function EscrowStatusBadge({ escrowStatus = 'none', deliveryStatu
         {c.label}
       </span>
       {escrowStatus === 'holding' && (
-        <span style={{ fontSize: fontSize-1, color:'rgba(26,26,46,0.45)', paddingLeft:4 }}>
+        <span style={{ fontSize: fontSize-1, color:'#55556B', paddingLeft:4 }}>
           {d.label}
         </span>
       )}

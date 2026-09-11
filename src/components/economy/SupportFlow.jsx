@@ -345,7 +345,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
             style={{
               position: "absolute", top: 16, right: 16,
               width: 32, height: 32, borderRadius: "50%", border: "none",
-              background: "rgba(26,26,46,0.06)", color: "rgba(26,26,46,0.45)",
+              background: "rgba(26,26,46,0.06)", color: "#55556B",
               fontSize: 16, cursor: "pointer", lineHeight: 1,
             }}
           >✕</button>

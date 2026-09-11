@@ -141,7 +141,7 @@ function RadiusIndicator({ radius, activeFilterCount = 0, onFilterPillClick }) {
         fontSize: 11.5,
         fontWeight: 500,
         letterSpacing: "-0.01em",
-        color: "rgba(26,53,48,0.40)",
+        color: "#808098",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -371,7 +371,7 @@ function AllCategoriesSheet({ sheetRef, phase, query, onQueryChange, onSelect, o
               <button className="dc-tag" onClick={()=>onQueryChange("")} style={{
                 width:16, height:16, borderRadius:"50%", background:"rgba(26,53,48,0.10)",
                 border:"none", display:"flex", alignItems:"center", justifyContent:"center",
-                cursor:"pointer", fontSize:8, color:"rgba(26,53,48,0.55)", fontWeight: 600, flexShrink:0,
+                cursor:"pointer", fontSize:8, color:"#55556B", fontWeight: 600, flexShrink:0,
               }}>✕</button>
             )}
           </div>
@@ -991,11 +991,11 @@ export default function SearchCommandCenter({
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
         )}
         {open && !query && (
-          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:400,letterSpacing:"-0.01em",color:"rgba(26,53,48,0.26)",whiteSpace:"nowrap"}}>{t("discover.searchPromptPlaceholder")}</span>
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:400,letterSpacing:"-0.01em",color:"#808098",whiteSpace:"nowrap"}}>{t("discover.searchPromptPlaceholder")}</span>
         )}
       </div>
       {query && (
-        <button className="dc-tag" onClick={e=>{e.stopPropagation();clearQuery();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.07)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight: 600}}>✕</button>
+        <button className="dc-tag" onClick={e=>{e.stopPropagation();clearQuery();}} style={{flexShrink:0,width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.07)",border:"none",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:9,color:"#55556B",fontWeight: 600}}>✕</button>
       )}
       <button
         type="button"
@@ -1173,7 +1173,7 @@ export default function SearchCommandCenter({
                 <button className="dc-tag" onClick={()=>{setLocationQuery("");setLocationInputOpen(false);}} style={{
                   width:18,height:18,borderRadius:"50%",background:"rgba(26,53,48,0.09)",
                   border:"none",display:"flex",alignItems:"center",justifyContent:"center",
-                  cursor:"pointer",fontSize:9,color:"rgba(26,53,48,0.55)",fontWeight:600,flexShrink:0,
+                  cursor:"pointer",fontSize:9,color:"#55556B",fontWeight:600,flexShrink:0,
                 }}>✕</button>
               </div>
             )}
@@ -1183,7 +1183,7 @@ export default function SearchCommandCenter({
               display:"flex",alignItems:"center",gap:5,
               background:"rgba(26,53,48,0.035)",border:"1px solid rgba(26,53,48,0.07)",
               borderRadius:99,padding:"6px 13px",cursor:"pointer",
-              fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:"rgba(26,53,48,0.62)",
+              fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",color:"#55556B",
               whiteSpace:"nowrap", WebkitTapHighlightColor:"transparent",
             }}>
               <span style={{fontSize:12,opacity:.75}}>🕐</span>{sort==="newest" ? t("common.newestShort") : t("common.oldestShort")}

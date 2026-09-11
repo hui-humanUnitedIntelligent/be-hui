@@ -122,7 +122,7 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
   if (delivery.delivery_status === "delivered" && !delivery.buyer_rating) {
     return (
       <div style={{ padding: "10px 14px 4px" }}>
-        <div style={{ fontSize: 11.5, color: "rgba(80,80,80,0.55)", textAlign: "center", marginBottom: 8 }}>
+        <div style={{ fontSize: 11.5, color: "#55556B", textAlign: "center", marginBottom: 8 }}>
           {t("chat.ratePrompt")}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -162,7 +162,7 @@ function ClosedInfoBar() {
       background: "rgba(26,26,46,0.04)",
       borderTop: "1px solid rgba(26,26,46,0.08)",
       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-      fontSize: 12.5, color: "rgba(80,80,80,0.55)",
+      fontSize: 12.5, color: "#55556B",
       fontFamily: "Inter,sans-serif",
     }}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -254,7 +254,7 @@ export default function ConversationRoom({ conv, onBack, onOpenProfile, onCloseC
             }}>✦</div>
             <div style={{
               fontSize:14, textAlign:"center", lineHeight:1.7,
-              color:"rgba(80,80,80,0.42)", maxWidth:220,
+              color:"#55556B", maxWidth:220,
             }}>
               {delivery.booking_type
                 ? <>{t("chat.emptyBooking")}<br/><span style={{ color:"rgba(22,215,197,0.65)", fontWeight:600 }}>{t("chat.emptyBookingSub")}</span></>

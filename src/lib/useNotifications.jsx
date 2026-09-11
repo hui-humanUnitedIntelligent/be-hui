@@ -354,7 +354,7 @@ function RejectionDetailModal({ n, onClose }) {
         }}>{entryTitle}</div>
         <div style={{
           fontSize:11, fontWeight: 600, letterSpacing:1,
-          color:"rgba(26,26,24,0.35)", textAlign:"center",
+          color:"#808098", textAlign:"center",
           marginBottom:16, textTransform:"uppercase",
         }}>{t("notif.meta.adminMessage")} — {t(tm.label)} {t("notif.meta.rejected")}</div>
         <div style={{
@@ -365,7 +365,7 @@ function RejectionDetailModal({ n, onClose }) {
           marginBottom:16,
         }}>{reason}</div>
         <div style={{
-          fontSize:12, color:"rgba(26,26,24,0.45)",
+          fontSize:12, color:"#55556B",
           textAlign:"center", marginBottom:20, lineHeight:1.5,
         }}>
           {t(tm.hint)}
@@ -477,7 +477,7 @@ function NotifItem({ n, onRead, onDelete }) {
             </button>
           )}
 
-          <div style={{ fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:4 }}>
+          <div style={{ fontSize:11, color:"#808098", marginTop:4 }}>
             {fmtTime(n.created_at, t)}
           </div>
         </div>
@@ -629,7 +629,7 @@ function ConnectionRequestItem({ req, onRespond }) {
               „{req.message}"
             </div>
           )}
-          <div style={{fontSize:11, color:"rgba(26,26,24,0.28)", marginTop:6}}>
+          <div style={{fontSize:11, color:"#808098", marginTop:6}}>
             {fmtTime(req.created_at, t)}
           </div>
         </div>
@@ -682,7 +682,7 @@ function SectionHeader({ emoji, label }) {
       display:"flex", alignItems:"center", gap:6,
       padding:"14px 16px 6px",
       fontSize:11, fontWeight: 600,
-      color:"rgba(26,26,24,0.40)",
+      color:"#808098",
       letterSpacing:"0.07em",
       textTransform:"uppercase",
     }}>
@@ -719,7 +719,7 @@ function WeekStats({ userId }) {
         }}><HUIStatistikIcon size={24}/></div>
         <span style={{
           fontSize:11, fontWeight: 600,
-          color:"rgba(26,26,24,0.40)",
+          color:"#808098",
           letterSpacing:"0.07em", textTransform:"uppercase",
         }}>
           "Diese Woche"

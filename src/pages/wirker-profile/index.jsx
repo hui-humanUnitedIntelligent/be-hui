@@ -908,7 +908,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
           <div style={{fontSize:15,fontWeight:600,color:"#1A1A2E",marginBottom:6}}>
             {t("visitor.profileNotFound")}
           </div>
-          <div style={{fontSize:13,color:"rgba(26,26,46,0.5)",marginBottom:20}}>
+          <div style={{fontSize:13,color:"#55556B",marginBottom:20}}>
             {t("visitor.creatorUnavailable")}
           </div>
           <button onClick={handleClose} style={{

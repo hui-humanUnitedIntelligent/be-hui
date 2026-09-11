@@ -236,7 +236,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
         <div style={{textAlign:"center",animation:"pcfIn 0.4s ease both"}}>
           <div style={{fontSize:64,marginBottom:16}}>✦</div>
           <div style={{fontSize:24,fontWeight: 600,color:INK,marginBottom:8}}>{t("auth.welcomeHui")}</div>
-          <div style={{fontSize:15,color:"rgba(26,26,46,0.5)"}}>{t("auth.profileReady")}</div>
+          <div style={{fontSize:15,color:"#55556B"}}>{t("auth.profileReady")}</div>
         </div>
       </div>
     );
@@ -270,7 +270,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
         <div key={step} style={{animation:"pcfStepIn 0.25s ease both"}}>
           {step === 0 && (
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 4px",lineHeight:1.6}}>
+              <p style={{fontSize:14,color:"#55556B",margin:"0 0 4px",lineHeight:1.6}}>
                 {t("pcf.usernameHint")}
               </p>
               <UsernameInput value={username} onChange={setUsername} />
@@ -278,7 +278,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           )}
           {step === 1 && (
             <div>
-              <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 12px",lineHeight:1.6}}>
+              <p style={{fontSize:14,color:"#55556B",margin:"0 0 12px",lineHeight:1.6}}>
                 {t("pcf.bioHint")}
               </p>
               <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={300} rows={4}
@@ -292,14 +292,14 @@ export default function ProfileCompletionFlow({ onComplete }) {
                 onFocus={e => e.target.style.borderColor=TEAL}
                 onBlur={e  => e.target.style.borderColor="rgba(26,26,46,0.12)"}
               />
-              <div style={{textAlign:"right",fontSize:11,color:"rgba(26,26,46,0.3)",marginTop:4}}>
+              <div style={{textAlign:"right",fontSize:11,color:"#808098",marginTop:4}}>
                 {bio.length}/300
               </div>
             </div>
           )}
           {step === 2 && (
             <div style={{textAlign:"center"}}>
-              <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 20px",lineHeight:1.6}}>
+              <p style={{fontSize:14,color:"#55556B",margin:"0 0 20px",lineHeight:1.6}}>
                 {t("pcf.avatarHint")}
               </p>
               <AvatarUploader userId={user.id} current={avatar} onUploaded={url => setAvatar(url)}/>
@@ -307,7 +307,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           )}
           {step === 3 && (
             <div>
-              <p style={{fontSize:14,color:"rgba(26,26,46,0.5)",margin:"0 0 14px",lineHeight:1.6}}>
+              <p style={{fontSize:14,color:"#55556B",margin:"0 0 14px",lineHeight:1.6}}>
                 {t("pcf.interestsHint")}
               </p>
               <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
@@ -353,7 +353,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
           </button>
           {(step === 2 || step === 3) && (
             <button onClick={() => setStep(s=>s+1)} style={{
-              background:"none",border:"none",color:"rgba(26,26,46,0.35)",
+              background:"none",border:"none",color:"#55556B",
               fontSize:13,cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
             }}>{t("pcf.skip")}</button>
           )}

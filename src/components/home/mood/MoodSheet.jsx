@@ -52,7 +52,7 @@ export default function MoodSheet({ activeMood, onSelect, onClose }) {
       >
         <div style={{
           fontSize:11, fontWeight: 600, letterSpacing:1.1,
-          color:"rgba(30,30,30,0.38)", textTransform:"uppercase",
+          color:"#808098", textTransform:"uppercase",
           marginBottom:14, textAlign:"center",
         }}>
           Deine Energie heute
@@ -66,7 +66,7 @@ export default function MoodSheet({ activeMood, onSelect, onClose }) {
             style={{
               display:"block", margin:"14px auto 0",
               background:"none", border:"none", cursor:"pointer",
-              fontSize:11.5, color:"rgba(80,80,80,0.45)", fontWeight:500,
+              fontSize:11.5, color:"#55556B", fontWeight:500,
               WebkitTapHighlightColor:"transparent",
             }}
           >

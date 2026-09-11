@@ -469,7 +469,7 @@ function LightCard({ icon, label, sub, iconBg, style = {}, delay = 0, floatAnim 
         }}>{label}</div>
         {sub && <div style={{
           fontSize:10.5, fontWeight:400,
-          color:"rgba(30,50,70,0.55)",
+          color:"#55556B",
           lineHeight:1.45,
         }}>{sub}</div>}
       </div>
@@ -753,7 +753,7 @@ function Card2({ onNext, onBack, dir }) {
 
         {/* Subline */}
         <p style={{
-          fontSize:15, color:"rgba(30,50,70,0.58)",
+          fontSize:15, color:"#55556B",
           lineHeight:1.72, margin:"0 0 26px",
           maxWidth:360, fontWeight:400,
         }}>
@@ -793,7 +793,7 @@ function Card2({ onNext, onBack, dir }) {
 
         <button className="hmf5-tap" onClick={onBack} style={{
           background:"none", border:"none", fontFamily:"inherit",
-          fontSize:13, color:"rgba(30,50,70,0.35)",
+          fontSize:13, color:"#808098",
           padding:"10px 16px", cursor:"pointer", marginTop:4,
         }}>{t('mflow.back')}</button>
       </div>

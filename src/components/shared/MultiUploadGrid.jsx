@@ -111,7 +111,7 @@ export default function MultiUploadGrid({
                 <div style={{
                   width: "100%", height: "100%",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 11, color: "rgba(26,26,24,0.4)", textAlign: "center",
+                  fontSize: 11, color: "#808098", textAlign: "center",
                   padding: 4,
                 }}>
                   {file.name}
@@ -190,7 +190,7 @@ export default function MultiUploadGrid({
 
       {/* Hint */}
       <div style={{
-        fontSize: 11, color: "rgba(26,26,46,0.45)",
+        fontSize: 11, color: "#55556B",
         marginTop: 8, lineHeight: 1.4,
       }}>
         {defaultHint}

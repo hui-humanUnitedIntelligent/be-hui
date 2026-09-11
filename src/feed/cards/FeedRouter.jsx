@@ -46,7 +46,7 @@ class CardErrorBoundary extends React.Component {
           <div>
             <div style={{fontSize:13,fontWeight:600,color:"#1A1A2E"}}>{this.props.authorName||"Human"}</div>
             {this.props.text && (
-              <div style={{fontSize:13,color:"rgba(26,26,46,0.6)",marginTop:3,lineHeight:1.5}}>
+              <div style={{fontSize:13,color:"#55556B",marginTop:3,lineHeight:1.5}}>
                 {String(this.props.text).slice(0,120)}
               </div>
             )}

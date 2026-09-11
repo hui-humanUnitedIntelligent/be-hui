@@ -235,7 +235,7 @@ export default function AppointmentViewer({ otherUserId, otherName = "", onClose
               }}>🗓</div>
               <div style={{
                 fontSize:14, textAlign:"center", lineHeight:1.7,
-                color:"rgba(80,80,80,0.42)", maxWidth:240,
+                color:"#55556B", maxWidth:240,
               }}>
                 {t("chat.noAppointments")}
                 <br/>

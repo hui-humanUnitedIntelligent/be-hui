@@ -1360,7 +1360,7 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
                 Ablehnungsgrund: {existingExp.rejection_reason}
               </div>
             )}
-            <div style={{ fontSize: 11, color: "rgba(26,26,24,0.50)", marginTop: 2 }}>
+            <div style={{ fontSize: 11, color: "#55556B", marginTop: 2 }}>
               Gehe alle Schritte durch und reiche es erneut ein — der Admin sieht, dass es ein Update ist.
             </div>
           </div>

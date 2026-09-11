@@ -226,7 +226,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               </div>
             )}
             <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 4 }}>{title}</div>
-            <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 16 }}>von {creatorName}</div>
+            <div style={{ fontSize: 13, color: "#55556B", marginBottom: 16 }}>von {creatorName}</div>
             {priceStr && (
               <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
             )}
@@ -277,7 +277,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             <div style={{ width: 44, height: 44, border: `3px solid ${TEAL}33`, borderTopColor: TEAL,
               borderRadius: "50%", animation: "ebfSpin 0.8s linear infinite", margin: "0 auto 16px" }} />
             <style>{`@keyframes ebfSpin { to { transform: rotate(360deg); } }`}</style>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)" }}>Zahlung wird vorbereitet…</div>
+            <div style={{ fontSize: 14, color: "#55556B" }}>Zahlung wird vorbereitet…</div>
           </div>
         )}
 
@@ -316,20 +316,20 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               borderRadius: 14, padding: "14px 16px", marginBottom: 20, textAlign: "left",
             }}>
               <div style={{ fontSize: 15, fontWeight: 600, color: "#1A1A2E", marginBottom: 10 }}>{title}</div>
-              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+              <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                 <span style={{ fontWeight: 600 }}>Anbieter:</span> {creatorName}
               </div>
               {amount > 0 && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>Betrag:</span> {amount.toFixed(2).replace(".", ",")} €
                 </div>
               )}
               {message.trim() && (
-                <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginBottom: 6 }}>
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>Nachricht:</span> {message.trim().length > 80 ? message.trim().slice(0, 80) + "…" : message.trim()}
                 </div>
               )}
-              <div style={{ fontSize: 13, color: "rgba(26,26,46,0.55)", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
+              <div style={{ fontSize: 13, color: "#55556B", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
                 Deine Zahlung ist sicher bei HUI hinterlegt. {creatorName} wurde benachrichtigt.
               </div>
             </div>
@@ -404,7 +404,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               <div style={{ fontSize: 17, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
                 Mit {creatorName} chatten?
               </div>
-              <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", lineHeight: 1.5, marginBottom: 20 }}>
+              <div style={{ fontSize: 14, color: "#55556B", lineHeight: 1.5, marginBottom: 20 }}>
                 Möchtest du wirklich eine Unterhaltung mit dem Verkäufer starten?
               </div>
               <div style={{ display: "flex", gap: 10 }}>
@@ -452,7 +452,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
         {phase === "error" && (
           <div style={{ textAlign: "center", padding: "16px 0 8px" }}>
             <div style={{ fontSize: 18, fontWeight: 600, color: "#FF5B5B", marginBottom: 8 }}>Fehler</div>
-            <div style={{ fontSize: 14, color: "rgba(26,26,46,0.55)", marginBottom: 28, lineHeight: 1.5 }}>
+            <div style={{ fontSize: 14, color: "#55556B", marginBottom: 28, lineHeight: 1.5 }}>
               {errMsg || t("ebf.errGeneric")}
             </div>
             <button
@@ -474,7 +474,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             style={{
               position: "absolute", top: 16, right: 16,
               width: 32, height: 32, borderRadius: "50%", border: "none",
-              background: "rgba(26,26,46,0.06)", color: "rgba(26,26,46,0.45)",
+              background: "rgba(26,26,46,0.06)", color: "#55556B",
               fontSize: 16, cursor: "pointer", lineHeight: 1,
             }}
           >✕</button>

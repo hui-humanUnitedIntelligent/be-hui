@@ -170,7 +170,7 @@ export default function IntroVideoScreen() {
         bottom: "calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         left: 0, right: 0,
         textAlign: "center",
-        color: "rgba(0,0,0,0.45)",
+        color: "#55556B",
         fontSize: "12px",
         fontWeight: 500,
         fontFamily: "Inter, system-ui, sans-serif",

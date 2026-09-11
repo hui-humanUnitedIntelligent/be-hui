@@ -389,7 +389,7 @@ export default function StepThreePreview({ data, onPublish, onBack, publishing }
           {/* Titel unter Hero (groß, grau wenn leer) */}
           {!title && (
             <div style={{
-              fontSize:20, fontWeight: 600, color:"rgba(80,80,80,0.28)",
+              fontSize:20, fontWeight: 600, color:"#808098",
               fontStyle:"italic", letterSpacing:-0.4, marginBottom:16,
               lineHeight:1.25,
             }}>Titel der Verbindung…</div>

@@ -78,7 +78,7 @@ export function MomentThumb({ m, onRemove }) {
           alignItems:"center", justifyContent:"center",
           background:"rgba(26,26,24,0.06)", gap:4 }}>
           <HUILogo size={32} style={{opacity:0.55}} />
-          <span style={{fontSize:9, color:"rgba(26,26,24,0.35)", textAlign:"center",
+          <span style={{fontSize:9, color:"#808098", textAlign:"center",
             padding:"0 6px", lineHeight:1.4}}>{t("ps.imageUnavailable")}</span>
         </div>
       ) : (

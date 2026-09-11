@@ -1120,7 +1120,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
               style={{
                 padding:"6px 14px", borderRadius:20,
                 background:"rgba(26,26,46,0.08)", border:"1px solid rgba(26,26,46,0.10)",
-                fontSize:12, fontWeight: 600, color:"rgba(26,26,46,0.55)",
+                fontSize:12, fontWeight: 600, color:"#55556B",
                 cursor:"pointer", touchAction:"manipulation",
               }}
             >{t("profile.schliessen")}</button>

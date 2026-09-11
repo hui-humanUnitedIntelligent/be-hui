@@ -74,7 +74,7 @@ function MediaPreview({ file, type, duration, onRemove }) {
               stroke={C.teal} strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
           <audio src={url} controls style={{ height:32, flex:1 }}/>
-          {duration > 0 && <span style={{ fontSize:11, color:"rgba(80,80,80,0.55)", flexShrink:0 }}>{duration}s</span>}
+          {duration > 0 && <span style={{ fontSize:11, color:"#55556B", flexShrink:0 }}>{duration}s</span>}
         </div>
       )}
       <button onClick={onRemove} style={{

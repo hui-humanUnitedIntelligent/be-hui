@@ -248,7 +248,7 @@ export default function VideoThumbnailPicker({
       {duration > 0.3 && (
         <div style={{ marginTop: 8 }}>
           {(label || !compact) && (
-            <div style={{ fontSize: 11, color: "rgba(26,53,48,0.55)", marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: "#55556B", marginBottom: 4 }}>
               {ready ? (label || t("upload.chooseThumbnail")) : t("upload.videoLoading")}
             </div>
           )}

@@ -68,7 +68,7 @@ export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, fo
               background:"rgba(26,26,24,0.07)", border:"none", cursor:"pointer",
               borderRadius:"50%", width:32, height:32,
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:16, color:"rgba(26,26,24,0.52)",
+              fontSize:16, color:"#55556B",
             }}>✕</button>
           </div>
           {/* Subtitle direkt unter dem Titel, über der Trennlinie */}
@@ -91,7 +91,7 @@ export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, fo
             <button onClick={onClose} style={{
               width:"100%", padding:"13px", borderRadius:14, border:"none",
               cursor:"pointer", background:"rgba(26,26,24,0.08)",
-              color:"rgba(26,26,24,0.52)", fontSize:14, fontWeight: 600,
+              color:"#55556B", fontSize:14, fontWeight: 600,
               fontFamily:"inherit", WebkitTapHighlightColor:"transparent",
             }}>{t("meinBereich.schliessen")}</button>
           </div>
@@ -118,7 +118,7 @@ export function MeinBereichChooserRow({ icon, label, desc, onPress }) {
       }}>{icon}</span>
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ fontSize:14, fontWeight: 600, color:"#1A1A18" }}>{label}</div>
-        {desc && <div style={{ fontSize:12, color:"rgba(26,26,24,0.5)", marginTop:1 }}>{desc}</div>}
+        {desc && <div style={{ fontSize:12, color:"#55556B", marginTop:1 }}>{desc}</div>}
       </div>
       <span style={{ color:"rgba(26,26,24,0.32)", fontSize:17 }}>›</span>
     </button>

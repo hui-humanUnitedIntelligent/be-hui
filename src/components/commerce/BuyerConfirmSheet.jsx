@@ -77,7 +77,7 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <div style={{ fontSize: 48 }}>✅</div>
               <div style={{ fontSize: 18, fontWeight: 600, color: '#1A1A2E', marginTop: 12 }}>Best\u00e4tigt!</div>
-              <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.55)', marginTop: 8, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 14, color: '#55556B', marginTop: 8, lineHeight: 1.6 }}>
                 Die Auszahlung an den Anbieter wird jetzt freigegeben.
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
               <div style={{ fontSize: 11, fontWeight: 600, color: TEAL, textTransform: 'uppercase',
                 letterSpacing: '0.06em', marginBottom: 6 }}>Erhalt best\u00e4tigen</div>
               <div style={{ fontSize: 17, fontWeight: 600, color: '#1A1A2E', marginBottom: 8 }}>{title}</div>
-              <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.6)', lineHeight: 1.6, marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: '#55556B', lineHeight: 1.6, marginBottom: 16 }}>
                 Bitte best\u00e4tige, dass du {isOrder ? 'deine Bestellung erhalten hast' : 'die Dienstleistung erhalten hast'}.
                 Erst dann wird die Zahlung an den Anbieter freigegeben.
               </div>
@@ -109,7 +109,7 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
             <button onClick={() => onClose?.()} disabled={loading}
               style={{ flex: 1, background: 'transparent', border: '1.5px solid rgba(26,26,46,0.15)',
                 borderRadius: 14, padding: '13px 0', fontSize: 14, fontWeight: 600,
-                color: 'rgba(26,26,46,0.55)', cursor: 'pointer', touchAction: 'manipulation' }}>
+                color: '#55556B', cursor: 'pointer', touchAction: 'manipulation' }}>
               Abbrechen
             </button>
             <button onClick={handleConfirm} disabled={loading}

@@ -249,7 +249,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
             <div style={{fontSize:18,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:8}}>
               {t("tpp.dialog.sent.title")}
             </div>
-            <div style={{fontSize:14,color:"rgba(26,26,24,0.52)",lineHeight:1.55,maxWidth:260,margin:"0 auto"}}>
+            <div style={{fontSize:14,color:"#55556B",lineHeight:1.55,maxWidth:260,margin:"0 auto"}}>
               {t("tpp.dialog.sent.body", { name })}
             </div>
           </div>
@@ -260,7 +260,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
               <div style={{fontSize:17,fontWeight: 600,color:"#1A1A18",letterSpacing:"-0.03em",marginBottom:6}}>
                 {t("tpp.dialog.title")}
               </div>
-              <div style={{fontSize:13,color:"rgba(26,26,24,0.50)",lineHeight:1.5}}>
+              <div style={{fontSize:13,color:"#55556B",lineHeight:1.5}}>
                 {t("tpp.dialog.body", { name })}
               </div>
             </div>
@@ -282,7 +282,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
 
             {/* Optionale Nachricht */}
             <div style={{marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:600,color:"rgba(26,26,24,0.45)",marginBottom:8,letterSpacing:"0.04em"}}>
+              <div style={{fontSize:12,fontWeight:600,color:"#55556B",marginBottom:8,letterSpacing:"0.04em"}}>
                 {t("tpp.dialog.msgLabel")}
               </div>
               <textarea
@@ -293,7 +293,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
                 onChange={e => setMessage(e.target.value)}
                 maxLength={300}
               />
-              <div style={{fontSize:11,color:"rgba(26,26,24,0.3)",textAlign:"right",marginTop:4}}>
+              <div style={{fontSize:11,color:"#808098",textAlign:"right",marginTop:4}}>
                 {message.length}/300
               </div>
             </div>
@@ -325,7 +325,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
               style={{
                 width:"100%", marginTop:10, padding:"12px",
                 background:"none", border:"none",
-                fontSize:14, color:"rgba(26,26,24,0.42)",
+                fontSize:14, color:"#55556B",
                 cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
               }}>
               Abbrechen
@@ -484,7 +484,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           background:"rgba(26,26,24,0.12)",
           margin:"0 auto 18px",
         }}/>
-        <div style={{fontSize:15, fontWeight: 600, color:"rgba(26,26,24,0.55)", marginBottom:18, textAlign:"center"}}>
+        <div style={{fontSize:15, fontWeight: 600, color:"#55556B", marginBottom:18, textAlign:"center"}}>
           {profile?.display_name || t("tpp.kompass.creator")}
         </div>
         <button
@@ -505,7 +505,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
             <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
               {isWatching ? t("tpp.kompass.unwatch") : t("tpp.kompass.watch")}
             </div>
-            <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
+            <div style={{fontSize:12, color:"#55556B", marginTop:1}}>
               {isWatching
                 ? t("tpp.kompass.unwatchDesc")
                 : t("tpp.kompass.watchDesc")}
@@ -528,7 +528,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
             <div style={{fontSize:14, fontWeight: 600, color:"#1a1a18"}}>
               {t("tpp.kompass.support")}
             </div>
-            <div style={{fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:1}}>
+            <div style={{fontSize:12, color:"#55556B", marginTop:1}}>
               {t("tpp.kompass.supportDesc")}
             </div>
           </div>
@@ -539,7 +539,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
             width:"100%", padding:"14px",
             background:"rgba(26,26,24,0.05)",
             border:"none", borderRadius:14,
-            fontSize:14, fontWeight:600, color:"rgba(26,26,24,0.55)",
+            fontSize:14, fontWeight:600, color:"#55556B",
             cursor:"pointer", fontFamily:"inherit", touchAction:"manipulation",
           }}
         >
@@ -705,7 +705,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
         {/* Untertext: Beobachter-Status */}
         {isWatching && !isAccepted && (
           <div style={{
-            textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
+            textAlign:"center", fontSize:12, color:"#55556B",
             letterSpacing:"0.01em",
           }}>
             {t("tpp.watch.title")}
@@ -1039,7 +1039,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
         {/* ── Untertext: Beobachter-Status ── */}
         {isWatching && !isAccepted && (
           <div style={{
-            textAlign:"center", fontSize:12, color:"rgba(26,26,24,0.42)",
+            textAlign:"center", fontSize:12, color:"#55556B",
             letterSpacing:"0.01em",
           }}>
             {t("tpp.watch.title")}

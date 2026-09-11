@@ -287,7 +287,7 @@ function PillarDisplay({ labels, color }) {
     }}>
       <p style={{
         fontSize: 11,
-        color: 'rgba(20,20,34,0.45)',
+        color: '#55556B',
         fontWeight: 500,
         letterSpacing: '0.04em',
         margin: 0,

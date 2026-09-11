@@ -46,12 +46,16 @@ const INP = {
 };
 
 function Lbl({ text, req, hint }) {
+  // TALENT-LABEL-CONTRAST-001 (2026-09-11): Label war 12px @3.83:1, Hint war
+  // 11px @2.18:1 (lokale Ink-Alpha-Werte, nie an CONTRAST-001 angeschlossen —
+  // gleicher Root Cause wie DISCOVER-CONTRAST-002). Jetzt HUI.COLOR.muted
+  // (#55556B, 6.78:1, WCAG AA) + je 1px größer für bessere Lesbarkeit.
   return (
     <div style={{ marginBottom: 6 }}>
-      <span style={{ fontSize: 12, fontWeight: 600, color: C.inkMid }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: HUI.COLOR.muted }}>
         {text}{req && <span style={{ color: C.teal, marginLeft: 2 }}>*</span>}
       </span>
-      {hint && <div style={{ fontSize: 11, color: C.inkFade, marginTop: 2 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 12.5, color: HUI.COLOR.muted, marginTop: 3, lineHeight: 1.4 }}>{hint}</div>}
     </div>
   );
 }
@@ -577,7 +581,7 @@ export default function TalentAngebotWizard({ userId, existingTalent = null, onC
               onChange={e => setPricePerSession(e.target.value)} placeholder="—"
               style={{ ...INP, marginBottom: 14, background: locked ? "#f5f5f3" : "#fff" }}/>
 
-            <div style={{ fontSize: 11, color: C.inkFade }}>{t("taw.currency")}</div>
+            <div style={{ fontSize: 12.5, color: HUI.COLOR.muted }}>{t("taw.currency")}</div>
           </>
         )}
 

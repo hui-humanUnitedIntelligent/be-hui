@@ -36,7 +36,7 @@ export function GemeinschaftsKarte({ onJoin }) {
         </h3>
 
         <p style={{
-          fontSize:14, lineHeight:1.72, color:"rgba(26,26,24,0.58)",
+          fontSize:14, lineHeight:1.72, color:"#55556B",
           margin:"0 0 20px",
         }}>
           {t("community.body")}
@@ -115,7 +115,7 @@ export function TalentWerdenBanner({ onStart = () => {} }) {
               {t("talentBanner.title")}
             </div>
             <div style={{
-              fontSize: 13, color: 'rgba(26,26,24,0.58)',
+              fontSize: 13, color: '#55556B',
               lineHeight: 1.65, marginBottom: 16,
             }}>
               {t("talentBanner.body")}

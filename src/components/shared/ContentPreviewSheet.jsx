@@ -500,7 +500,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
               {item.type === "work" && item._raw?.stock_available != null && item._raw.stock_available <= 0 && (
                 <div style={{
                   width:"100%", marginBottom:12, padding:"12px 14px", borderRadius:12,
-                  background:"rgba(26,26,46,0.05)", color:"rgba(26,26,46,0.5)",
+                  background:"rgba(26,26,46,0.05)", color:"#55556B",
                   fontSize:14, fontWeight:600, textAlign:"center",
                   display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                 }}>
@@ -590,7 +590,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                     if (tFull) return (
                       <div style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,
-                        background:"rgba(26,26,46,0.05)", color:"rgba(26,26,46,0.45)",
+                        background:"rgba(26,26,46,0.05)", color:"#55556B",
                         fontSize:15, fontWeight:600, textAlign:"center", border:"none",
                         display:"flex", alignItems:"center", justifyContent:"center", gap:6,
                       }}>

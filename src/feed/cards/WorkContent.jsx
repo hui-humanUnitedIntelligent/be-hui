@@ -111,7 +111,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
               }}>{t("feed.variantsAvailable", {count: variants.length})}</div>
               {variants.map((v, i) => (
                 <div key={v.id || i} style={{
-                  fontSize: 11.5, color: "rgba(26,26,46,0.55)",
+                  fontSize: 11.5, color: "#55556B",
                   lineHeight: 1.6, display: "flex", alignItems: "center", gap: 4,
                 }}>
                   <span style={{ fontWeight: 600, color: INK }}>{v.name}</span>
@@ -196,7 +196,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           {onBuyWerk && !isBuyable && priceStr && (
             <span style={{
               flexShrink:0,
-              fontSize:10.5, fontWeight: 600, color:"rgba(26,26,46,0.35)",
+              fontSize:10.5, fontWeight: 600, color:"#808098",
               background:"rgba(26,26,46,0.06)",
               border:"1px solid rgba(26,26,46,0.12)",
               borderRadius:99, padding:"5px 12px",

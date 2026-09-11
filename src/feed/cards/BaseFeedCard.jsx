@@ -402,7 +402,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
                   <path d="M4.5 0C2.294 0 .5 1.794.5 4C.5 7.09 4.5 12 4.5 12S8.5 7.09 8.5 4C8.5 1.794 6.706 0 4.5 0ZM4.5 5.5C3.67 5.5 3 4.83 3 4C3 3.17 3.67 2.5 4.5 2.5C5.33 2.5 6 3.17 6 4C6 4.83 5.33 5.5 4.5 5.5Z" fill="#F47355"/>
                 </svg>
                 <span style={{
-                  fontSize:12, color:"rgba(26,26,46,0.55)", fontWeight:400,
+                  fontSize:12, color:"#55556B", fontWeight:400,
                   overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
                 }}>{loc}</span>
               </div>
@@ -413,7 +413,7 @@ export const HumanHeader = memo(function HumanHeader({ item, onProfile }) {
         {/* Zeit + ⋮ */}
         <div style={{ display:"flex", alignItems:"center", gap:5, flexShrink:0, paddingTop:2 }}>
           {timeStr && (
-            <span style={{ fontSize:12, color:"rgba(26,26,46,0.36)", fontWeight:400, whiteSpace:"nowrap" }}>
+            <span style={{ fontSize:12, color:"#808098", fontWeight:400, whiteSpace:"nowrap" }}>
               {timeStr}
             </span>
           )}
@@ -1068,7 +1068,7 @@ export const FeedActions = memo(function FeedActions({
         <div style={{
           padding:"0 " + T.p + "px 11px",
         }}>
-          <span style={{ fontSize:12, color:"rgba(26,26,46,0.50)", fontWeight:400 }}>
+          <span style={{ fontSize:12, color:"#55556B", fontWeight:400 }}>
             {resonanz}
           </span>
         </div>

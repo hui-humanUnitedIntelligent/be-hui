@@ -95,7 +95,7 @@ export default function VariantEditor({ variants = [], onChange = () => {} }) {
         </div>
       </div>
 
-      <div style={{ fontSize: 12, color: "rgba(26,26,46,0.5)", marginBottom: 14, lineHeight: 1.5 }}>
+      <div style={{ fontSize: 12, color: "#55556B", marginBottom: 14, lineHeight: 1.5 }}>
         Jede Variante hat eigenen Bestand und Preis. Käufer wählen beim Kauf.
       </div>
 

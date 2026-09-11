@@ -307,7 +307,7 @@ function DankeScreen({ items = [], impact = 0, total = 0, huiTotal = 0, onDiscov
               style={{
                 width: 26, height: 26, borderRadius: "50%",
                 border: "none", background: "rgba(20,20,34,0.06)",
-                color: "rgba(20,20,34,0.45)", fontSize: 14,
+                color: "#55556B", fontSize: 14,
                 cursor: "pointer", flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 WebkitTapHighlightColor: "transparent",

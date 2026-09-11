@@ -115,7 +115,7 @@ export default function AvailabilityCalendar({
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3, marginBottom: 4 }}>
         {WEEKDAYS.map(w => (
-          <div key={w} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 600, color: "rgba(26,26,24,0.35)" }}>
+          <div key={w} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 600, color: "#808098" }}>
             {w}
           </div>
         ))}
@@ -154,7 +154,7 @@ export default function AvailabilityCalendar({
             available: { bg: "rgba(14,196,184,0.10)", color: "#0EC4B8", border: "rgba(14,196,184,0.35)", fw: 600 },
             pickable:  { bg: "#fff", color: "#1A1A18", border: "rgba(26,26,24,0.12)", fw: 500 },
             full:      { bg: "rgba(232,58,58,0.06)", color: "rgba(232,58,58,0.55)", border: "rgba(232,58,58,0.15)", fw: 500, strike: true },
-            muted:     { bg: "transparent", color: "rgba(26,26,24,0.20)", border: "transparent", fw: 400 },
+            muted:     { bg: "transparent", color: "#808098", border: "transparent", fw: 400 },
             disabled:  { bg: "transparent", color: "rgba(26,26,24,0.16)", border: "transparent", fw: 400 },
           }[state];
 
@@ -197,7 +197,7 @@ function Legend({ swatch, border, label }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
       <span style={{ width: 11, height: 11, borderRadius: 4, background: swatch, border: `1.5px solid ${border}` }} />
-      <span style={{ fontSize: 11, color: "rgba(26,26,24,0.45)" }}>{label}</span>
+      <span style={{ fontSize: 11, color: "#55556B" }}>{label}</span>
     </div>
   );
 }

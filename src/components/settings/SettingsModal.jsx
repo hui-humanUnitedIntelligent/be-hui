@@ -772,7 +772,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
                 <p style={{ fontSize:15, fontWeight:600, color:"#1A1A18", margin:"0 0 4px", lineHeight:1.45 }}>
                   {t("sm.tutorial.body")}
                 </p>
-                <p style={{ fontSize:13, fontWeight:400, color:"rgba(26,26,24,0.6)", margin:"0 0 20px", lineHeight:1.45 }}>
+                <p style={{ fontSize:13, fontWeight:400, color:"#55556B", margin:"0 0 20px", lineHeight:1.45 }}>
                   {t("sm.tutorial.hint")}
                 </p>
                 <div style={{ display:"flex", gap:10 }}>
@@ -1326,7 +1326,7 @@ function OTAUpdateSection() {
         <div style={{
           marginTop: 10, padding: "10px 14px", borderRadius: 10,
           background: "rgba(26,26,24,0.04)", fontSize: 12,
-          color: "rgba(26,26,24,0.45)", textAlign: "center",
+          color: "#55556B", textAlign: "center",
         }}>
           {t("sm.ota.latest", { current: result.current })}
         </div>

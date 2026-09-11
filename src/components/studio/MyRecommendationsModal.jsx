@@ -109,7 +109,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
             <div style={{ fontSize:18, fontWeight: 600, color:"#1A1A18", letterSpacing:"-0.02em" }}>
               {t("meinBereich.myRecommendations")}
             </div>
-            <div style={{ fontSize:12, color:"rgba(26,26,24,0.45)", marginTop:2 }}>
+            <div style={{ fontSize:12, color:"#55556B", marginTop:2 }}>
               {items.length === 0 ? t("rec.noneWritten") : items.length === 1 ? t("rec.countWritten", {count: items.length}) : t("rec.countWrittenPlural", {count: items.length})}
             </div>
           </div>
@@ -123,7 +123,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
         {/* Liste */}
         <div style={{ overflowY:"auto", WebkitOverflowScrolling:"touch", flex:1, padding:"12px 16px" }}>
           {loading ? (
-            <div style={{ textAlign:"center", padding:"40px 0", color:"rgba(26,26,24,0.4)", fontSize:13 }}>
+            <div style={{ textAlign:"center", padding:"40px 0", color:"#808098", fontSize:13 }}>
               {t("rec.loading")}
             </div>
           ) : items.length === 0 ? (
@@ -134,7 +134,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
               <div style={{ fontSize:15, fontWeight:600, color:"#1A1A18", marginBottom:6 }}>
                 {t("rec.noneWritten")}
               </div>
-              <div style={{ fontSize:13, color:"rgba(26,26,24,0.45)", lineHeight:1.5 }}>
+              <div style={{ fontSize:13, color:"#55556B", lineHeight:1.5 }}>
                 {t("profile.recommendationExplain")}
               </div>
             </div>
@@ -172,7 +172,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
                         <div style={{ fontSize:14, fontWeight:600, color:"#1A1A18" }}>
                           {p.name || "Mitglied"}
                         </div>
-                        <div style={{ fontSize:11, color:"rgba(26,26,24,0.4)", flexShrink:0 }}>
+                        <div style={{ fontSize:11, color:"#808098", flexShrink:0 }}>
                           {timeAgo(item.created_at, t)}
                         </div>
                       </div>

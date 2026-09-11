@@ -89,7 +89,7 @@ function RouteFallback({ fallbackTitle, onRetry, errorMsg, errorStack }) {
       </div>
       {errorMsg && (
         <div style={{
-          fontSize: 12, color: 'rgba(26,26,46,0.45)',
+          fontSize: 12, color: '#55556B',
           background: 'rgba(232,58,58,0.06)', borderRadius: 8,
           padding: '8px 12px', maxWidth: 400, wordBreak: 'break-word',
           fontFamily: 'monospace', lineHeight: 1.5,
@@ -101,7 +101,7 @@ function RouteFallback({ fallbackTitle, onRetry, errorMsg, errorStack }) {
         <details style={{ maxWidth: 600, width: '100%' }}>
           <summary style={{ fontSize: 11, color: C.muted, cursor: 'pointer' }}>Stack-Trace anzeigen</summary>
           <pre style={{
-            fontSize: 10, color: 'rgba(26,26,46,0.6)',
+            fontSize: 10, color: '#55556B',
             background: 'rgba(0,0,0,0.03)', borderRadius: 8,
             padding: '8px 12px', overflow: 'auto', maxHeight: 300,
             fontFamily: 'monospace', lineHeight: 1.4, whiteSpace: 'pre-wrap',

@@ -349,7 +349,7 @@ export default function CreatorStudio() {
 
         {/* Sanfte untere Notiz */}
         <div style={{ textAlign:"center", padding:"8px 0 8px",
-          fontSize:11, color:"rgba(0,0,0,0.20)", fontWeight:500,
+          fontSize:11, color:"#808098", fontWeight:500,
           animation:`huiFadeIn ${TRANSITIONS.slow} 0.4s both` }}>
           {t("studio.bottomNote")}
         </div>

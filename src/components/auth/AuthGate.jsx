@@ -139,7 +139,7 @@ function AuthModal({ action, onClose, onConfirm }) {
               <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8,letterSpacing:-0.4}}>
                 {action ? t("auth.needAccount", {action}) : t("auth.pleaseLogin")}
               </div>
-              <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.6}}>
+              <div style={{fontSize:14,color:"#55556B",lineHeight:1.6}}>
                 {t("auth.joinCommunity")}
               </div>
             </div>
@@ -159,7 +159,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                 cursor:"pointer",touchAction:"manipulation",
               }}>{t("auth.registerNew")}</button>
               <button onClick={onClose} style={{
-                background:"none",border:"none",color:"rgba(26,26,46,0.35)",
+                background:"none",border:"none",color:"#55556B",
                 fontSize:13,cursor:"pointer",textDecoration:"underline",
                 touchAction:"manipulation",marginTop:4,
               }}>{t("auth.notNow")}</button>
@@ -171,7 +171,7 @@ function AuthModal({ action, onClose, onConfirm }) {
           <>
             <div style={{marginBottom:20}}>
               <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}> {t("auth.welcomeBack")} </div>
-              <div style={{fontSize:13,color:"rgba(26,26,46,0.45)",marginTop:4}}>
+              <div style={{fontSize:13,color:"#55556B",marginTop:4}}>
                 {t("auth.loginWithEmail")}
               </div>
             </div>
@@ -201,7 +201,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                   cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
                 }}>{t("auth.forgotPassword")}</button>
                 <button type="button" onClick={() => { setMode("signup"); setErr(null); }} style={{
-                  background:"none",border:"none",color:"rgba(26,26,46,0.4)",fontSize:12.5,
+                  background:"none",border:"none",color:"#808098",fontSize:12.5,
                   cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
                 }}>{t("auth.noAccountYet")}</button>
               </div>
@@ -213,7 +213,7 @@ function AuthModal({ action, onClose, onConfirm }) {
           <>
             <div style={{marginBottom:20}}>
               <div style={{fontSize:20,fontWeight: 600,color:INK,letterSpacing:-0.4}}> {t("auth.joinNow")} </div>
-              <div style={{fontSize:13,color:"rgba(26,26,46,0.45)",marginTop:4}}>
+              <div style={{fontSize:13,color:"#55556B",marginTop:4}}>
                 {t("auth.freeQuick")}
               </div>
             </div>
@@ -242,7 +242,7 @@ function AuthModal({ action, onClose, onConfirm }) {
                 cursor:busy?"default":"pointer",touchAction:"manipulation",marginTop:4,
               }}>{busy ? t("auth.signingUp") : t("auth.registerCta")}</button>
               <button type="button" onClick={() => { setMode("login"); setErr(null); }} style={{
-                background:"none",border:"none",color:"rgba(26,26,46,0.4)",fontSize:12.5,
+                background:"none",border:"none",color:"#808098",fontSize:12.5,
                 cursor:"pointer",textDecoration:"underline",touchAction:"manipulation",
               }}>{t("auth.alreadyHaveAccount")}</button>
             </form>
@@ -253,7 +253,7 @@ function AuthModal({ action, onClose, onConfirm }) {
           <div style={{textAlign:"center",padding:"12px 0"}}>
             <div style={{marginBottom:16, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)"}}><HUIMailIcon size={48}/></div>
             <div style={{fontSize:20,fontWeight: 600,color:INK,marginBottom:8}}> {t("auth.confirmEmail")} </div>
-            <div style={{fontSize:14,color:"rgba(26,26,46,0.5)",lineHeight:1.7}}>
+            <div style={{fontSize:14,color:"#55556B",lineHeight:1.7}}>
               {t("auth.verificationSent")}<br/>
               {t("auth.checkInbox")}
             </div>

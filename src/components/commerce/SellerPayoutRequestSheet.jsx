@@ -63,7 +63,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <div style={{ display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.7)" }}><HUIDateiIcon size={48}/></div>
               <div style={{ fontSize: 18, fontWeight: 600, color: '#1A1A2E', marginTop: 12 }}>Antrag gestellt</div>
-              <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.55)', marginTop: 8, lineHeight: 1.6 }}>
+              <div style={{ fontSize: 14, color: '#55556B', marginTop: 8, lineHeight: 1.6 }}>
                 HUI pr\u00fcft deinen Antrag und meldet sich bei dir. Die Auszahlung erfolgt nach Pr\u00fcfung.
               </div>
             </div>
@@ -74,7 +74,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
               <div style={{ fontSize: 17, fontWeight: 600, color: '#1A1A2E', marginBottom: 8 }}>
                 {item.title || item.work_title || item.talent_title || t('sps.defaultTitle')}
               </div>
-              <div style={{ fontSize: 14, color: 'rgba(26,26,46,0.6)', lineHeight: 1.6, marginBottom: 16 }}>
+              <div style={{ fontSize: 14, color: '#55556B', lineHeight: 1.6, marginBottom: 16 }}>
                 {t('sps.desc')}
               </div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#1A1A2E', marginBottom: 8 }}>
@@ -104,7 +104,7 @@ export default function SellerPayoutRequestSheet({ item, onClose = () => {}, onS
             <button onClick={() => onClose?.()} disabled={loading}
               style={{ flex: 1, background: 'transparent', border: '1.5px solid rgba(26,26,46,0.15)',
                 borderRadius: 14, padding: '13px 0', fontSize: 14, fontWeight: 600,
-                color: 'rgba(26,26,46,0.55)', cursor: 'pointer', touchAction: 'manipulation' }}>
+                color: '#55556B', cursor: 'pointer', touchAction: 'manipulation' }}>
               Abbrechen
             </button>
             <button onClick={handleRequest} disabled={loading || !note.trim()}

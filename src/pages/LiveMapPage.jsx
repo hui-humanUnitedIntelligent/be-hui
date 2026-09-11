@@ -547,7 +547,7 @@ function InfoCard({ pin, onClose, onView }) {
             {t(`lm.pin.${pin.id}.talent`) || t(`lm.pin.${pin.id}.creator`)}
           </div>
         )}
-        <div style={{ fontSize:12, color:"rgba(26,26,46,0.5)", marginBottom:10 }}>
+        <div style={{ fontSize:12, color:"#55556B", marginBottom:10 }}>
           📍 {CITY_MAP[pin.city] || pin.city}, {COUNTRY_MAP[pin.country] || pin.country}
         </div>
         {pin.bio && (
@@ -561,11 +561,11 @@ function InfoCard({ pin, onClose, onView }) {
           <div style={{ display:"flex", gap:12, marginBottom:12 }}>
             <div style={{ textAlign:"center" }}>
               <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>{pin.recs}</div>
-              <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>{t("lm.recs")}</div>
+              <div style={{ fontSize:10, color:"#55556B" }}>{t("lm.recs")}</div>
             </div>
             <div style={{ textAlign:"center" }}>
               <div style={{ fontSize:16, fontWeight: 600, color:C.ink }}>{pin.hourly} €/h</div>
-              <div style={{ fontSize:10, color:"rgba(26,26,46,0.45)" }}>{t("lm.hourly")}</div>
+              <div style={{ fontSize:10, color:"#55556B" }}>{t("lm.hourly")}</div>
             </div>
             <div style={{ textAlign:"center" }}>
               <div style={{
@@ -585,7 +585,7 @@ function InfoCard({ pin, onClose, onView }) {
               padding:"4px 10px", borderRadius:10,
             }}>{pin.price} €</div>
             {pin.duration && (
-              <div style={{ fontSize:12, color:"rgba(26,26,46,0.5)" }}>⏱ {pin.duration}</div>
+              <div style={{ fontSize:12, color:"#55556B" }}>⏱ {pin.duration}</div>
             )}
             {pin.category && (
               <div style={{ fontSize:11, color:col, background:`${col}18`, padding:"3px 8px", borderRadius:8 }}>
@@ -598,7 +598,7 @@ function InfoCard({ pin, onClose, onView }) {
           <div style={{ marginBottom:12 }}>
             <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
               <span style={{ fontSize:12, fontWeight: 600, color:C.ink }}>{pin.raised?.toLocaleString("de")} €</span>
-              <span style={{ fontSize:12, color:"rgba(26,26,46,0.4)" }}>{t("lm.goal", { amount: pin.goal?.toLocaleString("de") })}</span>
+              <span style={{ fontSize:12, color:"#808098" }}>{t("lm.goal", { amount: pin.goal?.toLocaleString("de") })}</span>
             </div>
             <div style={{ height:6, borderRadius:3, background:"rgba(0,0,0,0.07)", overflow:"hidden" }}>
               <div style={{

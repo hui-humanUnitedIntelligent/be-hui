@@ -185,7 +185,7 @@ const BirthdatePickerField = ({
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
               <div style={{ fontSize: 16.5, fontWeight: 700, color: C.ink, letterSpacing: "-0.02em" }}>{t(titleKey)}</div>
               <button type="button" onClick={() => setOpen(false)} aria-label="✕"
-                style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "rgba(20,20,30,0.06)", color: "rgba(20,20,30,0.5)", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>✕</button>
+                style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "rgba(20,20,30,0.06)", color: "#55556B", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>✕</button>
             </div>
 
             {/* ── 1) JAHR — große Stepper (48px Touch-Fläche, sofort sichtbar) ── */}
@@ -197,7 +197,7 @@ const BirthdatePickerField = ({
               <button type="button" onClick={() => setSelY(clampYear(selY + 1))} aria-label="›"
                 style={{ width: 48, height: 48, borderRadius: 14, background: C.tealSoft, border: "none", fontSize: 22, fontWeight: 700, color: C.teal, cursor: "pointer", flexShrink: 0, fontFamily: "inherit" }}>›</button>
             </div>
-            <div style={{ fontSize: 11, color: "rgba(20,20,30,0.55)", textAlign: "center", marginTop: 6 }}>{t("datepicker.yearHint")}</div>
+            <div style={{ fontSize: 11, color: "#55556B", textAlign: "center", marginTop: 6 }}>{t("datepicker.yearHint")}</div>
 
             {/* ── 2) MONAT — 12 Kacheln (4×3) ── */}
             <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: C.ink3, margin: "14px 0 8px" }}>{t("datepicker.month")}</div>

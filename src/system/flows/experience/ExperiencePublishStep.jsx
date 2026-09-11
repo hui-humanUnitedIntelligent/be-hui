@@ -93,7 +93,7 @@ function ExperiencePreviewCard({ form, mediaFiles, profile }) {
             flexDirection:"column", gap:8,
           }}>
             <div style={{ fontSize:40 }}>✨</div>
-            <div style={{ fontSize:12, color:"rgba(26,26,46,0.30)" }}>
+            <div style={{ fontSize:12, color:"#808098" }}>
               Kein Bild — wird automatisch generiert
             </div>
           </div>

@@ -761,7 +761,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
         <p style={{
           fontSize: 14.5,
           lineHeight: 1.72,
-          color: "rgba(26,53,48,0.62)",
+          color: "#55556B",
           margin: "0 0 24px",
         }}>
           {t("orbLocked.body1")}
@@ -803,7 +803,7 @@ function OrbLockedDialog({ onJoin, onClose }) {
             width: "100%",
             padding: "13px 20px",
             background: "transparent",
-            color: "rgba(26,53,48,0.48)",
+            color: "#55556B",
             border: "none",
             borderRadius: 99,
             fontSize: 14,

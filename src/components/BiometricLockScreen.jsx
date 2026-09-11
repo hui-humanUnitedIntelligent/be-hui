@@ -178,7 +178,7 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
 
       {/* Subtext */}
       <p style={{
-        fontSize: 14, color: 'rgba(26,26,46,0.5)',
+        fontSize: 14, color: '#55556B',
         marginBottom: 32, textAlign: 'center', lineHeight: 1.5, margin: 0,
       }}>
         {mode === 'biometric'
@@ -274,7 +274,7 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
               aria-label="Backspace"
               style={{
                 padding: '16px 0', borderRadius: 16, border: 'none',
-                background: 'none', color: 'rgba(26,26,46,0.5)',
+                background: 'none', color: '#55556B',
                 fontSize: 18, fontWeight: 600,
                 cursor: 'pointer', touchAction: 'manipulation',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -327,7 +327,7 @@ export function BiometricLockScreen({ onUnlock, onLogout }) {
         style={{
           marginTop: 40,
           background: 'none', border: 'none',
-          color: 'rgba(26,26,46,0.35)', fontSize: 13,
+          color: '#808098', fontSize: 13,
           cursor: 'pointer', textDecoration: 'underline',
           touchAction: 'manipulation',
         }}

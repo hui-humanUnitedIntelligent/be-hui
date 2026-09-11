@@ -153,7 +153,7 @@ function DateTimeRow({ date, time, onDate, onTime }) {
           <span style={{
             position:"absolute", right:11, top:"50%",
             transform:"translateY(-50%)", fontSize:11,
-            color:"rgba(80,80,80,0.45)", pointerEvents:"none",
+            color:"#55556B", pointerEvents:"none",
           }}>▾</span>
         </div>
       </div>
@@ -180,7 +180,7 @@ function DateTimeRow({ date, time, onDate, onTime }) {
           <span style={{
             position:"absolute", right:11, top:"50%",
             transform:"translateY(-50%)", fontSize:11,
-            color:"rgba(80,80,80,0.45)", pointerEvents:"none",
+            color:"#55556B", pointerEvents:"none",
           }}>▾</span>
         </div>
       </div>

@@ -150,7 +150,7 @@ function ListPanel({ onClose, onOpen, chats, loading, onDiscoverClose, onCompose
               <div style={{ fontSize:13.5, fontWeight: 600, color:"#1a1a18" }}>
                 {t("chat.startConversationWith", { name: pendingRecipient.display_name || t("chat.thisTalent") })}
               </div>
-              <div style={{ fontSize:12, color:"rgba(80,80,80,0.6)", marginTop:2 }}>
+              <div style={{ fontSize:12, color:"#55556B", marginTop:2 }}>
                 {t("chat.tapToWrite")}
               </div>
             </div>

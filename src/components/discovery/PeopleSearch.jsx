@@ -83,7 +83,7 @@ function PersonCard({ person, onOpenProfile, onOpenChat }) {
             }}>WIRKER</span>
           )}
           {followStatus?.isFollowing && (
-            <span style={{ fontSize: 10, color: "rgba(80,80,80,0.40)", flexShrink: 0 }}>
+            <span style={{ fontSize: 10, color: "#808098", flexShrink: 0 }}>
               · folgst du
             </span>
           )}
@@ -95,7 +95,7 @@ function PersonCard({ person, onOpenProfile, onOpenChat }) {
         )}
         {(person.bio || person.location) && (
           <div style={{
-            fontSize: 12, color: "rgba(80,80,80,0.52)",
+            fontSize: 12, color: "#55556B",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {person.bio || (person.location ? `📍 ${person.location}` : "")}
@@ -209,7 +209,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
             <div style={{ fontSize: 20, fontWeight: 600, color: C.ink, letterSpacing: -0.4 }}>
               Menschen finden
             </div>
-            <div style={{ fontSize: 12, color: "rgba(80,80,80,0.45)", marginTop: 1 }}>
+            <div style={{ fontSize: 12, color: "#55556B", marginTop: 1 }}>
               {showResults
                 ? `${results.length} Ergebnis${results.length !== 1 ? "se" : ""}`
                 : "Wirker, Creator, Gestalter"}
@@ -241,7 +241,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
           {query && (
             <button onClick={() => setQuery("")} style={{
               background: "none", border: "none", cursor: "pointer",
-              color: "rgba(80,80,80,0.40)", fontSize: 20, lineHeight: 1, padding: 0,
+              color: "#55556B", fontSize: 20, lineHeight: 1, padding: 0,
             }}>×</button>
           )}
         </div>
@@ -249,7 +249,7 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
         {!showResults && (
           <div style={{
             fontSize: 11, fontWeight: 600, letterSpacing: 0.8,
-            color: "rgba(80,80,80,0.35)", textTransform: "uppercase",
+            color: "#808098", textTransform: "uppercase",
             marginBottom: 10,
           }}>Aktive Creator</div>
         )}
@@ -261,12 +261,12 @@ export default function PeopleSearch({ onClose, onOpenProfile, onOpenChat }) {
         {!isLoading && displayList.length === 0 && showResults && (
           <div style={{
             padding: "48px 32px", display: "flex", flexDirection: "column",
-            alignItems: "center", gap: 12, color: "rgba(80,80,80,0.35)",
+            alignItems: "center", gap: 12, color: "#808098",
           }}>
             <div style={{ fontSize: 32 }}>✦</div>
             <div style={{ fontSize: 14, textAlign: "center", lineHeight: 1.6 }}>
               Niemand gefunden.<br/>
-              <span style={{ fontSize: 12, color: "rgba(80,80,80,0.28)" }}>
+              <span style={{ fontSize: 12, color: "#808098" }}>
                 Versuch ein Talent oder einen Ort.
               </span>
             </div>

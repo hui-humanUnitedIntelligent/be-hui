@@ -452,7 +452,7 @@ export default function WelcomeOverlay({ onDone, mode = "full" }) {
                 <p style={{
                   margin:       0,
                   fontSize:     13,
-                  color:        "rgba(58,58,85,0.6)",
+                  color:        "#55556B",
                   lineHeight:   1.45,
                   letterSpacing: "-0.005em",
                 }}>

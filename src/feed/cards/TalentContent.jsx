@@ -140,7 +140,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
         {isFullyBooked ? (
           <span style={{
             flexShrink:0,
-            fontSize:10.5, fontWeight: 600, color:"rgba(26,26,46,0.35)",
+            fontSize:10.5, fontWeight: 600, color:"#808098",
             background:"rgba(26,26,46,0.06)",
             border:"1px solid rgba(26,26,46,0.12)",
             borderRadius:99, padding:"9px 18px",
