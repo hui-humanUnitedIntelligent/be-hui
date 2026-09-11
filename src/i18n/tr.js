@@ -4380,7 +4380,7 @@ export default {
   'rec.countWrittenPlural': '{count} öneri yazıldı',
   'rec.loading': 'Öneriler yükleniyor…',
   'comment.title': 'Yorumlar ve istekler',
-  'comment.placeholder': 'Yeteneğe yorum yap ve/veya soru sor',
+  'comment.placeholder': 'Yorum veya soru…',
   'comment.empty': 'Henüz yorum yok.',
   'comment.emptyHint': 'Düşüncelerini paylaşan ilk kişi ol.',
   'comment.deleteConfirm': 'Bu yorum silinsin mi?',

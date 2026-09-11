@@ -4380,7 +4380,7 @@ export default {
   'rec.countWrittenPlural': '{count} rekomandime të shkruara',
   'rec.loading': 'Po ngarkohen rekomandimet…',
   'comment.title': 'Komente dhe kërkesa',
-  'comment.placeholder': 'Komento dhe/ose bëj pyetje talentit',
+  'comment.placeholder': 'Koment ose pyetje…',
   'comment.empty': 'Asnjë koment ende.',
   'comment.emptyHint': 'Bëhu i pari që ndan mendimet e tua.',
   'comment.deleteConfirm': 'Të fshihet ky koment?',

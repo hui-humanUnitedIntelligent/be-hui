@@ -4380,7 +4380,7 @@ export default {
   'rec.countWrittenPlural': '{count} recomendações escritas',
   'rec.loading': 'A carregar recomendações…',
   'comment.title': 'Comentários e pedidos',
-  'comment.placeholder': 'Comenta e/ou faz perguntas ao talento',
+  'comment.placeholder': 'Comentário ou pergunta…',
   'comment.empty': 'Ainda sem comentários.',
   'comment.emptyHint': 'Sê o primeiro a partilhar os teus pensamentos.',
   'comment.deleteConfirm': 'Eliminar este comentário?',

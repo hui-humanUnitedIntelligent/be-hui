@@ -105,7 +105,21 @@ const CSS = `
   .cs-btn { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
     border:none; background:none; font-family:inherit; transition:opacity .14s, transform .14s; }
   .cs-btn:active { opacity:.6; transform:scale(0.96); }
-  .cs-textarea::placeholder { color: #808098; }
+  /* COMMENT-INPUT-CLIP-001 (2026-09-11, Michael-Report Screenshot):
+     Der lange Kommentar-Platzhalter (44 Zeichen, DE) umbrach in der
+     schmalen Eingabezeile (rows=1, Textarea-Hoehe fix auf ~1 Zeile) auf
+     2 Zeilen -- die zweite Zeile wurde von der Textarea-Bodenkante
+     abgeschnitten (Screenshot bestaetigt, nur die obere Haelfte der 2.
+     Zeile sichtbar). Text in allen 8 Sprachen gekuerzt UND generalisiert
+     (Platzhalter erschien bisher IMMER Talent-spezifisch formuliert,
+     auch bei Werk-/Erlebnis-/Moment-Kommentaren -- bewusst mitgefixter
+     Inhaltsfehler, siehe i18n/*.js comment.placeholder). Zusaetzliches
+     Sicherheitsnetz (falls eine kuenftige Uebersetzung/ein sehr schmales
+     Geraet trotzdem umbricht): Platzhalter-Schriftgroesse 1px kleiner
+     als Eingabetext + min-height auf der Textarea (siehe unten) --
+     selbst ein 2-zeiliger Platzhalter ist dann VOLLSTAENDIG sichtbar
+     statt abgeschnitten. */
+  .cs-textarea::placeholder { color: #808098; font-size: 13px; line-height: 1.3; }
   .cs-emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:2px; }
   .cs-emoji-btn { font-size:22px; padding:5px 3px; border:none; background:none; cursor:pointer; border-radius:8px; text-align:center; transition:background .12s; line-height:1; }
   .cs-emoji-btn:hover { background:rgba(13,196,181,0.12); }
@@ -853,8 +867,11 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
               placeholder={t("comment.placeholder")}
               style={{
                 flex:1, border:`1px solid ${T.border}`, borderRadius:18, padding:"9px 14px",
-                fontSize:14, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
-                maxHeight:100, background:"#fff",
+                fontSize:14, lineHeight:1.35, fontFamily:"inherit", color:T.ink, resize:"none", boxSizing:"border-box",
+                // COMMENT-INPUT-CLIP-001: min-height deckt 2 Platzhalter-Zeilen
+                // vollstaendig ab (Sicherheitsnetz, siehe CSS-Kommentar oben) --
+                // rows=1 alleine reichte nicht, wenn der Platzhalter umbrach.
+                minHeight:38, maxHeight:100, background:"#fff",
               }}
               onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); setShowEmojiPicker(false); handleSubmit(); } }}
               onFocus={() => setShowEmojiPicker(false)}

@@ -4381,7 +4381,7 @@ export default {
   'rec.countWrittenPlural': '{count} recommandations rédigées',
   'rec.loading': 'Chargement des recommandations…',
   'comment.title': 'Commentaires et demandes',
-  'comment.placeholder': 'Commente et/ou pose tes questions au talent',
+  'comment.placeholder': 'Commentaire ou question…',
   'comment.empty': 'Pas encore de commentaires.',
   'comment.emptyHint': 'Sois le premier à partager tes pensées.',
   'comment.deleteConfirm': 'Supprimer ce commentaire ?',
