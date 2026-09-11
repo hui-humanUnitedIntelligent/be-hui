@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geburtsdatum-Picker Vorschau</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, 'Segoe UI', Inter, Roboto, sans-serif; }
+  body { background:#FAF7F2; display:flex; gap:32px; padding:40px; justify-content:center; align-items:flex-start; }
+
+  .phone { width:390px; background:#FAF7F2; border-radius:36px; border:10px solid #14141e; overflow:hidden; box-shadow:0 24px 60px rgba(20,20,30,0.25); flex-shrink:0; }
+  .statusbar { display:flex; justify-content:space-between; padding:10px 22px; font-size:11px; color:#14141e; font-weight:600; }
+
+  .app { position:relative; height:640px; overflow:hidden; }
+  .app-bg { padding:18px 16px; }
+  .app-bg .fake { background:rgba(255,255,255,0.75); border:1px solid rgba(0,0,0,0.06); border-radius:14px; padding:12px 14px; margin-bottom:10px; font-size:12px; color:rgba(20,20,30,0.4); }
+  .fake.tall { height:64px; }
+
+  .overlay { position:absolute; inset:0; background:rgba(20,20,30,0.55); backdrop-filter:blur(2px); display:flex; align-items:flex-end; }
+  .sheet { background:#FDFBF8; width:100%; border-radius:24px 24px 0 0; padding:20px 20px 26px; box-shadow:0 -12px 40px rgba(20,20,30,0.3); }
+
+  .sheet-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .sheet-title { font-size:16.5px; font-weight:700; color:#14141e; letter-spacing:-0.02em; }
+  .close-x { width:28px; height:28px; border-radius:50%; background:rgba(20,20,30,0.06); display:flex; align-items:center; justify-content:center; font-size:13px; color:rgba(20,20,30,0.5); }
+
+  .sec-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgba(20,20,30,0.4); margin:14px 0 8px; }
+
+  /* ── Jahr: große Stepper-Auswahl ── */
+  .year-row { display:flex; align-items:center; justify-content:space-between; background:#FFFFFF; border:1px solid rgba(0,0,0,0.07); border-radius:16px; padding:8px 12px; }
+  .year-btn { width:48px; height:48px; border-radius:14px; background:rgba(13,196,181,0.10); border:none; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#0DC4B5; cursor:pointer; flex-shrink:0; }
+  .year-btn:active { background:rgba(13,196,181,0.22); }
+  .year-val { font-size:34px; font-weight:700; color:#14141e; letter-spacing:-0.02em; text-align:center; flex:1; }
+  .year-sub { font-size:11px; color:rgba(20,20,30,0.35); text-align:center; margin-top:4px; }
+
+  /* ── Monat: 4×3 Chips ── */
+  .month-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .month { padding:9px 0; border-radius:11px; border:1px solid rgba(0,0,0,0.07); background:#FFFFFF; font-size:12.5px; font-weight:600; color:rgba(20,20,30,0.62); text-align:center; cursor:pointer; }
+  .month.sel { background:#0DC4B5; border-color:#0DC4B5; color:#fff; font-weight:700; }
+
+  /* ── Tag: 7×5 Grid ── */
+  .day-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .day { aspect-ratio:1; max-height:38px; border-radius:10px; border:1px solid rgba(0,0,0,0.06); background:#FFFFFF; font-size:12.5px; font-weight:600; color:rgba(20,20,30,0.62); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .day.dim { color:rgba(20,20,30,0.18); }
+  .day.sel { background:#0DC4B5; border-color:#0DC4B5; color:#fff; font-weight:700; }
+
+  .result { margin-top:14px; background:rgba(13,196,181,0.08); border-radius:12px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .result-txt { font-size:13px; color:#14141e; font-weight:600; }
+  .result-age { font-size:11.5px; color:#0DC4B5; font-weight:700; }
+
+  .cta { margin-top:14px; width:100%; padding:15px 0; border-radius:16px; border:none; background:#0DC4B5; color:#fff; font-size:15px; font-weight:700; cursor:pointer; letter-spacing:0.01em; }
+
+  /* ── Anmerkungen ── */
+  .notes { max-width:330px; }
+  .notes h2 { font-size:19px; font-weight:700; color:#14141e; letter-spacing:-0.02em; margin-bottom:6px; }
+  .notes .sub { font-size:13px; color:rgba(20,20,30,0.55); line-height:1.5; margin-bottom:18px; }
+  .note { background:#FFFFFF; border:1px solid rgba(0,0,0,0.07); border-radius:14px; padding:14px 16px; margin-bottom:10px; box-shadow:0 2px 10px rgba(20,20,30,0.05); }
+  .note b { font-size:13px; color:#14141e; display:block; margin-bottom:4px; }
+  .note span { font-size:12.5px; color:rgba(20,20,30,0.6); line-height:1.5; }
+  .note .teal { color:#0DC4B5; font-weight:700; }
+  .badge { display:inline-block; background:rgba(13,196,181,0.12); color:#0DC4B5; font-size:10.5px; font-weight:700; border-radius:99px; padding:3px 9px; margin-bottom:8px; letter-spacing:0.05em; }
+</style>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="statusbar"><span>9:41</span><span>HUI</span></div>
+    <div class="app">
+      <div class="app-bg">
+        <div class="fake tall"></div>
+        <div class="fake tall"></div>
+        <div class="fake">Geburtsdatum *</div>
+      </div>
+
+      <div class="overlay">
+        <div class="sheet">
+          <div class="sheet-head">
+            <div class="sheet-title">Geburtsdatum</div>
+            <div class="close-x">✕</div>
+          </div>
+
+          <!-- JAHR -->
+          <div class="sec-label">Jahr</div>
+          <div class="year-row">
+            <button class="year-btn">‹</button>
+            <div>
+              <div class="year-val">1995</div>
+            </div>
+            <button class="year-btn">›</button>
+          </div>
+          <div class="year-sub">Tippe ‹ › um das Jahr zu wechseln</div>
+
+          <!-- MONAT -->
+          <div class="sec-label">Monat</div>
+          <div class="month-grid">
+            <div class="month">Jan</div><div class="month">Feb</div><div class="month">Mär</div><div class="month">Apr</div>
+            <div class="month">Mai</div><div class="month">Jun</div><div class="month sel">Jul</div><div class="month">Aug</div>
+            <div class="month">Sep</div><div class="month">Okt</div><div class="month">Nov</div><div class="month">Dez</div>
+          </div>
+
+          <!-- TAG -->
+          <div class="sec-label">Tag</div>
+          <div class="day-grid">
+            <div class="day">1</div><div class="day">2</div><div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div>
+            <div class="day">8</div><div class="day">9</div><div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day sel">13</div>
+            <div class="day">14</div><div class="day">15</div><div class="day">16</div><div class="day">17</div><div class="day">18</div><div class="day">19</div>
+            <div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div><div class="day">24</div><div class="day">25</div><div class="day">26</div>
+            <div class="day">27</div><div class="day">28</div><div class="day">29</div><div class="day">30</div><div class="day">31</div><div class="day dim">·</div><div class="day dim">·</div>
+          </div>
+
+          <div class="result">
+            <span class="result-txt">13. Juli 1995</span>
+            <span class="result-age">31 Jahre — OK</span>
+          </div>
+
+          <button class="cta">Fertig</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <h2>Neuer Geburtsdatum-Picker</h2>
+    <div class="sub">Vereinfachte Auswahl statt dem Browser-Datepicker mit dem winzigen „Jahr"-Pfeil oben links. Alles sichtbar, nichts versteckt.</div>
+
+    <div class="note">
+      <span class="badge">SCHRITT 1</span>
+      <b>Jahr zuerst — große ‹ › Tasten</b>
+      <span>Das Jahr steht ganz oben mit fetten, sofort sichtbaren Pfeiltasten (48px Touch-Fläche). <span class="teal">Kein kleines Symbol mehr</span>, das niemand findet.</span>
+    </div>
+
+    <div class="note">
+      <span class="badge">SCHRITT 2</span>
+      <b>Monat darunter als 12 Kacheln</b>
+      <span>Jan–Dez auf einen Blick, aktuelle Wahl in Teal. Schneller Tap statt Dropdown.</span>
+    </div>
+
+    <div class="note">
+      <span class="badge">SCHRITT 3</span>
+      <b>Tag als Zahlen-Grid</b>
+      <span>1–31 als Kacheln. Tage, die es im gewählten Monat nicht gibt (z.B. 30./31. Feb), werden ausgegraut.</span>
+    </div>
+
+    <div class="note">
+      <span class="badge">SICHERHEIT</span>
+      <b>Alters-Check bleibt erhalten</b>
+      <span>Unter dem Ergebnis: Live-Info „31 Jahre — OK". Bei unter 16 bleibt die Registrierung gesperrt (Altersschutz v2.1.577+). Ergebnis wird als YYYY-MM-DD gespeichert — identisch mit dem alten Feld.</span>
+    </div>
+
+    <div class="note">
+      <span class="badge">8 SPRACHEN</span>
+      <b>Komplett übersetzt</b>
+      <span>Monatsnamen, Hinweise und Buttons über das normale i18n-System — kein natives Browser-UI mehr, dessen Sprache nicht zur App passt.</span>
+    </div>
+  </div>
+
+</body>
+</html>
