@@ -12,7 +12,7 @@ const C = {
   coral:  HUI.COLOR.coralStudio,
   cream:  HUI.COLOR.creamStudio,
   ink:    HUI.COLOR.inkStudio,
-  muted:  "rgba(80,80,80,0.55)",
+  muted:  "#55556B",
 };
 
 /* ── Gemeinsamer Sub-Page Wrapper ── */

@@ -17,7 +17,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const T = {
   bg: "#FAF9F7", coral: "#FF4D4D", coralSoft: "rgba(255,77,77,0.10)",
-  ink: "#1A1A18", inkSoft: "rgba(26,26,24,0.55)", border: "rgba(26,26,24,0.10)",
+  ink: "#1A1A18", inkSoft: "#55556B", border: "rgba(26,26,24,0.10)",
   r16: 16, r12: 12, ff: "Inter, system-ui, sans-serif",
 };
 

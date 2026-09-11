@@ -23,8 +23,8 @@ const T = {
   teal:     "#0EC4B8",
   tealDeep: "#0A9E94",
   ink:      "#1A3530",
-  inkSoft:  "rgba(26,53,48,0.55)",
-  inkFaint: "rgba(26,53,48,0.32)",
+  inkSoft:  "#55556B",
+  inkFaint: "#808098",
   border:   "rgba(26,53,48,0.08)",
 };
 

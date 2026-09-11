@@ -69,8 +69,8 @@ const T = {
   green:     "#10B981",
   greenSoft: "rgba(16,185,129,0.10)",
   ink:       "#1A1A18",
-  inkSoft:   "rgba(26,26,24,0.52)",
-  inkFaint:  "rgba(26,26,24,0.32)",
+  inkSoft:   "#55556B",
+  inkFaint:  "#808098",
   border:    "rgba(26,26,24,0.08)",
   r16: 16, r12: 12, r8: 8, r99: 99,
   card: "0 1px 6px rgba(26,26,24,0.07)",
@@ -406,7 +406,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                   />
                   {/* Standort-Icon links */}
                   <span style={{ position:"absolute", left:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
-                    <HUILocationIcon size={15} style={{ color: locationLat ? "#0EC4B8" : "rgba(26,26,24,0.35)" }}/>
+                    <HUILocationIcon size={15} style={{ color: locationLat ? "#0EC4B8" : "#808098" }}/>
                   </span>
                   {/* GPS-Button rechts */}
                   <button onClick={handleGPSLocation} disabled={geoLoading}
@@ -414,7 +414,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                     style={{
                       position:"absolute", right:8, top:"50%", transform:"translateY(-50%)",
                       background:"none", border:"none", cursor:"pointer", padding:4,
-                      color: geoLoading ? "#0EC4B8" : "rgba(26,26,24,0.40)", fontSize:16,
+                      color: geoLoading ? "#0EC4B8" : "#55556B", fontSize:16,
                       display:"flex", alignItems:"center",
                     }}>
                     {geoLoading ? "⏳" : "📍"}

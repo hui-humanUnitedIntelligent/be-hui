@@ -16,7 +16,7 @@ const TEAL       = "#0DC4B5";
 const TEAL_SOFT  = "rgba(13,196,181,0.10)";
 const TEAL_BORD  = "rgba(13,196,181,0.22)";
 const INK        = "#1A1A2E";
-const INK3       = "rgba(26,26,46,0.42)";
+const INK3       = "#55556B";
 
 // ── Melden-Icon (top-level — stabile Referenz für ActionBtn) ─────────────
 // Finger-Icon: "Ich melde das" — Stroke 2px/round wie alle anderen Feed-Icons

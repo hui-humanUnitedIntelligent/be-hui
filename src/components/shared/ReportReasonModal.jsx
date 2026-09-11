@@ -12,7 +12,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const CORAL = "#C47A65";
 const INK   = "#1A1A2E";
-const MUTED = "rgba(26,26,46,0.55)";
+const MUTED = "#55556B";
 const BORDER = "rgba(26,26,46,0.10)";
 
 // ── Melde-Kategorien (SSOT) — Reihenfolge = Anzeige-Reihenfolge ─────────

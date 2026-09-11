@@ -6,7 +6,7 @@ import MessageBubble, { TypingBubble } from "./MessageBubble.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { formatDateDE } from "../../lib/formatters.js";
 
-const C = { teal:HUI.COLOR.teal, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.45)" };
+const C = { teal:HUI.COLOR.teal, ink:HUI.COLOR.ink, muted:"#55556B" };
 
 const CSS = `
   .hui-scroll{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}

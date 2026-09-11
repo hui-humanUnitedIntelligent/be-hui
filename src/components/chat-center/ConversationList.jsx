@@ -10,7 +10,7 @@ import ConversationCard from "./ConversationCard.jsx";
 import { HUI } from "../../design/hui.design.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
-const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.50)" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"#55556B" };
 
 
 // i18n: Konstanten-Array → Funktion die t als Parameter nimmt

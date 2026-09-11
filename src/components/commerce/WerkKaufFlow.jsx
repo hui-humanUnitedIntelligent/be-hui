@@ -271,7 +271,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 5,
                   fontSize: 12, fontWeight: 600,
-                  color: stockAvail > 0 ? TEAL : "rgba(26,26,46,0.35)",
+                  color: stockAvail > 0 ? TEAL : "#55556B",
                   background: stockAvail > 0 ? "rgba(22,215,197,0.08)" : "rgba(26,26,46,0.05)",
                   border: "1px solid rgba(22,215,197,0.18)",
                   borderRadius: 99, padding: "4px 10px", marginBottom: 12,

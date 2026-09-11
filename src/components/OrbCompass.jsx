@@ -14,7 +14,7 @@ const HUI_LOGO = '/assets/brand/hui-logo.png'; // Branding update — lokales As
 const D = {
   ink:      "#1A3530",
   inkTeal:  "#0C5E54",
-  inkSoft:  "rgba(26,53,48,0.56)",
+  inkSoft:  "#55556B",
   teal:     "#0EC4B8",
   tealDeep: "#0D9E94",
   coral:    "#E8573A",

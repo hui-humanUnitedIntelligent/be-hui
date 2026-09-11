@@ -13,8 +13,8 @@ import { useTranslation } from "../hooks/useTranslation.js";
 const TEAL = "#0DC4B5";
 const TEAL_L = "#16D7C5";
 const INK = "#1A3530";
-const INK2 = "rgba(26,53,48,0.58)";
-const MUTED = "rgba(26,53,48,0.32)";
+const INK2 = "#55556B";
+const MUTED = "#808098";
 const LINE = "rgba(26,53,48,0.06)";
 const SURFACE = "#FFFFFF";
 

@@ -40,7 +40,7 @@ const T = {
   purplePale: "#F3EEF9",
   ink:        "#141422",
   inkMid:     "#2E2E45",
-  inkSoft:    "rgba(20,20,34,0.48)",
+  inkSoft:    "#55556B",
   inkFaint:   "rgba(20,20,34,0.18)",
   white:      "#FFFFFF",
 };

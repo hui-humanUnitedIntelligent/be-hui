@@ -26,8 +26,8 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 const T = {
   bgCard:   "#FFFFFF",
   ink:      "#1A1A2E",
-  ink2:     "rgba(26,26,46,0.55)",
-  ink3:     "rgba(26,26,46,0.38)",
+  ink2:     "#55556B",
+  ink3:     "#808098",
   teal:     "#0DC4B5",
   tealSoft: "rgba(13,196,181,0.08)",
   tealLine: "rgba(13,196,181,0.18)",
@@ -117,7 +117,7 @@ const CARD_CSS = `
 .hui-pillar-hint {
   font-size: 10px;
   font-weight: 500;
-  color: rgba(26,26,46,0.37);
+  color: #808098;
   letter-spacing: 0.02em;
   padding: 2px 16px 8px;
   user-select: none;

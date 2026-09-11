@@ -22,7 +22,7 @@ const C = {
   violet2:"#7C3AED",
   peach:  HUI.COLOR.coral,
   ink:    HUI.COLOR.ink,
-  muted:  "rgba(26,26,46,0.48)",
+  muted:  "#55556B",
   bg:     "#F8F7FC",
   card:   "rgba(255,255,255,0.90)",
   border: "rgba(139,92,246,0.10)",

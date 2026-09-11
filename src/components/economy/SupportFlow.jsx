@@ -27,7 +27,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
 const T = {
-  bg:"#FAFAF8", ink:"#1A1A2E", soft:"rgba(26,26,46,0.55)",
+  bg:"#FAFAF8", ink:"#1A1A2E", soft:"#55556B",
   teal:"#16D7C5", coral:"#FF8A6B", border:"rgba(26,26,46,0.08)",
 };
 const QUICK_AMOUNTS = [3, 5, 10, 20];

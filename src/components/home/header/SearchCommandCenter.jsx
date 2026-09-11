@@ -34,8 +34,8 @@ const T = {
   tealS:  "rgba(14,196,184,0.06)",
   tealM:  "rgba(14,196,184,0.14)",
   ink:    "#1A3530",
-  inkS:   "rgba(26,53,48,0.50)",
-  inkF:   "rgba(26,53,48,0.28)",
+  inkS:   "#55556B",
+  inkF:   "#808098",
   inkFF:  "rgba(26,53,48,0.18)",   // sehr helle, sekundaere Ebene (Punkt 9)
   bg:     "rgba(255,253,251,0.97)",
   // Bar-Schatten: ruhig im Rest-Zustand, sanfter Glow bei Fokus (Punkt 2)
@@ -238,7 +238,7 @@ function RadiusRow({ radius }) {
               border:`1px solid ${active ? T.teal : "rgba(26,53,48,0.07)"}`,
               borderRadius:99,padding:"7px 13px",cursor:"pointer",
               fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
-              color: active ? "#fff" : "rgba(26,53,48,0.62)",
+              color: active ? "#fff" : "#55556B",
               boxShadow: active ? "0 3px 10px rgba(14,196,184,0.26)" : "none",
               transition:"background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease",
               whiteSpace:"nowrap",
@@ -988,7 +988,7 @@ export default function SearchCommandCenter({
           onClick={e=>{e.stopPropagation(); open ? close_() : open_();}}
         />
         {!query && !open && (
-          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"rgba(26,53,48,0.32)",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
+          <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:450,letterSpacing:"-0.01em",color:has?`${mc}85`:"#808098",opacity:phVis?1:0,transform:phVis?"translateY(0)":"translateY(4px)",transition:"opacity .3s ease, transform .3s ease",whiteSpace:"nowrap",overflow:"hidden",maxWidth:"100%"}}>{PH[phIdx]}</span>
         )}
         {open && !query && (
           <span style={{position:"absolute",left:0,pointerEvents:"none",fontSize:14,fontWeight:400,letterSpacing:"-0.01em",color:"#808098",whiteSpace:"nowrap"}}>{t("discover.searchPromptPlaceholder")}</span>
@@ -1125,7 +1125,7 @@ export default function SearchCommandCenter({
                   border:`1px solid ${activeF ? T.teal : "rgba(26,53,48,0.07)"}`,
                   borderRadius:99,padding:"6px 13px",cursor:"pointer",
                   fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
-                  color: activeF ? "#fff" : "rgba(26,53,48,0.62)",
+                  color: activeF ? "#fff" : "#55556B",
                   boxShadow: activeF ? "0 3px 10px rgba(14,196,184,0.26)" : "none",
                   transition:"background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease",
                   WebkitTapHighlightColor:"transparent",
@@ -1145,7 +1145,7 @@ export default function SearchCommandCenter({
                 border:`1px solid ${locationQuery ? "rgba(14,196,184,0.30)" : "rgba(26,53,48,0.07)"}`,
                 borderRadius:99,padding:"6px 13px",cursor:"pointer",
                 fontSize:11.5,fontWeight:600,letterSpacing:"-0.01em",
-                color: locationQuery ? T.teal : "rgba(26,53,48,0.62)",
+                color: locationQuery ? T.teal : "#55556B",
                 whiteSpace:"nowrap", WebkitTapHighlightColor:"transparent",
               }}>
                 <HUILocationIcon size={12} style={{flexShrink:0, opacity: locationQuery ? 1 : .55}} />
@@ -1230,7 +1230,7 @@ export default function SearchCommandCenter({
           font-family:Inter,sans-serif;
           font-size:15px; font-weight:500; letter-spacing:-0.01em; color:#1A3530;
         }
-        .dc-input::placeholder { color:rgba(26,53,48,0.28); }
+        .dc-input::placeholder { color:#808098; }
         .dc-scroll::-webkit-scrollbar { display:none; }
         /* Premium-Detail (Punkt 10): weiche Scale-Reaktion auf Touch/Klick,
            keine harten Zustaende -- gilt fuer alle Kategorie-/Filter-/Verlaufs-Pills. */

@@ -82,7 +82,7 @@ export function UsernameInput({ value, onChange, dark = false, placeholder = "de
         <span style={{
           position: "absolute", left: 14, top: "50%",
           transform: "translateY(-50%)",
-          fontSize: 14, color: dark ? "rgba(255,255,255,0.4)" : "rgba(26,26,46,0.35)",
+          fontSize: 14, color: dark ? "rgba(255,255,255,0.4)" : "#808098",
           pointerEvents: "none", userSelect: "none",
         }}>@</span>
         <input

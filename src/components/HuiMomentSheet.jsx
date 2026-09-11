@@ -25,7 +25,7 @@ import { uploadMediaVerified } from "../lib/uploadBody.js";
 
 const D = {
   teal:"#0EC4B8", tealDeep:"#0A9E94", coral:"#E8573A",
-  ink:"#1A3530", inkSoft:"rgba(26,53,48,0.55)", inkFaint:"rgba(26,53,48,0.32)",
+  ink:"#1A3530", inkSoft:"#55556B", inkFaint:"#808098",
   sheet:"rgba(252,253,252,0.97)",
 };
 
@@ -128,7 +128,7 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
         <div style={{
           marginBottom:12, padding:"8px 14px", borderRadius:12,
           background: fileSize > 50*1024*1024 ? "rgba(232,87,58,0.10)" : "rgba(14,196,184,0.07)",
-          color: fileSize > 50*1024*1024 ? "#E8573A" : "rgba(26,53,48,0.55)",
+          color: fileSize > 50*1024*1024 ? "#E8573A" : "#55556B",
           fontSize:12, display:"flex", alignItems:"center", gap:6,
         }}>
           {isVideo ? "🎥" : "📷"} {(fileSize/(1024*1024)).toFixed(1)} MB

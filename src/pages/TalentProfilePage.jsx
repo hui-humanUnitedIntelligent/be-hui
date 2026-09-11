@@ -70,8 +70,8 @@ const T = {
   tealMid:   "rgba(14,196,184,0.22)",
   coral:     "#FF6B52",
   ink:       "#1A1A18",
-  inkSoft:   "rgba(26,26,24,0.52)",
-  inkFaint:  "rgba(26,26,24,0.28)",
+  inkSoft:   "#55556B",
+  inkFaint:  "#808098",
   border:    "rgba(26,26,24,0.08)",
   borderMid: "rgba(26,26,24,0.13)",
   px: 20,
@@ -308,7 +308,7 @@ function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
                 background: intention
                   ? `linear-gradient(135deg,#0EC4B8,#0AADA3)`
                   : "rgba(26,26,24,0.08)",
-                color: intention ? "#fff" : "rgba(26,26,24,0.30)",
+                color: intention ? "#fff" : "#808098",
                 border:"none", borderRadius:99,
                 fontSize:15, fontWeight: 600,
                 cursor: intention ? "pointer" : "not-allowed",

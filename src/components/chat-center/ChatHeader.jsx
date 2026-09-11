@@ -9,7 +9,7 @@ import { formatPresence } from "../../lib/usePresence.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
-const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.55)" };
+const C = { teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep, ink:HUI.COLOR.ink, muted:"#55556B" };
 
 export default function ChatHeader({ conv, onBack, onOpenProfile, onCloseChat, onRequestBooking }) {
   const { t } = useTranslation();

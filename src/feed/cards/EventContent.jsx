@@ -6,7 +6,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const PURPLE = "#7264D6";
 const INK    = "#1A1A2E";
-const INK3   = "rgba(26,26,46,0.42)";
+const INK3   = "#55556B";
 
 export default function EventContent({ item, onProfile, onReaction, onShare }) {
   const { t } = useTranslation();

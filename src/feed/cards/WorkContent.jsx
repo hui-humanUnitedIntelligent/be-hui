@@ -9,7 +9,7 @@ const CORAL  = "#F47355";
 const ORANGE = "#F05A28";
 const TEAL   = "#0DC4B5";
 const INK    = "#1A1A2E";
-const INK3   = "rgba(26,26,46,0.42)";
+const INK3   = "#55556B";
 
 function formatPrice(val) {
   const n = parseFloat(val);
@@ -117,7 +117,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
                   <span style={{ fontWeight: 600, color: INK }}>{v.name}</span>
                   <span style={{ color: "rgba(26,26,46,0.35)" }}>·</span>
                   <span style={{
-                    color: v.stock_available > 0 ? TEAL : "rgba(26,26,46,0.35)",
+                    color: v.stock_available > 0 ? TEAL : "#55556B",
                     fontWeight: 600,
                   }}>{t("feed.stockAvailable", {avail: v.stock_available, total: v.stock_total})}</span>
                   {v.price != null && v.price > 0 && (
@@ -146,7 +146,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
             <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
               <span style={{
                 fontSize:11.5, fontWeight:600,
-                color: stockAvail > 0 ? TEAL : "rgba(26,26,46,0.35)",
+                color: stockAvail > 0 ? TEAL : "#55556B",
                 background: stockAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
                 border:"1px solid rgba(13,196,181,0.18)",
                 borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",
@@ -158,7 +158,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
             <span style={{
               fontSize:11.5, fontWeight:600,
-              color: stockAvail > 0 ? TEAL : "rgba(26,26,46,0.35)",
+              color: stockAvail > 0 ? TEAL : "#55556B",
               background: stockAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
               border:"1px solid rgba(13,196,181,0.18)",
               borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",

@@ -83,7 +83,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 import { isVideoUrl } from "../../lib/uploadUtils.js"; // SSOT (2026-09-08, war lokal dupliziert)
 
 const T = {
-  ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
+  ink: "#1A1A2E", inkSoft: "#55556B", inkFaint: "#808098",
   teal: "#0DC4B5", coral: "#F47355", border: "rgba(26,26,46,0.08)",
   sheet: "#FCFDFC", overlay: "rgba(20,24,22,0.46)", card: "rgba(26,26,46,0.035)",
 };
@@ -105,7 +105,7 @@ const CSS = `
   .cs-btn { cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
     border:none; background:none; font-family:inherit; transition:opacity .14s, transform .14s; }
   .cs-btn:active { opacity:.6; transform:scale(0.96); }
-  .cs-textarea::placeholder { color: rgba(26,26,46,0.38); }
+  .cs-textarea::placeholder { color: #808098; }
   .cs-emoji-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:2px; }
   .cs-emoji-btn { font-size:22px; padding:5px 3px; border:none; background:none; cursor:pointer; border-radius:8px; text-align:center; transition:background .12s; line-height:1; }
   .cs-emoji-btn:hover { background:rgba(13,196,181,0.12); }

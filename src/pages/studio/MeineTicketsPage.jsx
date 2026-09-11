@@ -19,7 +19,7 @@ const C = {
   coral:  HUI.COLOR.coralStudio,
   cream:  HUI.COLOR.creamStudio,
   ink:    HUI.COLOR.inkStudio,
-  muted:  "rgba(80,80,80,0.55)",
+  muted:  "#55556B",
   border: "rgba(0,0,0,0.08)",
   red:    HUI.COLOR.redStatus,
   green:  HUI.COLOR.greenStatus,

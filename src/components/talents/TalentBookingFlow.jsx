@@ -859,7 +859,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                         cursor: "pointer", touchAction: "manipulation",
                       }}>+</button>
                     {selectedDate && (
-                      <span style={{ fontSize: 12, color: availLoading ? "rgba(26,26,46,0.35)" : (isFull ? "#E83A3A" : "rgba(26,26,46,0.45)"), marginLeft: 4 }}>
+                      <span style={{ fontSize: 12, color: availLoading ? "#55556B" : (isFull ? "#E83A3A" : "#55556B"), marginLeft: 4 }}>
                         {availLoading ? t("tbf.detail.checkingAvail") : isFull ? t("tbf.detail.full") : (remaining != null && remaining !== Infinity ? t("tbf.detail.placesLeft", { count: remaining }) : "")}
                       </span>
                     )}

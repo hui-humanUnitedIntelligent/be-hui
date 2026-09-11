@@ -9,7 +9,7 @@ import { CONNECTION_TYPES } from "./ConnectionTypeSidebar.jsx";
 const V   = "#8B5CF6";
 const V2  = "#7C3AED";
 const INK = "#1A1A1A";
-const MUT = "rgba(80,80,80,0.50)";
+const MUT = "#55556B";
 
 const CSS = `
   @keyframes s1-card-in {

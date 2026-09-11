@@ -27,7 +27,7 @@ const T = {
   tealDeep: "#0AA89B",
   teal:     "#0DC4B5",
   ink:      "#1A1A2E",
-  inkSoft:  "rgba(26,26,46,0.50)",
+  inkSoft:  "#55556B",
   bg:       "#FFFFFF",
   border:   "rgba(26,26,46,0.08)",
   overlay:  "rgba(0,0,0,0.45)",

@@ -58,8 +58,8 @@ const T = {
   tealMid:   "rgba(14,196,184,0.22)",
   coral:     "#FF6B52",
   ink:       "#1A1A18",
-  inkSoft:   "rgba(26,26,24,0.52)",
-  inkFaint:  "rgba(26,26,24,0.28)",
+  inkSoft:   "#55556B",
+  inkFaint:  "#808098",
   border:    "rgba(26,26,24,0.08)",
   borderMid: "rgba(26,26,24,0.13)",
   px: 20,
@@ -536,7 +536,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               {profile.org_type === "verein" ? t("org.type.verein") : profile.org_type === "projekt" ? t("org.type.projekt") : t("org.type.unternehmen")}
             </span>
             {profile.managed_by && (
-              <span style={{ fontSize: 12, color: T.inkFaint || "rgba(0,0,0,0.35)" }}>
+              <span style={{ fontSize: 12, color: T.inkFaint || "#808098" }}>
                 {t("org.step3.managedBy")}:{" "}
                 {profile.owner_user_id ? (
                   <span

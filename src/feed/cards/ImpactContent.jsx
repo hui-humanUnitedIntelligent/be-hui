@@ -20,7 +20,7 @@ import { formatNumberDE } from "../../lib/formatters.js";
 const GREEN      = "rgba(34,197,94,1)";
 const GREEN_SOFT = "rgba(34,197,94,0.10)";
 const INK        = "#1A1A2E";
-const INK_SUB    = "rgba(26,26,46,0.45)";
+const INK_SUB    = "#55556B";
 
 // IMPACT-IMG-001: Stabiler Unsplash-Fallback für Projekte ohne eigenes Bild.
 // Als Modul-Konstante → wird einmal evaluiert, nie neu erzeugt.

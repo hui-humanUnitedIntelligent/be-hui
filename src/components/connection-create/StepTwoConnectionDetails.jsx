@@ -16,7 +16,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 const C = {
   violet: HUI.COLOR.violet, violet2: "#7C3AED",
   ink:    HUI.COLOR.ink, ink2: HUI.COLOR.inkMid,
-  muted:  "rgba(80,80,80,0.52)",
+  muted:  "#55556B",
   border: "rgba(0,0,0,0.08)",
   fieldBg:"rgba(255,255,255,0.85)",
   cardBg: "rgba(255,255,255,0.92)",
@@ -75,7 +75,7 @@ const CSS = `
     box-shadow: 0 0 0 3.5px rgba(139,92,246,0.10);
     background: #fff;
   }
-  .s2v3-field::placeholder { color: rgba(80,80,80,0.36); }
+  .s2v3-field::placeholder { color: #808098; }
 
   .s2v3-divider {
     height: 1px;
@@ -108,7 +108,7 @@ function CharCount({ cur, max }) {
   return (
     <div style={{
       textAlign: "right", fontSize: 11.5,
-      color: cur > max * 0.85 ? "#DC2626" : "rgba(80,80,80,0.35)",
+      color: cur > max * 0.85 ? "#DC2626" : "#808098",
       marginTop: 5,
     }}>{cur}/{max}</div>
   );

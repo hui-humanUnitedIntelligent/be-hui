@@ -15,7 +15,7 @@ import { formatDateDE } from "../../lib/formatters.js";
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED", violet3:"#6D28D9",
   ink:HUI.COLOR.ink, ink2:HUI.COLOR.inkMid,
-  muted:"rgba(80,80,80,0.52)",
+  muted:"#55556B",
   border:"rgba(0,0,0,0.07)",
   cream:"#F2F0F8",
 };

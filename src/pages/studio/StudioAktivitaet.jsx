@@ -16,7 +16,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
-  muted: 'rgba(80,80,80,0.55)', teal: HUI.COLOR.tealStudio, coral: HUI.COLOR.coralStudio,
+  muted: '#55556B', teal: HUI.COLOR.tealStudio, coral: HUI.COLOR.coralStudio,
   border: 'rgba(0,0,0,0.06)',
 };
 

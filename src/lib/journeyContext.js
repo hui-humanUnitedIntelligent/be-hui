@@ -281,7 +281,7 @@ export const AMBIENT_CSS = `
     padding: 6px 14px;
     font-size: 11px;
     font-weight: 500;
-    color: rgba(0,0,0,0.45);
+    color: #55556B;
     background: rgba(0,0,0,0.03);
     border-radius: 50px;
   }

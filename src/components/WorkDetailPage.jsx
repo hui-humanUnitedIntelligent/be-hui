@@ -942,7 +942,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
             className={isSoldOut ? "" : "wd-tap"}
             style={{ flex:2, padding:"14px",
               background: isSoldOut ? "rgba(26,26,46,0.12)" : `linear-gradient(135deg,${C.coral},${C.coral2})`,
-              border:"none", borderRadius:16, color: isSoldOut ? "rgba(26,26,46,0.45)" : "white",
+              border:"none", borderRadius:16, color: isSoldOut ? "#55556B" : "white",
               fontSize:14, fontWeight: 600, cursor: isSoldOut ? "default" : "pointer",
               fontFamily:"inherit",
               boxShadow: isSoldOut ? "none" : `0 4px 18px ${C.coralGlow}` }}>

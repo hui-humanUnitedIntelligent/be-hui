@@ -6,7 +6,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
-const INK3 = "rgba(26,26,46,0.42)";
+const INK3 = "#55556B";
 
 export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
   const { t } = useTranslation();
@@ -79,7 +79,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
             <span style={{
               fontSize:11.5, fontWeight:600,
-              color: stockAvail > 0 ? "#F5A623" : "rgba(26,26,46,0.35)",
+              color: stockAvail > 0 ? "#F5A623" : "#55556B",
               background: stockAvail > 0 ? "rgba(245,166,35,0.08)" : "rgba(26,26,46,0.05)",
               border:"1px solid rgba(245,166,35,0.18)",
               borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",

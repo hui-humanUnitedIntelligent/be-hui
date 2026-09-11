@@ -14,7 +14,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 const PURPLE      = "rgba(139,92,246,1)";
 const PURPLE_SOFT = "rgba(139,92,246,0.10)";
 const INK         = "#1A1A2E";
-const INK_SUB     = "rgba(26,26,46,0.45)";
+const INK_SUB     = "#55556B";
 
 function fmtPrice(ph, ps, currency = "EUR", t) {
   const sym = currency === "EUR" ? "€" : currency;
@@ -124,7 +124,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
           <div style={{ display:"flex", alignItems:"center", gap:5, marginBottom:8 }}>
             <span style={{
               fontSize:11.5, fontWeight:600,
-              color: stockAvail > 0 ? PURPLE : "rgba(26,26,46,0.35)",
+              color: stockAvail > 0 ? PURPLE : "#55556B",
               background: stockAvail > 0 ? PURPLE_SOFT : "rgba(26,26,46,0.05)",
               border:"1px solid rgba(139,92,246,0.18)",
               borderRadius:99, padding:"3px 9px", whiteSpace:"nowrap",

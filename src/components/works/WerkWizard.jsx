@@ -21,8 +21,8 @@ import VideoThumbnailPicker from "../shared/VideoThumbnailPicker.jsx";
 
 const C = {
   teal:HUI.COLOR.teal, tealD:HUI.COLOR.tealDeep, cream:HUI.COLOR.cream,
-  ink:HUI.COLOR.inkStudio, inkMid:"rgba(26,26,24,0.55)",
-  inkFade:"rgba(26,26,24,0.35)", border:"rgba(26,26,24,0.10)",
+  ink:HUI.COLOR.inkStudio, inkMid:"#55556B",
+  inkFade:"#808098", border:"rgba(26,26,24,0.10)",
 };
 
 // Werktypen: ausschließlich echte Werke

@@ -9,7 +9,7 @@ import { formatTimeDE } from "../../lib/formatters.js";
 import { getFullDisplayName } from "../../lib/profileUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
-const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.52)" };
+const C = { teal:HUI.COLOR.teal, coral:HUI.COLOR.coral, ink:HUI.COLOR.ink, muted:"#55556B" };
 
 function timeAgo(iso, t) {
   if (!iso) return "";

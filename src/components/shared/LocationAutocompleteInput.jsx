@@ -24,7 +24,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 const D = {
   teal: "#0EC4B8",
   ink: "#1A1A18",
-  inkFaint: "rgba(26,26,24,0.45)",
+  inkFaint: "#55556B",
   border: "rgba(26,26,24,0.10)",
   card: "0 1px 3px rgba(0,0,0,0.04),0 4px 20px rgba(0,0,0,0.06)",
 };

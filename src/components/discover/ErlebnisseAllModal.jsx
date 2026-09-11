@@ -10,7 +10,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
   bg:"#F2F4F8", border:"rgba(22,215,197,0.14)", cardShadow:"0 2px 12px rgba(0,0,0,0.07)",
-  px:16, inkSoft:"rgba(26,26,46,0.55)", inkFaint:"rgba(26,26,46,0.35)",
+  px:16, inkSoft:"#55556B", inkFaint:"#808098",
   tealSoft:"rgba(14,196,184,0.12)", tealDeep:"rgba(0,150,136,1)"
 };
 const PAGE_SIZE = 20;
@@ -27,7 +27,7 @@ function mapExp(e) {
   const now = new Date();
   let statusLabel = null; let statusColor = "#16A34A";
   if (d && d > now) { statusLabel = "planned"; statusColor = "#D97706"; }
-  if (d && d < now) { statusLabel = "completed"; statusColor = "rgba(26,26,46,0.38)"; }
+  if (d && d < now) { statusLabel = "completed"; statusColor = "#55556B"; }
   const typeRaw = e.experience_type || e.category || "";
   const typeLabel = TYPE_MAP[typeRaw.toLowerCase()] || typeRaw || null;
   const dayNum  = d ? String(d.getDate()).padStart(2,"0") : null;

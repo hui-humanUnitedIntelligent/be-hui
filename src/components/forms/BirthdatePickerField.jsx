@@ -38,8 +38,8 @@ const C = {
   sheet:     "#FDFBF8",  // creamSoft — Sheet-Fläche
   white:     "#FFFFFF",
   ink:       "#14141e",  // hui ink
-  ink2:      "rgba(20,20,30,0.62)",
-  ink3:      "rgba(20,20,30,0.55)",
+  ink2:      "#55556B",
+  ink3:      "#55556B",
   border:    "rgba(0,0,0,0.07)",
 };
 

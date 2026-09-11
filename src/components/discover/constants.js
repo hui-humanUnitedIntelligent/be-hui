@@ -69,7 +69,7 @@ export const CSS = `
   .dp-projekt-hero { transition:transform .2s ease,box-shadow .2s ease; cursor:pointer; }
   .dp-projekt-hero:hover { transform:scale(1.01); }
   .dp-tag { display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:99px;font-size:10px;font-weight:600;cursor:default; }
-  .dp-engage { display:flex;align-items:center;gap:10px;font-size:10px;color:rgba(26,53,48,0.50); }
+  .dp-engage { display:flex;align-items:center;gap:10px;font-size:10px;color:#55556B; }
   .dp-engage span { display:flex;align-items:center;gap:3px; }
 `;
 

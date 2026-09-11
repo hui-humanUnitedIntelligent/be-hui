@@ -570,7 +570,7 @@ function InfoCard({ pin, onClose, onView }) {
             <div style={{ textAlign:"center" }}>
               <div style={{
                 fontSize:11, fontWeight: 600,
-                color: pin.available ? C.green : "rgba(26,26,46,0.35)",
+                color: pin.available ? C.green : "#55556B",
                 background: pin.available ? "rgba(61,184,122,0.1)" : "rgba(0,0,0,0.05)",
                 padding:"4px 8px", borderRadius:8,
               }}>{pin.available ? t("lm.available") : t("lm.booked")}</div>

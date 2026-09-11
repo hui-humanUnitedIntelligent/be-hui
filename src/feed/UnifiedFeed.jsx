@@ -175,7 +175,7 @@ function FeedWelcomeHeader({ currentUser }) {
   const CORAL  = "#F47355";
   const CREAM  = "#FAF7F2";
   const INK    = "#141422";
-  const MUTED  = "rgba(20,20,34,0.50)";
+  const MUTED  = "#55556B";
   const BORDER = "rgba(13,196,181,0.12)";
 
   return (

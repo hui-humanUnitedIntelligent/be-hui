@@ -20,7 +20,7 @@ import { getFullDisplayName } from "../../lib/profileUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { registerModal } from "../../lib/backButtonRegistry.js";
 
-const C = { teal: HUI.COLOR.teal, teal2: HUI.COLOR.tealDeep, ink: HUI.COLOR.ink, muted: "rgba(80,80,80,0.50)" };
+const C = { teal: HUI.COLOR.teal, teal2: HUI.COLOR.tealDeep, ink: HUI.COLOR.ink, muted: "#55556B" };
 
 const CSS = `
   @keyframes hui-spin { to { transform: rotate(360deg); } }

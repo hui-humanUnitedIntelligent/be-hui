@@ -11,7 +11,7 @@ const STEPS = filterValidPages([
   createTabItem({ key:"3", label:"Realität"    }),
 ]);
 
-const C = { violet:HUI.COLOR.violet, muted:"rgba(80,80,80,0.35)", cream:"rgba(139,92,246,0.12)" };
+const C = { violet:HUI.COLOR.violet, muted:"#808098", cream:"rgba(139,92,246,0.12)" };
 
 const CSS = `
   @keyframes spb-glow {

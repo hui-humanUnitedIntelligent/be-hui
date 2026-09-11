@@ -16,8 +16,8 @@ const T = {
   white:      "#FFFFFF",
   bg:         "#F5F6F8",
   ink:        "#1A1A2E",
-  inkSoft:    "rgba(26,26,46,0.52)",
-  inkFaint:   "rgba(26,26,46,0.32)",
+  inkSoft:    "#55556B",
+  inkFaint:   "#808098",
   border:     "rgba(26,26,46,0.08)",
   borderTeal: "rgba(14,196,184,0.22)",
   // Cards: weicher Schatten, eleganter

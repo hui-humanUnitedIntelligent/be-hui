@@ -40,7 +40,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 import { CAT_KEY_MAP, WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const T = {
-  ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
+  ink: "#1A1A2E", inkSoft: "#55556B", inkFaint: "#808098",
   teal: "#0DC4B5", coral: "#F47355", border: "rgba(26,26,46,0.08)",
   sheet: "#FCFDFC", overlay: "rgba(20,24,22,0.46)",
 };
@@ -543,7 +543,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                         <div style={{
                           display:"inline-flex", alignItems:"center", gap:4,
                           fontSize:12, fontWeight:600,
-                          color: sAvail > 0 ? T.teal : "rgba(26,26,46,0.35)",
+                          color: sAvail > 0 ? T.teal : "#55556B",
                           background: sAvail > 0 ? "rgba(13,196,181,0.08)" : "rgba(26,26,46,0.05)",
                           border:"1px solid rgba(13,196,181,0.18)",
                           borderRadius:99, padding:"4px 10px",

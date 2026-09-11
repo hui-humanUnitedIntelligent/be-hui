@@ -58,7 +58,7 @@ import CommentsSheet from "./CommentsSheet.jsx";
 import VerbindenModal from "./VerbindenModal.jsx";
 
 const T = {
-  ink: "#1A1A2E", inkSoft: "rgba(26,26,46,0.60)", inkFaint: "rgba(26,26,46,0.38)",
+  ink: "#1A1A2E", inkSoft: "#55556B", inkFaint: "#808098",
   teal: "#0DC4B5", coral: "#F47355", border: "rgba(26,26,46,0.08)",
   sheet: "#FCFDFC", overlay: "rgba(20,24,22,0.46)",
 };

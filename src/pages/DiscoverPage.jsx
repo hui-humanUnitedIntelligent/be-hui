@@ -556,7 +556,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             let statusLabel = "Aktiv";
             let statusColor = "#16A34A";
             if (d && d > now) { statusLabel = "Geplant";       statusColor = "#D97706"; }
-            if (d && d < now) { statusLabel = "Abgeschlossen"; statusColor = "rgba(26,26,46,0.38)"; }
+            if (d && d < now) { statusLabel = "Abgeschlossen"; statusColor = "#55556B"; }
 
             // Typ-Label
             const typeRaw = e.experience_type || e.category || "";
@@ -1028,7 +1028,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
             fontSize:12.5, fontWeight:600, fontFamily:"inherit", letterSpacing:"-0.01em",
             background: activeFilterCount > 0 ? "rgba(14,196,184,0.12)" : "rgba(26,53,48,0.04)",
             border:`1.5px solid ${activeFilterCount > 0 ? "rgba(14,196,184,0.40)" : "rgba(26,53,48,0.09)"}`,
-            color: activeFilterCount > 0 ? (T.teal || "#0EC4B8") : "rgba(26,53,48,0.60)",
+            color: activeFilterCount > 0 ? (T.teal || "#0EC4B8") : "#55556B",
             boxShadow: activeFilterCount > 0 ? "0 2px 10px rgba(14,196,184,0.14)" : "none",
             transition:"background .18s ease, border-color .18s ease, color .18s ease",
             WebkitTapHighlightColor:"transparent", touchAction:"manipulation",

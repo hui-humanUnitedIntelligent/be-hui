@@ -18,7 +18,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED",
-  ink:HUI.COLOR.ink, muted:"rgba(80,80,80,0.48)",
+  ink:HUI.COLOR.ink, muted:"#55556B",
   cream:"#F0EEF5",
 };
 

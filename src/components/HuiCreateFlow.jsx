@@ -34,7 +34,7 @@ const C = {
   teal:HUI.COLOR.teal, teal2:HUI.COLOR.tealDeep,
   coral:HUI.COLOR.coral, gold:HUI.COLOR.gold, purple:HUI.COLOR.violetLight,
   cream:HUI.COLOR.cream, ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2, ink3:HUI.COLOR.muted,
-  muted:"rgba(60,60,60,0.50)", border:"rgba(0,0,0,0.07)",
+  muted:"#55556B", border:"rgba(0,0,0,0.07)",
 };
 
 /* ── Config (unverändert) ────────────────────────────────────────── */
@@ -97,7 +97,7 @@ const CSS = `
   .hcf2-field:focus-within { border-color:#16D7C5; }
 
   .hcf2-field-label {
-    font-size:10.5px; font-weight:600; color:rgba(60,60,60,0.45);
+    font-size:10.5px; font-weight:600; color:#55556B;
     letter-spacing:0.6px; text-transform:uppercase;
     margin-bottom:5px; line-height:1;
   }

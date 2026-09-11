@@ -9,7 +9,7 @@ import { HUI } from "../../design/hui.design.js";
 const C = {
   violet:HUI.COLOR.violet, violet2:"#7C3AED",
   ink:HUI.COLOR.ink, ink2:HUI.COLOR.ink2,
-  muted:"rgba(80,80,80,0.55)",
+  muted:"#55556B",
   cream:HUI.COLOR.cream, white:"rgba(255,255,255,0.92)",
 };
 

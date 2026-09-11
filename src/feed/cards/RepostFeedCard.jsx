@@ -45,8 +45,8 @@ import { HUIRepostIcon } from "../../design/icons/HuiInteractionIcons.jsx";
 const T = {
   bgCard:   "#FFFFFF",
   ink:      "#1A1A2E",
-  ink2:     "rgba(26,26,46,0.55)",
-  ink3:     "rgba(26,26,46,0.38)",
+  ink2:     "#55556B",
+  ink3:     "#808098",
   teal:     "#0DC4B5",
   tealSoft: "rgba(13,196,181,0.08)",
   shadow:   "0 2px 20px rgba(26,26,46,0.08)",

@@ -29,7 +29,7 @@ import { SUPPORTED_LANGS, LANG_LABELS, LANG_FLAGS } from "../../i18n/index.js";
 export default function LanguageSelect({ value, onChange, theme }) {
   const { t } = useTranslation();
   // Wizard-Theme-Fallbacks (Konsistenz mit C-Palette der Wizards)
-  const C = theme || { teal:"#0EC4B8", ink:"#1a1a2e", inkMid:"rgba(26,26,42,0.62)", inkFade:"rgba(26,26,42,0.40)", border:"rgba(26,26,42,0.10)" };
+  const C = theme || { teal:"#0EC4B8", ink:"#1a1a2e", inkMid:"#55556B", inkFade:"#808098", border:"rgba(26,26,42,0.10)" };
 
   return (
     <div style={{ marginBottom:16 }}>

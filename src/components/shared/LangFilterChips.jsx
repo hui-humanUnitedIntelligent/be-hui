@@ -19,7 +19,7 @@ import { useTranslation } from "../../hooks/useTranslation.js";
 import { LANG_LABELS, LANG_FLAGS } from "../../i18n/index.js";
 
 const DEFAULT_THEME = {
-  teal: "#0EC4B8", ink: "#1A1A18", inkMid: "rgba(26,26,42,0.62)",
+  teal: "#0EC4B8", ink: "#1A1A18", inkMid: "#55556B",
   border: "rgba(26,26,42,0.10)", px: 16,
 };
 

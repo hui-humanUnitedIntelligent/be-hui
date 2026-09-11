@@ -25,7 +25,7 @@ const T = {
   coral:   "#F4714F", gold:   "#D4952A",
   violet:  "#7264D6", green:  "#22C55E",
   ink:     "#141422", ink2:   "#38384F",
-  ink3:    "rgba(20,20,34,0.45)", ink4: "rgba(20,20,34,0.18)",
+  ink3:    "#55556B", ink4: "rgba(20,20,34,0.18)",
   page:    "#F8F4EE", surface: "#FDFAF5", surfaceHi: "#FFFFFF",
   line:    "rgba(20,20,34,0.09)",
 };

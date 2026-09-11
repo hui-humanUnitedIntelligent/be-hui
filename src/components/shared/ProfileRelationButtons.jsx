@@ -31,7 +31,7 @@ import { useAppState, useFollowStatus } from "../../lib/AppStateContext.jsx";
 const T = {
   tealDeep: "#0AA89B",
   bgCard:   "#fff",
-  inkSoft:  "rgba(26,26,46,0.50)",
+  inkSoft:  "#55556B",
   border:   "rgba(26,26,46,0.08)",
   r99:      99,
   px:       20,

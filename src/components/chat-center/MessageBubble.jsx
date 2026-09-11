@@ -525,7 +525,7 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
             backdropFilter:"blur(18px)", WebkitBackdropFilter:"blur(18px)",
             borderRadius:"22px 22px 22px 6px",
             border:"1px solid rgba(255,255,255,0.62)",
-            color: isDeleted ? "rgba(80,80,80,0.45)" : C.ink,
+            color: isDeleted ? "#808098" : C.ink,
             fontSize: isDeleted ? 13 : 14.5, lineHeight:1.70,
             boxShadow:"0 4px 18px rgba(0,0,0,0.07),0 1px 4px rgba(0,0,0,0.04)",
             fontStyle: isDeleted ? "italic" : "normal",
