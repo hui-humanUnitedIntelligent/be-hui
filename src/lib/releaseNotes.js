@@ -17,6 +17,31 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.593 — von Michael am 11.09.2026 freigegeben ("offener deploy mit text")
+  // (DEPLOY-INFO-REGEL; fasst die 7-Punkte-Sammel-Queue zusammen:
+  // Kachel-Einheitlichkeit, Profilbild-Lightbox, Projekt-Deep-Link,
+  // Kommentar-Platzhalter, Suche-Kontrast, Kundenstimmen-Abstand,
+  // Share-Linkzeile)
+  "2.1.593": {
+    de: [
+      "Öffentliche Profile: Werke, Talente, Momente & Erlebnisse jetzt in einheitlichen Kacheln.",
+      "Profilbild & Coverbild antippen → Großansicht.",
+      "Projekte in Entdecken öffnen direkt das Projekt.",
+      "Kommentarfeld: Platzhalter komplett sichtbar.",
+      "Suchleiste & Texte: Bessere Lesbarkeit, Emojis entfernt.",
+      "Kleinere Layout-Verbesserungen (Abstände, Teilen-Fenster).",
+      "Allgemeine Bugfixes und verbesserte Stabilität.",
+    ],
+    en: [
+      "Public profiles: Works, talents, moments & experiences in uniform tiles.",
+      "Tap profile & cover picture → full-size view.",
+      "Discover: Projects open directly.",
+      "Comment field: Placeholder fully visible.",
+      "Search bar & texts: Better readability, emojis removed.",
+      "Minor layout improvements (spacing, share window).",
+      "General bugfixes and improved stability.",
+    ],
+  },
   // 2.1.589 — von Michael am 11.09.2026 freigegeben ("1-5 im text passt")
   // (DEPLOY-INFO-REGEL; Video-Broadcast bewusst KEIN Eintrag: SADB-intern)
   "2.1.589": {
