@@ -583,12 +583,28 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     imgs = [{ url: media, type: "image" }];
   }
   // Video-Erkennung
+  // VIDEO-POSTER-DROP-FIX (2026-09-11, Michael-Report "Video-Delay/Internet?",
+  // Screenshot Nicole-Moment "Der Löwenzahn"): Diese Normalisierung baute pro
+  // Medien-Element ein NEUES Objekt { url, type, alt } -- das von
+  // unifiedNormalizer.js bereits korrekt gesetzte poster-Feld (extrahierter
+  // Video-Frame, thumbnail_url) ging dabei STILLSCHWEIGEND verloren, bevor es
+  // ImageSlider/AutoPauseVideo erreichte. Ergebnis: JEDES Video im Feed zeigte
+  // IMMER den nativen posterlosen Play-Icon-Platzhalter des WebViews (grauer
+  // Kreis+Dreieck), niemals den eigentlichen Vorschau-Frame -- das Video "kam"
+  // erst, wenn genug gebuffert war, um selbst einen Frame zu zeichnen. Wirkte
+  // wie ein Lade-Delay (User dachte an sein Internet), war aber ein reiner
+  // Poster-Weiterreichungs-Bug, unabhaengig von der tatsaechlichen Netzwerk-
+  // geschwindigkeit. Fix: poster-Feld erhalten (m.poster, falls Objekt).
   imgs = imgs.map(m => {
     const u = typeof m === "string" ? m : m?.url;
     if (!u) return null;
     let isVid = !!(typeof m === "object" && m.type === "video");
     if (!isVid) isVid = /\.(mp4|webm|mov|m4v|ogv)(\?|#|$)/i.test(u);
-    return { url: u, type: isVid ? "video" : "image", alt: (typeof m === "object" && m.alt) || alt || "" };
+    return {
+      url: u, type: isVid ? "video" : "image",
+      alt: (typeof m === "object" && m.alt) || alt || "",
+      poster: (typeof m === "object" && m.poster) || undefined,
+    };
   }).filter(Boolean);
 
   // firstUrl/isVideo per Optional-Chaining VOR dem fruehen Return berechnet
