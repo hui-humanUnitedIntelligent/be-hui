@@ -36,7 +36,19 @@ const T = {
   ink:    "#1A3530",
   inkS:   "#55556B",
   inkF:   "#808098",
-  inkFF:  "rgba(26,53,48,0.18)",   // sehr helle, sekundaere Ebene (Punkt 9)
+  // SEARCH-CONTRAST-001 (2026-09-11, Michael-Report Screenshot "mi"-Suche):
+  // War rgba(26,53,48,0.18) -- noch heller als die urspruenglichen
+  // Discover-Werte (.55/.32) aus DISCOVER-CONTRAST-002 (2026-09-11 frueher
+  // am Tag), die dieses File NICHT erfasst hatten (eigener lokaler T-Token,
+  // kein Import aus discover/constants.js). Kontrast von .18 Alpha auf
+  // weissem/cremefarbenem Grund war "PERSONEN"/"BEITRAG"-Caption praktisch
+  // unlesbar (Screenshot bestaetigt). Auf System-Standard Faint-Grau
+  // #808098 (3.6:1 Kontrast) harmonisiert -- gleicher Farbwert wie
+  // discover/constants.js inkFaint fuer dieselbe Rolle (10px Uppercase
+  // Eyebrow-Label). Betrifft SectionLabel-Default (Zeile ~86, "Loeschen"-
+  // Historie-Header) + SuggestionCategory-Label (Zeile ~449, "PERSONEN"/
+  // "Werk"/"Talent"/"Erlebnis"/"Beitrag"-Sektionsköpfe in den Live-Suggestions).
+  inkFF:  "#808098",
   bg:     "rgba(255,253,251,0.97)",
   // Bar-Schatten: ruhig im Rest-Zustand, sanfter Glow bei Fokus (Punkt 2)
   shadowRest:  "0 1px 2px rgba(26,53,48,0.04), 0 6px 18px rgba(26,53,48,0.05)",
