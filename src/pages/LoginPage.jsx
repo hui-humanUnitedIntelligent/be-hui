@@ -8,6 +8,7 @@ import NutzungsbedingungenModal from '../components/auth/NutzungsbedingungenModa
 import EmailVerificationModal from '../components/auth/EmailVerificationModal.jsx';
 import { getAuthRedirectUrl } from '../lib/platform.js';
 import { useTranslation } from '../hooks/useTranslation.js';
+import BirthdatePickerField from '../components/forms/BirthdatePickerField.jsx';
 import { useKeyboardInset } from '../hooks/useKeyboardInset.js';
 
 // ── Design Tokens ───────────────────────────────────────────────
@@ -374,7 +375,6 @@ export default function LoginPage() {
   const [anrede,     setAnrede]     = useState('');
   // ALTERSSCHUTZ (2026-08-22): Geburtsdatum + Alters-Verifikation (min. 16)
   const [birthDate,  setBirthDate]  = useState('');
-  const [dateFocused, setDateFocused] = useState(false); // FIX (2026-08-22 v2): Geburtsdatum-Placeholder-Overlap
   const [ageError,   setAgeError]   = useState('');
 
   const [pw2,        setPw2]        = useState('');
@@ -943,50 +943,21 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* ALTERSSCHUTZ (2026-08-22): Geburtsdatum — min. 16 Jahre */}
-                {/* FIX (2026-08-22 v2): Browser-eigener "tt.mm.jjjj"-Platzhalter des
-                    <input type="date"> überlappte mit dem eigenen "Geburtsdatum *"-Label,
-                    da beide gleichzeitig sichtbar waren. Fix: Native Datums-Segmente werden
-                    per CSS (index.css, .hui-date-empty) transparent gemacht solange das Feld
-                    leer UND nicht fokussiert ist — unser Label übernimmt die Anzeige. Beim
-                    Fokussieren (dateFocused) werden die nativen Segmente wieder sichtbar,
-                    damit der Nutzer beim Tippen sein Eingabe sieht; unser Label verschwindet. */}
-                <div style={{ position: 'relative' }}>
-                  <input
-                    id="birthdate"
-                    type="date"
-                    value={birthDate}
-                    onChange={e => { setBirthDate(e.target.value); setAgeError(''); clearMessages(); }}
-                    onFocus={() => setDateFocused(true)}
-                    onBlur={() => setDateFocused(false)}
-                    required
-                    max={new Date(new Date().getFullYear() - 16, new Date().getMonth(), new Date().getDate()).toISOString().slice(0, 10)}
-                    min="1900-01-01"
-                    className={birthDate || dateFocused ? 'hui-date-hasvalue' : 'hui-date-empty'}
-                    style={{
-                      width: '100%',
-                      padding: '10px 14px',
-                      background: T.glass,
-                      border: '1.5px solid rgba(255,255,255,0.13)',
-                      borderRadius: 14,
-                      fontSize: 14,
-                      color: birthDate ? T.white : 'rgba(255,255,255,0.38)',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      boxSizing: 'border-box',
-                      caretColor: T.teal,
-                    }}
-                  />
-                  {!birthDate && !dateFocused && (
-                    <span style={{
-                      position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
-                      fontSize: 14, color: 'rgba(255,255,255,0.38)', pointerEvents: 'none',
-                      fontFamily: 'inherit',
-                    }}>
-                      {t('auth.birthdate')}
-                    </span>
-                  )}
-                </div>
+                {/* ALTERSSCHUTZ (2026-08-22): Geburtsdatum — min. 16 Jahre.
+    BIRTHDATE-PICKER-001 (2026-09-09, Michael, Sammelaufgabe): Der native
+    <input type="date"> (Browser-Datepicker mit winzigem Jahr-Pfeil oben
+    links) ist ersetzt durch das vereinfachte Auswahl-Sheet — Jahr zuerst
+    mit großen ‹ › Steppern, darunter Monat als 12 Kacheln, darunter Tag
+    als Zahlen-Grid (freigegebene Visualisierung vom 09.09.). Alters-
+    Prüfung (calculateAge, min. 16) in handleRegister bleibt unverändert;
+    Format nach wie vor 'YYYY-MM-DD' (birth_date). */}
+                <BirthdatePickerField
+                  value={birthDate}
+                  onChange={v => { setBirthDate(v); setAgeError(''); clearMessages(); }}
+                  titleKey="auth.birthdate"
+                  minAge={16}
+                  variant="dark"
+                />
 
                 {/* Alters-Info (erscheint nur bei unter 16) */}
                 {ageError && (

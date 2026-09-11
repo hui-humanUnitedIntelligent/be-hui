@@ -31,6 +31,7 @@ import { isProfileTalent } from '../../lib/profileUtils.js';
 import { formatDateDE } from "../../lib/formatters.js";
 import { HUI } from "../../design/hui.design.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import BirthdatePickerField from '../../components/forms/BirthdatePickerField.jsx';
 
 const C = {
   cream: HUI.COLOR.creamStudio, white: HUI.COLOR.white, ink: HUI.COLOR.inkStudio,
@@ -190,17 +191,14 @@ export default function KontoSettingsPage() {
               {/* Geburtsdatum — sensible Spalte, optional */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <label style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{t("ks.geburtsdatum")}</label>
-                <input
-                  type="date"
+                {/* BIRTHDATE-PICKER-001 (2026-09-09): nativer Date-Input ersetzt
+                    durch das vereinfachte Auswahl-Sheet (Jahr-Stepper → Monat-Kacheln
+                    → Tag-Grid) — Nutzer verstehen die Browser-Jahresauswahl nicht. */}
+                <BirthdatePickerField
                   value={geburtsdatum || ''}
-                  onChange={e => setGeburtsdatum(e.target.value)}
-                  max={new Date().toISOString().split('T')[0]}
-                  style={{
-                    width: '100%', padding: '10px 14px', borderRadius: 10,
-                    border: `1px solid ${C.border}`, background: C.cream,
-                    fontSize: 14, fontFamily: 'Inter, sans-serif', color: C.ink,
-                    outline: 'none', boxSizing: 'border-box',
-                  }}
+                  onChange={v => setGeburtsdatum(v)}
+                  titleKey="ks.geburtsdatum"
+                  variant="light"
                 />
                 <span style={{ fontSize: 11, color: C.muted }}>
                   {t("ks.geburtsdatumHint")}
