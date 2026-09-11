@@ -17,6 +17,24 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.589 — von Michael am 11.09.2026 freigegeben ("1-5 im text passt")
+  // (DEPLOY-INFO-REGEL; Video-Broadcast bewusst KEIN Eintrag: SADB-intern)
+  "2.1.589": {
+    de: [
+      "Wischen zum Schließen: Fenster und Menüs lassen sich jetzt ganz einfach nach unten ziehen, um sie zu schließen — wie es die Griffleiste verspricht.",
+      "Momente teilen: Der Hinweis im Gedanke-Feld zeigt jetzt sauber über zwei Zeilen statt kryptischer Zeichen.",
+      "Bessere Lesbarkeit: Schwache Textfarben wurden im Ganzen verstärkt — Untertitel und Beschreibungen sind jetzt deutlich besser zu lesen.",
+      "Tablet-Layout: Auf iPad & Co. ist der Inhalt jetzt zentriert und übersichtlich statt über den ganzen Bildschirm gezogen.",
+      "Videos vollständig: Momente-Videos werden in der Vergrößerung nicht mehr an den Seiten abgeschnitten — Untertitel bleiben lesbar.",
+    ],
+    en: [
+      "Swipe to close: Sheets and menus can now simply be dragged down to close them — just as the grab bar suggests.",
+      "Share a moment: The writing hint now displays cleanly across two lines instead of odd characters.",
+      "Better readability: Low-contrast text colors were strengthened throughout the app — subtitles and descriptions are now much easier to read.",
+      "Tablet layout: On iPad and larger devices, content is now centered and tidy instead of stretched across the whole screen.",
+      "Complete videos: Moment videos are no longer cropped at the sides in full view — subtitles stay readable.",
+    ],
+  },
   // 2.1.584 — von Michael am 11.09.2026 freigegeben ("passt. deploy")
   // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
   "2.1.584": {
