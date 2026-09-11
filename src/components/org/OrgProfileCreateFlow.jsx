@@ -214,13 +214,6 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
             background:T.card, border:`1.5px solid ${T.border}`,
           }}
         >
-          <div style={{
-            width:48, height:48, borderRadius:12, flexShrink:0,
-            background:"rgba(22,215,197,0.10)", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:24,
-          }}>
-            🤝
-          </div>
           <div>
             <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{t("org.type.verein")}</div>
             <div style={{ fontSize:13, color:T.muted, marginTop:2 }}>{t("org.type.vereinDesc")}</div>
@@ -237,13 +230,6 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
             background:T.card, border:`1.5px solid ${T.border}`,
           }}
         >
-          <div style={{
-            width:48, height:48, borderRadius:12, flexShrink:0,
-            background:"rgba(245,166,35,0.10)", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:24,
-          }}>
-            🏢
-          </div>
           <div>
             <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{t("org.type.unternehmen")}</div>
             <div style={{ fontSize:13, color:T.muted, marginTop:2 }}>{t("org.type.unternehmenDesc")}</div>
@@ -260,13 +246,6 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
             background:T.card, border:`1.5px solid ${T.border}`,
           }}
         >
-          <div style={{
-            width:48, height:48, borderRadius:12, flexShrink:0,
-            background:"rgba(255,111,97,0.10)", display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:24,
-          }}>
-            🚀
-          </div>
           <div>
             <div style={{ fontSize:16, fontWeight:600, color:T.ink }}>{t("org.type.projekt")}</div>
             <div style={{ fontSize:13, color:T.muted, marginTop:2 }}>{t("org.type.projektDesc")}</div>
