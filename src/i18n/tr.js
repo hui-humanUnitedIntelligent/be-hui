@@ -2284,6 +2284,12 @@ export default {
   'notif.meta.payoutReleased': 'Alıcı teslimi onayladı. Ödeme serbest bırakıldı ve transfer edildi.',
   'notif.meta.message': 'Mesaj',
   'notif.meta.someoneShared': 'Birisi gönderini paylaştı',
+  // NOTIF-REALNAMES-001: personifizierte Titel (echter Name statt 'Jemand')
+  'notif.meta.nameInspired': '{name} senden ilham alıyor',
+  'notif.meta.nameResonates': '{name} gönderinle rezonansa giriyor',
+  'notif.meta.nameSaved': '{name} gönderini kaydetti',
+  'notif.meta.nameShared': '{name} gönderini paylaştı',
+  'notif.meta.nameFollows': '{name} artık seni takip ediyor',
   'notif.meta.someone': 'Birisi',
   'notif.meta.content': 'İçerik',
   'notif.meta.contentGeneric': 'Bir içerik',

@@ -137,8 +137,23 @@ export default function WirkungPage() {
         .single(),
     ]);
 
-    // Aggregationen
+    // NOTIF-REALNAMES-001c (2026-09-11): echte Supporter-Namen statt "Jemand"
+    // hat dich unterstuetzt". Ein batch-Query auf profiles; anonyme Supports
+    // (anonymous=true) bleiben bewusst ohne Namen.
     const supports = supportsRes.data || [];
+    const nonAnonSupporterIds = [...new Set(
+      supports.filter(s => !s.anonymous && s.user_id).map(s => s.user_id)
+    )];
+    let supporterNames = {};
+    if (nonAnonSupporterIds.length) {
+      const { data: pf } = await supabase
+        .from("profiles")
+        .select("id,display_name")
+        .in("id", nonAnonSupporterIds)
+        .or("focus_type.is.null,focus_type.neq.private")
+        .limit(100);
+      supporterNames = Object.fromEntries((pf || []).map(p => [p.id, p.display_name]));
+    }
     const votes = votesRes.data || [];
     const bookings = bookingsRes.data || [];
     const projects = projectsRes.data || [];
@@ -172,9 +187,11 @@ export default function WirkungPage() {
 
     supports.forEach(s => allMoments.push({
       type: 'support', date: s.created_at,
-      text: s.anonymous ? t("wk.anonym") : t("wk.jemand")
-        ? `${s.anonymous ? t("wk.anonym") : t("wk.jemand")} hat dich unterstützt`
-        : t("wk.jemandUnterstuetzt"),
+      text: s.anonymous
+        ? t("wk.anonym")
+        : (supporterNames[s.user_id]
+            ? `${supporterNames[s.user_id]} hat dich unterstützt`
+            : t("wk.jemandUnterstuetzt")),
       detail: s.message || `${fmtEur(s.amount_eur)}`,
     }));
 

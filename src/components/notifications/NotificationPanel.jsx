@@ -142,6 +142,26 @@ function getMetaMap(t) {
 
 function getMeta(type, t) { const m = getMetaMap(t); return m[type] || m.default; }
 
+// ── NOTIF-REALNAMES-001 (2026-09-11, Michael-Feedback): echte Namen statt "Jemand"
+// Titel personifizieren, wenn der Absender per _actorName aufgeloest wurde
+// (Enrichment im Panel-Load unten — batch-weise EIN profiles-Query, gleiches
+// Privacy-Muster wie FollowListModal: private Accounts bleiben "Jemand").
+const SOCIAL_TITLE_TYPES = ["resonanz","like","save","repost","share","new_follower","follow","follow_request"];
+const SOCIAL_TITLE_KEYS = {
+  resonanz:       "notif.meta.nameInspired",
+  like:           "notif.meta.nameResonates",
+  save:           "notif.meta.nameSaved",
+  repost:         "notif.meta.nameShared",
+  share:          "notif.meta.nameShared",
+  new_follower:   "notif.meta.nameFollows",
+  follow:         "notif.meta.nameFollows",
+  follow_request: "notif.meta.nameFollows",
+};
+function socialTitle(n, t) {
+  if (!n || !n._actorName || !SOCIAL_TITLE_TYPES.includes(n.type)) return null;
+  return t(SOCIAL_TITLE_KEYS[n.type], { name: n._actorName });
+}
+
 
 function parseMeta(raw) {
   if (!raw) return {};
@@ -301,7 +321,7 @@ function DetailModal({ n, onClose, onAction }) {
         return {
           accentColor: "#0EC4B8",
           headerIcon: "↗",
-          headerTitle: n.title || t("notif.meta.someoneShared"),
+          headerTitle: socialTitle(n, t) || n.title || t("notif.meta.someoneShared"),
           headerSubtitle: sharePost ? `„${sharePost}"` : null,
           blocks: [],
           entityId:   n.entity_id || md.post_id || null,
@@ -471,7 +491,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "✦",
-        headerTitle: n.title || "Neuer Follower",
+        headerTitle: socialTitle(n, t) || n.title || "Neuer Follower",
         headerSubtitle: null,
         blocks: [
           { type:"label-text", label:"Details", text: n.body || "Jemand folgt dir jetzt.", color:"#0EC4B8", bg:"rgba(14,196,184,0.06)", border:"rgba(14,196,184,0.22)" },
@@ -507,7 +527,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#0EC4B8",
         headerIcon: "♡",
-        headerTitle: n.title || "Jemand mag deinen Inhalt",
+        headerTitle: socialTitle(n, t) || n.title || "Jemand mag deinen Inhalt",
         headerSubtitle: resonanzTitle ? `„${resonanzTitle}"` : null,
         blocks: [],
         entityId:   n.entity_id   || md.post_id   || null,
@@ -525,7 +545,7 @@ function DetailModal({ n, onClose, onAction }) {
       return {
         accentColor: "#F59E0B",
         headerIcon: "🔖",
-        headerTitle: n.title || "Jemand hat deinen Beitrag gespeichert",
+        headerTitle: socialTitle(n, t) || n.title || "Jemand hat deinen Beitrag gespeichert",
         headerSubtitle: saveTitle ? `„${saveTitle}"` : null,
         blocks: [],
         entityId:   n.entity_id || md.post_id || null,
@@ -1039,7 +1059,8 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
   const isBugResolved = n.type === "bug_report_resolved";
   const bugExcerpt = parseMeta(n.metadata).description_excerpt
     || (typeof n.data === "object" && n.data?.description_excerpt) || "";
-  const displayTitle = isBugResolved ? t("notif.bugReportResolved.title") : n.title;
+  // NOTIF-REALNAMES-001: personifizierter Titel vor DB-Titel (Jemand -> Name)
+  const displayTitle = isBugResolved ? t("notif.bugReportResolved.title") : (socialTitle(n, t) || n.title);
   const displayBody  = isBugResolved ? (bugExcerpt || t("notif.bugReportResolved.body")) : n.body;
 
   const handleOpen = (e) => {
@@ -1083,10 +1104,10 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
             background: n.is_read ? "rgba(26,26,24,0.05)" : T.tealSoft,
             border:`1px solid ${n.is_read ? T.border : T.tealMid}`,
             display:"flex", alignItems:"center", justifyContent:"center", fontSize:15,
-            cursor: n.actor_id ? "pointer" : "default",
+            cursor: (n.actor_id || SOCIAL_TITLE_TYPES.includes(n.type) && n.sender_id) ? "pointer" : "default",
             WebkitTapHighlightColor:"transparent",
           }}
-          onClick={n.actor_id ? e => { e.stopPropagation(); openCreatorProfile(n.actor_id); } : undefined}
+          onClick={(n.actor_id || (SOCIAL_TITLE_TYPES.includes(n.type) && n.sender_id)) ? e => { e.stopPropagation(); openCreatorProfile(n.actor_id || n.sender_id); } : undefined}
           >
             <span className="hui-emoji" style={{fontFamily:'"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", sans-serif'}}>{meta.emoji}</span>
           </div>
@@ -1223,7 +1244,22 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         .order("created_at", { ascending: false })
         .limit(60);
       if (!error && data) {
-        setNotifs(data);
+        // NOTIF-REALNAMES-001: Absender-Namen batch-nachladen (EIN Query) und
+        // an die Notifs anreichern — die Anzeige ersetzt "Jemand"-Titel durch
+        // den echten Namen. Privacy: private Accounts bleiben "Jemand".
+        const senderIds = [...new Set(data.map(n => n.sender_id).filter(Boolean))];
+        let enriched = data;
+        if (senderIds.length) {
+          const { data: pf } = await supabase
+            .from("profiles")
+            .select("id,display_name")
+            .in("id", senderIds)
+            .or("focus_type.is.null,focus_type.neq.private")
+            .limit(100);
+          const nameMap = Object.fromEntries((pf || []).map(p => [p.id, p.display_name]));
+          enriched = data.map(n => ({ ...n, _actorName: nameMap[n.sender_id] || null }));
+        }
+        setNotifs(enriched);
         onUnreadChange?.(data.filter(n => !n.is_read).length);
       }
     } finally { setLoading(false); }
@@ -1245,7 +1281,19 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
       ch = supabase.channel(topic)
         .on("postgres_changes", { event:"INSERT", schema:"public", table:"notifications", filter:`user_id=eq.${userId}` },
           (payload) => {
-            setNotifs(prev => [payload.new, ...prev]);
+            // NOTIF-REALNAMES-001: auch Realtime-Notifs sofort personifizieren
+              const incoming = payload.new;
+              if (incoming?.sender_id) {
+                supabase.from("profiles")
+                  .select("id,display_name").eq("id", incoming.sender_id)
+                  .or("focus_type.is.null,focus_type.neq.private")
+                  .maybeSingle()
+                  .then(({ data: p }) => {
+                    setNotifs(prev => [{ ...incoming, _actorName: p?.display_name || null }, ...prev]);
+                  });
+              } else {
+                setNotifs(prev => [incoming, ...prev]);
+              }
             onUnreadChange?.(c => (c || 0) + 1);
           })
         .on("postgres_changes", { event:"UPDATE", schema:"public", table:"notifications", filter:`user_id=eq.${userId}` },
