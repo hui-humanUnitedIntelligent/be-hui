@@ -613,22 +613,14 @@ export function HuiShareModal({ item, onClose }) {
                 </button>
               ))}
             </div>
-
-            {/* Link-Vorschau */}
-            <div style={{
-              padding: "10px 14px", borderRadius: 10,
-              background: T.bg, border: `1px solid ${T.border}`,
-            }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: T.ink3, letterSpacing: 0.4, marginBottom: 4 }}>
-                {t("share.publicLink")}
-              </div>
-              <div style={{
-                fontSize: 12, color: T.teal,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
-                {publicUrl}
-              </div>
-            </div>
+            {/* SHARE-LINKROW-REMOVED-001 (2026-09-11, Michael-Vorgabe):
+                Die "ÖFFENTLICHER LINK"-Vorschauzeile (URL-Text ganz unten
+                im Modal) wurde entfernt -- der "Link kopieren"-Button oben
+                im Grid deckt den Zweck bereits ab, die zusaetzliche
+                Textzeile war redundant. publicUrl wird weiterhin fuer den
+                Copy-Button + die WhatsApp/Telegram/E-Mail/SMS-Links
+                gebraucht (siehe handleCopy/app.build oben) -- NUR diese
+                Anzeige-Zeile entfernt, die Variable bleibt unangetastet. */}
           </div>
         )}
 
