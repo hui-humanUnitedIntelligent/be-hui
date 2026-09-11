@@ -1160,9 +1160,34 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   useModalRegistration(showVormonate, () => setShowVormonate(false), "ImpactPage-Vormonate");
   const location = useLocation();
 
-  // ── Deep-Link aus Router-State: /impact navigieren mit state.openProjectId ──
+  // ── Deep-Link zu einem konkreten Projekt: state.openProjectId ODER
+  // sessionStorage-Bruecke ──
+  // PROJEKT-DEEPLINK-FIX (2026-09-11, Michael-Report "öffnet Impact-Bereich
+  // statt konkretes Projekt"): location.state?.openProjectId kommt hier seit
+  // dem IMPACT-NAVBAR-FIX (09.09.) NIE mehr an -- alle Aufrufer navigieren zu
+  // /impact, das sofort auf /Home umleitet (ImpactDeepLinkRedirect, App.jsx)
+  // OHNE den State mitzunehmen. Diese ImpactPage-Instanz ist innerhalb von
+  // Home.jsx als Keep-Alive-Tab gemountet -- ihr eigenes location (von
+  // useLocation() hier) ist ohnehin nur "/Home", nie "/impact" mit State.
+  // Fix: zusaetzliche Quelle sessionStorage("hui_pending_impact_project"),
+  // von ImpactDeepLinkRedirect VOR dem Redirect befuellt (analog
+  // hui_pending_tab-Muster). Wird einmalig beim (garantiert frischen) Mount
+  // dieser ImpactPage-Instanz konsumiert + sofort geloescht -- kein
+  // Re-Trigger bei spaeteren Tab-Wechseln, da Keep-Alive-Tabs beim
+  // Tab-Wechsel NICHT neu mounten. location.state bleibt als Fallback
+  // erhalten fuer den (aktuell unwahrscheinlichen) Fall eines direkten
+  // Embeds mit echtem Router-State.
   React.useEffect(() => {
-    const pid = location.state?.openProjectId;
+    let pid = location.state?.openProjectId;
+    if (!pid) {
+      try {
+        const stored = sessionStorage.getItem("hui_pending_impact_project");
+        if (stored) {
+          sessionStorage.removeItem("hui_pending_impact_project");
+          pid = stored;
+        }
+      } catch { /* Best-Effort */ }
+    }
     if (!pid) return;
     // State sofort leeren (verhindert Re-open bei Back-Navigation)
     window.history.replaceState({ ...window.history.state, usr: {} }, '');

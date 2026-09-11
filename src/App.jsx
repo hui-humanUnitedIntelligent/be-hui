@@ -442,10 +442,26 @@ function AdminProtectedRoute({ children }) {
 // Intention des Scroll-Fix bleibt voll erhalten, nur in der Tab-Ansicht).
 function ImpactDeepLinkRedirect() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // PROJEKT-DEEPLINK-FIX (2026-09-11, Michael-Report "öffnet Impact-Bereich statt
+  // konkretes Projekt"): Seit IMPACT-NAVBAR-FIX (09.09.) leitet /impact HIER sofort
+  // auf /Home um -- dabei ging location.state.openProjectId (gesetzt von
+  // DiscoverPage.handleProjektPress + ProjekteSection-Karte + MyBasisProfile
+  // Resonanzzentrum-Klick) komplett verloren, weil navigate("/Home",{replace:true})
+  // OHNE state erfolgte. Der Tab aktivierte sich zwar (hui_pending_tab), aber das
+  // konkrete Projekt-Detail-Overlay in ImpactPage.jsx (das den State ausliest)
+  // bekam ihn nie -- Nutzer landete auf der allgemeinen Impact-Ansicht statt im
+  // Projekt. Fix: state.openProjectId zusaetzlich in sessionStorage puffern
+  // (exakt dasselbe Bruecken-Muster wie hui_pending_tab), ImpactPage.jsx liest
+  // + konsumiert es einmalig beim (garantiert frischen) Mount.
   React.useEffect(() => {
     try { sessionStorage.setItem("hui_pending_tab", "impact"); } catch { /* Best-Effort */ }
+    const pid = location.state?.openProjectId;
+    if (pid) {
+      try { sessionStorage.setItem("hui_pending_impact_project", String(pid)); } catch { /* Best-Effort */ }
+    }
     navigate("/Home", { replace: true });
-  }, [navigate]);
+  }, [navigate, location.state]);
   return null;
 }
 
