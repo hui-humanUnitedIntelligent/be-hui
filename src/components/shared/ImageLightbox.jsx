@@ -362,9 +362,17 @@ export default function ImageLightbox() {
         }
       },
         current && current.type === "video"
+          // VIDEO-LIGHTBOX-CONTAINED-001 (2026-09-11, Report 523305fa):
+          // Video NICHT Display-fuellend, sondern als eingegrenzte, zentrierte
+          // Player-Kachel (max 78% Hoehe / 92% Breite, abgerundet) ueber dem
+          // abgedunkelten Backdrop -- Michaels Vorgabe "es muss sich nicht
+          // ueber das ganze Display ziehen". Nur Videos; Bilder behalten das
+          // gewohnte Vollbild (mit Zoom) unveraendert.
           ? React.createElement("video", {
               src: current.url, controls: true, autoPlay: true, playsInline: true,
-              style: { maxWidth:"100%", maxHeight:"100%", objectFit:"contain",
+              style: { maxWidth:"92%", maxHeight:"78%", objectFit:"contain",
+                borderRadius:14,
+                boxShadow:"0 12px 48px rgba(0,0,0,0.55)",
                 transform: "translate("+panX+"px, "+panY+"px) scale("+scale+")",
                 transition: (scale<=1.02 && panX===0 && panY===0) ? "transform 0.2s ease" : "none",
                 willChange: "transform" }
