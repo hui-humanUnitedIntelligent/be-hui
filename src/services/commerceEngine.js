@@ -396,7 +396,7 @@ export const STRIPE_APPEARANCE = {
     colorPrimary:         "#0DC4B5",       // HUI Teal
     colorBackground:      "#FAF7F2",       // HUI Cream
     colorText:            "#141422",       // HUI Ink
-    colorTextSecondary:   "#8A8A9E",       // HUI Muted
+    colorTextSecondary:   "#55556B",       // HUI Muted
     colorDanger:          "#F47355",       // HUI Coral
     colorSuccess:         "#6BAE8F",       // HUI Sage
     fontFamily:           "Inter, system-ui, sans-serif",
@@ -426,7 +426,7 @@ export const STRIPE_APPEARANCE = {
       border:     "1.5px solid #F47355",
     },
     ".Label": {
-      color:       "#8A8A9E",
+      color:       "#55556B",
       fontSize:    "12px",
       fontWeight:  "600",
       letterSpacing: "0.3px",
