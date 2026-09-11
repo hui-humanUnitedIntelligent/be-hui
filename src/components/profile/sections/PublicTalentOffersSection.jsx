@@ -28,7 +28,7 @@ const CSS = `
 function Skel() {
   return (
     <div style={{
-      width:100, height:100, borderRadius:T.r12, flexShrink:0,
+      width:100, height:100, borderRadius:T.r16, flexShrink:0,
       background:"linear-gradient(90deg,#ede9e2 25%,#f7f5f0 50%,#ede9e2 75%)",
       backgroundSize:"200% 100%", animation:"pts-shimmer 1.4s ease-in-out infinite",
     }}/>
@@ -70,7 +70,7 @@ function TalentCard({ talent, onClick }) {
     >
       {/* Bild */}
       <div style={{
-        width:100, height:100, borderRadius:T.r12,
+        width:100, height:100, borderRadius:T.r16,
         overflow:"hidden", background:"#e8e4de", position:"relative",
         boxShadow:"0 2px 8px rgba(0,0,0,0.08)",
         border:"1px solid rgba(0,0,0,0.05)",
@@ -81,8 +81,7 @@ function TalentCard({ talent, onClick }) {
           : <div style={{
               width:"100%", height:"100%",
               display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:28,
-            }}>💼</div>
+            }}><HUILogo size={32} style={{opacity:0.5}}/></div>
         }
         {/* Preis-Badge oben rechts */}
         {price && (
@@ -240,7 +239,7 @@ function TalentDetailModal({ talent, onClose }) {
                 )}
                 {talent.booking_type && (
                   <div style={{ fontSize:12.5, color:T.inkSoft }}>
-                    📋 {talent.booking_type === "gruppe" ? t('pub.groupOffer') : t('pub.singleBooking')}
+                    {talent.booking_type === "gruppe" ? t('pub.groupOffer') : t('pub.singleBooking')}
                   </div>
                 )}
               </div>
@@ -249,7 +248,7 @@ function TalentDetailModal({ talent, onClose }) {
             {/* Standort-Adresse */}
             {talent.location_address && (
               <div style={{ fontSize:13, color:T.inkFaint, marginBottom:16 }}>
-                📍 {talent.location_address}
+                {talent.location_address}
               </div>
             )}
           </div>
@@ -287,8 +286,20 @@ export function PublicTalentOffersSection({ profileId }) {
     return () => { cancelled = true; };
   }, [profileId]);
 
-  // Nicht rendern wenn keine Daten und nicht laden
-  if (!loading && talents.length === 0) return null;
+  // KACHEL-EINHEITLICHKEIT-001 (Michael-Vorgabe, Screenshot "Werke/Talente/Momente/
+  // Erlebnisse sollen gleiches Layout haben"): Vorher return null -> leere Talent-
+  // Angebote-Karte blieb komplett leer (nur der SectionCard-Header von
+  // PublicProfilePage), waehrend Werke/Momente/Erlebnisse einen zentrierten
+  // Platzhalter-Text zeigen. Jetzt identisches Muster: gleicher Text-Stil
+  // (padding "16px 0", textAlign center, T.inkFaint, fontSize 13), kein eigener
+  // Zusatz-Header (den liefert bereits die umschliessende SectionCard).
+  if (!loading && talents.length === 0) {
+    return (
+      <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
+        {t('pub.emptyTalents')}
+      </div>
+    );
+  }
 
   return (
     <>

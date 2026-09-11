@@ -9,6 +9,7 @@ import React, { useState } from "react";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx"; // OPEN.2 2026-07-08
 import { normalizePostForPreview } from "../../../lib/previewNormalizers.js";
 import { HUILogo } from "../../brand/HUILogo.jsx";
+import { HUIErlebnisIcon } from "../../../design/icons/HuiSystemIcons.jsx";
 import { optimizeCard } from "../../../lib/perfUtils.js";
 import { formatDateDE } from "../../../lib/formatters.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
@@ -86,7 +87,7 @@ export function ExperiencesSection({
           <div style={{ fontSize:15, fontWeight: 600, color:T.ink }}>Erlebnisse & Projekte</div>
         </div>
         <div className="es-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
-          {[1,2,3,4].map(i => <Sk key={i} w={110} h={130} r={T.r16}/>)}
+          {[1,2,3,4].map(i => <Sk key={i} w={100} h={100} r={T.r16}/>)}
         </div>
       </div>
     );
@@ -119,7 +120,7 @@ export function ExperiencesSection({
               display:"flex", flexDirection:"column", alignItems:"center", gap:6,
               cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
             }}>
-              <span style={{ fontSize:24 }}>🎟</span>
+              <HUIErlebnisIcon size={24} style={{color:"rgba(14,196,184,0.6)"}} />
               <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>Erstes Erlebnis erstellen</div>
               <div style={{ fontSize:12, color:T.inkFaint }}>Workshops, Events, Begegnungen</div>
             </button>
@@ -127,7 +128,7 @@ export function ExperiencesSection({
         ) : (
           <div style={{ margin:`0 ${T.px}px`, padding:"20px 16px", borderRadius:T.r16,
             background:T.bgCard, border:`1px solid ${T.border}`, textAlign:"center" }}>
-            <div style={{ fontSize:20, marginBottom:6 }}>🎟</div>
+            <div style={{marginBottom:6, display:"flex", justifyContent:"center", color:"rgba(14,196,184,0.5)"}}><HUIErlebnisIcon size={20}/></div>
             <div style={{ fontSize:13, color:T.inkFaint, fontStyle:"italic" }}>
               Dieses Talent plant aktuell keine Erlebnisse.
             </div>
@@ -142,8 +143,8 @@ export function ExperiencesSection({
           {visible.slice(0,6).map((ex,i) => (
             <div key={ex.id||i} className="es-press"
               onClick={() => { const item = normalizePostForPreview(ex, "experience"); if (item) openPreview(item); }}
-              style={{ flexShrink:0, width:110, cursor:"pointer" }}>
-              <div style={{ width:110, height:100, borderRadius:T.r16, overflow:"hidden",
+              style={{ flexShrink:0, width:100, cursor:"pointer" }}>
+              <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6, position:"relative" }}>
                 {(ex.thumbnail_url || ex.cover_url)
                   ? <img loading="lazy" decoding="async" src={optimizeCard(ex.thumbnail_url || ex.cover_url)} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }}
@@ -172,9 +173,9 @@ export function ExperiencesSection({
 
           {/* Hinzufügen — Owner */}
           {isOwner && (
-            <div style={{ flexShrink:0, width:80 }}>
+            <div style={{ flexShrink:0, width:100 }}>
               <button className="es-press" onClick={onAddExperience} style={{
-                width:80, height:100, borderRadius:T.r16,
+                width:100, height:100, borderRadius:T.r16,
                 background:T.bgCard, border:`1.5px dashed ${T.borderMid}`,
                 display:"flex", flexDirection:"column", alignItems:"center",
                 justifyContent:"center", gap:4, cursor:"pointer",

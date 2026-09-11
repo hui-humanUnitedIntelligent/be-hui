@@ -22,8 +22,9 @@ import { useProfileData } from "../hooks/useProfileData.js";
 import { NAV_CLEARANCE_CSS } from "../components/home/navigation/navigationGeometry.js";
 import {
   HUIWerkeIcon, HUIErlebnisIcon, HUIImpactIcon, HUITalentIcon, HUIMomenteIcon, HUITalentStarIcon,
-  HUIKalenderIcon, HUISettingsIcon,
+  HUIKalenderIcon, HUISettingsIcon, HUISearchIcon,
 } from '../design/icons/HuiSystemIcons.jsx';
+import { HUILogo } from "../components/brand/HUILogo.jsx";
 import { HUIChatIcon, HUIBookmarkIcon } from '../design/icons/HuiInteractionIcons.jsx';
 import { ProfileHeader } from "../components/profile/ProfileHeader.jsx";
 import { notifyWatcher } from "../lib/notificationService.js";
@@ -382,7 +383,7 @@ function ErrorView({ onClose = () => {} }) {
       display:"flex", flexDirection:"column",
       alignItems:"center", justifyContent:"space-between", gap:16, padding:32,
     }}>
-      <span style={{ fontSize:40 }}>🔍</span>
+      <span style={{ display:"flex", color:T.inkFaint }}><HUISearchIcon size={40}/></span>
       <p style={{ fontSize:16, fontWeight: 600, color:T.ink, textAlign:"center", margin:0 }}>
         {t('pub.notFound')}
       </p>
@@ -647,7 +648,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
         {/* ── MOMENTE ── immer anzeigen, Platzhalter wenn leer */}
         {profile && (
           <div ref={momenteSectionRef}>
-            <SectionCard icon={<span style={{ fontSize:16 }}>💬</span>} title={t('pub.moments')} delay={120}>
+            <SectionCard icon={<HUIMomenteIcon size={16}/>} title={t('pub.moments')} delay={120}>
               {loadingLazy ? (
                 <div style={{display:"flex",gap:8,overflowX:"auto"}}>{[1,2,3].map(i=><Skel key={i} w={100} h={100} r={T.r12}/>)}</div>
               ) : moments.length > 0 ? (
@@ -693,7 +694,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
             background:T.bgCard, borderRadius:T.r16,
             border:`1px solid ${T.border}`, boxShadow:T.card, textAlign:"center",
           }}>
-            <div style={{ fontSize:28, marginBottom:8 }}>🌱</div>
+            <div style={{ marginBottom:8, display:"flex", justifyContent:"center" }}><HUILogo size={32} style={{opacity:0.5}}/></div>
             <p style={{ fontSize:14, color:T.inkSoft, margin:0, lineHeight:1.5 }}>
               {t('pub.emptyContent')}
             </p>
