@@ -20,6 +20,11 @@
 //   onImageTap: function(index)     — optional, ueberschreibt Lightbox-Oeffnen
 import React, { useState, useCallback, useRef, useEffect, memo } from "react";
 import { optimizeCard } from "../../lib/perfUtils.js";
+// AUTOPAUSE-VIDEO-SSOT (2026-09-11): SSOT-Komponente fuer "Video pausiert
+// automatisch außerhalb des Viewports" — vorher nur fuer den (jetzt
+// entfernten) Einzel-Video-Sonderpfad in BaseFeedCard.jsx, jetzt fuer JEDEN
+// inline Video-Preview hier (Einzel-Video + Video-Slide in Galerien).
+import AutoPauseVideo from "./AutoPauseVideo.jsx";
 
 const T = {
   teal: "#0DC4B5",
@@ -79,6 +84,11 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
     // If this was a drag or scroll (not a tap), skip
     if (Math.abs(dragX) > 10) return;
     if (dragRef.current.moved) return;
+    // FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11): Media-Tap ist ein
+    // eigenstaendiger Klick-Bereich (Lightbox/Player oeffnen) -- darf NIEMALS
+    // zu einem umschliessenden Karten-Klick (Post-Detail-Navigation)
+    // hochbubblen. Vorher fehlte stopPropagation komplett.
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     if (onImageTap) {
       onImageTap(idx);
     } else if (typeof window !== "undefined" && window.__HUI_LIGHTBOX__) {
@@ -104,9 +114,11 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
       onClick: function(e) { handleClick(e, 0); },
     },
       isVideo
-        ? React.createElement("video", {
+        ? React.createElement(AutoPauseVideo, {
             // VIDEO-MOMENT-POSTER-FIX (2026-09-09): poster = extrahierter
             // Frame (aus unifiedNormalizer extractMedia), sofort sichtbar.
+            // AUTOPAUSE-VIDEO-SSOT (2026-09-11): pausiert automatisch
+            // außerhalb des Viewports (siehe AutoPauseVideo.jsx).
             src: url, poster: (m && m.poster) || undefined,
             muted: true, loop: true, playsInline: true, autoPlay: true,
             style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
@@ -154,8 +166,9 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
           onClick: function(e) { handleClick(e, i); },
         },
           iVideo
-            ? React.createElement("video", {
+            ? React.createElement(AutoPauseVideo, {
                 // VIDEO-MOMENT-POSTER-FIX (2026-09-09)
+                // AUTOPAUSE-VIDEO-SSOT (2026-09-11): siehe oben.
                 src: iurl, poster: (m && m.poster) || undefined,
                 muted: true, loop: true, playsInline: true, autoPlay: true,
                 style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }

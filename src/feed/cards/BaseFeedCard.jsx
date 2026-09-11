@@ -536,7 +536,7 @@ export const FeedCardHeader = memo(function FeedCardHeader({ author, time, badge
 });
 
 // ── Media (lazy + fade-in + double-tap like) ──────────────────
-export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false, blurred = false, soldStamp = null }) {
+export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDoubleTap, disableTapLightbox = false, blurred = false, soldStamp = null, mediaClickFallback = null }) {
   const { t } = useTranslation();
   const [err,       setErr]      = useState(false);
   const [loaded,    setLoaded]   = useState(false);
@@ -544,30 +544,18 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   const tapRef = useRef({ t: 0, x: 0, y: 0, startY: 0, startX: 0, moved: false });
   const lightboxTimerRef = useRef(null);
   const containerRef = useRef(null);
-  // VIDEO-BG-AUDIO-001 (2026-09-11, Report b76f4fac): Video pausieren, wenn
-  // es den Viewport verlaesst ODER sein Tab versteckt wird (Keep-Alive-Tabs
-  // bleiben gemountet -- ein ton-an Video lief sonst unsichtbar im Hintergrund
-  // weiter). IntersectionObserver deckt beides ab: versteckte Tabs sind auf
-  // height:0/overflow:hidden geclippt => nicht mehr "intersecting". Beim
-  // Wieder-Erscheinen nur fortsetzen, wenn es vorher lief.
-  const videoRef = useRef(null);
-  useEffect(() => {
-    const v = videoRef.current;
-    if (!v || typeof IntersectionObserver === "undefined") return;
-    let resumeOnVisible = false;
-    const io = new IntersectionObserver((entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) {
-          if (resumeOnVisible) { resumeOnVisible = false; v.play().catch(() => {}); }
-        } else if (!v.paused) {
-          resumeOnVisible = true;
-          v.pause();
-        }
-      }
-    }, { threshold: 0.01 });
-    io.observe(v);
-    return () => io.disconnect();
-  }, []);
+  // FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11, Michael-Prompt "Feed-Redesign
+  // Instagram/TikTok-Style"): Aspect-Ratio-Erkennung NUR fuer Video (Fotos
+  // bleiben bewusst bei der festen Karten-Hoehe -- siehe FEED-UNIFORM-FIX,
+  // 2026-08-07, Michaels explizite Entscheidung: unterschiedliche Bild-
+  // Seitenverhaeltnisse zwischen Post-Typen sollen NICHT wieder zu
+  // unterschiedlich grossen Karten fuehren). Portrait-Videos wurden bisher in
+  // die feste 220px-Karte gepresst -> massives Pillarboxing (schwarze Balken
+  // links/rechts, siehe Michael-Screenshot 2026-09-11 "Test Video Nachricht").
+  // Fix: fuer Video wird die vorhandene, seit 2026-08-07 ungenutzte
+  // getAdaptiveMediaHeight() gezielt reaktiviert (Erweitern statt
+  // duplizieren) -- NUR fuer den Video-Fall, Bilder unveraendert fest.
+  const [videoAspect, setVideoAspect] = useState(null);
   const [containerW, setContainerW] = useState(0);
   const isTabletScreen = useIsTabletScreen(); // TABLET-MEDIA-3X (2026-09-08)
 
@@ -601,17 +589,41 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     return { url: u, type: isVid ? "video" : "image", alt: (typeof m === "object" && m.alt) || alt || "" };
   }).filter(Boolean);
 
+  // firstUrl/isVideo per Optional-Chaining VOR dem fruehen Return berechnet
+  // (RULES-OF-HOOKS-FIX 2026-09-11: der Aspect-Reset-Effect direkt darunter
+  // muss unconditional/vor jedem Return laufen — Hooks duerfen NIE nach
+  // einem bedingten Return in der Komponente aufgerufen werden, sonst wirft
+  // React "Rendered fewer hooks than expected" sobald imgs mal leer ist).
+  const firstUrl = imgs[0]?.url;
+  const isVideo = imgs[0]?.type === "video";
+
+  // Aspect-Ratio-State zuruecksetzen, wenn sich der Post/die Video-URL
+  // aendert (sonst wuerde beim Wechsel auf einen neuen Post kurzzeitig die
+  // Hoehe des vorherigen Videos verwendet).
+  useEffect(() => {
+    setVideoAspect(null);
+  }, [firstUrl]);
+
   if (!imgs.length || err) return null;
 
-  const firstUrl = imgs[0].url;
-  const isVideo = imgs[0].type === "video";
-
-  // FEED-UNIFORM-FIX (2026-08-07): Feste Hoehe fuer alle Karten.
-  // TABLET-MEDIA-3X (2026-09-08, Michael): Auf Tablets wird NUR das Bild
-  // (nicht der Text/Titel/Beschreibung oberhalb) dreimal so hoch --
-  // siehe useIsTabletScreen() oben fuer die Erkennungslogik.
+  // FEED-UNIFORM-FIX (2026-08-07): Feste Hoehe fuer BILDER (Michaels
+  // explizite Entscheidung — siehe Kommentar oben an der Aspect-State-
+  // Deklaration). TABLET-MEDIA-3X (2026-09-08, Michael): Auf Tablets wird
+  // NUR das Bild (nicht der Text/Titel/Beschreibung oberhalb) dreimal so
+  // hoch — siehe useIsTabletScreen() oben fuer die Erkennungslogik.
   const baseH = relaxed ? 340 : T.mediaH;
-  const h = isTabletScreen ? baseH * 3 : baseH;
+  const uniformH = isTabletScreen ? baseH * 3 : baseH;
+  // FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11): Sobald die echte Video-
+  // Aspect-Ratio bekannt ist (per unsichtbarem Metadata-Probe unten),
+  // adaptive Hoehe verwenden (Portrait bis 560px, Landscape ~360px, Square
+  // ~380px — siehe getAdaptiveMediaHeight()/MEDIA-Konstanten oben). Kein
+  // ×3-Tablet-Multiplikator hier — die adaptive Hoehe ist bereits grosszuegig
+  // bemessen; ×3 auf einem bis zu 560px hohen Portrait-Video waere absurd.
+  // Bis die Aspect-Ratio geladen ist: Fallback auf dieselbe feste Hoehe wie
+  // Bilder (kein Layout-Sprung/Flackern).
+  const h = (isVideo && videoAspect)
+    ? getAdaptiveMediaHeight(videoAspect, containerW, relaxed)
+    : uniformH;
 
   function handleTouchStart(e) {
     if (e.touches && e.touches[0]) {
@@ -637,7 +649,13 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     // onCardClick-Ziel (z.B. System-Post -> Projekt-Deep-Link) soll ein
     // Tap NICHT zusaetzlich den globalen Foto-Lightbox oeffnen -- additiv,
     // Default false aendert nichts am Verhalten aller anderen Karten.
-    if (disableTapLightbox) return;
+    // FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11): Media ist jetzt ein vom
+    // Text-Bereich UNABHAENGIGER Klick-Bereich (kein automatisches Bubbling
+    // mehr zu onCardClick, siehe Karten-Layout unten) -- damit ein Tap auf
+    // das Bild/Video bei disableTapLightbox trotzdem sein Ziel erreicht
+    // (z.B. Projekt-Deep-Link), expliziter mediaClickFallback statt
+    // zufaelligem Bubbling.
+    if (disableTapLightbox) { mediaClickFallback?.(e); return; }
     // SCROLL-GUARD: Wenn der Finger beim Beruehren bewegt wurde → kein Tap
     if (tapRef.current.moved) {
       tapRef.current = { t: 0, startX: 0, startY: 0, moved: false };
@@ -671,87 +689,56 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     }
   }
 
-  // ── Single video: keep video with controls (no lightbox needed) ──
-  if (isVideo && imgs.length === 1) {
-    return (
-      <div
-        ref={containerRef}
-        style={{
-          margin: "10px " + T.p + "px 0",
-          height: h, borderRadius: T.rMedia,
-          overflow: "hidden", background: "#F0EFED",
-          flexShrink: 0, position: "relative",
-          boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
-        }}
-      >
-        {!loaded && (
-          <div style={{
-            position: "absolute", inset: 0,
-            background: "linear-gradient(135deg,rgba(22,215,197,0.07),rgba(255,138,107,0.07))",
-            animation: "huiShimmer 1.6s ease-in-out infinite",
-            backgroundSize: "200% 100%",
-          }} />
-        )}
-        <video
-          ref={videoRef}
-          src={firstUrl}
-          poster={imgs[0].poster || undefined}
-          muted
-          loop
-          playsInline
-          autoPlay
-          controls
-          preload="metadata"
-          onLoadedData={() => setLoaded(true)}
-          onError={() => setErr(true)}
-          className="hui-card-img"
-          style={{
-            // VIDEO-CROP-FIX (2026-09-11, Nicole-Report): "cover" croppte
-            // hochkantige Videos mit eingebrannten Untertiteln horizontal,
-            // wenn die feste Feed-Karten-Hoehe (T.mediaH) nicht zur Video-
-            // Aspect-Ratio passt. "contain" zeigt das Video vollstaendig,
-            // background:"#000" (unveraendert) liefert den Letterbox-Raum —
-            // keine Layout-/Hoehen-Aenderung, rein visuell.
-            width: "100%", height: "100%", objectFit: "contain", display: "block",
-            opacity: loaded ? 1 : 0,
-            transition: "opacity 0.3s ease",
-            willChange: "opacity, transform",
-            background: "#000",
-            filter: blurred ? "blur(24px)" : "none",
-          }}
-        />
-        {/* FEED-SOLD-MARK-002 (2026-08-30): Verkauft/Ausgebucht-Stempel, analog
-            zum VERKAUFT-Stempel in WorksSection.jsx (Profil) */}
-        {soldStamp && (
-          <div style={{
-            position:"absolute", inset:0, zIndex:2, pointerEvents:"none",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            background:"rgba(26,26,46,0.28)",
-          }}>
-            <span style={{
-              color:"#fff", fontSize:15, fontWeight:800,
-              letterSpacing:1.2, textTransform:"uppercase",
-              textShadow:"0 1px 4px rgba(0,0,0,0.55)",
-              border:"1.5px solid rgba(255,255,255,0.85)",
-              padding:"5px 14px", borderRadius:6,
-              transform:"rotate(-8deg)",
-            }}>{soldStamp}</span>
-          </div>
-        )}
-      </div>
-    );
-  }
+  // ── FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11, Michael-Prompt "Feed-
+  // Redesign Instagram/TikTok-Style Media Display"): EIN einheitlicher Render-
+  // pfad fuer ALLE Medien-Konstellationen (Einzel-Video, Einzel-Bild, ge-
+  // mischte Galerien). Der fruehere Sonderpfad "Single video mit eigenen
+  // controls" wurde ENTFERNT — Videos laufen jetzt wie Fotos durch den
+  // ImageSlider (stumm, looped, autoPlay, AutoPauseVideo-SSOT: pausiert
+  // automatisch außerhalb des Viewports) und oeffnen bei Tap die Video-
+  // Lightbox (zentrierte Player-Kachel MIT controls + Ton,
+  // VIDEO-LIGHTBOX-CONTAINED-001). Das ist das Instagram-Muster: Inline-
+  // Preview stumm → Tap = Player. Der inline-<video>-Autopause-Effekt aus
+  // VIDEO-BG-AUDIO-001 bleibt dabei vollstaendig erhalten (jetzt sogar auch
+  // fuer Video-Slides in Mixed-Galerien, die ihn vorher NIE hatten).
+  //
+  // Hoehe: Fuer ERST-MEDIA=Video adaptiv an die echte Aspect-Ratio (siehe
+  // videoAspect/getAdaptiveMediaHeight oben — Portrait bis 560px statt
+  // Pillarboxing in der 220px-Karte, siehe Michael-Screenshot 2026-09-11),
+  // fuer Fotos bewusst weiterhin fest (FEED-UNIFORM-FIX, 2026-08-07).
+  //
+  // Aspect-Probe (nur Video, nicht blockierend): Ein unsichtbares
+  // <video preload="metadata"> liest NUR die Video-Header (keine Video-
+  // daten) und setzt die echte Aspect-Ratio. Bis dahin: feste Hoehe wie
+  // Bilder (kein Layout-Sprung beim ersten Rendern; die Karte wechselt
+  // einmalig auf die adaptive Hoehe, sobald die Metadaten da sind).
+  const probeVideo = (isVideo && !videoAspect) ? (
+    <video
+      src={firstUrl}
+      preload="metadata"
+      aria-hidden="true"
+      style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none" }}
+      onLoadedMetadata={(e) => {
+        const v = e.currentTarget;
+        if (v.videoWidth && v.videoHeight) {
+          setVideoAspect(v.videoWidth / v.videoHeight);
+          setLoaded(true); // Shimmer aus — Poster/Metadaten sind da
+        }
+      }}
+      onError={() => setErr(true)}
+    />
+  ) : null;
 
-  // ── 2+ images: use ImageSlider with lightbox on tap ──
-  // ── 1 image: clickable to open lightbox ──
-  // Both cases handled by ImageSlider (single-image = no dots, just tappable)
   return (
     <div
       ref={containerRef}
       style={{
         margin: "10px " + T.p + "px 0",
         height: h, borderRadius: T.rMedia,
-        overflow: "hidden", background: "#F0EFED",
+        overflow: "hidden",
+        // Video: schwarzer Letterbox-Hintergrund (VIDEO-CROP-FIX, Nicole-
+        // Report 2026-09-11 — contain + #000 statt cover-Crop). Fotos: wie bisher.
+        background: isVideo ? "#000" : "#F0EFED",
         flexShrink: 0, position: "relative",
         cursor: "pointer",
         boxShadow: "0 4px 20px rgba(26,26,46,0.08)",
@@ -761,6 +748,8 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
       onTouchEnd={handleTap}
       onDoubleClick={handleTap}
     >
+      {probeVideo}
+
       {/* Blur placeholder while loading (nur fuer erstes Bild) */}
       {!loaded && (
         <div style={{
@@ -779,17 +768,24 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           borderRadius={0}
           showDots={imgs.length > 1}
           objectFit="cover"
+          // VIDEO-CROP-FIX (2026-09-11): Videos NIE croppen (contain + schwarzer
+          // Container-Hintergrund), Fotos unveraendert cover.
+          videoObjectFit={isVideo ? "contain" : undefined}
+          background="transparent"
           onImageTap={blurred ? () => { toast.warn(t('mom.underReview')); } : null /* MODERATION-BLUR-BYPASS-FIX */}
         />
-        {/* onLoad tracking for first image shimmer */}
-        <img
-          src={optimizeCard(firstUrl)}
-          alt=""
-          loading="eager"
-          style={{ display: "none" }}
-          onLoad={() => setLoaded(true)}
-          onError={() => setErr(true)}
-        />
+        {/* onLoad tracking for first image shimmer (nur Fotos — Videos
+            setzen loaded via Aspect-Probe onLoadedMetadata) */}
+        {!isVideo && (
+          <img
+            src={optimizeCard(firstUrl)}
+            alt=""
+            loading="eager"
+            style={{ display: "none" }}
+            onLoad={() => setLoaded(true)}
+            onError={() => setErr(true)}
+          />
+        )}
       </div>
 
       {blurred && (
@@ -1210,24 +1206,33 @@ export default React.memo(function BaseFeedCard({
           }}>{badge.label}</div>
         </div>
       )}
-      {/* Content + Media: klickbarer Bereich für Werk-Detail-Navigation */}
-      {/* onCardClick nur für Work-Karten gesetzt (von WorkContent) */}
-      {/* Avatar/Name (HumanHeader) und Actions haben eigene Handler → kein Konflikt */}
+      {/* FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11, Michael-Prompt): */}
+      {/* KLICK-ZONEN-TRENNUNG (Instagram-Muster): Text-Bereich (children) und */}
+      {/* Media-Bereich (FeedMedia) sind jetzt ZWEI eigenstaendige Klick-Zonen. */}
+      {/* Text-Tap → Post-Detail (onCardClick), Media-Tap → Lightbox/Video- */}
+      {/* Player (FeedMedia/ImageSlider mit stopPropagation). Vorher umschloss */}
+      {/* EIN div BEIDE Bereiche — ein Media-Tap bubbelte ungewollt mit zur */}
+      {/* Detail-Navigation bzw. ein Detail-Klick konnte die Lightbox treffen. */}
+      {/* Avatar/Name (HumanHeader) und Actions haben weiterhin eigene Handler. */}
       <div
         onClick={onCardClick || undefined}
         style={onCardClick ? { cursor:"pointer", WebkitTapHighlightColor:"transparent" } : undefined}
       >
         <div style={{ padding: "0 " + T.p + "px 4px" }}>{children}</div>
-        <FeedMedia
-          media={item.media}
-          alt={item.title || item.text}
-          relaxed={!!(item._reactions?._relaxed)}
-          onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
-          disableTapLightbox={disableMediaLightbox}
-          blurred={!!(item?._raw?.moderation_blurred)}
-          soldStamp={soldStamp}
-        />
       </div>
+      <FeedMedia
+        media={item.media}
+        alt={item.title || item.text}
+        relaxed={!!(item._reactions?._relaxed)}
+        onDoubleTap={onCardClick ? (e) => { /* double-tap → detail, kein like-trigger */ } : handleDoubleTap}
+        disableTapLightbox={disableMediaLightbox}
+        // Bei Karten mit eigenem Klick-Ziel (System-Post → Projekt-Deep-Link,
+        // SYSTEM-PROJECT-LINK-001): Media-Tap ohne Lightbox ruft jetzt
+        // EXPLIZIT das Karten-Ziel statt des bisherigen Click-Bubblings.
+        mediaClickFallback={onCardClick}
+        blurred={!!(item?._raw?.moderation_blurred)}
+        soldStamp={soldStamp}
+      />
       <FeedActions
         reactions={localReactions}
         onReaction={handleReaction}
