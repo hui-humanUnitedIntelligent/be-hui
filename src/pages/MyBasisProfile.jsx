@@ -953,9 +953,6 @@ export default function MyBasisProfile({ onClose, profileId }) {
               />
         <Gap h={24}/>
 
-
-            <Gap h={24}/>
-
             {/* T7. Sichtbarkeit — kanonisch: VisibilitySection */}
         <VisibilitySection
                 profile={profile}
