@@ -279,6 +279,18 @@ export function useLiveTicker() {
   const [loading, setLoading] = useState(true);
   const bufferRef = useRef(new Map());
   const mounted   = useRef(true);
+  // LIVETICKER-FASTSTART (2026-09-11, Report 92077435 "Liveticker nicht mehr
+  // zu sehen"): Retry-Verwaltung fuer den ersten Load nach App-Start. Beweislage:
+  // Home-Screenshot 05:59 (frischer App-Start, erster RPC-Load noch nicht durch)
+  // zeigte keinen Balken, Discover-Screenshot 06:04 (gleicher Context, Items
+  // geladen) zeigte ihn — der Code ist identisch fuer beide Tabs. Der 90s-
+  // Intervall-Refresh machte einen transient fehlgeschlagenen/leeren ersten
+  // Load bis zu 90s lang unsichtbar. Robustheits-Fix: Bei leerem Ergebnis
+  // wiederholt der erste Load sich nach 10s (max. 3x), statt 90s auf den
+  // naechsten Intervall-Tick zu warten. Keine Fake-Daten, kein leerer
+  // Platzhalter — der Ticker erscheint, sobald echte Daten da sind.
+  const retryTimerRef = useRef(null);
+  const retryCountRef = useRef(0);
 
   const refresh = useCallback(async () => {
     const _t = performance.now();
@@ -315,6 +327,17 @@ export function useLiveTicker() {
 
     setItems(sorted);
     setLoading(false);
+
+    // LIVETICKER-FASTSTART: leerer Load -> kurzer Retry statt 90s Wartezeit
+    clearTimeout(retryTimerRef.current);
+    if (sorted.length === 0 && retryCountRef.current < 3) {
+      retryCountRef.current += 1;
+      retryTimerRef.current = setTimeout(() => {
+        if (mounted.current) refresh();
+      }, 10_000);
+    } else {
+      retryCountRef.current = 0;
+    }
   }, []);
 
   useEffect(() => {
@@ -343,6 +366,7 @@ export function useLiveTicker() {
     return () => {
       mounted.current = false;
       stopInterval();
+      clearTimeout(retryTimerRef.current);
       document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [refresh, user?.id]);

@@ -4182,6 +4182,7 @@ export default {
   'bug.errorAuth': 'Du musst angemeldet sein, um einen Fehler zu melden.',
   'bug.errorSubmit': 'Fehler beim Absenden. Bitte versuche es erneut.',
   'bug.errorPartial': 'Deine Beschreibung wurde gespeichert, aber die Bilder/Videos konnten nicht angehängt werden. Bitte melde den Fehler kurz nochmal — am besten ohne Anhang oder mit Support kontaktieren.',
+  'bug.uploadingAttachments': 'Screenshots werden noch hochgeladen… ({cur}/{total})',
   'bug.errorPartialSome': 'Deine Meldung wurde gesendet — {failed} von {total} Anhängen konnten nicht hochgeladen werden. Bitte versuche es bei Bedarf mit weniger/kleineren Dateien erneut.',
   'bug.errorPartialAll': 'Deine Meldung wurde gesendet, aber die Anhänge konnten nicht hochgeladen werden. Bitte melde den Fehler nochmal — am besten mit weniger/kleineren Dateien.',
   'pbm.deleteAccount': 'Account endgültig löschen',

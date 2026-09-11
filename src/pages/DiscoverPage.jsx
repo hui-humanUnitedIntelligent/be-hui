@@ -1183,7 +1183,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       {_searchActive && !searchedPeople.length && !searchedMomente.length &&
        !searchedWerke.length && !searchedTalente.length && !searchedErlebnisse.length &&
        !searchedProjekte.length && (
-        <div style={{ padding:"60px 24px", textAlign:"center", color:"rgba(26,53,48,0.38)" }}>
+        <div style={{ padding:"60px 24px", textAlign:"center", color:"#55556B" }}>
           <div style={{ fontSize:15, fontWeight:600, marginBottom:6 }}>{_t("discover.noResults")}</div>
           <div style={{ fontSize:13 }}>
             {_t("discover.noResultsQuery", { query: _searchQuery })}

@@ -4146,6 +4146,7 @@ export default {
   'bug.errorAuth': 'Devi effettuare l\'accesso per segnalare un bug.',
   'bug.errorSubmit': 'Errore nell\'invio. Riprova.',
   'bug.errorPartial': 'La tua descrizione è stata salvata, ma le immagini/video non sono stati allegati. Segnala di nuovo il bug — idealmente senza allegati o contatta il supporto.',
+  'bug.uploadingAttachments': 'Screenshot in fase di caricamento… ({cur}/{total})',
   'bug.errorPartialSome': 'La tua segnalazione è stata inviata — {failed} di {total} file non sono stati caricati. Riprova con meno file o file più piccoli se necessario.',
   'bug.errorPartialAll': 'La tua segnalazione è stata inviata, ma i file non sono stati caricati. Segnala di nuovo il bug — idealmente con meno file o file più piccoli.',
   'pbm.deleteAccount': 'Elimina account definitivamente',

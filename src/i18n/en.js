@@ -4190,6 +4190,7 @@ export default {
   'bug.errorAuth': 'You must be logged in to report a bug.',
   'bug.errorSubmit': 'Error submitting. Please try again.',
   'bug.errorPartial': 'Your description was saved, but the images/videos could not be attached. Please report the bug again — ideally without attachments or contact support.',
+  'bug.uploadingAttachments': 'Screenshots are still being uploaded… ({cur}/{total})',
   'bug.errorPartialSome': 'Your report was sent — {failed} of {total} attachments could not be uploaded. Please try again with fewer/smaller files if needed.',
   'bug.errorPartialAll': 'Your report was sent, but the attachments could not be uploaded. Please report the bug again — ideally with fewer/smaller files.',
   'pbm.deleteAccount': 'Delete account permanently',

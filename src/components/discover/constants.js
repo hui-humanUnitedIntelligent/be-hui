@@ -14,8 +14,17 @@ export const T = {
   coral:    "#E8573A",
   coralSoft:"rgba(232,87,58,0.10)",
   ink:      "#1A3530",
-  inkSoft:  "rgba(26,53,48,0.55)",
-  inkFaint: "rgba(26,53,48,0.32)",
+  // DISCOVER-CONTRAST-002 (2026-09-11, Report 4aeb079c "Graustufen nicht
+  // veraendert / zu schwach — bitte Untertitel dunkler"): Die Discover-Tokens
+  // waren Ink-Alpha-Werte (rgba(26,53,48,0.55/0.32)) und wurden vom
+  // systemweiten CONTRAST-001 (#8A8A9E→#55556B) NICHT erfasst — auf dem
+  // Screenshot per Pixel-Analyse bewiesen: Bio-Untertitel der Menschenkarten
+  // ≈ rgb(130,140,140) == exakt rgba(26,53,48,0.55) auf Weiss (≈2.6:1
+  // Kontrast — zu hell). Harmonisiert auf die von Michael freigegebenen
+  // systemweiten Grau-Standards: Muted-Text = #55556B (6.8:1), Faint-Text =
+  // #808098 (3.6:1). SSOT-Aenderung — alle Discover-Sections/-Modals erben.
+  inkSoft:  "#55556B",
+  inkFaint: "#808098",
   border:   "rgba(26,53,48,0.07)",
   px:       16,
   cardShadow:"0 2px 14px rgba(26,53,48,0.07), 0 1px 3px rgba(26,53,48,0.04)",

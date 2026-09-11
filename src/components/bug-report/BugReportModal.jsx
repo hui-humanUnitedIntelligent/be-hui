@@ -94,6 +94,9 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  // BUGREPORT-CONFIRM-001 (2026-09-11, Report 67d9ad0e): Fortschritt der
+  // Anhang-Uploads nach der Frueh-Bestaetigung ("Bild 1/2").
+  const [uploadProgress, setUploadProgress] = useState(null); // {cur,total}|null
   const [error, setError] = useState(null);
   const [attachmentWarning, setAttachmentWarning] = useState(null);
   const fileInputRef = useRef(null);
@@ -227,6 +230,20 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       if (dbErr) throw dbErr;
       if (!report?.id) throw new Error("Keine Report-ID erhalten");
 
+      // BUGREPORT-CONFIRM-001 (2026-09-11, Report 67d9ad0e "keine
+      // Bestaetigung, Fenster reagiert nicht"): Frueh-Bestaetigung direkt
+      // nach dem erfolgreichen INSERT — ab diesem Moment ist der Report
+      // nachweislich in der DB (die SADB-Telegram-Notifikation feuert zu
+      // diesem Zeitpunkt bereits). Vorher hing die "Wird gesendet…"-UI an
+      // den Anhang-Uploads: bei einem haengenden/schlechten Upload (hier:
+      // 2. Screenshot, 40s-Timeout) sah der Nutzer MINUTENLANG keine
+      // Reaktion, obwohl sein Report laengst versendet war. Die Danke-
+      // Ansicht zeigt jetzt ehrlich den Upload-Fortschritt der Anhänge;
+      // ein gescheiterter Anhang wird nach wie vor als attachmentWarning
+      // angezeigt, der Report selbst bleibt unbeeinflusst (per-Datei-
+      // Resilienz seit bd8d8e09).
+      setSubmitted(true);
+
       // 2. Upload files (if any)
       // iOS-RESILIENZ (2026-09-08): Nur auf iOS pro Datei try/catch — ein
       // fehlgeschlagener Anhang-Upload bricht das Absenden NICHT mehr ab.
@@ -239,7 +256,9 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       // alles bei einer einzigen fehlerhaften Datei — Michaels Android-Report).
       const attachments = [];
       let failedCount = 0;
-      for (const f of files) {
+      for (let fi = 0; fi < files.length; fi++) {
+        const f = files[fi];
+        setUploadProgress({ cur: fi + 1, total: files.length });
         try {
           const att = await uploadFileWithTimeout(f, report.id);
           attachments.push(att);
@@ -248,6 +267,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
           console.error("[BugReport] attachment upload failed:", f.name, fileErr);
         }
       }
+      setUploadProgress(null);
       if (failedCount > 0) {
         setAttachmentWarning(
           attachments.length > 0
@@ -299,6 +319,7 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     setError(null);
     setAttachmentWarning(null);
     setSubmitted(false);
+    setUploadProgress(null);
     setUploading(false);
     onClose();
   }, [onClose]);
@@ -399,7 +420,13 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
   // Android: strukturell 1:1 unveraendert — weiterhin EIN Div mit
   // overflowY:"auto" + maxHeight:"85vh" + fixem 88px-Padding, exakt wie vor
   // diesem Fix (kein neuer Code-Pfad, reiner IS_IOS-Zweig).
-  const sheetPaddingBottom = (IS_IOS && kbdInset > 0)
+  // ANDROID-KBD-SHEET-FIX (2026-09-11, Report 31d3e529 "Fenster starr, Text
+  // nicht sichtbar"): Die 20px-Reduktion bei offener Tastatur gilt jetzt
+  // BEIDEN Plattformen — die Bottom-Navbar ist bei offener Tastatur ohnehin
+  // global ausgeblendet (body.hui-keyboard-open), die 88px-Clearance
+  // verschwenden nur sichtbaren Platz. iOS-Verhalten: unveraendert (gleiche
+  // Bedingung, gleiche Werte — nur der IS_IOS-Gate entfernt).
+  const sheetPaddingBottom = (kbdInset > 0)
     ? "calc(20px + env(safe-area-inset-bottom, 0px))"
     : "calc(88px + env(safe-area-inset-bottom, 0px))";
 
@@ -415,9 +442,20 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
       }
     : {
         width: "100%", maxWidth: 500,
-        maxHeight: "85vh", overflowY: "auto",
+        // ANDROID-KBD-SHEET-FIX (2026-09-11, Report 31d3e529): maxHeight war
+        // starr 85vh OHNE Tastatur-Abzug. Root Cause: Bei offener Tastatur
+        // schiebt der globale Handler (UNIVERSAL-PADDING-FIX) den Backdrop
+        // per paddingBottom um das Inset hoch — das 85vh-Sheet blieb aber in
+        // VOLLER Hoehe stehen und lief oben ueber den Bildschirmrand hinaus:
+        // Header + Textfeld visuell unerreichbar ("ich sehe den Text nicht"),
+        // das Sheet wirkte "starr verankert". Fix: identisches Muster wie der
+        // bewaehrte iOS-Zweig (calc(94dvh - inset)) — bei geschlossener
+        // Tastatur (inset=0) exakt 85vh wie bisher, bei offener Tastatur passt
+        // das Sheet vollstaendig ueber die Tastatur und der globale
+        // scrollFieldIntoView-Handler kann das Textfeld einrollen.
+        maxHeight: "calc(85vh - var(--hui-keyboard-inset, 0px))", overflowY: "auto",
         background: "#FAF7F2", borderRadius: "20px 20px 0 0",
-        padding: "20px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
+        padding: `20px 20px ${sheetPaddingBottom}`,
         boxShadow: "0 -4px 24px rgba(0,0,0,0.12)",
         animation: "huiSlideUp 0.3s ease",
       };
@@ -498,6 +536,19 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
             <p style={{ fontSize: 15, fontWeight: 600, color: "#1a1a2e", fontFamily: "Inter, sans-serif", margin: "0 0 4px" }}>
               {t('bug.success')}
             </p>
+            {uploadProgress && (
+              <div style={{
+                marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center",
+                gap: 8, fontSize: 12.5, color: "rgba(20,20,34,0.55)", fontFamily: "Inter, sans-serif",
+              }}>
+                <div style={{
+                  width: 12, height: 12, borderRadius: "50%",
+                  border: "2px solid rgba(22,215,197,0.25)", borderTopColor: "#16D7C5",
+                  animation: "hui-spin 0.7s linear infinite",
+                }} />
+                {t('bug.uploadingAttachments', { cur: String(uploadProgress.cur), total: String(uploadProgress.total) })}
+              </div>
+            )}
             {attachmentWarning && (
               <div style={{
                 marginTop: 14, padding: "10px 14px", borderRadius: 10,

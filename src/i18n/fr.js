@@ -4147,6 +4147,7 @@ export default {
   'bug.errorAuth': 'Tu dois être connecté pour signaler un bug.',
   'bug.errorSubmit': 'Erreur lors de l\'envoi. Veuillez réessayer.',
   'bug.errorPartial': 'Ta description a été enregistrée, mais les images/vidéos n\'ont pas pu être jointes. Veuillez signaler le bug à nouveau — idéalement sans pièce jointe ou contacter le support.',
+  'bug.uploadingAttachments': "Captures d'écran en cours d'envoi… ({cur}/{total})",
   'bug.errorPartialSome': 'Ton signalement a été envoyé — {failed} fichier(s) sur {total} n\'ont pas pu être téléchargés. Réessaie avec moins de fichiers ou des fichiers plus petits si besoin.',
   'bug.errorPartialAll': 'Ton signalement a été envoyé, mais les fichiers n\'ont pas pu être téléchargés. Signale le bug à nouveau — idéalement avec moins de fichiers ou plus petits.',
   'pbm.deleteAccount': 'Supprimer le compte définitivement',

@@ -26,8 +26,10 @@ const T = {
   tealSoft: "rgba(14,196,184,0.10)",
   tealMid:  "rgba(14,196,184,0.16)",
   ink:    "#1A3530",
-  inkSoft: "rgba(26,53,48,0.55)",
-  inkFaint: "rgba(26,53,48,0.32)",
+  // DISCOVER-CONTRAST-002 (2026-09-11): Harmonisiert auf systemweite
+  // Grau-Standards — gleiche Werte wie discover/constants.js (siehe dort).
+  inkSoft: "#55556B",
+  inkFaint: "#808098",
   border: "rgba(26,53,48,0.08)",
 };
 
