@@ -14,7 +14,7 @@ import {
   sv,
   handleAvatarUpload, handleCoverUpload,
 } from "../../lib/profileMedia.js";
-import { optimizeCover, optimizeAvatar } from "../../lib/perfUtils.js";
+import { optimizeCover, optimizeAvatar, optimizeFull } from "../../lib/perfUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import FollowListModal from "./FollowListModal.jsx";
 
@@ -54,6 +54,22 @@ function buildImageSources(rawUrl, optimizer, fallback) {
   if (raw && raw !== opt) sources.push(raw);
   if (fallback && !sources.includes(fallback)) sources.push(fallback);
   return sources.length ? sources : [fallback];
+}
+
+// PROFILBILD-LIGHTBOX-001 (2026-09-11, Michael-Prompt "Profilbilder
+// anklickbar + Großformat"): Oeffnet Avatar/Cover appweit im bestehenden
+// SSOT-Player (window.__HUI_LIGHTBOX__, siehe ImageSlider.jsx-Muster) statt
+// einer neuen Komponente (Architektur-Charta: erweitern statt duplizieren).
+// Grossformat = optimizeFull() (1600px/Q90) statt der kleinen Karten-
+// Optimierung (optimizeAvatar 100px / optimizeCover ~800px) -- sonst waere
+// das "Grossformat"-Bild in der Lightbox genauso klein/verpixelt wie im
+// Kreis/Header selbst.
+function openImageLightbox(rawUrl, fallback, alt) {
+  if (typeof window === "undefined" || !window.__HUI_LIGHTBOX__) return;
+  const raw = sv(rawUrl, fallback);
+  if (!raw) return;
+  const full = optimizeFull(raw) || raw;
+  window.__HUI_LIGHTBOX__.open([{ url: full, type: "image", alt: alt || "" }], 0);
 }
 
 function Sk({ w, h, r = 8 }) {
@@ -245,9 +261,16 @@ export function ProfileHeader({
               if (coverStage < coverSources.length - 1) setCoverStage(coverStage + 1);
               else setCoverLoaded(true);
             }}
+            // PROFILBILD-LIGHTBOX-001 (2026-09-11): Klick auf das Cover
+            // oeffnet die Grossformat-Ansicht -- unabhaengig vom
+            // Owner-Kamera-Button (eigenes Element, eigener Handler,
+            // ueberlappt nicht). stopPropagation nicht noetig: das Cover
+            // hat hier keinen umschliessenden Klick-Handler.
+            onClick={coverLoaded ? () => openImageLightbox(profile?.header_img, FB_COVER, name) : undefined}
             style={{
               width:"100%", height:"100%", objectFit:"cover", display:"block",
               opacity: coverLoaded ? 0.88 : 0, transition:"opacity 0.25s ease",
+              cursor: coverLoaded ? "pointer" : "default",
             }}
           />
         )}
@@ -325,9 +348,16 @@ export function ProfileHeader({
                       if (avatarStage < avatarSources.length - 1) setAvatarStage(avatarStage + 1);
                       else setAvatarLoaded(true);
                     }}
+                    // PROFILBILD-LIGHTBOX-001 (2026-09-11): Klick auf den
+                    // Avatar oeffnet die Grossformat-Ansicht. Der Owner-
+                    // Kamera-Button liegt als eigenes absolut positioniertes
+                    // Element ueber der Ecke (zIndex 10) -- Klicks exakt auf
+                    // den Button treffen den Button, nicht das Bild.
+                    onClick={avatarLoaded ? () => openImageLightbox(profile?.avatar_url, FB_AVT, name) : undefined}
                     style={{
                       width:"100%", height:"100%", objectFit:"cover",
                       opacity: avatarLoaded ? 1 : 0, transition:"opacity 0.2s ease",
+                      cursor: avatarLoaded ? "pointer" : "default",
                     }}
                   />
                 )}
