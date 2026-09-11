@@ -25,6 +25,7 @@ import { useProfileLauncher } from "../components/home/profile/ProfileLauncher.j
 import { ProfileService } from "../services/db.js";
 import { formatDateDE } from "../lib/formatters.js";
 import { useTranslation } from "../hooks/useTranslation.js";
+import { useIsTabletScreen } from "../lib/useIsTabletScreen.js";
 
 const MenschenAllModal = lazy(() => import("../components/discover/MenschenAllModal.jsx"));
 const WerkeAllModal = lazy(() => import("../components/discover/WerkeAllModal.jsx"));
@@ -995,6 +996,9 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   const [showProjekteModal,   setShowProjekteModal]    = useState(false);
   const [showOrteModal,       setShowOrteModal]        = useState(false);
 
+  // TABLET-LAYOUT-001 (2026-09-11): zentrierte Inhaltsspalte auf Tablet/Desktop
+  const isTabletScreen = useIsTabletScreen();
+
   // ── Render ───────────────────────────────────────────────────
   return (
     <div className="dp-root" style={{
@@ -1004,6 +1008,11 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       overscrollBehavior:"none",
     }}>
       <style>{CSS}</style>
+
+      {/* TABLET-LAYOUT-001: zentrierte Inhaltsspalte auf Tablet/Desktop —
+          die Portal-Modals (AllModals, FilterSheet) bleiben AUSSERHALB
+          dieses Wrappers, die brauchen die volle Viewport-Breite. */}
+      <div style={ isTabletScreen ? { maxWidth:900, margin:"0 auto" } : undefined }>
 
       {/* ── 1. Titelbereich ── */}
       <DiscoverTitleBar />
@@ -1195,6 +1204,8 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       {/* ── Orb-Clearance-Spacer — letzter Scroll-Inhalt vor Modals.
            Verhindert Orb-Überlappung auf allen Geräten (Android + iOS). ── */}
       <div style={{ height: NAV_CONTENT_SPACER_CSS }} aria-hidden="true" />
+
+      </div>{/* /TABLET-LAYOUT-001 zentrierte Inhaltsspalte */}
 
       {/* Talent-Anfrage-Modal (Portal, siehe .agents/rules/footer-navbar-zindex.md) */}
       {talentInquiry && (

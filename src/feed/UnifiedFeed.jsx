@@ -32,6 +32,7 @@ import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
 import FeedImpactTicker from "./FeedImpactTicker.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
+import { useIsTabletScreen } from "../lib/useIsTabletScreen.js";
 
 
 
@@ -164,6 +165,9 @@ function useHeuteStats() {
 // ── FeedWelcomeHeader ────────────────────────────────────────────
 function FeedWelcomeHeader({ currentUser }) {
   const { t } = useTranslation();
+  // TABLET-LAYOUT-001 (2026-09-11): Feed-Inhalt auf Tablet/Desktop in
+  // zentrierter Spalte statt edge-to-edge (Michael-Report iPad).
+  const isTabletScreen = useIsTabletScreen();
   const greeting = getGreeting(t);
   const firstName = currentUser?.display_name?.split(" ")[0]
     || currentUser?.username
@@ -978,6 +982,10 @@ export default function UnifiedFeed({
       minHeight: "100vh",
     }}>
 
+      {/* TABLET-LAYOUT-001: zentrierte Inhaltsspalte auf Tablet/Desktop.
+          CommentsSheet (Portal) bleibt bewusst AUSSERHALB. */}
+      <div style={ isTabletScreen ? { maxWidth: 680, margin: "0 auto" } : undefined }>
+
       {/* ── FEED WELCOME HEADER — Kapitel 2 Sprint 2.1 ── */}
       {!skipWelcome && <FeedWelcomeHeader currentUser={currentUser} />}
 
@@ -1072,6 +1080,8 @@ export default function UnifiedFeed({
           </div>
         </div>
       )}
+
+      </div>{/* /TABLET-LAYOUT-001 zentrierte Spalte */}
 
       {/* ── COMMENTS SHEET ── */}
       <CommentsSheet

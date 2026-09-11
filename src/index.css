@@ -666,6 +666,25 @@ body.hui-keyboard-open [contenteditable]:focus {
   }
 }
 
+/* ═══ TABLET-LAYOUT-001 (2026-09-11) — Profil-Seiten zentriert ══
+   Tablets/Desktop: Profil-Seiten laufen edge-to-edge und wirken
+   "verzogen" (Michael-Report iPad, 2026-09-11). Die vier Profil-
+   Scroll-Container (ppp/mbp/bpp/tpp) bekommen deshalb eine
+   zentrierte Inhaltsspalte: direkte Kinder max. 900px breit.
+   Mobile (<768px) unberaehrt. Vollflaechige Elemente (Sticky-
+   Header) bleiben funktional - sticky + max-width + margin:auto
+   zentriert korrekt. */
+@media (min-width: 768px) {
+  .ppp-scroll > *,
+  .mbp-scroll > *,
+  .bpp-scroll > *,
+  .tpp-scroll > * {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 /* ═══ Emoji Rendering (2026-08-08) ════════════════════════════
    Sorgt für konsistentes Emoji-Rendering auf allen Geräten.
    iOS nutzt Apple Color Emoji, Android nutzt Noto Color Emoji.

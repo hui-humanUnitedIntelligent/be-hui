@@ -1113,6 +1113,14 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   // currentUser = echtes Supabase-Profil (Single Source of Truth)
   const currentUser = profile || currentUserProp || null;
 
+  // TABLET-LAYOUT-001 (2026-09-11): Seiteninhalt auf Tablet/Desktop (>=700px
+  // kleinere Dimension, SSOT useIsTabletScreen) in einer zentrierten Spalte
+  // statt edge-to-edge zu stretchen (Michaels Report: Hero + KPI-Karten
+  // "spannen komplett aus" auf iPad). Aeussere Seite (data-impact-page)
+  // behaelt volle Breite als Hintergrundflaeche, der Inhalt selbst wird
+  // in einen zentrierten max-width-Container gepackt.
+  const isTabletScreen = useIsTabletScreen();
+
   // ── States ──
   const [projects,    setProjects]    = React.useState([]);
   const [loadingProj, setLoadingProj] = React.useState(true);
@@ -1382,6 +1390,9 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         @-webkit-keyframes ipSlideUp { from{-webkit-transform:translateY(100%)} to{-webkit-transform:translateY(0)} }
       `}</style>
 
+      {/* TABLET-LAYOUT-001: zentrierte Inhaltsspalte auf Tablet/Desktop */}
+      <div style={ isTabletScreen ? { maxWidth:900, margin:"0 auto" } : undefined }>
+
       {/* ══ 1 ── GROSSER EMOTIONALER HERO ════════════════════════ */}
       <BigHero pool={pool} />
 
@@ -1460,6 +1471,8 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
 
       {/* ══ GANZ UNTEN: IMPACT-POOL VERTEILUNGS-TICKER (max 5) ═══ */}
       <PoolTransparenzTicker items={poolTicker.items} />
+
+      </div>{/* /TABLET-LAYOUT-001 zentrierte Inhaltsspalte */}
 
       {/* ══ DETAIL-MODAL via Portal — immer ganz oben ════════════ */}
       {detailApp && (
