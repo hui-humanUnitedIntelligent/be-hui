@@ -706,7 +706,13 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           onError={() => setErr(true)}
           className="hui-card-img"
           style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
+            // VIDEO-CROP-FIX (2026-09-11, Nicole-Report): "cover" croppte
+            // hochkantige Videos mit eingebrannten Untertiteln horizontal,
+            // wenn die feste Feed-Karten-Hoehe (T.mediaH) nicht zur Video-
+            // Aspect-Ratio passt. "contain" zeigt das Video vollstaendig,
+            // background:"#000" (unveraendert) liefert den Letterbox-Raum —
+            // keine Layout-/Hoehen-Aenderung, rein visuell.
+            width: "100%", height: "100%", objectFit: "contain", display: "block",
             opacity: loaded ? 1 : 0,
             transition: "opacity 0.3s ease",
             willChange: "opacity, transform",

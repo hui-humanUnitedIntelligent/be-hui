@@ -9,6 +9,14 @@
 //   borderRadius: number            — Default 14
 //   showDots: boolean               — Default true
 //   objectFit: string               — Default "cover"
+//   videoObjectFit: string           — VIDEO-CROP-FIX (2026-09-11): optionaler
+//     objectFit NUR fuer <video>-Elemente (Fotos im selben Slider behalten
+//     `objectFit`/"cover"). Default = objectFit (unveraendertes Verhalten).
+//   background: string              — optionaler Container-Hintergrund fuer
+//     Letterbox-Raum bei videoObjectFit="contain". Default unveraendert
+//     (kein Hintergrund bei Einzelbild, "#F0EFED" bei Multi-Slider) —
+//     bestehende Aufrufer (BaseFeedCard, ContentPreviewSheet) bleiben
+//     dadurch 1:1 unveraendert.
 //   onImageTap: function(index)     — optional, ueberschreibt Lightbox-Oeffnen
 import React, { useState, useCallback, useRef, useEffect, memo } from "react";
 import { optimizeCard } from "../../lib/perfUtils.js";
@@ -17,7 +25,7 @@ const T = {
   teal: "#0DC4B5",
 };
 
-function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImageTap }) {
+function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoObjectFit, background, onImageTap }) {
   const [current, setCurrent] = useState(0);
   const [dragX, setDragX] = useState(0);
   const containerRef = useRef(null);
@@ -27,6 +35,10 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
   const h = height || 220;
   const br = borderRadius != null ? borderRadius : 14;
   const fit = objectFit || "cover";
+  // VIDEO-CROP-FIX (2026-09-11): videoObjectFit ueberschreibt NUR das
+  // objectFit von <video>-Elementen, Fotos im selben Slider behalten `fit`.
+  // Ohne videoObjectFit-Prop identisch zu vorher (vFit === fit).
+  const vFit = videoObjectFit || fit;
   const showIndicators = showDots !== false;
   const imgs = Array.isArray(images) ? images : [];
 
@@ -87,6 +99,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
         width: "100%", height: h, borderRadius: br,
         overflow: "hidden", position: "relative",
         cursor: "pointer", flexShrink: 0,
+        ...(background ? { background } : null),
       },
       onClick: function(e) { handleClick(e, 0); },
     },
@@ -96,7 +109,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
             // Frame (aus unifiedNormalizer extractMedia), sofort sichtbar.
             src: url, poster: (m && m.poster) || undefined,
             muted: true, loop: true, playsInline: true, autoPlay: true,
-            style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
+            style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
           })
         : React.createElement("img", {
             src: optimizeCard(url), alt: (m && m.alt) || "", loading: "eager", decoding: "async",
@@ -112,7 +125,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
     style: {
       width: "100%", height: h, borderRadius: br,
       overflow: "hidden", position: "relative",
-      flexShrink: 0, background: "#F0EFED",
+      flexShrink: 0, background: background || "#F0EFED",
       touchAction: "pan-y",
     },
     onTouchStart: onTouchStart,
@@ -145,7 +158,7 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, onImag
                 // VIDEO-MOMENT-POSTER-FIX (2026-09-09)
                 src: iurl, poster: (m && m.poster) || undefined,
                 muted: true, loop: true, playsInline: true, autoPlay: true,
-                style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
+                style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
               })
             : React.createElement("img", {
                 src: optimizeCard(iurl), alt: (m && m.alt) || "", loading: i === 0 ? "eager" : "lazy", decoding: "async",

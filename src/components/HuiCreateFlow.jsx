@@ -449,7 +449,15 @@ function ScreenMoment({ onClose, onPublishDirect, onDeepen, forcedType = null })
           {preview ? (
             <>
               {isVid
-                ? <video src={preview} style={{ width:"100%", height:"100%", objectFit:"cover" }}
+                // VIDEO-CROP-FIX (2026-09-11, Nicole-Report): "cover" zeigte
+                // in der Upload-Vorschau ein anderes Framing als spaeter im
+                // Momente-Viewer (PostFullscreenView, dort bereits auf
+                // "contain" gefixt) — Ersteller sahen beim Hochladen nicht,
+                // was tatsaechlich sichtbar sein wird. "contain" + schwarzer
+                // Hintergrund = WYSIWYG-Vorschau, kein Cropping. Fotos
+                // (objectFit weiterhin "cover") bewusst unveraendert — die
+                // aspectRatio-Box selbst bleibt (kein Layout-Risiko).
+                ? <video src={preview} style={{ width:"100%", height:"100%", objectFit:"contain", background:"#000" }}
                     muted playsInline autoPlay loop/>
                 : <img loading="lazy" decoding="async" src={preview} alt="preview"
                     style={{ width:"100%", height:"100%", objectFit:"cover" }}/>

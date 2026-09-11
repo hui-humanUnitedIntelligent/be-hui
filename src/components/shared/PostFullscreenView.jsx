@@ -284,7 +284,18 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
         </div>
 
         {/* 1) Grosses Bild/Video — LIGHTBOX+SLIDER.1 (2026-08-08):
-            Bei 2+ Bildern Slider. Tappbar -> Full-Screen Lightbox. */}
+            Bei 2+ Bildern Slider. Tappbar -> Full-Screen Lightbox.
+            VIDEO-CROP-FIX (2026-09-11, Nicole-Report): objectFit="cover" auf
+            der fixen 62vh-Box croppte 9:16-Videos horizontal — eingebrannte
+            Untertitel (z.B. "Bitterstoffe für unsere Leber") wurden links/
+            rechts abgeschnitten, weil die Video-Breite auf die Container-
+            Hoehe gezoomt+gecropt wurde. Fix NUR fuer Videos (videoObjectFit=
+            "contain", ImageSlider-SSOT) — zeigt das Video vollstaendig in
+            nativer Aspect-Ratio mit schwarzem Letterbox-Hintergrund statt
+            Cropping. Fotos (objectFit bleibt "cover") sind bewusst NICHT
+            betroffen — Foto-Momente behalten das bisherige Edge-to-Edge-
+            Verhalten unveraendert, nur Video wird korrigiert (exakter Scope
+            des gemeldeten Bugs). */}
         {(mountedItem.media || []).length > 0 ? (
           <ImageSlider
             images={mountedItem.media}
@@ -292,6 +303,8 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
             borderRadius={0}
             showDots={true}
             objectFit="cover"
+            videoObjectFit="contain"
+            background="#000"
           />
         ) : null}
 
