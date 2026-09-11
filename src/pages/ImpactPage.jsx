@@ -1454,7 +1454,18 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
       />
 
       {/* ══ 5 ── GEMEINSAM ERMÖGLICHT ════════════════════════════ */}
-      <GemeinsamErmoegicht finanziert={finanziert} transp={transp} onOpenProject={setDetailApp} />
+      {/* GEMEINSAM-AUSBLENDEN-001 (2026-09-11, Michael-Report 3226bfa0):
+          Die Section wird KOMPLETT ausgeblendet, solange kein Projekt
+          fertig finanziert ist (frueher: Demo-Platzhalter mit Beispiel-
+          Karten "Repair Cafe"/"Musik verbindet", die echten Inhalt
+          vortaeuschten). Sobald das erste Projekt is_completed=true
+          hat (useWeitereProjects, SSOT impact_applications — Realtime),
+          erscheint die Section automatisch mit den echten Projekten.
+          Loading-Zustand: finanziert startet als [] — Section erscheint
+          dann erst nach dem Load, kein Platzhalter-Flicker. */}
+      {finanziert.length > 0 && (
+        <GemeinsamErmoegicht finanziert={finanziert} transp={transp} onOpenProject={setDetailApp} />
+      )}
 
       {/* ══ 6 ── HERZENSPROJEKT EINREICHEN ═══════════════════════ */}
       <HerzensprojektEmotional onPropose={() => setShowPropose(true)} />
@@ -2645,51 +2656,11 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
         </div>
       )}
 
-      {/* Finanzierte Projekte */}
-      {finanziert.length === 0 ? (
-        <div style={{
-          background:`linear-gradient(135deg,${T.teal}10,${T.teal}04)`,
-          border:`1.5px solid ${T.teal}22`,
-          borderRadius:20, padding:"24px 20px",
-        }}>
-          <div style={{ fontSize:32, marginBottom:10, textAlign:"center" }}>💚</div>
-          <div style={{ fontSize:14, fontWeight: 600, color:T.ink, marginBottom:10, textAlign:"center" }}>
-            {t("impact.erstenProjekte")}
-          </div>
-          {/* Beispiel-Wirkungskarten (Vorschau wie es aussehen wird) */}
-          {[
-            { name: t("impact.repairCafe"), month: t("impact.repairCafeMonth"),
-              lines:[t("impact.demo1.l1"),t("impact.demo1.l2"),t("impact.demo1.l3")], icon:"🔧" },
-            { name: t("impact.musikVerbindet"), month: t("impact.musikMonth"),
-              lines:[t("impact.demo2.l1"),t("impact.demo2.l2"),t("impact.demo2.l3")], icon:"🎵" },
-          ].map((ex, ei) => (
-            <div key={ei} style={{
-              background:"rgba(255,255,255,0.55)", backdropFilter:"blur(6px)",
-              borderRadius:14, padding:"12px 14px", marginBottom:8,
-              border:`1px solid ${T.teal}15`, opacity:0.72,
-            }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontSize:20 }}>{ex.icon}</span>
-                <div>
-                  <div style={{ fontSize:13, fontWeight: 600, color:T.ink }}>{ex.name}</div>
-                  <div style={{ fontSize:10, color:T.muted }}>{t("impact.finanziertIm", { month: ex.month })}</div>
-                </div>
-              </div>
-              {ex.lines.map((l, li) => (
-                <div key={li} style={{ display:"flex", gap:6, fontSize:11, color:T.ink2,
-                  marginBottom:3, alignItems:"center" }}>
-                  <span style={{ color:T.teal, fontSize:10 }}>✔</span><span>{l}</span>
-                </div>
-              ))}
-            </div>
-          ))}
-          <p style={{ fontSize:11, color:T.muted, lineHeight:1.6, margin:"10px 0 0",
-            textAlign:"center" }}>
-            {t("impact.soAussehen")}
-          </p>
-        </div>
-      ) : (
-        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+      {/* Finanzierte Projekte — GEMEINSAM-AUSBLENDEN-001 (2026-09-11):
+          Komponente wird nur gerendert wenn finanziert.length > 0
+          (Gate beim Aufruf), der ehemalige Empty-State-Demo-Block
+          (Beispiel-Karten "Repair Cafe"/"Musik verbindet") ist entfernt. */}
+      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {finanziert.map((p, i) => (
             <div key={p.id}
               onClick={() => onOpenProject(p._raw || p)}
@@ -2745,8 +2716,7 @@ function GemeinsamErmoegicht({ finanziert, transp, onOpenProject = () => {} }) {
               </div>
             </div>
           ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
