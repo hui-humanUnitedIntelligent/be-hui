@@ -60,7 +60,7 @@ const STATUS_CFG = {
   pending_review: { label:"In Prüfung",  color:"#D97706", bg:"rgba(217,119,6,0.1)",   icon:"🔍" },
   published:      { label:"Freigegeben", color:"#10B981", bg:"rgba(16,185,129,0.1)",  icon:"✅" },
   rejected:       { label:"Abgelehnt",   color:"#EF4444", bg:"rgba(239,68,68,0.1)",   icon:"❌" },
-  draft:          { label:"Entwurf",     color:"#94A3B8", bg:"rgba(148,163,184,0.1)", icon:"📝" },
+  draft:          { label:"Entwurf",     color:"#55556B", bg:"rgba(148,163,184,0.1)", icon:"📝" },
 };
 
 /* ── Werke & Inhalte ── */

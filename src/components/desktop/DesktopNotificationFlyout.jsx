@@ -21,7 +21,7 @@ const NOTIF_STYLE = {
   booking:  { color: '#0DC4B5', icon: <><rect x="3" y="5" width="14" height="12" rx="2" /><path d="M3 9h14M7 5v3" /></> },
   message:  { color: '#0DC4B5', icon: <path d="M3 5.5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H8l-3 3v-3H5a2 2 0 0 1-2-2v-7z" /> },
   reaction: { color: '#F4A635', icon: <path d="M10 3l2.5 5.5L18 9l-4 4 1 5.5L10 15l-5 3.5 1-5.5-4-4 5.5-.5z" /> },
-  system:   { color: '#8A8A9E', icon: <><circle cx="10" cy="10" r="7" /><path d="M10 7v4M10 13h.01" /></> },
+  system:   { color: '#55556B', icon: <><circle cx="10" cy="10" r="7" /><path d="M10 7v4M10 13h.01" /></> },
 };
 
 function NotifIcon({ type }) {

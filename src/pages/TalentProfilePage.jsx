@@ -1368,7 +1368,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
           borderTopColor:"#0DC4B5",
           animation:"spin 0.75s linear infinite",
         }}/>
-        <div style={{ fontSize:12, color:"#9CA3AF" }}>{t('common.loading')}</div>
+        <div style={{ fontSize:12, color:"#55556B" }}>{t('common.loading')}</div>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
     );

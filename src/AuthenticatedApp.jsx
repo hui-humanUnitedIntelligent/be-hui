@@ -57,7 +57,7 @@ function AuthSuspense({ children }) {
       fallback={
         <div className="web-loading">
           <div className="web-loading-spinner" />
-          <p style={{ fontSize: 13, color: '#8A8A9E' }}>Wird geladen…</p>
+          <p style={{ fontSize: 13, color: '#55556B' }}>Wird geladen…</p>
         </div>
       }
     >

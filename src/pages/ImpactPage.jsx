@@ -2251,7 +2251,7 @@ const SEED_WEITERE_PROJEKTE = [];
 // i18n: getHpStatus takes t as parameter (module-level function)
 function getHpStatus(t) {
   return {
-    submitted:   { icon:"📬", color:"#9CA3AF", label: t("impact.statusSubmitted")   },
+    submitted:   { icon:"📬", color:"#55556B", label: t("impact.statusSubmitted")   },
     pending:     { icon:"🟡", color:"#D97706", label: t("impact.statusPending")     },
     approved:    { icon:"🟢", color:"#16A34A", label: t("impact.statusApproved")     },
     nominated:   { icon:"🗳️", color:"#0DC4B5", label: t("impact.statusNominated")     },

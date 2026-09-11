@@ -28,7 +28,7 @@ function LoadingScreen() {
   return (
     <div className="web-loading">
       <div className="web-loading-spinner" />
-      <p style={{ fontSize: 13, color: '#8A8A9E' }}>HUI wird geladen…</p>
+      <p style={{ fontSize: 13, color: '#55556B' }}>HUI wird geladen…</p>
     </div>
   );
 }

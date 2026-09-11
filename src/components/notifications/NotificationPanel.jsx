@@ -32,7 +32,7 @@ const T = {
   tealMid:  "rgba(14,196,184,0.22)",
   ink:      "#1a1a18",
   inkSoft:  "#555550",
-  inkFaint: "#999990",
+  inkFaint: "#808098",
   r12:      12,
   r99:      99,
 };

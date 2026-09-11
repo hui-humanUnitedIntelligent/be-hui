@@ -87,7 +87,7 @@ const getStatusStyle = (t) => ({
   published:      { label: t("adm.statusApproved"), color:"#10B981", bg:"rgba(16,185,129,0.12)" },
   approved:       { label: t("adm.statusApproved"), color:"#10B981", bg:"rgba(16,185,129,0.12)" },
   rejected:       { label: t("adm.statusRejected"), color:"#EF4444", bg:"rgba(239,68,68,0.12)"  },
-  draft:          { label: t("adm.statusDraft"), color:"#94A3B8", bg:"rgba(148,163,184,0.12)" },
+  draft:          { label: t("adm.statusDraft"), color:"#55556B", bg:"rgba(148,163,184,0.12)" },
 });
 function StatusBadge({ status }) {
   const { t } = useTranslation();

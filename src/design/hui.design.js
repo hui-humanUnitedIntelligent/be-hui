@@ -40,8 +40,8 @@ const COLOR = {
   ink:         "#141422",   // Primäres Schwarz — Navy-Tiefe
   inkMid:      "#2E2E45",   // Mid-Tone für Subheadlines
   ink2:        "#3A3A55",   // Body-Text
-  muted:       "#8A8A9E",   // Muted Labels, Hints
-  faint:       "#C0C0D0",   // Sehr leise Texte, Borders
+  muted:       "#55556B",   // Muted Labels, Hints — CONTRAST-001: dunkleres Grau (6.8:1 statt 3.2:1 auf cream, WCAG AA)
+  faint:       "#808098",   // Sehr leise Texte — CONTRAST-001: 3.6:1 statt 1.7:1; bleibt deutlich heller als muted
 
   // SECONDARY
   gold:        "#D4952A",   // Abend-Gold — Impact, Highlights
