@@ -7,6 +7,7 @@ import { supabase } from "../../lib/supabaseClient.js";
 import BaseFeedCard, { ActionBtn } from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import ReportReasonModal from "../../components/shared/ReportReasonModal.jsx";
+import LinkifiedText from "../../components/shared/LinkifiedText.jsx";
 import { useAuth } from "../../lib/AuthContext.jsx";
 import { haptic } from "../../components/commerce/commerceUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
@@ -266,7 +267,13 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
             wordBreak: "break-word",
             whiteSpace: isBroadcast ? "pre-line" : "normal",
           }}>
-            {caption}
+            {isBroadcast
+              // BROADCAST-LINKIFY-001 (2026-09-11): URLs in System-Broadcasts
+              // (z.B. "🎬 Ganzer Film: <YouTube-Link>" bei Video-Broadcasts)
+              // klickbar rendern — oeffnet YouTube in neuem Tab. stopPropagation
+              // im Link verhindert, dass der Karten-Klick (open(item)) feuert.
+              ? <LinkifiedText text={caption} linkColor={TEAL} />
+              : caption}
           </span>
         ) : null}
       </div>

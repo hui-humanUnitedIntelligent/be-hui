@@ -39,6 +39,7 @@
 // ══════════════════════════════════════════════════════════════════
 import { HUILocationIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import ImageSlider from './ImageSlider.jsx';
+import LinkifiedText from './LinkifiedText.jsx';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
@@ -330,7 +331,12 @@ export default function PostFullscreenView({ item, onClose, onOpenPost }) {
           {/* 3) Vollstaendiger Beitrag */}
           {mountedItem.text && (
             <div style={{ fontSize:15, color:T.inkSoft, lineHeight:1.65, marginBottom:16, whiteSpace:"pre-wrap" }}>
-              {mountedItem.text}
+              {mountedItem?._raw?.moment_source === "system_broadcast"
+                // BROADCAST-LINKIFY-001 (2026-09-11): YouTube-Link in
+                // Video-Broadcasts ("🎬 Ganzer Film: <url>") im Fullscreen
+                // klickbar machen — oeffnet neuen Tab.
+                ? <LinkifiedText text={mountedItem.text} linkColor={T.teal} />
+                : mountedItem.text}
             </div>
           )}
 
