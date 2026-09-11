@@ -30,7 +30,7 @@
 // ══════════════════════════════════════════════════════════════════════
 
 import { supabase } from "./supabaseClient.js";
-import { clearQueryCache } from "./perfUtils.js";
+import { clearQueryCache, optimizeAvatar, optimizeCover, optimizeFull, prewarmImageTransforms } from "./perfUtils.js";
 import { uploadMediaVerified } from "./uploadBody.js";
 
 // ── Fallback-Assets ──────────────────────────────────────────────────
@@ -270,6 +270,11 @@ export async function handleAvatarUpload({ event, profileId, onSuccess, setUploa
     clearQueryCache(`profile:${uid}`);
     onSuccess?.(url); // ersetzt lokale Blob-URL durch persistente CDN-URL
     if (previewUrl) URL.revokeObjectURL(previewUrl); // nur bei Erfolg freigeben
+    // PROFILBILD-COLDCACHE-FIX: alle im Rest der App genutzten Transform-
+    // Varianten dieses Avatars sofort vorwärmen (optimizeAvatar = Feed/
+    // Discover/Story/etc., optimizeFull = Lightbox-Großansicht) — der
+    // naechste Betrachter (egal wer) bekommt dann die warme CDN-Antwort.
+    prewarmImageTransforms([optimizeAvatar(url), optimizeFull(url)]);
   } catch (err) {
     console.error("[HUI-AVATAR-ERROR]", err?.message, err?.statusCode, err?.status, JSON.stringify(err));
     // Bei Fehler: lokale Vorschau NICHT revoken — bleibt sichtbar bis Reload,
@@ -313,6 +318,9 @@ export async function handleCoverUpload({ event, profileId, onSuccess, setUpload
     clearQueryCache(`profile:${uid}`);
     onSuccess?.(url);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+    // PROFILBILD-COLDCACHE-FIX: optimizeCover = ProfileHeader-Anzeige,
+    // optimizeFull = Lightbox-Großansicht — beide sofort vorwärmen.
+    prewarmImageTransforms([optimizeCover(url), optimizeFull(url)]);
   } catch (err) {
     console.error("[profileMedia] Cover upload error:", err?.message, err?.statusCode || err?.status, JSON.stringify(err));
   } finally {

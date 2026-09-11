@@ -279,6 +279,41 @@ export function optimizeThumbnail(url) { return optimizeImg(url, 150); }
 // Fehleranzeige statt endlosem Spinner, falls beides fehlschlaegt.
 export function optimizeFull(url) { return optimizeImg(url, 1600, 90); }
 
+// ── PROFILBILD-COLDCACHE-FIX (2026-09-12, Michael-Report "Profilbilder
+// laden super langsam, speziell Header-Bilder") ──────────────────────
+// ROOT CAUSE (per Messung bewiesen, siehe Konversation): Die Supabase
+// Image-Transform-API (render/image, siehe optimizeImg oben) berechnet
+// jede EINDEUTIGE Kombination aus Bild-URL + Transform-Parametern
+// (width/quality/format) beim allerersten weltweiten Abruf frisch --
+// das kostet 0,9-1,7s (Dekodieren + Resize + WebP-Encode des Quellbilds).
+// DANACH liefert Cloudflares Edge-CDN dieselbe URL fuer 1 Jahr
+// (cache-control: immutable) in ~90-100ms aus -- der Cold-Miss trifft
+// also IMMER nur den allerersten Betrachter eines bestimmten Profils
+// nach jedem neuen Avatar-/Cover-Upload. Cover (800px, mehr Pixel zum
+// Verarbeiten) faellt dabei staerker auf als Avatar (200px) -- exakt
+// Michaels Beobachtung "speziell die Header-Bilder".
+// FIX: Sofort nach einem erfolgreichen Avatar-/Cover-Upload feuert der
+// Uploader selbst (im Hintergrund, blockiert nichts, Fehler werden
+// verschluckt) GET-Requests auf alle vom Rest der App tatsaechlich
+// genutzten Transform-Varianten dieses Bilds (siehe optimizeAvatar/
+// optimizeCover/optimizeFull-Aufrufstellen). Der ERSTE, der das Profil
+// danach oeffnet (egal wer), bekommt dann bereits die warme, ~100ms
+// schnelle CDN-Antwort statt den Cold-Miss zu bezahlen.
+export function prewarmImageTransforms(urls) {
+  if (typeof fetch !== "function") return;
+  const list = Array.isArray(urls) ? urls : [urls];
+  for (const u of list) {
+    if (!u || typeof u !== "string") continue;
+    try {
+      // no-cors: wir brauchen die Antwort nicht lesen, nur die
+      // CDN-Edge-Cache-Berechnung anstossen. Fehler bewusst verschluckt
+      // (Pre-Warm ist best-effort, darf den Upload-Flow nie stoeren).
+      fetch(u, { mode: "no-cors", cache: "default" }).catch(() => {});
+    } catch (_) { /* noop */ }
+  }
+}
+
+
 export function normalizeProfileInput(raw) {
   return normalizeProfile(raw);
 }
