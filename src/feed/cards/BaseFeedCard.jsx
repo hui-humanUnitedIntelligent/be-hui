@@ -38,41 +38,43 @@ const T = {
   r: 16, rMedia: 14, rAvatar: 99, p: 16, gap: 12, mediaH: 220,
 };
 
-// ── Adaptive Media Height (Feed UX Redesign 2026-08-06) ──────
-// Statt fester 220px für alle Bilder: Höhe orientiert sich am
-// natürlichen Seitenverhältnis. Querformat → moderat, Hochformat →
-// großzügig, Square → mittig. Min/Max-Caps verhindern Extreme.
-// object-fit: cover bleibt, aber durch die adaptive Höhe wird kaum
-// noch beschnitten — das Bild füllt den Container nahezu 1:1.
-//
-// ENTFERNUNG: Komplett in BaseFeedCard.jsx + ImpactContent.jsx.
-// Revert auf `const h = relaxed ? 340 : T.mediaH;` + height: 220.
+// ── Adaptive Media Height (Feed UX Redesign 2026-08-06, revidiert
+//    2026-09-11 VIDEO-BREITEN-FIX, Bug 93ce2b88) ──────────────
+// NUR noch fuer VIDEOS (Fotos bleiben bewusst bei der festen Feed-Hoehe,
+// FEED-UNIFORM-FIX 2026-08-07). Videos rendern mit object-fit:"contain"
+// + schwarzem Letterbox-Hintergrund (VIDEO-CROP-FIX, Nicole-Report:
+// NIE croppen). Dadurch ist die EINZIGE Balken-freie Kartenhoehe die
+// BREITEN-EXAKTE Hoehe: height = containerWidth / aspect. Die alten
+// Orientierungs-Caps (portraitMax 560 etc.) aus dem heutigen Feed-
+// Redesign erzeugten stattdessen schwarze Raender: Ein 9:16-Video in
+// einer 366pt-Karte braucht 651pt Hoehe — gecapped auf 560pt wurde es
+// auf 318pt Breite geschrumpft → ~24pt Balken links/rechts (Screenshot
+// Pixel-Analyse Bug 93ce2b88). Nur noch Extrem-Clamps:
+//   - min 150pt: Panorama-Videos (aspect > 2.4) werden keine Schliere
+//   - max min(720, 85% Viewport): Ultra-Hochformat (> 1:2) nimmt die
+//     Karte nicht komplette Screens hoeher ein. In diesen Randfaellen
+//     bleiben Rest-Balken bewusst (Kompromiss: kein Crop, keine
+//     Fullscreen-Videos im Feed).
 const MEDIA = {
-  placeholderH: 300,   // vor onLoad (Shimmer)
-  landscapeH:  360,    // Querformat (aspect >= 1.2)
-  squareH:     380,    // Square (0.85 ≤ aspect < 1.2)
-  portraitMax: 560,    // Hochformat cap (aspect < 0.85)
-  portraitMin: 380,    // Hochformat floor
-  relaxedBoost: 60,    // +60px wenn relaxed=true (zukünftig nutzbar)
+  placeholderH: 300,   // aspect/containerWidth noch unbekannt (Shimmer)
+  videoMinH:    150,    // Panorama-Floor (aspect > ~2.4 wird keine Schliere)
+  videoAbsMax:  920,    // absoluter Hoehen-Cap (Desktop-Riesenfenster)
+  videoVhFrac:  0.92,   // max 92% der Viewport-Hoehe
+  videoVhFloor: 600,    // ... aber mindestens 600pt (auch auf kleinen Screens)
+  // Begruendung 92%: Das dominante Portrait-Format 9:16 braucht exakt
+  // cardW/0.5625 — auf einem iPhone SE (375x667) sind das 610pt = 91.4%
+  // der Viewport-Hoehe. Bei 85% haetten SE-Nutzer weiterhin Balken.
 };
 
 export function getAdaptiveMediaHeight(aspect, containerWidth, relaxed) {
   if (!aspect || !containerWidth) return MEDIA.placeholderH;
-  const boost = relaxed ? MEDIA.relaxedBoost : 0;
-
-  if (aspect >= 1.2) {
-    // Querformat: containerWidth / aspect → natürliche Höhe
-    const natural = containerWidth / aspect;
-    return Math.min(Math.max(natural, 260), MEDIA.landscapeH + boost);
-  }
-  if (aspect >= 0.85) {
-    // Square
-    const natural = containerWidth / aspect;
-    return Math.min(Math.max(natural, 320), MEDIA.squareH + boost);
-  }
-  // Hochformat: großzügig, aber gecapped
+  // relaxed bleibt aus Kompatibilitaet in der Signatur, ist fuer die
+  // breiten-exakte Video-Hoehe bedeutungslos (kein Boost noetig — die
+  // Hoehe folgt allein dem echten Seitenverhaeltnis).
   const natural = containerWidth / aspect;
-  return Math.min(Math.max(natural, MEDIA.portraitMin), MEDIA.portraitMax + boost);
+  const vh = (typeof window !== "undefined" && window.innerHeight) || 844;
+  const maxH = Math.min(MEDIA.videoAbsMax, Math.max(MEDIA.videoVhFloor, vh * MEDIA.videoVhFrac));
+  return Math.min(Math.max(natural, MEDIA.videoMinH), maxH);
 }
 
 // ── Tablet-Screen Detection (TABLET-MEDIA-3X, 2026-09-08) ──────────
@@ -613,14 +615,14 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   // hoch — siehe useIsTabletScreen() oben fuer die Erkennungslogik.
   const baseH = relaxed ? 340 : T.mediaH;
   const uniformH = isTabletScreen ? baseH * 3 : baseH;
-  // FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11): Sobald die echte Video-
-  // Aspect-Ratio bekannt ist (per unsichtbarem Metadata-Probe unten),
-  // adaptive Hoehe verwenden (Portrait bis 560px, Landscape ~360px, Square
-  // ~380px — siehe getAdaptiveMediaHeight()/MEDIA-Konstanten oben). Kein
-  // ×3-Tablet-Multiplikator hier — die adaptive Hoehe ist bereits grosszuegig
-  // bemessen; ×3 auf einem bis zu 560px hohen Portrait-Video waere absurd.
-  // Bis die Aspect-Ratio geladen ist: Fallback auf dieselbe feste Hoehe wie
-  // Bilder (kein Layout-Sprung/Flackern).
+  // FEED-VIDEO-INSTAGRAM-STYLE-001 (2026-09-11, revidiert 2026-09-11
+  // VIDEO-BREITEN-FIX, Bug 93ce2b88): Sobald die echte Video-Aspect-Ratio
+  // bekannt ist (per unsichtbarem Metadata-Probe unten), BREITEN-EXAKTE
+  // adaptive Hoehe verwenden (containerW / aspect — Video fuellt die
+  // Kartenbreite 1:1, kein Pillarboxing, kein Crop; nur Extrem-Clamps,
+  // siehe getAdaptiveMediaHeight()/MEDIA oben). Kein ×3-Tablet-
+  // Multiplikator hier. Bis die Aspect-Ratio geladen ist: Fallback auf
+  // dieselbe feste Hoehe wie Bilder (kein Layout-Sprung/Flackern).
   const h = (isVideo && videoAspect)
     ? getAdaptiveMediaHeight(videoAspect, containerW, relaxed)
     : uniformH;
