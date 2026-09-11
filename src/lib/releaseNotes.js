@@ -17,6 +17,25 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.584 — von Michael am 11.09.2026 freigegeben ("passt. deploy")
+  // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
+  "2.1.584": {
+    de: [
+      "Geburtsdatum: Vereinfachte Auswahl — erst Jahr, dann Monat, dann Tag",
+      "Bessere Lesbarkeit: Texte sind jetzt dunkler und kontrastreicher",
+      "Resonanzzentrum: Echte Namen statt „Jemand hat…“",
+      "Videos: Der Ton stoppt automatisch, wenn du in der App weiterklickst",
+      "Video-Vergrößerung: Kompakte, zentrierte Darstellung statt Vollbild",
+    ],
+    en: [
+      "Birthdate: Simplified selection — first year, then month, then day",
+      "Better readability: Text is now darker with higher contrast",
+      "Resonance center: Real names instead of \"Someone…\"",
+      "Videos: Sound stops automatically when you navigate on in the app",
+      "Video zoom: Compact, centered view instead of full screen",
+    ],
+  },
+
   // 2.1.580 — von Michael am 09.09.2026 freigegeben ("deploy mit text")
   // (DEPLOY-INFO-REGEL: keine Nutzer-Infos ohne seine Text-Freigabe).
   "2.1.580": {
