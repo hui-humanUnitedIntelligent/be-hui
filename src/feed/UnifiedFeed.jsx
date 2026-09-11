@@ -165,9 +165,6 @@ function useHeuteStats() {
 // ── FeedWelcomeHeader ────────────────────────────────────────────
 function FeedWelcomeHeader({ currentUser }) {
   const { t } = useTranslation();
-  // TABLET-LAYOUT-001 (2026-09-11): Feed-Inhalt auf Tablet/Desktop in
-  // zentrierter Spalte statt edge-to-edge (Michael-Report iPad).
-  const isTabletScreen = useIsTabletScreen();
   const greeting = getGreeting(t);
   const firstName = currentUser?.display_name?.split(" ")[0]
     || currentUser?.username
@@ -973,6 +970,13 @@ export default function UnifiedFeed({
   }, [searchFilteredItems, locationQuery, sort]);
 
   // Sections are directly imported — no lazy load needed
+
+  // TABLET-LAYOUT-001 (2026-09-11): Feed-Inhalt auf Tablet/Desktop in
+  // zentrierter Spalte statt edge-to-edge (Michael-Report iPad). HOTFIX
+  // 2026-09-11 15:5x: Hook stand faelschlich nur in FeedWelcomeHeader (anderer
+  // Funktions-Scope) -> ReferenceError bei JEDEM Feed-Render (Crash-Report
+  // Michael). Hierhin verschoben, in den tatsaechlich nutzenden Scope.
+  const isTabletScreen = useIsTabletScreen();
 
   return (
     <div style={{
