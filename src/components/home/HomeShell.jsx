@@ -206,6 +206,18 @@ export default function HomeShell({ children }) {
 
   const { tabFeed, tabDiscover, tabImpact, tabFavorites } =
     useTabStyles(tab, activeSurface, searchState.active);
+
+  /* VIDEO-BG-AUDIO-001 (2026-09-11, Report b76f4fac): Alle laufenden Videos
+     pausieren, wenn der Nutzer den Tab wechselt oder eine Surface (Profil
+     etc.) oeffnet. Keep-Alive-Tabs bleiben gemountet, ein ton-an Video lief
+     sonst unsichtbar im Hintergrund weiter; Surfaces decken den Feed nur
+     VISUELL ab. Der Initial-Mount wird ausgeskippt, damit das Autoplay im
+     sichtbaren Feed unberuehrt bleibt. */
+  const videoPauseInitRef = useRef(false);
+  useEffect(() => {
+    if (!videoPauseInitRef.current) { videoPauseInitRef.current = true; return; }
+    document.querySelectorAll("video").forEach(v => { if (!v.paused) v.pause(); });
+  }, [tab, activeSurface]);
   // Legacy aliases for backward compat during transition
   const keepFeed      = tabFeed;
   const keepDiscover  = tabDiscover;

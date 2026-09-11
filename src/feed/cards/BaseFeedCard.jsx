@@ -544,6 +544,30 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
   const tapRef = useRef({ t: 0, x: 0, y: 0, startY: 0, startX: 0, moved: false });
   const lightboxTimerRef = useRef(null);
   const containerRef = useRef(null);
+  // VIDEO-BG-AUDIO-001 (2026-09-11, Report b76f4fac): Video pausieren, wenn
+  // es den Viewport verlaesst ODER sein Tab versteckt wird (Keep-Alive-Tabs
+  // bleiben gemountet -- ein ton-an Video lief sonst unsichtbar im Hintergrund
+  // weiter). IntersectionObserver deckt beides ab: versteckte Tabs sind auf
+  // height:0/overflow:hidden geclippt => nicht mehr "intersecting". Beim
+  // Wieder-Erscheinen nur fortsetzen, wenn es vorher lief.
+  const videoRef = useRef(null);
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || typeof IntersectionObserver === "undefined") return;
+    let resumeOnVisible = false;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          if (resumeOnVisible) { resumeOnVisible = false; v.play().catch(() => {}); }
+        } else if (!v.paused) {
+          resumeOnVisible = true;
+          v.pause();
+        }
+      }
+    }, { threshold: 0.01 });
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
   const [containerW, setContainerW] = useState(0);
   const isTabletScreen = useIsTabletScreen(); // TABLET-MEDIA-3X (2026-09-08)
 
@@ -669,6 +693,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           }} />
         )}
         <video
+          ref={videoRef}
           src={firstUrl}
           poster={imgs[0].poster || undefined}
           muted
