@@ -95,6 +95,15 @@ const ADVANCED_STEPS = [
   { selector: '[data-tutorial="section-kaeufe"]', textKey: 'tut.adv6', placement: "bottom", labelKey: 'tut.label.kaeufe' },
   { selector: '[data-tutorial="section-resonanz"]',   textKey: 'tut.adv7', placement: "bottom", labelKey: 'tut.label.resonanz' },
   { selector: '[data-tutorial="section-empfehlungen"]',      textKey: 'tut.adv8', placement: "bottom", labelKey: 'tut.label.empfehlungen' },
+  // TUTORIAL-MULTIACCOUNT-001 (2026-09-12, Michael-Request): Abschließender
+  // Schritt NACH den Mein-Bereich-Kacheln — der Fuchs zeigt auf den eigenen
+  // NAMEN im Profil-Header und erklärt, dass man hier zusätzlich weitere
+  // Konten anlegen kann (Verein, Unternehmen, Projekt). Selector =
+  // data-tutorial="profile-name" in ProfileHeader.jsx (Name-Zeile, Owner-
+  // Ansicht; identisches Element das auch den Konto-Wechsel öffnet).
+  // placement "bottom" wie alle Profil-Schritte: Fuchs+Blase unter dem
+  // Spotlight, Blase zeigt nach oben.
+  { selector: '[data-tutorial="profile-name"]', textKey: 'tut.adv9', placement: "bottom", labelKey: 'tut.label.konten' },
 ];
 
 // Selektoren, deren Vorhandensein signalisiert "Profil ist bereits gemountet"

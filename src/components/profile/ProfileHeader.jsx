@@ -479,6 +479,7 @@ export function ProfileHeader({
                     role={canSwitchAccount ? "button" : undefined}
                     tabIndex={canSwitchAccount ? 0 : undefined}
                     aria-label={canSwitchAccount ? (hasOrgs ? t("org.switcher.switchAccount") : t("org.switcher.addAccount")) : undefined}
+                    data-tutorial="profile-name"
                     style={{
                       display:"flex", alignItems:"flex-start",
                       cursor: canSwitchAccount ? "pointer" : "default",
