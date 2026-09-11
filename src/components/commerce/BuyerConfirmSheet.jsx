@@ -68,8 +68,9 @@ export default function BuyerConfirmSheet({ item, onClose = () => {}, onSuccess 
         <style>{`@keyframes escrowSlideUp { from{transform:translateY(100%);opacity:0} to{transform:translateY(0);opacity:1} }`}</style>
 
         {/* Handle */}
-        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 40, height: 4, borderRadius: 2, background: 'rgba(26,26,46,0.12)',
-          margin: '12px auto 0', flexShrink: 0 }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 16px", flexShrink: 0 }}>
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(26,26,46,0.12)' }} />
+        </div>
 
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px 16px', WebkitOverflowScrolling: 'touch' }}>

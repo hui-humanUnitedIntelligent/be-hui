@@ -100,9 +100,11 @@ export function VisibilitySection({
             borderRadius:`${T.r24}px ${T.r24}px 0 0`,
             padding:"20px 20px max(36px,calc(24px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px)))",
             boxShadow:T.sheet,
+            transform:sheetTransform, transition:sheetTransition,
           }}>
-            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:99,
-              background:"rgba(26,26,24,0.12)", margin:"0 auto 20px" }}/>
+            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 16px" }}>
+              <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+            </div>
             <div style={{ fontSize:16, fontWeight: 600, color:T.ink, marginBottom:6 }}>
               
             </div>

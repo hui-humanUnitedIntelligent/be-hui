@@ -729,6 +729,7 @@ export default function UnterstutzenFlow({
         display:         "flex",
         flexDirection:   "column",
         maxHeight:       "calc(100vh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) - 24px)",
+        transform:       sheetTransform, transition: sheetTransition,
         overflowY:       "auto",
         WebkitOverflowScrolling: "touch",
         // TabBar (~66px) + Margin + Puffer — Bezahlen-Button bleibt erreichbar
@@ -737,7 +738,8 @@ export default function UnterstutzenFlow({
       }}>
         {/* Header */}
         {!isSuccess && (
-          <div style={{
+          <div {...dragHandlers} style={{
+            touchAction:    "none", cursor: "grab",
             display:        "flex",
             alignItems:     "center",
             justifyContent: "space-between",

@@ -71,9 +71,13 @@ export function useSheetDrag(onClose, opts = {}) {
     dragY,
     isDragging,
     dragHandlers: {
-      onTouchStart: handleDragStart,
+      onTouchStart:  handleDragStart,
       onTouchMove:  handleDragMove,
       onTouchEnd:   handleDragEnd,
+      // SHEETDRAG-CANCEL-001: Ohne onTouchCancel blieb dragging=true haengen,
+      // wenn das System die Geste abbrach (Anruf, Notifikations-Swipe, WebView-Interrupt)
+      // — danach reagierte das Sheet nie wieder auf Wischen (Michael-Report 044de8af).
+      onTouchCancel: handleDragEnd,
     },
     sheetTransform:  `translateY(${Math.max(0, dragY)}px)`,
     sheetTransition: isDragging ? "none" : "transform 0.25s cubic-bezier(.4,0,.2,1)",

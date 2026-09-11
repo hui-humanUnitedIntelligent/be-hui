@@ -4369,7 +4369,7 @@ export default {
   'moment.shareReal': 'Gerçek bir an paylaş.',
   'moment.shareError': 'Paylaşım hatası',
   'moment.appearsInFeed': 'Artık akışında görünüyor.',
-  'moment.thoughtPlaceholder': 'Ne paylaşmak istiyorsun?\\n\\nGerçek bir düşünce yaz…',
+  'moment.thoughtPlaceholder': 'Ne paylaşmak istiyorsun?\n\nGerçek bir düşünce yaz…',
   'meinBereich.firstMoment': 'İlk anını paylaş',
   'meinBereich.addMoment': 'An ekle',
   'meinBereich.momentsCount': '{count} {singular|plural} paylaşıldı',

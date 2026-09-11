@@ -4408,7 +4408,7 @@ export default {
   'moment.shareReal': 'Teile einen echten Moment.',
   'moment.shareError': 'Fehler beim Teilen',
   'moment.appearsInFeed': 'Erscheint jetzt in deinem Feed.',
-  'moment.thoughtPlaceholder': 'Was möchtest du teilen?\\n\\nSchreibe einen echten Gedanken…',
+  'moment.thoughtPlaceholder': 'Was möchtest du teilen?\n\nSchreibe einen echten Gedanken…',
   'meinBereich.firstMoment': 'Ersten Moment teilen',
   'meinBereich.addMoment': 'Moment hinzufügen',
   'meinBereich.momentsCount': '{count} {singular|plural} geteilt',

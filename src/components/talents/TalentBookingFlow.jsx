@@ -400,11 +400,9 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         `}</style>
 
         {/* Handle — swipe-to-dismiss */}
-        <div {...dragHandlers} style={{
-          touchAction: "none", cursor: "grab",
-          width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)",
-          margin: "12px auto 0", flexShrink: 0,
-        }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 16px", flexShrink: 0 }}>
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)" }} />
+        </div>
 
         {/* ── SUCCESS ── */}
         {step === "success" && (

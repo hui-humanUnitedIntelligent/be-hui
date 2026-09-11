@@ -715,7 +715,7 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
       <div className="cs-overlay" onClick={onClose} style={{
         position:"absolute", inset:0, background:T.overlay,
       }} role="button" tabIndex={0} />
-      <div className="cs-sheet" style={{
+      <div className="cs-sheet" style={{ transform:sheetTransform, transition:sheetTransition,
         position:"absolute", left:0, right:0, bottom:"var(--hui-keyboard-inset, 0px)", maxHeight:"min(86dvh, calc(100dvh - var(--hui-keyboard-inset, 0px) - 40px))",
         background:"rgba(252,253,252,0.96)",
         borderTopLeftRadius:28, borderTopRightRadius:28,
@@ -723,8 +723,8 @@ export default function CommentsSheet({ open, onClose, postId, postType, postAut
         display:"flex", flexDirection:"column", overflow:"hidden",
       }}>
         {/* Grabber */}
-        <div style={{ display:"flex", justifyContent:"center", paddingTop:10 }}>
-          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:40, height:4, borderRadius:99, background:"rgba(26,26,46,0.16)" }}/>
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",  display:"flex", justifyContent:"center", paddingTop:10 }}>
+          <div style={{ width:40, height:4, borderRadius:99, background:"rgba(26,26,46,0.16)" }}/>
         </div>
 
         {/* Media Preview — Bild oder Video oben */}

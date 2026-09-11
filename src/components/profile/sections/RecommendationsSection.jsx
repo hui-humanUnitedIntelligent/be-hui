@@ -296,7 +296,7 @@ export function RecommendationsSection({
             padding: "20px 20px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
             display: "flex", flexDirection: "column", gap: 14, fontFamily: T.ff,
           }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ fontSize: 16, fontWeight: 600, color: T.ink }}>Empfehlung melden</div>
               <button onClick={() => { setReportingId(null); setReportReason(""); }}
                 style={{ background: "rgba(26,26,24,0.07)", border: "none", borderRadius: 99, width: 30, height: 30, fontSize: 16, color: T.inkSoft, cursor: "pointer" }}>✕</button>

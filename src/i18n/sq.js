@@ -4369,7 +4369,7 @@ export default {
   'moment.shareReal': 'Ndaj një moment të vërtetë.',
   'moment.shareError': 'Gabim në ndarje',
   'moment.appearsInFeed': 'Tani shfaqet në feed-in tënd.',
-  'moment.thoughtPlaceholder': 'Çfarë do të ndajs?\\n\\nShkruaj një mendim të vërtetë…',
+  'moment.thoughtPlaceholder': 'Çfarë do të ndajs?\n\nShkruaj një mendim të vërtetë…',
   'meinBereich.firstMoment': 'Ndaj momentin e parë',
   'meinBereich.addMoment': 'Shto moment',
   'meinBereich.momentsCount': '{count} {singular|plural} ndarë',

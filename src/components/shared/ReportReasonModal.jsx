@@ -81,11 +81,9 @@ export default function ReportReasonModal({
         }}
       >
         {/* Griff-Indikator */}
-        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",
-          width: 36, height: 4, borderRadius: 2,
-          background: "rgba(26,26,46,0.15)",
-          margin: "0 auto 20px",
-        }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 16px" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.15)" }} />
+        </div>
 
         {step === "confirm" && (
           <>

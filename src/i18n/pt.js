@@ -4369,7 +4369,7 @@ export default {
   'moment.shareReal': 'Partilha um momento real.',
   'moment.shareError': 'Erro ao partilhar',
   'moment.appearsInFeed': 'Agora aparece no teu feed.',
-  'moment.thoughtPlaceholder': 'O que queres partilhar?\\n\\nEscreve um pensamento real…',
+  'moment.thoughtPlaceholder': 'O que queres partilhar?\n\nEscreve um pensamento real…',
   'meinBereich.firstMoment': 'Partilha o primeiro momento',
   'meinBereich.addMoment': 'Adicionar momento',
   'meinBereich.momentsCount': '{count} {singular|plural} partilhado',

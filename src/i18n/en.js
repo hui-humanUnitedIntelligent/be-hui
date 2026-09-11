@@ -4416,7 +4416,7 @@ export default {
   'moment.shareReal': 'Share a real moment.',
   'moment.shareError': 'Error sharing',
   'moment.appearsInFeed': 'Now appears in your feed.',
-  'moment.thoughtPlaceholder': 'What do you want to share?\\n\\nWrite a real thought…',
+  'moment.thoughtPlaceholder': 'What do you want to share?\n\nWrite a real thought…',
   'meinBereich.firstMoment': 'Share first moment',
   'meinBereich.addMoment': 'Add moment',
   'meinBereich.momentsCount': '{count} {singular|plural} shared',

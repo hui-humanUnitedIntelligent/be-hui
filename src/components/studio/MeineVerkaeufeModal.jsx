@@ -100,8 +100,8 @@ export default function MeineVerkaeufeModal({ profile, onClose = () => {} }) {
         fontFamily: T.ff,
       }}>
         {/* Handle */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
-          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",  display: "flex", justifyContent: "center", padding: "12px 0 4px" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.12)" }} />
         </div>
 
         {/* Header */}

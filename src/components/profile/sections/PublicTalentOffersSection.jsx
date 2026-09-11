@@ -162,8 +162,8 @@ function TalentDetailModal({ talent, onClose }) {
           transform: sheetTransform, transition: sheetTransition,
         }}>
           {/* Griff */}
-          <div style={{ padding:"14px 0 0", display:"flex", justifyContent:"center" }}>
-            <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width:36, height:4, borderRadius:2, background:"rgba(26,26,24,0.12)" }}/>
+          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",  padding:"14px 0 0", display:"flex", justifyContent:"center" }}>
+            <div style={{ width:36, height:4, borderRadius:2, background:"rgba(26,26,24,0.12)" }}/>
           </div>
 
           {/* Cover-Bild */}

@@ -213,7 +213,9 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
         <style>{`@keyframes ebfSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
 
         {/* Handle */}
-        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)", margin: "0 auto 24px" }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 20px" }}>
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,46,0.12)" }} />
+        </div>
 
         {/* ── FORM ── */}
         {phase === "form" && (

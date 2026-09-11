@@ -312,8 +312,8 @@ export default function ImpactStimmenModal({ profile, onClose, switchTab = null 
         boxShadow: "0 -4px 32px rgba(26,26,24,0.18)",
       }}>
         {/* ── Handle ── */}
-        <div style={{ padding: "12px 20px 0", display: "flex", justifyContent: "center" }}>
-          <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.15)" }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",  padding: "12px 20px 0", display: "flex", justifyContent: "center" }}>
+          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(26,26,24,0.15)" }} />
         </div>
 
         {/* ── Header ── */}

@@ -250,7 +250,9 @@ export function RecommendationRankingModal({
       >
         <style>{`@keyframes rsbSlideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
 
-        <div {...dragHandlers} style={{ touchAction: "none", cursor: "grab", width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,24,0.12)", margin: "0 auto 0", flexShrink: 0 }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 8px", flexShrink: 0 }}>
+          <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(26,26,24,0.12)" }} />
+        </div>
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>Empfehlungs-Ranking</div>

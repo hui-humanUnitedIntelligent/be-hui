@@ -219,6 +219,7 @@ export default function RecommendModal({
           overflowY: "auto",
           WebkitOverflowScrolling: "touch",
           background: T.bg,
+          transform: sheetTransform, transition: sheetTransition,
           borderRadius: `${T.r16}px ${T.r16}px 0 0`,
           padding: "20px 20px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
           display: "flex",
@@ -228,7 +229,7 @@ export default function RecommendModal({
         }}
       >
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ fontSize: 17, fontWeight: 600, color: T.ink, letterSpacing: "-0.02em" }}>
             Empfehlung schreiben
           </div>

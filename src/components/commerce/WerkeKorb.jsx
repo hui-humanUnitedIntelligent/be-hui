@@ -1142,6 +1142,7 @@ export default function WerkeKorb({
           zIndex:        10500, /* >BottomNav(10000) — Footer-Overlap-Fix 2026-07-05 */
           background:    C.cream,
           borderRadius:  "22px 22px 0 0",
+          transform:     sheetTransform, transition: sheetTransition,
           boxShadow:     "0 -12px 48px rgba(20,20,34,0.14), 0 -2px 8px rgba(20,20,34,0.06)",
           maxHeight:     "88vh",
           display:       "flex",
@@ -1152,14 +1153,9 @@ export default function WerkeKorb({
         }}
       >
         {/* Handle */}
-        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab",
-          width:        36,
-          height:       4,
-          borderRadius: 99,
-          background:   "rgba(20,20,34,0.10)",
-          margin:       "12px auto 0",
-          flexShrink:   0,
-        }} />
+        <div {...dragHandlers} style={{ touchAction:"none", cursor:"grab", display:"flex", justifyContent:"center", padding:"12px 0 16px", flexShrink: 0 }}>
+          <div style={{ width: 36, height: 4, borderRadius: 99, background: "rgba(20,20,34,0.10)" }} />
+        </div>
 
         {/* Header */}
         <div style={{
