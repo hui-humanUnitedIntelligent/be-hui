@@ -17,6 +17,29 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.595 — von Michael am 12.09.2026 freigegeben ("deploy mit text")
+  // (DEPLOY-INFO-REGEL; fasst die Sammel-Queue zusammen: Bereiche-Multi-Select
+  // + 4 neue Bereiche, Profilbild-Vorwaermung, Impact-Texte 50/30/20,
+  // Entdecken-Webseite (fremdes System, mit im OTA), Sichtbarkeits-Simplify,
+  // Tutorial-Konten-Schritt; SettingsModal-Cleanup unsichtbar)
+  "2.1.595": {
+    de: [
+      "Projekt-Antrag: Wähle jetzt bis zu 3 Förderbereiche — mit neuen Bereichen wie Innovation und Sport.",
+      "Profilbilder laden deutlich schneller.",
+      "Impact: Noch klarere Erklärung, wie die Förderung verteilt wird.",
+      "Neue Entdecken-Seite im Web mit HUI-Talente-Videos.",
+      "Profil-Sichtbarkeit vereinfacht: Öffentlich oder Privat.",
+      "Konto-Wechsel übersichtlicher — das Tutorial erklärt jetzt mehrere Konten.",
+    ],
+    en: [
+      "Project applications: choose up to 3 funding areas — with new areas like innovation and sport.",
+      "Profile pictures load much faster.",
+      "Impact: clearer explanation of how funding is distributed.",
+      "New Discover page on the web with HUI talent videos.",
+      "Profile visibility simplified: Public or Private.",
+      "Account switching redesigned — the tutorial now explains multiple accounts.",
+    ],
+  },
   // 2.1.593 — von Michael am 11.09.2026 freigegeben ("offener deploy mit text")
   // (DEPLOY-INFO-REGEL; fasst die 7-Punkte-Sammel-Queue zusammen:
   // Kachel-Einheitlichkeit, Profilbild-Lightbox, Projekt-Deep-Link,
