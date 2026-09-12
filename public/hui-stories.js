@@ -3,7 +3,9 @@
    für die Entdecken-Seite (/entdecken)
 
    WIE NEUE GESCHICHTEN ERGÄNZT WERDEN:
-   1. Neuen Eintrag in dieses Array aufnehmen (id, Video-ID etc.)
+   1. Neuen Eintrag in dieses Array aufnehmen (youtubeVideoId ist die
+      zentrale Quelle — Embed-URL und Thumbnail-Fallback werden
+      daraus abgeleitet)
    2. In entdecken.html eine Karte mit data-story="<id>" ergänzen
    3. i18n-Keys disc.story.<id>.* in i18n.js (DE + EN) hinzufügen
 
@@ -27,9 +29,12 @@
       {
         id: 'nicole-wildwiesenwissen',
         title: 'Nicole von WildWiesenWissen – Die Natur wieder mit anderen Augen sehen',
+        // ── Zentrale Quelle: echte YouTube-Video-ID ──
+        // Embed:     https://www.youtube-nocookie.com/embed/<ID>
+        // Thumbnail: https://i.ytimg.com/vi/<ID>/hqdefault.jpg (Fallback,
+        //             primär wird das lokal gehostete echte Thumbnail genutzt)
         youtubeVideoId: 'GmaFnRdc2fo',
         youtubeUrl: 'https://www.youtube.com/watch?v=GmaFnRdc2fo',
-        embedUrl: 'https://www.youtube-nocookie.com/embed/GmaFnRdc2fo',
         person: 'Nicole',
         role: 'Naturvermittlerin',
         category: 'Talent',
@@ -43,9 +48,9 @@
       {
         id: 'kay-dance4vision',
         title: 'HUI Botschafter Tilo – im Gespräch mit Projektleiter Kay von @Dance4Vision',
+        // ── Zentrale Quelle: echte YouTube-Video-ID ──
         youtubeVideoId: 't8aHoQKBZ9k',
         youtubeUrl: 'https://www.youtube.com/watch?v=t8aHoQKBZ9k',
-        embedUrl: 'https://www.youtube-nocookie.com/embed/t8aHoQKBZ9k',
         person: 'Kay',
         role: 'Projektleiter',
         category: 'Talent',

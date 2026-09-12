@@ -558,29 +558,75 @@
 <script src="/hui-interactions.js" defer></script>
 <script src="/plausible-prep.js" defer></script>
 <script>
-// ── HUI-Geschichten: Video erst nach Klick einbetten (kein Autoplay, keine Vorladung) ──
+// ── HUI-Geschichten: Thumbnail → Klick → echter YouTube-Embed ──
+// Die YouTube-Video-ID (hui-stories.js) ist die zentrale Quelle:
+// Embed-URL und Thumbnail-Fallback werden daraus abgeleitet.
+// Es bleibt NIE ein leerer Container zurück — lädt der Embed nicht,
+// wird das Thumbnail wiederhergestellt.
 document.addEventListener('DOMContentLoaded', function(){
-  document.querySelectorAll('.story-play').forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var storyId = btn.getAttribute('data-story');
-      var story = null;
-      if(window.HUI_STORIES){
-        window.HUI_STORIES.stories.forEach(function(s){ if(s.id === storyId) story = s; });
+  'use strict';
+
+  function getStory(storyId){
+    if(!window.HUI_STORIES) return null;
+    var found = null;
+    window.HUI_STORIES.stories.forEach(function(s){ if(s.id === storyId) found = s; });
+    return found;
+  }
+
+  // Thumbnail-Fallback: sollte das lokale Thumbnail nicht laden,
+  // wird das offizielle YouTube-Thumbnail (aus der Video-ID) genutzt.
+  document.querySelectorAll('.story-media img').forEach(function(img){
+    img.addEventListener('error', function(){
+      var story = getStory(img.closest('.story-play') ? img.closest('.story-play').getAttribute('data-story') : null);
+      if(story && story.youtubeVideoId){
+        img.src = 'https://i.ytimg.com/vi/' + encodeURIComponent(story.youtubeVideoId) + '/hqdefault.jpg';
       }
-      var media = btn.closest('.story-media');
-      if(!media || !story) return;
-      if(window.plausible){ window.plausible('Video abgespielt', { props: { story: storyId } }); }
-      var iframe = document.createElement('iframe');
-      iframe.className = 'story-embed';
-      iframe.src = story.embedUrl + '?autoplay=1&rel=0';
-      iframe.title = story.title;
-      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-      iframe.allowFullscreen = true;
-      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-      media.innerHTML = '';
-      media.appendChild(iframe);
     });
   });
+
+  function embedStory(btn, media){
+    var story = getStory(btn.getAttribute('data-story'));
+    if(!story || !story.youtubeVideoId) return; // kein leerer Zustand — Thumbnail bleibt
+    if(window.plausible){ window.plausible('Video abgespielt', { props: { story: story.id } }); }
+
+    var original = media.innerHTML; // Sicherheitsnetz: Thumbnail wiederherstellbar halten
+
+    var iframe = document.createElement('iframe');
+    iframe.className = 'story-embed';
+    iframe.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(story.youtubeVideoId) + '?autoplay=1&rel=0&playsinline=1';
+    iframe.title = story.title || 'HUI-Geschichte';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+
+    var frameReady = false;
+    iframe.addEventListener('load', function(){ frameReady = true; });
+
+    media.innerHTML = '';
+    media.appendChild(iframe);
+
+    // Sicherheitsnetz: Lädt der Embed nicht (z. B. geblockt), Thumbnail
+    // wiederherstellen statt leerer Fläche zurückzulassen.
+    setTimeout(function(){
+      if(!frameReady && iframe.parentNode === media){
+        media.innerHTML = original;
+        bindPlay();
+      }
+    }, 6000);
+  }
+
+  function bindPlay(){
+    document.querySelectorAll('.story-play').forEach(function(btn){
+      if(btn.getAttribute('data-bound') === '1') return;
+      btn.setAttribute('data-bound', '1');
+      btn.addEventListener('click', function(){
+        var media = btn.closest('.story-media');
+        if(media) embedStory(btn, media);
+      });
+    });
+  }
+
+  bindPlay();
 });
 </script>
 </body>
