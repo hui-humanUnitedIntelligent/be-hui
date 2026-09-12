@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
+<title>Entdecken — HUI | Menschen, Talente und erste Geschichten</title>
+<meta name="description" content="Entdecke die Welt von HUI: Menschen, Talente, Projekte und erste Video-Geschichten aus der entstehenden HUI-Gemeinschaft."/>
+<meta name="theme-color" content="#0DC4B5"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<meta property="og:title" content="Entdecken — HUI"/>
+<meta property="og:description" content="Entdecke die Welt von HUI: Menschen, Talente, Projekte und erste Video-Geschichten aus der entstehenden HUI-Gemeinschaft."/>
+<meta property="og:type" content="website"/>
+<link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
+<style>
+@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('/fonts/Inter-ExtraBold.woff2') format('woff2')}
+@font-face{font-family:'Inter';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/Inter-Black.woff2') format('woff2')}
+</style>
+<link rel="stylesheet" href="/hui-shared.css"/>
+<link rel="stylesheet" href="/hui-interactions.css"/>
+<style>
+.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;background:radial-gradient(ellipse 50% 35% at 70% 15%,rgba(13,196,181,.035) 0%,transparent 65%),radial-gradient(ellipse 40% 30% at 20% 75%,rgba(244,115,85,.02) 0%,transparent 60%)}
+.hui-page{position:relative}
+
+/* ── Shared: Kicker + Reveal-Verzögerungen ── */
+.section-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;position:relative;display:inline-block}
+.section-kicker::after{content:'';position:absolute;top:50%;right:-20px;width:5px;height:5px;border-radius:50%;background:var(--teal);opacity:.35;transform:translateY(-50%)}
+.reveal.d1{transition-delay:.15s}.reveal.d2{transition-delay:.3s}.reveal.d3{transition-delay:.45s}.reveal.d4{transition-delay:.6s}.reveal.d5{transition-delay:.75s}.reveal.d6{transition-delay:.9s}
+
+/* ── HERO: ruhig, zentriert ── */
+.disc-hero{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:132px 24px 40px}
+.disc-hero .hui-page-back{margin-bottom:26px}
+.disc-hero-center{text-align:center}
+.disc-hero h1{font-size:clamp(30px,4.5vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px}
+.disc-hero p{font-size:16px;color:var(--ink-body);line-height:1.75;max-width:560px;margin:0 auto}
+
+/* ═══ ÖKOSYSTEM (identisch zur Landingpage) ═══ */
+.eco{padding:64px 32px 88px;background:transparent;text-align:center;position:relative;overflow:hidden}
+.eco-image-bg{position:absolute;inset:0;z-index:0;pointer-events:none;background-image:url(/assets/eco-bg.webp);background-size:cover;background-position:center;opacity:.62}
+.eco-atmosphere{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 70% 50% at 50% 45%,rgba(13,196,181,.04) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 30% 70%,rgba(244,115,85,.02) 0%,transparent 55%),radial-gradient(ellipse 55% 45% at 70% 30%,rgba(212,149,42,.03) 0%,transparent 55%);animation:eco-atm 12s ease-in-out infinite}
+.eco .section-kicker{text-shadow:0 1px 6px rgba(250,247,242,.85)}
+@keyframes eco-atm{0%,100%{opacity:.65}50%{opacity:1}}
+.eco-inner{max-width:960px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.eco-h2{font-size:clamp(30px,5vw,46px);font-weight:700;letter-spacing:-.03em;line-height:1.12;color:var(--ink);margin-bottom:20px;text-shadow:0 1px 8px rgba(250,247,242,.85)}
+.eco-sub{font-size:17px;font-weight:300;color:var(--muted);max-width:480px;margin:0 auto 44px;text-shadow:0 1px 6px rgba(250,247,242,.8)}
+.eco-field{position:relative;width:100%;max-width:580px;margin:0 auto;aspect-ratio:1/1;min-height:420px}
+.eco-core{position:absolute;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;background:radial-gradient(circle,rgba(13,196,181,.06) 0%,rgba(212,149,42,.025) 35%,transparent 70%);z-index:0;opacity:0}
+.eco-field.visible .eco-core{animation:eco-appear 2s var(--ease-out) forwards,eco-breathe 8s ease-in-out 2s infinite}
+@keyframes eco-appear{from{opacity:0}to{opacity:1}}
+@keyframes eco-breathe{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.65;transform:scale(.95)}}
+.eco-energy{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0;transition:opacity 2.5s var(--ease-out) .5s}
+.eco-field.visible .eco-energy{opacity:1}
+.eco-term{position:absolute;transform:translate(-50%,calc(-50% + 12px));text-align:center;z-index:2;opacity:0;transition:opacity 1s var(--ease-out),transform 1s var(--ease-out);max-width:140px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.eco-field.visible .eco-term{opacity:1;transform:translate(-50%,-50%)}
+.eco-field.visible .eco-term[data-eco="1"]{transition-delay:.3s}
+.eco-field.visible .eco-term[data-eco="2"]{transition-delay:.45s}
+.eco-field.visible .eco-term[data-eco="3"]{transition-delay:.6s}
+.eco-field.visible .eco-term[data-eco="4"]{transition-delay:.75s}
+.eco-field.visible .eco-term[data-eco="5"]{transition-delay:.9s}
+.eco-field.visible .eco-term[data-eco="6"]{transition-delay:1.05s}
+.eco-field.visible .eco-term[data-eco="7"]{transition-delay:1.2s}
+.eco-cat{display:block;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:rgba(13,196,181,.65);margin-bottom:5px;text-shadow:0 1px 4px rgba(250,247,242,.9)}
+.eco-stmt{display:block;font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;text-shadow:0 1px 6px rgba(250,247,242,.95)}
+.eco-thumb{display:block;margin:0 auto 6px;border-radius:14px;overflow:hidden;box-shadow:0 4px 18px -6px rgba(26,26,46,.15),0 0 0 1px rgba(250,247,242,.4);transition:transform 300ms var(--ease-out),box-shadow 300ms var(--ease-out),opacity 1.2s var(--ease-out);opacity:0}
+.eco-thumb img{display:block;width:100%;height:auto}
+.eco-term[data-eco="1"] .eco-thumb{width:94px}
+.eco-term[data-eco="2"] .eco-thumb{width:78px}
+.eco-term[data-eco="3"] .eco-thumb{width:78px}
+.eco-term[data-eco="4"] .eco-thumb{width:117px}
+.eco-term[data-eco="5"] .eco-thumb{width:94px}
+.eco-term[data-eco="6"] .eco-thumb{width:78px}
+.eco-term[data-eco="7"] .eco-thumb{width:146px}
+.eco-field.visible .eco-term .eco-thumb{opacity:1}
+.eco-field.visible .eco-term[data-eco="1"] .eco-thumb{transition-delay:.5s}
+.eco-field.visible .eco-term[data-eco="2"] .eco-thumb{transition-delay:.65s}
+.eco-field.visible .eco-term[data-eco="3"] .eco-thumb{transition-delay:.8s}
+.eco-field.visible .eco-term[data-eco="4"] .eco-thumb{transition-delay:.95s}
+.eco-field.visible .eco-term[data-eco="5"] .eco-thumb{transition-delay:1.1s}
+.eco-field.visible .eco-term[data-eco="6"] .eco-thumb{transition-delay:1.25s}
+.eco-field.visible .eco-term[data-eco="7"] .eco-thumb{transition-delay:1.4s}
+.eco-term:hover .eco-thumb{transform:translateY(-2px);box-shadow:0 6px 22px -6px rgba(26,26,46,.2),0 0 0 1px rgba(250,247,242,.5)}
+.eco-term:focus-visible{outline:2px solid var(--teal);outline-offset:4px;border-radius:8px}
+.eco-connect{max-width:580px;margin:56px auto 0;text-align:center}
+.eco-connect p{font-size:clamp(18px,2.8vw,22px);font-weight:300;line-height:1.7;color:var(--ink-mid);text-shadow:0 1px 6px rgba(250,247,242,.8)}
+.eco-connect p+p{margin-top:16px}
+.eco-connect strong{color:var(--ink);font-weight:500}
+.eco-connect .em{display:block;font-size:clamp(20px,3.2vw,26px);font-weight:400;color:var(--teal);letter-spacing:-.01em}
+
+/* ═══ MENSCHEN. GESCHICHTEN. MÖGLICHKEITEN. ═══ */
+.disc-stories{max-width:960px;margin:0 auto;padding:72px 24px 8px;text-align:center}
+.disc-stories h2{font-size:clamp(26px,4vw,34px);font-weight:700;letter-spacing:-.02em;line-height:1.15;color:var(--ink);margin-bottom:16px}
+.disc-stories-intro{font-size:16.5px;font-weight:300;color:var(--ink-body);line-height:1.8;max-width:640px;margin:0 auto 52px}
+.disc-stories-intro .line{display:block}
+.disc-stories-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;max-width:840px;margin:0 auto;text-align:left}
+.story-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:transform .3s var(--ease-out),box-shadow .3s var(--ease-out)}
+.story-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px -12px rgba(20,20,34,.12)}
+.story-media{position:relative;aspect-ratio:16/9;background:var(--cream-deep);display:block}
+.story-media img{width:100%;height:100%;object-fit:cover;display:block}
+.story-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(20,20,34,0) 45%,rgba(20,20,34,.22) 100%);border:none;cursor:pointer;padding:0;width:100%}
+.story-play-icon{width:64px;height:64px;border-radius:50%;background:rgba(250,247,242,.94);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 22px rgba(20,20,34,.2);transition:transform .3s var(--ease-out),background .3s var(--ease)}
+.story-play:hover .story-play-icon{transform:scale(1.07);background:var(--white)}
+.story-play:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.story-duration{position:absolute;right:12px;bottom:12px;background:rgba(20,20,34,.75);color:var(--white);font-size:12px;font-weight:500;padding:3px 8px;border-radius:6px;letter-spacing:.02em}
+.story-embed{position:absolute;inset:0;width:100%;height:100%;border:0}
+.story-body{padding:24px 24px 26px}
+.story-who{font-size:11.5px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.story-title{font-size:16.5px;font-weight:600;color:var(--ink);line-height:1.45;margin-bottom:10px;letter-spacing:-.01em}
+.story-desc{font-size:14px;color:var(--ink-body);line-height:1.7;margin-bottom:16px}
+.story-yt{font-size:13px;font-weight:500;color:var(--teal-deep);display:inline-flex;align-items:center;gap:6px;transition:color .2s var(--ease)}
+.story-yt:hover{color:var(--teal)}
+.story-yt svg{flex-shrink:0}
+.disc-stories-note{font-size:14.5px;color:var(--muted);line-height:1.75;max-width:560px;margin:40px auto 0;text-align:center}
+.disc-stories-note::before{content:'';display:block;width:40px;height:1px;margin:0 auto 24px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+
+/* ═══ HUI IM GESPRÄCH (YouTube-Kanal) ═══ */
+.disc-yt{max-width:680px;margin:0 auto;padding:64px 24px 8px;text-align:center}
+.disc-yt-title{font-size:22px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-bottom:12px}
+.disc-yt-text{font-size:15px;color:var(--ink-body);line-height:1.75;max-width:480px;margin:0 auto 28px}
+.disc-yt-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;background:var(--teal);color:var(--white);font-size:13.5px;font-weight:600;border-radius:var(--rx);transition:background .25s var(--ease),transform .25s var(--ease-out),box-shadow .25s var(--ease);box-shadow:0 2px 12px rgba(13,196,181,.1)}
+.disc-yt-btn:hover{background:var(--teal-deep);transform:translateY(-1px);box-shadow:0 4px 18px rgba(13,196,181,.2)}
+.disc-yt-btn svg{flex-shrink:0}
+
+/* ═══ ABSCHLUSS ═══ */
+.disc-close{max-width:640px;margin:0 auto;padding:72px 24px 96px;text-align:center}
+.disc-close::before{content:'';display:block;width:40px;height:1px;margin:0 auto 32px;background:linear-gradient(90deg,transparent,rgba(13,196,181,.3),transparent)}
+.disc-close-l1{font-size:clamp(21px,3.2vw,28px);font-weight:600;letter-spacing:-.02em;line-height:1.4;color:var(--ink);margin:0 0 6px}
+.disc-close-l2{font-size:clamp(21px,3.2vw,28px);font-weight:200;letter-spacing:-.02em;line-height:1.4;color:var(--ink-mid);margin:0}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .disc-hero{padding:112px 20px 32px}
+  .disc-hero h1{font-size:27px}
+  .disc-hero p{font-size:15px}
+  .eco{padding:48px 24px 64px}
+  .disc-stories{padding:56px 20px 8px}
+  .disc-stories-grid{grid-template-columns:1fr;gap:20px}
+  .disc-stories-intro{font-size:15.5px;margin-bottom:40px}
+  .story-play-icon{width:56px;height:56px}
+  .disc-yt{padding:52px 20px 8px}
+  .disc-close{padding:56px 20px 72px}
+}
+@media(prefers-reduced-motion:reduce){
+  .eco-atmosphere{animation:none}
+  .eco-energy{display:none}
+  .eco-core{animation:none;opacity:1}
+  .eco-term{opacity:1!important}
+  .eco-thumb{opacity:1}
+}
+</style>
+<!-- SEO -->
+<link rel="canonical" href="https://be-hui.com/entdecken"/>
+<link rel="alternate" hreflang="de" href="https://be-hui.com/entdecken"/>
+<link rel="alternate" hreflang="x-default" href="https://be-hui.com/entdecken"/>
+<meta property="og:url" content="https://be-hui.com/entdecken"/>
+<meta property="og:image" content="https://be-hui.com/hero.webp"/>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Entdecken — HUI">
+<meta name="twitter:description" content="Entdecke die Welt von HUI: Menschen, Talente, Projekte und erste Video-Geschichten aus der entstehenden HUI-Gemeinschaft.">
+<meta name="twitter:image" content="https://be-hui.com/hero.webp">
+<meta property="og:locale" content="de_DE"/>
+<!-- Strukturierte Daten: echte HUI-Geschichten (VideoObject) -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoObject","name":"Nicole von WildWiesenWissen – Die Natur wieder mit anderen Augen sehen","description":"Nicole ist Naturvermittlerin und Projektleiterin von WildWiesenWissen. Im Gespräch mit HUI-Botschafter Tilo geht es um Natur, Wissen und Bewusstsein — und darum, wie wir unsere Umgebung wieder mit anderen Augen sehen können.","thumbnailUrl":["https://i.ytimg.com/vi/GmaFnRdc2fo/maxresdefault.jpg"],"uploadDate":"2026-09-11T08:23:15-07:00","embedUrl":"https://www.youtube.com/embed/GmaFnRdc2fo","publisher":{"@type":"Organization","name":"HUI — Human United Intelligence","url":"https://be-hui.com"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoObject","name":"HUI Botschafter Tilo – im Gespräch mit Projektleiter Kay von @Dance4Vision","description":"Kay ist Projektleiter von Dance4Vision, einem Projekt von 4VisionGlobal, das Menschen durch Tanz, Bewegung und gemeinsames Erleben verbindet. Im Gespräch mit HUI-Botschafter Tilo geht es um sein Talent, seine Erfahrungen und erste Eindrücke von HUI.","thumbnailUrl":["https://i.ytimg.com/vi/t8aHoQKBZ9k/maxresdefault.jpg"],"uploadDate":"2026-09-11T06:46:44-07:00","embedUrl":"https://www.youtube.com/embed/t8aHoQKBZ9k","publisher":{"@type":"Organization","name":"HUI — Human United Intelligence","url":"https://be-hui.com"}}
+</script>
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-0KhFSr-WTbTPddwKIV7pg.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <a href="/" class="nav-brand">
+    <img src="/hui_logo.webp" alt="HUI" class="nav-logo" width="36" height="36"/>
+    <div>
+      <span class="nav-name">HUI</span>
+      <span class="nav-sub">Human United Intelligence</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="/#ueber" class="nav-link" data-i18n="nav.about">Über HUI</a>
+    <a href="/entdecken" class="nav-link" aria-current="page" data-i18n="nav.discover">Entdecken</a>
+    <a href="/#wie" class="nav-link" data-i18n="nav.how">Wie HUI wirkt</a>
+    <a href="/#mitmachen" class="nav-link" data-i18n="nav.join">Mitmachen</a>
+  </div>
+  <button class="nav-ham" id="hamBtn" aria-label="Menü" data-i18n-aria="nav.menu-aria">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="drawer" id="drawer">
+  <a href="/#ueber" data-i18n="nav.about">Über HUI</a>
+  <a href="/entdecken" aria-current="page" data-i18n="nav.discover">Entdecken</a>
+  <a href="/#wie" data-i18n="nav.how">Wie HUI wirkt</a>
+  <a href="/#mitmachen" data-i18n="nav.join">Mitmachen</a>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+
+<!-- ═══ HUI SIDEBAR ═══ -->
+<button class="hui-tab" id="huiTab" aria-label="HUI Menü öffnen" data-i18n-aria="sidebar.tab.aria" aria-expanded="false" aria-controls="huiSidebar">
+  <img src="/hui_logo.webp" alt="HUI" width="24" height="24"/>
+</button>
+
+<div class="hui-sidebar-backdrop" id="huiSidebarBackdrop" aria-hidden="true"></div>
+
+<aside class="hui-sidebar" id="huiSidebar" role="complementary" aria-label="HUI Navigation" aria-hidden="true">
+  <button class="hui-sidebar-close" id="huiSidebarClose" aria-label="Menü schließen" data-i18n-aria="sidebar.close.aria">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M4 4L14 14M14 4L4 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <div class="hui-sidebar-header">
+    <img src="/hui_logo.webp" alt="HUI – Human United Intelligence" width="48" height="48" class="hui-sidebar-logo"/>
+    <p class="hui-sidebar-tagline" data-i18n="sidebar.tagline">Entdecke HUI.</p>
+    <p class="hui-sidebar-sub" data-i18n="sidebar.sub">Menschen. Ideen. Möglichkeiten.</p>
+  </div>
+
+  <div class="hui-sidebar-divider" aria-hidden="true"></div>
+
+  <div class="hui-sidebar-scroll">
+    <nav class="hui-sidebar-nav" aria-label="HUI Navigation">
+      <!-- ENTDECKEN -->
+      <section class="hui-nav-section">
+        <p class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</p>
+        <ul class="hui-nav-list">
+          <li><a href="/werke" class="hui-nav-link" data-page="werke">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.works">Werke</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.works">Geschaffenes entdecken</span>
+          </a></li>
+          <li><a href="/erlebnisse" class="hui-nav-link" data-page="erlebnisse">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.experiences">Erlebnisse</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.experiences">Gemeinsame Momente erleben</span>
+          </a></li>
+          <li><a href="/unternehmen" class="hui-nav-link" data-page="unternehmen">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.companies">Unternehmen</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.companies">Verantwortung und Partnerschaften</span>
+          </a></li>
+          <li><a href="/gemeinschaft" class="hui-nav-link" data-page="gemeinschaft">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.community">Gemeinschaft</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.community">Menschen miteinander verbinden</span>
+          </a></li>
+        </ul>
+        <ul class="hui-nav-list-secondary">
+          <li><a href="/menschen" data-i18n="sidebar.nav.people">Menschen</a></li>
+          <li><a href="/talente" data-i18n="sidebar.nav.talents">Talente</a></li>
+          <li><a href="/ideen" data-i18n="sidebar.nav.ideas">Ideen</a></li>
+          <li><a href="/projekte" data-i18n="sidebar.nav.projects">Projekte</a></li>
+        </ul>
+      </section>
+
+      <!-- DIE IDEE -->
+      <section class="hui-nav-section">
+        <p class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</p>
+        <ul class="hui-nav-list">
+          <li><a href="/was-ist-hui" class="hui-nav-link hui-nav-link-primary" data-page="was-ist-hui">
+            <span class="hui-nav-link-label" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</span>
+            <span class="hui-nav-link-sub" data-i18n="sidebar.sub.what-is-hui">Zentraler Einstieg</span>
+          </a></li>
+          <li><a href="/die-idee-dahinter" class="hui-nav-link-plain" data-i18n="sidebar.nav.the-idea">Die Idee dahinter</a></li>
+          <li><a href="/warum-hui" class="hui-nav-link-plain" data-i18n="sidebar.nav.why-hui">Warum HUI?</a></li>
+          <li><a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="hui-nav-link-plain" data-i18n="sidebar.nav.4vision">4VisionGlobal</a></li>
+          <li><a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="hui-nav-link-plain" data-i18n="sidebar.nav.liga">Liga der Kreativen</a></li>
+        </ul>
+      </section>
+
+      <!-- MITMACHEN -->
+      <section class="hui-nav-section">
+        <p class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</p>
+        <ul class="hui-nav-list">
+          <li><a href="/mitmachen/idee" class="hui-nav-action" data-page="mitmachen-idee">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</span>
+          </a></li>
+          <li><a href="/mitmachen/talent" class="hui-nav-action" data-page="mitmachen-talent">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-talent">Ich habe ein Talent</span>
+          </a></li>
+          <li><a href="/mitmachen/projekt" class="hui-nav-action" data-page="mitmachen-projekt">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.start-project">Ich möchte ein Projekt starten</span>
+          </a></li>
+          <li><a href="/mitmachen/unterstuetzen" class="hui-nav-action" data-page="mitmachen-unterstuetzen">
+            <span class="hui-nav-action-label" data-i18n="sidebar.nav.support">Ich möchte unterstützen</span>
+          </a></li>
+        </ul>
+      </section>
+
+      <section class="hui-nav-section hui-nav-section-compact">
+        <p class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</p>
+        <ul class="hui-nav-list-plain">
+          <li><a href="/launch" data-i18n="sidebar.nav.launch">Launch</a></li>
+          <li><a href="/updates" data-i18n="sidebar.nav.updates">Updates</a></li>
+          <li><a href="/von-anfang-an-dabei" data-i18n="sidebar.nav.from-start">Von Anfang an dabei</a></li>
+        </ul>
+      </section>
+    </nav>
+
+    <!-- Die Reise von HUI -->
+    <div class="hui-journey">
+      <p class="hui-journey-title" data-i18n="sidebar.journey.title">Die Reise von HUI</p>
+      <div class="hui-journey-steps">
+        <div class="hui-journey-step hui-journey-active">
+          <span class="hui-journey-num">01</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.1">Menschen</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">02</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.2">Ideen</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">03</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.3">Möglichkeiten</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">04</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.4">Begegnungen</span>
+        </div>
+        <div class="hui-journey-step">
+          <span class="hui-journey-num">05</span>
+          <span class="hui-journey-label" data-i18n="sidebar.journey.5">Wirkung</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUI Quote -->
+    <div class="hui-quote">
+      <p data-i18n="sidebar.quote">Eine Idee kann etwas bewegen. Gemeinsam kann sie die Welt verändern.</p>
+    </div>
+  </div>
+
+  <div class="hui-sidebar-footer">
+    <div class="hui-sidebar-lang" id="huiSidebarLang"></div>
+    <div class="hui-sidebar-links">
+      <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer">4VisionGlobal</a>
+      <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer">Liga der Kreativen</a>
+    </div>
+  </div>
+</aside>
+
+<div class="hui-sidebar-toast" id="huiSidebarToast" role="alert" aria-live="polite">
+  <p id="huiSidebarToastText"></p>
+</div>
+
+<div class="cs-toast" id="csToast" role="alert" aria-live="polite">
+  <button class="cs-close" id="csToastClose" aria-label="Schließen" data-i18n-aria="cs.close-aria">&times;</button>
+  <p class="cs-title" data-i18n="cs.title">HUI ist bald für dich da.</p>
+  <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.</p>
+</div>
+
+<!-- PAGE CONTENT -->
+<main class="hui-page">
+  <div class="page-hero-bg" aria-hidden="true"></div>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="disc-hero">
+    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
+    <div class="disc-hero-center">
+      <p class="section-kicker reveal" data-i18n="disc.kicker">Entdecken</p>
+      <h1 class="reveal d1" data-i18n="disc.title">Da entsteht etwas.</h1>
+      <p class="reveal d2" data-i18n="disc.sub">HUI entsteht gerade — sichtbar, ehrlich und Schritt für Schritt. Hier kannst du Menschen, Talente, Projekte und erste Geschichten entdecken.</p>
+    </div>
+  </section>
+
+  <!-- ═══ ÖKOSYSTEM: DIE WELT VON HUI ═══ -->
+  <section class="eco" id="oekosystem">
+    <div class="eco-image-bg" aria-hidden="true"></div>
+    <div class="eco-atmosphere" aria-hidden="true"></div>
+    <div class="eco-inner">
+      <p class="section-kicker reveal" data-i18n="eco.kicker">Das Ökosystem</p>
+      <h2 class="eco-h2 reveal d1" data-i18n="eco.h2">Die Welt von HUI</h2>
+      <p class="eco-sub reveal d2" data-i18n="eco.intro">HUI verbindet Menschen, Ideen und Möglichkeiten in einem lebendigen Ökosystem.</p>
+      <div class="eco-field reveal d2">
+        <div class="eco-core" aria-hidden="true"></div>
+        <svg class="eco-energy" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
+            <animateMotion dur="9s" repeatCount="indefinite" begin="0s" path="M50,13 C38,19 24,32 21,27 C15,40 13,50 14,58 C19,69 27,78 34,83"/>
+            <animate attributeName="opacity" values="0;0.5;0.4;0.4;0.2;0" dur="9s" repeatCount="indefinite" begin="0s"/>
+          </circle>
+          <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
+            <animateMotion dur="10s" repeatCount="indefinite" begin="3s" path="M21,27 C38,19 62,19 79,27"/>
+            <animate attributeName="opacity" values="0;0.5;0.3;0.2;0" dur="10s" repeatCount="indefinite" begin="3s"/>
+          </circle>
+          <circle r="2" fill="#D4952A" fill-opacity=".4" opacity="0">
+            <animateMotion dur="12s" repeatCount="indefinite" begin="6s" path="M79,27 C85,36 87,46 86,58 C81,69 73,78 66,83"/>
+            <animate attributeName="opacity" values="0;0.4;0.3;0.3;0.2;0" dur="12s" repeatCount="indefinite" begin="6s"/>
+          </circle>
+          <circle r="2.5" fill="#0DC4B5" fill-opacity=".5" opacity="0">
+            <animateMotion dur="11s" repeatCount="indefinite" begin="8s" path="M50,13 C50,32 50,48 50,58 C56,68 61,76 66,83"/>
+            <animate attributeName="opacity" values="0;0.5;0.3;0.3;0.2;0" dur="11s" repeatCount="indefinite" begin="8s"/>
+          </circle>
+        </svg>
+        <a class="eco-term" data-eco="1" style="left:50%;top:13%" href="/menschen" aria-label="Menschen bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-menschen.webp" alt="Menschen mit individuellen Talenten und Fähigkeiten bei HUI" width="1024" height="768" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.people">Menschen</span>
+          <span class="eco-stmt" data-i18n="eco.people-desc">Jeder Mensch zählt</span>
+        </a>
+        <a class="eco-term" data-eco="2" style="left:21%;top:27%" href="/talente" aria-label="Wirker und Talente bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-wirker.webp" alt="Mensch zeigt sein kreatives Talent und Können" width="1024" height="768" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.creators">Wirker</span>
+          <span class="eco-stmt" data-i18n="eco.creators-desc">Talente & Können</span>
+        </a>
+        <a class="eco-term" data-eco="3" style="left:79%;top:27%" href="/projekte" aria-label="Projekte bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-projekte.webp" alt="Menschen arbeiten gemeinsam an einer Idee und einem Projekt" width="1024" height="768" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.projects">Projekte</span>
+          <span class="eco-stmt" data-i18n="eco.projects-desc">Ideen werden möglich</span>
+        </a>
+        <a class="eco-term" data-eco="4" style="left:14%;top:58%" href="/werke" aria-label="Werke bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-werke.webp" alt="Kunstwerk und kreatives Schaffen" width="1024" height="768" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.works">Werke</span>
+          <span class="eco-stmt" data-i18n="eco.works-desc">Geschaffen & geteilt</span>
+        </a>
+        <a class="eco-term" data-eco="5" style="left:86%;top:58%" href="/erlebnisse" aria-label="Erlebnisse bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-erlebnisse.webp" alt="Menschen erleben gemeinsam besondere Momente" width="1024" height="768" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.experiences">Erlebnisse</span>
+          <span class="eco-stmt" data-i18n="eco.experiences-desc">Momente verbinden</span>
+        </a>
+        <a class="eco-term" data-eco="6" style="left:34%;top:83%" href="/unternehmen" aria-label="Unternehmen bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-unternehmen.webp" alt="Menschen arbeiten authentisch in einem kleinen Unternehmen zusammen" width="1024" height="768" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.companies">Unternehmen</span>
+          <span class="eco-stmt" data-i18n="eco.companies-desc">Partner & Möglichkeiten</span>
+        </a>
+        <a class="eco-term" data-eco="7" style="left:66%;top:83%" href="/gemeinschaft" aria-label="Gemeinschaft bei HUI — Seite öffnen">
+          <span class="eco-thumb"><img src="/assets/eco-gemeinschaft.webp" alt="Menschen verbringen gemeinsam Zeit und erleben Gemeinschaft" width="1024" height="683" loading="lazy" decoding="async"/></span>
+          <span class="eco-cat" data-i18n="eco.community">Gemeinschaft</span>
+          <span class="eco-stmt" data-i18n="eco.community-desc">Zusammenhalt</span>
+        </a>
+      </div>
+      <div class="eco-connect">
+        <p class="reveal d4" data-i18n-html="eco.connect">Keine isolierten Funktionen — ein <strong>verbundenes Ökosystem</strong>, in dem alles miteinander verknüpft ist.</p>
+        <p class="reveal d5"><span class="em" data-i18n="eco.flow1">Was einer gibt, begegnet einem anderen.</span></p>
+        <p class="reveal d6"><span class="em" data-i18n="eco.flow2">Was entsteht, bleibt sichtbar.</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ MENSCHEN. GESCHICHTEN. MÖGLICHKEITEN. ═══ -->
+  <section class="disc-stories">
+    <p class="section-kicker reveal" data-i18n="disc.stories.kicker">HUI Talente</p>
+    <h2 class="reveal d1" data-i18n="disc.stories.h2">Menschen. Geschichten. Möglichkeiten.</h2>
+    <p class="disc-stories-intro reveal d2">
+      <span class="line" data-i18n="disc.stories.intro-l1">Hinter jeder Idee steht ein Mensch.</span>
+      <span class="line" data-i18n="disc.stories.intro-l2">Hinter jedem Projekt eine Geschichte.</span>
+      <span class="line" data-i18n="disc.stories.intro-l3">Und manchmal erzählt ein persönliches Gespräch mehr als tausend Worte.</span>
+    </p>
+
+    <div class="disc-stories-grid">
+      <!-- Nicole / WildWiesenWissen — echte HUI-Geschichte (Video: GmaFnRdc2fo) -->
+      <article class="story-card reveal d1">
+        <div class="story-media">
+          <button type="button" class="story-play" data-story="nicole-wildwiesenwissen" data-i18n-aria="disc.story.nicole.play-aria" aria-label="Video abspielen: Nicole von WildWiesenWissen">
+            <img src="/assets/story-nicole-thumb.webp" alt="Nicole von WildWiesenWissen im Gespräch mit HUI-Botschafter Tilo" width="640" height="360" loading="lazy" decoding="async"/>
+            <span class="story-play-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 5.5v13l11-6.5L8 5.5z" fill="#0DC4B5"/>
+              </svg>
+            </span>
+            <span class="story-duration">9:06</span>
+          </button>
+        </div>
+        <div class="story-body">
+          <p class="story-who" data-i18n="disc.story.nicole.who">Nicole · WildWiesenWissen</p>
+          <h3 class="story-title" data-i18n="disc.story.nicole.title">Die Natur wieder mit anderen Augen sehen</h3>
+          <p class="story-desc" data-i18n="disc.story.nicole.desc">Nicole ist Naturvermittlerin. Im Gespräch mit HUI-Botschafter Tilo erzählt sie, was WildWiesenWissen verbindet — und wie wir die Natur direkt vor unserer Haustür wieder mit anderen Augen sehen können.</p>
+          <a class="story-yt" href="https://www.youtube.com/watch?v=GmaFnRdc2fo" target="_blank" rel="noopener noreferrer" data-i18n="disc.stories.yt">Auf YouTube ansehen
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 10L10 2M10 2H4M10 2v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </article>
+
+      <!-- Kay / Dance4Vision — echte HUI-Geschichte (Video: t8aHoQKBZ9k) -->
+      <article class="story-card reveal d2">
+        <div class="story-media">
+          <button type="button" class="story-play" data-story="kay-dance4vision" data-i18n-aria="disc.story.kay.play-aria" aria-label="Video abspielen: Kay von Dance4Vision">
+            <img src="/assets/story-kay-thumb.webp" alt="HUI-Botschafter Tilo im Gespräch mit Kay von Dance4Vision" width="640" height="360" loading="lazy" decoding="async"/>
+            <span class="story-play-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M8 5.5v13l11-6.5L8 5.5z" fill="#0DC4B5"/>
+              </svg>
+            </span>
+            <span class="story-duration">10:14</span>
+          </button>
+        </div>
+        <div class="story-body">
+          <p class="story-who" data-i18n="disc.story.kay.who">Kay · Dance4Vision</p>
+          <h3 class="story-title" data-i18n="disc.story.kay.title">Im Gespräch mit Projektleiter Kay von Dance4Vision</h3>
+          <p class="story-desc" data-i18n="disc.story.kay.desc">Kay leitet Dance4Vision, ein Projekt von 4VisionGlobal, das Menschen durch Tanz, Bewegung und gemeinsames Erleben verbindet. Im Gespräch mit HUI-Botschafter Tilo geht es um sein Talent, seine Erfahrungen — und darum, was entsteht, wenn Fähigkeiten sichtbar werden.</p>
+          <a class="story-yt" href="https://www.youtube.com/watch?v=t8aHoQKBZ9k" target="_blank" rel="noopener noreferrer" data-i18n="disc.stories.yt">Auf YouTube ansehen
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 10L10 2M10 2H4M10 2v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </article>
+    </div>
+
+    <p class="disc-stories-note reveal" data-i18n="disc.stories.note">Diese Menschen gehören zu den ersten, die HUI kennenlernen, ausprobieren, hinterfragen und mit ihren Gedanken begleiten.</p>
+  </section>
+
+  <!-- ═══ HUI IM GESPRÄCH — YouTube-Kanal ═══ -->
+  <section class="disc-yt">
+    <h2 class="disc-yt-title reveal" data-i18n="disc.yt.kicker">HUI im Gespräch</h2>
+    <p class="disc-yt-text reveal d1" data-i18n="disc.yt.text">Menschen, Talente und erste Gedanken zu HUI – direkt aus der entstehenden Gemeinschaft.</p>
+    <a class="disc-yt-btn reveal d2" href="https://www.youtube.com/@be-HUI" target="_blank" rel="noopener noreferrer" data-i18n="disc.yt.btn" data-track="Entdecken YouTube Kanal">HUI auf YouTube entdecken
+      <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 10L10 2M10 2H4M10 2v6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </section>
+
+  <!-- ═══ ABSCHLUSS ═══ -->
+  <section class="disc-close">
+    <p class="disc-close-l1 reveal" data-i18n="disc.close.1">HUI ist noch am Anfang.</p>
+    <p class="disc-close-l2 reveal d1" data-i18n="disc.close.2">Und genau deshalb gibt es noch so viel zu entdecken.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <img src="/hui_logo.webp" alt="HUI" class="footer-logo" width="36" height="36"/>
+    <p class="footer-tag" data-i18n="footer.tag">Human United Intelligence — Menschen. Ideen. Möglichkeiten.</p>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4 class="footer-col-title" data-i18n="footer.col1">HUI</h4>
+        <a href="/#ueber" class="footer-link" data-i18n="footer.col1-1">Über HUI</a>
+        <a href="/entdecken" class="footer-link" data-i18n="footer.col1-2">Entdecken</a>
+        <a href="/#wie" class="footer-link" data-i18n="footer.col1-3">Wie HUI wirkt</a>
+        <a href="/#mitmachen" class="footer-link" data-i18n="footer.col1-4">Mitmachen</a>
+        <a href="/was-ist-hui" class="footer-link" data-i18n="footer.col1-5">HUI entdecken</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title" data-i18n="footer.col2">Rechtliches</h4>
+        <a href="/impressum" class="footer-link" data-i18n="footer.col2-1">Impressum</a>
+        <a href="/datenschutz" class="footer-link" data-i18n="footer.col2-2">Datenschutz</a>
+        <a href="/cookie-einstellungen" class="footer-link" data-i18n="footer.col2-3">Cookie-Einstellungen</a>
+        <a href="/nutzungsbedingungen" class="footer-link" data-i18n="footer.col2-4">Nutzungsbedingungen</a>
+        <a href="/barrierefreiheit" class="footer-link" data-i18n="footer.col2-5">Barrierefreiheit</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title" data-i18n="footer.col3">Kontakt &amp; Verbindungen</h4>
+        <a href="/kontakt" class="footer-link" data-i18n="footer.col3-1">Kontakt</a>
+        <a href="https://4visionglobal.com/" target="_blank" rel="noopener noreferrer" class="footer-link">4VisionGlobal</a>
+        <a href="https://ligaderkreativen.at/" target="_blank" rel="noopener noreferrer" class="footer-link">Liga der Kreativen</a>
+      </div>
+    </div>
+    <p class="footer-copy" data-i18n="footer.copy">© 2026 HUI — Human United Intelligence.</p>
+  </div>
+</footer>
+
+<script src="/hui-pages.js"></script>
+<script src="/hui-stories.js" defer></script>
+<script src="/i18n.js" defer></script>
+<script src="/hui-interactions.js" defer></script>
+<script src="/plausible-prep.js" defer></script>
+<script>
+// ── HUI-Geschichten: Video erst nach Klick einbetten (kein Autoplay, keine Vorladung) ──
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.story-play').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var storyId = btn.getAttribute('data-story');
+      var story = null;
+      if(window.HUI_STORIES){
+        window.HUI_STORIES.stories.forEach(function(s){ if(s.id === storyId) story = s; });
+      }
+      var media = btn.closest('.story-media');
+      if(!media || !story) return;
+      if(window.plausible){ window.plausible('Video abgespielt', { props: { story: storyId } }); }
+      var iframe = document.createElement('iframe');
+      iframe.className = 'story-embed';
+      iframe.src = story.embedUrl + '?autoplay=1&rel=0';
+      iframe.title = story.title;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+      iframe.allowFullscreen = true;
+      iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+      media.innerHTML = '';
+      media.appendChild(iframe);
+    });
+  });
+});
+</script>
+</body>
+</html>
