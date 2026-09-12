@@ -1670,7 +1670,7 @@ export default {
   'impact.zusaetzlichVerteilt': 'Distribuído adicionalmente',
   'impact.undWeitere': '… e mais {count} projetos',
   'impact.leerausTitle': '❤️ Por que nenhum projeto fica vazio?',
-  'impact.leerausSub': 'A comunidade decide apenas em que ordem os três projetos selecionados são apoiados, não se um projeto é financiado.',
+  'impact.leerausSub': 'A comunidade tem grande influência em qual projeto avança na classificação — os três projetos selecionados recebem financiamento.',
   'impact.leerausP1': 'Todos os meses, a equipa HUI seleciona até três projetos sobre os quais a comunidade pode votar.',
   'impact.leerausP2': 'A votação não decide quem ganha e quem perde — apenas a classificação entre estes três projetos.',
   'impact.leerausP3': 'O 1.º lugar recebe 50%, o 2.º 30% e o 3.º 20% da parte comunitária do Impact Pool. Cada voto pode alterar esta classificação.',

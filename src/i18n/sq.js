@@ -1791,7 +1791,7 @@ export default {
   'impact.leerausP3': 'Vendi i 1-rë merr 50%, i 2-ti 30% dhe i 3-ti 20% të pjesës së komunitetit nga Impact Pool. Çdo votë mund ta ndryshojë këtë renditje.',
   'impact.leerausP4': 'Kur një projekt financohet plotësisht, zëvendësohet nga një projekt i ri që zgjedh ekipi i HUI. Nëse një projekt përfundon në mes të muajit, mbeten vetëm dy projekte në renditje deri në muajin e ri – nga muaji i ri janë përsëri tre.',
   'impact.leerausP5': 'Kështu, çdo projekt i zgjedhur vazhdon të rritet muaj pas muaji, edhe nëse financimi i plotë kërkon disa muaj.',
-  'impact.leerausSub': 'Komuniteti vendos vetëm rendin në të cilin mbështeten tre projektet e zgjedhura – jo nëse një projekt financohet.',
+  'impact.leerausSub': 'Komuniteti ka ndikim të madh në atë se cili projekt përparon në renditje – të tri projektet e zgjedhura marrin financim.',
   'impact.leerausTitle': '❤️ Pse asnjë projekt nuk mbetet bosh?',
   'impact.letzteAuszahlung': 'Pagesa e fundit',
   'impact.liveActivities': 'Live-Aktiviteten në Ndikim Fond',

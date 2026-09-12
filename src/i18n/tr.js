@@ -1670,7 +1670,7 @@ export default {
   'impact.zusaetzlichVerteilt': 'Ek olarak dağıtıldı',
   'impact.undWeitere': '… ve {count} proje daha',
   'impact.leerausTitle': '❤️ Neden hiç proje boş kalmaz?',
-  'impact.leerausSub': 'Topluluk sadece seçilen üç projenin hangi sırayla desteklendiğine karar verir, bir projenin finanse edilip edilmeyeceğine değil.',
+  'impact.leerausSub': 'Topluluk, hangi projenin sıralamada ilerlediği üzerinde büyük etkiye sahiptir — seçilen üç proje de finansman alır.',
   'impact.leerausP1': 'HUI ekibi her ay topluluğun oy verebileceği en fazla üç proje seçer.',
   'impact.leerausP2': 'Oylama kimin kazanıp kimin kaybettiğine değil, sadece bu üç proje arasındaki sıralamaya karar verir.',
   'impact.leerausP3': '1. sıra %50, 2. sıra %30 ve 3. sıra Impact Pool\'un topluluk payının %20\'sini alır. Her oy bu sıralamayı değiştirebilir.',

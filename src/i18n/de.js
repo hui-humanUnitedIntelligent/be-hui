@@ -1671,7 +1671,7 @@ export default {
   'impact.zusaetzlichVerteilt': 'Zusätzlich verteilt',
   'impact.undWeitere': '… und {count} weitere Projekte',
   'impact.leerausTitle': '❤️ Warum geht kein Projekt leer aus?',
-  'impact.leerausSub': 'Die Community entscheidet nur, in welcher Reihenfolge die drei ausgewählten Projekte unterstützt werden – nicht, ob ein Projekt gefördert wird.',
+  'impact.leerausSub': 'Die Community hat großen Einfluss darauf, welches Projekt im Ranking vorwärts kommt – alle drei ausgewählten Projekte werden gefördert.',
   'impact.leerausP1': 'Das HUI-Team wählt jeden Monat bis zu drei Projekte aus, für die die Community abstimmen kann.',
   'impact.leerausP2': 'Die Abstimmung entscheidet nicht, wer gewinnt und wer verliert – sondern nur die Rangfolge unter diesen drei Projekten.',
   'impact.leerausP3': 'Platz 1 erhält 50%, Platz 2 30% und Platz 3 20% des Community-Anteils aus dem Impact Pool. Jede Stimme kann dieses Ranking verschieben.',
