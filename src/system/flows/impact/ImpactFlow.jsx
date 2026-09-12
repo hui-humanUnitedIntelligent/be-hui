@@ -45,6 +45,10 @@ function getKategorien(t) {
   { id:"kultur",       emoji:"🎨", label: t("impact.katKultur")        },
   { id:"soziales",     emoji:"❤️", label: t("impact.katSoziales")      },
   { id:"sonstiges",    emoji:"✨", label: t("impact.katSonstiges")     },
+  { id:"innovation",   emoji:"💡", label: t("impact.katInnovation")     },
+  { id:"menschenrechte", emoji:"⚖️", label: t("impact.katMenschenrechte") },
+  { id:"sport",        emoji:"🏃", label: t("impact.katSport")          },
+  { id:"ernaehrung",   emoji:"🌾", label: t("impact.katErnaehrung")     },
   ];
 }
 
@@ -173,8 +177,12 @@ function calcHuiFitScore(form) {
   baseScore -= vagueHits * 5; // -5 pro vager Phrase (weicher)
 
   // ── Kategorie-Bonus ───────────────────────────────────────────
-  const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3, soziales:5 };
-  baseScore += KAT_BONUS[form.kategorie] || 0;
+  // MULTI-SELECT (Bereiche-Feature): Boni aller gewaehlten Bereiche summieren,
+  // bei +10 gedeckelt (verhindert Score-Inflation durch Mehrfachwahl vs. frueheres Single +5)
+  const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3,
+    soziales:5, innovation:5, menschenrechte:4, sport:3, ernaehrung:4 };
+  baseScore += Math.min(10, (form.kategorien || []).reduce(
+    (sum, k) => sum + (KAT_BONUS[k] || 0), 0));
 
   // ── Vollständigkeits-Bonus — nur bei echter inhaltlicher Tiefe ──
   const fields = [form.name, form.satz, form.problem, form.umsetzung];
@@ -420,7 +428,16 @@ function Step3({ form, update, onNext, onBack, onClose }) {
 
 function Step4({ form, update, onNext, onBack, onClose }) {
   const { t } = useTranslation();
-  const ok = !!form.kategorie;
+  // MULTI-SELECT: 1-3 Bereiche waehlbar, erneutes Antippen hebt auf
+  const [maxHint, setMaxHint] = useState(false);
+  const sel = form.kategorien || [];
+  const ok = sel.length >= 1;
+  const toggleKat = (id) => {
+    if (sel.includes(id)) { update({ kategorien: sel.filter(x => x !== id) }); setMaxHint(false); return; }
+    if (sel.length >= 3) { setMaxHint(true); return; } // kurzer Hinweis statt stiller Sperre
+    update({ kategorien: [...sel, id] });
+    setMaxHint(false);
+  };
   return (
     <StepWrap step={3} total={7} onBack={onBack} onClose={onClose} label={t("impact.step4Label")}>
       <div style={{ animation:"ifFadeIn 0.28s ease both", flex:1, display:"flex", flexDirection:"column" }}>
@@ -432,23 +449,32 @@ function Step4({ form, update, onNext, onBack, onClose }) {
         </p>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:24 }}>
           {getKategorien(t).map(k => {
-            const sel = form.kategorie === k.id;
+            const isSel = sel.includes(k.id);
             return (
-              <button key={k.id} className="hui-chip" onClick={() => update({ kategorie: k.id })}
+              <button key={k.id} className="hui-chip" onClick={() => toggleKat(k.id)}
                 style={{
                   display:"flex", alignItems:"center", gap:10, padding:"13px 14px",
-                  background: sel ? `${T.teal}15` : T.surfaceHi,
-                  border: sel ? `2px solid ${T.teal}` : `2px solid ${T.line}`,
+                  background: isSel ? `${T.teal}15` : T.surfaceHi,
+                  border: isSel ? `2px solid ${T.teal}` : `2px solid ${T.line}`,
                   borderRadius:16, cursor:"pointer",
-                  boxShadow: sel ? `0 0 0 3px ${T.teal}18` : S.card,
+                  boxShadow: isSel ? `0 0 0 3px ${T.teal}18` : S.card,
                   transition:"all 0.15s ease",
                 }}>
                 <span style={{ fontSize:22 }}>{k.emoji}</span>
-                <span style={{ fontSize:14, fontWeight: sel ? 600 : 600,
-                  color: sel ? T.teal : T.ink, lineHeight:1.2 }}>{k.label}</span>
+                <span style={{ fontSize:14, fontWeight: isSel ? 600 : 600,
+                  color: isSel ? T.teal : T.ink, lineHeight:1.2 }}>{k.label}</span>
               </button>
             );
           })}
+        </div>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24 }}>
+          <span style={{ fontSize:12, fontWeight:700, color:T.teal,
+            background:`${T.teal}1A`, padding:"6px 12px", borderRadius:20 }}>
+            {t("impact.step4Count", { n: sel.length })}
+          </span>
+          {maxHint && (
+            <span style={{ fontSize:12, fontWeight:600, color:T.coral }}>{t("impact.step4Max")}</span>
+          )}
         </div>
         <NextBtn onClick={onNext} disabled={!ok} />
       </div>
@@ -997,7 +1023,7 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
         {[
           { label:t("impact.egSumProject"),      val:form.name },
           { label:t("impact.egSumDesc"), val:form.satz },
-          { label:t("impact.egSumCategory"),    val:getKategorien(t).find(k=>k.id===form.kategorie)?.label },
+          { label:t("impact.egSumCategory"),    val:(form.kategorien || []).map(id => getKategorien(t).find(k => k.id === id)?.label).filter(Boolean).join(", ") || "—" },
           { label:t("impact.egSumFunding"), val:`€${formatNumberDE(parseInt(form.foerder||0))}` },
         ].map((r,i) => (
           <div key={i} style={{ display:"flex", gap:10, padding:"6px 0",
@@ -1037,7 +1063,7 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
           short_desc:   (form.satz || "").trim() || null,
           problem:      (form.problem || "").trim() || null,
           umsetzung:    (form.umsetzung || "").trim() || null,
-          kategorie:    form.kategorie || null,
+          kategorie:    (form.kategorien || []).join(",") || null,
           funding_goal: form.foerder ? parseFloat(form.foerder) : null,
           ai_score:     score,
           grund:        grund,
@@ -1603,7 +1629,7 @@ export default function ImpactFlow({ onClose }) {
   );
 
   const [form, setForm] = useState({
-    name:"", satz:"", problem:"", kategorie:"", umsetzung:"", foerder:"",
+    name:"", satz:"", problem:"", kategorien:[], umsetzung:"", foerder:"",
   });
   const [milestones, setMilestones] = useState([{ title: '', description: '', planned_date: '', media_urls: [] }]);
   const [kontakt, setKontakt] = useState({
