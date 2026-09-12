@@ -1,5 +1,5 @@
 import { platformPath, getAuthRedirectUrl } from '../../lib/platform.js';
-import { HUIAbmeldenIcon, HUIDatenschutzIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon, HUIFinanzIcon, HUISpracheIcon } from '../../design/icons/HuiSystemIcons.jsx';
+import { HUIAbmeldenIcon, HUIKalenderIcon, HUIKontaktIcon, HUIMitgliedIcon, HUIProfilIcon, HUISettingsIcon, HUISicherheitIcon, HUIVerifIcon, HUIMailIcon, HUIFinanzIcon, HUISpracheIcon } from '../../design/icons/HuiSystemIcons.jsx';
 import { SUPPORTED_LANGS, LANG_LABELS, LANG_FLAGS } from '../../i18n/index.js';
 import BankdatenModal from './BankdatenModal.jsx';
 // src/components/settings/SettingsModal.jsx
@@ -368,59 +368,14 @@ function EmailChangeBlock({ profile, onProfileUpdate, isOrgProfile = false }) {
   );
 }
 
-// ── Block: Privatsphäre ───────────────────────────────────────
-function getVisibilityOptions(t) {
-  return [
-  { value:"public",      label:t("sm.visibility.public"),        desc:t("sm.visibility.public.desc") },
-  { value:"connections", label:t("sm.visibility.connections"),      desc:t("sm.visibility.connections.desc") },
-  { value:"private",     label:t("sm.visibility.private"),            desc:t("sm.visibility.private.desc") },
-  ];
-}
-
-function PrivacyBlock({ profile, onProfileUpdate }) {
-  const { t } = useTranslation();
-  const VISIBILITY_OPTIONS = getVisibilityOptions(t);
-  const current = profile?.profile_modules?.visibility || "public";
-  const [vis,    setVis]    = useState(current);
-  const [saving, setSaving] = useState(false);
-  const [saved,  setSaved]  = useState(false);
-  const [error,  setError]  = useState(null);
-
-  const save = async () => {
-    if (!profile?.id) return;
-    setSaving(true); setError(null);
-    const pm = profile?.profile_modules || {};
-    const { error:err } = await supabase.from("profiles").update({
-      profile_modules:{ ...pm, visibility:vis },
-    }).eq("id", profile.id);
-    setSaving(false);
-    if (err) { setError(err.message); return; }
-    setSaved(true); setTimeout(()=>setSaved(false), 2500);
-    onProfileUpdate?.({ ...profile, profile_modules:{ ...(profile?.profile_modules||{}), visibility:vis } });
-  };
-
-  return (
-    <Row label={t("sm.visibility.label")} last>
-      {VISIBILITY_OPTIONS.map(opt => (
-        <button key={opt.value} onClick={() => setVis(opt.value)}
-          style={{ width:"100%", display:"flex", alignItems:"center", gap:12,
-            padding:"10px 12px", marginBottom:6, borderRadius:10, cursor:"pointer",
-            border:"1.5px solid " + (vis===opt.value ? T.teal : T.border),
-            background:vis===opt.value ? T.tealSoft : "#FAFAF8",
-            fontFamily:"inherit", textAlign:"left", transition:"all 0.12s" }}>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:14, fontWeight:vis===opt.value?600:400, color:T.ink }}>
-              {opt.label}
-            </div>
-            <div style={{ fontSize:11, color:T.inkSoft, marginTop:2 }}>{opt.desc}</div>
-          </div>
-          {vis===opt.value && <span style={{ color:T.teal, fontSize:16 }}>✓</span>}
-        </button>
-      ))}
-      <SaveRow onSave={save} saving={saving} saved={saved} error={error}/>
-    </Row>
-  );
-}
+// PRIVACY-BLOCK-CLEANUP-001 (2026-09-12, Michael: "räume den auf"):
+// Der hier vormals vorhandene PrivacyBlock (zweiter, getrennter
+// "Profil-Sichtbarkeit"-Picker) war toter Code — KEIN Menüpunkt rief je
+// setView("privacy") auf. Zudem schrieb er in ein ANDERES Feld
+// (profiles.profile_modules.visibility) als die kanonische
+// VisibilitySection (profiles.focus_type) — eine zweite, konkurrierende
+// Wahrheit. Komplett entfernt; Sichtbarkeit läuft ausschließlich über
+// VisibilitySection (src/components/profile/sections/).
 
 // ── Haupt-Komponente ─────────────────────────────────────────
 export default function SettingsModal({ profile: profileProp, onClose, onProfileUpdate = () => {}, onOpenBookings = () => {}, onEditProfile = () => {}, autoOpenBankdaten = false, initialView = null, isOrgProfile = false }) {
@@ -443,7 +398,7 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
   // (z.B. wenn authCtxProfile noch nicht geladen), ueberspreng React diese
   // Hooks fuer den Render, was beim naechsten Render (profile vorhanden)
   // zu einer anderen Hook-Reihenfolge fuehrte -> "Minified React error #310".
-  const [view, setView] = useState(initialView || "main"); // "main" | "edit" | "privacy" | "contact" | "security" | "support" | "tickets" | "biometric"
+  const [view, setView] = useState(initialView || "main"); // "main" | "edit" | "contact" | "security" | "support" | "tickets" | "biometric" ("privacy" entfernt — toter Zweig, s. PRIVACY-BLOCK-CLEANUP-001)
   const [showTutorialConfirm, setShowTutorialConfirm] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false); // SPRACHAUSWAHL (2026-08-27)
   const [showBankdaten, setShowBankdaten] = useState(false);
@@ -1078,12 +1033,6 @@ export default function SettingsModal({ profile: profileProp, onClose, onProfile
             </div>
           )}
 
-          {/* ══ PRIVATSPHÄRE ═══════════════════════════════════ */}
-          {view === "privacy" && (
-            <Section title={t("sm.visibility.label")} icon={<HUIDatenschutzIcon size={16}/>}>
-              <PrivacyBlock profile={profile} onProfileUpdate={onProfileUpdate}/>
-            </Section>
-          )}
 
 
 
