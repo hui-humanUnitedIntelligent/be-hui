@@ -34,10 +34,12 @@ export function VisibilitySection({
 }) {
   const { t } = useTranslation();
 
+  // VIS-SIMPLIFY-001 (2026-09-12, Michael): "Verbindungen"-Option entfernt —
+  // nur noch Oeffentlich/Privat. Beide verbleibenden Optionen unveraendert
+  // (kein Storage-/Save-Logik-Eingriff, nur die Auswahl-Liste gekuerzt).
   const OPTIONS = [
-    { key:"public",      icon:"🌍", label:t("vis.publicLabel"),   sub:t("vis.publicSub") },
-    { key:"connections", icon:<HUIGemeinschaftIcon size={16}/>, label:t("vis.connectionsLabel"), sub:t("vis.connectionsSub") },
-    { key:"private",     icon:<HUIPrivatIcon size={16}/>, label:t("vis.privateLabel"),       sub:t("vis.privateSub") },
+    { key:"public",  icon:"🌍", label:t("vis.publicLabel"),  sub:t("vis.publicSub") },
+    { key:"private", icon:<HUIPrivatIcon size={16}/>, label:t("vis.privateLabel"), sub:t("vis.privateSub") },
   ];
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(() => setShowSheet(false));
   const [showSheet, setShowSheet] = useState(false);
@@ -62,7 +64,14 @@ export function VisibilitySection({
     </div>
   );
 
-  const currentOpt = OPTIONS.find(o => o.key === current) || OPTIONS[1];
+  // Fallback auf OPTIONS[0] (public) — NICHT [1]/[private]: Legacy-Profile mit
+  // altem focus_type-Wert (z.B. "hybrid" vor der Sprint-F.9G.1-Umwidmung, oder
+  // frueherer Wert "connections") sollen als "oeffentlich" angezeigt werden,
+  // exakt wie es die tatsaechliche Sichtbarkeits-Logik ueberall sonst im System
+  // behandelt (focus_type null/unbekannt = NICHT private, siehe FollowListModal
+  // .or("focus_type.is.null,focus_type.neq.private")) — niemals faelschlich
+  // "Privat" anzeigen fuer ein Profil, das tatsaechlich sichtbar ist.
+  const currentOpt = OPTIONS.find(o => o.key === current) || OPTIONS[0];
 
   return (
     <div style={{ padding:`0 ${T.px}px` }}>
