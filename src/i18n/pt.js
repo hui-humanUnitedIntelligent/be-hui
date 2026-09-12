@@ -3734,8 +3734,6 @@ export default {
   'loc.primary': 'Primário',
   'loc.addLocation': 'Adicionar localização',
   'ts.addTalents': 'Adicionar talentos',
-  'vis.connectionsLabel': 'Conexões',
-  'vis.connectionsSub': 'Apenas para as tuas conexões',
   'vis.privateLabel': 'Privado',
   'vis.privateSub': 'Só tu',
   'vis.question': 'Quem pode ver o teu perfil?',

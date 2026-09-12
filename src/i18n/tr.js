@@ -3734,8 +3734,6 @@ export default {
   'loc.primary': 'Birincil',
   'loc.addLocation': 'Konum ekle',
   'ts.addTalents': 'Yetenek ekle',
-  'vis.connectionsLabel': 'Bağlantılar',
-  'vis.connectionsSub': 'Sadece bağlantıların için',
   'vis.privateLabel': 'Özel',
   'vis.privateSub': 'Sadece sen',
   'vis.question': 'Profilini kim görebilir?',

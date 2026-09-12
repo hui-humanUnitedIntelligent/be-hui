@@ -3909,8 +3909,6 @@ export default {
   'variant.none': 'Asnjë variant — mbyll',
   'verb.errConnectFailed': 'Lidhja nuk mund të krijohet. Të lutem provo përsëri më vonë.',
   'vis.change': 'Ndrysho',
-  'vis.connectionsLabel': 'Lidhjet',
-  'vis.connectionsSub': 'Vetëm për lidhjet e tua',
   'vis.learnMore': 'Mëso më shumë',
   'vis.onlyYou': 'Vetëm për ty',
   'vis.privateLabel': 'Privat',

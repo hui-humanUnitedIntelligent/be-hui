@@ -3758,8 +3758,6 @@ export default {
   'loc.primary': 'Primary',
   'loc.addLocation': 'Add location',
   'ts.addTalents': 'Add talents',
-  'vis.connectionsLabel': 'Connections',
-  'vis.connectionsSub': 'Only for your connections',
   'vis.privateLabel': 'Private',
   'vis.privateSub': 'Only you',
   'vis.question': 'Who can see your profile?',
