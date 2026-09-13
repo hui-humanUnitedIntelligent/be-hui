@@ -2149,7 +2149,7 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
         }}>
           {[
             {
-              top: `${p.votes||0} Stimmen`,
+              top: `${p.votes||0} ${t("impact.stimmen")}`,
               bot: t("impact.fuerProjekt"),
               accent,
             },
@@ -2159,7 +2159,7 @@ function VotingCard({ project:p, rank, voted, remainVotes, totalVotes, onVote, o
               accent,
             },
             {
-              top: `Noch €${formatNumberDE(Math.max(0,goalEur-fundedEur))}`,
+              top: t("impact.nochBetrag", { amount: formatNumberDE(Math.max(0,goalEur-fundedEur)) }),
               bot: t("impact.bisZiel"),
               accent,
             },
@@ -2449,7 +2449,9 @@ function WeitereHerzensprojekte({ data, loading }) {
             ? t("impact.wirdGeladen")
             : isSeed
               ? t("impact.beispielprojekte")
-              : `${rawList.length} Projekt${rawList.length !== 1 ? "e" : ""} — sortiert nach Community-Stimmen`
+              : (rawList.length === 1
+                  ? t("impact.projekteSortiert1", { count: rawList.length })
+                  : t("impact.projekteSortiertN", { count: rawList.length }))
           }
         </p>
       </div>
