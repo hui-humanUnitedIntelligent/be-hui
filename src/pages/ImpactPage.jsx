@@ -1151,6 +1151,37 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const { monthlyProjects, monthlyLoading } = useMonthlyProjects();
   const approvedApps  = useApprovedApplications();        // für VotePersonal projMap
   const [detailApp, setDetailApp] = React.useState(null);
+
+  // ── IMPACT-DETAIL-ENRICH-001 (2026-09-13, Michael-Screenshot "HUI Kaffee",
+  // 0 Stimmen, nur Kurzbeschreibung sichtbar) ──
+  // Root Cause: Mehrere Listen-Quellen fuer die Projekt-Kacheln (monthlyTop3-
+  // Mapping weiter unten, rankedProjs/useAllApprovedByVotes-Seed in
+  // WeitereHerzensSection) liefern nur eine REDUZIERTE Projektion ohne
+  // problem/vision/funding_use -- ApprovedProjectDetail rendert diese Felder
+  // zwar bereits bedingt ({app.problem && ...}), bekam sie aber je nach
+  // Einstiegspfad nie mitgeliefert. Der Abstimmende sah dadurch nie den vom
+  // Initiator eingereichten Problem-/Vision-Text, auf dessen Basis er
+  // eigentlich abstimmen soll.
+  // Fix an EINER zentralen Stelle statt N einzelne select()-Listen zu
+  // erweitern (Architektur-Charta: "Erweitern statt duplizieren"):
+  // Instant-Render-Modell (memory #772) -- Modal oeffnet sofort mit dem
+  // vorhandenen Teil-Objekt (kein Loading-Flicker), fehlende Einreichungs-
+  // Felder werden im Hintergrund per ID nachgeladen und in den State gemerged.
+  const handleOpenProjectDetail = React.useCallback((partialApp) => {
+    if (!partialApp) return;
+    setDetailApp(partialApp);
+    if (!partialApp.id) return;
+    supabase
+      .from("impact_applications")
+      .select("problem,vision,funding_use")
+      .eq("id", partialApp.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        setDetailApp(prev => (prev && prev.id === partialApp.id) ? { ...prev, ...data } : prev);
+      })
+      .catch(() => { /* Best-Effort — Modal zeigt dann nur die bereits vorhandenen Felder */ });
+  }, []);
   // IMPACT-VORMONATE (2026-08-22): Archiv-Modal, lazy geladen erst bei Öffnen
   const [showVormonate, setShowVormonate] = React.useState(false);
   const vormonate = useImpactMonthlyHistory(showVormonate);
@@ -1194,7 +1225,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     // Projekt aus impact_applications laden und Detail öffnen
     supabase
       .from("impact_applications")
-      .select("id,project_name,short_desc,cover_url,funding_goal,current_amount_eur,rank,status,created_at,media_urls")
+      .select("id,project_name,short_desc,problem,vision,funding_use,cover_url,funding_goal,current_amount_eur,rank,status,created_at,media_urls")
       .eq("id", pid)
       .maybeSingle()
       .then(({ data }) => {
@@ -1453,7 +1484,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         totalVotes={totalVotes}
         remainVotes={remainVotes}
         onVote={castVote}
-        onOpen={setDetailApp}
+        onOpen={handleOpenProjectDetail}
         loading={loadingProj && approvedApps.loading}
         onInfoClick={() => setInfoModal("leeraus")}
       />
@@ -1474,7 +1505,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         loadingApps={approvedApps.loading}
         seedData={rankedProjs.others}
         seedLoading={rankedProjs.loading}
-        onOpen={setDetailApp}
+        onOpen={handleOpenProjectDetail}
         allApps={approvedApps.apps}
       />
 
@@ -1489,7 +1520,7 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           Loading-Zustand: finanziert startet als [] — Section erscheint
           dann erst nach dem Load, kein Platzhalter-Flicker. */}
       {finanziert.length > 0 && (
-        <GemeinsamErmoegicht finanziert={finanziert} transp={transp} onOpenProject={setDetailApp} />
+        <GemeinsamErmoegicht finanziert={finanziert} transp={transp} onOpenProject={handleOpenProjectDetail} />
       )}
 
       {/* ══ 6 ── HERZENSPROJEKT EINREICHEN ═══════════════════════ */}
