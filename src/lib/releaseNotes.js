@@ -17,6 +17,32 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.599 — von Michael am 13.09.2026 freigegeben ("okay zeig mir Text und
+  // dann deploy mit text"). Queue: IMPACT-CARD-DEEPLINK-001 (5d9e528a:
+  // Impact-Karte im Feed öffnet direkt das Projekt) + NOTIF-TYPE-PREFS-001
+  // (6 abschaltbare Benachrichtigungstypen, Resonanzzentrum + Settings, M139)
+  // + BOOKING-CHAT-001 + BOOKING-WAS-001 + OG-CATCHY-001 (38d4c22f: Social-
+  // Share-Previews mit Bild/Titel/Beschreibung, Talent-Route, Projekt-Fix,
+  // 2 Broken-Fallback-Images, Share-Texte ×8 Sprachen).
+  "2.1.599": {
+    de: [
+      "Teilen: Links zu Werken, Talenten, Erlebnissen und Projekten zeigen jetzt Bild und Beschreibung — z. B. in WhatsApp und Telegram.",
+      "Benachrichtigungen: Wähle selbst, welche Arten du sehen möchtest — im Resonanzzentrum und in den Einstellungen.",
+      "Buchungen: Der Chat-Button öffnet jetzt direkt das Gespräch zur Buchung.",
+      "Buchungsdaten: Talent und Kategorie sind jetzt klarer erkennbar.",
+      "Feed: Geteilte Herzensprojekte öffnen direkt das richtige Projekt.",
+      "Allgemeine Fehlerbehebungen und Stabilitätsverbesserungen.",
+    ],
+    en: [
+      "Sharing: Links to works, talents, experiences and projects now show image and description — e.g. in WhatsApp and Telegram.",
+      "Notifications: Choose which types you want to see — in the resonance center and in settings.",
+      "Bookings: The chat button now opens the conversation for your booking directly.",
+      "Booking details: Talent and category are now easier to recognize.",
+      "Feed: Shared heart projects open the right project directly.",
+      "General bug fixes and stability improvements.",
+    ],
+  },
+
   // 2.1.596 — von Michael am 13.09.2026 freigegeben ("perfekt deployen mit den
   // texten 11 texten", DEPLOY-INFO-REGEL). 11 Punkte = 5 neue Fixes aus der
   // Sammel-Queue des 13.09. (Moment-Multi-Upload, Talent-Buchung im Profil,
