@@ -5111,4 +5111,13 @@ export default {
   'sm.push.notifTypesTitle': 'Bildirim türleri',
   'sm.push.notifTypesHintResonanz': 'Rezonans Merkezini ve push\'u kontrol eder',
   'notif.meta.talentUnavailable': 'Talent artık mevcut değil',
+
+  // OG-CATCHY-001 (2026-09-13): Share-Texte je Content-Typ
+  'share.work': 'HUI’de bu eseri keşfet: "{title}"',
+  'share.experience': 'HUI’de bu deneyimi keşfet: "{title}"',
+  'share.moment': 'HUI’de bu anı keşfet: "{title}"',
+  'share.project': 'HUI’de bu etki projesini keşfet: "{title}"',
+  'share.event': 'HUI’de bu etkinliği keşfet: "{title}"',
+  'share.talent': 'HUI’de bu yetenek teklifini keşfet: "{title}"',
+  'share.discover': 'HUI’de daha fazlasını keşfet — eserler, yetenekler ve deneyimler platformu.',
 };

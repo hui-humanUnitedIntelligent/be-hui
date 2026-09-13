@@ -5113,4 +5113,13 @@ export default {
   'sm.push.notifTypesTitle': 'Lloje njoftimesh',
   'sm.push.notifTypesHintResonanz': 'Kontrollon Qendrën e Rezonancës & push',
   'notif.meta.talentUnavailable': 'Talenti nuk është më i disponueshëm',
+
+  // OG-CATCHY-001 (2026-09-13): Share-Texte je Content-Typ
+  'share.work': 'Zbulon këtë vepër në HUI: "{title}"',
+  'share.experience': 'Zbulon këtë përvojë në HUI: "{title}"',
+  'share.moment': 'Zbulon këtë moment në HUI: "{title}"',
+  'share.project': 'Zbulon këtë projekt impakti në HUI: "{title}"',
+  'share.event': 'Zbulon këtë event në HUI: "{title}"',
+  'share.talent': 'Zbulon këtë ofertë talenti në HUI: "{title}"',
+  'share.discover': 'Zbulon më shumë në HUI — platforma për vepra, talente dhe përvoja.',
 };

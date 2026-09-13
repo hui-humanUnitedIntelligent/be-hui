@@ -5111,4 +5111,13 @@ export default {
   'sm.push.notifTypesTitle': 'Tipos de notificação',
   'sm.push.notifTypesHintResonanz': 'Controla o Centro de Ressonância e o push',
   'notif.meta.talentUnavailable': 'Talento não mais disponível',
+
+  // OG-CATCHY-001 (2026-09-13): Share-Texte je Content-Typ
+  'share.work': 'Descobre esta obra no HUI: "{title}"',
+  'share.experience': 'Descobre esta experiência no HUI: "{title}"',
+  'share.moment': 'Descobre este momento no HUI: "{title}"',
+  'share.project': 'Descobre este projeto de impacto no HUI: "{title}"',
+  'share.event': 'Descobre este evento no HUI: "{title}"',
+  'share.talent': 'Descobre esta oferta de talento no HUI: "{title}"',
+  'share.discover': 'Descobre mais no HUI — a plataforma para obras, talentos e experiências.',
 };

@@ -83,12 +83,16 @@ async function resolveContent(type, id) {
       const coverUrl = Array.isArray(row.src)
         ? row.src[0]
         : (typeof row.src === "string" ? row.src : null);
+      // OG-CATCHY-001 (2026-09-13, Michael-Prompt "Social Share — Catchy Open
+      // Graph Tags"): Emoji-Prefix + CTA statt nüchterner "Von X · caption"-Zeile.
+      const cap = clamp(row.caption, 120);
       return {
-        title: clamp(row.caption, 80) || "HUI Beitrag",
+        title: `📸 ${clamp(row.caption, 80) || (author?.display_name ? `${author.display_name} teilt einen Moment` : "Ein Moment auf HUI")}`,
         description: [
           author?.display_name && `Von ${author.display_name}`,
-          clamp(row.caption, 120),
-        ].filter(Boolean).join(" · ") || "Ein Moment aus der HUI-Community.",
+          cap,
+          "Echtheit teilen — auf HUI",
+        ].filter(Boolean).join(" · "),
         image: coverUrl || author?.avatar_url || null,
         canonicalPath: `/beitrag/${id}`,
       };
@@ -106,13 +110,13 @@ async function resolveContent(type, id) {
       const author = await loadAuthor(row.user_id);
       const priceStr = row.price != null ? ` · ${Number(row.price).toFixed(0)} €` : "";
       return {
-        title: row.title || "HUI Werk",
+        title: `🎨 ${row.title || "HUI Werk"}`,
         description: [
-          author?.display_name && `Von ${author.display_name}`,
-          row.category,
-          priceStr,
-        ].filter(Boolean).join(" · ") || "Ein kreatives Werk auf HUI.",
-        image: row.cover_url || null,
+          row.category && `Entdecke ${row.category}${author?.display_name ? ` von ${author.display_name}` : ""}`,
+          priceStr && priceStr.replace(" · ", ""),
+          "Ein Meisterwerk auf HUI — lass dich inspirieren",
+        ].filter(Boolean).join(" · "),
+        image: row.cover_url || author?.avatar_url || null,
         canonicalPath: bySlug ? `/werke/${id}` : `/work/${row.id}`,
       };
     }
@@ -137,14 +141,49 @@ async function resolveContent(type, id) {
 
     case "projekt":
     case "project": {
-      const row = await supabaseGet("impact_projects", "id", id,
-        "id,name,description,icon,category,tags");
+      // OG-PROJEKT-TABELLE-FIX (2026-09-13): impact_projects ist die veraltete
+      // Seed/Statistik-Tabelle (contentPreviewLoaders.js FIX 2026-09-01) —
+      // /projekt/:id Deep-Links zeigen auf impact_applications-IDs. Der alte
+      // Lookup lieferte deshalb für geteilte Projekt-Links "Inhalt nicht mehr
+      // verfügbar" bzw. Seed-Daten. Jetzt: SSOT-Tabelle + Cover-Bild.
+      const row = await supabaseGet("impact_applications", "id", id,
+        "id,project_name,short_desc,vision,cover_url,media_urls");
       if (!row) return null;
+      const cover = row.cover_url
+        || (Array.isArray(row.media_urls) ? row.media_urls[0] : null);
       return {
-        title: row.name || "HUI Impact-Projekt",
-        description: clamp(row.description, 160) || "Ein Impact-Projekt auf HUI.",
-        image: null, // Impact-Projekte haben kein Cover (Icon ist Emoji, nicht URL)
+        title: `❤️ ${row.project_name || "HUI Impact-Projekt"}`,
+        description: [
+          clamp(row.short_desc || row.vision, 160),
+          "Werde Teil der Bewegung — auf HUI",
+        ].filter(Boolean).join(" · "),
+        image: cover || null,
         canonicalPath: `/projekt/${id}`,
+      };
+    }
+
+    // OG-TALENT-001 (2026-09-13, Michael-Prompt): HuiShareModal generiert
+    // /talent/:id-Links — og.js + vercel.json kannten den Typ NICHT, Bot-
+    // Previews für Talent-Shares fielen auf die generische Startseite zurück.
+    case "talent": {
+      const row = await supabaseGet("talents", "id", id,
+        "id,title,description,category,images,user_id");
+      if (!row) return null;
+      const author = await loadAuthor(row.user_id);
+      // talents.images ist ein Array von MEDIEN-OBJEKTEN {url,type} (DB-verifiziert
+      // 2026-09-13), NICHT von Strings — erst .url nehmen, sonst [object Object]
+      // als og:image. Beide Shapes toleriert (Objekt mit url ODER String).
+      const firstImg = Array.isArray(row.images)
+        ? (row.images[0]?.url || (typeof row.images[0] === "string" ? row.images[0] : null))
+        : null;
+      return {
+        title: `✨ ${row.title || "Talent-Angebot auf HUI"}`,
+        description: [
+          clamp(row.description, 140),
+          row.category && `Tauche ein in ${row.category}${author?.display_name ? ` — mit ${author.display_name}` : ""}`,
+        ].filter(Boolean).join(" · "),
+        image: firstImg || author?.avatar_url || null,
+        canonicalPath: `/talent/${id}`,
       };
     }
 
@@ -156,14 +195,14 @@ async function resolveContent(type, id) {
       const author = await loadAuthor(row.user_id);
       const priceStr = row.price != null ? `${Number(row.price).toFixed(0)} €` : "";
       return {
-        title: row.title || "HUI Erlebnis",
+        title: `🧘 ${row.title || "HUI Erlebnis"}`,
         description: [
-          author?.display_name && `Von ${author.display_name}`,
+          author?.display_name && `Erlebe es mit ${author.display_name}`,
           row.location_text,
           priceStr,
           row.duration,
-        ].filter(Boolean).join(" · ") || "Ein Erlebnis auf HUI.",
-        image: row.cover_url || null,
+        ].filter(Boolean).join(" · "),
+        image: row.cover_url || author?.avatar_url || null,
         canonicalPath: `/erlebnis/${id}`,
       };
     }
@@ -175,7 +214,7 @@ async function resolveContent(type, id) {
       if (!row) return null;
       const author = await loadAuthor(row.user_id);
       return {
-        title: row.title || row.vibe || "HUI Veranstaltung",
+        title: `📅 ${row.title || row.vibe || "HUI Veranstaltung"}`,
         description: [
           author?.display_name && `Von ${author.display_name}`,
           row.city || row.location,
@@ -197,7 +236,9 @@ function buildHtml({ title, description, image, canonicalPath }) {
   const safeTitle = escape(title);
   const safeDesc  = escape(description);
   const safeUrl   = escape(fullUrl);
-  const safeImg   = image ? escape(image) : `${escape(origin)}/og-default.png`;
+  // OG-IMAGE-FALLBACK-FIX (2026-09-13): /og-default.png existiert nicht im
+  // Repo (404 → Bot zeigt GAR KEIN Bild). hui-icon-512.png existiert nachweislich.
+  const safeImg   = image ? escape(image) : `${escape(origin)}/hui-icon-512.png`;
   const safeOrigin = escape(origin);
 
   return `<!DOCTYPE html>

@@ -62,12 +62,17 @@ function buildPublicUrl(item) {
 // ── Share-Text bauen ────────────────────────────────────────────
 // BUGFIX v2 (2026-08-10): Share-Text war doppelt (URL im Text + Footer-URL).
 // Jetzt: Einleitung + Titel + Deep-Link. Kurz, professionell, kein Duplikat.
-function buildShareText(item) {
+// OG-CATCHY-001 (2026-09-13, Michael-Prompt Anforderung 6): Share-Texte
+// waren hart deutsch — jetzt i18n (Keys share.* in allen 8 Sprachen).
+// t ist optional: Aufrufer ohne Hook bekommen die deutschen Defaults
+// (kein Breaking Change für evtl. weitere Caller).
+function buildShareText(item, t) {
   const meta = TYPE_META[item.type] || { label: "Inhalt", emoji: "✦" };
   const title = item.title || item.name || meta.label;
   const url   = buildPublicUrl(item);
-  // Einleitungs-Text je Typ
-  const intro = {
+  // Einleitungs-Text je Typ — SSOT: i18n-Key share.<type> mit {title}-Platzhalter,
+  // Fallback = bisheriger DE-Text (t fehlt = Alt-Caller ohne Hook).
+  const introDefault = {
     work:       `Entdecke dieses Werk auf HUI: "${title}"`,
     experience: `Entdecke dieses Erlebnis auf HUI: "${title}"`,
     moment:     `Entdecke diesen Moment auf HUI: "${title}"`,
@@ -75,7 +80,10 @@ function buildShareText(item) {
     event:      `Entdecke diese Veranstaltung auf HUI: "${title}"`,
     talent:     `Entdecke dieses Talent-Angebot auf HUI: "${title}"`,
   }[item.type] || `Entdecke "${title}" auf HUI`;
-  return `${intro}\n\n${url}\n\nMehr entdecken auf HUI — der Plattform für Werke, Talente und Erlebnisse.`;
+  const intro = t ? t(`share.${item.type}`, { title }) : introDefault;
+  const footerDefault = "Mehr entdecken auf HUI — der Plattform für Werke, Talente und Erlebnisse.";
+  const footer = t ? t("share.discover") : footerDefault;
+  return `${intro}\n\n${url}\n\n${footer}`;
 }
 
 // ── Deep-Link mit PlayStore Fallback ─────────────────────────────
@@ -207,7 +215,7 @@ export function HuiShareModal({ item, onClose }) {
   const meta      = TYPE_META[item?.type] || { label: "Inhalt", emoji: "✦" };
   const title     = item?.title || item?.name || meta.label;
   const publicUrl = item ? buildPublicUrl(item) : "";
-  const shareText = item ? buildShareText(item) : "";
+  const shareText = item ? buildShareText(item, t) : "";
   const thumbUrl  = item?.media?.[0]?.url || item?.img || item?.cover_url || null;
 
   // Escape-Taste:
