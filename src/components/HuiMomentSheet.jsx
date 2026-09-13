@@ -267,12 +267,29 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
   // Foto/Video/Galerie-Input (alle mit `multiple`): Validierung + Preview-URLs
   // über die SSOT processFileSelection (Videos max 50MB, Bilder max 10MB,
   // max 10 Dateien gesamt — Limits kommen aus UPLOAD_LIMITS, nicht lokal).
+  //
+  // MOMENT-MULTI-UPLOAD-002 (2026-09-13, Hotfix, Michael-Report "mehrere
+  // Bilder auswählbar, aber danach kommt nichts mehr, zurück zu den vier
+  // Upload-Bereichen"): Root Cause war die Reihenfolge hier -- `e.target.
+  // files` ist bei <input multiple> KEIN statisches Array, sondern eine
+  // LIVE FileList, die an das DOM-Element gebunden bleibt. Die vorherige
+  // Version hielt nur eine REFERENZ darauf (`const raw = e.target.files`)
+  // und leerte DANACH `e.target.value = ""` -- das leert dieselbe live
+  // FileList, auf die `raw` noch zeigt, BEVOR processFileSelection() sie
+  // per Array.from() ausliest. Ergebnis: 0 akzeptierte Dateien, stiller
+  // Totalausfall (kein Fehler, kein Phase-Wechsel -- "es kommt nichts
+  // mehr"). Vergleich mit dem bereits korrekten MultiUploadGrid.jsx
+  // (handleSelect): dort wird e.target.value ERST NACH der Verarbeitung
+  // geleert -- exakt umgekehrte, richtige Reihenfolge. Fix: Dateien SOFORT
+  // in ein echtes Array kopieren (Array.from, jede Referenz ist dann vom
+  // Input-Element entkoppelt), erst DANACH den Input leeren.
   const handleFileChange = useCallback((e) => {
     const raw = e.target.files;
     if (!raw || raw.length === 0) return;
+    const rawArr = Array.from(raw); // entkoppelt von der live FileList — VOR dem Leeren!
     e.target.value = "";
     const wasEmpty = mediaFiles.length === 0;
-    const { accepted, rejected } = processFileSelection(raw, mediaFiles.length);
+    const { accepted, rejected } = processFileSelection(rawArr, mediaFiles.length);
     if (accepted.length === 0) {
       if (rejected.length > 0) setShareErr(rejected[0].error);
       return;

@@ -141,6 +141,20 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
     applicant_type: rawApp.applicant_type || "",
     impact_category: rawApp.impact_category || rawApp.category || "",
     application_date: rawApp.application_date || rawApp.created_at || null,
+    // IMPACT-DETAIL-ENRICH-002 (2026-09-13, Michael-Screenshot "HUI Kaffee",
+    // Nachfolge-Bug zu IMPACT-DETAIL-ENRICH-001): Diese Whitelist hier warf
+    // problem/vision/funding_use STILL WEG, obwohl handleOpenProjectDetail
+    // sie schon korrekt in rawApp/detailApp nachlädt und mergt -- diese
+    // useMemo-Normalisierung baut daraus aber ein KOMPLETT NEUES Objekt mit
+    // fester Feldliste, in der die 3 Felder fehlten. Root Cause war NICHT
+    // der Nachlade-Fetch (der lief korrekt), sondern dieser zweite,
+    // nachgeschaltete Normalisierungs-Schritt. Ohne diese 3 Zeilen blieben
+    // app.problem/app.vision/app.funding_use IMMER undefined, egal was in
+    // rawApp ankam -- die bedingten {app.problem && ...}-Blocks weiter unten
+    // rendern deshalb nie, komplett unabhängig vom Fetch-Erfolg.
+    problem:      rawApp.problem      || "",
+    vision:       rawApp.vision       || "",
+    funding_use:  rawApp.funding_use  || "",
   }), [rawApp]);
 
   const isProjectOwner = !!(currentUser?.id && app.user_id && currentUser.id === app.user_id);
