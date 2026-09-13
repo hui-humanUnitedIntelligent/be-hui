@@ -108,7 +108,25 @@ function extractMedia(raw){
   }
   // media_urls: Supabase-Array-Spalte (z.B. impact_applications, momente)
   if(Array.isArray(raw.media_urls)&&raw.media_urls.length>0){
-    return raw.media_urls.map(u=>mk(u)).filter(Boolean);
+    // MOMENT-MULTI-UPLOAD-001 (2026-09-13): media_urls selbst enthaelt nur
+    // nackte URLs (kein Typ, kein Poster) -- Videos wuerden ohne Poster den
+    // nativen posterlosen Play-Platzhalter zeigen (identisches Symptom wie
+    // VIDEO-POSTER-DROP-FIX). raw.thumbnail_url ist bei Momenten mit >=1
+    // Video-Item der beim Teilen extrahierte Frame FUER DAS ERSTE Video im
+    // Array (HuiMomentSheet extrahiert bewusst nur fuer das erste Video,
+    // analog WerkWizard-Cover-Thumbnail-Konvention) -- wird hier dem ersten
+    // gefundenen Video-Element als poster zugeordnet, alle anderen Elemente
+    // unveraendert (Bilder = kein poster-Feld nötig, weitere Videos ohne
+    // eigenen Frame = akzeptierter Scope, siehe Migration-Kommentar).
+    const arr = raw.media_urls.map(u=>mk(u)).filter(Boolean);
+    if(raw.thumbnail_url){
+      const posterUrl = safeUrl(raw.thumbnail_url);
+      if(posterUrl){
+        const firstVideoIdx = arr.findIndex(m=>m.type==="video");
+        if(firstVideoIdx!==-1) arr[firstVideoIdx] = {...arr[firstVideoIdx], poster:posterUrl};
+      }
+    }
+    return arr;
   }
   // VIDEO-MOMENT-POSTER-FIX (2026-09-09, Kay-Report "Momente falsch angezeigt"):
   // ROOT CAUSE des vorherigen VIDEO-THUMBNAIL-001-Codes (2026-08-31): thumbnail_url

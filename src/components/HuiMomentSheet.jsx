@@ -20,8 +20,8 @@ import { useKeyboardInset } from "../hooks/useKeyboardInset.js";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth } from "../lib/AuthContext.jsx";
 import VideoThumbnailPicker from "./shared/VideoThumbnailPicker.jsx";
-import { uploadThumbnail, UPLOAD_LIMITS } from "../lib/uploadUtils.js";
-import { uploadMediaVerified } from "../lib/uploadBody.js";
+import MultiUploadGrid from "./shared/MultiUploadGrid.jsx";
+import { uploadThumbnail, UPLOAD_LIMITS, uploadMediaFile, processFileSelection, isVideoFile } from "../lib/uploadUtils.js";
 
 const D = {
   teal:"#0EC4B8", tealDeep:"#0A9E94", coral:"#E8573A",
@@ -93,22 +93,33 @@ function ActionCard({ action, onSelect, delay }) {
   );
 }
 
-function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, uploading, fileSize, fileObj, onThumbReady }) {
+// ── PREVIEW (MOMENT-MULTI-UPLOAD-001): 1-10 Dateien, jederzeit erweiterbar ──
+// Foto/Video/Galerie landen alle in diesem Schritt. Das MultiUploadGrid
+// (SSOT, sonst nur WerkWizard) zeigt alle gewählten Dateien als Kacheln mit
+// Entfernen-Button + "Mehr"-Kachel zum Nachladen (z.B. 2. Kamera-Foto nach
+// dem 1.). Ist das ERSTE Element ein Video, bleibt der VideoThumbnailPicker
+// (Frame-Auswahl) darüber — exakt wie im Einzel-Flow vorher.
+// Gedanke bleibt unverändert (nur Text, kein Medium).
+function MediaPreviewStep({ files, onFilesChange, text, setText, onShare, onDiscard, uploading, accept, onThumbReady }) {
   const { t } = useTranslation();
+  const firstIsVideo = files.length > 0 && isVideoFile(files[0]);
+  const columns = files.length >= 4 ? 3 : 2;
   return (
     <div style={{ animation:"hms-preview-in .30s ease both" }}>
-      <div style={{ width:"100%",borderRadius:20,background:"#000",
-        maxHeight:280,marginBottom:16,boxShadow:"0 4px 24px rgba(0,0,0,0.14)",
-        display:"flex",alignItems:"center",justifyContent:"center",
-        WebkitMaskImage:"-webkit-radial-gradient(white,black)",
-        overflow:"hidden" }}>
-        {isVideo
-          ? <div style={{ width:"100%", maxHeight:280 }}>
-              <VideoThumbnailPicker source={fileObj} onFrameReady={onThumbReady} />
-            </div>
-          : <img loading="lazy" decoding="async" src={mediaURL} alt="Vorschau"
-              style={{ width:"100%",maxHeight:280,display:"block",objectFit:"contain" }}/>
-        }
+      {firstIsVideo && (
+        <div style={{ width:"100%",borderRadius:20,background:"#000",
+          maxHeight:280,marginBottom:16,boxShadow:"0 4px 24px rgba(0,0,0,0.14)",
+          display:"flex",alignItems:"center",justifyContent:"center",
+          WebkitMaskImage:"-webkit-radial-gradient(white,black)",
+          overflow:"hidden" }}>
+          <div style={{ width:"100%", maxHeight:280 }}>
+            <VideoThumbnailPicker key={files[0]?.name + "_" + files[0]?.size} source={files[0]} onFrameReady={onThumbReady} />
+          </div>
+        </div>
+      )}
+      <div style={{ marginBottom:16 }}>
+        <MultiUploadGrid files={files} onFilesChange={onFilesChange}
+          disabled={uploading} accept={accept} columns={columns}/>
       </div>
       <input className="hms-textarea" type="text" value={text}
         onChange={e => setText(e.target.value.slice(0,80))}
@@ -123,26 +134,16 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
           {text.length}/80
         </div>
       )}
-      {/* Dateigröße-Warnung */}
-      {fileSize > 0 && (
-        <div style={{
-          marginBottom:12, padding:"8px 14px", borderRadius:12,
-          background: fileSize > 50*1024*1024 ? "rgba(232,87,58,0.10)" : "rgba(14,196,184,0.07)",
-          color: fileSize > 50*1024*1024 ? "#E8573A" : "#55556B",
-          fontSize:12, display:"flex", alignItems:"center", gap:6,
-        }}>
-          {isVideo ? "🎥" : "📷"} {(fileSize/(1024*1024)).toFixed(1)} MB
-          {fileSize > 100*1024*1024 && " · Zu groß — max. 100 MB"}
-          {fileSize > 50*1024*1024 && fileSize <= 100*1024*1024 && " · Upload kann etwas dauern"}
-        </div>
-      )}
-      <button className="hms-btn-primary" onClick={onShare} disabled={uploading || fileSize > 100*1024*1024} style={{
+      {/* Dateigrößen werden bereits bei der Auswahl geprüft (processFileSelection,
+          Videos max 50MB / Bilder max 10MB, SSOT uploadUtils.js) — hier nur noch
+          der Gesamt-Hinweis des Grids (common.uploadHint). */}
+      <button className="hms-btn-primary" onClick={onShare} disabled={uploading || files.length===0} style={{
         width:"100%",padding:"16px",borderRadius:18,
         background:`linear-gradient(135deg,${D.teal} 0%,${D.tealDeep} 100%)`,
         color:"white",fontSize:15.5,fontWeight: 600,letterSpacing:"-0.02em",
         boxShadow:`0 6px 24px rgba(14,196,184,0.40)`,marginBottom:10,
         display:"flex",alignItems:"center",justifyContent:"center",gap:10,
-        opacity:(uploading||fileSize>100*1024*1024)?0.72:1,
+        opacity:(uploading||files.length===0)?0.72:1,
       }}>
         {uploading ? <><Spinner/> {t("moment.uploading")}</> : t("moment.shareTitle")}
       </button>
@@ -156,55 +157,21 @@ function PreviewStep({ mediaURL, isVideo, text, setText, onShare, onDiscard, upl
   );
 }
 
-// ── Upload zu 'media' bucket → Pfad: beitraege/{userId}/{ts}.ext ─────
-async function uploadToMedia(file, userId) {
-  const isVid = file.type.startsWith("video");
-
-  // Größen-Check VOR Upload
-  const maxMB  = isVid ? UPLOAD_LIMITS.MAX_VIDEO_MB : UPLOAD_LIMITS.MAX_IMAGE_MB;
-  const sizeMB = file.size / (1024 * 1024);
-  if (sizeMB > maxMB) {
-    throw new Error(
-      isVid
-        ? `Video zu groß (${sizeMB.toFixed(1)} MB). Bitte max. ${maxMB} MB.`
-        : `Bild zu groß (${sizeMB.toFixed(1)} MB). Bitte max. ${maxMB} MB.`
-    );
-  }
-
-  // contentType sicherstellen
-  const contentType = file.type || (isVid ? "video/mp4" : "image/jpeg");
-  const ext  = file.name?.split(".").pop()?.toLowerCase() || (isVid ? "mp4" : "jpg");
-  const path = `beitraege/${userId}/${Date.now()}.${ext}`;
-
-
-  // UPLOAD-BODY-SSOT (2026-09-05, Fall Karen Hagen): roher Blob-Body wurde
-  // auf Android/CapacitorHttp teils als "{}" (2 Bytes) übertragen — Moment
-  // wurde dann OHNE Bild gepostet (src=null, stiller Datenverlust, Karens
-  // "Shooting"-Moment vom 05.09.). uploadMediaVerified() konvertiert zu
-  // Uint8Array (auf Karens Gerät per img_diag p5 BEWIESEN) und verifiziert
-  // die gespeicherte Größe — "{}"-Korruption wird erkannt und gelöscht.
-  //
-  // KEIN graceful-Fallback mehr — auch nicht bei Fotos (GESTRICHEN 2026-09-05):
-  // Der bisherige `return null` bei Foto-Fehlern erzeugte genau Karens Bug
-  // (Moment sichtbar gepostet, Bild still verloren, Nutzer ahnt nichts).
-  // Jetzt: echter Fehler → Share bricht ab → Nutzer sieht "fehlgeschlagen"
-  // und kann es erneut versuchen. Wahrheit über Vermutung.
-  try {
-    const { publicUrl } = await uploadMediaVerified({ path, file, contentType, upsert: false });
-    // MODERATION-HARD-BLOCK-001: path mitgeben für Storage-Cleanup bei Verstoss
-    return { url: publicUrl, path };
-  } catch (err) {
-    console.error("[HuiMoment] Upload FEHLER →", { code: err?.statusCode, msg: err?.message, corrupt: err?.corrupt });
-    const msg = err?.statusCode === 413
-      ? "Video ist zu groß"
-      : err?.statusCode === 403
-      ? "Keine Berechtigung"
-      : err?.corrupt
-      ? "Upload beschädigt — bitte erneut versuchen"
-      : `Upload fehlgeschlagen: ${err?.message}`;
-    throw new Error(msg);
-  }
-}
+// MOMENT-MULTI-UPLOAD-001 (2026-09-13): Die lokale uploadToMedia() wurde
+// GESTRICHEN und durch die SSOT uploadMediaFile() aus lib/uploadUtils.js
+// ersetzt (Erweitern statt Duplizieren). Sie bietet ALLE Garantien, die die
+// lokale Kopie hatte, plus mehr:
+//   - UPLOAD-BODY-SSOT: uploadMediaVerified() → Uint8Array-Konvertierung +
+//     gespeicherte-Bytes-Verifikation ("{}"-Korruption erkannt, Fall Karen
+//     Hagen 05.09., siehe alte Doku unten — Verhalten unverändert: echter
+//     Fehler → Share bricht ab, KEIN stiller Datenverlust)
+//   - Größen-Check VOR Upload (Videos 50MB, Bilder 10MB, via
+//     processFileSelection bereits bei der Auswahl abgelehnt)
+//   - Bild-Kompression VOR Upload (compressImageForUpload — die lokale Kopie
+//     lud Fotos unbehandelt hoch)
+//   - Pfad beitraege/{userId}/{ts}_{rand}.ext — derselbe Bucket/Prefix wie vorher
+// Storage-Cleanup bei Moderations-Verstoss bleibt über die publicUrl machbar
+// (MODERATION-HARD-BLOCK-001: Dateien werden als Beweis NICHT gelöscht).
 
 
 // ── CONTENT-MODERATION-001 (2026-08-20): Automatische Erkennung ────
@@ -246,9 +213,9 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
   const { activeProfileId } = useAuth();
   const [phase,     setPhase]     = useState(visible ? "open" : "hidden");
   const [text,      setText]      = useState("");
-  const [mediaURL,  setMediaURL]  = useState(null);
-  const [isVideo,   setIsVideo]   = useState(false);
-  const [fileObj,   setFileObj]   = useState(null);
+  // MOMENT-MULTI-UPLOAD-001: 1-10 Dateien (File[] mit .previewUrl) statt
+  // einer einzelnen — Foto/Video/Galerie nutzen alle denselben Array-Flow.
+  const [mediaFiles, setMediaFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [shareErr,  setShareErr]  = useState(null);
   const [momentSource, setMomentSource] = useState(null); // "foto"|"video"|"galerie"|"gedanke"
@@ -276,8 +243,8 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
 
   function resetState() {
     setText(""); setShareErr(null); setUploading(false); setModerationNotice(null); setModerationBlocked(false);
-    setMediaURL(prev => { if (prev) URL.revokeObjectURL(prev); return null; });
-    setFileObj(null); setIsVideo(false); setThumbBlob(null);
+    setMediaFiles(prev => { prev.forEach(f => f.previewUrl && URL.revokeObjectURL(f.previewUrl)); return []; });
+    setThumbBlob(null);
   }
 
   const doClose = useCallback(() => {
@@ -297,18 +264,36 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
     if (action.id === "galerie") { galerieRef.current?.click(); return; }
   }, []);
 
+  // Foto/Video/Galerie-Input (alle mit `multiple`): Validierung + Preview-URLs
+  // über die SSOT processFileSelection (Videos max 50MB, Bilder max 10MB,
+  // max 10 Dateien gesamt — Limits kommen aus UPLOAD_LIMITS, nicht lokal).
   const handleFileChange = useCallback((e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const raw = e.target.files;
+    if (!raw || raw.length === 0) return;
     e.target.value = "";
-    setMediaURL(URL.createObjectURL(file));
-    setIsVideo(file.type.startsWith("video"));
-    setFileObj(file); setText(""); setShareErr(null);
+    const wasEmpty = mediaFiles.length === 0;
+    const { accepted, rejected } = processFileSelection(raw, mediaFiles.length);
+    if (accepted.length === 0) {
+      if (rejected.length > 0) setShareErr(rejected[0].error);
+      return;
+    }
+    setShareErr(null);
+    if (wasEmpty) setText("");
+    setMediaFiles(prev => [...prev, ...accepted].slice(0, UPLOAD_LIMITS.MAX_FILES));
     setPhase("preview");
-  }, []);
+  }, [mediaFiles]);
+
+  // Grid-Änderungen (Entfernen im Preview): Wenn sich das ERSTE Element
+  // ändert, gehört ein bereits extrahierter Video-Frame nicht mehr zum
+  // ersten Medium → ThumbBlob verwerfen (sonst würde ein Frame eines
+  // verschobenen Videos als Poster eines anderen Videos gesetzt).
+  const handleGridFilesChange = useCallback((next) => {
+    setThumbBlob(prev => (prev && next[0] !== mediaFiles[0]) ? null : prev);
+    setMediaFiles(next);
+  }, [mediaFiles]);
 
   // ── Kern-Logik: in beitraege inserieren ───────────────────────
-  async function _publishMoment({ src, storagePath, type, caption, thumbnailUrl }) {
+  async function _publishMoment({ src, type, caption, thumbnailUrl, mediaUrls }) {
 
     // 1. User authentifizieren
     const { data: authData, error: authErr } = await supabase.auth.getUser();
@@ -391,6 +376,12 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
       // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierter Frame statt nacktem
       // Play-Icon-Platzhalter -- nur bei Videos gesetzt, sonst null.
       thumbnail_url:    thumbnailUrl || null,
+      // MOMENT-MULTI-UPLOAD-001 (2026-09-13, Migration 138): ALLE Medien-URLs
+      // in Anzeige-Reihenfolge — wird NUR bei >=2 Medien gesetzt (bei 1 Medium
+      // bleibt null, dann sind src/type/thumbnail_url die einzige Quelle und
+      // alle Alt-Konsumenten (Grid-Kacheln, die nur .src lesen) laufen ohne
+      // jede Änderung weiter).
+      media_urls:       mediaUrls || null,
     };
 
     // 3a. MEDIA-INTEGRITAETS-GUARD (2026-09-05, Fall Karen Hagen): Ein Moment
@@ -423,45 +414,56 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
     return result;
   }
 
-  // ── Share Foto/Video ───────────────────────────────────────────
+  // ── Share Foto/Video — MOMENT-MULTI-UPLOAD-001: 1-10 Dateien ──
   const doShare = useCallback(async () => {
+    if (!mediaFiles || mediaFiles.length === 0) return;
     setUploading(true); setShareErr(null);
     try {
-      let src  = null;
-      let storagePath = null;
-      let type = "gedanke";
-      let thumbnailUrl = null;
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id;
+      // ORG-AUTHORSHIP: Storage-Pfad nutzt aktives Profil (Org-Profil wenn aktiv)
+      const uploadId = activeProfileId || userId;
+      if (!uploadId) throw new Error(t("moment.notLoggedIn"));
 
-      if (fileObj) {
-        type = isVideo ? "video" : "foto";
-        const { data: authData } = await supabase.auth.getUser();
-        const userId = authData?.user?.id;
-        // ORG-AUTHORSHIP: Storage-Pfad nutzt aktives Profil (Org-Profil wenn aktiv)
-        const uploadId = activeProfileId || userId;
-        if (uploadId) {
-          const uploadResult = await uploadToMedia(fileObj, uploadId);
-          src = uploadResult?.url || null;
-          storagePath = uploadResult?.path || null;
-          // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierten Frame hochladen —
-          // graceful (kein harter Fehler), falls Extraktion fehlschlug bleibt
-          // thumbnail_url einfach null, Video bleibt trotzdem postbar.
-          if (isVideo && thumbBlob) {
-            try {
-              thumbnailUrl = await uploadThumbnail(thumbBlob, uploadId, "beitraege");
-            } catch (thumbErr) {
-              console.warn("[HuiMoment] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
-            }
-          }
+      // Sequenzieller Upload ALLER Dateien über die SSOT uploadMediaFile
+      // (verifizierter Body + Bild-Kompression, Pfad beitraege/{uploadId}/…).
+      // KEIN graceful-Fallback (Regel seit 2026-09-05): Ein Upload-Fehler
+      // bricht den Share AB — kein Moment wird ohne Bilder gepostet.
+      const results = [];
+      for (const file of mediaFiles) {
+        results.push(await uploadMediaFile(file, uploadId, "beitraege"));
+      }
+      const urls = results.map(r => r?.url).filter(Boolean);
+      if (urls.length === 0) throw new Error("Upload fehlgeschlagen — bitte erneut versuchen.");
+
+      const firstIsVideo = results[0]?.type === "video";
+      const type = firstIsVideo ? "video" : "foto";
+      const src  = urls[0];
+
+      // VIDEO-THUMBNAIL-001 (2026-08-31): extrahierten Frame hochladen —
+      // graceful (kein harter Fehler), falls Extraktion fehlschlug bleibt
+      // thumbnail_url einfach null, Video bleibt trotzdem postbar.
+      // Der Frame gehört zum ERSTEN Video im Array (siehe MediaPreviewStep);
+      // unifiedNormalizer ordnet ihn dem ersten Video-Element als poster zu.
+      let thumbnailUrl = null;
+      if (firstIsVideo && thumbBlob) {
+        try {
+          thumbnailUrl = await uploadThumbnail(thumbBlob, uploadId, "beitraege");
+        } catch (thumbErr) {
+          console.warn("[HuiMoment] Thumbnail-Upload fehlgeschlagen (graceful):", thumbErr?.message);
         }
-        // Upload-Fehler wirft jetzt bei Videos (kein graceful-Fallback mehr)
       }
 
-      await _publishMoment({ src, storagePath, type, momentSource: momentSource || (isVideo ? "video" : "foto"), caption: text.trim(), thumbnailUrl });
+      // media_urls NUR bei >=2 Medien (Migration 138) — sonst null, dann sind
+      // src/type/thumbnail_url die einzige Quelle (Alt-Konsumenten-kompatibel).
+      const mediaUrls = urls.length >= 2 ? urls : null;
+
+      await _publishMoment({ src, type, momentSource: momentSource || (firstIsVideo ? "video" : "foto"), caption: text.trim(), thumbnailUrl, mediaUrls });
       // AUTO-REFRESH-FIX (2026-09-01): Profil nach Posten aktualisieren
       onSaved?.();
 
-      if (mediaURL) URL.revokeObjectURL(mediaURL);
-      setMediaURL(null);
+      mediaFiles.forEach(f => { if (f.previewUrl) URL.revokeObjectURL(f.previewUrl); });
+      setMediaFiles([]); setThumbBlob(null);
       setPhase("done");
       setTimeout(() => doClose(), 1600);
     } catch (err) {
@@ -469,7 +471,7 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
       setShareErr(err.message);
       setUploading(false);
     }
-  }, [fileObj, isVideo, text, mediaURL, doClose, thumbBlob]);
+  }, [mediaFiles, text, thumbBlob, activeProfileId, momentSource, doClose]);
 
   // ── Share Gedanke ──────────────────────────────────────────────
   const doShareGedanke = useCallback(async () => {
@@ -489,12 +491,17 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
   }, [text, doClose]);
 
   const doDiscard = useCallback(() => {
-    if (mediaURL) URL.revokeObjectURL(mediaURL);
-    setMediaURL(null); setFileObj(null); setIsVideo(false);
+    mediaFiles.forEach(f => { if (f.previewUrl) URL.revokeObjectURL(f.previewUrl); });
+    setMediaFiles([]); setThumbBlob(null);
     setText(""); setShareErr(null); setPhase("open");
-  }, [mediaURL]);
+  }, [mediaFiles]);
 
   if (phase === "hidden") return null;
+  // Grid-"Mehr"-Kachel darf nur nachreichen, was der Einstieg erlaubt:
+  // Foto → nur Bilder, Video → nur Videos, Galerie → beides.
+  const gridAccept = momentSource === "foto" ? "image/*"
+    : momentSource === "video" ? "video/*"
+    : "image/*,video/*";
   const isClosing = phase === "closing";
   const isOpen    = phase === "open";
   const isPreview = phase === "preview";
@@ -504,9 +511,13 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
   return (
     <>
       <style>{CSS}</style>
-      <input ref={fotoRef}    type="file" accept="image/*"        capture="environment" onChange={handleFileChange} style={{display:"none"}}/>
-      <input ref={videoRef}   type="file" accept="video/*"        capture="environment" onChange={handleFileChange} style={{display:"none"}}/>
-      <input ref={galerieRef} type="file" accept="image/*,video/*"                      onChange={handleFileChange} style={{display:"none"}}/>
+      {/* multiple seit MOMENT-MULTI-UPLOAD-001: Foto/Video/Galerie nehmen
+          mehrere Dateien an; die Kamera (capture) liefert pro Durchlauf mind.
+          1 Foto — weitere lassen sich im Preview über die Mehr-Kachel des
+          MultiUploadGrid nachziehen (jeder Tap = eine weitere Aufnahme). */}
+      <input ref={fotoRef}    type="file" accept="image/*"        capture="environment" multiple onChange={handleFileChange} style={{display:"none"}}/>
+      <input ref={videoRef}   type="file" accept="video/*"        capture="environment" multiple onChange={handleFileChange} style={{display:"none"}}/>
+      <input ref={galerieRef} type="file" accept="image/*,video/*"                                  multiple onChange={handleFileChange} style={{display:"none"}}/>
 
       {/* Overlay */}
       <div onClick={doClose} style={{
@@ -582,10 +593,11 @@ export default function HuiMomentSheet({ visible, onClose, onSaved, visibilitySc
             </div>
           )}
 
-          {/* PREVIEW */}
+          {/* PREVIEW — 1-10 Medien, jederzeit erweiterbar */}
           {isPreview && (
-            <PreviewStep mediaURL={mediaURL} isVideo={isVideo} fileSize={fileObj?.size || 0}
-              text={text} setText={setText} fileObj={fileObj} onThumbReady={(blob) => setThumbBlob(blob)}
+            <MediaPreviewStep files={mediaFiles} onFilesChange={handleGridFilesChange}
+              text={text} setText={setText} accept={gridAccept}
+              onThumbReady={(blob) => setThumbBlob(blob)}
               onShare={doShare} onDiscard={doDiscard} uploading={uploading}/>
           )}
 
