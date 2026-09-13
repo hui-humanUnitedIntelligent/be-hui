@@ -179,6 +179,15 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
   // Text sichtbar sein (kein Abschneiden nach 3 Zeilen) -- caption ist hier
   // durch die unifiedNormalizer.js-Erweiterung bereits Titel+Inhalt kombiniert.
   const isBroadcast = raw.moment_source === "system_broadcast";
+  // BROADCAST-TITLE-BOLD-001 (2026-09-13, Michael-Screenshot "Tilo/Kay
+  // dance4vision"): caption ist bei Broadcasts "Titel\n\nInhalt" (siehe
+  // unifiedNormalizer.js text-Kombination aus raw.caption+raw.content).
+  // Bisher lief die komplette Kombination durch EINEN <span> mit derselben
+  // Formatierung -- der Titel war optisch nicht vom Fliesstext zu
+  // unterscheiden. Fix: bei Broadcasts am ersten "\n\n" in Titel/Rest
+  // splitten, Titel separat fett+schwarz rendern.
+  const broadcastTitle = isBroadcast ? caption.split("\n\n")[0] : null;
+  const broadcastBody  = isBroadcast ? caption.slice(broadcastTitle.length).replace(/^\n\n/, "") : null;
 
   // reportButton als ActionBtn — identischer Look zu Heart/Chat/Share/Bookmark
   // FingerIcon + CORAL sind top-level (stabile Referenz — verhindert Remount-Bug)
@@ -251,29 +260,54 @@ export default function MomentContent({ item, onProfile, onReaction, onShare }) 
         minWidth: 0,
       }}>
         {/* Caption / Titel — 2-3 Zeilen sichtbar statt 1-zeilig+"…" */}
-        {caption ? (
+        {isBroadcast ? (
+          // BROADCAST-TITLE-BOLD-001: Titel fett+schwarz abgesetzt vom
+          // Fliesstext (der weiterhin normal-gewichtet + Ink3 bleibt).
+          <>
+            {broadcastTitle ? (
+              <div style={{
+                fontSize: 16,
+                fontWeight: 800,
+                color: "#000000",
+                lineHeight: 1.35,
+                letterSpacing: "-0.01em",
+                wordBreak: "break-word",
+                whiteSpace: "pre-line",
+                marginBottom: broadcastBody ? 8 : 0,
+              }}>
+                {broadcastTitle}
+              </div>
+            ) : null}
+            {broadcastBody ? (
+              <div style={{
+                fontSize: 15,
+                fontWeight: 400,
+                color: INK3,
+                lineHeight: 1.5,
+                wordBreak: "break-word",
+                whiteSpace: "pre-line",
+              }}>
+                {/* BROADCAST-LINKYFY-001 (2026-09-11): URLs im Fliesstext
+                    (z.B. "🎬 Ganzer Film: <YouTube-Link>") klickbar. */}
+                <LinkifiedText text={broadcastBody} linkColor={TEAL} />
+              </div>
+            ) : null}
+          </>
+        ) : caption ? (
           <span style={{
-            display: isBroadcast ? "block" : "-webkit-box",
+            display: "-webkit-box",
             fontSize: 15,
             fontWeight: 600,
             color: INK,
             lineHeight: 1.4,
             letterSpacing: "-0.02em",
-            ...(isBroadcast ? {} : {
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }),
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
             wordBreak: "break-word",
-            whiteSpace: isBroadcast ? "pre-line" : "normal",
+            whiteSpace: "normal",
           }}>
-            {isBroadcast
-              // BROADCAST-LINKIFY-001 (2026-09-11): URLs in System-Broadcasts
-              // (z.B. "🎬 Ganzer Film: <YouTube-Link>" bei Video-Broadcasts)
-              // klickbar rendern — oeffnet YouTube in neuem Tab. stopPropagation
-              // im Link verhindert, dass der Karten-Klick (open(item)) feuert.
-              ? <LinkifiedText text={caption} linkColor={TEAL} />
-              : caption}
+            {caption}
           </span>
         ) : null}
       </div>
