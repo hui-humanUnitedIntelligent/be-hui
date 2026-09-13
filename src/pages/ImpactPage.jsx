@@ -1222,6 +1222,23 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   // Tab-Wechsel NICHT neu mounten. location.state bleibt als Fallback
   // erhalten fuer den (aktuell unwahrscheinlichen) Fall eines direkten
   // Embeds mit echtem Router-State.
+  // IMPACT-CARD-DEEPLINK-001 (2026-09-13, Michael-Report "Vollständige Ansicht
+  // öffnen" landet nur in der Impact-Übersicht, nicht beim Projekt): Fetch+Open-
+  // Logik in eine stabile Funktion ausgelagert (PRINZIP 1: erweitern statt
+  // duplizieren) — wird sowohl beim Mount (Deep-Link von /impact, siehe unten)
+  // ALS AUCH vom Live-Event unten (Feed-Karte, Home bereits gemountet) genutzt.
+  const openProjectDetailById = React.useCallback((pid) => {
+    if (!pid) return;
+    supabase
+      .from("impact_applications")
+      .select("id,project_name,short_desc,problem,vision,funding_use,cover_url,funding_goal,current_amount_eur,rank,status,created_at,media_urls")
+      .eq("id", pid)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setDetailApp(data);
+      });
+  }, []);
+
   React.useEffect(() => {
     let pid = location.state?.openProjectId;
     if (!pid) {
@@ -1236,16 +1253,22 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
     if (!pid) return;
     // State sofort leeren (verhindert Re-open bei Back-Navigation)
     window.history.replaceState({ ...window.history.state, usr: {} }, '');
-    // Projekt aus impact_applications laden und Detail öffnen
-    supabase
-      .from("impact_applications")
-      .select("id,project_name,short_desc,problem,vision,funding_use,cover_url,funding_goal,current_amount_eur,rank,status,created_at,media_urls")
-      .eq("id", pid)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setDetailApp(data);
-      });
-  }, [location.state?.openProjectId]);
+    openProjectDetailById(pid);
+  }, [location.state?.openProjectId, openProjectDetailById]);
+
+  // IMPACT-CARD-DEEPLINK-001: Live-Event fuer den Fall, dass ImpactPage schon
+  // als Keep-Alive-Tab gemountet ist (Home.jsx haelt Tabs dauerhaft im DOM —
+  // der obige Mount-Effekt feuert dann NICHT erneut beim Tab-Wechsel). Die
+  // Feed-Karte (ImpactContent.jsx) dispatcht dieses Event zusaetzlich zum
+  // Tab-Wechsel-Event, MIT der echten Projekt-ID.
+  React.useEffect(() => {
+    const onOpenProjectEvent = (e) => {
+      const pid = e?.detail?.projectId;
+      if (pid) openProjectDetailById(pid);
+    };
+    window.addEventListener("hui:impact:openProject", onOpenProjectEvent);
+    return () => window.removeEventListener("hui:impact:openProject", onOpenProjectEvent);
+  }, [openProjectDetailById]);
 
   // ── Close-Handler: IMMER im Impact-Bereich bleiben (PUNKT6-DETAIL-CLOSE-STAY,
   // 2026-09-08, Michael) — vorher navigierte der Deep-Link-Pfad zu navigate("/"):

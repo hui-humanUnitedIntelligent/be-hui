@@ -79,12 +79,19 @@ export default function ImpactContent({ item, onProfile, onReaction, onShare }) 
   const badgeText = t("impact.herzensprojektCategory")
     + (rank && RANK_MEDAL[rank] ? ` · ${RANK_MEDAL[rank]} ${RANK_LABEL[rank]}` : "");
 
+  // IMPACT-CARD-DEEPLINK-001 (2026-09-13, Michael-Report): "Vollständige
+  // Ansicht öffnen" landete bisher NUR in der Impact-Übersicht (Tab-Wechsel
+  // ohne Projekt-ID) — Nutzer musste das Projekt danach erneut suchen. Fix:
+  // Projekt-ID zusätzlich per Live-Event mitgeben (ImpactPage.jsx-Listener,
+  // funktioniert auch wenn die Seite als Keep-Alive-Tab schon gemountet ist —
+  // anders als die sessionStorage-Bruecke, die nur beim Mount greift).
   const handleCardClick = () => open({
     ...item,
     canOpenFull: true,
     fullPath: null,
     _onOpenFull: () => {
       window.dispatchEvent(new CustomEvent("hui:navigate:tab", { detail: { tab: "impact" } }));
+      window.dispatchEvent(new CustomEvent("hui:impact:openProject", { detail: { projectId: item.id } }));
     },
   });
 

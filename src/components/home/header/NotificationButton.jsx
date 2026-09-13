@@ -60,7 +60,16 @@ export default function NotificationButton({ count = 0, userId = "" }) {
     if (n._openChat) {
       setOpen(false);
       const chatId = typeof n._openChat === "object" ? n._openChat.id : n._openChat;
-      actions?.[A.OPEN_CHAT]?.({ recipientId: chatId, name: typeof n._openChat === "object" ? n._openChat.display_name : null, source: S.HOME });
+      // BOOKING-CHAT-001 (2026-09-13): booking_id aus Buchungsdetail mitgeben —
+      // normalizeRecipient legt sie in _raw ab, ChatCenterOverlay erstellt daraus
+      // bei Bedarf den dedizierten 1:1-Buchungs-Chat (CHAT-LOGIK v2: Chat-Erstellung
+      // NUR mit Buchungskontext, nie pauschal).
+      actions?.[A.OPEN_CHAT]?.({
+        recipientId: chatId,
+        name: typeof n._openChat === "object" ? n._openChat.display_name : null,
+        booking_id: (typeof n._openChat === "object" && n._openChat.booking_id) || null,
+        source: S.HOME,
+      });
       return;
     }
     // BANKDATEN-LINK (2026-08-16): "Bankdaten hinterlegen" aus

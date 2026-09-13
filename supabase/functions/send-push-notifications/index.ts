@@ -142,17 +142,48 @@ async function sendFCM(token: string, title: string, body: string, data: Record<
   }
 }
 
+// ── NOTIF-TYPE-PREFS-001 (2026-09-13): 6 Typ-Gruppen — SSOT-SPIEGEL von
+// src/lib/notificationFilterGroups.js (JS-Client und Deno koennen sich keine
+// Module teilen; MUSS synchron gehalten werden!). Gate: die notif_*-Spalten
+// auf user_notification_settings (Migration 139) steuern Push pro Typ.
+const GROUP_BOOKINGS = ["talent_booking_paid","talent_booking_confirmed","talent_booking_cancelled","experience_booking_paid","experience_booking_confirmed","experience_booking_cancelled","booking","booking_change","experience_soon","new_booking"];
+const GROUP_COMMENTS = ["comment","comment_reply"];
+const GROUP_LIKES    = ["like","resonanz","save"];
+const GROUP_FOLLOWERS= ["new_follower","follow","follow_request","repost","share","connection_req","connection_new","participant","watcher"];
+const GROUP_SYSTEM   = ["work_approved","work_rejected","talent_approved","talent_rejected","experience_approved","experience_rejected","project_approved","project_rejected","impact_project_rejected","content_approved","content_rejected","bug_report_resolved","support_ticket","support_ticket_reply","milestone","achievement","admin_broadcast","broadcast","system"];
+const NOTIF_GROUP_SETS: Record<string, Set<string>> = {
+  bookings: new Set(GROUP_BOOKINGS), comments: new Set(GROUP_COMMENTS), likes: new Set(GROUP_LIKES),
+  followers: new Set(GROUP_FOLLOWERS), system: new Set(GROUP_SYSTEM),
+};
+function getNotifGroup(type: string): string {
+  for (const [group, set] of Object.entries(NOTIF_GROUP_SETS)) {
+    if (set.has(type)) return group;
+  }
+  return "other";
+}
+
 // Verarbeitet EINE bereits geclaimte (status='sending') outbox-Zeile.
 async function processClaimedEntry(entry: { id: string; user_id: string; type: string; title?: string; body?: string; data?: Record<string, unknown>; retry_count?: number; category?: string }) {
   const staleTokens: string[] = [];
 
-  const settings = await dbMaybeSingle("user_notification_settings", "push_enabled,push_buchungen,push_kauf_verkauf,push_informativ", { user_id: entry.user_id });
+  // NOTIF-TYPE-PREFS-001: notif_*-Spalten zusaetzlich laden (Migration 139,
+  // Default true — alte Zeilen ohne Werte stummeln nicht).
+  const settings = await dbMaybeSingle("user_notification_settings", "push_enabled,push_buchungen,push_kauf_verkauf,push_informativ,notif_bookings,notif_comments,notif_likes,notif_followers,notif_system,notif_other", { user_id: entry.user_id });
   if (!settings) {
     await dbUpdate("notifications_outbox", { status: "skipped", error_message: "No settings found", sent_at: new Date().toISOString() }, { id: entry.id });
     return { outcome: "skipped" as const, staleTokens };
   }
   const categoryFlag = entry.category === "buchungen" ? settings.push_buchungen : entry.category === "kauf_verkauf" ? settings.push_kauf_verkauf : settings.push_informativ;
-  if (!settings.push_enabled || categoryFlag === false) {
+  // Typ-Gruppen-Gate: deaktivierter Typ → kein Push (auch wenn die grobere
+  // Tab-Kategorie noch an steht). notif_other ist der Catch-All-Default.
+  const group = getNotifGroup(entry.type || "");
+  const groupFlag = group === "bookings" ? settings.notif_bookings
+    : group === "comments" ? settings.notif_comments
+    : group === "likes" ? settings.notif_likes
+    : group === "followers" ? settings.notif_followers
+    : group === "system" ? settings.notif_system
+    : settings.notif_other;
+  if (!settings.push_enabled || categoryFlag === false || groupFlag === false) {
     await dbUpdate("notifications_outbox", { status: "skipped", sent_at: new Date().toISOString() }, { id: entry.id });
     return { outcome: "skipped" as const, staleTokens };
   }

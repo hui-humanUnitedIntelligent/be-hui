@@ -216,6 +216,14 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
 
   const [pendingRecipient, setPendingRecipient] = React.useState(initialRecipient || null);
 
+  // ── BOOKING-CHAT-001 (2026-09-13, Michael-Prompt 3): Buchungs-ID aus dem
+  // (von normalizeRecipient) angereicherten Recipient extrahieren. OPEN_CHAT
+  // aus dem Buchungsdetail (NotificationPanel) reicht booking_id mit — der
+  // Chat wird dann bei Bedarf ERSTELLT und direkt geoeffnet statt nur die
+  // Chat-Uebersicht zu zeigen. Ohne booking_id bleibt CHAT-LOGIK v2 massgeblich:
+  // nur bestehende Chats oeffnen, keine Neuerstellung ohne Buchungskontext.
+  const bookingCtxOf = (rec) => rec?._raw?.booking_id || rec?.booking_id || null;
+
   // AUTO-OPEN: initialRecipient beim Mount vorhanden → direkt ConversationRoom öffnen.
   // Fallback auf Banner-Tap wenn user?.id noch nicht verfügbar.
   React.useEffect(() => {
@@ -257,6 +265,26 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
             other_profile: initialRecipient,
           });
         } else {
+          // BOOKING-CHAT-001: Aus Buchungsdetail geöffnet + kein Chat bisher →
+          // 1:1-Buchungs-Chat ERSTELLEN (findOrCreateChat dedupliziert per
+          // participant_ids, nie doppelt) und SOFORT oeffnen — ready to type.
+          const bookingId = bookingCtxOf(initialRecipient);
+          if (bookingId) {
+            const created = await findOrCreateChat({ userId: user.id, otherUserId: initialRecipient.id, bookingId });
+            if (created?.id) {
+              setActiveConv({
+                id:           created.id,
+                user_id:      initialRecipient.id           || null,
+                name:         getFullDisplayName(initialRecipient) || t("profile.wirkerDefault"),
+                avatar_url:   initialRecipient.avatar_url   || null,
+                talent:       initialRecipient.talent        || null,
+                has_talent_profile: initialRecipient.has_talent_profile || false,
+                online:       true,
+                other_profile: initialRecipient,
+              });
+              return; // finally unten setzt loading=false
+            }
+          }
           setPendingRecipient(initialRecipient);
         }
       } catch(e) {
@@ -296,6 +324,24 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
             // BUGFIX (2026-08-25): siehe Kommentar oben — other_profile ergaenzt.
             other_profile: pendingRecipient,
           });
+        } else {
+          // BOOKING-CHAT-001: kein bestehender Chat + Buchungskontext → erstellen
+          const bookingId = bookingCtxOf(pendingRecipient);
+          if (bookingId) {
+            const created = await findOrCreateChat({ userId: user.id, otherUserId: pendingRecipient.id, bookingId });
+            if (created?.id) {
+              setActiveConv({
+                id:           created.id,
+                user_id:      pendingRecipient.id           || null,
+                name:         getFullDisplayName(pendingRecipient) || t("profile.wirkerDefault"),
+                avatar_url:   pendingRecipient.avatar_url   || null,
+                talent:       pendingRecipient.talent        || null,
+                has_talent_profile: pendingRecipient.has_talent_profile || false,
+                online:       true,
+                other_profile: pendingRecipient,
+              });
+            }
+          }
         }
       } catch(err) {
         console.error("[HUI_CHAT] openPendingChat error:", err?.message);

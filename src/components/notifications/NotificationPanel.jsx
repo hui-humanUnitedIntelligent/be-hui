@@ -13,6 +13,11 @@ import { supabase } from "../../lib/supabaseClient.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
+// NOTIF-TYPE-PREFS-001 (2026-09-13): SSOT für die 6 Typ-Gruppen + Prefs-Load/Save
+import {
+  getNotifGroup, loadNotifPrefsLocal, loadNotifPrefsFromDB, saveNotifPrefToDB,
+  broadcastNotifPrefs, NOTIF_FILTERS_EVENT,
+} from "../../lib/notificationFilterGroups.js";
 
 // ══════════════════════════════════════════════════════════════
 // NOTIFICATION PANEL  — Side-Drawer, via createPortal(document.body) gerendert
@@ -396,7 +401,17 @@ function DetailModal({ n, onClose, onAction }) {
       const otherUserLabel = isSellerView
         ? (md.buyer_name || "Der Kunde")
         : (md.seller_name || "Der Anbieter");
-      const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || "dein Angebot";
+      // BOOKING-WAS-001 (2026-09-13, Michael-Prompt 2): "Was" zeigt jetzt
+      // "Talent-Name — Kategorie" (z.B. "Klangbad in Planetenfrequenzen —
+      // Massage"). offer_category wird seit dem Webhook-Fix mitgeliefert;
+      // alte Notifications ohne Kategorie zeigen weiterhin nur den Titel
+      // (kein Breaking Change). Fallback, wenn weder Titel noch Item-Titel
+      // existieren (z.B. Talent gelöscht und Notification ohne Metadata):
+      // "Talent nicht mehr verfügbar".
+      const offerTitle = md.offer_title || (md.item_titles || []).join(", ") || null;
+      const offerWhat = offerTitle
+        ? (md.offer_category ? `${offerTitle} — ${md.offer_category}` : offerTitle)
+        : t("notif.meta.talentUnavailable");
       const dateStr = md.date
         ?formatDateDE(new Date(md.date), { weekday:"short", day:"numeric", month:"long" })
         : null;
@@ -411,10 +426,10 @@ function DetailModal({ n, onClose, onAction }) {
         accentColor: "#22C55E",
         headerIcon: isTalent ? "📅" : "🌿",
         headerTitle: isSellerView ? t("notif.meta.newBookingSeller") : t("notif.meta.bookingConfirmed2"),
-        headerSubtitle: `„${offerTitle}"`,
+        headerSubtitle: offerTitle ? `„${offerTitle}"` : null,
         blocks: [
           { type:"stat", label: isSellerView ? "Gebucht von" : "Gebucht bei", value: otherUserLabel },
-          { type:"stat", label:"Was", value: offerTitle },
+          { type:"stat", label:"Was", value: offerWhat },
           dateStr && { type:"stat", label:"Wann", value: md.time ? `${dateStr}, ${md.time} Uhr` : dateStr },
           md.location && { type:"stat", label:"Wo", value: md.location },
           md.amount_eur != null && { type:"stat", label:"Betrag", value: `${Number(md.amount_eur).toFixed(2).replace(".", ",")} €` },
@@ -425,9 +440,11 @@ function DetailModal({ n, onClose, onAction }) {
         ].filter(Boolean),
         chatUserId: otherUserId,
         chatUserName: otherUserLabel,
+        // BOOKING-CHAT-001: Buchungs-ID fuer direkten 1:1-Chat
+        bookingId: md.booking_id || n.entity_id || null,
         // BELEG-001: Beleg-Button nur in der Kaeufer-Sicht
         receiptData: !isSellerView ? {
-          offerTitle,
+          offerTitle: offerTitle || t("notif.meta.talentUnavailable"),
           sellerName: md.seller_name || null,
           sellerEmail,
           sellerWebsite,
@@ -940,7 +957,11 @@ function DetailModal({ n, onClose, onAction }) {
           <button
             onClick={() => {
               onClose();
-              onAction({ ...n, _openChat: { id: cfg.chatUserId, display_name: cfg.chatUserName || null } });
+              // BOOKING-CHAT-001 (2026-09-13, Michael-Prompt 3): booking_id
+              // mitgeben — ChatCenterOverlay erstellt daraus (falls noch nicht
+              // vorhanden) den dedizierten 1:1-Buchungs-Chat und oeffnet ihn
+              // DIREKT statt der Chat-Uebersicht.
+              onAction({ ...n, _openChat: { id: cfg.chatUserId, display_name: cfg.chatUserName || null, booking_id: cfg.bookingId || null } });
             }}
             style={{
               width:"100%", padding:"13px", borderRadius:99,
@@ -1226,7 +1247,116 @@ function NotifCard({ n, onRead, onDelete, onAction = () => {} }) {
 }
 
 // ── NotificationPanel (Side-Drawer) ────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// NOTIF-TYPE-PREFS-001 (2026-09-13): Filter-Modal "Benachrichtigungstypen"
+// 6 Schalter, bidirektional mit den Settings synchronisiert (gleiche DB-Spalten,
+// siehe notificationFilterGroups.js). createPortal(document.body) + zIndex
+// 10550 (> Drawer 10500) gemäß footer-navbar-zindex-Regel.
+// ══════════════════════════════════════════════════════════════════════════════
+function NotifTypeToggle({ label, desc, value, onChange }) {
+  return (
+    <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, padding:"12px 0", borderBottom:"1px solid rgba(26,26,24,0.06)" }}>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:14, fontWeight:600, color:T.ink }}>{label}</div>
+        <div style={{ fontSize:11, color:T.inkFaint, marginTop:2, lineHeight:1.45 }}>{desc}</div>
+      </div>
+      <button onClick={onChange} aria-label={label} style={{
+        width:44, height:26, borderRadius:13, flexShrink:0, position:"relative",
+        background: value ? T.teal : "rgba(26,26,24,0.12)", border:"none", cursor:"pointer",
+        transition:"background 0.2s ease",
+      }}>
+        <div style={{
+          position:"absolute", top:3, left: value ? 21 : 3,
+          width:20, height:20, borderRadius:"50%", background:"#fff",
+          boxShadow:"0 1px 4px rgba(0,0,0,0.2)", transition:"left 0.2s ease",
+        }}/>
+      </button>
+    </div>
+  );
+}
+
+function NotifFilterModal({ prefs, onToggle, onClose }) {
+  const { t } = useTranslation();
+  // Android-Back-Button: Filter-Modal im Back-Stack registrieren (etabliertes
+  // Muster wie DetailModal).
+  useModalRegistration(true, onClose, "NotifFilterModal");
+
+  const ROWS = [
+    { key:"bookings",  label:t("notif.filter.bookings"),  desc:t("notif.filter.bookingsDesc")  },
+    { key:"comments",  label:t("notif.filter.comments"),  desc:t("notif.filter.commentsDesc")  },
+    { key:"likes",     label:t("notif.filter.likes"),     desc:t("notif.filter.likesDesc")     },
+    { key:"followers", label:t("notif.filter.followers"), desc:t("notif.filter.followersDesc") },
+    { key:"system",    label:t("notif.filter.system"),    desc:t("notif.filter.systemDesc")    },
+    { key:"other",     label:t("notif.filter.other"),     desc:t("notif.filter.otherDesc")     },
+  ];
+  const allOff = ROWS.every(r => !prefs[r.key]);
+
+  return createPortal(
+    <>
+      <div onClick={onClose} style={{ position:"fixed", inset:0, zIndex:10540, background:"rgba(0,0,0,0.45)" }} role="button" tabIndex={0} />
+      <div style={{
+        position:"fixed", left:"50%", top:"50%", transform:"translate(-50%, -50%)",
+        zIndex:10550, width:"min(92vw, 380px)", maxHeight:"82vh", overflowY:"auto",
+        background:T.bgCard, borderRadius:20, padding:"20px 18px 18px",
+        boxShadow:"0 20px 60px rgba(0,0,0,0.30)",
+      }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:6 }}>
+          <div style={{ fontSize:16, fontWeight:700, color:T.ink }}>{t("notif.filter.title")}</div>
+          <button onClick={onClose} style={{ width:30, height:30, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, fontSize:15, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+        </div>
+        <div style={{ fontSize:11, color:T.inkFaint, marginBottom:8, lineHeight:1.45 }}>{t("notif.filter.subtitle")}</div>
+        {ROWS.map(r => (
+          <NotifTypeToggle key={r.key} label={r.label} desc={r.desc} value={prefs[r.key]} onChange={() => onToggle(r.key)} />
+        ))}
+        {allOff && (
+          <div style={{
+            marginTop:12, padding:"10px 12px", borderRadius:12,
+            background:"rgba(245,158,11,0.08)", border:"1px solid rgba(245,158,11,0.30)",
+            fontSize:12, color:"#B45309", lineHeight:1.5, textAlign:"center",
+          }}>{t("notif.filter.none")}</div>
+        )}
+        <button onClick={onClose} style={{
+          width:"100%", marginTop:14, padding:"13px", borderRadius:99,
+          background:T.teal, border:"none", color:"#fff", fontSize:14, fontWeight:600,
+          cursor:"pointer", fontFamily:"inherit",
+        }}>{t("notif.filter.done")}</button>
+      </div>
+    </>,
+    document.body
+  );
+}
+
 export default function NotificationPanel({ userId, onClose, onUnreadChange, onAction = () => {} }) {
+  // ── NOTIF-TYPE-PREFS-001 (2026-09-13): Filter-Präferenzen ──────────────────
+  // Init SOFORT aus localStorage (kein Filter-Flackern), danach DB-Merge.
+  const [filterPrefs, setFilterPrefs] = useState(loadNotifPrefsLocal);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  useEffect(() => {
+    // DB ist die persistente Wahrheit (überlebt Logout/Login/Gerätewechsel) —
+    // localStorage nur schneller UI-Fallback. null = DB unreachable → lokal.
+    let cancelled = false;
+    loadNotifPrefsFromDB().then(dbPrefs => {
+      if (!cancelled && dbPrefs) { setFilterPrefs(dbPrefs); }
+    });
+    // Live-Sync mit Settings (PushNotificationBlock): gleiche DB-Spalten,
+    // synchronisiert über hui:notif:filters-Event (bidirektional).
+    const onExternalPrefs = (e) => {
+      if (e?.detail?.prefs) setFilterPrefs(e.detail.prefs);
+    };
+    window.addEventListener(NOTIF_FILTERS_EVENT, onExternalPrefs);
+    return () => { cancelled = true; window.removeEventListener(NOTIF_FILTERS_EVENT, onExternalPrefs); };
+  }, []);
+
+  const toggleFilterPref = (groupKey) => {
+    setFilterPrefs(prev => {
+      const next = { ...prev, [groupKey]: !prev[groupKey] };
+      // Persist: localStorage sofort + DB (bei DB-Fehler bleibt localStorage,
+      // UI bleibt funktional — Fehler nur als Warnung, kein Toast-Noise).
+      broadcastNotifPrefs(next);
+      saveNotifPrefToDB(groupKey, next[groupKey]);
+      return next;
+    });
+  };
   const { t } = useTranslation();
   useModalRegistration(true, () => onClose?.(), "NotificationPanel");
   const [notifs,  setNotifs]  = useState([]);
@@ -1377,11 +1507,14 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     { key:"informativ",   label:t("notif.tab.informativ")    },
   ];
 
-  const visible = notifs.filter(TAB_FILTERS[tab] || (() => true));
+  // NOTIF-TYPE-PREFS-001: Typ-Filter gilt ÜBERALLES (Liste + Tab-Zähler) —
+  // deaktivierte Typen verschwinden sofort aus jedem Tab.
+  const typeVisible = notifs.filter(n => filterPrefs[getNotifGroup(n.type)] !== false);
+  const visible = typeVisible.filter(TAB_FILTERS[tab] || (() => true));
   const unreadCount = notifs.filter(n => !n.is_read).length;
   // Live-Zähler pro Tab (verschwindet automatisch, sobald 0 = alles gelesen)
   const unreadByTab = Object.fromEntries(
-    TABS.map(({ key }) => [key, notifs.filter(n => !n.is_read && (TAB_FILTERS[key]?.(n) ?? true)).length])
+    TABS.map(({ key }) => [key, typeVisible.filter(n => !n.is_read && (TAB_FILTERS[key]?.(n) ?? true)).length])
   );
 
   return createPortal(
@@ -1409,7 +1542,16 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
               <span style={{ background:T.teal, color:"white", borderRadius:T.r99, padding:"2px 8px", fontSize:11, fontWeight: 600 }}>{unreadCount}</span>
             )}
           </div>
-          <button onClick={onClose} style={{ width:32, height:32, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+          <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+            {/* NOTIF-TYPE-PREFS-001: Filter-Trichter — Punkt-Badge wenn Typen deaktiviert */}
+            <button onClick={() => setShowFilterModal(true)} aria-label={t("notif.filter.title")} title={t("notif.filter.title")} style={{ position:"relative", width:32, height:32, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={T.inkSoft} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+              {Object.values(filterPrefs).includes(false) && (
+                <span style={{ position:"absolute", top:0, right:0, width:9, height:9, borderRadius:"50%", background:T.teal, border:"1.5px solid #fff" }}/>
+              )}
+            </button>
+            <button onClick={onClose} style={{ width:32, height:32, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -1466,6 +1608,11 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
           )}
         </div>
       </div>
+
+      {/* NOTIF-TYPE-PREFS-001: Filter-Modal (Benachrichtigungstypen) */}
+      {showFilterModal && (
+        <NotifFilterModal prefs={filterPrefs} onToggle={toggleFilterPref} onClose={() => setShowFilterModal(false)} />
+      )}
     </>,
     document.body
   );

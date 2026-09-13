@@ -5,6 +5,12 @@
 
 import { useState, useEffect } from "react";
 import { loadPushSettingsFull, setPushEnabled, setPushCategory } from "../../lib/pushNotificationService.js";
+// NOTIF-TYPE-PREFS-001 (2026-09-13): 6 Benachrichtigungstypen, bidirektional
+// mit dem Resonanzzentrum-Filter synchronisiert (gleiche DB-Spalten + Event).
+import {
+  loadNotifPrefsLocal, loadNotifPrefsFromDB, saveNotifPrefToDB,
+  broadcastNotifPrefs, NOTIF_FILTERS_EVENT,
+} from "../../lib/notificationFilterGroups.js";
 import { Capacitor } from "@capacitor/core";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
@@ -53,6 +59,37 @@ export default function PushNotificationBlock() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingCat, setSavingCat] = useState(null);
+
+  // ── NOTIF-TYPE-PREFS-001: 6 Typ-Präferenzen (Buchungen, Kommentare, Likes,
+  // Follower, System, Sonstige) — SSOT-Spalten notif_* (Migration 139).
+  // Sofort aus localStorage (kein Flackern), danach DB-Merge. Die 6 Typen
+  // steuern BOTH: Resonanzzentrum-Sichtbarkeit UND Push — deshalb immer
+  // sichtbar in den Settings, unabhängig von push_enabled.
+  const [notifTypes, setNotifTypes] = useState(loadNotifPrefsLocal);
+  useEffect(() => {
+    let cancelled = false;
+    loadNotifPrefsFromDB().then(dbPrefs => {
+      if (!cancelled && dbPrefs) setNotifTypes(dbPrefs);
+    });
+    // Live-Sync mit dem Resonanzzentrum-Filter (offenes Panel) — gleiche
+    // DB-Spalten, synchronisiert über hui:notif:filters (bidirektional).
+    const onExternal = (e) => {
+      if (e?.detail?.prefs) setNotifTypes(e.detail.prefs);
+    };
+    window.addEventListener(NOTIF_FILTERS_EVENT, onExternal);
+    return () => { cancelled = true; window.removeEventListener(NOTIF_FILTERS_EVENT, onExternal); };
+  }, []);
+
+  const handleNotifTypeToggle = (groupKey) => {
+    setNotifTypes(prev => {
+      const next = { ...prev, [groupKey]: !prev[groupKey] };
+      // Persist: localStorage sofort + DB; live-Event aktualisiert ein
+      // evtl. offenes Resonanzzentrum sofort mit.
+      broadcastNotifPrefs(next);
+      saveNotifPrefToDB(groupKey, next[groupKey]);
+      return next;
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -166,6 +203,54 @@ export default function PushNotificationBlock() {
               onChange={() => handleCategoryToggle(cat)}
             />
           ))}
+        </div>
+      )}
+
+      {/* ── NOTIF-TYPE-PREFS-001: 6 Benachrichtigungstypen ────────────────────
+          Immer sichtbar (auch Web / Push aus): steuern die Sichtbarkeit im
+          Resonanzzentrum UND den Push-Versand pro Typ. Bidirektional mit dem
+          Filter im Resonanzzentrum synchronisiert (gleiche DB-Spalten). */}
+      {!loading && (
+        <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(26,26,24,0.06)" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
+            {t("sm.push.notifTypesTitle")}
+          </div>
+          <CategoryToggle
+            label={t("notif.filter.bookings")}
+            hint={t("sm.push.notifTypesHintResonanz")}
+            value={notifTypes.bookings}
+            onChange={() => handleNotifTypeToggle("bookings")}
+          />
+          <CategoryToggle
+            label={t("notif.filter.comments")}
+            hint={t("sm.push.notifTypesHintResonanz")}
+            value={notifTypes.comments}
+            onChange={() => handleNotifTypeToggle("comments")}
+          />
+          <CategoryToggle
+            label={t("notif.filter.likes")}
+            hint={t("sm.push.notifTypesHintResonanz")}
+            value={notifTypes.likes}
+            onChange={() => handleNotifTypeToggle("likes")}
+          />
+          <CategoryToggle
+            label={t("notif.filter.followers")}
+            hint={t("sm.push.notifTypesHintResonanz")}
+            value={notifTypes.followers}
+            onChange={() => handleNotifTypeToggle("followers")}
+          />
+          <CategoryToggle
+            label={t("notif.filter.system")}
+            hint={t("sm.push.notifTypesHintResonanz")}
+            value={notifTypes.system}
+            onChange={() => handleNotifTypeToggle("system")}
+          />
+          <CategoryToggle
+            label={t("notif.filter.other")}
+            hint={t("sm.push.notifTypesHintResonanz")}
+            value={notifTypes.other}
+            onChange={() => handleNotifTypeToggle("other")}
+          />
         </div>
       )}
     </div>

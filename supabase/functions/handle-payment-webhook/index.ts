@@ -183,7 +183,7 @@ serve(async (req) => {
           // ── RESONANZ-BUCHUNG-001: Buchungsdetails anreichern (wer/was/wann/wo) ──
           const { data: tOffer } = await supabase
             .from('talents')
-            .select('title, location_type, location_address, duration_minutes')
+            .select('title, category, location_type, location_address, duration_minutes')
             .eq('id', tBooking.talent_id)
             .maybeSingle()
           const { data: tBuyerProfile } = await supabase
@@ -216,6 +216,11 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
             offer_id:      tBooking.talent_id,
             offer_type:    'talent',
             offer_title:   tOfferTitle,
+            // BOOKING-WAS-001 (2026-09-13, Michael-Prompt 2): Kategorie des
+            // Talents mitliefern — Buchungsdetail zeigt "Talent-Name — Kategorie"
+            // (z.B. "Klangbad in Planetenfrequenzen — Massage"). Additiv: alte
+            // Notifications ohne dieses Feld zeigen weiterhin nur den Titel.
+            offer_category: tOffer?.category || null,
             buyer_name:    tBuyerName,
             seller_name:   tSellerName,
             seller_email:  tSellerProfile?.email || null,
