@@ -10,6 +10,8 @@ import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
 import LangFilterChips from "../../shared/LangFilterChips.jsx";
 import { CAT_KEY_MAP, translateCategory } from "../../../lib/categoryMaps.js";
+import { useAuth } from "../../../lib/AuthContext.jsx";
+import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 
 const T = {
   bg:"#F7F5F0", bgCard:"#FFFFFF", ink:"#1A1A18",
@@ -126,7 +128,7 @@ function TalentCard({ talent, onClick }) {
 }
 
 // Detail-Modal für ein einzelnes Talent-Angebot
-function TalentDetailModal({ talent, onClose }) {
+function TalentDetailModal({ talent, onClose, bookable = false, onBook }) {
   const { t } = useTranslation();
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
   // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
@@ -251,6 +253,29 @@ function TalentDetailModal({ talent, onClose }) {
                 {talent.location_address}
               </div>
             )}
+
+            {/* TALENT-PROFIL-BUCHEN-001 (2026-09-13, Bug e83b9177 — Michèle konnte
+                Nicole nicht buchen): Das Profil-Detail-Sheet war komplett
+                read-only, es gab UEBERHAUPT keinen Weg zur Buchung — wer nicht
+                ueber Feed/Discover kam, war vom Buchen ausgesperrt. Fix: Button
+                koppelt an den globalen SSOT-Booking-Flow (ContentPreviewContext.
+                openTalentBooking -> TalentBookingFlow), identisches Muster wie
+                ContentPreviewSheet ("Talent buchen" -> onClose + Flow-Start,
+                TALENT-BUCHEN-ANCHOR-FIX). Nicht buchbar: eigenes Profil (der
+                Flow lehnt Selbst-Buchung nur mit Fehler ab — besser gar nicht
+                erst anbieten) und Angebote ohne Preis (wie im Feed-Pfad). */}
+            {bookable && (
+              <button
+                onClick={onBook}
+                style={{
+                  width:"100%", padding:"14px", borderRadius:14,
+                  background:"rgba(13,196,181,1)", color:"#fff",
+                  fontSize:15, fontWeight: 600, border:"none", cursor:"pointer",
+                  letterSpacing:"-0.01em",
+                }}>
+                {t('cps.bookTalent')}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -262,6 +287,9 @@ function TalentDetailModal({ talent, onClose }) {
 // ── Haupt-Export ──────────────────────────────────────────────────
 export function PublicTalentOffersSection({ profileId }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  // SSOT-Booking-Flow — im Provider-Fallback undefined, deshalb Guard beim Aufruf
+  const { openTalentBooking } = useContentPreview();
   const [talents, setTalents] = useState([]);
   // MULTILANG-CONTENT-001 (2026-09-09): Sprach-Kategorisierung im Profil
   const [langFilter, setLangFilter] = useState(null);
@@ -273,7 +301,7 @@ export function PublicTalentOffersSection({ profileId }) {
     let cancelled = false;
     supabase
       .from("talents")
-      .select("id,title,description,category,images,thumbnail_url,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,user_id,language")
+      .select("id,title,description,category,images,thumbnail_url,status,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,duration_minutes,max_participants,min_participants,booking_type,available_dates,available_time_slots,recurring,booking_window_start,booking_window_end,offers_home_visits,user_id,language")
       .eq("user_id", profileId)
       .eq("status", "approved")   // nur freigegebene Angebote
       .order("created_at", { ascending: false })
@@ -344,6 +372,18 @@ export function PublicTalentOffersSection({ profileId }) {
         <TalentDetailModal
           talent={selected}
           onClose={() => setSelected(null)}
+          bookable={
+            !!openTalentBooking
+            && !!user?.id
+            && user.id !== profileId
+            && (selected.price_per_hour != null || selected.price_per_session != null)
+          }
+          onBook={() => {
+            // TALENT-BUCHEN-ANCHOR-FIX-Muster: Sheet zuerst schliessen,
+            // damit es nicht "verankert" hinter dem Booking-Flow stehen bleibt
+            setSelected(null);
+            openTalentBooking(selected);
+          }}
         />
       )}
     </>
