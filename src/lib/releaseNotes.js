@@ -17,6 +17,41 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.596 — von Michael am 13.09.2026 freigegeben ("perfekt deployen mit den
+  // texten 11 texten", DEPLOY-INFO-REGEL). 11 Punkte = 5 neue Fixes aus der
+  // Sammel-Queue des 13.09. (Moment-Multi-Upload, Talent-Buchung im Profil,
+  // Impact-Detail Problem/Vision, Impact-Karten-i18n, Broadcast-Titel fett)
+  // PLUS die 6 Punkte von 2.1.595 von gestern (Michaels Wunsch: auch Tester
+  // sehen, die seit 2.1.594 nicht neu gestartet haben — Note-FORMAT-Regel
+  // "max 5-6 Punkte" hier bewusst durch Michaels explizite Freigabe ersetzt).
+  "2.1.596": {
+    de: [
+      "Momente: Jetzt mehrere Bilder und Videos in einem Moment möglich.",
+      "Talent-Angebote: Direkt vom Profil aus buchbar.",
+      "Herzensprojekte: Problem- und Visionstexte jetzt im Detail sichtbar.",
+      "Impact-Karten: Vollständig in deiner Sprache.",
+      "Systemnachrichten: Titel jetzt klar hervorgehoben.",
+      "Projekt-Antrag: Wähle jetzt bis zu 3 Förderbereiche — mit neuen Bereichen wie Innovation und Sport.",
+      "Profilbilder laden deutlich schneller.",
+      "Impact: Noch klarere Erklärung, wie die Förderung verteilt wird.",
+      "Neue Entdecken-Seite im Web mit HUI-Talente-Videos.",
+      "Profil-Sichtbarkeit vereinfacht: Öffentlich oder Privat.",
+      "Konto-Wechsel übersichtlicher — das Tutorial erklärt jetzt mehrere Konten.",
+    ],
+    en: [
+      "Moments: Share multiple photos and videos in one post.",
+      "Talent offers: Bookable directly from profiles.",
+      "Heart projects: Problem and vision texts now visible in detail view.",
+      "Impact cards: Fully translated into your language.",
+      "System messages: Titles now clearly highlighted.",
+      "Project applications: choose up to 3 funding areas — with new areas like innovation and sport.",
+      "Profile pictures load much faster.",
+      "Impact: clearer explanation of how funding is distributed.",
+      "New Discover page on the web with HUI talent videos.",
+      "Profile visibility simplified: Public or Private.",
+      "Account switching redesigned — the tutorial now explains multiple accounts.",
+    ],
+  },
   // 2.1.595 — von Michael am 12.09.2026 freigegeben ("deploy mit text")
   // (DEPLOY-INFO-REGEL; fasst die Sammel-Queue zusammen: Bereiche-Multi-Select
   // + 4 neue Bereiche, Profilbild-Vorwaermung, Impact-Texte 50/30/20,
