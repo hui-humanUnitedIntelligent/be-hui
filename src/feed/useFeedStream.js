@@ -114,7 +114,17 @@ async function fetchFeedPage(userId = null, cursors = null) {
         // dadurch wurde der volle Broadcast-Bodytext (unifiedNormalizer.js kombiniert
         // caption+content) nie an den Client geliefert, egal wie der Normalizer selbst
         // aussah. Additiv ergaenzt, keine bestehende Spalte entfernt.
-        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at,moderation_blurred,moderation_flag,moderation_categories,thumbnail_url")
+        // FEED-MEDIA-URLS-001 (2026-09-13, Karen-Report 7232d65c): "media_urls"
+        // fehlte hier -- MOMENT-MULTI-UPLOAD-001 speichert Mehrbild-Momente als
+        // media_urls-Array, und unifiedNormalizer.extractMedia() hat bereits
+        // eine media_urls-Behandlung, bekam die Spalte im initialen Feed-Load
+        // aber NIE mitgeliefert. Folge: Feed-Karte zeigte nach App-Neustart nur
+        // das Einzelbild aus dem src-Fallback, obwohl das Moment 2-10 Medien
+        // hatte. Der Realtime-INSERT-Pfad (payload.new = volle Row) lieferte
+        // media_urls korrekt -- deshalb wirkte der Multi-Upload direkt nach
+        // dem Posten korrekt und brach erst nach Neustart sichtbar auf.
+        // Additiv: media_urls ergänzt, keine bestehende Spalte entfernt.
+        .select("id,user_id,src,type,moment_source,linked_project_id,caption,content,created_at,moderation_blurred,moderation_flag,moderation_categories,thumbnail_url,media_urls")
         .order("created_at", { ascending: false })
         .limit(limit)
     ),
