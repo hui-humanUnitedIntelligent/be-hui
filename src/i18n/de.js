@@ -2279,6 +2279,10 @@ export default {
   'notif.delete': 'Löschen',
   'notif.cancel': 'Abbrechen',
   'notif.deleteBtn': '✕ Löschen',
+  // NOTIF-CLEAR-ALL-001 (2026-09-14)
+  'notif.clearAll': 'Alle löschen',
+  'notif.clearAllConfirmTitle': 'Alle Benachrichtigungen löschen?',
+  'notif.clearAllConfirmBody': 'Damit entfernst du dauerhaft alle Einträge im Resonanzzentrum. Das kann nicht rückgängig gemacht werden.',
   'notif.markAllRead': 'Alle gelesen ✓',
   'notif.loading': 'Lädt…',
   'notif.tab.all': 'Alle',

@@ -2271,6 +2271,10 @@ export default {
   'notif.delete': 'Eliminar',
   'notif.cancel': 'Cancelar',
   'notif.deleteBtn': '✕ Eliminar',
+  // NOTIF-CLEAR-ALL-001 (2026-09-14)
+  'notif.clearAll': 'Eliminar todo',
+  'notif.clearAllConfirmTitle': '¿Eliminar todas las notificaciones?',
+  'notif.clearAllConfirmBody': 'Esto elimina permanentemente todas las entradas de tu centro de notificaciones. No se puede deshacer.',
   'notif.markAllRead': 'Todo leído ✓',
   'notif.loading': 'Cargando…',
   'notif.tab.all': 'Todo',

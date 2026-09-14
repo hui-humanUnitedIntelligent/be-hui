@@ -1331,6 +1331,8 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
   // Init SOFORT aus localStorage (kein Filter-Flackern), danach DB-Merge.
   const [filterPrefs, setFilterPrefs] = useState(loadNotifPrefsLocal);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  // NOTIF-CLEAR-ALL-001 (2026-09-14, Michael-Report d4c77762): "Alle löschen"-Button
+  const [showClearAllConfirm, setShowClearAllConfirm] = useState(false);
   useEffect(() => {
     // DB ist die persistente Wahrheit (überlebt Logout/Login/Gerätewechsel) —
     // localStorage nur schneller UI-Fallback. null = DB unreachable → lokal.
@@ -1477,6 +1479,22 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
     } catch { /* silent */ }
   }
 
+  // NOTIF-CLEAR-ALL-001: Alle Benachrichtigungen des Users löschen.
+  // Gleiches RLS-gesicherte Muster wie markAllRead (update über alle
+  // user_id-Zeilen) — nur hier eben delete. Optimistic: Liste sofort leeren,
+  // Badge auf 0, danach DB.
+  async function clearAllNotifs() {
+    if (!userId) return;
+    setNotifs([]);
+    onUnreadChange?.(0);
+    window.dispatchEvent(new CustomEvent("hui:notif:read"));
+    try {
+      // WIRKLICH alle (die Liste lädt nur die letzten 60 — delete über
+      // user_id erfasst auch ältere, ungeladene Benachrichtigungen)
+      await supabase.from("notifications").delete().eq("user_id", userId);
+    } catch { /* silent */ }
+  }
+
   // ── Tab-Definitionen (4 Tabs, RESONANZ-BUCHUNG-001 2026-08-08) ────────────
   // Alle / Buchungen / Kauf & Verkauf / Informativ.
   // SSOT-Spiegel von fn_notification_category() in der DB (muss synchron
@@ -1550,6 +1568,14 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
                 <span style={{ position:"absolute", top:0, right:0, width:9, height:9, borderRadius:"50%", background:T.teal, border:"1.5px solid #fff" }}/>
               )}
             </button>
+            {/* NOTIF-CLEAR-ALL-001: "Alle löschen" oben rechts (nur wenn
+                Einträge vorhanden). Papierkorb-Icon im selben Stil wie Filter
+                + Close; Massen-Löschung nur über Bestätigungsdialog. */}
+            {notifs.length > 0 && (
+              <button onClick={() => setShowClearAllConfirm(true)} aria-label={t("notif.clearAll")} title={t("notif.clearAll")} style={{ width:32, height:32, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              </button>
+            )}
             <button onClick={onClose} style={{ width:32, height:32, borderRadius:"50%", background:"rgba(26,26,24,0.06)", border:`1px solid ${T.border}`, fontSize:16, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
           </div>
         </div>
@@ -1608,6 +1634,42 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
           )}
         </div>
       </div>
+
+      {/* NOTIF-CLEAR-ALL-001: Bestätigungsdialog "Alle löschen" */}
+      {showClearAllConfirm && (
+        <div
+          onClick={() => setShowClearAllConfirm(false)}
+          style={{
+            position:"fixed", inset:0, zIndex:99999,
+            background:"rgba(10,26,26,0.60)",
+            display:"flex", alignItems:"center", justifyContent:"center", padding:24,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background:"#fff", borderRadius:16, padding:"22px 20px 18px",
+              maxWidth:300, width:"100%",
+              boxShadow:"0 20px 60px rgba(0,0,0,0.25)",
+            }}
+          >
+            <div style={{ fontSize:16, fontWeight: 600, color:"#1a1a18", marginBottom:8 }}>{t("notif.clearAllConfirmTitle")}</div>
+            <div style={{ fontSize:13, color:"#888", marginBottom:20, lineHeight:1.5 }}>
+              {t("notif.clearAllConfirmBody")}
+            </div>
+            <div style={{ display:"flex", gap:10 }}>
+              <button
+                onClick={() => setShowClearAllConfirm(false)}
+                style={{ flex:1, padding:"12px", borderRadius:99, background:"rgba(26,26,24,0.07)", border:"none", color:"#1a1a18", fontSize:13, fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}
+              >{t("notif.cancel")}</button>
+              <button
+                onClick={() => { setShowClearAllConfirm(false); clearAllNotifs(); }}
+                style={{ flex:1, padding:"12px", borderRadius:99, background:"#DC2626", border:"none", color:"#fff", fontSize:13, fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}
+              >{t("notif.clearAll")}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NOTIF-TYPE-PREFS-001: Filter-Modal (Benachrichtigungstypen) */}
       {showFilterModal && (

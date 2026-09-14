@@ -2911,6 +2911,10 @@ export default {
   'notif.defaultTitle': 'Mesazh nga admini',
   'notif.delete': 'Fshi',
   'notif.deleteBtn': '✕ Fshi',
+  // NOTIF-CLEAR-ALL-001 (2026-09-14)
+  'notif.clearAll': 'Fshi të gjitha',
+  'notif.clearAllConfirmTitle': 'Të fshihen të gjitha njoftimet?',
+  'notif.clearAllConfirmBody': 'Kjo i largon përgjithmonë të gjitha hyrjet në qendrën e njoftimeve. Nuk mund të zhbëhet.',
   'notif.deleteConfirmBody': 'Ky njoftim do të hiqet përgjithmonë.',
   'notif.deleteConfirmTitle': 'Fshi mesazhin?',
   'notif.empty': 'Nuk ka njoftime',

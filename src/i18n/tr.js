@@ -2271,6 +2271,10 @@ export default {
   'notif.delete': 'Sil',
   'notif.cancel': 'İptal',
   'notif.deleteBtn': '✕ Sil',
+  // NOTIF-CLEAR-ALL-001 (2026-09-14)
+  'notif.clearAll': 'Tümünü sil',
+  'notif.clearAllConfirmTitle': 'Tüm bildirimler silinsin mi?',
+  'notif.clearAllConfirmBody': 'Bu, bildirim merkezinizdeki tüm kayıtları kalıcı olarak kaldırır. Bu işlem geri alınamaz.',
   'notif.markAllRead': 'Tümü okundu ✓',
   'notif.loading': 'Yükleniyor…',
   'notif.tab.all': 'Tümü',
