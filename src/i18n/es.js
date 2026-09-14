@@ -3734,6 +3734,47 @@ export default {
   'ipt.deleteBlockedApproved': 'Los proyectos aprobados forman parte del historial de Impact y no se pueden eliminar.',
   'ipt.titleEmpty': 'El título no puede estar vacío.',
   'ipt.title': 'Título',
+
+  'ipt.editProject': 'Editar proyecto',
+
+  'ipt.editHint': 'Después de guardar, tu cambio será revisado de nuevo por el equipo de HUI. Todos los votos recibidos se conservarán.',
+
+  'ipt.editCoverLabel': 'Imagen de portada',
+
+  'ipt.editCoverChange': 'Cambiar imagen de portada',
+
+  'ipt.editCoverImageOnly': 'La imagen de portada debe ser una foto.',
+
+  'ipt.editNameLabel': 'Nombre del proyecto',
+
+  'ipt.editShortLabel': 'Descripción breve',
+
+  'ipt.editFundingLabel': 'Objetivo de financiación (€)',
+
+  'ipt.editImagesLabel': 'Imágenes',
+
+  'ipt.editAddImages': 'Añadir imágenes',
+
+  'ipt.editRemoveImage': 'Eliminar imagen',
+
+  'ipt.editSubmit': 'Enviar cambios',
+
+  'ipt.editSubmitting': 'Enviando…',
+
+  'ipt.editSaved': 'Cambios enviados — tu proyecto será revisado de nuevo.',
+
+  'ipt.editSaveError': 'Error al guardar. Inténtalo de nuevo.',
+
+  'ipt.editNameRequired': 'Introduce un nombre de proyecto.',
+
+  'ipt.editLoadError': 'No se pudo cargar el proyecto.',
+
+  'ipt.editUploadError': 'Error al subir. Inténtalo de nuevo.',
+
+  'ipt.editNotifTitle': 'Cambios enviados',
+
+  'ipt.editNotifBody': 'Tus cambios en "{name}" están siendo revisados. Todos los votos se conservarán.',
+
   'ps.imageUnavailable': 'Imagen no disponible',
   'ps.openForEncounters': 'Abierto a encuentros',
   'ps.openForWhat': '¿A qué estás abierto? ¿Qué te interesa?',

@@ -14,6 +14,10 @@ import { DeleteConfirmSheet } from "./ActionSheets.jsx";
 // HerzensprojektEmotional/"Herzensprojekt einreichen" verlinkt ist — kein neuer
 // Flow, nur ein zweiter Zugangsweg zum selben Modal (analog Skills-Reaktivierung).
 import ImpactFlow from "../../../system/flows/impact/ImpactFlow.jsx";
+// IMPACT-PROJECT-EDIT-001 (2026-09-14, Michael-Feature-Request): genehmigte
+// Projekte sind bearbeitbar (Preis, Texte, Bilder) — Speichern = neuer
+// SADB-Antrag (status 'pending'), Stimmen bleiben erhalten.
+import ImpactProjectEditSheet from "./ImpactProjectEditSheet.jsx";
 
 export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const { t } = useTranslation();
@@ -41,6 +45,9 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
   const [confirmProject, setConfirmProject] = React.useState(null);
   // IMPACT-PROJEKT-ADD-BUTTON (2026-09-07): öffnet den bestehenden ImpactFlow-Wizard
   const [showFlow, setShowFlow] = React.useState(false);
+  // IMPACT-PROJECT-EDIT-001: Projekt-ID dessen Edit-Sheet offen ist (nur
+  // approved && !is_completed — Button-Guard unten im Detail-Overlay).
+  const [editingProjectId, setEditingProjectId] = React.useState(null);
 
   // impact_applications nutzt 'user_id' als User-Feld
   const userField = "user_id";
@@ -484,6 +491,24 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
             )}
           </div>
 
+          {/* IMPACT-PROJECT-EDIT-001 (2026-09-14, Michael): "✏️ Bearbeiten" für
+              genehmigte Projekte — Speichern schickt automatisch einen neuen
+              Antrag ins SADB (status 'pending'), alle Stimmen bleiben erhalten.
+              Abgeschlossene Projekte (is_completed) sind geschützt wie beim
+              Löschen (Impact-Historie / Auszahlungshistorie unangetastet). */}
+          {selected.status === "approved" && !selected.is_completed && (
+            <button
+              onClick={() => { setEditingProjectId(selected.id); setSelected(null); }}
+              style={{
+                width:"100%", padding:"10px 0", borderRadius:12,
+                border:"1.5px solid rgba(14,196,184,0.35)", background:"rgba(14,196,184,0.08)",
+                color:"#0EC4B8", fontSize:13, fontWeight: 600,
+                cursor:"pointer", fontFamily:"inherit", marginBottom:8,
+              }}
+            >
+              {t("ipt.editProject")}
+            </button>
+          )}
           {selected.status === "approved" && (
             <button
               onClick={() => { onUpdateClick(selected); setSelected(null); }}
@@ -519,6 +544,19 @@ export function ImpactProjekteTab({ profile, supabase, onUpdateClick }) {
           </button>
         </div>
       </div>
+    )}
+
+    {/* IMPACT-PROJECT-EDIT-001: Edit-Sheet (Portal, zIndex 10500) */}
+    {editingProjectId && (
+      <ImpactProjectEditSheet
+        projectId={editingProjectId}
+        onClose={() => setEditingProjectId(null)}
+        onSaved={(updated) => {
+          // Lokale Liste synchron halten: Badge wechselt auf "In Prüfung",
+          // geaenderter Name/Cover sofort sichtbar.
+          setProjects(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+        }}
+      />
     )}
 
     {confirmProject && (

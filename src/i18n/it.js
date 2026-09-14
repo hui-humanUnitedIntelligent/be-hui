@@ -3734,6 +3734,47 @@ export default {
   'ipt.deleteBlockedApproved': 'I progetti approvati fanno parte della cronologia Impact e non possono essere eliminati.',
   'ipt.titleEmpty': 'Il titolo non può essere vuoto.',
   'ipt.title': 'Titolo',
+
+  'ipt.editProject': 'Modifica progetto',
+
+  'ipt.editHint': 'Dopo il salvataggio, la tua modifica verrà nuovamente verificata dal team HUI. Tutti i voti ricevuti saranno conservati.',
+
+  'ipt.editCoverLabel': 'Immagine di copertina',
+
+  'ipt.editCoverChange': 'Cambia immagine di copertina',
+
+  'ipt.editCoverImageOnly': 'L\'immagine di copertina deve essere una foto.',
+
+  'ipt.editNameLabel': 'Nome del progetto',
+
+  'ipt.editShortLabel': 'Descrizione breve',
+
+  'ipt.editFundingLabel': 'Obiettivo di finanziamento (€)',
+
+  'ipt.editImagesLabel': 'Immagini',
+
+  'ipt.editAddImages': 'Aggiungi immagini',
+
+  'ipt.editRemoveImage': 'Rimuovi immagine',
+
+  'ipt.editSubmit': 'Invia modifiche',
+
+  'ipt.editSubmitting': 'Invio…',
+
+  'ipt.editSaved': 'Modifiche inviate — il tuo progetto verrà nuovamente verificato.',
+
+  'ipt.editSaveError': 'Salvataggio non riuscito. Riprova.',
+
+  'ipt.editNameRequired': 'Inserisci un nome per il progetto.',
+
+  'ipt.editLoadError': 'Impossibile caricare il progetto.',
+
+  'ipt.editUploadError': 'Caricamento non riuscito. Riprova.',
+
+  'ipt.editNotifTitle': 'Modifiche inviate',
+
+  'ipt.editNotifBody': 'Le tue modifiche a "{name}" sono in verifica. Tutti i voti saranno conservati.',
+
   'ps.imageUnavailable': 'Immagine non disponibile',
   'ps.openForEncounters': 'Aperto a incontri',
   'ps.openForWhat': 'A cosa sei aperto? Cosa ti interessa?',

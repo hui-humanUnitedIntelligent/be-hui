@@ -3758,6 +3758,47 @@ export default {
   'ipt.deleteBlockedApproved': 'Approved projects are part of the Impact history and cannot be deleted.',
   'ipt.titleEmpty': 'Title cannot be empty.',
   'ipt.title': 'Title',
+
+  'ipt.editProject': 'Edit project',
+
+  'ipt.editHint': 'After saving, your change will be reviewed by the HUI team again. All votes you\'ve received will be kept.',
+
+  'ipt.editCoverLabel': 'Cover image',
+
+  'ipt.editCoverChange': 'Change cover image',
+
+  'ipt.editCoverImageOnly': 'Cover images must be pictures.',
+
+  'ipt.editNameLabel': 'Project name',
+
+  'ipt.editShortLabel': 'Short description',
+
+  'ipt.editFundingLabel': 'Funding goal (€)',
+
+  'ipt.editImagesLabel': 'Images',
+
+  'ipt.editAddImages': 'Add images',
+
+  'ipt.editRemoveImage': 'Remove image',
+
+  'ipt.editSubmit': 'Submit changes',
+
+  'ipt.editSubmitting': 'Sending…',
+
+  'ipt.editSaved': 'Changes submitted — your project will be reviewed again.',
+
+  'ipt.editSaveError': 'Saving failed. Please try again.',
+
+  'ipt.editNameRequired': 'Please enter a project name.',
+
+  'ipt.editLoadError': 'Project could not be loaded.',
+
+  'ipt.editUploadError': 'Upload failed. Please try again.',
+
+  'ipt.editNotifTitle': 'Changes submitted',
+
+  'ipt.editNotifBody': 'Your changes to "{name}" are being reviewed. All votes will be kept.',
+
   'ps.imageUnavailable': 'Image unavailable',
   'ps.openForEncounters': 'Open for encounters',
   'ps.openForWhat': 'What are you open to? What interests you?',

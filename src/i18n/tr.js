@@ -3734,6 +3734,47 @@ export default {
   'ipt.deleteBlockedApproved': 'Onaylanmış projeler Impact geçmişinin bir parçasıdır ve silinemez.',
   'ipt.titleEmpty': 'Başlık boş olamaz.',
   'ipt.title': 'Başlık',
+
+  'ipt.editProject': 'Projeyi düzenle',
+
+  'ipt.editHint': 'Kaydettikten sonra değişikliğin HUI ekibi tarafından tekrar incelenecek. Aldığın tüm oylar korunacak.',
+
+  'ipt.editCoverLabel': 'Kapak görseli',
+
+  'ipt.editCoverChange': 'Kapak görselini değiştir',
+
+  'ipt.editCoverImageOnly': 'Kapak görseli bir fotoğraf olmalı.',
+
+  'ipt.editNameLabel': 'Proje adı',
+
+  'ipt.editShortLabel': 'Kısa açıklama',
+
+  'ipt.editFundingLabel': 'Finansman hedefi (€)',
+
+  'ipt.editImagesLabel': 'Görseller',
+
+  'ipt.editAddImages': 'Görsel ekle',
+
+  'ipt.editRemoveImage': 'Görseli kaldır',
+
+  'ipt.editSubmit': 'Değişiklikleri gönder',
+
+  'ipt.editSubmitting': 'Gönderiliyor…',
+
+  'ipt.editSaved': 'Değişiklikler gönderildi — projen tekrar incelenecek.',
+
+  'ipt.editSaveError': 'Kaydedilemedi. Lütfen tekrar dene.',
+
+  'ipt.editNameRequired': 'Lütfen bir proje adı gir.',
+
+  'ipt.editLoadError': 'Proje yüklenemedi.',
+
+  'ipt.editUploadError': 'Yükleme başarısız. Lütfen tekrar dene.',
+
+  'ipt.editNotifTitle': 'Değişiklikler gönderildi',
+
+  'ipt.editNotifBody': '"{name}" projesindeki değişikliklerin inceleniyor. Tüm oylar korunacak.',
+
   'ps.imageUnavailable': 'Görsel mevcut değil',
   'ps.openForEncounters': 'Karşılaşmalara açık',
   'ps.openForWhat': 'Neye açıksın? Ne ilgini çekiyor?',

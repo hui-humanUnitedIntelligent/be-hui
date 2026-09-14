@@ -3750,6 +3750,47 @@ export default {
   'ipt.deleteBlockedApproved': 'Genehmigte Projekte sind Teil der Impact-Historie und können nicht gelöscht werden.',
   'ipt.titleEmpty': 'Überschrift darf nicht leer sein.',
   'ipt.title': 'Überschrift',
+
+  'ipt.editProject': 'Projekt bearbeiten',
+
+  'ipt.editHint': 'Nach dem Speichern wird deine Änderung erneut vom HUI-Team geprüft. Alle bisherigen Stimmen bleiben erhalten.',
+
+  'ipt.editCoverLabel': 'Titelbild',
+
+  'ipt.editCoverChange': 'Titelbild ändern',
+
+  'ipt.editCoverImageOnly': 'Als Titelbild sind nur Bilder möglich.',
+
+  'ipt.editNameLabel': 'Projektname',
+
+  'ipt.editShortLabel': 'Kurzbeschreibung',
+
+  'ipt.editFundingLabel': 'Fördersumme (€)',
+
+  'ipt.editImagesLabel': 'Bilder',
+
+  'ipt.editAddImages': 'Bilder hinzufügen',
+
+  'ipt.editRemoveImage': 'Bild entfernen',
+
+  'ipt.editSubmit': 'Änderung einreichen',
+
+  'ipt.editSubmitting': 'Wird gesendet…',
+
+  'ipt.editSaved': 'Änderung eingereicht — dein Projekt wird erneut geprüft.',
+
+  'ipt.editSaveError': 'Speichern fehlgeschlagen. Bitte versuche es erneut.',
+
+  'ipt.editNameRequired': 'Bitte gib einen Projektnamen ein.',
+
+  'ipt.editLoadError': 'Projekt konnte nicht geladen werden.',
+
+  'ipt.editUploadError': 'Upload fehlgeschlagen. Bitte versuche es erneut.',
+
+  'ipt.editNotifTitle': 'Änderung eingereicht',
+
+  'ipt.editNotifBody': 'Deine Änderungen an "{name}" werden geprüft. Alle Stimmen bleiben erhalten.',
+
   'ps.imageUnavailable': 'Bild nicht verfügbar',
   'ps.openForEncounters': 'Offen für Begegnungen',
   'ps.openForWhat': 'Wofür bist du offen? Was interessiert dich?',

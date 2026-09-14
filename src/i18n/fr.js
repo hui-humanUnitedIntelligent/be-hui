@@ -3735,6 +3735,47 @@ export default {
   'ipt.deleteBlockedApproved': 'Les projets approuvés font partie de l\'historique Impact et ne peuvent pas être supprimés.',
   'ipt.titleEmpty': 'Le titre ne peut pas être vide.',
   'ipt.title': 'Titre',
+
+  'ipt.editProject': 'Modifier le projet',
+
+  'ipt.editHint': 'Après l\'enregistrement, votre modification sera à nouveau vérifiée par l\'équipe HUI. Tous vos votes reçus seront conservés.',
+
+  'ipt.editCoverLabel': 'Image de couverture',
+
+  'ipt.editCoverChange': 'Changer l\'image de couverture',
+
+  'ipt.editCoverImageOnly': 'L\'image de couverture doit être une photo.',
+
+  'ipt.editNameLabel': 'Nom du projet',
+
+  'ipt.editShortLabel': 'Description courte',
+
+  'ipt.editFundingLabel': 'Objectif de financement (€)',
+
+  'ipt.editImagesLabel': 'Images',
+
+  'ipt.editAddImages': 'Ajouter des images',
+
+  'ipt.editRemoveImage': 'Supprimer l\'image',
+
+  'ipt.editSubmit': 'Envoyer les modifications',
+
+  'ipt.editSubmitting': 'Envoi…',
+
+  'ipt.editSaved': 'Modifications envoyées — votre projet sera à nouveau vérifié.',
+
+  'ipt.editSaveError': 'Échec de l\'enregistrement. Veuillez réessayer.',
+
+  'ipt.editNameRequired': 'Veuillez saisir un nom de projet.',
+
+  'ipt.editLoadError': 'Le projet n\'a pas pu être chargé.',
+
+  'ipt.editUploadError': 'Échec du téléversement. Veuillez réessayer.',
+
+  'ipt.editNotifTitle': 'Modifications envoyées',
+
+  'ipt.editNotifBody': 'Vos modifications de « {name} » sont en cours de vérification. Tous les votes seront conservés.',
+
   'ps.imageUnavailable': 'Image non disponible',
   'ps.openForEncounters': 'Ouvert aux rencontres',
   'ps.openForWhat': 'À quoi es-tu ouvert ? Qu\'est-ce qui t\'intéresse ?',

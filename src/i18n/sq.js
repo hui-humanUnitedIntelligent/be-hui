@@ -2239,6 +2239,47 @@ export default {
   'impact.zusatzmaterial': 'Materiale shtesë ({count} skedar)',
   'inv.errorPublish': 'Gabim te Verpubliken',
   'ipt.title': 'Titulli',
+
+  'ipt.editProject': 'Redakto projektin',
+
+  'ipt.editHint': 'Pas ruajtjes, ndryshimi yt do të rishikohet nga ekipi HUI. Të gjithë votat e marra do të ruhen.',
+
+  'ipt.editCoverLabel': 'Foto e kopertinës',
+
+  'ipt.editCoverChange': 'Ndrysho foton e kopertinës',
+
+  'ipt.editCoverImageOnly': 'Foto e kopertinës duhet të jetë imazh.',
+
+  'ipt.editNameLabel': 'Emri i projektit',
+
+  'ipt.editShortLabel': 'Përshkrim i shkurtër',
+
+  'ipt.editFundingLabel': 'Objektivi i financimit (€)',
+
+  'ipt.editImagesLabel': 'Imazhe',
+
+  'ipt.editAddImages': 'Shto imazhe',
+
+  'ipt.editRemoveImage': 'Hiq imazhin',
+
+  'ipt.editSubmit': 'Dërgo ndryshimet',
+
+  'ipt.editSubmitting': 'Po dërgohet…',
+
+  'ipt.editSaved': 'Ndryshimet u dërguan — projekti yt do të rishikohet.',
+
+  'ipt.editSaveError': 'Ruajtja dështoi. Provo përsëri.',
+
+  'ipt.editNameRequired': 'Jep një emër për projektin.',
+
+  'ipt.editLoadError': 'Projekti nuk mund të ngarkohej.',
+
+  'ipt.editUploadError': 'Ngarkimi dështoi. Provo përsëri.',
+
+  'ipt.editNotifTitle': 'Ndryshimet u dërguan',
+
+  'ipt.editNotifBody': 'Ndryshimet tuaja në "{name}" po rishikohen. Të gjitha votat do të ruhen.',
+
   'ipt.deleteBlockedApproved': 'Projektet e miratuara janë pjesë e historisë së Impact dhe nuk mund të fshihen.',
   'ipt.titleEmpty': 'Titulli nuk mund të jetë bosh.',
   'ipu.titlePrompt': 'Të lutem vendos një titull.',
