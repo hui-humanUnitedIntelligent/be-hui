@@ -24,6 +24,28 @@ export const RELEASE_NOTES = {
   // + BOOKING-CHAT-001 + BOOKING-WAS-001 + OG-CATCHY-001 (38d4c22f: Social-
   // Share-Previews mit Bild/Titel/Beschreibung, Talent-Route, Projekt-Fix,
   // 2 Broken-Fallback-Images, Share-Texte ×8 Sprachen).
+  // 2.1.600 — von Michael am 14.09.2026 freigegeben ("okay deployen" nach
+  // Vorlage der 6 Punkte DE+EN). Sammel-OTA-Queue: Momente-Textfeld,
+  // Projekt-Bearbeitung, Buchungs-Labels/CTA, Werkekorb, Telegram-Teilen,
+  // Tablet-Layout + Impact-Liste.
+  "2.1.600": {
+    de: [
+      "Momente mit Text: Zu Foto-, Video- und Galerie-Momenten gibt es jetzt ein richtiges Textfeld — bis 400 Zeichen.",
+      "Projekte bearbeiten: Genehmigte Herzensprojekte kannst du unter \"Mein Bereich\" bearbeiten (Texte, Förderbetrag, Bilder). Änderungen werden kurz geprüft — alle bisherigen Stimmen bleiben erhalten.",
+      "Buchungen klarer: Bestätigung heißt jetzt \"Leistung erhalten/erbracht\" (statt \"Ware erhalten\"), der Kontakt-Button nach der Buchung ist deutlich sichtbar und der Chat öffnet zuverlässig.",
+      "Werkekorb: Video-Werke zeigen ein echtes Vorschaubild, und du bekommst bei jedem Hinzufügen eine Bestätigung.",
+      "Teilen: Der Link in Telegram-Nachrichten erscheint nur noch einmal (nicht mehr doppelt).",
+      "Tablet & Listen: Profile auf iPad/Tablet sind einheitlich zentriert, und die Impact-Liste zeigt neu freigegebene Projekte sofort.",
+    ],
+    en: [
+      "Moments with text: Photo, video and gallery moments now have a real text field — up to 400 characters.",
+      "Edit your projects: Approved heart projects can be edited under \"My Area\" (texts, funding goal, images). Changes are briefly reviewed — all your votes are kept.",
+      "Clearer bookings: Confirmation now says \"Service received/provided\" (instead of \"Goods received\"), the contact button after booking is clearly visible, and chat opens reliably.",
+      "Works basket: Video works show a real preview image, and you get a confirmation every time you add an item.",
+      "Sharing: The link in Telegram messages now appears only once (no longer twice).",
+      "Tablet & lists: Profiles on iPad/tablet are evenly centered, and the impact list shows newly approved projects immediately.",
+    ],
+  },
   "2.1.599": {
     de: [
       "Teilen: Links zu Werken, Talenten, Erlebnissen und Projekten zeigen jetzt Bild und Beschreibung — z. B. in WhatsApp und Telegram.",
