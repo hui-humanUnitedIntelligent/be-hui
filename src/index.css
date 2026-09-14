@@ -670,15 +670,25 @@ body.hui-keyboard-open [contenteditable]:focus {
    Tablets/Desktop: Profil-Seiten laufen edge-to-edge und wirken
    "verzogen" (Michael-Report iPad, 2026-09-11). Die vier Profil-
    Scroll-Container (ppp/mbp/bpp/tpp) bekommen deshalb eine
-   zentrierte Inhaltsspalte: direkte Kinder max. 900px breit.
-   Mobile (<768px) unberaehrt. Vollflaechige Elemente (Sticky-
-   Header) bleiben funktional - sticky + max-width + margin:auto
-   zentriert korrekt. */
+   zentrierte 900px-Inhaltsspalte — seit TABLET-LAYOUT-002 (siehe
+   unten) auf CONTAINER-Ebene statt pro Kind. Mobile (<768px)
+   unberaehrt. */
 @media (min-width: 768px) {
-  .ppp-scroll > *,
-  .mbp-scroll > *,
-  .bpp-scroll > *,
-  .tpp-scroll > * {
+  /* TABLET-LAYOUT-002 (2026-09-14, Bug 4a7b08fd): Container statt
+     Kinder zentrieren. TABLET-LAYOUT-001 setzte max-width+margin:auto
+     auf JEDES direkte Kind der Scroll-Container — aber Sektionen mit
+     eigenen Inline-Margins (z.B. SchwerpunktStatsBlock/Recommenda-
+     tionsSection: margin: 0 20px) überschrieben das margin:auto durch
+     ihre Inline-Styles → diese Sektionen klebten am LINKEN Rand des
+     Breitbild-Viewports, während der Rest zentriert blieb (Lars-
+     Screenshot iPad-Web 2026-09-14: Kacheln/Empfehlungen ~213px ver-
+     schoben). Fix: Der Scroll-Container selbst wird auf 900px zen-
+     triert — Inline-Margins der Kinder wirken INNERHALB der Spalte
+     (20px Insets bleiben erhalten), nichts kann ausbrechen. */
+  .ppp-scroll,
+  .mbp-scroll,
+  .bpp-scroll,
+  .tpp-scroll {
     max-width: 900px;
     margin-left: auto;
     margin-right: auto;
