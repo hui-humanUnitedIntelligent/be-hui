@@ -53,6 +53,12 @@ function getKategorien(t) {
 }
 
 // ── HUI-Fit-Score Berechnung (0–100) ──────────────────────────
+// HUI-FIT-SCORE-V2 (2026-09-14, Michael-Spec): Schwellwerte gelockert,
+// Scoring fairer, RED_PERSONAL auf eindeutig egoistische Phrasen reduziert.
+// Rückgabe jetzt { score, breakdown } — der Breakdown wird beim Submit in
+// impact_applications.score_breakdown (jsonb) gespeichert und im SADB
+// angezeigt, damit Admins nachvollziehen können, warum ein Projekt
+// akzeptiert/manuell geprüft wurde (Anforderung 9 der Spec).
 function calcHuiFitScore(form) {
   const allText = [
     form.name, form.satz, form.problem, form.umsetzung,
@@ -61,9 +67,12 @@ function calcHuiFitScore(form) {
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 1 — SOFORT-ABBRUCH: Klare Ausschlusskriterien
+  // V2: Nur noch EINDEUTIG egoistische Phrasen. Mehrdeutige Alltags-/
+  // Farb-/Lebens-Formulierungen ("farbtupfer", "mein alltag", "mehr
+  // farbe in meinem" …) sind ENTFERNT — die lehnten sonst auch echte
+  // Community-/Kunst-im-öffentlichen-Raum-Projekte fälschlich ab
+  // (Michael-Report: "der Fit Score ist zu streng eingestellt").
   // ════════════════════════════════════════════════════════════════
-
-  // Rein privat / persönlich
   const RED_PERSONAL = [
     // Fahrzeuge
     "mein auto","mein fahrrad","mein motorrad",
@@ -79,15 +88,8 @@ function calcHuiFitScore(form) {
     "mein büro","mein keller","mein dachboden",
     // Schulden & Finanzen
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
-    // Reiner Ich-Fokus — ERWEITERT
-    "für mich allein","für mich selbst","für mich persönlich",
-    "meinen alltag","meinem alltag","meinen eigenen alltag",
-    "mein alltag","meines alltags",
-    "meinem leben","mein leben schöner","mein leben besser",
-    "mein eigenes","nur für mich","gehört mir",
-    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
-    "meinen alltag zu","in meinen alltag","bunte akzente","farbtupfer",
-    "meinen alltag fröhlicher","meinem alltag farbe","meinen alltag bunter",
+    // Explizit egozentrische Formulierungen (eindeutig, nicht mehrdeutig)
+    "für mich allein","für mich selbst","für mich persönlich","nur für mich",
   ];
   // Kommerziell / nicht gemeinnützig
   const RED_COMMERCIAL = [
@@ -98,11 +100,12 @@ function calcHuiFitScore(form) {
   const hitPersonal   = RED_PERSONAL.filter(kw => allText.includes(kw)).length;
   const hitCommercial = RED_COMMERCIAL.filter(kw => allText.includes(kw)).length;
 
-  if (hitPersonal >= 1)   return 8;   // 1 Treffer reicht bei privaten Phrasen
-  if (hitCommercial >= 1) return 12;
+  if (hitPersonal >= 1)   return { score: 8,  breakdown: ["Ausschluss: rein privat/persönlich (RED_PERSONAL-Treffer)"] };
+  if (hitCommercial >= 1) return { score: 12, breakdown: ["Ausschluss: kommerziell/nicht gemeinnützig (RED_COMMERCIAL-Treffer)"] };
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 2 — VAGHEITS-STRAFE: Unklare / planlose Sprache
+  // V2: Ablehnung erst ab 7 vagen Phrasen (vorher 5) — mehr Spielraum.
   // ════════════════════════════════════════════════════════════════
   const VAGUE_PHRASES = [
     "irgendwie","irgendwas","irgendwann","irgendwo",
@@ -115,13 +118,15 @@ function calcHuiFitScore(form) {
   ];
   const vagueHits = VAGUE_PHRASES.filter(kw => allText.includes(kw)).length;
 
-  // Bei massiver Vagheit → direkt ablehnen
-  if (vagueHits >= 5) return 10;  // erst bei sehr vielen vagen Phrasen ablehnen
+  // Bei massiver Vagheit → direkt ablehnen (V2: erst ab 7 statt 5)
+  if (vagueHits >= 7) return { score: 10, breakdown: [`Ausschluss: zu vage (${vagueHits} vage Phrasen)`] };
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 3 — PFLICHT: Zielgruppe & Gemeinwohl nachweisen
+  // V2: Zielgruppe ODER Gemeinwohl genügt hier; fehlt das Gemeinwohl-
+  // Keyword bei vorhandener Zielgruppe (z.B. "Spielplatz für Kinder im
+  // Quartier") gibt es NUR einen Score-Abzug (-8), KEINE Ablehnung.
   // ════════════════════════════════════════════════════════════════
-  // Ohne klare Zielgruppe oder Gemeinwohl-Bezug max. Score 35
   const ZIELGRUPPE = [
     "kinder","jugendliche","senioren","obdachlose","geflüchtete",
     "alleinerziehende","menschen mit behinderung","schüler","studierende",
@@ -141,14 +146,14 @@ function calcHuiFitScore(form) {
   const hasGemeinwohl = GEMEINWOHL.some(kw => allText.includes(kw));
 
   // Kein Gemeinwohl UND keine Zielgruppe → rein privat → ablehnen
-  if (!hasZielgruppe && !hasGemeinwohl) return 22;
+  if (!hasZielgruppe && !hasGemeinwohl) {
+    return { score: 22, breakdown: ["Ausschluss: weder Zielgruppe noch Gemeinwohl-Bezug erkennbar"] };
+  }
 
   // ════════════════════════════════════════════════════════════════
   // STUFE 4 — POSITIV-SCORING: HUI-Mission Keywords
-  // (nur wenn Grundbedingungen erfüllt)
   // ════════════════════════════════════════════════════════════════
   const HUI_MISSION = [
-    // Punkte reduziert — aber gute Projekte mit vielen echten Keywords kommen durch
     { kws:["gemeinschaft","nachbarschaft","verein","quartier","dorf","ehrenamt","freiwillig","gemeinnützig","bürgerschaft"], pts:12 },
     { kws:["bildung","schule","lernen","workshop","training","wissen","kinder","jugend","schüler","ausbildung","förder"],     pts:12 },
     { kws:["umwelt","klima","solar","recycling","nachhaltig","ökologisch","co2","artenvielfalt","meer","wald","energie"],     pts:11 },
@@ -162,87 +167,129 @@ function calcHuiFitScore(form) {
     { kws:["veränderung","entwicklung","wachstum","orientierung","klarheit","entscheidung","stärke","selbstwirksamkeit"], pts:9 },
   ];
 
-  let baseScore = 28; // Weicher Basis — gute Projekte kommen leichter durch
+  // V2: Basis 32 (vorher 28) — viele gute Projekte landeten bei 25-27
+  // und fielen durch die damalige Schwelle.
+  let baseScore = 32;
+  const breakdown = [`Basis-Score: 32`];
+  const kwHits = []; // für Breakdown: {label, pts}
 
   for (const group of HUI_MISSION) {
     const hits = group.kws.filter(kw => allText.includes(kw)).length;
-    // Faire Staffelung: 1 Keyword = 30%, 2 = 55%, 3 = 80%, 4+ = 100%
-    if (hits >= 4)       baseScore += group.pts;
-    else if (hits === 3) baseScore += Math.round(group.pts * 0.85);
-    else if (hits === 2) baseScore += Math.round(group.pts * 0.65);
-    else if (hits === 1) baseScore += Math.round(group.pts * 0.40);
+    // V2 faire Staffelung: 1 Keyword = 55%, 2 = 70%, 3 = 90%, 4+ = 100%
+    if (hits >= 4)       { baseScore += group.pts; kwHits.push({ label: group.kws[0], pts: group.pts }); }
+    else if (hits === 3) { const p = Math.round(group.pts * 0.90); baseScore += p; kwHits.push({ label: group.kws[0], pts: p }); }
+    else if (hits === 2) { const p = Math.round(group.pts * 0.70); baseScore += p; kwHits.push({ label: group.kws[0], pts: p }); }
+    else if (hits === 1) { const p = Math.round(group.pts * 0.55); baseScore += p; kwHits.push({ label: group.kws[0], pts: p }); }
+  }
+  if (kwHits.length) breakdown.push(`Keywords: ${kwHits.map(h => `${h.label} (+${h.pts})`).join(", ")}`);
+
+  // ── Vagheits-Abzug (V2: -2.5 pro Phrase statt -5 — max -15 statt -30) ──
+  if (vagueHits > 0) {
+    const abzug = vagueHits * 2.5;
+    baseScore -= abzug;
+    breakdown.push(`Vagheits-Abzug: -${abzug} (${vagueHits} vage ${vagueHits === 1 ? "Phrase" : "Phrasen"})`);
   }
 
-  // ── Vagheits-Abzug ────────────────────────────────────────────
-  baseScore -= vagueHits * 5; // -5 pro vager Phrase (weicher)
+  // ── V2: Zielgruppe vorhanden, aber kein Gemeinwohl-Keyword → -8 statt Ablehnung ──
+  if (hasZielgruppe && !hasGemeinwohl) {
+    baseScore -= 8;
+    breakdown.push("Zielgruppe erkannt, kein Gemeinwohl-Keyword: -8 (statt Ablehnung)");
+  }
 
-  // ── Kategorie-Bonus ───────────────────────────────────────────
-  // MULTI-SELECT (Bereiche-Feature): Boni aller gewaehlten Bereiche summieren,
-  // bei +10 gedeckelt (verhindert Score-Inflation durch Mehrfachwahl vs. frueheres Single +5)
+  // ── Kategorie-Bonus (V2: Cap +15 statt +10 — mehrere Bereiche zeigen
+  //    breite Wirkung und sollen nicht mehr bei +10 gedeckelt werden) ──
   const KAT_BONUS = { bildung:5, umwelt:5, gesundheit:4, gemeinschaft:4, tiere:4, kultur:3,
     soziales:5, innovation:5, menschenrechte:4, sport:3, ernaehrung:4 };
-  baseScore += Math.min(10, (form.kategorien || []).reduce(
-    (sum, k) => sum + (KAT_BONUS[k] || 0), 0));
+  const katSum = (form.kategorien || []).reduce((sum, k) => sum + (KAT_BONUS[k] || 0), 0);
+  const katBonus = Math.min(15, katSum);
+  if (katBonus > 0) breakdown.push(`Kategorie-Bonus: +${katBonus}`);
+  baseScore += katBonus;
 
   // ── Vollständigkeits-Bonus — nur bei echter inhaltlicher Tiefe ──
   const fields = [form.name, form.satz, form.problem, form.umsetzung];
   const filled  = fields.filter(v => (v||"").trim().length > 60).length;
+  if (filled > 0) breakdown.push(`Vollständigkeit: +${filled * 2} (${filled} Felder mit Tiefe)`);
   baseScore += filled * 2; // max +8 bei vollständigen Feldern
 
-  return Math.min(100, Math.max(0, baseScore));
+  // ── V2: Längen-Bonus — längere, engagierte Texte werden belohnt ──
+  const satzLen      = (form.satz      || "").trim().length;
+  const problemLen   = (form.problem   || "").trim().length;
+  const umsetzungLen = (form.umsetzung || "").trim().length;
+  if (satzLen > 100 && problemLen > 100 && umsetzungLen > 100) {
+    baseScore += 3;
+    breakdown.push("Längen-Bonus: +3 (alle Texte über 100 Zeichen)");
+  }
+
+  const score = Math.round(Math.min(100, Math.max(0, baseScore)));
+  breakdown.push(`Endscore: ${score}`);
+  return { score, breakdown };
 }
 
 // ── bewerteProjekt ────────────────────────────────────────────
+// HUI-FIT-SCORE-V2 (2026-09-14): Schwelle 28→25, Direkt-Route 70→65,
+// Mindestlänge 10→8 Zeichen, Gemeinwohl-Pflicht entschärft
+// (Zielgruppe ODER Gemeinwohl genügt — "Spielplatz für Kinder im
+// Quartier" hat kein Gemeinwohl-Keyword, ist aber gemeinnützig),
+// RED_PERSONAL analog zu calcHuiFitScore bereinigt.
 function bewerteProjekt(form) {
-  const score     = calcHuiFitScore(form);
+  const { score, breakdown } = calcHuiFitScore(form);
   const satz      = (form.satz      || "").trim();
   const problem   = (form.problem   || "").trim();
   const umsetzung = (form.umsetzung || "").trim();
   const allText   = [form.name, satz, problem, umsetzung].join(" ").toLowerCase();
 
-  // Mindestlänge
-  if (satz.length < 10 || problem.length < 10 || umsetzung.length < 10) {
-    return { geeignet: false, grund: "zu_kurz", score };
+  // V2: Mindestlänge 8 (vorher 10) — ein guter Satz kann auch 8-9 Zeichen haben
+  if (satz.length < 8 || problem.length < 8 || umsetzung.length < 8) {
+    return { geeignet: false, grund: "zu_kurz", score, breakdown };
   }
 
-  // Schwelle: 35 — private/vage Projekte sind bereits auf 8–22 gecappt (nie erreichbar)
-  // echte Projekte mit mehreren relevanten Keywords kommen ab 35 durch
-  if (score >= 28) {
+  // V2: Schwelle 25 (vorher 28) — private/vage Projekte sind auf 8-22
+  // gecappt (unerreichbar), echte Community-Projekte mit Zielgruppe
+  // kommen jetzt durch. Direkt-Route ab 65 (vorher 70).
+  if (score >= 25) {
     return {
       geeignet: true,
       score,
-      routing: score >= 70 ? "direkt" : "manuell",
+      breakdown,
+      routing: score >= 65 ? "direkt" : "manuell",
       wirkung: Math.round(score / 20),
     };
   }
 
   // Ablehnungsgrund bestimmen
+  // V2: analog calcHuiFitScore bereinigt — nur eindeutig egoistische
+  // Phrasen; mehrdeutige Alltags-/Farb-Formulierungen entfernt.
   const RED_PERSONAL = [
-    "mein auto","mein fahrrad","meine wohnung","mein haus","mein zimmer",
+    "mein auto","mein fahrrad","mein motorrad",
+    "meine wohnung","mein haus","mein zimmer","mein apartment",
     "wohnung kaufen","haus kaufen",
     "mein garten","meinen garten","meinem garten",
     "mein balkon","meinen balkon","meinem balkon",
     "meine terrasse","meiner terrasse",
     "mein fenster","meinem fenster",
     "meine küche","mein bad","mein schlafzimmer","mein wohnzimmer",
-    "meinen alltag","meinem alltag","in meinem alltag","mein alltag",
-    "mehr freude in meinen","mehr farbe in meinen","mehr farbe in meinem",
-    "bunte akzente","farbtupfer","meinen alltag fröhlicher","meinen alltag bunter",
     "meine schulden","hochzeit finanzieren","urlaub finanzieren",
     "für mich allein","für mich selbst","für mich persönlich","nur für mich",
   ];
   const RED_COMMERCIAL = ["rendite","investor gesucht","startup kapital","kryptowährung","mlm"];
   const VAGUE_CHECK    = ["irgendwie","irgendwas","nicht genau weiß","einfach ausprobieren","hoffe dass","mal schauen"];
 
-  if (RED_PERSONAL.some(kw => allText.includes(kw)))              return { geeignet: false, grund: "persoenlich",   score };
-  if (RED_COMMERCIAL.some(kw => allText.includes(kw)))            return { geeignet: false, grund: "kommerziell",   score };
-  if (VAGUE_CHECK.filter(kw => allText.includes(kw)).length >= 2) return { geeignet: false, grund: "zu_vage",       score };
+  if (RED_PERSONAL.some(kw => allText.includes(kw)))              return { geeignet: false, grund: "persoenlich",   score, breakdown };
+  if (RED_COMMERCIAL.some(kw => allText.includes(kw)))            return { geeignet: false, grund: "kommerziell",   score, breakdown };
+  if (VAGUE_CHECK.filter(kw => allText.includes(kw)).length >= 2) return { geeignet: false, grund: "zu_vage",       score, breakdown };
 
-  // Kein Gemeinwohl erkennbar
+  // V2: Kein Gemeinwohl UND keine Zielgruppe → ablehnen.
+  // Zielgruppe ohne Gemeinwohl-Keyword ist KEIN Ablehnungsgrund mehr
+  // (wird in calcHuiFitScore nur mit -8 bestraft).
+  const ZIELGRUPPE = ["kinder","jugendliche","senioren","obdachlose","geflüchtete",
+    "alleinerziehende","schüler","studierende","nachbarn","gemeinschaft",
+    "bevölkerung","öffentlichkeit","bedürftige","familien","bewohner","menschen"];
   const GEMEINWOHL = ["gemeinnützig","ehrenamtlich","kostenlos","öffentlich","gesellschaft","sozial","gemeinwohl","wirkung","andere","anderen"];
-  if (!GEMEINWOHL.some(kw => allText.includes(kw))) return { geeignet: false, grund: "kein_hui_bezug", score };
+  const hasZielgruppe = ZIELGRUPPE.some(kw => allText.includes(kw));
+  const hasGemeinwohl = GEMEINWOHL.some(kw => allText.includes(kw));
+  if (!hasZielgruppe && !hasGemeinwohl) return { geeignet: false, grund: "kein_hui_bezug", score, breakdown };
 
-  return { geeignet: false, grund: "zu_vage", score };
+  return { geeignet: false, grund: "zu_vage", score, breakdown };
 }
 
 // ── Animations-CSS ────────────────────────────────────────────
@@ -846,8 +893,10 @@ function AIPruefung({ form, onResult }) {
 // ═══ HUI-FIT-SCORE ANZEIGE ════════════════════════════════════
 function FitScoreBar({ score }) {
   const { t } = useTranslation();
-  const color = score >= 80 ? T.teal : score >= 60 ? T.gold : T.coral;
-  const label = score >= 80 ? t("impact.fitExcellent") : score >= 60 ? t("impact.fitGood") : t("impact.fitLow");
+  // HUI-FIT-SCORE-V2: Routing-Grenzen an bewerteProjekt angeglichen
+  // (direkt ab 65 statt 80, manuell 25-64 statt 60-79)
+  const color = score >= 65 ? T.teal : score >= 40 ? T.gold : T.coral;
+  const label = score >= 65 ? t("impact.fitExcellent") : score >= 40 ? t("impact.fitGood") : t("impact.fitLow");
   return (
     <div style={{ background:`${color}08`, border:`1px solid ${color}22`,
       borderRadius:16, padding:"14px 16px", marginBottom:16 }}>
@@ -869,8 +918,8 @@ function FitScoreBar({ score }) {
       <div style={{ display:"flex", justifyContent:"space-between",
         fontSize:11, color }}>
         <span style={{ fontWeight: 600 }}>{label}</span>
-        {score >= 80 && <span>{t("impact.fitDirectRoute")}</span>}
-        {score >= 60 && score < 80 && <span>{t("impact.fitManualRoute")}</span>}
+        {score >= 65 && <span>{t("impact.fitDirectRoute")}</span>}
+        {score >= 25 && score < 65 && <span>{t("impact.fitManualRoute")}</span>}
       </div>
     </div>
   );
@@ -1013,6 +1062,13 @@ function ErgebnisGeeignet({ form, aiRes, onNetworkConfirm, onClose }) {
       {/* HUI-Fit-Score */}
       <FitScoreBar score={score} />
 
+      {/* HUI-FIT-SCORE-V2 (2026-09-14): transparente Routing-Statuszeile */}
+      <div style={{ textAlign:"center", fontSize:12, color:T.ink2, margin:"-10px 0 16px" }}>
+        {isManual
+          ? t("impact.scoreManualReview")
+          : t("impact.scoreDirectApprove")}
+      </div>
+
       {/* Zusammenfassung */}
       <div style={{ background:`${T.teal}07`, border:`1px solid ${T.teal}16`,
         borderRadius:16, padding:"14px 16px", marginBottom:20 }}>
@@ -1153,6 +1209,13 @@ function ErgebnisNichtGeeignet({ form, onClose, onRetry, aiRes, user }) {
 
       {/* Score auch bei Ablehnung zeigen */}
       <FitScoreBar score={score} />
+
+      {/* HUI-FIT-SCORE-V2 (2026-09-14): Grund-Score-Meldung bei Ablehnung */}
+      {score < 25 && (
+        <div style={{ textAlign:"center", fontSize:12, color:T.ink2, margin:"-10px 0 16px" }}>
+          {t("impact.scoreTooLow")}
+        </div>
+      )}
 
       <div style={{ background:`${T.teal}07`, border:`1px solid ${T.teal}16`,
         borderRadius:14, padding:"14px 16px", marginBottom:20 }}>
@@ -1671,6 +1734,10 @@ export default function ImpactFlow({ onClose }) {
         contact_email:  kontakt.email.trim() || user.email || "",
         status:         "pending",
         submitted_at:   new Date().toISOString(),
+        // HUI-FIT-SCORE-V2 (2026-09-14): Score + Breakdown für SADB-Admins
+        // (Migration 20260914_140, additive Spalten, nullable)
+        fit_score:      (typeof aiRes?.score === "number") ? aiRes.score : null,
+        score_breakdown: Array.isArray(aiRes?.breakdown) ? aiRes.breakdown : null,
         // Persönliche Angaben
         contact_name:   kontakt.name.trim(),
         contact_phone:  kontakt.telefon.trim(),
