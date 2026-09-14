@@ -45,7 +45,7 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     const res = await markSellerShipped(chatId, userId);
     setBusy(false);
     if (res?.ok) {
-      logChatEvent(chatId, "chat_message_sent", userId, { system_message: t("chat.sellerShippedLog") });
+      logChatEvent(chatId, "chat_message_sent", userId, { system_message: delivery.booking_type === "werk" ? t("chat.sellerShippedLog") : t("chat.sellerPerformedLog") });
       onRefresh?.();
     }
   }
@@ -56,7 +56,7 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
     const res = await markBuyerReceived(chatId, userId);
     setBusy(false);
     if (res?.ok) {
-      logChatEvent(chatId, "chat_message_sent", userId, { system_message: t("chat.buyerReceivedLog") });
+      logChatEvent(chatId, "chat_message_sent", userId, { system_message: delivery.booking_type === "werk" ? t("chat.buyerReceivedLog") : t("chat.serviceReceivedLog") });
       onRefresh?.();
     }
   }
@@ -90,29 +90,40 @@ function DeliveryActionBar({ chatId, delivery, userId, otherProfile, onRefresh }
   const outlineBtn = { ...btnStyle, background: "transparent", border: "1.5px solid #0AA89B", color: "#0AA89B" };
   const redBtn   = { ...btnStyle, background: "transparent", border: "1.5px solid #E2574C", color: "#E2574C" };
 
+  // SERVICE-LABEL-001 (2026-09-14, Michael-Entscheidung): "Ware erhalten"/
+  // "Als versendet markieren" ist nur fuer WERK-Kaeufe korrekt — fuer
+  // Talent-/Erlebnis-Buchungen (Dienstleistungen) heissen die Buttons
+  // "Leistung erbracht" (Anbieter) bzw. "Leistung erhalten" (Kaeufer).
+  // Die Escrow-LOGIK ist unveraendert (delivery_status shipped → Buyer-
+  // Confirm → Freigabe), nur die Labels sind service-gerecht.
+  const isWerk = delivery.booking_type === "werk";
+  const shipLabel   = isWerk ? t("chat.markShipped")         : t("chat.markPerformed");
+  const receiveLabel = isWerk ? t("chat.markReceived")       : t("chat.markServiceReceived");
+  const statusLabel = isWerk ? t("chat.shippedStatus")       : t("chat.performedStatus");
+
   // Zustand: pending → beide sehen ihre Buttons
   if (delivery.delivery_status === "pending") {
     return (
       <div style={{ padding: "10px 14px 4px", display: "flex", gap: 8 }}>
         <button onClick={handleShip} disabled={busy} className="ppp-press" style={outlineBtn}>
-          {t("chat.markShipped")}
+          {shipLabel}
         </button>
         <button onClick={handleReceive} disabled={busy} className="ppp-press" style={tealBtn}>
-          {t("chat.markReceived")}
+          {receiveLabel}
         </button>
       </div>
     );
   }
 
-  // Zustand: shipped → Käufer kann "Ware erhalten"
+  // Zustand: shipped → Käufer kann Empfang bestätigen
   if (delivery.delivery_status === "shipped") {
     return (
       <div style={{ padding: "10px 14px 4px", display: "flex", gap: 8 }}>
         <div style={{ ...btnStyle, cursor: "default", background: "rgba(13,196,181,0.08)", color: "#0AA89B" }}>
-          {t("chat.shippedStatus")}
+          {statusLabel}
         </div>
         <button onClick={handleReceive} disabled={busy} className="ppp-press" style={tealBtn}>
-          {t("chat.markReceived")}
+          {receiveLabel}
         </button>
       </div>
     );

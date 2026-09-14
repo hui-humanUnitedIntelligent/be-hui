@@ -457,10 +457,45 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 {t("tbf.success.notified")}
               </div>
             </div>
+            {/* BOOKING-SUCCESS-CTA-001 (2026-09-14, Michael: "auffälliger"):
+                Kontakt-Button war als transparenter Ghost-Button nicht als
+                Handlung erkennbar (Micheles-Report e725a6ab: "kam nicht das
+                Feld um direkt chatten zu koennen"). Jetzt PRIMAERER CTA:
+                gefuellter TEAL-Button mit Chat-Icon + Hinweiszeile direkt
+                unter der Buchungs-Zusammenfassung; Schliessen/Beleg folgen
+                als sekundaere Outline-Buttons darunter. */}
+            {talent.user_id && (
+              <div style={{ width: "100%", marginTop: 10 }}>
+                <div style={{ fontSize: 12.5, color: "#55556B", textAlign: "center", marginBottom: 8 }}>
+                  {t("tbf.success.contactHint", { name: talent.author || t("tbf.chatConfirm.defaultSellerName") })}
+                </div>
+                <button
+                  onClick={() => setShowChatConfirm(true)}
+                  style={{
+                    width: "100%", padding: "15px 0",
+                    borderRadius: 14, border: "none",
+                    background: `linear-gradient(135deg,${TEAL},#0AB8B2)`,
+                    color: "#fff",
+                    fontSize: 15, fontWeight: 700, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    boxShadow: "0 6px 18px rgba(14,196,184,0.28)",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  {t("tbf.success.contactProvider")}
+                </button>
+              </div>
+            )}
             <button onClick={onClose} style={{
-              width: "100%", background: `linear-gradient(135deg,${TEAL},#0AB8B2)`,
-              color: "#fff", border: "none", borderRadius: 14, padding: "14px 0",
+              width: "100%", marginTop: 10, padding: "14px 0",
+              borderRadius: 14, border: `1.5px solid ${TEAL}`,
+              background: "transparent", color: TEAL,
               fontSize: 15, fontWeight: 600, cursor: "pointer", touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
             }}>
               {t("tbf.success.close")}
             </button>
@@ -496,20 +531,6 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
             >
               Beleg herunterladen
             </button>
-            {talent.user_id && (
-              <button
-                onClick={() => setShowChatConfirm(true)}
-                style={{
-                  width: "100%", marginTop: 10, padding: "14px 0",
-                  borderRadius: 14, border: "1.5px solid rgba(20,20,34,0.10)",
-                  background: "transparent", color: "rgba(26,26,46,0.65)",
-                  fontSize: 15, fontWeight: 600, cursor: "pointer",
-                  outline: "none", WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                {t("tbf.success.contactProvider")}
-              </button>
-            )}
           </div>
         )}
 

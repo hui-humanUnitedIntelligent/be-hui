@@ -354,7 +354,7 @@ function MeineKaeufe({ userId, onCloseModal }) {
     ] : [];
 
     return {
-      id: o.id, kindLabel: t("fz.detailPurchase"), title: titleWithVariant, image,
+      id: o.id, kind: "werk", kindLabel: t("fz.detailPurchase"), title: titleWithVariant, image,
       amount: o.total_eur, amountLabel: t("fz.detailPaid"),
       dateLabel: dt(o.created_at), statusChips, breakdown, revenueSplit, needsConfirm,
       meta: [
@@ -591,7 +591,7 @@ function MeineVerkaeufe({ userId, onCloseModal }) {
     // (tx.shippingAddress → TransactionDetailSheet) — nicht mehr als MetaRow verstecken.
     const addrParts = [];
     return {
-      id: s.id, kindLabel: t("fz.detailSale"), title: (s.snapshot?.title || s.snapshot?.name || t("fz.work")) + (s.variant_name ? " · " + s.variant_name : ""), image,
+      id: s.id, kind: "werk", kindLabel: t("fz.detailSale"), title: (s.snapshot?.title || s.snapshot?.name || t("fz.work")) + (s.variant_name ? " · " + s.variant_name : ""), image,
       amount: s.payout_eur, amountLabel: t("fz.detailEarned"),
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [
@@ -812,7 +812,7 @@ function MeineBuchungen({ userId, onCloseModal }) {
     if (b.status === "cancelled") statusChips.push({ label: t("fz.statusCancelled"), color: T.red, bg: T.redSoft });
 
     return {
-      id: b.id, kindLabel: t("fz.detailBooking"), title, image,
+      id: b.id, kind: "talent", kindLabel: t("fz.detailBooking"), title, image,
       amount: b.amount_eur, amountLabel: t("fz.detailBookedFor"),
       dateLabel: dt(b.selected_date), statusChips,
       meta: [
@@ -999,7 +999,7 @@ function WerHatMichGebucht({ userId, onCloseModal }) {
     if (b.status === "cancelled") statusChips.push({ label: t("fz.statusCancelled"), color: T.red, bg: T.redSoft });
 
     return {
-      id: b.id, kindLabel: t("fz.detailBooked"), title, image,
+      id: b.id, kind: "talent", kindLabel: t("fz.detailBooked"), title, image,
       amount: b.amount_eur, amountLabel: t("fz.detailIncome"),
       dateLabel: dt(b.selected_date), statusChips,
       meta: [

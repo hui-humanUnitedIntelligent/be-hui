@@ -164,6 +164,16 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
   if (!tx) return null;
   const a = tx.actions || {};
 
+  // SERVICE-LABEL-001 (2026-09-14, Michael-Entscheidung): Bei Talent-/
+  // Erlebnis-Buchungen ist "Ware erhalten" semantisch falsch (Karen-Report
+  // 5b7a1db6) — Dienstleistungen werden erbracht, nicht versendet. Escrow-
+  // LOGIK bleibt unveraendert (Käufer-Bestätigung → Freigabe), nur die
+  // Labels sind service-gerecht ("Leistung erhalten"). isTalent nutzt das
+  // Maschinenfeld tx.kind ("talent"|"werk", gesetzt in
+  // FinanzuebersichtModal.jsx); Fallback auf den ALTEN (nur-DE-)Vergleich
+  // tx.kindLabel === "Buchung" schuetzt Aufrufer ohne kind-Feld.
+  const isTalent = tx.kind === "talent" || (!tx.kind && tx.kindLabel === "Buchung");
+
   const handleDownload = async () => {
     if (!a.onDownloadReceipt) return;
     setDownloading(true);
@@ -436,7 +446,16 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
             </Section>
           )}
 
-                    {/* ── KÄUFER-BESTÄTIGUNG: "Bestätigung erforderlich" ── */}
+                    {/* SERVICE-LABEL-001 (2026-09-14, Michael-Entscheidung): Bei
+              Talent-/Erlebnis-Buchungen ist "Ware erhalten" semantisch falsch
+              (Karen-Report 5b7a1db6) — Dienstleistungen werden erbracht, nicht
+              versendet. Escrow-LOGIK bleibt unveraendert (Käufer-Bestätigung
+              → Freigabe), nur die Labels sind service-gerecht ("Leistung
+              erhalten"). isTalent nutzt das neue Maschinenfeld tx.kind
+              ("talent" | "werk") — der alte Vergleich tx.kindLabel ===
+              "Buchung" war i18n-broken (kindLabel ist UEBERSETZT, auf
+              EN/ES/...-Geraeten griff die Talent-Variante nie). */}
+          {/* ── KÄUFER-BESTÄTIGUNG: "Bestätigung erforderlich" ── */}
           {a.onConfirmReceipt && !a.receiptConfirmed && !a.disputeOpen && !showDisputeForm && (
             <Section>
               <div style={{
@@ -450,7 +469,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   ⚠ {t('txSheet.confirmRequired')}
                 </div>
                 <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5, marginBottom: 14 }}>
-                  {tx.kindLabel === "Buchung" ? t('txSheet.confirmBodyTalent') : t('txSheet.confirmBodyWerk')}
+                  {isTalent ? t('txSheet.confirmBodyTalent') : t('txSheet.confirmBodyWerk')}
                 </div>
                 <div style={{ display: "flex", gap: 10, marginBottom: 4 }}>
                     <button
@@ -462,7 +481,7 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                         cursor: "pointer", touchAction:"manipulation", fontFamily: T.ff,
                       }}
                     >
-                      {t('txSheet.goodsReceived')}
+                      {isTalent ? t('txSheet.serviceReceived') : t('txSheet.goodsReceived')}
                     </button>
                   </div>
               </div>
