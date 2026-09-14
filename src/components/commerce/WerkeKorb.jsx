@@ -7,6 +7,8 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { EASE, DUR } from "../../design/hui.interaction.js";
 import { optimizeAvatar, optimizeCard } from "../../lib/perfUtils.js";
+import { isVideoUrl } from "../../lib/uploadUtils.js"; // CART-VIDEO-THUMB-001: SSOT Video-Erkennung
+import { HUILogo } from "../brand/HUILogo.jsx"; // BILD-PLATZHALTER-REGEL: SSOT-Platzhalter
 import { NAV_CLEARANCE_CSS } from "../home/navigation/navigationGeometry.js";
 import {
   C, getTypeMeta, haptic as haptic_,
@@ -140,12 +142,14 @@ export function WerkeKorbButton({ count = 0, onOpen = () => {}, glowing = false 
       const tGlow  = setTimeout(() => setGlow(false), 600);
       const tPulse = setTimeout(() => setPulse(false), 420);
       prevCount.current = count;
-      // Toast: "Zum Werkekorb hinzugefügt." — nur beim ERSTEN Item
-      if (prevCount.current === 1) {
-        import("../../lib/useToast.jsx").then(m => {
-          m?.toast?.success?.(t("wk.toastAdded"), { duration: 2500 });
-        }).catch(() => {});
-      }
+      // CART-TOAST-001 (2026-09-14, Michaels Report): Toast bei JEDEM
+      // Hinzufügen — vorher nur beim ALLERERSTEN Item (prevCount.current === 1),
+      // danach blieb jede Bestätigung unsichtbar (nur Glow des Korb-Buttons,
+      // der im Feed-Scroll unterging). Cart-Restore beim Mount feuert NICHT,
+      // weil prevCount mit dem initialen count initialisiert wird.
+      import("../../lib/useToast.jsx").then(m => {
+        m?.toast?.success?.(t("wk.toastAdded"), { duration: 2500 });
+      }).catch(() => {});
       return () => { clearTimeout(tGlow); clearTimeout(tPulse); };
     }
     prevCount.current = count;
@@ -268,7 +272,16 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
   const TYPE_META = getTypeMeta(t);
   const meta       = TYPE_META[item.type] || TYPE_META.work;
   const price      = formatPrice(item._raw?.price ?? item.price);
-  const thumb      = item._raw?.cover_url || item.cover_url || item.img || null;
+  // CART-VIDEO-THUMB-001 (2026-09-14, Michaels Report): cover_url ist bei
+  // Werken mit Video-Titelbild die VIDEO-Datei selbst (.mov/.mp4) — als <img>
+  // gerendert zeigt sie nichts. thumbnail_url ist der beim Upload extrahierte
+  // Frame (WerkWizard-SSOT-Konvention) — Video-Cover → Frame nutzen, sonst
+  // HUILogo-Platzhalter (BILD-PLATZHALTER-REGEL).
+  const _coverCand = item._raw?.cover_url || item.cover_url || item.img || null;
+  const _frameCand = item._raw?.thumbnail_url || item.thumbnail_url || null;
+  const thumb      = (_coverCand && !isVideoUrl(_coverCand))
+    ? _coverCand
+    : ((_frameCand && !isVideoUrl(_frameCand)) ? _frameCand : null);
   const title      = item.title || item._raw?.title || item.name || t("wk.untitled");
   // BUGFIX v2 (2026-08-10): Erweiterte Fallback-Kette — gleiche Logik
   // wie groupByPerson in commerceUtils. Verhindert "Unbekannter Wirker".
@@ -367,7 +380,7 @@ function KorbKarte({ item = {}, onRemove = () => {}, idx = 0, removing = false, 
         {thumb
           ? <img src={optimizeCard(thumb)} alt="" loading="lazy"
               style={{ width:"100%", height:"100%", objectFit:"cover" }} />
-          : <span style={{ fontSize: 32, opacity: 0.35, color: meta.accent }}>◈</span>
+          : <HUILogo size={36} style={{ opacity: 0.5 }} />
         }
       </div>
 

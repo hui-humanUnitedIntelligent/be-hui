@@ -772,10 +772,38 @@ export function useApprovedApplications() {
           })
         .on("postgres_changes", { event: "UPDATE", schema: "public", table: "impact_applications" },
           () => loadApps().then(s => { if (!dead) setApps(s); }))
+        // IMPACT-STALE-LIST-FIX (2026-09-14, Michael-Report "Linda Doggy Daycare
+        // sieht man nirgends"): vorher fehlte INSERT auf impact_applications
+        // komplett -- ein neu bereits als "approved" angelegtes Projekt
+        // (Admin-Direktfreigabe legt die Zeile sofort approved an statt
+        // pending->approved per UPDATE) loeste GAR KEINEN Reload aus.
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "impact_applications" },
+          () => loadApps().then(s => { if (!dead) setApps(s); }))
         .subscribe();
       createdHere = true;
     }
-    return () => { dead = true; if (createdHere) supabase.removeChannel(sub); };
+    // IMPACT-STALE-LIST-FIX (2026-09-14, Teil 2 -- der eigentliche Root Cause):
+    // ImpactPage bleibt via tabVisibilityController (position:absolute statt
+    // Unmount) fuer die gesamte App-Session gemounted -- loadApps() laeuft nur
+    // EINMAL beim ersten Tab-Besuch. Auf Mobile wird der Supabase-Realtime-
+    // WebSocket beim Backgrounden/Sperren des Geraets haeufig getrennt; waehrend
+    // dieser Zeit verpasste INSERT/UPDATE-Events werden NICHT nachgeholt (kein
+    // automatisches Replay). Ergebnis: neu freigegebene Projekte fehlten
+    // dauerhaft, bis die App komplett neu gestartet wurde -- exakt Michaels
+    // Symptom ("nur im Feed sichtbar"). Feed hat dieses Problem bereits NICHT
+    // (siehe useFeedStream.js: visibilitychange-Listener macht Soft-Reload) --
+    // hier dasselbe etablierte SSOT-Muster nachgezogen statt neu erfunden.
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && !dead) {
+        loadApps().then(s => { if (!dead) setApps(s); });
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      dead = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      if (createdHere) supabase.removeChannel(sub);
+    };
   }, [loadApps]);
 
   const top1    = apps[0]    || null;

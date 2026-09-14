@@ -19,6 +19,7 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../../lib/AuthContext";
+import { isVideoUrl } from "../../lib/uploadUtils.js"; // CART-VIDEO-THUMB-001: SSOT Video-Erkennung
 import { supabase } from "../../lib/supabaseClient";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { autoCreateOrReopenChat } from "../../lib/chatContext.js";
@@ -74,7 +75,14 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   const workId    = werk.id || werk._raw?.id;
   const creatorId = werk.author?.id || werk._raw?.user_id || werk._raw?.creator_id || werk.creator_id || werk.user_id;
   const title     = werk.title || werk._raw?.title || werk.name || t("wkf.fallbackWerk");
-  const coverUrl  = werk.author?.avatar || werk._raw?.cover_url || werk.cover_url || werk.img;
+  // CART-VIDEO-THUMB-001 (2026-09-14): cover_url kann die Video-Datei selbst
+  // sein (.mov/.mp4) — als <img> zeigt sie nichts (gleicher Bug wie WerkeKorb).
+  // thumbnail_url = extrahierter Frame (WerkWizard-SSOT-Konvention).
+  const _coverCand = werk.author?.avatar || werk._raw?.cover_url || werk.cover_url || werk.img;
+  const _frameCand = werk._raw?.thumbnail_url || werk.thumbnail_url || null;
+  const coverUrl   = (_coverCand && !isVideoUrl(_coverCand))
+    ? _coverCand
+    : ((_frameCand && !isVideoUrl(_frameCand)) ? _frameCand : null);
   const rawPrice  = werk._raw?.price ?? werk.price ?? null;
   const amount    = typeof rawPrice === "string"
     ? parseFloat(rawPrice.replace(/[^0-9.,]/g, "").replace(",", "."))
