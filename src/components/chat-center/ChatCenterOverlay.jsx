@@ -415,10 +415,23 @@ if (loadingConv && !activeConv) {
           conv={activeConv}
           onBack={() => setActiveConv(null)}
           onOpenProfile={(conv) => {
-            // user_id ist die Supabase Auth UUID des Gesprächspartners
-            // conv.id ist die Chat-ID — NIEMALS als Profil-ID verwenden
+            // CHAT-PROFILE-ZINDEX-001 (2026-09-14, Michael-Report: "Klick auf
+            // den Namen springt zurück und landet im Chat Bereich ohne dass
+            // ich Sabrina sehe"). Root Cause: ProfileLauncher (Home.jsx Zeile
+            // 766) und ChatCenterOverlay (Zeile 816) sind BEIDE eigene
+            // createPortal(...,document.body) mit identischem zIndex:10500 --
+            // bei gleichem z-index gewinnt bei DOM-Geschwistern der SPÄTER
+            // eingefügte Knoten. ChatCenterOverlay steht im JSX-Baum NACH
+            // ProfileLauncher -> das neu geöffnete Profil rendert zwar
+            // korrekt, aber UNSICHTBAR HINTER dem weiterhin offenen Chat --
+            // fühlte sich an wie "nichts passiert, zurück im Chat". Exakt das
+            // gleiche Muster wie BOOKING-CHAT-001/002 (Glocke/Finanzübersicht
+            // vs. Chat). Fix: Chat-Overlay ZUERST schließen (onClose, wie von
+            // Home.jsx übergeben), DANN Profil öffnen -- kein Stacking-Konflikt
+            // mehr, da nur noch ein Portal aktiv ist.
             const userId = conv?.user_id || conv?.other_profile?.id;
             if (!userId) return;
+            onClose();
             // openCreatorProfile → A.OPEN_PROFILE → openProfileById → ProfileLauncher
             openCreatorProfile(userId, {
               display_name: conv?.name,
@@ -477,16 +490,20 @@ if (loadingConv && !activeConv) {
           onOpenProfile={(profile) => {
             setShowPeopleSearch(false);
             const userId = profile?.id || profile?.user_id;
-            if (userId) openCreatorProfile(userId, {
-              display_name: profile?.display_name,
-              avatar_url:   profile?.avatar_url,
-              talent:       profile?.talent,
-            });
+            if (userId) {
+              onClose();
+              openCreatorProfile(userId, {
+                display_name: profile?.display_name,
+                avatar_url:   profile?.avatar_url,
+                talent:       profile?.talent,
+              });
+            }
           }}
           onOpenChat={(profile) => {
             // CHAT-LOGIK v2: Chat nur nach Buchung. PeopleSearch öffnet nur Profil.
             setShowPeopleSearch(false);
             if (!profile?.id) return;
+            onClose();
             openCreatorProfile(profile.id, {
               display_name: profile?.display_name,
               avatar_url:   profile?.avatar_url,
@@ -508,8 +525,11 @@ if (loadingConv && !activeConv) {
           onOpenProfile={(person) => {
             // Klick auf eine "Neueste Verbindungen"-Bubble → Profil öffnen
             // openCreatorProfile → A.OPEN_PROFILE → openProfileById → ProfileLauncher
+            // CHAT-PROFILE-ZINDEX-001-Nachtrag: onClose() zuerst, sonst
+            // derselbe zIndex:10500-Stacking-Konflikt wie beim Chat-Header.
             const userId = person?.id;
             if (!userId) return;
+            onClose();
             openCreatorProfile(userId, {
               display_name: person?.name,
               avatar_url:   person?.avatar_url,

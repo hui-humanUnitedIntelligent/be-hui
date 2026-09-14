@@ -323,11 +323,26 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
 
           {tx.person && (
             <Section title={tx.person.roleLabel || "Kontakt"}>
-              <div style={{
-                display: "flex", alignItems: "center", gap: 12,
-                background: T.bgCard, borderRadius: T.r12, padding: "12px 14px",
-                border: `1px solid ${T.border}`,
-              }}>
+              {/* SELLER-PROFILE-CARD-CLICK-001 (2026-09-14, Michael-Report:
+                  "wenn ich auf das profilbild klicken bei der kaufen Seite
+                  dann soll das nutzerprofil des Verkäufers aufgehen").
+                  Bisher war NUR der separate schwarze "Profil ansehen"-Button
+                  ganz unten klickbar (a.onViewProfile) -- die Verkäufer-Karte
+                  selbst (Avatar+Name) hatte kein onClick, obwohl sie wie ein
+                  Button aussieht. Jetzt: dieselbe a.onViewProfile-Aktion auch
+                  direkt auf der Karte, wenn vorhanden (additiv -- der Button
+                  unten bleibt als zweiter Weg bestehen). */}
+              <div
+                onClick={a.onViewProfile || undefined}
+                role={a.onViewProfile ? "button" : undefined}
+                style={{
+                  display: "flex", alignItems: "center", gap: 12,
+                  background: T.bgCard, borderRadius: T.r12, padding: "12px 14px",
+                  border: `1px solid ${T.border}`,
+                  cursor: a.onViewProfile ? "pointer" : "default",
+                  touchAction: "manipulation", WebkitTapHighlightColor: "transparent",
+                }}
+              >
                 <div style={{ width: 40, height: 40, borderRadius: "50%", overflow: "hidden", background: T.tealSoft, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {tx.person.avatar
                     ? <img src={tx.person.avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -339,6 +354,9 @@ export default function TransactionDetailSheet({ tx, onClose = () => {} }) {
                   </div>
                   {tx.person.website && <div style={{ fontSize: 11, color: T.teal, marginTop: 2 }}>🔗 {tx.person.website}</div>}
                 </div>
+                {a.onViewProfile && (
+                  <span style={{ color: "rgba(26,26,24,0.32)", fontSize: 17, flexShrink: 0 }}>›</span>
+                )}
               </div>
             </Section>
           )}
