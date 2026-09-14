@@ -149,7 +149,7 @@ function TxCard({ image, title, subtitle, dateLabel, amount, amountColor = T.ink
 // ──────────────────────────────────────────────────────────────────────
 // TAB 1: Meine Käufe (orders als customer)
 // ──────────────────────────────────────────────────────────────────────
-function MeineKaeufe({ userId }) {
+function MeineKaeufe({ userId, onCloseModal }) {
   const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -372,7 +372,15 @@ function MeineKaeufe({ userId }) {
         onDispute: needsConfirm ? (note) => handleDispute(o.id, note) : null,
         disputing: disputingId === o.id,
         disputeOpen: isDisputed,
-        onChat: (sellerId && sInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar }, source: S.SYSTEM }) : null,
+        // BOOKING-CHAT-002 (2026-09-14, Karen-Report 8a8662d4): FinanzuebersichtModal
+        // (zIndex 10500, eigener document.body-Portal) blieb beim Chat-Oeffnen
+        // GEMOUNTET -- ChatCenterOverlay hat DENSELBEN zIndex 10500, verliert die
+        // Stacking-Order aber gegen das spaeter im DOM angehaengte Finanz-Portal.
+        // Chat oeffnete technisch (State gesetzt), war aber unsichtbar dahinter
+        // versteckt ("keine Reaktion"). Analog zum bereits gefixten Bell/
+        // NotificationPanel-Pfad (BOOKING-CHAT-001): Modal selbst schliessen,
+        // BEVOR der Chat geoeffnet wird.
+        onChat: (sellerId && sInfo) ? () => { onCloseModal?.(); actions[A.OPEN_CHAT]?.({ recipient: { id: sellerId, display_name: sInfo.name, avatar_url: sInfo.avatar }, source: S.SYSTEM }); } : null,
         canRecommend: !!(confirmed && sellerId && !recommendedOrderIds.has(o.id)),
         recommendationGiven: recommendedOrderIds.has(o.id),
         onRecommend: (confirmed && sellerId && !recommendedOrderIds.has(o.id)) ? () => { setDetail(null); setRecModal({ sellerId, sellerName: o.contact_name || t("fz.seller"), orderId: o.id }); } : null,
@@ -459,7 +467,7 @@ function MeineKaeufe({ userId }) {
     </div>
   );
 }
-function MeineVerkaeufe({ userId }) {
+function MeineVerkaeufe({ userId, onCloseModal }) {
   const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -601,7 +609,8 @@ function MeineVerkaeufe({ userId }) {
       person: (buyerId && bInfo) ? { name: bInfo.name, avatar: bInfo.avatar, roleLabel: t("fz.buyer") } : null,
       shippingAddress: s.orders?.shipping_address || null,
       actions: {
-        onChat: (buyerId && bInfo) ? () => actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }) : null,
+        // BOOKING-CHAT-002 (2026-09-14): siehe MeineKaeufe -- gleiches Muster.
+        onChat: (buyerId && bInfo) ? () => { onCloseModal?.(); actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }); } : null,
         onViewProfile: buyerId ? () => window.__HUI_OPEN_PROFILE__?.(buyerId) : null,
         onMarkShipped: (!s.orders?.shipped_at && escrowHolding) ? () => handleShip(s.orders?.id) : null,
         shipping: shippingId === s.orders?.id,
@@ -663,7 +672,7 @@ function MeineVerkaeufe({ userId }) {
 // ──────────────────────────────────────────────────────────────────────
 // TAB 3: Meine Buchungen (als Kunde)
 // ──────────────────────────────────────────────────────────────────────
-function MeineBuchungen({ userId }) {
+function MeineBuchungen({ userId, onCloseModal }) {
   const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -927,6 +936,10 @@ function MeineBuchungen({ userId }) {
                   onClick={() => {
                     setShowChatConfirm(null);
                     setDetail(null);
+                    // BOOKING-CHAT-002 (2026-09-14): siehe MeineKaeufe -- FinanzuebersichtModal
+                    // selbst muss VOR dem Chat-Oeffnen schliessen, sonst verdeckt sein
+                    // gleich hoher zIndex (10500, spaeter im DOM-Portal) den Chat.
+                    onCloseModal?.();
                     actions[A.OPEN_CHAT]?.({ recipient: { id: b.seller_id, display_name: b.seller_name, avatar_url: null }, source: S.SYSTEM });
                   }}
                   style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
@@ -945,7 +958,7 @@ function MeineBuchungen({ userId }) {
 // ──────────────────────────────────────────────────────────────────────
 // TAB 4: Wer hat mich gebucht
 // ──────────────────────────────────────────────────────────────────────
-function WerHatMichGebucht({ userId }) {
+function WerHatMichGebucht({ userId, onCloseModal }) {
   const { t } = useTranslation();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1055,6 +1068,8 @@ function WerHatMichGebucht({ userId }) {
                   onClick={() => {
                     setShowChatConfirm(null);
                     setDetail(null);
+                    // BOOKING-CHAT-002 (2026-09-14): siehe MeineKaeufe.
+                    onCloseModal?.();
                     actions[A.OPEN_CHAT]?.({ recipient: { id: b.customer_id, display_name: b.customer_name, avatar_url: null }, source: S.SYSTEM });
                   }}
                   style={{ flex: 1, padding: "14px 0", borderRadius: 13, border: "none", background: T.teal, color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}
@@ -1343,10 +1358,10 @@ export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
           overscrollBehavior: "contain", scrollbarWidth: "none",
           padding: "14px 16px calc(88px + max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px), 0px))",
         }}>
-          {tab === "kaeufe"    && <MeineKaeufe userId={userId} />}
-          {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} />}
-          {tab === "buchungen" && <MeineBuchungen userId={userId} />}
-          {tab === "gebucht"   && <WerHatMichGebucht userId={userId} />}
+          {tab === "kaeufe"    && <MeineKaeufe userId={userId} onCloseModal={onClose} />}
+          {tab === "verkaeufe" && <MeineVerkaeufe userId={userId} onCloseModal={onClose} />}
+          {tab === "buchungen" && <MeineBuchungen userId={userId} onCloseModal={onClose} />}
+          {tab === "gebucht"   && <WerHatMichGebucht userId={userId} onCloseModal={onClose} />}
         </div>
       </div>
     </div>
