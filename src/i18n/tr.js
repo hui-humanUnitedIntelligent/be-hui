@@ -4495,7 +4495,7 @@ export default {
   'moment.galerieSub': 'Foto veya video',
   'moment.gedanke': 'Düşünce',
   'moment.gedankeSub': 'Metin yaz',
-  'moment.titleOptional': 'Başlık veya açıklama (isteğe bağlı)',
+'moment.titleOptional': 'Anını anlat (isteğe bağlı)',
   'moment.videoTooLarge': 'Video çok büyük. Lütfen kısaltın.',
   'moment.noPermission': 'Yükleme izni yok. Lütfen tekrar giriş yapın.',
   'moment.notLoggedIn': 'Giriş yapılmadı — sayfayı yenileyin',

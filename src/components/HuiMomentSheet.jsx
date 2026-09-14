@@ -121,17 +121,24 @@ function MediaPreviewStep({ files, onFilesChange, text, setText, onShare, onDisc
         <MultiUploadGrid files={files} onFilesChange={onFilesChange}
           disabled={uploading} accept={accept} columns={columns}/>
       </div>
-      <input className="hms-textarea" type="text" value={text}
-        onChange={e => setText(e.target.value.slice(0,80))}
+      {/* MOMENT-CAPTION-UPGRADE-001 (2026-09-14, Michael-Entscheidung 400
+          Zeichen): Das 80-Zeichen-Titel-Input war als Schreib-Ort nicht
+          erkennbar (Lars-Report b8c8ef8f: "wollte ein bissel was schreiben,
+          es wurde gleich gepostet"). Jetzt eine echte mehrzeilige Textbox
+          (gleiche Klasse wie Gedanke), Limit 400. Feed-Karte clamppt als
+          Vorschau auf 3 Zeilen, ContentPreviewSheet (Detail bei Tap) zeigt
+          item.text vollstaendig — identisches Muster wie Gedanke (300). */}
+      <textarea className="hms-textarea" value={text}
+        onChange={e => setText(e.target.value.slice(0,400))}
         placeholder={t("moment.titleOptional")}
-        style={{ width:"100%",boxSizing:"border-box",
+        rows={3} style={{ width:"100%",boxSizing:"border-box",
           border:"1.5px solid rgba(14,196,184,0.22)",borderRadius:14,
           background:"rgba(14,196,184,0.04)",padding:"12px 16px",
-          fontSize:15,color:D.ink,outline:"none",
+          fontSize:15,color:D.ink,lineHeight:1.55,outline:"none",
           marginBottom:text.length>0?6:16 }}/>
       {text.length > 0 && (
         <div style={{ textAlign:"right",fontSize:11,color:D.inkFaint,marginBottom:14 }}>
-          {text.length}/80
+          {text.length}/400
         </div>
       )}
       {/* Dateigrößen werden bereits bei der Auswahl geprüft (processFileSelection,

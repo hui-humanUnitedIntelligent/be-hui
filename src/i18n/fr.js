@@ -4496,7 +4496,7 @@ export default {
   'moment.galerieSub': 'Photo ou vidéo',
   'moment.gedanke': 'Pensée',
   'moment.gedankeSub': 'Écrire du texte',
-  'moment.titleOptional': 'Titre ou description (optionnel)',
+'moment.titleOptional': 'Décris ton moment (optionnel)',
   'moment.videoTooLarge': 'Vidéo trop grande. Veuillez la raccourcir.',
   'moment.noPermission': 'Pas de permission d\'envoi. Veuillez vous reconnecter.',
   'moment.notLoggedIn': 'Non connecté — veuillez recharger la page',

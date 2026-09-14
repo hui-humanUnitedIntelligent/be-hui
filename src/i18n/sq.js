@@ -4495,7 +4495,7 @@ export default {
   'moment.galerieSub': 'Foto ose video',
   'moment.gedanke': 'Mendim',
   'moment.gedankeSub': 'Shkruaj tekst',
-  'moment.titleOptional': 'Titull osh përshkrim (opsional)',
+'moment.titleOptional': 'Përshkruaj momentin tënd (opsionale)',
   'moment.videoTooLarge': 'Video shumë e madhe. Ju lutem shkurtojeni.',
   'moment.noPermission': 'Pa leje ngarkimi. Ju lutem kyçuni sërish.',
   'moment.notLoggedIn': 'I kyçur jo — ju lutem ringarkoni faqen',

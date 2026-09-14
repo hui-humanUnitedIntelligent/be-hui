@@ -4542,7 +4542,7 @@ export default {
   'moment.galerieSub': 'Photo or video',
   'moment.gedanke': 'Thought',
   'moment.gedankeSub': 'Write text',
-  'moment.titleOptional': 'Title or description (optional)',
+'moment.titleOptional': 'Describe your moment (optional)',
   'moment.videoTooLarge': 'Video too large for upload. Please shorten the video.',
   'moment.noPermission': 'No upload permission. Please log in again.',
   'moment.notLoggedIn': 'Not logged in — please reload the page',
