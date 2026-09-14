@@ -28,35 +28,76 @@ import { MeinMomenteDrawerContent } from "./MeinMomenteDrawerContent.jsx";
 import { createPortal } from "react-dom";
 import { T } from "./constants.js";
 import { useTranslation } from "../../../hooks/useTranslation.js";
+import { useSheetDrag } from "../../../hooks/useSheetDrag.js";
 
-export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = true }) {
+// MEINBEREICH-DRAWER-FULLSCREEN-001 (2026-09-14, Michael-Report zum
+// "Erlebnisse & Projekte"-Drawer, Screenshot): Michael dachte, der
+// SHEETDRAG-001-Fix (11.09., Commit a7529c0f) hätte ALLE Bottom-Sheets
+// wisch-zum-Schließen gemacht -- MeinBereichDrawer (7 Nutzungen: Talente,
+// Werke, Erlebnisse&Projekte, Momente, Empfehlungen, Kundenstimmen,
+// Impact-Stimmen) war in dieser Liste nicht enthalten, keine dragHandlers
+// verdrahtet. Zwei Fixes in einem Zug:
+// (1) fullScreen-Prop (Default false, additiv -- bestehende 7 Aufrufer
+//     unveraendert): rendert das Drawer als echtes Vollbild-Panel statt
+//     Bottom-Sheet -- explizit fuer "Erlebnisse & Projekte" aktiviert, da
+//     dort laut Michael "doch sehr viel Material" (Tabs, Update-Feed,
+//     Bilder) zum Anschauen ist. Vollbild hat keine Wisch-Geste (macht bei
+//     Vollbild keinen Sinn) -- Schliessen ausschliesslich per X-Button
+//     oder System-Zurueck (bereits per useModalRegistration abgedeckt).
+// (2) useSheetDrag NACHGEZOGEN fuer den Bottom-Sheet-Modus (die anderen 6
+//     Drawer) -- volle Kopfzeile als dragHandlers-Ziel (SHEETDRAG-001-
+//     Muster: Mini-Handle allein ist praktisch nicht treffbar).
+export function MeinBereichDrawer({ title, icon, subtitle, onClose, children, footer = true, fullScreen = false }) {
   const { t } = useTranslation();
+  // SHEETDRAG-001-Nachtrag: nur im Bottom-Sheet-Modus aktiv (enabled=!fullScreen)
+  // -- im Vollbild-Modus ergibt Wisch-zum-Schliessen keinen Sinn.
+  const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose, { enabled: !fullScreen });
+
   return createPortal(
     <div
       onClick={onClose}
       style={{
         position:"fixed", inset:0, zIndex:10500,
         background:"rgba(26,26,24,0.55)",
-        display:"flex", alignItems:"flex-end", justifyContent:"center",
+        display:"flex",
+        alignItems: fullScreen ? "stretch" : "flex-end",
+        justifyContent:"center",
         fontFamily:"Inter,sans-serif",
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
+        style={fullScreen ? {
+          // MEINBEREICH-DRAWER-FULLSCREEN-001: echtes Vollbild-Panel statt
+          // Bottom-Sheet -- volle Hoehe/Breite, kein Radius, kein maxWidth-Cap
+          // (viel Material: Tabs, Update-Feed, Bilder -- soll den ganzen
+          // Bildschirm nutzen statt in 90vh gequetscht zu sein).
+          width:"100%", height:"100%", maxWidth:"none",
+          background:"#F7F5F0", borderRadius:0,
+          display:"flex", flexDirection:"column",
+          paddingTop:"max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px), 0px)",
+        } : {
           width:"100%", maxWidth:480,
           background:"#F7F5F0", borderRadius:"24px 24px 0 0",
           maxHeight:"90vh", display:"flex", flexDirection:"column",
           boxShadow:"0 -4px 32px rgba(26,26,24,0.20)",
+          transform: sheetTransform, transition: sheetTransition,
         }}
       >
-        {/* Handle */}
-        <div style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px", flexShrink:0 }}>
-          <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
-        </div>
+        {/* Handle -- nur im Bottom-Sheet-Modus (Vollbild hat keine Wisch-Geste) */}
+        {!fullScreen && (
+          <div {...dragHandlers} style={{ display:"flex", justifyContent:"center", padding:"12px 0 4px", flexShrink:0, touchAction:"none" }}>
+            <div style={{ width:36, height:4, borderRadius:99, background:"rgba(26,26,24,0.12)" }} />
+          </div>
+        )}
         {/* Header: Icon + Titel nebeneinander, Subtitle darunter, dann Trennlinie */}
-        <div style={{
-          padding:"8px 20px 20px", flexShrink:0,
+        {/* Im Bottom-Sheet-Modus (SHEETDRAG-001-Muster) ist die volle Kopfzeile
+            selbst die Drag-Zone -- der 40x4px-Handle allein ist praktisch nicht
+            treffbar. Im Vollbild-Modus keine dragHandlers (enabled=false ohnehin
+            no-op, aber explizit weggelassen fuer Klarheit). */}
+        <div {...(fullScreen ? {} : dragHandlers)} style={{
+          padding: fullScreen ? "16px 20px 20px" : "8px 20px 20px", flexShrink:0,
+          touchAction: fullScreen ? undefined : "none",
         }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             {/* Icon + Titel in einer Zeile */}
@@ -322,7 +363,7 @@ export function MeinBereichMenu({
 
       {/* ── Erlebnisse & Projekte ────────────────────────────── */}
       {activeDrawer === "erlebnisse" && (
-        <MeinBereichDrawer title={t("meinBereich.erlebnisseProjekte")} icon={<HUIErlebnisIcon size={18}/>} subtitle={t("meinBereich.erlebnisseProjekteSub")} onClose={close} footer={false}>
+        <MeinBereichDrawer title={t("meinBereich.erlebnisseProjekte")} icon={<HUIErlebnisIcon size={18}/>} subtitle={t("meinBereich.erlebnisseProjekteSub")} onClose={close} footer={false} fullScreen>
           {/* Tab-Switcher */}
           <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
             {[["erlebnisse",t("meinBereich.tabErlebnisse")],["impact",t("meinBereich.tabImpactProjekte")]].map(([key,label]) => (
