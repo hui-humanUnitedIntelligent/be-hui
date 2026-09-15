@@ -452,6 +452,18 @@ export default function HomeShell({ children }) {
     clearCartPersist,
     openOwnProfile,
     flowStore,
+    // HOTFIX-ORB-CONTEXT-001 (2026-09-15, Michael-Report — Live-Crash
+    // "Oe is not a function" bei JEDEM Orb-Klick, siehe HUI-ERROR-Screenshot):
+    // Diese 4 Paare standen bereits im useMemo-Dependency-Array unten (daher
+    // kein ESLint-Fehler), fehlten aber im tatsaechlich zurueckgegebenen
+    // Value-Objekt -- Home.jsx destrukturierte sie deshalb als undefined.
+    // setShowOrbQuickMenu(true)/setShowTalentIntro(true) im onOrbAction-Handler
+    // riefen dadurch "undefined(true)" auf -> TypeError bei jedem Orb-Klick,
+    // fuer ALLE Nutzer (Talent- und Basis-Zweig gleichermassen betroffen).
+    showTalentIntro,        setShowTalentIntro,
+    showTalentWizard,       setShowTalentWizard,
+    showOrbQuickMenu,       setShowOrbQuickMenu,
+    refreshProfile,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [
     user, authProfile, isTalent, isBaseUser, canCreate, isMember,
