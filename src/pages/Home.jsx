@@ -18,6 +18,7 @@ import { SafeRender } from "../config/SafeRender.jsx";
 import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import { TalentIntroModal } from "../components/profile/my-basis/Misc.jsx";
 import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
+import OrbQuickMenu from "../components/home/navigation/OrbQuickMenu.jsx";
 import { logDebug }  from "../lib/debugCollector.js";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
@@ -155,6 +156,23 @@ function HomeInner() {
   // ── Orb-Kontinuität — Cinematic Opening v2 (5 Phasen)
   // "idle" | "tap" | "focus" | "exiting" | "hidden" | "entering"
   const [orbTransition, setOrbTransition] = useState("idle");
+
+  // ORB-REWIRE/QUICKMENU (2026-09-15): SSOT-Routing Content-Typ → Upload-Flow.
+  // Geteilt von ContentTypeSelector (Phase 4B) UND OrbQuickMenu — eine Wahrheit.
+  const openContentFlow = (type) => {
+    if (type === "moment") {
+      setShowTeilen(true);
+    } else if (type === "experience") {
+      setShowExperienceCreator(true);
+    } else if (type === "work") {
+      setShowWerkPublisher(true);
+    } else if (type === "invitation") {
+      setShowInvitationFlow(true);
+    } else if (type === "talent") {
+      // ORB-REWIRE: Talent-Karte → TalentAngebotWizard (identisch zu Mein Bereich)
+      setShowTalentWizard(true);
+    }
+  };
   const [shareItem, setShareItem] = useState(null); // SHARE.2: HUI Share Modal
   const [showBugReport, setShowBugReport] = useState(false); // Bug-Report System (2026-08-19)
   // Steuert MeinHUI's eigene Exit-Choreografie: Content fadet zuerst, dann schrumpft der Orb
@@ -212,6 +230,7 @@ function HomeInner() {
     showInvitationFlow,     setShowInvitationFlow,
     showTalentIntro,        setShowTalentIntro,
     showTalentWizard,       setShowTalentWizard,
+    showOrbQuickMenu,       setShowOrbQuickMenu,
     refreshProfile,
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
@@ -707,7 +726,10 @@ function HomeInner() {
             // Basis-User → Werde-Talent-Intro (TalentWerdenBanner-Modul,
             // identisch zum Nutzerbereich; Start-Button → TalentOnboarding).
             if (isTalent) {
-              setShowContentSelector(true);
+              // ORB-QUICKMENU (Michaels Korrektur 15.09.: „nein es sollen
+              // NUR diese 4 kleinen orbs erscheinen"): keine Karte-Liste,
+              // sondern 4 kleine Orbs fächern um den Nav-Orb auf.
+              setShowOrbQuickMenu(true);
             } else {
               setShowTalentIntro(true);
             }
@@ -972,19 +994,21 @@ function HomeInner() {
           onClose={() => setShowContentSelector(false)}
           onSelect={(type) => {
             setShowContentSelector(false);
-            // Routing: type → richtiger Flow
-            if (type === "moment") {
-              setShowTeilen(true);
-            } else if (type === "experience") {
-              setShowExperienceCreator(true);
-            } else if (type === "work") {
-              setShowWerkPublisher(true);
-            } else if (type === "invitation") {
-              setShowInvitationFlow(true);
-            } else if (type === "talent") {
-              // ORB-REWIRE: Talent-Karte → TalentAngebotWizard (identisch zu Mein Bereich)
-              setShowTalentWizard(true);
-            }
+            openContentFlow(type);
+          }}
+        />
+      )}
+
+      {/* ORB-QUICKMENU (2026-09-15): 4 kleine Orbs um den Nav-Orb.
+          Michael: „nein es sollen nur diese 4 kleinen orbs erscheinen" —
+          kein Bottom-Sheet, kein Backdrop, nur die 4 Orbs. Routing identisch
+          zum ContentTypeSelector über geteiltes openContentFlow (SSOT). */}
+      {showOrbQuickMenu && isTalent && (
+        <OrbQuickMenu
+          onClose={() => setShowOrbQuickMenu(false)}
+          onSelect={(type) => {
+            setShowOrbQuickMenu(false);
+            openContentFlow(type);
           }}
         />
       )}

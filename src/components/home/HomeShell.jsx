@@ -178,6 +178,9 @@ export default function HomeShell({ children }) {
   // ORB-REWIRE (2026-09-15): Basis-User → Werde-Talent-Intro-Modal / Talent-Karte → TalentAngebotWizard
   const [showTalentIntro,         setShowTalentIntro]        = useState(false);
   const [showTalentWizard,        setShowTalentWizard]       = useState(false);
+  // ORB-QUICKMENU (2026-09-15, Michaels Korrektur „nur diese 4 kleinen orbs"):
+  // Talent-User tippt Nav-Orb → 4 kleine Orbs (Moment/Erlebnis/Werk/Talent)
+  const [showOrbQuickMenu,        setShowOrbQuickMenu]       = useState(false);
   const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
@@ -470,6 +473,7 @@ export default function HomeShell({ children }) {
     showImpactFlow, showContentSelector, showInvitationFlow,
     showTalentIntro, setShowTalentIntro,
     showTalentWizard, setShowTalentWizard,
+    showOrbQuickMenu, setShowOrbQuickMenu,
     refreshProfile,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
     showUnterstutzenFlow, showBookingFlow,
