@@ -333,6 +333,84 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
           }
         }
 
+        // ── PROJECT-DIRECT-SUPPORT-001 (2026-09-15): Herzensprojekt direkt
+        // unterstützt (payment_type='project_direct_support' → project_direct_supports) ──
+        if (pi.metadata?.payment_type === 'project_direct_support') {
+          const { data: supportRow, error: supportRowErr } = await supabase
+            .from('project_direct_supports')
+            .select('id, project_id, supporter_user_id, gross_amount_eur, net_amount_eur')
+            .eq('stripe_payment_id', pi.id)
+            .eq('status', 'pending')
+            .maybeSingle()
+
+          if (supportRow) {
+            // Amount-Verification (identisches Muster wie bei orders/support)
+            const expectedCents = Math.round(Number(supportRow.gross_amount_eur) * 100)
+            if (Math.abs(pi.amount - expectedCents) > 1) {
+              console.error(`[WEBHOOK] ProjectSupport Amount-Mismatch: stripe=${pi.amount} erwartet=${expectedCents} support=${supportRow.id}`)
+              await supabase.from('project_direct_supports').update({ status: 'failed' })
+                .eq('id', supportRow.id).eq('status', 'pending')
+              await supabase.from('webhook_events').update({ status: 'failed' }).eq('stripe_event_id', event.id)
+              return new Response('ok', { headers: corsHeaders })
+            }
+
+            // Status → succeeded
+            await supabase.from('project_direct_supports').update({
+              status: 'succeeded',
+              updated_at: new Date().toISOString(),
+            }).eq('id', supportRow.id).eq('status', 'pending')
+
+            // Atomarer Increment auf impact_applications.current_amount_eur
+            // (RPC statt Read-Modify-Write — race-condition-sicher, siehe Migration 141)
+            const { data: rpcResult, error: rpcErr } = await supabase.rpc('rpc_add_project_direct_support', {
+              p_project_id: supportRow.project_id,
+              p_net_amount_eur: Number(supportRow.net_amount_eur),
+            })
+            if (rpcErr) {
+              console.error('[WEBHOOK] rpc_add_project_direct_support failed:', rpcErr.message)
+            }
+
+            const { data: project } = await supabase
+              .from('impact_applications')
+              .select('project_name, user_id')
+              .eq('id', supportRow.project_id)
+              .maybeSingle()
+
+            const netStr = Number(supportRow.net_amount_eur).toFixed(2).replace('.', ',')
+            const projectName = project?.project_name || 'ein Herzensprojekt'
+
+            // Projekt-Ersteller benachrichtigen (falls vorhanden — Ersteller kann
+            // auch ohne aktives Profil existieren, defensive Prüfung)
+            if (project?.user_id) {
+              await supabase.from('notifications').insert({
+                user_id: project.user_id,
+                type:    'project_direct_support_received',
+                title:   'Direkte Unterstützung erhalten 💚',
+                body:    `${netStr} € Direkt-Unterstützung für „${projectName}" ist eingegangen.`,
+                data:    { project_id: supportRow.project_id, amount_eur: supportRow.net_amount_eur },
+                read:    false,
+              })
+            }
+
+            // Unterstützer benachrichtigen
+            await supabase.from('notifications').insert({
+              user_id: supportRow.supporter_user_id,
+              type:    'project_direct_support_succeeded',
+              title:   'Unterstützung gesendet ✓',
+              body:    `Deine Unterstützung von ${netStr} € für „${projectName}" war erfolgreich.`,
+              data:    { project_id: supportRow.project_id, amount_eur: supportRow.net_amount_eur },
+              read:    false,
+            })
+
+            await supabase.from('webhook_events').update({ status: 'processed' }).eq('stripe_event_id', event.id)
+            return new Response(JSON.stringify({ received: true, project_direct_support: true, new_amount_eur: rpcResult?.[0]?.new_amount_eur }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          } else if (supportRowErr) {
+            console.error('[WEBHOOK] project_direct_supports lookup failed:', supportRowErr.message)
+          }
+        }
+
         console.warn('[WEBHOOK] Order nicht gefunden oder nicht pending:', orderErr?.message, 'PI:', pi.id, 'meta:', pi.metadata?.hui_order_id)
         await supabase.from('webhook_events').update({ status: 'processed' })
           .eq('stripe_event_id', event.id)
@@ -606,6 +684,14 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
 
       // Support-Zahlung: bei fehlgeschlagener Zahlung auf failed setzen
       await supabase.from('stripe_payments')
+        .update({ status: 'failed', updated_at: new Date().toISOString() })
+        .eq('stripe_payment_id', pi.id)
+        .eq('status', 'pending')
+
+      // PROJECT-DIRECT-SUPPORT-001: Direkt-Unterstützung bei fehlgeschlagener
+      // Zahlung ebenfalls auf failed setzen (current_amount_eur bleibt unberührt,
+      // da der RPC-Increment nur bei succeeded läuft)
+      await supabase.from('project_direct_supports')
         .update({ status: 'failed', updated_at: new Date().toISOString() })
         .eq('stripe_payment_id', pi.id)
         .eq('status', 'pending')

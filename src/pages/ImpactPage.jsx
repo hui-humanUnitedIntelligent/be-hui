@@ -21,6 +21,7 @@ import { supabase } from "../lib/supabaseClient";
 import { ImpactService } from "../services/db.js";
 import { HUI } from "../design/hui.design.js";
 import ImpactFlow from "../system/flows/impact/ImpactFlow.jsx";
+import ProjectSupportFlow from "../components/impact/ProjectSupportFlow.jsx"; // PROJECT-DIRECT-SUPPORT-001
 import ImpactProjektUpdateSheet from "../components/studio/ImpactProjektUpdateSheet.jsx";
 import { useAuth } from "../lib/AuthContext";
 import { useLocation } from "react-router-dom";
@@ -171,6 +172,20 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
   // ── Finanzierungs-Daten (frisch aus DB) ────────────────────
   const [fundedEur,  setFundedEur]  = React.useState(safeNum(rawApp.current_amount_eur) || 0);
+  // ── PROJECT-DIRECT-SUPPORT-001: Direkt-Unterstützung aus dem Detail ──
+  const [showDirectSupport, setShowDirectSupport] = React.useState(false);
+  // Fortschritt nach erfolgreicher Direkt-Unterstützung frisch nachladen
+  const refreshFunding = React.useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from("impact_applications")
+        .select("current_amount_eur")
+        .eq("id", app.id)
+        .maybeSingle();
+      if (data) setFundedEur(safeNum(data.current_amount_eur) || 0);
+    } catch { /* silent */ }
+  }, [app.id]);
+
   const [goalFromDb, setGoalFromDb] = React.useState(safeNum(rawApp.funding_goal) || safeNum(rawApp.awarded_eur) || 0);
   const [milestones, setMilestones] = React.useState([]);
   const [milestonesLoading, setMilestonesLoading] = React.useState(false);
@@ -194,6 +209,7 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
 
   // ── Back-Button: Detail-Overlays innerhalb ApprovedProjectDetail registrieren ──
   useModalRegistration(!!detailMilestone, () => setDetailMilestone(null), "ApprovedProjectDetail-DetailMilestone");
+  useModalRegistration(showDirectSupport, () => setShowDirectSupport(false), "ApprovedProjectDetail-DirectSupport");
   useModalRegistration(showUpdateSheet, () => setShowUpdateSheet(false), "ApprovedProjectDetail-UpdateSheet");
 
   // BILD-PLATZHALTER-REGEL (2026-09-04): kein Stockfoto mehr — HUILogo-Fallback
@@ -478,6 +494,28 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
               {t("impact.finanziertVon", { funded: formatNumberDE(fundedEur), goal: formatNumberDE(goalFromDb) })}
             </div>
           </div>
+
+          {/* PROJEKT DIREKT UNTERSTÜTZEN (PROJECT-DIRECT-SUPPORT-001):
+              Projekt-Ersteller sieht den Button nicht (Selbst-Unterstützung
+              ist serverseitig nicht vorgesehen — Edge Function prüft nicht
+              explizit, die UI blendet es hier nevertheless konsistent aus). */}
+          {!isProjectOwner && (
+            <button type="button" className="ip-p"
+              aria-label={t("impact.directSupport.button")}
+              onClick={() => setShowDirectSupport(true)}
+              style={{
+                width: "100%", padding: "13px 0", borderRadius: 14, border: "none",
+                background: "linear-gradient(135deg,#0DC4B5,#09A89D)",
+                color: "#fff", fontSize: 14, fontWeight: 800, marginBottom: 16,
+                boxShadow: "0 4px 14px rgba(13,196,181,0.28)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              {t("impact.directSupport.button")}
+            </button>
+          )}
           {/* Stimmen-Counter — NUR Counter, kein Balken */}
           <div style={{ fontSize:13, color:"#888", marginBottom:16, display:"flex", alignItems:"center", gap:4 }}><HUIStimmeIcon size={13}/>{t("impact.stimmenBisher", { count: voteCount })}</div>
 
@@ -818,6 +856,21 @@ function ApprovedProjectDetail({ app: rawApp, onClose, currentUser, onVoted = ()
           authorId={currentUser?.id}
           onClose={() => setShowUpdateSheet(false)}
           onSubmitted={() => { setShowUpdateSheet(false); loadUpdates(); }}
+        />
+      )}
+
+      {/* PROJECT-DIRECT-SUPPORT-001: Zahlungs-Flow aus dem Detail —
+          Portal-Kind, rendert via eigenem createPortal über allem.
+          initialProject bekommt die FRISCHEN Funding-Werte (fundedEur /
+          goalFromDb aus dem Detail-Refetch), damit der Fortschritts-
+          balken im Flow-Kopf korrekt ist. */}
+      {showDirectSupport && (
+        <ProjectSupportFlow
+          open
+          initialProject={{ ...app, current_amount_eur: fundedEur, funding_goal: goalFromDb || app.funding_goal || 0 }}
+          projects={[]}
+          onClose={() => setShowDirectSupport(false)}
+          onSupported={() => refreshFunding()}
         />
       )}
 
@@ -1200,6 +1253,10 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
   const [showVormonate, setShowVormonate] = React.useState(false);
   const vormonate = useImpactMonthlyHistory(showVormonate);
 
+  // ── PROJECT-DIRECT-SUPPORT-001: Direkt-Unterstützung (Flow-Modal) ──
+  const [showProjectSupport, setShowProjectSupport] = React.useState(false);
+  const [supportInitialProject, setSupportInitialProject] = React.useState(null);
+
   // ── Back-Button: Impact-Detail-Overlays registrieren ──
   useModalRegistration(!!detailApp, () => setDetailApp(null), "ImpactPage-DetailApp");
   useModalRegistration(showVormonate, () => setShowVormonate(false), "ImpactPage-Vormonate");
@@ -1499,6 +1556,37 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
         />
       )}
 
+      {/* ══ 2b ── PROJEKT DIREKT UNTERSTÜTZEN (PROJECT-DIRECT-SUPPORT-001,
+          2026-09-15): Info-Text + Vollbreiten-Teal-Button zwischen Pool-Karte
+          und Aktueller Abstimmung (Michael-Spec-Position). Öffnet den
+          ProjectSupportFlow (Grid → Betrag → Stripe). Wortlaut bewusst ohne
+          "Spende". Button nur sichtbar, wenn unterstützbare Projekte existieren. */}
+      {(approvedApps.apps || []).length > 0 && (
+        <div style={{ margin: "16px 20px 4px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ fontSize: 13, color: "#55556B", lineHeight: 1.5, textAlign: "center" }}>
+            {t("impact.directSupport.description")}
+          </div>
+          <button
+            type="button"
+            className="ip-p"
+            aria-label={t("impact.directSupport.button")}
+            onClick={() => { setSupportInitialProject(null); setShowProjectSupport(true); }}
+            style={{
+              width: "100%", padding: "14px 0", borderRadius: 14, border: "none",
+              background: "linear-gradient(135deg,#0DC4B5,#09A89D)",
+              color: "#fff", fontSize: 15, fontWeight: 800,
+              boxShadow: "0 4px 14px rgba(13,196,181,0.28)",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            {t("impact.directSupport.button")}
+          </button>
+        </div>
+      )}
+
       {/* ══ 3 ── AKTUELLE ABSTIMMUNG ═══════════════════════════ */}
       <VotingSection
         canVote={isMem}
@@ -1585,6 +1673,22 @@ function ImpactPageInner({ currentUser: currentUserProp }) {
           onClose={handleDetailClose}
           currentUser={currentUser}
           onVoted={(pid) => setDetailApp(prev => prev ? { ...prev, vote_count:(prev.vote_count||0)+1 } : prev)}
+        />
+      )}
+
+      {/* ══ PROJECT-DIRECT-SUPPORT-001: Projekt-Direkt-Unterstützung ── */}
+      {showProjectSupport && (
+        <ProjectSupportFlow
+          open
+          onClose={() => { setShowProjectSupport(false); setSupportInitialProject(null); }}
+          projects={approvedApps.apps || []}
+          initialProject={supportInitialProject}
+          onSupported={(p) => {
+            // Fortschritt im evtl. offenen Detail live aktualisieren
+            setDetailApp(prev => prev && prev.id === p.id
+              ? { ...prev, current_amount_eur: (Number(prev.current_amount_eur) || 0) }
+              : prev);
+          }}
         />
       )}
 
