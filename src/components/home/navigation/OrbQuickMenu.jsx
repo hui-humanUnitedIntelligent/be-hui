@@ -3,7 +3,8 @@
 // HUI — Orb Quick Menu („4 kleine Orbs")
 // ORB-QUICKMENU (2026-09-15, Michael-Spec „Orb-Button — Talent-Upgrade &
 // Quick-Upload Hub" + Korrektur „nein es sollen nur diese 4 kleinen
-// orbs erscheinen"):
+// orbs erscheinen" + Farbwunsch „farblich mehr Variationen — nicht
+// alle gleich machen"):
 //
 // Talent-User tippt den Nav-Orb → NUR 4 kleine Orbs ploppen fächerförmig
 // um den Nav-Orb auf (Moment/Erlebnis/Werk/Talent). KEIN Bottom-Sheet,
@@ -11,6 +12,15 @@
 // der Spec. Tap auf einen Orb → der zugehörige Upload-Flow (identisches
 // Routing wie ContentTypeSelector, SSOT-Routing liegt in Home.jsx).
 // Tap irgendwo sonst → Menü schließt.
+//
+// Farb-Design (Michaels Korrektur 15.09.): Jeder Orb ist ein EIGENER
+// Farb-Körper (farbiger Gradient + weißer Icon-Kern + farbiger Glow)
+// statt der bisherigen weißen Einheits-Optik mit farbigem Rand:
+//   Moment   = Türkis-Gradient (#0DC4B5 → #079B8E)
+//   Erlebnis = Himmelblau   (#38BDF8 → #0284C7)
+//   Werk     = Coral        (#F47355 → #D9532E)
+//   Talent   = Mint-Grün    (#34D399 → #059669)
+// Label steht in Ink unter dem Orb (Design-System-Farben).
 //
 // Geometrie: Nav-Orb ist Ø 102px (ORB_D, LOCKED — siehe
 // navigationGeometry.js), Zentrum sitzt ~52px über dem Viewport-Grund,
@@ -33,13 +43,25 @@ const ARC_R                 = 150;  // Bogenradius um das Orb-Zentrum
 const MINI_ORB_D            = 58;   // Ø Mini-Orb
 const ANGLES                = [-60, -20, 20, 60]; // ° von der Senkrechten
 
-/* ── Typen — Reihenfolge + Farben identisch zum ContentTypeSelector ── */
+/* ── Typen — je eigene Farb-Welt (Gradient hell→dunkel + Glow) ── */
 function getTypes(t) {
   return [
-    { key: "moment",     icon: "🌿", color: HUI.COLOR.teal,  label: t("orb.moment")   },
-    { key: "experience", icon: "📅", color: "#38BDF8",       label: t("orb.erlebnis") },
-    { key: "work",       icon: "🎨", color: HUI.COLOR.coral, label: t("orb.werk")     },
-    { key: "talent",     icon: "⭐", color: "#34D399",        label: t("orb.talent")   },
+    {
+      key: "moment", icon: "🌿", label: t("orb.moment"),
+      c1: HUI.COLOR.teal, c2: "#079B8E", glow: "rgba(13,196,181,0.38)",
+    },
+    {
+      key: "experience", icon: "📅", label: t("orb.erlebnis"),
+      c1: "#38BDF8", c2: "#0284C7", glow: "rgba(56,189,248,0.40)",
+    },
+    {
+      key: "work", icon: "🎨", label: t("orb.werk"),
+      c1: HUI.COLOR.coral, c2: "#D9532E", glow: "rgba(244,115,85,0.40)",
+    },
+    {
+      key: "talent", icon: "⭐", label: t("orb.talent"),
+      c1: "#34D399", c2: "#059669", glow: "rgba(52,211,153,0.40)",
+    },
   ];
 }
 
@@ -99,42 +121,57 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
             }}
             style={{
               position: "fixed",
-              // Zentrum des Mini-Orbs auf dem Bogen um das Nav-Orb-Zentrum
+              // Orb-Zentrum auf dem Bogen um das Nav-Orb-Zentrum
               left: `calc(50% + ${Math.round(dx - MINI_ORB_D / 2)}px)`,
               bottom: Math.round(NAV_ORB_CENTER_BOTTOM + dy - MINI_ORB_D / 2),
-              width: MINI_ORB_D,
-              height: MINI_ORB_D,
               zIndex: 10501,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              justifyContent: "center",
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.96)",
-              border: `1.5px solid ${type.color}55`,
-              boxShadow: `0 6px 22px rgba(20,20,34,0.14), 0 0 0 6px ${type.color}0F, 0 2px 6px ${type.color}22`,
-              // Farb-Flow in das Orb-Innere — dezent, Design-System-farben
-              backgroundImage: `radial-gradient(circle at 50% 32%, ${type.color}26, rgba(255,255,255,0) 70%)`,
               "--oq-x0": `${x0}px`,
               "--oq-y0": `${y0}px`,
-              "--oq-x1": `0px`,
-              "--oq-y1": `0px`,
+              "--oq-x1": "0px",
+              "--oq-y1": "0px",
               animation: `oq-pop 0.42s cubic-bezier(.34,1.56,.64,1) ${idx * 55}ms both`,
             }}
           >
-            {/* Icon */}
-            <span style={{ fontSize: 22, lineHeight: 1 }}>{type.icon}</span>
-            {/* Label direkt unter dem Icon IM Orb (klein, muted) */}
-            <span style={{
-              fontSize: 9.5,
+            {/* Farb-Orb: Gradient + weißer Ring + farbiger Glow */}
+            <div style={{
+              width: MINI_ORB_D,
+              height: MINI_ORB_D,
+              borderRadius: "50%",
+              background: `linear-gradient(135deg, ${type.c1}, ${type.c2})`,
+              border: "1.5px solid rgba(255,255,255,0.55)",
+              boxShadow: `0 10px 26px ${type.glow}, 0 0 0 4px rgba(255,255,255,0.55), 0 2px 6px rgba(20,20,34,0.16)`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              {/* Weißer Icon-Kern mit Emoji */}
+              <div style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "#FFFFFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                boxShadow: "inset 0 1px 3px rgba(20,20,34,0.10)",
+              }}>
+                <span style={{ fontSize: 19, lineHeight: 1 }}>{type.icon}</span>
+              </div>
+            </div>
+            {/* Label unter dem Orb — Ink, Design-System-Farben */}
+            <div style={{
+              fontSize: 10.5,
               fontWeight: 600,
               color: "#55556B",
-              marginTop: 1,
+              marginTop: 6,
               letterSpacing: -0.1,
               textAlign: "center",
-              lineHeight: 1.1,
-              maxWidth: "90%",
-            }}>{type.label}</span>
+              lineHeight: 1.2,
+              maxWidth: 76,
+            }}>{type.label}</div>
           </div>
         );
       })}
