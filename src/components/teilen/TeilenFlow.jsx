@@ -700,23 +700,6 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
     scrollRef.current?.scrollTo({ top:0, behavior:"smooth" });
   }
 
-  // ─── TEST INSERT (minimal, kein Upload, direkt in beitraege) ──────────────
-  const handleTestInsert = useCallback(async () => {
-    if (!user?.id) {
-      console.error("[HUI MOMENT] TEST INSERT ABORT — kein user.id");
-      return;
-    }
-    const { data, error } = await supabase
-      .from("beitraege")
-      .insert({ user_id: user.id, type: "moment", caption: "debug" })
-      .select("id")
-      .single();
-    if (error) {
-      console.error("[HUI MOMENT] TEST INSERT error", { code: error.code, message: error.message });
-    } else {
-    }
-  }, [user?.id]);
-
   // ─── ECHTER PUBLISH FLOW ────────────────────────────────────────────────────
   // ── On-screen debug log (kein alert — Safari alert schliesst Flow) ──
   const huiLog = React.useCallback((msg) => {
@@ -1040,25 +1023,8 @@ export default function TeilenFlow({ onClose, onPublished, visible = true }) {
         )}
         {step === 3 && (
           <>
-            {/* ── DEBUG: TEST INSERT Button ── */}
-            <div style={{
-              padding:"12px 20px 0",
-              display:"flex", justifyContent:"center",
-            }}>
-              <button
-                onClick={handleTestInsert}
-                style={{
-                  height:36, paddingInline:18, borderRadius:99,
-                  background:"rgba(239,68,68,0.12)",
-                  border:"1.5px solid rgba(239,68,68,0.35)",
-                  color:"rgba(239,68,68,0.9)",
-                  fontSize:12, fontWeight: 600, letterSpacing:0.3,
-                  cursor:"pointer", fontFamily:"monospace",
-                }}
-              >
-                🧪 TEST INSERT (Debug)
-              </button>
-            </div>
+            {/* DEBUG-BUTTON ENTFERNT (2026-09-15, HOTFIX): Test-Insert-Button war
+                live erreichbar und schrieb caption:"debug"-Zeilen in beitraege. */}
             <StepPreview
               mode={form.mode}
               data={form}
