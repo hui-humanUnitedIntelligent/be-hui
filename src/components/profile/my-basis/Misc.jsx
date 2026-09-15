@@ -177,3 +177,77 @@ export function TalentOnboardingModal({ onClose = () => {}, onSuccess = () => {}
     document.body
   );
 }
+
+// ══════════════════════════════════════════════════════════════
+// TALENT INTRO MODAL (ORB-REWIRE, 2026-09-15)
+// Basis-User tippt den Nav-Orb → dieses Modal zeigt das IDENTISCHE
+// TalentWerdenBanner-Modul wie im Nutzerbereich „Basisnutzer"
+// (MyBasisProfile) — kein Neubau, kein abweichender Text. Der
+// Banner-CTA („Jetzt Talent werden") startet onStart → TalentOnboarding.
+// createPortal + zIndex 10500 (Pflicht-Regel footer-navbar-zindex).
+// ══════════════════════════════════════════════════════════════
+export function TalentIntroModal({ onStart = () => {}, onClose = () => {} }) {
+  const { t } = useTranslation();
+  return createPortal(
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 10500,
+        background: "rgba(15,15,25,0.55)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        paddingTop: "max(24px, var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px))",
+        paddingBottom: "max(20px, var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 0px))",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          maxHeight: "calc(100dvh - 48px)",
+          overflowY: "auto",
+          background: "#FFFFFF",
+          borderRadius: 24,
+          boxShadow: "0 24px 80px rgba(0,0,0,0.22)",
+          position: "relative",
+          animation: "cts-intro-up 0.32s cubic-bezier(.22,1,.36,1) both",
+        }}
+      >
+        <style>{`@keyframes cts-intro-up { from{opacity:0;transform:translateY(24px) scale(.97)} to{opacity:1;transform:none} }`}</style>
+        {/* Close — absolute oben rechts, 10px Sicherheitsabstand zum Rand */}
+        <button
+          onClick={onClose}
+          aria-label={t("cts.close")}
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            background: "rgba(0,0,0,0.06)",
+            border: "none",
+            borderRadius: 50,
+            width: 34,
+            height: 34,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            fontSize: 18,
+            color: "#55556B",
+            zIndex: 2,
+          }}
+        >×</button>
+        {/* Identisches TalentWerdenBanner-Modul wie im Nutzerbereich */}
+        <div style={{ paddingTop: 6 }}>
+          <TalentWerdenBanner onStart={onStart} />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}

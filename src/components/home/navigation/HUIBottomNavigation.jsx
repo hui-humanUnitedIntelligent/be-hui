@@ -104,11 +104,13 @@ function NavigationSVG({ width, height }) {
 }
 
 /* ── Static HUI Logo (replaces former growth Orb) ──────────── */
-/* 2026-08-15: Das 6-stufige Wachstums-Orb wurde deaktiviert.
-   An seiner Stelle zeigt die Navbar jetzt das statische HUI-Logo,
-   zentriert über der Tabbar-Schnitt. Klick löst nichts aus
-   (pointerEvents:none). Die originalen Orb-Stage-Bilder und der
-   useOrbGrowthStage-Hook wurden archiviert, nicht gelöscht. */
+/* 2026-08-15: Das 6-stufige Wachstums-Orb wurde deaktiviert, das
+   statische HUI-Logo trat an seine Stelle (Stage-Bilder + Hook
+   archiviert, nicht gelöscht). ORB-REWIRE (2026-09-15): Der Logo-
+   Button ist wieder KLICKBAR — er öffnet als Talent-User den
+   Content Type Selector (Moment/Erlebnis/Werk/Talent) und als
+   Basis-User das Werde-Talent-Intro (Rollen-Entscheidung trifft
+   Home.jsx via isProfileTalent-SSOT). */
 function NavigationLogo() {
   return (
     <div
@@ -199,10 +201,14 @@ export default function HUIBottomNavigation({
     if (typeof onTab === "function") onTab(key);
   }
 
-  // 2026-08-15: Orb-Klick löst nichts mehr aus.
-  // Der Button bleibt sichtbar als statisches HUI-Logo, hat aber keine Aktion.
+  // ORB-REWIRE (2026-09-15, Michael-Spec "Orb-Button — Talent-Upgrade &
+  // Quick-Upload Hub"): Klick-Handler wieder aktiv. Rollen-agnostisch —
+  // die Rollen-Entscheidung (Talent → Content Type Selector, Basis-User →
+  // Werde-Talent-Intro) trifft Home.jsx als SSOT (isProfileTalent). Siehe
+  // ORB-CLICK-REGRESSION-Lehre: Der Handler war am 15.08. versehentlich mit
+  // der Wachstums-Animation entfernt worden — diesmal bewusst wieder aktiv.
   function handleOrbPress() {
-    // No-op — Logo ist rein dekorativ
+    onOrbAction?.("create");
   }
 
   const navItems = (NAV_ITEMS || [])
@@ -295,6 +301,13 @@ export default function HUIBottomNavigation({
              unverändert bleiben. */}
         <div
           data-hui-nav-orb=""
+          role="button"
+          tabIndex={0}
+          aria-label={t("nav.orbAction")}
+          onClick={handleOrbPress}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleOrbPress(); }
+          }}
           style={{
             position: "absolute",
             top: 12 - ORB_OVERHANG,  // = -39, Logo-Position unverändert
@@ -303,7 +316,9 @@ export default function HUIBottomNavigation({
             width: ORB_D,
             height: ORB_D,
             zIndex: 10002,  /* über Nav(10000) und Backdrop(0), unter Modals(10500) */
-            pointerEvents: "none",  /* Logo ist rein dekorativ — keine Klicks */
+            pointerEvents: "auto",  /* ORB-REWIRE: klickbar — öffnet Selector/Intro */
+            cursor: "pointer",
+            WebkitTapHighlightColor: "transparent",
           }}
         >
           <NavigationLogo />

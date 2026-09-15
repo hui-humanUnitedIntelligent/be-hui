@@ -2,6 +2,7 @@
 // Layout: Header → Feed (scroll) → HUIBottomNavigation (in-flow)
 
 import React, { Suspense, lazy, useEffect, useRef, useCallback, useState } from "react";
+import { createPortal } from "react-dom";
 import { makeChunkReload } from "../lib/chunkReload.js";
 import { useLocation, useNavigate } from "react-router-dom"; // COMMERCE-01
 import { useOrbWorld } from "../context/OrbWorldContext.jsx";
@@ -15,6 +16,8 @@ import {
 import { SAFE_MODE } from "../config/safeMode.js";
 import { SafeRender } from "../config/SafeRender.jsx";
 import TalentOnboarding from "../components/TalentOnboarding.jsx";
+import { TalentIntroModal } from "../components/profile/my-basis/Misc.jsx";
+import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
 import { logDebug }  from "../lib/debugCollector.js";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
 import HomeShell, { useHome }   from "../components/home/HomeShell.jsx";
@@ -207,6 +210,9 @@ function HomeInner() {
     showImpactFlow,         setShowImpactFlow,
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
+    showTalentIntro,        setShowTalentIntro,
+    showTalentWizard,       setShowTalentWizard,
+    refreshProfile,
     activeStory,       setActiveStory,
     showCreatorDash,   setShowCreatorDash,
     showCreatorDashboard, setShowCreatorDashboard,
@@ -614,7 +620,12 @@ function HomeInner() {
       {showTalentFlow && SAFE_MODE.talentFlow && (
         <TalentOnboarding
           onClose={() => setShowTalentFlow(false)}
-          onActivate={() => setShowTalentFlow(false)}
+          onActivate={() => {
+            // ORB-REWIRE: Nach Talent-Aktivierung Profil cachen leeren →
+            // isTalent flippt live, Orb zeigt beim nächsten Klick den Selector.
+            setShowTalentFlow(false);
+            refreshProfile?.();
+          }}
         />
       )}
 
@@ -689,17 +700,17 @@ function HomeInner() {
           msgCount={unreadTotal}
           onOrbAction={(key) => {
             if (key !== "create") return;
+            if (!SAFE_MODE.orb) return;
 
-            const canRenderOrbContent = SAFE_MODE.orb;
-            if (!canRenderOrbContent) return;
-
-            // ── Soft Transition — Wirkungsraum öffnet ruhig ───────────────
-            // Nav-Orb blendet sanft aus, während MeinHUI als Ganzes
-            // weich einblendet (opacity + 10px translateY, ~300ms).
-            // Der gestaffelte Content-Aufbau läuft intern in MeinHUI.
-            setOrbTransition("exiting");
-            setShowPlusSheet(true);
-            setTimeout(() => setOrbTransition("hidden"), 300);
+            // ORB-REWIRE (2026-09-15, Michael-Spec): Rollen-Gate am Orb.
+            // Talent-User → Content Type Selector (Moment/Erlebnis/Werk/Talent),
+            // Basis-User → Werde-Talent-Intro (TalentWerdenBanner-Modul,
+            // identisch zum Nutzerbereich; Start-Button → TalentOnboarding).
+            if (isTalent) {
+              setShowContentSelector(true);
+            } else {
+              setShowTalentIntro(true);
+            }
           }}
         />
 
@@ -970,6 +981,9 @@ function HomeInner() {
               setShowWerkPublisher(true);
             } else if (type === "invitation") {
               setShowInvitationFlow(true);
+            } else if (type === "talent") {
+              // ORB-REWIRE: Talent-Karte → TalentAngebotWizard (identisch zu Mein Bereich)
+              setShowTalentWizard(true);
             }
           }}
         />
@@ -981,6 +995,34 @@ function HomeInner() {
           visible={showInvitationFlow}
           onClose={() => setShowInvitationFlow(false)}
         />
+      )}
+
+      {/* ORB-REWIRE (2026-09-15): Basis-User → Werde-Talent-Intro-Modal.
+          Re-use TalentWerdenBanner (identisches Modul wie im Nutzerbereich
+          "Basisnutzer") — kein Neubau. Portal + zIndex 10500 (Pflicht-Regel). */}
+      {showTalentIntro && !isTalent && (
+        <TalentIntroModal
+          onClose={() => setShowTalentIntro(false)}
+          onStart={() => {
+            setShowTalentIntro(false);
+            setShowTalentFlow(true);
+          }}
+        />
+      )}
+
+      {/* ORB-REWIRE (2026-09-15): Talent-Karte → TalentAngebotWizard.
+          Re-use des Mein-Bereich-Flows (gleiche Komponente, gleiche Props —
+          kein Code-Duplikat). Portal auf document.body (Pflicht-Regel). */}
+      {showTalentWizard && isTalent && authProfile?.id && createPortal(
+        <TalentAngebotWizard
+          userId={authProfile.id}
+          onClose={() => setShowTalentWizard(false)}
+          onSaved={() => {
+            setShowTalentWizard(false);
+            refreshProfile?.();
+          }}
+        />,
+        document.body
       )}
 
       {activeStory && SAFE_MODE.storyViewer && (

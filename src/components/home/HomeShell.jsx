@@ -175,6 +175,9 @@ export default function HomeShell({ children }) {
   const [showImpactFlow,         setShowImpactFlow]         = useState(false);
   const [showContentSelector,    setShowContentSelector]    = useState(false);
   const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
+  // ORB-REWIRE (2026-09-15): Basis-User → Werde-Talent-Intro-Modal / Talent-Karte → TalentAngebotWizard
+  const [showTalentIntro,         setShowTalentIntro]        = useState(false);
+  const [showTalentWizard,        setShowTalentWizard]       = useState(false);
   const [showCreatorDash,        setShowCreatorDash]        = useState(false); // Phase 4D
   const [showWerkDetail,         setShowWerkDetail]        = useState(null);
   const [showWerkCheckout,       setShowWerkCheckout]      = useState(null);
@@ -465,6 +468,9 @@ export default function HomeShell({ children }) {
     showTeilen, showTalentFlow, showStoryComposer,
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
+    showTalentIntro, setShowTalentIntro,
+    showTalentWizard, setShowTalentWizard,
+    refreshProfile,
     showCreatorDash, showWerkDetail, showWerkCheckout, showWerkeKorb,
     showUnterstutzenFlow, showBookingFlow,
     createType, activeStory, cart, clearCartPersist,

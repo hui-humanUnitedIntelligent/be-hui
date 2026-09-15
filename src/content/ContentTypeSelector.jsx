@@ -5,9 +5,24 @@
 //
 // Öffnet sich wenn + Button / Orb getippt wird.
 // 4 klare Content-Typen — kein generischer Monster-Composer.
+//
+// ORB-REWIRE (2026-09-15, Michael-Spec "Orb-Button — Talent-Upgrade &
+// Quick-Upload Hub"): Dieser Selector war seit Phase 4B fertig gebaut,
+// aber nie verdrahtet (setShowContentSelector(true) wurde nirgends
+// aufgerufen — toter Code). Jetzt live über den Nav-Orb (Talent-User).
+// Änderungen im Zuge der Aktivierung:
+//   (1) Portal auf document.body + zIndex 10500 (Pflicht-Regel für ALLE
+//       Modals — war 9100/9101, UNTER der Navbar(10000); nie aufgefallen,
+//       weil der Selector nie live ging).
+//   (2) 4. Karte ist jetzt TALENT (statt Einladung) — Spec verlangt
+//       Werk/Talent/Erlebnis/Moment. Talent-Karte öffnet den
+//       TalentAngebotWizard (identisch zu Mein Bereich). Der
+//       InvitationFlow-Zweig in Home.jsx bleibt unangetastet.
+//   (3) Alle Texte via i18n (useTranslation) statt hartkodiertem Deutsch.
 // ═══════════════════════════════════════════════════════════════
 
 import React, { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { HUI } from "../design/hui.design.js";
 import { useTranslation } from "../hooks/useTranslation.js";
 
@@ -35,53 +50,57 @@ const CSS = `
   .cts-card:hover { transform:translateY(-2px); }
 `;
 
-/* ── Content Typen ──────────────────────────────────────────── */
-const CONTENT_TYPES = [
-  {
-    key:     "moment",
-    icon:    "🌿",
-    label:   "Moment",
-    sub:     "Gedanken · Fotos · Stimmung",
-    desc:    "Spontan, authentisch, menschlich.",
-    color:   HUI.COLOR.teal,
-    glow:    "rgba(10,191,184,0.15)",
-    border:  "rgba(10,191,184,0.22)",
-    bg:      "rgba(10,191,184,0.06)",
-  },
-  {
-    key:     "experience",
-    icon:    "📅",
-    label:   "Erlebnis",
-    sub:     "Workshop · Session · Treffen",
-    desc:    "Eine Begegnung die verbindet.",
-    color:   "#38BDF8",
-    glow:    "rgba(56,189,248,0.15)",
-    border:  "rgba(56,189,248,0.22)",
-    bg:      "rgba(56,189,248,0.06)",
-  },
-  {
-    key:     "work",
-    icon:    "🎨",
-    label:   "Werk",
-    sub:     "Kunst · Design · Portfolio",
-    desc:    "Deine Kreation",
-    color:   HUI.COLOR.coral,
-    glow:    "rgba(251,146,60,0.15)",
-    border:  "rgba(251,146,60,0.22)",
-    bg:      "rgba(251,146,60,0.06)",
-  },
-  {
-    key:     "invitation",
-    icon:    "👥",
-    label:   "Einladung",
-    sub:     "Spontan · Jetzt · Lokal",
-    desc:    "Wer hat Lust auf heute?",
-    color:   HUI.COLOR.violet,
-    glow:    "rgba(139,92,246,0.15)",
-    border:  "rgba(139,92,246,0.22)",
-    bg:      "rgba(139,92,246,0.06)",
-  },
-];
+/* ── Content Typen — ORB-REWIRE: i18n + Talent statt Einladung ── */
+function getContentTypes(t) {
+  return [
+    {
+      key:     "moment",
+      icon:    "🌿",
+      label:   t("orb.moment"),
+      sub:     t("cts.sub.moment"),
+      desc:    t("cts.desc.moment"),
+      color:   HUI.COLOR.teal,
+      glow:    "rgba(10,191,184,0.15)",
+      border:  "rgba(10,191,184,0.22)",
+      bg:      "rgba(10,191,184,0.06)",
+    },
+    {
+      key:     "experience",
+      icon:    "📅",
+      label:   t("orb.erlebnis"),
+      sub:     t("cts.sub.experience"),
+      desc:    t("cts.desc.experience"),
+      color:   "#38BDF8",
+      glow:    "rgba(56,189,248,0.15)",
+      border:  "rgba(56,189,248,0.22)",
+      bg:      "rgba(56,189,248,0.06)",
+    },
+    {
+      key:     "work",
+      icon:    "🎨",
+      label:   t("orb.werk"),
+      sub:     t("cts.sub.work"),
+      desc:    t("cts.desc.work"),
+      color:   HUI.COLOR.coral,
+      glow:    "rgba(251,146,60,0.15)",
+      border:  "rgba(251,146,60,0.22)",
+      bg:      "rgba(251,146,60,0.06)",
+    },
+    {
+      // ORB-REWIRE: 4. Karte = Talent (Spec: Werk/Talent/Erlebnis/Moment),
+      // helles Mint (#34D399) wie von Michael gewünscht. Ersetzt „Einladung".
+      key:     "talent",
+      icon:    "⭐",
+      label:   t("orb.talent"),
+      sub:     t("cts.sub.talent"),
+      desc:    t("cts.desc.talent"),
+      color:   "#34D399",
+      glow:    "rgba(52,211,153,0.15)",
+      border:  "rgba(52,211,153,0.22)",
+      bg:      "rgba(52,211,153,0.06)",
+    },
+  ];
+}
 
 /* ── TypeCard ───────────────────────────────────────────────── */
 function TypeCard({ type, idx, onSelect }) {
@@ -90,6 +109,7 @@ function TypeCard({ type, idx, onSelect }) {
   return (
     <button
       className="cts-tap cts-card"
+      aria-label={`${type.label} — ${type.sub}`}
       onClick={() => onSelect(type.key)}
       onPointerDown={() => setPressed(true)}
       onPointerUp={() => setPressed(false)}
@@ -171,6 +191,7 @@ function TypeCard({ type, idx, onSelect }) {
 /* ── Main Component ─────────────────────────────────────────── */
 export default function ContentTypeSelector({ onSelect, onClose, visible = true }) {
   const { t } = useTranslation();
+  const contentTypes = getContentTypes(t);
   const overlayRef = useRef(null);
 
   // Close on backdrop tap
@@ -191,7 +212,10 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
 
   if (!visible) return null;
 
-  return (
+  // ORB-REWIRE: createPortal auf document.body — escaped jeden Ancestor-
+  // Stacking-Context (Pflicht-Regel für alle Modals/Sheets, siehe
+  // footer-navbar-zindex.md). zIndex 10500 > Navbar (10000).
+  return createPortal(
     <>
       <style>{CSS}</style>
 
@@ -202,7 +226,7 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
         style={{
           position:   "fixed",
           inset:      0,
-          zIndex:     9100,
+          zIndex:     10500,
           background: "rgba(15,15,25,0.55)",
           backdropFilter: "blur(12px)",
           WebkitBackdropFilter: "blur(12px)",
@@ -219,7 +243,7 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
           bottom:       0,
           left:         0,
           right:        0,
-          zIndex:       9101,
+          zIndex:       10501,
           background:   T.bg,
           borderRadius: "28px 28px 0 0",
           padding:      "0 0 max(var(--hui-safe-bottom, 0px), env(safe-area-inset-bottom, 24px), 24px)",
@@ -253,11 +277,11 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
               letterSpacing: -0.5,
               lineHeight:   1.15,
             }}>
-              Was möchtest du<br />
-              <span style={{ color: T.teal }}>teilen?</span>
+              {t("cts.title")}
             </div>
             <button
               className="cts-tap"
+              aria-label={t("cts.close")}
               onClick={onClose}
               style={{
                 background: "rgba(0,0,0,0.06)",
@@ -280,7 +304,7 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
             color:      T.ink3,
             letterSpacing: -0.1,
           }}>
-            Welche Art von Energie möchtest du in die Welt senden?
+            {t("cts.subtitle")}
           </div>
         </div>
 
@@ -291,7 +315,7 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
           gap:           10,
           padding:       "12px 16px 20px",
         }}>
-          {CONTENT_TYPES.map((type, idx) => (
+          {contentTypes.map((type, idx) => (
             <TypeCard
               key={type.key}
               type={type}
@@ -309,9 +333,10 @@ export default function ContentTypeSelector({ onSelect, onClose, visible = true 
           paddingBottom: 8,
           letterSpacing: "0.02em",
         }}>
-          ✦ Jede Energie zählt
+          {t("cts.footer")}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
