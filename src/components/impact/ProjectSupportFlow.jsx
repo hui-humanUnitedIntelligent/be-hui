@@ -266,26 +266,31 @@ export default function ProjectSupportFlow({
           <div style={{ overflowY:"auto", padding:"4px 20px 24px",
             paddingBottom: "calc(24px + env(safe-area-inset-bottom, 0px))" }}>
 
-            {/* ── Phase: Projektauswahl (2er-Reihe) ─────────────── */}
+            {/* ── Phase: Projektauswahl (SINGLE-COLUMN-LAYOUT-001, 2026-09-15,
+                Michael-Spec: "Grid sieht unruhig aus, soll durchgehende Liste
+                sein") — vorher 2er-Grid, jetzt eine Karte pro Zeile. ─────── */}
             {phase === "select" && (
               projects.length === 0 ? (
                 <div style={{ textAlign:"center", color:T.soft, fontSize:13, padding:"24px 0" }}>
                   {t("impact.support.noProjects")}
                 </div>
               ) : (
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                   {projects.map(p => (
                     <div key={p.id} style={{
                       background:"#fff", borderRadius:16, border:`1px solid ${T.border}`,
-                      overflow:"hidden", display:"flex", flexDirection:"column",
+                      overflow:"hidden", display:"flex", flexDirection:"row",
+                      alignItems:"center", padding:10, gap:10,
                       animation: "psf-rise 0.3s ease both",
                     }}>
-                      <ProjectKopf project={p} />
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <ProjectKopf project={p} />
+                      </div>
                       <button type="button" className="psf-tap"
                         onClick={() => { setProject(p); setPhase("amount"); }}
-                        style={{ margin:10, padding:"9px 8px", borderRadius:12,
+                        style={{ padding:"9px 14px", borderRadius:12, flexShrink:0,
                           border:"none", background:T.teal, color:"#fff",
-                          fontSize:12, fontWeight:700, width:"calc(100% - 20px)" }}>
+                          fontSize:12, fontWeight:700, whiteSpace:"nowrap" }}>
                         {t("impact.support.support")}
                       </button>
                     </div>
