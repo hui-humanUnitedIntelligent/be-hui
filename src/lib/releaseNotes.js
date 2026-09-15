@@ -17,6 +17,42 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.603 — von Michael am 15.09.2026 freigegeben ("deploye mit den
+  // letzten 8 Was ist neu texten.. damit es aussieht als waere das gemacht
+  // mit dem neuen Patch"). Sammel-OTA-Queue seit 2.1.602:
+  // DISCOVER-CLEAN-001 (db018ebb: Menschen-Karten ohne Buttons/Badges),
+  // ORB-SOFTTINT-001 (c4d05c3a: Mini-Orbs Variante B, zarte Toenung statt
+  // Glow — ersetzt ORB-GLARE-FIX + ORB-VISIBILITY-FIX),
+  // VIDEO-SOUND-TOGGLE-001 (db018ebb: Ton an/aus auf Feed-Videos),
+  // CHAT-OPEN-ALL-FIX (17968f0e: Verbinden/Verkaeufer kontaktieren erstellt
+  // Chats zuverlaessig — bookingId-Gate entfernt), AWARENESS-FOX-FIX
+  // (17968f0e: Gruenstreifen weg, HUI-Fuchs als Hinweisgeber),
+  // ORB-MODAL-KONSISTENZ-001 (4f5550e4: Orb-Menues = Mein-Bereich-Wizards),
+  // SINGLE-COLUMN-LAYOUT-001 (821de1ae: Projekt-Unterstuetzen als Liste),
+  // DEBUG-BUTTON-HOTFIX (9c8da905: interner Debug-Button entfernt).
+  "2.1.603": {
+    de: [
+      "Menschen in Entdecken: Aufgeräumte Karten — Follower und Herzen auf einen Blick, ganz ohne Button-Wirrwarr.",
+      "Neue Mini-Orbs: Sanfte Farbtönung statt Glow — die vier Schnell-Buttons sind jetzt klar sichtbar und angenehm lesbar.",
+      "Ton an/aus: Feed-Videos haben jetzt einen eigenen Ton-Button oben rechts — stummschalten und einschalten, wann du willst.",
+      "Chat öffnet immer: \"Verbinden\" und \"Verkäufer kontaktieren\" führen jetzt zuverlässig direkt zum Gespräch.",
+      "Der HUI-Fuchs ist da: Er meldet sich im Chat mit Tipps, damit Vereinbarungen sicher in der App bleiben.",
+      "Upload vom Orb: Momente, Werke, Erlebnisse und Talente öffnen jetzt dieselben Sheets wie im Mein-Bereich.",
+      "Projekte unterstützen: Neue, ruhige Listenansicht statt unruhigem Raster.",
+      "Feinschliff: Viele Detailverbesserungen für mehr Stabilität und ein saubereres Gesamtbild.",
+    ],
+    en: [
+      "People in Discover: Cleaner cards — followers and hearts at a glance, without button clutter.",
+      "New mini orbs: Soft color tint instead of glow — the four quick buttons are now clearly visible and easy to read.",
+      "Sound on/off: Feed videos now have their own sound button in the top right — mute and unmute whenever you like.",
+      "Chat always opens: \"Connect\" and \"Contact seller\" now reliably take you straight to the conversation.",
+      "The HUI fox is here: In chats he shares tips to keep arrangements safely inside the app.",
+      "Upload from the orb: Moments, works, experiences and talents now open the same sheets as in My Area.",
+      "Supporting projects: A new, calm list view instead of a busy grid.",
+      "Polish: Many detail improvements for more stability and an overall cleaner look.",
+    ],
+  },
+
   // 2.1.599 — von Michael am 13.09.2026 freigegeben ("okay zeig mir Text und
   // dann deploy mit text"). Queue: IMPACT-CARD-DEEPLINK-001 (5d9e528a:
   // Impact-Karte im Feed öffnet direkt das Projekt) + NOTIF-TYPE-PREFS-001
