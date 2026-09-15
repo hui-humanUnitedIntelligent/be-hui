@@ -142,7 +142,7 @@ function NavBar({ onBack = () => {}, title, subtitle }) {
 // lokalen State — Follow/Unfollow hier aktualisiert damit auch den Discover-
 // "✓ Folge ich"-Badge (gleicher State). Mount-Effekt gleicht den SSOT per
 // Direkt-Query einmalig ab (reconcileFollow, deckt Geraete-/Session-Differenzen).
-function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
+function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange, onClose }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [followLoading, setFollowLoading] = useState(false);
@@ -191,6 +191,14 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
       });
       if (!res?.ok) {
         toast.error(t("chat.connectError"), { duration: 3000 });
+      } else {
+        // CONNECT-CLOSE-FIX (2026-09-15, Michael-Report): Profil schliessen,
+        // NACHDEM der Chat erfolgreich geoeffnet wurde -- vorher blieb das
+        // Profil-Overlay ueber/unter dem Chat liegen (onClose war nie an
+        // RelationButtons durchgereicht). Bei navigate-Fallback (Standalone-
+        // Route) macht connectAndOpenChat den Seitenwechsel selbst; onClose
+        // hier ist dann ein No-Op auf der bereits verlassenen Seite -- sicher.
+        onClose?.();
       }
     } catch (err) {
       console.warn("[Connect] exception:", err);
@@ -613,7 +621,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
 
         {/* ── AKTIONS-BUTTONS ── */}
         {profile && !isOwnProfile && (
-          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} />
+          <RelationButtons profileId={profileId} currentUserId={user?.id} profile={profile} onFollowChange={handleFollowChange} onClose={onClose} />
         )}
         {SHOW_SUPPORT_BUTTON && profile && !isOwnProfile && (
           <button onClick={() => setShowSupport(true)} className="ppp-press" style={{
