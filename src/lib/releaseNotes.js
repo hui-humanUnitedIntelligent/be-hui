@@ -17,9 +17,13 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
-  // 2.1.603 — von Michael am 15.09.2026 freigegeben ("deploye mit den
-  // letzten 8 Was ist neu texten.. damit es aussieht als waere das gemacht
-  // mit dem neuen Patch"). Sammel-OTA-Queue seit 2.1.602:
+  // 2.1.604 — von Michael am 15.09.2026 freigegeben ("deploy mit Version
+  // Pump? und 8 Text hinzu"). Versions-Korrektur: Das stille Sammel-Release
+  // 2.1.603 (Commit 9e6fa37e, 13:43 UTC deployed) gab den OTA-Geraeten schon
+  // die Nummer 2.1.603 — OHNE die Chat-Fixes (17968f0e) und OHNE diese
+  // Release-Notes. Das 14:47-Nachfolge-Release trug dieselbe Nummer und
+  // wurde deshalb von keinem Geraet gezogen (Version-Gleichstand). Die
+  // 8 Punkte stehen deshalb jetzt unter 2.1.604. Sammel-OTA-Queue:
   // DISCOVER-CLEAN-001 (db018ebb: Menschen-Karten ohne Buttons/Badges),
   // ORB-SOFTTINT-001 (c4d05c3a: Mini-Orbs Variante B, zarte Toenung statt
   // Glow — ersetzt ORB-GLARE-FIX + ORB-VISIBILITY-FIX),
@@ -30,7 +34,7 @@ export const RELEASE_NOTES = {
   // ORB-MODAL-KONSISTENZ-001 (4f5550e4: Orb-Menues = Mein-Bereich-Wizards),
   // SINGLE-COLUMN-LAYOUT-001 (821de1ae: Projekt-Unterstuetzen als Liste),
   // DEBUG-BUTTON-HOTFIX (9c8da905: interner Debug-Button entfernt).
-  "2.1.603": {
+  "2.1.604": {
     de: [
       "Menschen in Entdecken: Aufgeräumte Karten — Follower und Herzen auf einen Blick, ganz ohne Button-Wirrwarr.",
       "Neue Mini-Orbs: Sanfte Farbtönung statt Glow — die vier Schnell-Buttons sind jetzt klar sichtbar und angenehm lesbar.",
