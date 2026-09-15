@@ -5228,4 +5228,8 @@ export default {
   'share.event': 'Découvre cet événement sur HUI : « {title} »',
   'share.talent': 'Découvre cette offre de talent sur HUI : « {title} »',
   'share.discover': 'Découvre plus sur HUI — la plateforme des œuvres, talents et expériences.',
+
+  // VIDEO-SOUND-TOGGLE-001 (2026-09-15, Report 62f52ee5): Ton-Button auf Feed-Videos
+  'media.soundOn': 'Activer le son',
+  'media.soundOff': 'Désactiver le son',
 };

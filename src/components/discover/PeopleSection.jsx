@@ -7,14 +7,12 @@ import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcon
 import { formatPresence } from "../../lib/usePresence.js";
 import { optimizeAvatar } from "../../lib/perfUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
-import { useAppState } from "../../lib/AppStateContext.jsx";
 
-// DISCOVER-FOLLOW-BADGE (2026-09-08, Bug-Käfer 51bbd017 "Folgen wird auf dem
-// Profil erkannt aber nicht bei Entdecken"): Die Discover-Menschenkarten
-// zeigten NIE den Folgestatus des eingeloggten Nutzers — man folgte jemandem
-// auf dessen Profil, zurück im Entdecken-Tab war davon nichts zu sehen.
-// isFollowing kommt als Prop von PeopleSection (unten), Quelle ist der
-// globale SSOT followedIds aus AppStateContext (derselbe State, den auch
+// DISCOVER-CLEAN-001 (2026-09-15, Michael-Report 20467c2f): "✓ Folge
+// ich"-Badges (Card- + Listen-Ansicht, PUNKT1-FOLLOWING-BADGE von 2026-09-08)
+// sowie die Verbinden-Pill (CARD-VERBINDEN-HIDE-001) sind von den Discover-
+// Menschenkarten ENTFERNT — nur die Statistik-Pills ("Herzen") bleiben.
+// Folgen/Verbinden bleibt erreichbar ueber Kartentipp -> volles Profil.
 // das Profil für seinen "Folge ich"-Button nutzt — optimistic updates und
 // hui:follow:changed-Events greifen dadurch automatisch auch hier).
 // CARD-VERBINDEN-HIDE-001 (2026-09-15, Michael-Spec): ListConnectButton
@@ -22,13 +20,12 @@ import { useAppState } from "../../lib/AppStateContext.jsx";
 // wirkte redundant. Verbinden bleibt erreichbar ueber Karten-Tipp -> volles
 // Profil UND ueber "Alle anzeigen" -> MenschenAllModal (Folgen+Verbinden).
 
-export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers=0, likes=0, isFollowing=false }) {
+export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers=0, likes=0 }) {
   const [imgErr, setImgErr] = useState(false);
-  const { t } = useTranslation();
-  // CARD-VERBINDEN-HIDE-001 (2026-09-15, Michael-Spec): Verbinden-Button von
-  // der kompakten Discover-Karte entfernt (wirkte redundant/unruhig) --
-  // bleibt erreichbar ueber Kartentipp -> volles Profil (RelationButtons)
-  // UND ueber "Alle anzeigen" -> MenschenAllModal.
+  // CARD-VERBINDEN-HIDE-001 (2026-09-15): Verbinden-Button von der kompakten
+  // Discover-Karte entfernt. DISCOVER-CLEAN-001 (2026-09-15): "✓ Folge ich"-
+  // Badge ebenfalls weg — nur Statistik-Pills ("Herzen") bleiben. Folgen +
+  // Verbinden erreichbar ueber Kartentipp -> volles Profil (RelationButtons).
   const av = (!imgErr && person.avatar) ? person.avatar : null;
   const presence = formatPresence(person.last_seen_at);
 
@@ -106,22 +103,7 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
         )}
       </div>
 
-      {/* PUNKT1-FOLLOWING-BADGE (2026-09-08, Michael): "✓ Folge ich"Badge
-          sitzt jetzt DIREKT OBERHALB der Follower+Likes-Zeile ("Herzen") am
-          unteren Kartenrand statt oben ueber dem Avatar. marginTop:auto
-          dockt die Gruppe an den Kartenbottom (Statistikzeile hat ihr
-          marginTop:auto dafuer abgegeben). */}
-      {isFollowing && (
-        <div style={{
-          marginTop:"auto", alignSelf:"center", marginBottom:2,
-          display:"inline-flex", alignItems:"center", gap:2.5,
-          fontSize:8.5, fontWeight:600, letterSpacing:"0.02em",
-          color:T.tealDeep, background:"rgba(14,196,184,0.12)",
-          border:"1px solid rgba(14,196,184,0.22)",
-          borderRadius:99, padding:"2.5px 7px", whiteSpace:"nowrap",
-        }}>✓ {t("profile.following")}</div>
-      )}
-
+      
       {/* Follower + Likes — immer nebeneinander in 1 Zeile, IMMER am unteren Kartenrand
           (marginTop:auto schiebt die Zeile nach unten; da .dp-hscroll ein Flex-Row mit
           Default-align-items:stretch ist, haben alle Karten in der Reihe bereits dieselbe
@@ -152,8 +134,6 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
 
 export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view='cards', onSectionAction }) {
   const { t } = useTranslation();
-  // 51bbd017: Folgestatus aus globalem SSOT (siehe Kommentar bei PersonCard)
-  const { followedIds = [] } = useAppState();
   return (
     <div className="dp-in" style={{ animationDelay:`${delay}ms`, marginTop:10 }}>
       <div data-dp-people/>
@@ -181,7 +161,7 @@ export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view
             : people.length === 0
             ? <div style={{ paddingLeft:T.px, fontSize:12.5, color:T.inkFaint, fontStyle:'italic', opacity:0.75 }}>Noch keine Mitglieder gefunden.</div>
             : people.map((p, i) => (
-                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers || 0} likes={p.likes || 0} isFollowing={followedIds.includes(p.id)} />
+                <PersonCard key={p.id} person={p} onPress={onPersonPress} delay={0} followers={p.followers || 0} likes={p.likes || 0} />
               ))
           }
         </div>
@@ -203,14 +183,7 @@ export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       {p.location && <span style={{ fontSize:11, color:T.inkFaint, display:"flex", alignItems:"center", gap:2 }}><HUILocationIcon size={11}/>{p.location}</span>}
                       <span style={{ fontSize:11, color:T.teal, fontWeight:600 }}>⚡ {fmtImpact(p.impact)}</span>
-                      {followedIds.includes(p.id) && (
-                        <span style={{
-                          fontSize:9.5, fontWeight:600, color:T.tealDeep,
-                          background:"rgba(14,196,184,0.12)", border:"1px solid rgba(14,196,184,0.22)",
-                          borderRadius:99, padding:"2px 7px", whiteSpace:"nowrap",
-                        }}>✓ {t("profile.following")}</span>
-                      )}
-                    </div>
+                                          </div>
                   </div>
                 </div>
               ))

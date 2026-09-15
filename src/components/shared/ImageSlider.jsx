@@ -18,8 +18,16 @@
 //     bestehende Aufrufer (BaseFeedCard, ContentPreviewSheet) bleiben
 //     dadurch 1:1 unveraendert.
 //   onImageTap: function(index)     — optional, ueberschreibt Lightbox-Oeffnen
+//
+// VIDEO-SOUND-TOGGLE-001 (2026-09-15, Michael-Report 62f52ee5): Bei Video-
+// Slides (Einzel-Video + Video-Slide in Galerien) erscheint oben rechts ein
+// Ton-an/aus-Button (Standard: stumm, da AutoPlay). Klick = User-Gesture →
+// Browser erlaubt Unmuting. Der Button stoppt Propagation (kein Lightbox-Tap).
 import React, { useState, useCallback, useRef, useEffect, memo } from "react";
 import { optimizeCard } from "../../lib/perfUtils.js";
+// VIDEO-SOUND-TOGGLE-001 (2026-09-15, Michael-Report 62f52ee5): eigener
+// useTranslation-Hook (t-als-Prop-Regel), Keys media.soundOn/media.soundOff ×8.
+import { useTranslation } from "../../hooks/useTranslation.js";
 // AUTOPAUSE-VIDEO-SSOT (2026-09-11): SSOT-Komponente fuer "Video pausiert
 // automatisch außerhalb des Viewports" — vorher nur fuer den (jetzt
 // entfernten) Einzel-Video-Sonderpfad in BaseFeedCard.jsx, jetzt fuer JEDEN
@@ -31,7 +39,10 @@ const T = {
 };
 
 function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoObjectFit, background, onImageTap, onMediaError }) {
+  const { t } = useTranslation();
   const [current, setCurrent] = useState(0);
+  // VIDEO-SOUND-TOGGLE-001: Standard stumm (AutoPlay-Pflicht), Button oben
+  const [soundOn, setSoundOn] = useState(false);
   const [dragX, setDragX] = useState(0);
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(0);
@@ -123,6 +134,40 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
 
   if (!imgs.length) return null;
 
+  // VIDEO-SOUND-TOGGLE-001: Ton-Button oben rechts auf dem Video (nur wenn
+  // der AKTUELLE Slide ein Video ist). Semi-transparent dunkler Kreis +
+  // weisses Lautsprecher-SVG. stopPropagation → kein Lightbox/Player-Tap.
+  var renderSoundButton = function() {
+    return React.createElement("button", {
+      key: "hui-sound-btn",
+      type: "button",
+      "aria-label": soundOn ? t("media.soundOff") : t("media.soundOn"),
+      onClick: function(e) {
+        if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+        // Klick = User-Gesture → Unmuting ist browser-erlaubt
+        setSoundOn(!soundOn);
+      },
+      style: {
+        position: "absolute", top: 10, right: 10, zIndex: 7,
+        width: 30, height: 30, borderRadius: "50%", padding: 0,
+        border: "none", cursor: "pointer", touchAction: "manipulation",
+        background: "rgba(20,20,34,0.42)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        WebkitTapHighlightColor: "transparent",
+      },
+    },
+      soundOn
+        ? React.createElement("svg", { width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "#FFFFFF", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" },
+            React.createElement("path", { d: "M11 5 6 9H3v6h3l5 4V5z" }),
+            React.createElement("path", { d: "M15.5 8.5a5 5 0 0 1 0 7" }),
+            React.createElement("path", { d: "M18.5 5.5a9 9 0 0 1 0 13" }))
+        : React.createElement("svg", { width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "#FFFFFF", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" },
+            React.createElement("path", { d: "M11 5 6 9H3v6h3l5 4V5z" }),
+            React.createElement("line", { x1: 16, y1: 9, x2: 22, y2: 15 }),
+            React.createElement("line", { x1: 22, y1: 9, x2: 16, y2: 15 }))
+    );
+  };
+
   // Single image — no slider needed, just make it tappable
   if (imgs.length === 1) {
     var m = imgs[0];
@@ -144,15 +189,18 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
             // Frame (aus unifiedNormalizer extractMedia), sofort sichtbar.
             // AUTOPAUSE-VIDEO-SSOT (2026-09-11): pausiert automatisch
             // außerhalb des Viewports (siehe AutoPauseVideo.jsx).
+            // VIDEO-SOUND-TOGGLE-001: muted dynamisch statt fix true.
             src: url, poster: (m && m.poster) || undefined,
-            muted: true, loop: true, playsInline: true, autoPlay: true,
+            muted: !soundOn, loop: true, playsInline: true, autoPlay: true,
             style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
           })
         : React.createElement("img", {
             src: withRetry(optimizeCard(url), 0), alt: (m && m.alt) || "", loading: "eager", decoding: "async",
             onError: function() { handleImgError(0, url); },
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
-          })
+          }),
+      // VIDEO-SOUND-TOGGLE-001: Ton-Button auf Einzel-Video
+      isVideo && renderSoundButton()
     );
   }
 
@@ -195,8 +243,9 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
             ? React.createElement(AutoPauseVideo, {
                 // VIDEO-MOMENT-POSTER-FIX (2026-09-09)
                 // AUTOPAUSE-VIDEO-SSOT (2026-09-11): siehe oben.
+                // VIDEO-SOUND-TOGGLE-001: muted dynamisch statt fix true.
                 src: iurl, poster: (m && m.poster) || undefined,
-                muted: true, loop: true, playsInline: true, autoPlay: true,
+                muted: !soundOn, loop: true, playsInline: true, autoPlay: true,
                 style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
               })
             : React.createElement("img", {
@@ -224,7 +273,11 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
           boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
         }
       });
-    }))
+    })),
+    // VIDEO-SOUND-TOGGLE-001: Ton-Button auf dem AKTUELLEN Video-Slide
+    (imgs[current] && typeof imgs[current] === "object" && imgs[current].type === "video")
+      ? renderSoundButton()
+      : null
   );
 }
 

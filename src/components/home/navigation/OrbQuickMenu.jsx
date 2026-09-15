@@ -60,28 +60,29 @@ const ANGLES                = [-54, -18, 18, 54]; // ° — GLEICHMÄSSIGE 36°-
 
 /* ── Typen — je eigene, aber SANFTE Farb-Welt (weiß + Bleed-Glow) ── */
 function getTypes(t) {
-  // ORB-VISIBILITY-FIX (2026-09-15, Michael-Report — Screenshot zeigte die
-  // 4 Mini-Orbs "zu transparent, wirken fehl am Platz"): glowSoft-Alpha
-  // 0.30/0.32 -> 0.58, glowFar 0.10/0.11 -> 0.22, White-Übernahme im
-  // radialen Gradient 62% -> 46% (weiter unten in getTypes() verdrahtet)
-  // -- die Orbs bleiben weiß/soft (Michaels Vorgabe von heute Morgen bleibt
-  // gültig), sind aber deutlich kräftiger farbig erkennbar statt blass.
+  // ORB-GLARE-FIX (2026-09-15, Michael-Report ce1b9fba): Der
+  // ORB-VISIBILITY-FIX von heute Morgen (0.58/0.22/46%) war ueberkorrigiert
+  // — "Orb Button zu grell, man kann nicht mal die Symbole lesen". Neue
+  // Werte liegen MITTE zwischen dem urspruenglichen Blass-Zustand
+  // (0.30/0.10/62%) und dem Grell-Zustand: glowSoft ~0.40, glowFar ~0.14,
+  // White-Uebernahme 56%, Border-Alpha 55. Dazu Icon-weisser Halo (unten) —
+  // die Symbole heben sich damit klar vom Farb-Glow ab.
   return [
     {
       key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"),
-      tint: HUI.COLOR.teal,   glowSoft: "rgba(13,196,181,0.58)",  glowFar: "rgba(13,196,181,0.22)",
+      tint: HUI.COLOR.teal,   glowSoft: "rgba(13,196,181,0.40)",  glowFar: "rgba(13,196,181,0.14)",
     },
     {
       key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"),
-      tint: "#38BDF8",         glowSoft: "rgba(56,189,248,0.60)", glowFar: "rgba(56,189,248,0.23)",
+      tint: "#38BDF8",         glowSoft: "rgba(56,189,248,0.42)", glowFar: "rgba(56,189,248,0.14)",
     },
     {
       key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"),
-      tint: HUI.COLOR.coral,  glowSoft: "rgba(244,115,85,0.60)",  glowFar: "rgba(244,115,85,0.23)",
+      tint: HUI.COLOR.coral,  glowSoft: "rgba(244,115,85,0.42)",  glowFar: "rgba(244,115,85,0.14)",
     },
     {
       key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"),
-      tint: "#8B5CF6",         glowSoft: "rgba(139,92,246,0.58)", glowFar: "rgba(139,92,246,0.22)",
+      tint: "#8B5CF6",         glowSoft: "rgba(139,92,246,0.40)", glowFar: "rgba(139,92,246,0.14)",
     },
   ];
 }
@@ -144,16 +145,16 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
               width: MINI_ORB_D,
               height: MINI_ORB_D,
               zIndex: 10501,
-              border: `1.5px solid ${type.tint}70`,
+              border: `1.5px solid ${type.tint}55`,
               borderRadius: "50%",
               padding: 0,
               margin: 0,
-              // Soft-Orb: radial Bleed-Glow von der Mitte nach außen + kräftigerer
-              // farbiger Rand (border-alpha 40->70 hex). White-Übernahme bei 46%
-              // statt 62% (ORB-VISIBILITY-FIX) -- deutlich sichtbarer, bleibt aber
-              // weiß/soft (kein kräftiger Vollfarbkörper).
-              background: `radial-gradient(circle at 50% 38%, ${type.glowSoft}, rgba(255,255,255,0.97) 46%)`,
-              boxShadow: `0 0 0 5px ${type.glowFar}, 0 6px 16px rgba(20,20,34,0.12), 0 2px 6px ${type.glowSoft}`,
+              // Soft-Orb: radial Bleed-Glow + sanfter farbiger Rand.
+              // ORB-GLARE-FIX (2026-09-15, Report ce1b9fba): White-Uebernahme
+              // 46% -> 56%, border-alpha 70 -> 55 hex, Glow-Werte ~0.40/0.14
+              // (siehe getTypes) -- sichtbar farbig, aber nicht mehr grell.
+              background: `radial-gradient(circle at 50% 38%, ${type.glowSoft}, rgba(255,255,255,0.97) 56%)`,
+              boxShadow: `0 0 0 5px ${type.glowFar}, 0 6px 16px rgba(20,20,34,0.12), 0 2px 6px rgba(20,20,34,0.08)`,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -167,7 +168,7 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
             }}
           >
             {/* Echtes SVG-Icon statt Emoji — Design-System-SSOT */}
-            <OrbIcon size={16} style={{ color: type.tint }} />
+            <OrbIcon size={17} style={{ color: type.tint, filter: "drop-shadow(0 0 2px rgba(255,255,255,0.95)) drop-shadow(0 0 4px rgba(255,255,255,0.8))" }} />
             {/* Kurzes Substantiv IM Orb — bestehende i18n-Keys wiederverwendet */}
             <span style={{
               fontSize: 8.5,

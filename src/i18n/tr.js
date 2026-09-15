@@ -5227,4 +5227,8 @@ export default {
   'share.event': 'HUI’de bu etkinliği keşfet: "{title}"',
   'share.talent': 'HUI’de bu yetenek teklifini keşfet: "{title}"',
   'share.discover': 'HUI’de daha fazlasını keşfet — eserler, yetenekler ve deneyimler platformu.',
+
+  // VIDEO-SOUND-TOGGLE-001 (2026-09-15, Report 62f52ee5): Ton-Button auf Feed-Videos
+  'media.soundOn': 'Sesi aç',
+  'media.soundOff': 'Sesi kapat',
 };

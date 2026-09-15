@@ -5229,4 +5229,8 @@ export default {
   'share.event': 'Zbulon këtë event në HUI: "{title}"',
   'share.talent': 'Zbulon këtë ofertë talenti në HUI: "{title}"',
   'share.discover': 'Zbulon më shumë në HUI — platforma për vepra, talente dhe përvoja.',
+
+  // VIDEO-SOUND-TOGGLE-001 (2026-09-15, Report 62f52ee5): Ton-Button auf Feed-Videos
+  'media.soundOn': 'Aktivizo tingullin',
+  'media.soundOff': 'Çaktivizo tingullin',
 };
