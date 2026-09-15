@@ -41,7 +41,7 @@ import { useTranslation } from "../../../hooks/useTranslation.js";
 /* ── Geometrie-Konstanten (von navigationGeometry.js abgeleitet) ── */
 const NAV_ORB_CENTER_BOTTOM = 52;   // px über Viewport-Grund (Orb-Zentrum)
 const ARC_R                 = 98;   // Bogenradius — dicht am Nav-Orb (war 150)
-const MINI_ORB_D            = 58;   // Ø Mini-Orb
+const MINI_ORB_D            = 46;   // kleiner (Michaels Korrektur: mach sie kleiner, nicht ueberlappend)
 const ANGLES                = [-58, -22, 22, 58]; // ° von der Senkrechten (etwas enger gefächert)
 
 /* ── Typen — je eigene, aber SANFTE Farb-Welt (weiß + Bleed-Glow) ── */
@@ -146,23 +146,23 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
               background: `radial-gradient(circle at 50% 38%, ${type.glowSoft}, rgba(255,255,255,0.97) 62%)`,
               border: `1.5px solid ${type.tint}40`,
               // Zwei Glow-Ebenen: enger + weiter ausgreifender, schwächerer Bleed
-              boxShadow: `0 0 0 10px ${type.glowFar}, 0 8px 20px rgba(20,20,34,0.10), 0 2px 6px ${type.glowSoft}`,
+              boxShadow: `0 0 0 6px ${type.glowFar}, 0 6px 16px rgba(20,20,34,0.10), 0 2px 5px ${type.glowSoft}`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}>
-              <span style={{ fontSize: 21, lineHeight: 1 }}>{type.icon}</span>
+              <span style={{ fontSize: 17, lineHeight: 1 }}>{type.icon}</span>
             </div>
             {/* Label unter dem Orb — Ink, Design-System-Farben */}
             <div style={{
-              fontSize: 10.5,
+              fontSize: 10,
               fontWeight: 600,
               color: "#55556B",
-              marginTop: 5,
+              marginTop: 4,
               letterSpacing: -0.1,
               textAlign: "center",
               lineHeight: 1.2,
-              maxWidth: 76,
+              maxWidth: 70,
             }}>{type.label}</div>
           </div>
         );
