@@ -65,32 +65,31 @@ function getTypes(t) {
   // Statt radialem Bleed-Glow FLACHE Toenung (kein Verlauf) — Icon + Label
   // in Originalfarbe, KEIN Halo noetig.
   //
-  // ORB-SOFTTINT-VISIBILITY-FIX (2026-09-15, Michael-Report mit Screenshot
-  // "zu transparent man sieht die Buttons nicht"): Die urspruengliche B-
-  // Auslegung (Fill 10% / Ring 35%) ist auf hellem Grund (weisse Karten,
-  // Suchleiste — genau der reale Discover-Hintergrund) praktisch unsichtbar,
-  // weil rgba() ÜBER dem jeweiligen Seiteninhalt liegt statt auf einer
-  // eigenen Flaeche zu sitzen — bei Weiss-auf-Weiss bleibt von 10% Tönung
-  // fast nichts uebrig. Fix (weiterhin FLACH, kein Verlauf/Glow, nur die
-  // Deckkraft rauf): Fill 10%→24%, Ring 35%→65%, Schatten kraeftiger
-  // (0 3px 10px statt 0 2px 8px) und Rand 1.5px→2px fuer klare Kontur auf
-  // JEDEM Hintergrund (hell wie dunkel).
+  // ORB-SOLID-FILL (2026-09-15, Michael-Entscheid "mach viel mehr deckkraft
+  // das wirkt zu schwach und ich denke die Prozente sind auch zu wenig. und
+  // nicht transparent"): Transparenz KOMPLETT raus. Die Mini-Orbs bekommen
+  // VOLL DECKENDE Markenfarbe (Fill = reiner Farbton, alpha 1.0 — kein
+  // rgba-Mix mehr, der auf hellem Grund wie dem Discover-Hintergrund
+  // unsichtbar verschwimmt). Rand = weiss 90% fuer klare Kante auf jedem
+  // Hintergrund. Icon + Label weiss fuer Kontrast auf der Vollfarbe.
+  // Weiterhin FLACH (kein Verlauf, kein Glow, kein Halo) — B-Version-Geist,
+  // aber satt sichtbar.
   return [
     {
       key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"),
-      tint: HUI.COLOR.teal,   fill: "rgba(13,196,181,0.24)",  ring: "rgba(13,196,181,0.65)",
+      tint: "#FFFFFF", fill: HUI.COLOR.teal, ring: "rgba(255,255,255,0.9)",
     },
     {
       key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"),
-      tint: "#38BDF8",         fill: "rgba(56,189,248,0.24)", ring: "rgba(56,189,248,0.65)",
+      tint: "#FFFFFF", fill: "#38BDF8",      ring: "rgba(255,255,255,0.9)",
     },
     {
       key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"),
-      tint: HUI.COLOR.coral,  fill: "rgba(244,115,85,0.24)",  ring: "rgba(244,115,85,0.65)",
+      tint: "#FFFFFF", fill: HUI.COLOR.coral, ring: "rgba(255,255,255,0.9)",
     },
     {
       key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"),
-      tint: "#8B5CF6",         fill: "rgba(139,92,246,0.24)", ring: "rgba(139,92,246,0.65)",
+      tint: "#FFFFFF", fill: "#8B5CF6",      ring: "rgba(255,255,255,0.9)",
     },
   ];
 }
@@ -182,7 +181,7 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
             <span style={{
               fontSize: 8.5,
               fontWeight: 700,
-              color: "#3A3A4A",
+              color: "#FFFFFF",
               letterSpacing: -0.1,
               lineHeight: 1,
               maxWidth: 40,
