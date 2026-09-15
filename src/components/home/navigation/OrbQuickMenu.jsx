@@ -62,26 +62,35 @@ const ANGLES                = [-54, -18, 18, 54]; // ° — GLEICHMÄSSIGE 36°-
 function getTypes(t) {
   // ORB-SOFTTINT-001 (2026-09-15, Michael-Entscheid "Variante B — Zarte
   // Toenung"): Glow voellig entfernt (Michael: "mir gefaellt der Glow nicht").
-  // Statt radialem Bleed-Glow jetzt FLACHE Toenung: Hintergrund = Farbton
-  // mit 10% Deckkraft (flach, kein Verlauf), Rand = Farbton mit 35%
-  // Deckkraft, nur noch ein weicher neutraler Schatten. Icon + Label in
-  // Originalfarbe, KEIN Halo noetig (flacher Hintergrund traegt das Icon).
+  // Statt radialem Bleed-Glow FLACHE Toenung (kein Verlauf) — Icon + Label
+  // in Originalfarbe, KEIN Halo noetig.
+  //
+  // ORB-SOFTTINT-VISIBILITY-FIX (2026-09-15, Michael-Report mit Screenshot
+  // "zu transparent man sieht die Buttons nicht"): Die urspruengliche B-
+  // Auslegung (Fill 10% / Ring 35%) ist auf hellem Grund (weisse Karten,
+  // Suchleiste — genau der reale Discover-Hintergrund) praktisch unsichtbar,
+  // weil rgba() ÜBER dem jeweiligen Seiteninhalt liegt statt auf einer
+  // eigenen Flaeche zu sitzen — bei Weiss-auf-Weiss bleibt von 10% Tönung
+  // fast nichts uebrig. Fix (weiterhin FLACH, kein Verlauf/Glow, nur die
+  // Deckkraft rauf): Fill 10%→24%, Ring 35%→65%, Schatten kraeftiger
+  // (0 3px 10px statt 0 2px 8px) und Rand 1.5px→2px fuer klare Kontur auf
+  // JEDEM Hintergrund (hell wie dunkel).
   return [
     {
       key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"),
-      tint: HUI.COLOR.teal,   fill: "rgba(13,196,181,0.10)",  ring: "rgba(13,196,181,0.35)",
+      tint: HUI.COLOR.teal,   fill: "rgba(13,196,181,0.24)",  ring: "rgba(13,196,181,0.65)",
     },
     {
       key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"),
-      tint: "#38BDF8",         fill: "rgba(56,189,248,0.10)", ring: "rgba(56,189,248,0.35)",
+      tint: "#38BDF8",         fill: "rgba(56,189,248,0.24)", ring: "rgba(56,189,248,0.65)",
     },
     {
       key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"),
-      tint: HUI.COLOR.coral,  fill: "rgba(244,115,85,0.10)",  ring: "rgba(244,115,85,0.35)",
+      tint: HUI.COLOR.coral,  fill: "rgba(244,115,85,0.24)",  ring: "rgba(244,115,85,0.65)",
     },
     {
       key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"),
-      tint: "#8B5CF6",         fill: "rgba(139,92,246,0.10)", ring: "rgba(139,92,246,0.35)",
+      tint: "#8B5CF6",         fill: "rgba(139,92,246,0.24)", ring: "rgba(139,92,246,0.65)",
     },
   ];
 }
@@ -144,16 +153,17 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
               width: MINI_ORB_D,
               height: MINI_ORB_D,
               zIndex: 10501,
-              border: `1.5px solid ${type.ring}`,
+              border: `2px solid ${type.ring}`,
               borderRadius: "50%",
               padding: 0,
               margin: 0,
-              // ORB-SOFTTINT-001 (2026-09-15, Michael-Entscheid "Variante B"):
-              // FLACHE Toenung (10% Farbton, kein Verlauf/Glow) + sanfter
-              // farbiger Rand (35% Deckkraft) + nur ein weicher neutraler
-              // Schatten. Kein Glow-Ring, kein Halo.
+              // ORB-SOFTTINT-VISIBILITY-FIX (2026-09-15): FLACHE Toenung,
+              // aber deutlich kraeftiger (24% Fill / 65% Ring) als die
+              // urspruengliche B-Auslegung, damit die Orbs auf JEDEM
+              // Hintergrund (v.a. helle Discover-Karten) klar erkennbar
+              // sind. Weiterhin kein Verlauf, kein Glow, kein Halo.
               background: type.fill,
-              boxShadow: `0 2px 8px rgba(20,20,34,0.10)`,
+              boxShadow: `0 3px 10px rgba(20,20,34,0.16)`,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
