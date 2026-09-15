@@ -19,6 +19,7 @@ import { assertAuthenticated, globalMutationGuard } from './security/index.js';
 import { validateMessage } from './validation/index.js';
 import { ProfileService } from '../services/db';
 import { supabase } from "./supabaseClient";
+import { maybeCreateAwarenessMessage } from "./contentGuard.js"; // CONTENT-GUARD-001
 import { logDebug } from "./debugCollector.js";
 import { notifyMessage } from "./notificationService";
 import { useAuth } from "./AuthContext";
@@ -375,6 +376,21 @@ export function useChatThread(chatId) {
             const next = [...withoutOptimistic, payload.new];
             return next;
           });
+          // CONTENT-GUARD-001 (2026-09-15): Empfaenger-Seite — eingehende
+          // Text-Nachrichten pruefen (Spec: "auch bei empfangenen Nachrichten
+          // pruefen"). SSOT-Helper dedupliziert (24h-Fenster + 2.5s Delay,
+          // damit der Sender-Client priorisiert); Awareness NICHT blockierend,
+          // Chat laeuft normal weiter. System-/Media-Nachrichten ignoriert.
+          const _cg = payload.new;
+          if (_cg?.message_type === "text" && _cg?.sender_id && _cg?.sender_id !== user?.id) {
+            Promise.resolve(maybeCreateAwarenessMessage({
+              chatId:     chatId,
+              text:       _cg.text,
+              senderId:   _cg.sender_id,
+              messageId:  _cg.id,
+              delayMs:    2500,
+            })).catch(() => {});
+          }
         })
         .on("postgres_changes", {
           event: "UPDATE", schema: "public", table: "messages",
@@ -463,6 +479,19 @@ export function useChatThread(chatId) {
       setMessages(prev => prev.map(m =>
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
       ));
+
+      // CONTENT-GUARD-001 (2026-09-15): Sender-Seite — gesendete Text-
+      // Nachrichten auf Off-App-Transaktions-Keywords pruefen; Awareness-
+      // System-Nachricht NICHT blockierend (Chat laeuft weiter, kein Modal,
+      // kein false return). Dedup + Logging macht der SSOT-Helper.
+      if (insertedData?.id && payload.message_type === "text") {
+        Promise.resolve(maybeCreateAwarenessMessage({
+          chatId:     chatId,
+          text:       payload.text,
+          senderId:   user.id,
+          messageId:  insertedData.id,
+        })).catch(() => {});
+      }
 
       // PRIO 4: Notification — participant_ids statt participant_a/b
       if (insertedData?.id && chatId) {

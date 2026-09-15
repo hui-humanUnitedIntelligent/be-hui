@@ -433,6 +433,48 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
 
   // Cleanup timer on unmount
   useEffect(() => () => clearTimeout(longPressTimer.current), []);
+
+  // ── CONTENT-GUARD-001 (2026-09-15, Michael-Spec Teil 2): Awareness-Element ──
+  // EINGEBETTET im Chatlauf (kein Modal), zentriert und permanent sichtbar
+  // fuer BEIDE Parteien — KEIN Close-Button (kann nicht geschlossen werden).
+  // Text aus i18n chat.awareness.* (je Anzeigesprache des Betrachters).
+  // Titel separat in fettem Schwarz (Systemnachrichten-Regel), Fließtext darunter.
+  if (msg.message_type === "system_awareness") {
+    return (
+      <div style={{
+        width: "100%",
+        display: "flex",
+        justifyContent: "center",
+        padding: "10px 16px 4px",
+      }}>
+        <style>{CSS}</style>
+        <div style={{
+          backgroundColor: "#f0f9f7",
+          borderLeft: "4px solid #1abc9c",
+          borderRadius: 8,
+          padding: 16,
+          margin: "16px 0",
+          textAlign: "center",
+          fontSize: 14,
+          lineHeight: 1.6,
+          color: "#333",
+          fontWeight: 500,
+          whiteSpace: "pre-wrap",
+          width: "100%",
+          maxWidth: 420,
+        }}>
+          <div style={{ fontWeight: 800, color: "#1A1A18", marginBottom: 10, fontSize: 14.5 }}>
+            {t("chat.awareness.title")}
+          </div>
+          <div>{t("chat.awareness.line1")}</div>
+          <div>{t("chat.awareness.line2")}</div>
+          <div>{t("chat.awareness.line3")}</div>
+          <div>{t("chat.awareness.line4")}</div>
+          <div>{t("chat.awareness.line5")}</div>
+        </div>
+      </div>
+    );
+  }
   const isVoiceOnly  = hasMedia && (msg.media_type === "voice" || msg.message_type === "voice");
   // Text anzeigen wenn: kein Media-only oder expliziter Text neben Media
   const showText     = !isDeleted && (
