@@ -707,7 +707,7 @@ export default function UnterstutzenFlow({
         onCancel={() => { setShowAddressModal(false); onClose?.(); }}
       />
     )}
-    <div style={{
+    <div data-hui-kbd-self-managed style={{
       position:        "fixed",
       inset:           0,
       // Über BottomNav (zIndex 10000) — Tabbar darf Payment nicht verdecken
@@ -718,6 +718,8 @@ export default function UnterstutzenFlow({
       display:         "flex",
       alignItems:      "flex-end",
       WebkitTapHighlightColor: "transparent",
+      /* STRIPESHEET-KBD-FIX (2026-09-15, Report 6e15f95c): Keyboard selbst gemanagt */
+        paddingBottom: "var(--hui-keyboard-inset, 0px)",
     }}>
       <div style={{
         width:           "100%",
@@ -728,7 +730,7 @@ export default function UnterstutzenFlow({
         boxShadow:       "0 -8px 48px rgba(20,20,34,0.18)",
         display:         "flex",
         flexDirection:   "column",
-        maxHeight:       "calc(100vh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) - 24px)",
+        maxHeight:       "calc(100vh - max(var(--hui-safe-top, 0px), env(safe-area-inset-top, 0px)) - 24px - var(--hui-keyboard-inset, 0px))",
         transform:       sheetTransform, transition: sheetTransition,
         overflowY:       "auto",
         WebkitOverflowScrolling: "touch",

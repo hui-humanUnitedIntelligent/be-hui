@@ -237,11 +237,14 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
     <>
     {createPortal(
     <div
+      data-hui-kbd-self-managed
       onClick={(e) => { if (e.target === e.currentTarget) onClose?.(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 10500,
         background: "rgba(0,0,0,0.45)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
+        /* STRIPESHEET-KBD-FIX (2026-09-15, Report 6e15f95c): Keyboard selbst gemanagt */
+        paddingBottom: "var(--hui-keyboard-inset, 0px)",
       }}
     >
       <div style={{
@@ -250,7 +253,7 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
         padding: "28px 24px 40px",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
         animation: "wkfSlideUp 0.28s cubic-bezier(.32,1.2,.55,1) both",
-        maxHeight: "92dvh", overflowY: "auto",
+        maxHeight: "calc(92dvh - var(--hui-keyboard-inset, 0px))", overflowY: "auto",
       }}>
         <style>{`@keyframes wkfSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
 

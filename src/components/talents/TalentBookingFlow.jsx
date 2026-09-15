@@ -369,11 +369,14 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
 
   return createPortal(
     <div
+      data-hui-kbd-self-managed
       onClick={(e) => { if (e.target === e.currentTarget && step !== "payment") onClose?.(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 10500,
         background: "rgba(0,0,0,0.45)",
         display: "flex", alignItems: "flex-end", justifyContent: "center",
+        /* STRIPESHEET-KBD-FIX (2026-09-15, Report 6e15f95c): Keyboard selbst gemanagt */
+        paddingBottom: "var(--hui-keyboard-inset, 0px)",
       }}
     >
       {/* ── Sheet-Container: FLEX COLUMN — Scroll oben, Button sticky unten ── */}
@@ -384,7 +387,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
         width: "100%",
         maxWidth: 480,
         /* FIX: 92dvh statt 88vh, dvh = dynamic viewport height (korrekt auf Mobile) */
-        maxHeight: "92dvh",
+        maxHeight: "calc(92dvh - var(--hui-keyboard-inset, 0px))",
         display: "flex",
         flexDirection: "column",
         boxShadow: "0 -8px 40px rgba(26,26,46,0.18)",
