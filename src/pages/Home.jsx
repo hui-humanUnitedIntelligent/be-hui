@@ -18,6 +18,14 @@ import { SafeRender } from "../config/SafeRender.jsx";
 import TalentOnboarding from "../components/TalentOnboarding.jsx";
 import { TalentIntroModal } from "../components/profile/my-basis/Misc.jsx";
 import TalentAngebotWizard from "../components/talents/TalentAngebotWizard.jsx";
+// ORB-MODAL-KONSISTENZ (2026-09-15, Michael-Spec): Orb oeffnet die
+// MEIN-BEREICH-Wizards statt der Home-eigenen Flow-Komponenten —
+// identische Komponenten + Props, kein Parallel-UI mehr (Charta:
+// Erweitern statt duplizieren / keine zweite Wahrheit).
+// Talent war bereits identisch (TalentAngebotWizard, siehe unten).
+import WerkWizard from "../components/works/WerkWizard.jsx";
+import ExperienceWizard from "../components/experiences/ExperienceWizard.jsx";
+import HuiMomentSheet from "../components/HuiMomentSheet.jsx";
 import OrbQuickMenu from "../components/home/navigation/OrbQuickMenu.jsx";
 import { logDebug }  from "../lib/debugCollector.js";
 import { PaintRecoveryManager } from "../lib/world/safariPaintRecovery.js";
@@ -160,12 +168,17 @@ function HomeInner() {
   // ORB-REWIRE/QUICKMENU (2026-09-15): SSOT-Routing Content-Typ → Upload-Flow.
   // Geteilt von ContentTypeSelector (Phase 4B) UND OrbQuickMenu — eine Wahrheit.
   const openContentFlow = (type) => {
+    // ORB-MODAL-KONSISTENZ (2026-09-15, Michael-Spec): Orb = Mein Bereich.
+    // Werk→WerkWizard, Erlebnis→ExperienceWizard, Moment→HuiMomentSheet
+    // (vorher Home-eigene WorkFlow/ExperienceFlow/TeilenFlow — parallel zu
+    // Mein Bereich, Spec verlangt Identitaet). Talent unveraendert identisch.
+    // SSOT bleibt openContentFlow — ContentTypeSelector + OrbQuickMenu fahren beide hier.
     if (type === "moment") {
-      setShowTeilen(true);
+      setShowMomentSheet(true);
     } else if (type === "experience") {
-      setShowExperienceCreator(true);
+      setShowExpWizard(true);
     } else if (type === "work") {
-      setShowWerkPublisher(true);
+      setShowWerkWizard(true);
     } else if (type === "invitation") {
       setShowInvitationFlow(true);
     } else if (type === "talent") {
@@ -228,6 +241,9 @@ function HomeInner() {
     showImpactFlow,         setShowImpactFlow,
     showContentSelector,    setShowContentSelector,
     showInvitationFlow,     setShowInvitationFlow,
+    showWerkWizard,        setShowWerkWizard,
+    showExpWizard,          setShowExpWizard,
+    showMomentSheet,        setShowMomentSheet,
     showTalentIntro,        setShowTalentIntro,
     showTalentWizard,       setShowTalentWizard,
     showOrbQuickMenu,       setShowOrbQuickMenu,
@@ -1064,6 +1080,43 @@ function HomeInner() {
             setShowTalentWizard(false);
             refreshProfile?.();
           }}
+        />,
+        document.body
+      )}
+
+      {/* ORB-MODAL-KONSISTENZ (2026-09-15): Werk/Erlebnis/Moment oeffnen die
+          MEIN-BEREICH-Wizards (identische Komponenten + Props wie
+          MyBasisProfile — kein Code-Duplikat, kein Parallel-UI). Portal auf
+          document.body (Pflicht-Regel footer-navbar-zindex), Muster 1:1 wie
+          der TalentAngebotWizard-Block oben. Die alten Home-Flows
+          (WorkFlow/ExperienceFlow/TeilenFlow) bleiben gerendert, sind aber
+          ab jetzt nicht mehr erreichbar (dormant, wie ContentTypeSelector). */}
+      {showWerkWizard && authProfile?.id && createPortal(
+        <WerkWizard
+          userId={authProfile.id}
+          existingWork={null}
+          onClose={() => setShowWerkWizard(false)}
+          onSaved={() => setShowWerkWizard(false)}
+        />,
+        document.body
+      )}
+
+      {showExpWizard && authProfile?.id && createPortal(
+        <ExperienceWizard
+          userId={authProfile.id}
+          existingExp={null}
+          onClose={() => setShowExpWizard(false)}
+          onSaved={() => setShowExpWizard(false)}
+        />,
+        document.body
+      )}
+
+      {showMomentSheet && createPortal(
+        <HuiMomentSheet
+          visible={showMomentSheet}
+          onClose={() => setShowMomentSheet(false)}
+          onSaved={() => setShowMomentSheet(false)}
+          visibilityScope="public"
         />,
         document.body
       )}

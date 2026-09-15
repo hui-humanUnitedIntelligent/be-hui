@@ -174,6 +174,13 @@ export default function HomeShell({ children }) {
   const [showExperienceCreator,  setShowExperienceCreator] = useState(false);
   const [showImpactFlow,         setShowImpactFlow]         = useState(false);
   const [showContentSelector,    setShowContentSelector]    = useState(false);
+  // ORB-MODAL-KONSISTENZ (2026-09-15): Orb oeffnet DIESELBEN Wizards wie
+  // Mein Bereich (WerkWizard/ExperienceWizard/HuiMomentSheet) statt der
+  // Home-eigenen Flow-Komponenten. Pflicht aus HOTFIX-ORB-CONTEXT-001:
+  // JEDER Context-Paar in ALLE DREI Stellen — useState + ctx-Value + Deps.
+  const [showWerkWizard,       setShowWerkWizard]       = useState(false);
+  const [showExpWizard,        setShowExpWizard]        = useState(false);
+  const [showMomentSheet,      setShowMomentSheet]     = useState(false);
   const [showInvitationFlow,     setShowInvitationFlow]     = useState(false);
   // ORB-REWIRE (2026-09-15): Basis-User → Werde-Talent-Intro-Modal / Talent-Karte → TalentAngebotWizard
   const [showTalentIntro,         setShowTalentIntro]        = useState(false);
@@ -439,6 +446,9 @@ export default function HomeShell({ children }) {
     showExperienceCreator, setShowExperienceCreator,
     showImpactFlow,         setShowImpactFlow,
     showContentSelector,    setShowContentSelector,
+    showWerkWizard,       setShowWerkWizard,
+    showExpWizard,        setShowExpWizard,
+    showMomentSheet,      setShowMomentSheet,
     showInvitationFlow,     setShowInvitationFlow,
     showCreatorDash,        setShowCreatorDash,
     showWerkDetail,        setShowWerkDetail,
@@ -483,6 +493,7 @@ export default function HomeShell({ children }) {
     showTeilen, showTalentFlow, showStoryComposer,
     showWerkPublisher, showExperienceCreator,
     showImpactFlow, showContentSelector, showInvitationFlow,
+    showWerkWizard, showExpWizard, showMomentSheet,
     showTalentIntro, setShowTalentIntro,
     showTalentWizard, setShowTalentWizard,
     showOrbQuickMenu, setShowOrbQuickMenu,
