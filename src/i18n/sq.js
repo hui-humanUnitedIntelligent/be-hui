@@ -3154,6 +3154,8 @@ export default {
   'profile.currentEmail': 'Email aktual',
   'profile.currentEmailPlaceholder': 'Emaili yt aktual',
   'profile.customerReviews': 'Vlerësimet e klientëve',
+  'profile.huiInterviews': 'Intervista Talenti HUI',
+  'profile.noInterviews': 'Ende nuk ka intervista të disponueshme.',
   'profile.edit': 'Modifiko profilin',
   'profile.editArrow': 'Redakto >',
   'profile.editArrowLabel': 'Modifiko ›',

@@ -126,6 +126,8 @@ export default {
   'chat.emptyBookingSub': 'Kargo ve anlaşmaları burada netleştir.',
   'chat.emptyFirst': 'İlk kelimeler.',
   'chat.emptyFirstSub': 'Gerçek bir şey yaz.',
+  'profile.huiInterviews': 'HUI Yetenek Röportajları',
+  'profile.noInterviews': 'Henüz röportaj yok.',
   'profile.edit': 'Profili düzenle',
   'profile.settings': 'Hesap ve ayarlar',
   'profile.verification': 'Doğrulama',

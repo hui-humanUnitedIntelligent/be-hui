@@ -1,7 +1,7 @@
 // src/components/profile/SystemBotProfile.jsx
 // HUI-System Bot Profil — spezielle Ansicht für den System-Account
 // Zeigt: Name + Follower + Abgeschlossene Projekte (Kacheln) + Systemnachrichten
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ import { useHome } from "../home/HomeShell.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { formatDateDE, formatNumberDE } from "../../lib/formatters.js";
+import TrailerGrid from "./TrailerGrid.jsx";
 
 const SYSTEM_USER_ID = "152619c1-9adc-40bf-9078-eb67f5024ed2";
 
@@ -162,8 +163,38 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
   const [followerCount, setFollowerCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followBusy, setFollowBusy] = useState(false); // FOLLOW-BUTTON-GRAY-FIX (2026-08-11): verhindert Doppelklick-Race
+  // HUI-TALENT-INTERVIEWS-001 (2026-09-15): Limit fuer die Broadcast-Nachrichten-
+  // Query, ueber "Mehr laden" erweiterbar (shared Datenquelle fuer Systemnachrichten
+  // UND HUI-Talent-Interviews — keine zweite Query auf dieselbe Tabelle).
+  const [msgLimit, setMsgLimit] = useState(30);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useModalRegistration(true, onClose, "SystemBotProfile");
+
+  // HUI-TALENT-INTERVIEWS-001 (2026-09-15): dediziertes "Mehr laden" fuer die
+  // Broadcast-Nachrichten (shared Datenquelle Systemnachrichten + Interviews).
+  // Eigener Effect statt Re-Run von loadAll() — vermeidet unnoetiges erneutes
+  // Fetchen von Profil/Projekten/Follower-Count bei jedem Klick.
+  useEffect(() => {
+    if (msgLimit <= 30) return; // initialer Fetch laeuft bereits ueber loadAll()
+    let dead = false;
+    (async () => {
+      try {
+        const { data: msgData } = await supabase
+          .from("notifications")
+          .select("id,type,title,body,created_at,action_url,entity_type,entity_id,data")
+          .or("type.eq.broadcast,type.eq.admin_broadcast")
+          .order("created_at", { ascending: false })
+          .limit(msgLimit);
+        if (!dead) setMessages(msgData || []);
+      } catch (err) {
+        console.warn("[SystemBotProfile] loadMore error:", err?.message);
+      } finally {
+        if (!dead) setLoadingMore(false);
+      }
+    })();
+    return () => { dead = true; };
+  }, [msgLimit]);
 
   useEffect(() => {
     injectCSS();
@@ -205,9 +236,12 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
           .limit(20);
         if (!dead) setProjects(projData || []);
 
+        // HUI-TALENT-INTERVIEWS-001 (2026-09-15): "data" zusaetzlich selektiert —
+        // enthaelt trailer_url/youtube_url aus Migration 136 (VIDEO-BROADCAST-001).
+        // Kein neues Feld erfunden, nur das bereits vorhandene JSONB mitgeladen.
         const { data: msgData } = await supabase
           .from("notifications")
-          .select("id,type,title,body,created_at,action_url,entity_type,entity_id")
+          .select("id,type,title,body,created_at,action_url,entity_type,entity_id,data")
           .or("type.eq.broadcast,type.eq.admin_broadcast")
           .order("created_at", { ascending: false })
           .limit(30);
@@ -269,6 +303,19 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
       setFollowBusy(false);
     }
   }, [authProfile?.id, isFollowing, followBusy]);
+
+  // HUI-TALENT-INTERVIEWS-001 (2026-09-15): Video-Broadcasts sind eine
+  // gefilterte Teilmenge derselben Nachrichten-Liste (data.trailer_url gesetzt) —
+  // keine zweite Query, nur eine abgeleitete Sicht auf dieselbe Datenquelle.
+  const interviews = useMemo(
+    () => messages.filter(m => !!m?.data?.trailer_url),
+    [messages]
+  );
+  const canLoadMoreMsgs = messages.length >= msgLimit;
+  const handleLoadMoreMessages = useCallback(() => {
+    setLoadingMore(true);
+    setMsgLimit(l => l + 30);
+  }, []);
 
   const handleProjectPress = useCallback((project) => {
     if (!project?.id) return;
@@ -373,6 +420,16 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
               )}
             </div>
 
+            {/* HUI-Talent Interviews (HUI-TALENT-INTERVIEWS-001, 2026-09-15) —
+                Video-Broadcasts (data.trailer_url) als Grid, direkt unter
+                Abgeschlossene Projekte, wie im Michael-Spec gefordert. */}
+            <div style={{ padding: "24px 20px 0" }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: T.ink, marginBottom: 14 }}>
+                {t("profile.huiInterviews")}
+              </div>
+              <TrailerGrid interviews={interviews} emptyLabel={t("profile.noInterviews")} />
+            </div>
+
             {/* Systemnachrichten */}
             <div style={{ padding: "24px 20px 0" }}>
               <div style={{ fontSize: 16, fontWeight: 700, color: T.ink, marginBottom: 14 }}>
@@ -387,6 +444,24 @@ export default function SystemBotProfile({ profileId, onClose = () => {} }) {
                   {messages.map(m => (
                     <MessageItem key={m.id} notif={m} onPress={handleMessagePress} />
                   ))}
+                </div>
+              )}
+              {/* HUI-TALENT-INTERVIEWS-001: "Mehr laden" fuer die shared
+                  Nachrichten-Query (Anforderung 7 — Pagination) */}
+              {canLoadMoreMsgs && (
+                <div style={{ textAlign: "center", marginTop: 12 }}>
+                  <button
+                    onClick={handleLoadMoreMessages}
+                    disabled={loadingMore}
+                    className="sbp-press"
+                    style={{
+                      padding: "8px 20px", borderRadius: 99, border: "1px solid " + T.border,
+                      background: T.bgCard, color: T.teal, fontSize: 13, fontWeight: 600,
+                      cursor: loadingMore ? "default" : "pointer", opacity: loadingMore ? 0.6 : 1,
+                    }}
+                  >
+                    {t("comment.loadMore")}
+                  </button>
                 </div>
               )}
             </div>

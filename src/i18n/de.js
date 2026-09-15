@@ -127,6 +127,8 @@ export default {
   'chat.emptyBookingSub': 'Kläre Versand & Details hier.',
   'chat.emptyFirst': 'Erste Worte.',
   'chat.emptyFirstSub': 'Schreib etwas Echtes.',
+  'profile.huiInterviews': 'HUI-Talent Interviews',
+  'profile.noInterviews': 'Noch keine Interviews verfügbar.',
   'profile.edit': 'Profil bearbeiten',
   'profile.settings': 'Account & Einstellungen',
   'profile.verification': 'Verifizierung',
