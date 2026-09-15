@@ -265,25 +265,32 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
             other_profile: initialRecipient,
           });
         } else {
-          // BOOKING-CHAT-001: Aus Buchungsdetail geöffnet + kein Chat bisher →
-          // 1:1-Buchungs-Chat ERSTELLEN (findOrCreateChat dedupliziert per
-          // participant_ids, nie doppelt) und SOFORT oeffnen — ready to type.
+          // CHAT-OPEN-ALL-FIX (2026-09-15, Michael-Report "Verkaeufer
+          // kontaktieren fuehrt ins Leere"): Frueher wurde hier nur MIT
+          // bookingId ein Chat erstellt (BOOKING-CHAT-001-Gate, Rest aus der
+          // CHAT-LOGIK-v2-Aera). Seit OPEN-CHAT-001 (heute, SSOT
+          // connectAndOpenChat/canUserChat in chatContext.js) duerfen alle
+          // Nutzer miteinander chatten -- das Gate hier war der einzige Ort,
+          // der noch daran gehangen hat. Root Cause des Bugs: "Verkaeufer
+          // kontaktieren" nach einem abgeschlossenen Kauf (FinanzuebersichtModal)
+          // hat KEINE booking_id (Orders, keine Buchungen) -> Chat wurde nie
+          // erstellt, der Banner "Gespraech starten mit Sabrina" verschwand
+          // beim Tap ins Leere, weil openPendingChat() dasselbe Gate hatte.
+          // Jetzt: IMMER erstellen, wenn kein bestehender Chat gefunden wurde.
           const bookingId = bookingCtxOf(initialRecipient);
-          if (bookingId) {
-            const created = await findOrCreateChat({ userId: user.id, otherUserId: initialRecipient.id, bookingId });
-            if (created?.id) {
-              setActiveConv({
-                id:           created.id,
-                user_id:      initialRecipient.id           || null,
-                name:         getFullDisplayName(initialRecipient) || t("profile.wirkerDefault"),
-                avatar_url:   initialRecipient.avatar_url   || null,
-                talent:       initialRecipient.talent        || null,
-                has_talent_profile: initialRecipient.has_talent_profile || false,
-                online:       true,
-                other_profile: initialRecipient,
-              });
-              return; // finally unten setzt loading=false
-            }
+          const created = await findOrCreateChat({ userId: user.id, otherUserId: initialRecipient.id, bookingId });
+          if (created?.id) {
+            setActiveConv({
+              id:           created.id,
+              user_id:      initialRecipient.id           || null,
+              name:         getFullDisplayName(initialRecipient) || t("profile.wirkerDefault"),
+              avatar_url:   initialRecipient.avatar_url   || null,
+              talent:       initialRecipient.talent        || null,
+              has_talent_profile: initialRecipient.has_talent_profile || false,
+              online:       true,
+              other_profile: initialRecipient,
+            });
+            return; // finally unten setzt loading=false
           }
           setPendingRecipient(initialRecipient);
         }
@@ -325,22 +332,21 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
             other_profile: pendingRecipient,
           });
         } else {
-          // BOOKING-CHAT-001: kein bestehender Chat + Buchungskontext → erstellen
+          // CHAT-OPEN-ALL-FIX (2026-09-15, siehe Kommentar oben im Auto-Open-
+          // Effect): IMMER erstellen statt nur mit Buchungskontext.
           const bookingId = bookingCtxOf(pendingRecipient);
-          if (bookingId) {
-            const created = await findOrCreateChat({ userId: user.id, otherUserId: pendingRecipient.id, bookingId });
-            if (created?.id) {
-              setActiveConv({
-                id:           created.id,
-                user_id:      pendingRecipient.id           || null,
-                name:         getFullDisplayName(pendingRecipient) || t("profile.wirkerDefault"),
-                avatar_url:   pendingRecipient.avatar_url   || null,
-                talent:       pendingRecipient.talent        || null,
-                has_talent_profile: pendingRecipient.has_talent_profile || false,
-                online:       true,
-                other_profile: pendingRecipient,
-              });
-            }
+          const created = await findOrCreateChat({ userId: user.id, otherUserId: pendingRecipient.id, bookingId });
+          if (created?.id) {
+            setActiveConv({
+              id:           created.id,
+              user_id:      pendingRecipient.id           || null,
+              name:         getFullDisplayName(pendingRecipient) || t("profile.wirkerDefault"),
+              avatar_url:   pendingRecipient.avatar_url   || null,
+              talent:       pendingRecipient.talent        || null,
+              has_talent_profile: pendingRecipient.has_talent_profile || false,
+              online:       true,
+              other_profile: pendingRecipient,
+            });
           }
         }
       } catch(err) {

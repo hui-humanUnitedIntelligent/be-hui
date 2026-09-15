@@ -450,6 +450,15 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
   // Text aus i18n chat.awareness.* (je Anzeigesprache des Betrachters).
   // Titel separat in fettem Schwarz (Systemnachrichten-Regel), Fließtext darunter.
   if (msg.message_type === "system_awareness") {
+    // AWARENESS-FOX-FIX (2026-09-15, Michael-Report "sieht komisch aus mit
+    // dem gruenen Streifen"): borderLeft-Stripe entfernt (wirkte wie ein
+    // Formular-Warnhinweis statt einer Chat-Nachricht). Stattdessen: der
+    // HUI-Fuchs (kanonisches Mascot-Bild /assets/fox-avatar.png, gleiches
+    // Asset wie MerkenSection/OnboardingTutorial) tritt als Absender auf --
+    // Avatar-Kreis + Titel in einer Kopfzeile, exakt wie ein "fremdes
+    // Avatar" bei normalen Nachrichten (30px, weisser Ring, Schatten,
+    // siehe oben im selben File), nur bewusst als eigenstaendiger System-
+    // Absender erkennbar. Card bleibt flach getoent, aber ohne Balken.
     return (
       <div style={{
         width: "100%",
@@ -460,11 +469,10 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
         <style>{CSS}</style>
         <div style={{
           backgroundColor: "#f0f9f7",
-          borderLeft: "4px solid #1abc9c",
-          borderRadius: 8,
+          border: "1px solid rgba(26,188,156,0.22)",
+          borderRadius: 14,
           padding: 16,
           margin: "16px 0",
-          textAlign: "center",
           fontSize: 14,
           lineHeight: 1.6,
           color: "#333",
@@ -473,14 +481,24 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
           width: "100%",
           maxWidth: 420,
         }}>
-          <div style={{ fontWeight: 800, color: "#1A1A18", marginBottom: 10, fontSize: 14.5 }}>
-            {t("chat.awareness.title")}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+              background: "#ffffff url(/assets/fox-avatar.png) center/70% no-repeat",
+              border: "1.5px solid rgba(255,255,255,0.9)",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.10)",
+            }} />
+            <div style={{ fontWeight: 800, color: "#1A1A18", fontSize: 14.5, textAlign: "left" }}>
+              {t("chat.awareness.title")}
+            </div>
           </div>
-          <div>{t("chat.awareness.line1")}</div>
-          <div>{t("chat.awareness.line2")}</div>
-          <div>{t("chat.awareness.line3")}</div>
-          <div>{t("chat.awareness.line4")}</div>
-          <div>{t("chat.awareness.line5")}</div>
+          <div style={{ textAlign: "center" }}>
+            <div>{t("chat.awareness.line1")}</div>
+            <div>{t("chat.awareness.line2")}</div>
+            <div>{t("chat.awareness.line3")}</div>
+            <div>{t("chat.awareness.line4")}</div>
+            <div>{t("chat.awareness.line5")}</div>
+          </div>
         </div>
       </div>
     );
