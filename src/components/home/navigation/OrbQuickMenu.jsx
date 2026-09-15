@@ -2,30 +2,31 @@
 // ═══════════════════════════════════════════════════════════════
 // HUI — Orb Quick Menu („4 kleine Orbs")
 // ORB-QUICKMENU (2026-09-15, Michael-Spec „Orb-Button — Talent-Upgrade &
-// Quick-Upload Hub" + Korrektur „nein es sollen nur diese 4 kleinen
-// orbs erscheinen" + Farbwunsch „farblich mehr Variationen — nicht
-// alle gleich machen"):
+// Quick-Upload Hub" + Korrekturen:
+//   1. „nein es sollen nur diese 4 kleinen orbs erscheinen" → kein
+//      Bottom-Sheet, nur die 4 Orbs.
+//   2. „farblich mehr Variationen.. nicht alle gleich machen" → jeder
+//      Orb bekam kurz eine eigene kräftige Gradient-Farbe.
+//   3. „nein die farben dürfen schwach sein und überlaufen aber mehr
+//      variation.. und mache die orbs näher an den grossen orb ran..
+//      dichter" + „nein so war schöner" (Screenshot der WEISSEN
+//      Variante, aber enger) → FINAL: weiße/soft Orbs mit dezentem,
+//      nach außen ÜBERLAUFENDEM Farb-Glow (radial-gradient bleed) +
+//      farbiger Rand, mehr Farb-Varianz zwischen den 4 Typen, UND
+//      deutlich dichter am großen Nav-Orb (Bogenradius 150→98px).
 //
 // Talent-User tippt den Nav-Orb → NUR 4 kleine Orbs ploppen fächerförmig
-// um den Nav-Orb auf (Moment/Erlebnis/Werk/Talent). KEIN Bottom-Sheet,
-// KEIN verdunkeltes Backdrop, keine anderen Elemente — exakt wie in
-// der Spec. Tap auf einen Orb → der zugehörige Upload-Flow (identisches
-// Routing wie ContentTypeSelector, SSOT-Routing liegt in Home.jsx).
-// Tap irgendwo sonst → Menü schließt.
+// dicht um den Nav-Orb auf (Moment/Erlebnis/Werk/Talent). KEIN Sheet,
+// KEIN verdunkeltes Backdrop, keine anderen Elemente. Tap auf einen
+// Orb → zugehöriger Upload-Flow (Routing-SSOT: openContentFlow in
+// Home.jsx, geteilt mit ContentTypeSelector). Tap sonstwo → schließt.
 //
-// Farb-Design (Michaels Korrektur 15.09.): Jeder Orb ist ein EIGENER
-// Farb-Körper (farbiger Gradient + weißer Icon-Kern + farbiger Glow)
-// statt der bisherigen weißen Einheits-Optik mit farbigem Rand:
-//   Moment   = Türkis-Gradient (#0DC4B5 → #079B8E)
-//   Erlebnis = Himmelblau   (#38BDF8 → #0284C7)
-//   Werk     = Coral        (#F47355 → #D9532E)
-//   Talent   = Mint-Grün    (#34D399 → #059669)
-// Label steht in Ink unter dem Orb (Design-System-Farben).
-//
-// Geometrie: Nav-Orb ist Ø 102px (ORB_D, LOCKED — siehe
-// navigationGeometry.js), Zentrum sitzt ~52px über dem Viewport-Grund,
-// horizontal zentriert. Die 4 Mini-Orbs (Ø 58px) fächern auf einem
-// Bogen R=150px bei ±20°/±60° um dieses Zentrum auf.
+// Geometrie: Nav-Orb Ø 102px (ORB_D, LOCKED — navigationGeometry.js),
+// Zentrum ~52px über dem Viewport-Grund, horizontal zentriert. Die 4
+// Mini-Orbs (Ø 58px) fächern jetzt auf einem ENGEN Bogen R=98px bei
+// ±22°/±58° um dieses Zentrum auf — deutlich dichter als die vorherige
+// Version (R=150px), berühren sich aber nicht mit dem Nav-Orb (Radius
+// 51px + Bogen 98px − Mini-Orb-Radius 29px = 18px Luft am engsten Punkt).
 //
 // Portal-Regel: createPortal auf document.body + zIndex >= 10500
 // (footer-navbar-zindex.md). Der Click-Catcher ist TRANSPARENT —
@@ -39,28 +40,28 @@ import { useTranslation } from "../../../hooks/useTranslation.js";
 
 /* ── Geometrie-Konstanten (von navigationGeometry.js abgeleitet) ── */
 const NAV_ORB_CENTER_BOTTOM = 52;   // px über Viewport-Grund (Orb-Zentrum)
-const ARC_R                 = 150;  // Bogenradius um das Orb-Zentrum
+const ARC_R                 = 98;   // Bogenradius — dicht am Nav-Orb (war 150)
 const MINI_ORB_D            = 58;   // Ø Mini-Orb
-const ANGLES                = [-60, -20, 20, 60]; // ° von der Senkrechten
+const ANGLES                = [-58, -22, 22, 58]; // ° von der Senkrechten (etwas enger gefächert)
 
-/* ── Typen — je eigene Farb-Welt (Gradient hell→dunkel + Glow) ── */
+/* ── Typen — je eigene, aber SANFTE Farb-Welt (weiß + Bleed-Glow) ── */
 function getTypes(t) {
   return [
     {
       key: "moment", icon: "🌿", label: t("orb.moment"),
-      c1: HUI.COLOR.teal, c2: "#079B8E", glow: "rgba(13,196,181,0.38)",
+      tint: HUI.COLOR.teal,   glowSoft: "rgba(13,196,181,0.30)",  glowFar: "rgba(13,196,181,0.10)",
     },
     {
       key: "experience", icon: "📅", label: t("orb.erlebnis"),
-      c1: "#38BDF8", c2: "#0284C7", glow: "rgba(56,189,248,0.40)",
+      tint: "#38BDF8",         glowSoft: "rgba(56,189,248,0.32)", glowFar: "rgba(56,189,248,0.11)",
     },
     {
       key: "work", icon: "🎨", label: t("orb.werk"),
-      c1: HUI.COLOR.coral, c2: "#D9532E", glow: "rgba(244,115,85,0.40)",
+      tint: HUI.COLOR.coral,  glowSoft: "rgba(244,115,85,0.32)",  glowFar: "rgba(244,115,85,0.11)",
     },
     {
       key: "talent", icon: "⭐", label: t("orb.talent"),
-      c1: "#34D399", c2: "#059669", glow: "rgba(52,211,153,0.40)",
+      tint: "#8B5CF6",         glowSoft: "rgba(139,92,246,0.30)", glowFar: "rgba(139,92,246,0.11)",
     },
   ];
 }
@@ -100,7 +101,7 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
         }}
       />
 
-      {/* Die 4 kleinen Orbs — fächerförmig um das Nav-Orb-Zentrum */}
+      {/* Die 4 kleinen Orbs — dicht fächerförmig um das Nav-Orb-Zentrum */}
       {types.map((type, idx) => {
         const a  = ANGLES[idx] * DEG;
         const dx = Math.sin(a) * ARC_R;          // − = links, + = rechts
@@ -135,38 +136,29 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
               animation: `oq-pop 0.42s cubic-bezier(.34,1.56,.64,1) ${idx * 55}ms both`,
             }}
           >
-            {/* Farb-Orb: Gradient + weißer Ring + farbiger Glow */}
+            {/* Weißer/soft Orb-Körper mit ÜBERLAUFENDEM Farb-Glow (radial
+                Bleed nach außen, deutlich über den eigenen Rand hinaus)
+                + dezentem farbigem Rand. Kein kräftiger Farbkörper mehr. */}
             <div style={{
               width: MINI_ORB_D,
               height: MINI_ORB_D,
               borderRadius: "50%",
-              background: `linear-gradient(135deg, ${type.c1}, ${type.c2})`,
-              border: "1.5px solid rgba(255,255,255,0.55)",
-              boxShadow: `0 10px 26px ${type.glow}, 0 0 0 4px rgba(255,255,255,0.55), 0 2px 6px rgba(20,20,34,0.16)`,
+              background: `radial-gradient(circle at 50% 38%, ${type.glowSoft}, rgba(255,255,255,0.97) 62%)`,
+              border: `1.5px solid ${type.tint}40`,
+              // Zwei Glow-Ebenen: enger + weiter ausgreifender, schwächerer Bleed
+              boxShadow: `0 0 0 10px ${type.glowFar}, 0 8px 20px rgba(20,20,34,0.10), 0 2px 6px ${type.glowSoft}`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}>
-              {/* Weißer Icon-Kern mit Emoji */}
-              <div style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: "#FFFFFF",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxShadow: "inset 0 1px 3px rgba(20,20,34,0.10)",
-              }}>
-                <span style={{ fontSize: 19, lineHeight: 1 }}>{type.icon}</span>
-              </div>
+              <span style={{ fontSize: 21, lineHeight: 1 }}>{type.icon}</span>
             </div>
             {/* Label unter dem Orb — Ink, Design-System-Farben */}
             <div style={{
               fontSize: 10.5,
               fontWeight: 600,
               color: "#55556B",
-              marginTop: 6,
+              marginTop: 5,
               letterSpacing: -0.1,
               textAlign: "center",
               lineHeight: 1.2,
