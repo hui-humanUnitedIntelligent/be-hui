@@ -60,22 +60,28 @@ const ANGLES                = [-54, -18, 18, 54]; // ° — GLEICHMÄSSIGE 36°-
 
 /* ── Typen — je eigene, aber SANFTE Farb-Welt (weiß + Bleed-Glow) ── */
 function getTypes(t) {
+  // ORB-VISIBILITY-FIX (2026-09-15, Michael-Report — Screenshot zeigte die
+  // 4 Mini-Orbs "zu transparent, wirken fehl am Platz"): glowSoft-Alpha
+  // 0.30/0.32 -> 0.58, glowFar 0.10/0.11 -> 0.22, White-Übernahme im
+  // radialen Gradient 62% -> 46% (weiter unten in getTypes() verdrahtet)
+  // -- die Orbs bleiben weiß/soft (Michaels Vorgabe von heute Morgen bleibt
+  // gültig), sind aber deutlich kräftiger farbig erkennbar statt blass.
   return [
     {
       key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"),
-      tint: HUI.COLOR.teal,   glowSoft: "rgba(13,196,181,0.30)",  glowFar: "rgba(13,196,181,0.10)",
+      tint: HUI.COLOR.teal,   glowSoft: "rgba(13,196,181,0.58)",  glowFar: "rgba(13,196,181,0.22)",
     },
     {
       key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"),
-      tint: "#38BDF8",         glowSoft: "rgba(56,189,248,0.32)", glowFar: "rgba(56,189,248,0.11)",
+      tint: "#38BDF8",         glowSoft: "rgba(56,189,248,0.60)", glowFar: "rgba(56,189,248,0.23)",
     },
     {
       key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"),
-      tint: HUI.COLOR.coral,  glowSoft: "rgba(244,115,85,0.32)",  glowFar: "rgba(244,115,85,0.11)",
+      tint: HUI.COLOR.coral,  glowSoft: "rgba(244,115,85,0.60)",  glowFar: "rgba(244,115,85,0.23)",
     },
     {
       key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"),
-      tint: "#8B5CF6",         glowSoft: "rgba(139,92,246,0.30)", glowFar: "rgba(139,92,246,0.11)",
+      tint: "#8B5CF6",         glowSoft: "rgba(139,92,246,0.58)", glowFar: "rgba(139,92,246,0.22)",
     },
   ];
 }
@@ -138,15 +144,16 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
               width: MINI_ORB_D,
               height: MINI_ORB_D,
               zIndex: 10501,
-              border: `1.5px solid ${type.tint}40`,
+              border: `1.5px solid ${type.tint}70`,
               borderRadius: "50%",
               padding: 0,
               margin: 0,
-              // Soft-Orb: radial Bleed-Glow von der Mitte nach außen + dezenter
-              // farbiger Rand — kein kräftiger Farbkörper, kein Überlappen dank
-              // reduziertem zweitem Glow-Ring (6px statt vorher 10px).
-              background: `radial-gradient(circle at 50% 38%, ${type.glowSoft}, rgba(255,255,255,0.97) 62%)`,
-              boxShadow: `0 0 0 5px ${type.glowFar}, 0 6px 16px rgba(20,20,34,0.10), 0 2px 5px ${type.glowSoft}`,
+              // Soft-Orb: radial Bleed-Glow von der Mitte nach außen + kräftigerer
+              // farbiger Rand (border-alpha 40->70 hex). White-Übernahme bei 46%
+              // statt 62% (ORB-VISIBILITY-FIX) -- deutlich sichtbarer, bleibt aber
+              // weiß/soft (kein kräftiger Vollfarbkörper).
+              background: `radial-gradient(circle at 50% 38%, ${type.glowSoft}, rgba(255,255,255,0.97) 46%)`,
+              boxShadow: `0 0 0 5px ${type.glowFar}, 0 6px 16px rgba(20,20,34,0.12), 0 2px 6px ${type.glowSoft}`,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
