@@ -1,23 +1,20 @@
 // src/components/shared/ProfileRelationButtons.jsx
-// CHAT-LOGIK-v2 (2026-08-22, Michael-Vorgabe): Der "Verbinden"-Button
-// (öffnete bisher ungated einen Chat mit JEDEM Profil) wurde entfernt.
-// Grund: Chat ist ab sofort AUSSCHLIESSLICH nach Buchung/Kauf (Werk, Talent,
-// Erlebnis) verfügbar und öffnet automatisch nach erfolgter Bezahlung —
-// nicht mehr per Klick von einem beliebigen öffentlichen Profil aus.
-// "Inspirierende Menschen" (kein Buchungsverhältnis) sehen daher nur noch
-// den "Folgen"-Button, keine Möglichkeit sich zu "verbinden"/zu chatten.
-//
-// WICHTIG: Dieser Chat-Entry-Point ist damit entfernt, ABER die tiefere
-// Absicherung (chats.insert nur mit gültiger booking_id / RLS-Check) ist
-// NICHT Teil dieser Änderung — findOrCreateChat() in chatContext.js erlaubt
-// weiterhin bookingId=null und wird u.a. auch von ChatCenterOverlay.jsx
-// ("neuer Chat" Flow) u. StoryBar.jsx aufgerufen. Das ist ein separater,
-// größerer Härtungs-Task (DB/RLS-Änderung) — hier bewusst nicht angefasst,
-// um keine bestehende Chat-Funktionalität ungeprüft zu brechen.
+// OPEN-CHAT-001 (2026-09-15, Michael-Spec "Open Chat für alle Nutzer —
+// Connect Feature"): Der "Verbinden"-Button ist WIEDER DA — Chat ist ab
+// jetzt für alle Nutzer geöffnet (per Michael-Entscheid; die CHAT-LOGIK-v2-
+// Entfernung vom 22.08. wird damit reaktiviert). Der Button läuft über den
+// SSOT-Helper connectAndOpenChat() (chatContext.js): find-or-create (nie
+// doppelte Chats, bestehende Transaction-Chats werden wiederverwendet) und
+// öffnet den Chat über den globalen Home-Hook. Transaction-Chats (auto-open
+// nach Bezahlung) bleiben unverändert.
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient.js";
 import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { useAppState, useFollowStatus } from "../../lib/AppStateContext.jsx";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { connectAndOpenChat } from "../../lib/chatContext.js";
+import { toast } from "../../lib/useToast.jsx";
+import { useTranslation } from "../../hooks/useTranslation.js";
 
 // PUNKT2-FOLLOW-SYNC (2026-09-08, Michael, Karen-Bug): Dieser Button hatte einen
 // EIGENEN lokalen isFollowing-State — Unfollow hier erreichte den globalen
@@ -45,6 +42,9 @@ export default function ProfileRelationButtons({
   onClose, // eslint-disable-line no-unused-vars -- Signatur bewusst beibehalten (Aufrufer übergeben ihn weiterhin)
 }) {
   const [followLoading, setFollowLoading] = useState(false);
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const [connectLoading, setConnectLoading] = useState(false);
   // PUNKT2-FOLLOW-SYNC: isFollowing aus globalem SSOT statt lokalem State
   const { isFollowing, toggle } = useFollowStatus(profileId);
   const { reconcileFollow } = useAppState();
@@ -65,6 +65,33 @@ export default function ProfileRelationButtons({
   }, [profileId, currentUserId, reconcileFollow]);
 
   if (!currentUserId || profileId === currentUserId) return null;
+
+  // OPEN-CHAT-001: Verbinden → 1:1-Chat finden/erstellen (SSOT-Helper,
+  // dedupliziert; bestehende Transaction-Chats werden wiederverwendet)
+  // und öffnen. Self-Chat ist ausgeschlossen (canUserChat-Guard im Helper).
+  const handleConnect = async (e) => {
+    e?.stopPropagation();
+    if (connectLoading) return;
+    setConnectLoading(true);
+    try {
+      const res = await connectAndOpenChat({
+        currentUserId: user?.id || currentUserId,
+        targetUser: {
+          id: profileId,
+          name: displayName,
+          avatar_url: profile?.avatar_url || null,
+        },
+      });
+      if (!res?.ok) {
+        toast.error(t("chat.connectError"), { duration: 3000 });
+      }
+    } catch (err) {
+      console.warn("[Connect] exception:", err);
+      toast.error(t("chat.connectError"), { duration: 3000 });
+    } finally {
+      setConnectLoading(false);
+    }
+  };
 
   const handleFollow = async (e) => {
     e?.stopPropagation();
@@ -103,7 +130,21 @@ export default function ProfileRelationButtons({
 
   return (
     <div style={{ display:"flex", flexDirection:"row", gap:8, padding:`0 ${T.px}px`, marginBottom:4 }}>
-      {/* Folgen — einziger Aktions-Button (Verbinden entfernt, siehe CHAT-LOGIK-v2) */}
+      {/* Verbinden — OPEN-CHAT-001 (2026-09-15): Chat mit diesem Nutzer */}
+      <button onClick={handleConnect} disabled={connectLoading} className="ppp-press" aria-label={t("chat.connectButton")} style={{
+        ...btnBase,
+        background: connectLoading ? "rgba(13,196,181,0.35)" : T.tealDeep,
+        border: "none",
+        color: "#fff",
+        opacity: connectLoading ? 0.7 : 1,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>{t("chat.connectButton")}</span>
+      </button>
+
+      {/* Folgen */}
       <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
         ...btnBase,
         background: isFollowing ? T.bgCard : "transparent",

@@ -655,6 +655,63 @@ export function useChatContext(chat) {
 }
 
 // ────────────────────────────────────────────────────────────────
+// OPEN-CHAT-001 (2026-09-15, Michael-Spec Teil 1 "Open Chat für alle
+// Nutzer — Connect Feature"): Chat ist für ALLE Nutzer geöffnet (nicht
+// mehr nur nach Buchung/Kauf, CHAT-LOGIK-v2 vom 22.08. wird damit per
+// Michael-Entscheid reaktiviert). Transaction-Chats (auto-open nach
+// Bezahlung) bleiben unverändert — dieser Helper ist der SSOT-Einstieg
+// für "Verbinden"-Buttons (Discover-Menschen, Public Profiles).
+// ────────────────────────────────────────────────────────────────
+
+// Kann der eingeloggte Nutzer mit dem Ziel-Nutzer chatten?
+// Self-Chat ist der einzige Ausschluss — jede andere Kombination erlaubt.
+export function canUserChat(currentUserId, targetUserId) {
+  if (!currentUserId || !targetUserId) return false;
+  if (currentUserId === targetUserId) return false;
+  return true; // Alle dürfen miteinander chatten
+}
+
+// Verbinden-Flow (SSOT, von allen "Verbinden"-Buttons geteilt):
+// 1. Guard (canUserChat)  2. findOrCreateChat (dedupliziert per
+// participant_ids — bestehende Chats inkl. Transaction-Chats werden
+// wiederverwendet, nie doppelt)  3. Chat öffnen: bevorzugt über den
+// globalen Home-Hook __HUI_OPEN_CHAT_WITH__; auf Standalone-Routen
+// (z.B. /profile/:username ohne Home-Mount) via sessionStorage-Flag
+// "hui_pending_chat_recipient" + navigate('/Home') — Home.jsx liest
+// das Flag einmalig beim Mount (gleiches Muster wie hui_pending_tab).
+// navigate MUSS von react-router useNavigate() stammen (kein Full-
+// Reload — sonst spielt das Intro-Video erneut, every-launch-Modus).
+export async function connectAndOpenChat({ currentUserId, targetUser, navigate = null }) {
+  if (!canUserChat(currentUserId, targetUser?.id)) {
+    return { ok: false, reason: "not_allowed" };
+  }
+  const chat = await findOrCreateChat({
+    userId: currentUserId,
+    otherUserId: targetUser.id,
+    chatType: "direct",
+  });
+  if (!chat?.id) {
+    return { ok: false, reason: "create_failed" };
+  }
+  if (typeof window !== "undefined" && typeof window.__HUI_OPEN_CHAT_WITH__ === "function") {
+    window.__HUI_OPEN_CHAT_WITH__(targetUser);
+    return { ok: true };
+  }
+  if (typeof navigate === "function") {
+    try {
+      sessionStorage.setItem("hui_pending_chat_recipient", JSON.stringify({
+        id: targetUser.id,
+        name: targetUser.name || targetUser.display_name || targetUser.username || null,
+        avatar_url: targetUser.avatar_url || null,
+      }));
+    } catch { /* Best-Effort */ }
+    navigate("/Home");
+    return { ok: true };
+  }
+  return { ok: false, reason: "no_entry_point" };
+}
+
+// ────────────────────────────────────────────────────────────────
 // findOrCreateChat — Chat zwischen zwei Usern finden oder erstellen
 // participant_ids (uuid[]) — verifiziert 2026-06-01
 // state = "opened" (DB-Default)

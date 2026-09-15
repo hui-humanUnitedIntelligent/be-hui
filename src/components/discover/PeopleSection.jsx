@@ -8,6 +8,9 @@ import { formatPresence } from "../../lib/usePresence.js";
 import { optimizeAvatar } from "../../lib/perfUtils.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { useAppState } from "../../lib/AppStateContext.jsx";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { connectAndOpenChat } from "../../lib/chatContext.js";
+import { toast } from "../../lib/useToast.jsx";
 
 // DISCOVER-FOLLOW-BADGE (2026-09-08, Bug-Käfer 51bbd017 "Folgen wird auf dem
 // Profil erkannt aber nicht bei Entdecken"): Die Discover-Menschenkarten
@@ -17,9 +20,76 @@ import { useAppState } from "../../lib/AppStateContext.jsx";
 // globale SSOT followedIds aus AppStateContext (derselbe State, den auch
 // das Profil für seinen "Folge ich"-Button nutzt — optimistic updates und
 // hui:follow:changed-Events greifen dadurch automatisch auch hier).
+// OPEN-CHAT-001: kompakter Verbinden-Button für die Listen-Ansicht
+// (gleicher SSOT-Helper wie die Pill auf der PersonCard oben).
+function ListConnectButton({ person }) {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const [connectLoading, setConnectLoading] = useState(false);
+  const handleConnect = async (e) => {
+    e?.stopPropagation();
+    if (connectLoading) return;
+    setConnectLoading(true);
+    try {
+      const res = await connectAndOpenChat({
+        currentUserId: user?.id,
+        targetUser: { id: person.id, name: person.name, avatar_url: person.avatar || null },
+      });
+      if (!res?.ok && res?.reason !== "not_allowed") {
+        toast.error(t("chat.connectError"), { duration: 3000 });
+      }
+    } catch {
+      toast.error(t("chat.connectError"), { duration: 3000 });
+    } finally {
+      setConnectLoading(false);
+    }
+  };
+  return (
+    <button type="button" onClick={handleConnect} disabled={connectLoading}
+      aria-label={t("chat.connectButton")} style={{
+        flexShrink:0, alignSelf:"center", height:30, padding:"0 12px", borderRadius:99,
+        fontSize:10.5, fontWeight:600, cursor:"pointer", touchAction:"manipulation",
+        fontFamily:"inherit",
+        background: connectLoading ? "rgba(13,196,181,0.35)" : "rgba(13,196,181,0.10)",
+        border:"1.5px solid rgba(13,196,181,0.35)",
+        color:T.tealDeep, opacity: connectLoading ? 0.7 : 1,
+        transition:"all .18s ease", whiteSpace:"nowrap",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+      }}>
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      {t("chat.connectButton")}
+    </button>
+  );
+}
+
 export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers=0, likes=0, isFollowing=false }) {
   const [imgErr, setImgErr] = useState(false);
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const [connectLoading, setConnectLoading] = useState(false);
+
+  // OPEN-CHAT-001 (2026-09-15, Michael-Spec Teil 1): "Verbinden" auf der
+  // Discover-Menschenkarte — Chat für alle Nutzer (SSOT-Helper, dedupliziert).
+  const handleConnect = async (e) => {
+    e?.stopPropagation();
+    if (connectLoading) return;
+    setConnectLoading(true);
+    try {
+      const res = await connectAndOpenChat({
+        currentUserId: user?.id,
+        targetUser: { id: person.id, name: person.name, avatar_url: person.avatar || null },
+      });
+      if (!res?.ok && res?.reason !== "not_allowed") {
+        toast.error(t("chat.connectError"), { duration: 3000 });
+      }
+    } catch {
+      toast.error(t("chat.connectError"), { duration: 3000 });
+    } finally {
+      setConnectLoading(false);
+    }
+  };
   const av = (!imgErr && person.avatar) ? person.avatar : null;
   const presence = formatPresence(person.last_seen_at);
 
@@ -136,6 +206,24 @@ export function PersonCard({ person = {}, onPress = () => {}, delay=0, followers
           <span style={{ fontSize:10.5, fontWeight: 600, color:"#e04050" }}>{likes}</span>
         </div>
       </div>
+
+      {/* OPEN-CHAT-001: Verbinden-Pill unter der Statistik-Zeile */}
+      <button type="button" onClick={handleConnect} disabled={connectLoading}
+        aria-label={t("chat.connectButton")} style={{
+          width:"100%", height:28, marginTop:7, borderRadius:99,
+          fontSize:10.5, fontWeight:600, cursor:"pointer", touchAction:"manipulation",
+          fontFamily:"inherit",
+          background: connectLoading ? "rgba(13,196,181,0.35)" : "rgba(13,196,181,0.10)",
+          border:"1.5px solid rgba(13,196,181,0.35)",
+          color:T.tealDeep, opacity: connectLoading ? 0.7 : 1,
+          transition:"all .18s ease", whiteSpace:"nowrap", overflow:"hidden",
+          display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+        }}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        {t("chat.connectButton")}
+      </button>
     </div>
   );
 }
@@ -202,6 +290,7 @@ export function PeopleSection({ people=[], onPersonPress, loading, delay=0, view
                       )}
                     </div>
                   </div>
+                  <ListConnectButton person={p} />
                 </div>
               ))
           }

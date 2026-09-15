@@ -16,6 +16,7 @@ import React, {
   useState, useEffect, useCallback, useMemo, useRef
 } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient.js";
 import { useAuth }  from "../lib/AuthContext.jsx";
 import { useProfileData } from "../hooks/useProfileData.js";
@@ -40,6 +41,8 @@ import { useModalRegistration } from "../hooks/useModalRegistration.js";
 import SupportFlow from "../components/economy/SupportFlow.jsx";
 import SupportModal from "../components/SupportModal.jsx";
 import { invalidateOrbStageCache } from "../hooks/useOrbGrowthStage.js";
+import { connectAndOpenChat } from "../lib/chatContext.js";
+import { toast } from "../lib/useToast.jsx";
 import { useAppState, useFollowStatus } from "../lib/AppStateContext.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
 
@@ -141,7 +144,9 @@ function NavBar({ onBack = () => {}, title, subtitle }) {
 // Direkt-Query einmalig ab (reconcileFollow, deckt Geraete-/Session-Differenzen).
 function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onFollowChange }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [followLoading, setFollowLoading] = useState(false);
+  const [connectLoading, setConnectLoading] = useState(false);
   const [showProjectSupport, setShowProjectSupport] = useState(false);
   const { isFollowing, toggle } = useFollowStatus(profileId);
   const { reconcileFollow } = useAppState();
@@ -164,6 +169,36 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
   }, [profileId, currentUserId, reconcileFollow]);
 
   if (!currentUserId || profileId === currentUserId) return null;
+
+  // OPEN-CHAT-001 (2026-09-15, Michael-Spec Teil 1): Verbinden → 1:1-Chat
+  // finden/erstellen (SSOT-Helper, dedupliziert) und öffnen. PublicProfilePage
+  // ist eine STANDALONE-Route (/profile/:username) — der Home-Hook fehlt dort,
+  // deshalb navigate-Fallback: sessionStorage-Flag + /Home (Home.jsx liest
+  // hui_pending_chat_recipient beim Mount, einmalig).
+  const handleConnect = async (e) => {
+    e?.stopPropagation();
+    if (connectLoading) return;
+    setConnectLoading(true);
+    try {
+      const res = await connectAndOpenChat({
+        currentUserId,
+        targetUser: {
+          id: profileId,
+          name: profile?.display_name || profile?.full_name || profile?.username,
+          avatar_url: profile?.avatar_url || null,
+        },
+        navigate,
+      });
+      if (!res?.ok) {
+        toast.error(t("chat.connectError"), { duration: 3000 });
+      }
+    } catch (err) {
+      console.warn("[Connect] exception:", err);
+      toast.error(t("chat.connectError"), { duration: 3000 });
+    } finally {
+      setConnectLoading(false);
+    }
+  };
 
   const handleFollow = async (e) => {
     e?.stopPropagation();
@@ -201,7 +236,26 @@ function RelationButtons({ profileId = "", currentUserId = "", profile = {}, onF
   return (
     <>
     <div style={{ display:"flex", flexDirection:"row", gap:8, padding:`0 ${T.px}px`, marginBottom:4 }}>
-      {/* Folgen Button — einziger Aktions-Button (Verbinden entfernt, CHAT-LOGIK-v2) */}
+      {/* Verbinden — OPEN-CHAT-001 (2026-09-15): Chat für alle Nutzer */}
+      <button onClick={handleConnect} disabled={connectLoading} className="ppp-press" aria-label={t("chat.connectButton")} style={{
+        flex:1, height:36, borderRadius:T.r99,
+        background: connectLoading ? "rgba(13,196,181,0.35)" : "transparent",
+        border: `1.5px solid ${T.tealDeep}`,
+        color:T.tealDeep,
+        fontWeight:600, fontSize:12, cursor:"pointer",
+        touchAction:"manipulation", fontFamily:"inherit",
+        display:"flex", alignItems:"center", justifyContent:"center", gap:6,
+        transition:"all .18s ease", opacity: connectLoading ? 0.6 : 1,
+        whiteSpace:"nowrap", overflow:"hidden",
+        paddingLeft:10, paddingRight:12,
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span>{t("chat.connectButton")}</span>
+      </button>
+
+      {/* Folgen Button */}
       <button onClick={handleFollow} disabled={followLoading} className="ppp-press" style={{
         flex:1, height:36, borderRadius:T.r99,
         background: isFollowing ? T.bgCard : "transparent",

@@ -276,6 +276,25 @@ function HomeInner() {
     }
   }, [handleTab]);
 
+  // OPEN-CHAT-001 (2026-09-15): connectAndOpenChat() auf Standalone-Routen
+  // (z.B. /profile/:username) setzt hui_pending_chat_recipient und navigiert
+  // auf /Home — hier beim Mount einmalig auslesen und den Chat öffnen
+  // (gleiches einmalig-Lösch-Muster wie hui_pending_tab oben).
+  React.useEffect(() => {
+    let raw = null;
+    try { raw = sessionStorage.getItem("hui_pending_chat_recipient"); } catch { /* Best-Effort */ }
+    if (raw) {
+      try { sessionStorage.removeItem("hui_pending_chat_recipient"); } catch { /* Best-Effort */ }
+      try {
+        const recipient = JSON.parse(raw);
+        if (recipient?.id) {
+          setChatRecipient?.(recipient);
+          setShowChat?.(true);
+        }
+      } catch { /* kaputtes JSON ignorieren */ }
+    }
+  }, [setChatRecipient, setShowChat]);
+
   // SHARE.2: hui:share CustomEvent → HuiShareModal öffnen
   React.useEffect(() => {
     window.__HUI_SHARE_REGISTERED = true;

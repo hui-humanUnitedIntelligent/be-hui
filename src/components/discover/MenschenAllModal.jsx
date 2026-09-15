@@ -28,6 +28,10 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { HUIProfilIcon, HUILocationIcon } from "../../design/icons/HuiSystemIcons.jsx";
 import { MembershipLabel } from "../../components/ui/TalentBadge.jsx";
 import { useAppState } from "../../lib/AppStateContext.jsx";
+import { useFollowStatus } from "../../lib/AppStateContext.jsx";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { connectAndOpenChat } from "../../lib/chatContext.js";
+import { toast } from "../../lib/useToast.jsx";
 
 const T = {
   teal:"rgba(14,196,184,1)", white:"#FFFFFF", ink:"rgba(26,26,46,0.92)",
@@ -48,6 +52,31 @@ const SORT_OPTIONS = [
 function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false, membershipType="base" }) {
   const [imgErr, setImgErr] = useState(false);
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { toggle } = useFollowStatus(p.id); // 51bbd017: Folgen-SSOT (wie Profil-Button + ✓-Badge)
+  const [connectLoading, setConnectLoading] = useState(false);
+
+  // OPEN-CHAT-001 (2026-09-15, Michael-Spec Teil 1): "Verbinden" pro
+  // Menschen-Karte — Chat für alle Nutzer. SSOT-Helper dedupliziert (nie
+  // doppelte Chats, bestehende inkl. Transaction-Chats werden wiederverwendet).
+  const handleConnect = async (e) => {
+    e?.stopPropagation();
+    if (connectLoading) return;
+    setConnectLoading(true);
+    try {
+      const res = await connectAndOpenChat({
+        currentUserId: user?.id,
+        targetUser: { id: p.id, name: p.display_name || p.username, avatar_url: p.avatar_url || null },
+      });
+      if (!res?.ok && res?.reason !== "not_allowed") {
+        toast.error(t("chat.connectError"), { duration: 3000 });
+      }
+    } catch {
+      toast.error(t("chat.connectError"), { duration: 3000 });
+    } finally {
+      setConnectLoading(false);
+    }
+  };
   const av = (!imgErr && p.avatar_url) ? p.avatar_url : null;
   const name = p.display_name || p.username || "HUI Mitglied";
   return (
@@ -132,6 +161,39 @@ function PersonCardItem({ p, onPress, followers=0, likes=0, isFollowing=false, m
           <span style={{ fontSize:10 }}>❤️</span>
           <span style={{ fontSize:10.5, fontWeight: 600, color:"#e04050" }}>{likes}</span>
         </div>
+      </div>
+
+      {/* OPEN-CHAT-001 (2026-09-15, Michael-Spec): Folgen + Verbinden pro
+          Karte. Folgen läuft über den globalen SSOT (useFollowStatus →
+          ctx.toggleFollow, gleiche Quelle wie Profil-Button + ✓-Badge oben). */}
+      <div style={{ display:"flex", gap:6, width:"100%", marginTop:6 }}>
+        <button type="button" onClick={(e) => { e.stopPropagation(); toggle?.(); }}
+          aria-label={t("chat.followButton")} style={{
+            flex:1, height:30, borderRadius:99, fontSize:11, fontWeight:600,
+            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+            background: isFollowing ? T.white : "transparent",
+            border:`1.5px solid ${isFollowing ? T.border : T.tealDeep}`,
+            color: isFollowing ? T.inkSoft : T.tealDeep,
+            transition:"all .18s ease", whiteSpace:"nowrap", overflow:"hidden",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+          }}>
+          {isFollowing ? `✓ ${t("profile.following")}` : t("chat.followButton")}
+        </button>
+        <button type="button" onClick={handleConnect} disabled={connectLoading}
+          aria-label={t("chat.connectButton")} style={{
+            flex:1, height:30, borderRadius:99, fontSize:11, fontWeight:600,
+            cursor:"pointer", touchAction:"manipulation", fontFamily:"inherit",
+            background: connectLoading ? "rgba(13,196,181,0.35)" : "rgba(13,196,181,0.10)",
+            border:`1.5px solid ${connectLoading ? "transparent" : "rgba(13,196,181,0.35)"}`,
+            color:T.tealDeep, opacity: connectLoading ? 0.7 : 1,
+            transition:"all .18s ease", whiteSpace:"nowrap", overflow:"hidden",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+          }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink:0 }}>
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          {t("chat.connectButton")}
+        </button>
       </div>
     </div>
   );
@@ -222,7 +284,7 @@ export default function MenschenAllModal({ isOpen, onClose, onPressPerson }) {
         <div style={{ padding:"16px 16px 8px", background:T.white, borderBottom:`1px solid ${T.border}`, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
             <div>
-              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("discover.inspiringPeople")}</div>
+              <div style={{ fontSize:17, fontWeight: 600, color:T.ink }}>{t("chat.discoverPeople")}</div>
               <div style={{ fontSize:11.5, color:T.inkFaint }}>{t("discover.inspiringPeopleSub")}</div>
             </div>
             <button onClick={onClose} style={{ background:"none", border:"none", fontSize:22, cursor:"pointer", color:T.inkSoft, padding:4 }}>✕</button>
