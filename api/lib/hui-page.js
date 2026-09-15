@@ -1,53 +1,11 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
-<title>Die Idee der Woche – HUI Inspiration</title>
-<meta name="description" content="Jede Woche eine zukunftsweisende Idee, die zum Nachdenken anregt und Wandel anstößt. Ein Ausblick auf unser wöchentliches Format nach dem Launch von HUI."/>
-<meta name="theme-color" content="#0DC4B5"/>
-<link rel="icon" href="/favicon.ico" sizes="any"/>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
-<meta property="og:title" content="Die Idee der Woche – HUI Inspiration"/>
-<meta property="og:description" content="Jede Woche eine zukunftsweisende Idee, die zum Nachdenken anregt und Wandel anstößt. Ein Ausblick auf unser wöchentliches Format nach dem Launch von HUI."/>
-<meta property="og:type" content="website"/>
-<link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
-<style>
-@font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url('/fonts/Inter-ExtraLight.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url('/fonts/Inter-Light.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/Inter-Regular.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/Inter-Medium.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/Inter-SemiBold.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:800;font-display:swap;src:url('/fonts/Inter-ExtraBold.woff2') format('woff2')}
-@font-face{font-family:'Inter';font-style:normal;font-weight:900;font-display:swap;src:url('/fonts/Inter-Black.woff2') format('woff2')}
-</style>
-<link rel="stylesheet" href="/hui-shared.css"/>
-<link rel="stylesheet" href="/hui-interactions.css"/>
-<style>
-.page-hero-bg{position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.4;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(13,196,181,.04) 0%,transparent 70%),radial-gradient(ellipse 50% 35% at 30% 80%,rgba(244,115,85,.02) 0%,transparent 60%)}
-.hui-page{position:relative}
-.hui-page-hero{position:relative;z-index:1}
-</style>
-<!-- SEO / GEO Meta Tags -->
-<link rel="canonical" href="https://be-hui.com/inspiration/ideen"/>
-<meta name="robots" content="noindex,nofollow">
-<link rel="alternate" hreflang="de" href="https://be-hui.com/inspiration/ideen"/>
-<link rel="alternate" hreflang="en" href="https://be-hui.com/en/inspiration/ideas"/>
-<link rel="alternate" hreflang="x-default" href="https://be-hui.com/inspiration/ideen"/>
-<meta property="og:url" content="https://be-hui.com/inspiration/ideen"/>
-<meta property="og:image" content="https://be-hui.com/hero.webp"/>
-<meta property="og:locale" content="de_DE"/>
-<meta property="og:locale:alternate" content="en_US"/>
-<!-- Privacy-friendly analytics by Plausible -->
-<script async src="https://plausible.io/js/pa-0KhFSr-WTbTPddwKIV7pg.js"></script>
-<script>
-  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
-  plausible.init()
-</script>
-</head>
-<body>
+// api/lib/hui-page.js — Gemeinsame Seitenvorlage für die öffentliche Impact-Sektion
+// ══════════════════════════════════════════════════════════════════
+// Wiederverwendet exakt das Chrome der bestehenden HUI-Website
+// (Hauptnav, Drawer, Sidebar, Footer, Fonts, CSS, Scripts, Plausible).
+// Kein App-Zugriff, keine App-Verlinkung — rein öffentliche Website.
+// ══════════════════════════════════════════════════════════════════
 
+const CHROME = `
 <nav class="nav" id="nav">
   <a href="/" class="nav-brand">
     <img src="/hui_logo.webp" alt="HUI" class="nav-logo" width="36" height="36"/>
@@ -57,25 +15,23 @@
     </div>
   </a>
   <div class="nav-links">
-    <a href="/#ueber" class="nav-link" data-i18n="nav.about">Ãber HUI</a>
+    <a href="/#ueber" class="nav-link" data-i18n="nav.about">Über HUI</a>
     <a href="/entdecken" class="nav-link" data-i18n="nav.discover">Entdecken</a>
     <a href="/#wie" class="nav-link" data-i18n="nav.how">Wie HUI wirkt</a>
-    <a href="/impact" class="nav-link" data-i18n="nav.impact">Impact</a>
+    <a href="/impact" class="nav-link" aria-current="page" data-i18n="nav.impact">Impact</a>
     <a href="/#mitmachen" class="nav-link" data-i18n="nav.join">Mitmachen</a>
-    <a href="/app/login" class="nav-cta" data-i18n="nav.cta">HUI entdecken →</a>
   </div>
-  <button class="nav-ham" id="hamBtn" aria-label="MenÃ¼" data-i18n-aria="nav.menu-aria">
+  <button class="nav-ham" id="hamBtn" aria-label="Menü" data-i18n-aria="nav.menu-aria">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
 <div class="drawer" id="drawer">
-  <a href="/#ueber" data-i18n="nav.about">Ãber HUI</a>
+  <a href="/#ueber" data-i18n="nav.about">Über HUI</a>
   <a href="/entdecken" data-i18n="nav.discover">Entdecken</a>
   <a href="/#wie" data-i18n="nav.how">Wie HUI wirkt</a>
-  <a href="/impact" data-i18n="nav.impact">Impact</a>
+  <a href="/impact" aria-current="page" data-i18n="nav.impact">Impact</a>
   <a href="/#mitmachen" data-i18n="nav.join">Mitmachen</a>
-  <a href="/app/login" class="drawer-cta" data-i18n="nav.cta">HUI entdecken →</a>
 </div>
 
 <div class="backdrop" id="backdrop"></div>
@@ -106,7 +62,7 @@
     <nav class="hui-sidebar-nav" aria-label="HUI Navigation">
       <!-- ENTDECKEN -->
       <section class="hui-nav-section">
-        <p class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.discover">Entdecken</p>
         <ul class="hui-nav-list">
           <li><a href="/werke" class="hui-nav-link" data-page="werke">
             <span class="hui-nav-link-label" data-i18n="sidebar.nav.works">Werke</span>
@@ -139,7 +95,7 @@
 
       <!-- DIE IDEE -->
       <section class="hui-nav-section">
-        <p class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.idea">Die Idee</p>
         <ul class="hui-nav-list">
           <li><a href="/was-ist-hui" class="hui-nav-link hui-nav-link-primary" data-page="was-ist-hui">
             <span class="hui-nav-link-label" data-i18n="sidebar.nav.what-is-hui">Was ist HUI?</span>
@@ -154,7 +110,7 @@
 
       <!-- MITMACHEN -->
       <section class="hui-nav-section">
-        <p class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.join">Mitmachen</p>
         <ul class="hui-nav-list">
           <li><a href="/mitmachen/idee" class="hui-nav-action" data-page="mitmachen-idee">
             <span class="hui-nav-action-label" data-i18n="sidebar.nav.have-idea">Ich habe eine Idee</span>
@@ -172,7 +128,7 @@
       </section>
 
       <section class="hui-nav-section hui-nav-section-compact">
-        <p class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</h4>
+        <p class="hui-nav-heading" data-i18n="sidebar.section.coming">HUI kommt</p>
         <ul class="hui-nav-list-plain">
           <li><a href="/launch" data-i18n="sidebar.nav.launch">Launch</a></li>
           <li><a href="/updates" data-i18n="sidebar.nav.updates">Updates</a></li>
@@ -228,49 +184,23 @@
 </div>
 
 <div class="cs-toast" id="csToast" role="alert" aria-live="polite">
-  <button class="cs-close" id="csToastClose" aria-label="SchlieÃen" data-i18n-aria="cs.close-aria">&times;</button>
-  <p class="cs-title" data-i18n="cs.title">HUI ist bald fÃ¼r dich da.</p>
+  <button class="cs-close" id="csToastClose" aria-label="Schließen" data-i18n-aria="cs.close-aria">&times;</button>
+  <p class="cs-title" data-i18n="cs.title">HUI ist bald für dich da.</p>
   <p data-i18n="cs.text">Die HUI-App befindet sich momentan noch im Aufbau. Wir informieren dich, sobald es losgeht.</p>
 </div>
 
-<!-- PAGE CONTENT -->
-<main class="hui-page">
-  <div class="page-hero-bg" aria-hidden="true"></div>
-  <section class="hui-page-hero">
-    <a href="/" class="hui-page-back" data-i18n="page.back">← HUI</a>
-    <h1 class="reveal" data-i18n="page.inspiration.ideen.hero">Die Idee der Woche</h1>
-    <p class="reveal d2" data-i18n="page.inspiration.ideen.sub">Wöchentliche Impulse und innovative Ansätze für eine von Werten geprägte Zukunft.</p>
-  </section>
 
-  <div class="hui-page-content">
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.inspiration.ideen.s1-title">Inspiration für jede Woche</h2>
-      <p data-i18n="page.inspiration.ideen.s1-text">Mit dem Start von HUI stellen wir Ihnen an dieser Stelle wöchentlich eine ausgewählte Idee vor, die gesellschaftliche, technologische oder soziale Relevanz besitzt. Wir beleuchten kluge Konzepte, die Probleme lösen, Gemeinschaften stärken oder neue Perspektiven eröffnen. Anstatt Platzhalter oder fiktive Beispiele zu zeigen, bereiten wir fundierte Beiträge für den Launch vor.</p>
-    </section>
+`;
 
-    <section class="hui-page-section reveal">
-      <h2 data-i18n="page.inspiration.ideen.s2-title">Vom Gedanken zum Handeln</h2>
-      <p data-i18n="page.inspiration.ideen.s2-text">Eine Idee entfaltet ihre Kraft erst, wenn sie geteilt und gemeinsam weitergedacht wird. Das Format „Idee der Woche“ soll Denkanstöße liefern, Diskussionen anregen und Menschen vernetzen, die an tragfähigen Lösungen arbeiten. Freuen Sie sich auf jede Woche frische Energie und neue Blickwinkel.</p>
-    </section>  </div>
-
-  <div class="hui-coming-box reveal">
-    <p data-i18n="page.inspiration.ideen.coming">Die erste Idee der Woche erscheint pünktlich zum offiziellen Plattform-Launch.</p>
-  </div>
-
-  <section class="hui-page-cta">
-    <a href="/app/login" class="btn-primary" data-i18n="page.inspiration.ideen.cta">Benachrichtigung erhalten</a>
-    <p data-i18n="page.inspiration.ideen.cta-sub">Erfahren Sie direkt beim Launch, welche Idee die erste Woche eröffnet.</p>
-  </section>
-</main>
-
+const FOOTER = `
 <footer class="footer">
   <div class="footer-inner">
     <img src="/hui_logo.webp" alt="HUI" class="footer-logo" width="36" height="36"/>
-    <p class="footer-tag" data-i18n="footer.tag">Human United Intelligence — Menschen. Ideen. MÃ¶glichkeiten.</p>
+    <p class="footer-tag" data-i18n="footer.tag">Human United Intelligence — Menschen. Ideen. Möglichkeiten.</p>
     <div class="footer-grid">
       <div class="footer-col">
         <h4 class="footer-col-title" data-i18n="footer.col1">HUI</h4>
-        <a href="/#ueber" class="footer-link" data-i18n="footer.col1-1">Ãber HUI</a>
+        <a href="/#ueber" class="footer-link" data-i18n="footer.col1-1">Über HUI</a>
         <a href="/entdecken" class="footer-link" data-i18n="footer.col1-2">Entdecken</a>
         <a href="/#wie" class="footer-link" data-i18n="footer.col1-3">Wie HUI wirkt</a>
         <a href="/impact" class="footer-link" data-i18n="nav.impact">Impact</a>
@@ -295,10 +225,92 @@
     <p class="footer-copy" data-i18n="footer.copy">© 2026 HUI — Human United Intelligence.</p>
   </div>
 </footer>
+`;
 
+// ── HTML-Escaping (DB-Inhalte sind Nutzertext → immer escapen) ──
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ── URL-sicherer Slug aus dem Projektnamen (deterministisch) ──
+function slugify(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/\u00e4/g, 'ae').replace(/\u00f6/g, 'oe').replace(/\u00fc/g, 'ue').replace(/\u00df/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+    .replace(/-+$/g, '');
+}
+
+// ── Vollständige HUI-Seite rendern ──
+// opts: { lang, title, description, canonicalPath, ogTitle, jsonLd,
+//         activePage, body, inlineScript, noindex, status }
+function renderPage(opts) {
+  const lang       = opts.lang === 'en' ? 'en' : 'de';
+  const canonical  = 'https://be-hui.com' + opts.canonicalPath;
+  const ogImage    = opts.ogImage || 'https://be-hui.com/hero.webp';
+  const ogTitle    = opts.ogTitle || opts.title;
+  const noindexTag = opts.noindex ? '<meta name="robots" content="noindex, follow"/>' : '';
+  const jsonLd     = opts.jsonLd
+    ? '<script type="application/ld+json">\n' + JSON.stringify(opts.jsonLd, null, 0) + '\n</script>'
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content"/>
+<title>${esc(opts.title)}</title>
+<meta name="description" content="${esc(opts.description)}"/>
+<meta name="theme-color" content="#0DC4B5"/>
+<link rel="icon" href="/favicon.ico" sizes="any"/>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+<meta property="og:title" content="${esc(ogTitle)}"/>
+<meta property="og:site_name" content="HUI — Human United Intelligence"/>
+<meta property="og:description" content="${esc(opts.description)}"/>
+<meta property="og:type" content="website"/>
+<link rel="preload" as="font" href="/fonts/Inter-Regular.woff2" type="font/woff2" crossorigin/>
+<link rel="stylesheet" href="/hui-shared.css"/>
+<link rel="stylesheet" href="/hui-interactions.css"/>
+<link rel="stylesheet" href="/impact.css"/>
+<link rel="canonical" href="${canonical}"/>
+${noindexTag}
+<meta property="og:url" content="${canonical}"/>
+<meta property="og:image" content="${ogImage}"/>
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(ogTitle)}">
+<meta name="twitter:description" content="${esc(opts.description)}">
+<meta name="twitter:image" content="${ogImage}">
+<meta property="og:locale" content="${lang === 'en' ? 'en_US' : 'de_DE'}"/>
+${jsonLd}
+<!-- Privacy-friendly analytics by Plausible -->
+<script async src="https://plausible.io/js/pa-0KhFSr-WTbTPddwKIV7pg.js"></script>
+<script>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>
+</head>
+<body>
+${CHROME}
+<!-- PAGE CONTENT -->
+<main class="hui-page impact-page-main">
+  <div class="page-hero-bg" aria-hidden="true"></div>
+  <a href="/impact" class="hui-page-back" data-i18n="page.back">← HUI</a>
+${opts.body}
+</main>
+${FOOTER}
 <script src="/hui-pages.js"></script>
 <script src="/i18n.js" defer></script>
 <script src="/hui-interactions.js" defer></script>
 <script src="/plausible-prep.js" defer></script>
+${opts.inlineScript ? '<script>\n' + opts.inlineScript + '\n</script>' : ''}
 </body>
-</html>
+</html>`;
+}
+
+module.exports = { renderPage, esc, slugify };

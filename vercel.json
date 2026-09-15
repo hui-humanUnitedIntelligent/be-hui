@@ -325,6 +325,22 @@
       "destination": "/startphase.html"
     },
     {
+      "source": "/impact",
+      "destination": "/api/impact-page"
+    },
+    {
+      "source": "/en/impact",
+      "destination": "/api/impact-page?lang=en"
+    },
+    {
+      "source": "/impact/:slug",
+      "destination": "/api/impact-project?slug=:slug"
+    },
+    {
+      "source": "/en/impact/:slug",
+      "destination": "/api/impact-project?slug=:slug&lang=en"
+    },
+    {
       "source": "/((?!assets/|api/).*)",
       "destination": "/index.html"
     }

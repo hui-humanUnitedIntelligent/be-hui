@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════════════════════════
+   impact.css — Öffentliche HUI-Impact-Sektion (/impact, /impact/:slug)
+   Folgt exakt dem bestehenden HUI-Design-System (hui-shared.css Tokens):
+   ruhig, editorial, warm — keine Dashboard-Optik.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.imp-hero{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:132px 24px 40px;text-align:center}
+.imp-hero .hui-page-back{margin-bottom:26px}
+.imp-hero h1{font-size:clamp(30px,4.5vw,42px);font-weight:700;letter-spacing:-.025em;line-height:1.12;color:var(--ink);margin-bottom:18px}
+.imp-hero p{font-size:16px;color:var(--ink-body);line-height:1.75;max-width:600px;margin:0 auto}
+.section-kicker{font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--teal);margin-bottom:20px;position:relative;display:inline-block}
+.section-kicker::after{content:'';position:absolute;top:50%;right:-20px;width:5px;height:5px;border-radius:50%;background:var(--teal);opacity:.35;transform:translateY(-50%)}
+.reveal.d1{transition-delay:.15s}.reveal.d2{transition-delay:.3s}.reveal.d3{transition-delay:.45s}
+
+/* ── Sektionen ── */
+.imp-section{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:56px 24px 24px}
+.imp-section-head{max-width:640px;margin:0 auto 36px;text-align:center}
+.imp-section-head h2{font-size:clamp(24px,3.5vw,32px);font-weight:700;letter-spacing:-.02em;color:var(--ink);margin-bottom:12px}
+.imp-section-head p{font-size:15px;color:var(--ink-body);line-height:1.7}
+
+/* ── Projektkarten ── */
+.imp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
+.imp-card{background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);padding:26px 24px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow);transition:transform .35s var(--ease-out),box-shadow .35s var(--ease-out)}
+.imp-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-m)}
+.imp-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.imp-card-dot{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--teal-pale);flex:none}
+.imp-card-chip{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--teal-deep);background:var(--teal-pale);border-radius:var(--rx);padding:5px 12px}
+.imp-card h3{font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.3;color:var(--ink)}
+.imp-card-desc{font-size:14.5px;color:var(--ink-body);line-height:1.65;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.imp-card-meta{display:flex;flex-wrap:wrap;gap:8px}
+.imp-card-meta span{font-size:12px;color:var(--muted);background:var(--cream);border-radius:var(--r);padding:4px 10px}
+.imp-card-meta .imp-card-status{display:inline-flex;align-items:center;gap:6px}
+.imp-card-status::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--teal)}
+.imp-card-actions{display:flex;gap:10px;margin-top:auto;padding-top:6px}
+.imp-card-actions a{flex:1;text-align:center}
+
+/* ── Buttons (2 Stile: primär + ruhig — gemäß Design-Regel) ── */
+.imp-btn{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;background:var(--teal);color:#fff;font-size:14.5px;font-weight:600;letter-spacing:.2px;border-radius:var(--r);border:none;cursor:pointer;text-decoration:none;transition:background .25s var(--ease),transform .25s var(--ease);font-family:inherit}
+.imp-btn:hover{background:var(--teal-deep);transform:translateY(-1px)}
+.imp-btn:disabled{opacity:.55;cursor:default;transform:none}
+.imp-btn-quiet{display:inline-flex;align-items:center;justify-content:center;padding:13px 22px;background:transparent;color:var(--ink);font-size:14.5px;font-weight:600;letter-spacing:.2px;border-radius:var(--r);border:1px solid rgba(20,20,34,.12);cursor:pointer;text-decoration:none;transition:all .25s var(--ease);font-family:inherit}
+.imp-btn-quiet:hover{border-color:var(--teal);color:var(--teal-deep)}
+
+/* ── Ehrlicher Leerzustand ── */
+.imp-empty{max-width:560px;margin:0 auto;text-align:center;background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);padding:48px 32px}
+.imp-empty h3{font-size:20px;font-weight:700;color:var(--ink);margin-bottom:12px}
+.imp-empty p{font-size:15px;color:var(--ink-body);line-height:1.7}
+.imp-empty-dot{width:10px;height:10px;border-radius:50%;background:var(--coral);margin:0 auto 22px;opacity:.75}
+
+/* ── Wie Impact entsteht (3 ruhige Schritte) ── */
+.imp-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.imp-step{background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);padding:28px 24px}
+.imp-step-num{font-size:12px;font-weight:600;letter-spacing:2px;color:var(--teal);margin-bottom:14px}
+.imp-step h3{font-size:16.5px;font-weight:700;color:var(--ink);margin-bottom:10px;line-height:1.35}
+.imp-step p{font-size:14px;color:var(--ink-body);line-height:1.65}
+
+/* ── Detailseite ── */
+.imp-detail{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:132px 24px 32px}
+.imp-detail h1{font-size:clamp(28px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.15;color:var(--ink);margin:14px 0 18px}
+.imp-detail-intro{font-size:16.5px;color:var(--ink-body);line-height:1.75;margin-bottom:8px}
+.imp-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.imp-chips span{font-size:12px;font-weight:500;color:var(--ink-body);background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rx);padding:6px 14px}
+.imp-block{padding:40px 0;border-top:1px solid var(--border)}
+.imp-block h2{font-size:clamp(20px,3vw,26px);font-weight:700;letter-spacing:-.015em;color:var(--ink);margin-bottom:16px}
+.imp-block p{font-size:15.5px;color:var(--ink-body);line-height:1.8}
+.imp-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:6px}
+.imp-fact{background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px}
+.imp-fact-label{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.imp-fact-value{font-size:15px;font-weight:600;color:var(--ink)}
+
+/* ── Unterstützungsbereich ── */
+.imp-support{background:var(--cream-soft);border:1px solid var(--border);border-radius:var(--rl);padding:36px 32px;margin-top:8px}
+.imp-support h3{font-size:19px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.imp-support-text{font-size:14.5px;color:var(--ink-body);line-height:1.65;margin-bottom:22px}
+.imp-amounts{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.imp-amount{min-width:76px;padding:12px 18px;background:#fff;border:1px solid rgba(20,20,34,.1);border-radius:var(--r);font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;transition:all .2s var(--ease);font-family:inherit;text-align:center}
+.imp-amount:hover{border-color:var(--teal)}
+.imp-amount.sel{background:var(--teal);border-color:var(--teal);color:#fff}
+.imp-custom{display:flex;gap:10px;align-items:center;margin-bottom:20px}
+.imp-custom input{width:140px;padding:12px 14px;border:1px solid rgba(20,20,34,.1);border-radius:var(--r);font-size:15px;font-family:inherit;color:var(--ink);background:#fff}
+.imp-custom input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:transparent}
+.imp-custom label{font-size:13.5px;color:var(--muted)}
+.imp-support-note{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.6}
+.imp-support-error{display:none;margin-top:14px;padding:12px 16px;background:var(--coral-pale);border-radius:var(--r);font-size:13.5px;color:#9c4432}
+
+/* ── Verifizierte Danke-Ansicht (nur nach Stripe-Bestätigung) ── */
+.imp-thanks{background:var(--teal-pale);border:1px solid rgba(13,196,181,.25);border-radius:var(--rl);padding:40px 32px;text-align:center}
+.imp-thanks-dot{width:12px;height:12px;border-radius:50%;background:var(--teal);margin:0 auto 20px}
+.imp-thanks h3{font-size:21px;font-weight:700;color:var(--ink);margin-bottom:10px}
+.imp-thanks p{font-size:15px;color:var(--ink-body);line-height:1.7;max-width:460px;margin:0 auto}
+
+/* ── Abschluss ── */
+.imp-close{position:relative;z-index:1;max-width:840px;margin:0 auto;padding:72px 24px 88px;text-align:center}
+.imp-close-l1{font-size:clamp(22px,3.5vw,30px);font-weight:700;letter-spacing:-.02em;color:var(--ink);margin-bottom:10px}
+.imp-close-l2{font-size:15.5px;color:var(--muted)}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .imp-hero{padding:112px 20px 32px}
+  .imp-hero h1{font-size:27px}
+  .imp-hero p{font-size:15px}
+  .imp-detail{padding:112px 20px 28px}
+  .imp-grid{grid-template-columns:1fr}
+  .imp-steps{grid-template-columns:1fr}
+  .imp-support{padding:28px 22px}
+  .imp-amount{flex:1;min-width:0}
+  .imp-section{padding:40px 20px 20px}
+  .imp-close{padding:56px 20px 72px}
+}
