@@ -28,6 +28,36 @@ export const RELEASE_NOTES = {
   // Vorlage der 6 Punkte DE+EN). Sammel-OTA-Queue: Momente-Textfeld,
   // Projekt-Bearbeitung, Buchungs-Labels/CTA, Werkekorb, Telegram-Teilen,
   // Tablet-Layout + Impact-Liste.
+  // 2.1.601 — von Michael am 15.09.2026 freigegeben ("ach sooo.. ich hab eine
+  // 6er regel, ja die kann weg" — die fruehere max 5-6-Punkte-Deckelung wurde
+  // am 15.09. ausdruecklich aufgehoben, 8 Punkte freigegeben). Sammel-OTA-Queue:
+  // Open-Chat/Verbinden, Orb-Upload-Hub, Projekt-Direktunterstuetzung,
+  // HUI-Talent-Interviews, Alle-loeschen, Vollbild-Drawer, Media-Retry,
+  // iOS-Zahlungsfix. Bewusst NICHT drin (intern/technisch): Content-Awareness-
+  // Guard, Fit-Score-V2, Verkaeufer-Karten-Klick.
+  "2.1.601": {
+    de: [
+      "Chat für alle: Über \"Verbinden\" kannst du jetzt direkt mit Menschen aus Entdecken und Profilen chaten.",
+      "Neuer Upload-Hub am Orb: Mit einem Tipp auf den Orb startest du schnell Momente, Erlebnisse, Werke oder Talente.",
+      "Herzensprojekte direkt unterstützen: Du kannst jetzt bequem per Stripe das Projekt deiner Wahl unterstützen.",
+      "\"HUI-Talent Interviews\" im myHUI-Profil: Video-Trailer direkt ansehbar — schau vorbei!",
+      "\"Alle löschen\": Das Resonanzzentrum lässt sich jetzt mit einem Tipp leeren.",
+      "\"Erlebnisse & Projekte\" im Mein-Bereich öffnen jetzt komfortabel im Vollbild.",
+      "Zuverlässigeres Laden: Bilder und Videos, die mal hängen, werden automatisch neu geladen.",
+      "Zahlungen auf iPhone & iPad: Die Eingabe für die Kartennummer bleibt bei geöffneter Tastatur sichtbar.",
+    ],
+    en: [
+      "Chat for everyone: Use \"Connect\" to chat directly with people from Discover and profiles.",
+      "New upload hub on the orb: Tap the orb to quickly create moments, experiences, works or talents.",
+      "Support heart projects directly: You can now easily support the project of your choice via Stripe.",
+      "\"HUI Talent Interviews\" in the myHUI profile: Watch video trailers right in the app — take a look!",
+      "\"Delete all\": Clear your resonance center with just one tap.",
+      "\"Experiences & projects\" in My Area now open comfortably in full screen.",
+      "More reliable loading: Images and videos that get stuck now reload automatically.",
+      "Payments on iPhone & iPad: The card number field stays visible while the keyboard is open.",
+    ],
+  },
+
   "2.1.600": {
     de: [
       "Momente mit Text: Zu Foto-, Video- und Galerie-Momenten gibt es jetzt ein richtiges Textfeld — bis 400 Zeichen.",
