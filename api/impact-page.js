@@ -2,17 +2,19 @@
 // ══════════════════════════════════════════════════════════════════
 // Vercel Serverless Function (via Rewrite: /impact und /en/impact).
 // Rendert die Impact-Übersicht serverseitig mit den AKTUELLEN
-// öffentlichen Projekten aus der zentralen Datenquelle
-// (impact_projects, status='active' — gleiche Logik wie die HUI-App).
+// genehmigten Projekten aus der zentralen Datenquelle
+// (impact_applications, status='approved' — gleiche Logik wie der
+// Impactpool der HUI-App, ImpactStimmenModal).
 //
 // Ehrlichkeit:
 //   - Keine Platzhalter-Projekte, keine erfundenen Zahlen
+//   - Förderziel, erreichter Betrag und Status kommen aus der
+//     Datenquelle — nichts wird hochgerechnet oder gerundet geschönt
 //   - Ist die Datenquelle leer, zeigt die Seite einen ruhigen,
 //     ehrlichen Leerzustand
-//   - Neue öffentliche Projekte erscheinen automatisch (kein Umbau)
 // ══════════════════════════════════════════════════════════════════
 
-const { renderPage, esc } = require('./lib/hui-page.js');
+const { renderPage, esc, fmtEur, pct } = require('./lib/hui-page.js');
 const { fetchPublicProjects, withSlugs } = require('./lib/impact-data.js');
 
 module.exports = async (req, res) => {
@@ -27,30 +29,47 @@ module.exports = async (req, res) => {
     dataError = true;
   }
 
-  // ── Projektkarten (nur echte, öffentliche Projekte) ──
+  // ── Projektkarten (nur echte, genehmigte Projekte) ──
   let projectsHtml = '';
   if (!dataError && projects.length > 0) {
     const cards = projects.map((p) => {
-      const dot = esc(p.icon || (p.name ? p.name.trim().charAt(0) : '◦'));
-      const color = /^#[0-9a-fA-F]{3,8}$/.test(p.color || '') ? `background:${esc(p.color)}22;color:${esc(p.color)}` : '';
-      const category = p.category ? `<span class="imp-card-chip">${esc(p.category)}</span>` : '';
-      const meta = [
-        p.month ? `<span data-i18n="impact.meta.month">Beitragsrunde</span>&nbsp;${esc(p.month)}` : null,
-        Number(p.awarded_eur) > 0 ? `<span class="imp-card-status" data-i18n="impact.meta.received">Bereits gefördert</span>` : null,
-      ].filter(Boolean).map((m) => `<span>${m}</span>`).join('');
-      return `
-      <article class="imp-card reveal">
-        <div class="imp-card-top">
-          <div class="imp-card-dot" style="${color}" aria-hidden="true">${dot}</div>
-          ${category}
-        </div>
-        <h3>${esc(p.name)}</h3>
-        ${p.description ? `<p class="imp-card-desc">${esc(p.description)}</p>` : ''}
-        ${meta ? `<div class="imp-card-meta">${meta}</div>` : ''}
-        <div class="imp-card-actions">
+      const img = p.cover_url || (Array.isArray(p.media_urls) && p.media_urls[0]) || null;
+      const imgHtml = img
+        ? `<div class="imp-card-img" style="background-image:url('${esc(img)}')" role="img" aria-label="${esc(p.project_name)}"></div>`
+        : `<div class="imp-card-img imp-card-img-empty"><div class="imp-card-dot" aria-hidden="true">${esc((p.project_name || '◦').trim().charAt(0))}</div></div>`;
+
+      const completed = p.is_completed === true;
+      const received = Number(p.current_amount_eur) || 0;
+      const goal = Number(p.funding_goal) || 0;
+      const progress = goal > 0 ? Math.min(100, Math.round((received / goal) * 100)) : 0;
+
+      const meta = [];
+      if (p.location) meta.push(`<span>${esc(p.location)}</span>`);
+      if (goal > 0) meta.push(`<span data-i18n="impact.meta.goal">Förderziel</span>&nbsp;${fmtEur(goal)}`);
+      if (received > 0) meta.push(`<span class="imp-card-status" data-i18n="impact.meta.received">Bereits gefördert</span>&nbsp;${fmtEur(received)}`);
+
+      const actions = completed
+        ? `<div class="imp-card-actions">
+          <a class="imp-btn-quiet" href="/impact/${esc(p.slug)}" data-i18n="impact.card.details">Projekt entdecken</a>
+          <span class="imp-card-done" data-i18n="impact.card.funded">Finanziert — in Umsetzung</span>
+        </div>`
+        : `<div class="imp-card-actions">
           <a class="imp-btn-quiet" href="/impact/${esc(p.slug)}" data-i18n="impact.card.details">Projekt entdecken</a>
           <a class="imp-btn" href="/impact/${esc(p.slug)}#unterstuetzen" data-i18n="impact.card.support">Unterstützen</a>
+        </div>`;
+
+      return `
+      <article class="imp-card reveal">
+        ${imgHtml}
+        <h3>${esc(p.project_name)}</h3>
+        ${p.short_desc ? `<p class="imp-card-desc">${esc(p.short_desc)}</p>` : ''}
+        ${meta.length > 0 ? `<div class="imp-card-meta">${meta.map((m) => `<span>${m}</span>`).join('')}</div>` : ''}
+        ${goal > 0 && !completed ? `
+        <div class="imp-progress">
+          <div class="imp-progress-bar" style="width:${progress}%"></div>
         </div>
+        <div class="imp-progress-label"><span>${fmtEur(received)}</span><span>${pct(progress)}%</span></div>` : ''}
+        ${actions}
       </article>`;
     }).join('');
     projectsHtml = `<div class="imp-grid">${cards}</div>`;
@@ -164,7 +183,7 @@ module.exports = async (req, res) => {
       itemListElement: projects.map((p, i) => ({
         '@type': 'ListItem',
         position: i + 1,
-        name: p.name,
+        name: p.project_name,
         url: `https://be-hui.com/impact/${p.slug}`,
       })),
     });

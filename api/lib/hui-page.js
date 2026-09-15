@@ -313,4 +313,19 @@ ${opts.inlineScript ? '<script>\n' + opts.inlineScript + '\n</script>' : ''}
 </html>`;
 }
 
-module.exports = { renderPage, esc, slugify };
+// ── Zahlen-Formatierung (deutsche Notation, ohne erfundene Präzision) ──
+function fmtEur(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '0 €';
+  const [int, dec] = v.toFixed(v % 1 === 0 ? 0 : 2).split('.');
+  const intDe = int.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (dec ? intDe + ',' + dec : intDe) + ' €';
+}
+
+function pct(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return '0';
+  return String(Math.round(v));
+}
+
+module.exports = { renderPage, esc, slugify, fmtEur, pct };
