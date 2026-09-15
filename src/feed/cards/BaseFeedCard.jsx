@@ -20,6 +20,7 @@ import { CAT_KEY_MAP, WERK_CAT_KEY_MAP, translateCategory } from "../../lib/cate
 // LIGHTBOX+SLIDER.1 (2026-08-08): Wiederverwendbare Komponenten fuer
 // Bild-Lightbox (Full-Screen Zoom) und Multi-Image Slider.
 import ImageSlider from "../../components/shared/ImageSlider.jsx";
+import { HUILogo } from "../../components/brand/HUILogo.jsx";
 import { toast } from "../../lib/useToast.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
@@ -622,7 +623,24 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
     setVideoAspect(null);
   }, [firstUrl]);
 
-  if (!imgs.length || err) return null;
+  if (!imgs.length) return null;
+  // MEDIA-LOADING-001 (2026-09-15, Michael-Spec A9 + PFLICHTREGEL
+  // bild-platzhalter): Wenn die Media endgueltig scheitert (auch nach dem
+  // Cache-Bypass-Retry in ImageSlider), NICHT mehr still verschwinden —
+  // kanonischer HUI-Logo-Platzhalter in Kartenbreite, damit die Karte nicht
+  // leer/kaputt wirkt.
+  if (err) {
+    return (
+      <div style={{
+        width: "100%", height: relaxed ? 340 : T.mediaH,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        borderRadius: T.rMedia, background: "rgba(0,0,0,0.02)",
+        overflow: "hidden",
+      }}>
+        <HUILogo size={44} style={{ opacity: 0.5 }} />
+      </div>
+    );
+  }
 
   // FEED-UNIFORM-FIX (2026-08-07): Feste Hoehe fuer BILDER (Michaels
   // explizite Entscheidung — siehe Kommentar oben an der Aspect-State-
@@ -791,6 +809,8 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
           videoObjectFit={isVideo ? "contain" : undefined}
           background="transparent"
           onImageTap={blurred ? () => { toast.warn(t('mom.underReview')); } : null /* MODERATION-BLUR-BYPASS-FIX */}
+          // MEDIA-LOADING-001: endgueltiges img-Scheitern nach Cache-Bypass-Retry
+          onMediaError={() => setErr(true)}
         />
         {/* onLoad tracking for first image shimmer (nur Fotos — Videos
             setzen loaded via Aspect-Probe onLoadedMetadata) */}
@@ -801,7 +821,7 @@ export const FeedMedia = memo(function FeedMedia({ media, alt, relaxed, onDouble
             loading="eager"
             style={{ display: "none" }}
             onLoad={() => setLoaded(true)}
-            onError={() => setErr(true)}
+            onError={() => setLoaded(true) /* MEDIA-LOADING-001: nur Shimmer aus — Retry/Err laeuft in ImageSlider */}
           />
         )}
       </div>

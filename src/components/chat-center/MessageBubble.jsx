@@ -189,19 +189,29 @@ function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDele
 
 // ── Media Content ──
 // Bild im Chat — öffnet die zentrale ImageGallery statt window.open
+// MEDIA-LOADING-001 (2026-09-15, Michael-Spec A6/8/9/10): Chat-Media auf
+// die neue Media-SSOT (components/media/) umgestellt — Lade-Placeholder,
+// Cache-Bypass-Retry (public URLs), HUILogo-Fallback statt kaputtem
+// Browser-Bild-Icon, Video preload="metadata". Chat-spezifisches bleibt
+// erhalten: openGallery-Klick + hui:chat:media-loaded Events via imgProps.
+import MediaImage from "../media/MediaImage.jsx";
+import MediaVideo from "../media/MediaVideo.jsx";
+
 function ImageThumb({ msg = {} }) {
   const { openGallery } = useImageGallery();
   return (
-    <img
+    <MediaImage
       src={msg.media_url} alt="Bild"
-      style={{
-        maxWidth:"100%", maxHeight:260, borderRadius:12,
-        display:"block", objectFit:"cover",
-        cursor:"pointer",
+      style={{ maxWidth: "100%" }}
+      imgStyle={{
+        maxWidth: "100%", maxHeight: 260, borderRadius: 12,
+        objectFit: "cover", cursor: "pointer",
       }}
-      onClick={() => openGallery(msg.media_url)}
-      onLoad={() => window.dispatchEvent(new CustomEvent("hui:chat:media-loaded"))}
-      onError={() => window.dispatchEvent(new CustomEvent("hui:chat:media-loaded"))}
+      imgProps={{
+        onClick: () => openGallery(msg.media_url),
+        onLoad:   () => window.dispatchEvent(new CustomEvent("hui:chat:media-loaded")),
+        onError:  () => window.dispatchEvent(new CustomEvent("hui:chat:media-loaded")),
+      }}
     />
   );
 }
@@ -215,7 +225,7 @@ function MediaContent({ msg = {}, own = false }) {
   }
   if (type === "video") {
     return (
-      <video
+      <MediaVideo
         src={msg.media_url} controls
         style={{ maxWidth:"100%", maxHeight:260, borderRadius:12, display:"block" }}
       />

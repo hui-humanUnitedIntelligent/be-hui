@@ -50,6 +50,10 @@ const _supabase = (supabaseUrl && supabaseAnonKey)
         flowType:           "pkce",   // sicherster Flow, funktioniert auch in PWA/Safari
       },
       global: { fetch: _storageFetch },
+      // MEDIA-LOADING-001 (2026-09-15, Michael-Spec A12): Realtime-Throttle
+      // — begrenzt Server-Events auf 10/s (Supabase-Standard-Empfehlung;
+      // verhindert Event-Stress bei Chat-Realtime-Streams).
+      realtime: { params: { eventsPerSecond: 10 } },
     })
   : null;
 
@@ -69,6 +73,23 @@ const _noopAuth = {
     return { data: { subscription: { unsubscribe: () => {} } } };
   },
 };
+
+// ─── MEDIA-LOADING-001 (2026-09-15, Michael-Spec A11): Env-Validierung ──
+// Strukturierte Ein-Fehler-pro-Variable-Pruefung beim App-Start (Spec:
+// validateEnv mit console.error je fehlender Variable). Bewusst VITE_-
+// Variablen (Vite-App, kein CRA process.env.REACT_APP_*) — die Variablen
+// sind gesetzt (Produktion laeuft), dies ist die Diagnose-Hilfe fuer lokale
+// Builds.
+const validateEnv = () => {
+  const required = {
+    VITE_SUPABASE_URL:      supabaseUrl,
+    VITE_SUPABASE_ANON_KEY: supabaseAnonKey,
+  };
+  for (const [key, value] of Object.entries(required)) {
+    if (!value) console.error(`[HUI Env] Missing env: ${key}`);
+  }
+};
+validateEnv();
 
 // ─── Warnung wenn nicht konfiguriert ─────────────────────────────
 if (!_supabase) {

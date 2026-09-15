@@ -30,12 +30,37 @@ const T = {
   teal: "#0DC4B5",
 };
 
-function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoObjectFit, background, onImageTap }) {
+function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoObjectFit, background, onImageTap, onMediaError }) {
   const [current, setCurrent] = useState(0);
   const [dragX, setDragX] = useState(0);
   const containerRef = useRef(null);
   const [containerW, setContainerW] = useState(0);
   const dragRef = useRef({ startX: 0, startY: 0, dragging: false, moved: false });
+  // MEDIA-LOADING-001 (2026-09-15, Michael-Spec Teil 1 — ERR_CACHE_OPERATION_
+  // NOT_SUPPORTED): WebView-Cache-Bypass-Retry. Der Cache des Clients
+  // verweigerte die Operation, nicht der Server (Live-Nachweis 15.09.:
+  // HTTP 206 + CORS * + immutable). Beim ersten img-Fehler wird EINMAL mit
+  // Cache-Buster (?hui-retry=<ts>) neu geladen — eine andere URL umgeht den
+  // defekten Cache-Eintrag. Erst beim zweiten Fehlschlag wird onMediaError
+  // an den Parent gereicht (FeedMedia zeigt dann den HUILogo-Fallback).
+  // Videos: bewusst KEIN Retry (Range-Request + frische URL = kompletter
+  // Neuladen eines bis zu 50MB-Videos) — Video-Fehler laufen wie bisher
+  // ueber den Aspect-Probe in FeedMedia.
+  const [retryMap, setRetryMap] = useState({});
+  const withRetry = function(u, i) {
+    var ts = retryMap[i];
+    if (!ts) return u;
+    return u + (u.indexOf("?") >= 0 ? "&" : "?") + "hui-retry=" + ts;
+  };
+  const handleImgError = function(i, u) {
+    if (!retryMap[i]) {
+      console.warn("[HUI Media] image failed — retrying with cache-buster:", u);
+      setRetryMap(function(m) { var n = Object.assign({}, m); n[i] = Date.now(); return n; });
+    } else {
+      console.error("[HUI Media] image failed after retry:", u);
+      onMediaError && onMediaError(i, u);
+    }
+  };
 
   const h = height || 220;
   const br = borderRadius != null ? borderRadius : 14;
@@ -124,7 +149,8 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
             style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
           })
         : React.createElement("img", {
-            src: optimizeCard(url), alt: (m && m.alt) || "", loading: "eager", decoding: "async",
+            src: withRetry(optimizeCard(url), 0), alt: (m && m.alt) || "", loading: "eager", decoding: "async",
+            onError: function() { handleImgError(0, url); },
             style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
           })
     );
@@ -174,7 +200,8 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
                 style: { width:"100%", height:"100%", objectFit: vFit, display:"block" }
               })
             : React.createElement("img", {
-                src: optimizeCard(iurl), alt: (m && m.alt) || "", loading: i === 0 ? "eager" : "lazy", decoding: "async",
+                src: withRetry(optimizeCard(iurl), i), alt: (m && m.alt) || "", loading: i === 0 ? "eager" : "lazy", decoding: "async",
+                onError: function() { handleImgError(i, iurl); },
                 style: { width:"100%", height:"100%", objectFit: fit, display:"block" }
               })
         );
