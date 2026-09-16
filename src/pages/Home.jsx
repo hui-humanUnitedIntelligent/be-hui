@@ -54,10 +54,19 @@ import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // K
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
-// PHASE 17.3: ImpactPage + DiscoverPage — direkte imports (Safari-safe, kein lazy)
+// PHASE 17.3 (Teilweise superseded durch PERF-TAB-CHUNKS-001, 16.09.):
+//   DiscoverPage BLEIBT direkt (kein lazy) → kein Suspense-Spinner beim ersten
+//   Tab-Wechsel (begründet in PHASE 17.3, unverändert gültig).
+//   ImpactPage ist JETZT lazy (PERF-Punkt 2/3): 3.494 Zeilen aus dem Startup-
+//   Bundle raus. Die 4 Tabs sind Keep-Alive-gemountet (tabVisibilityController),
+//   d.h. der Chunk lädt async direkt nach dem ersten Render — NICHT blockierend
+//   für den sichtbaren Feed. Suspense-Fallback "Impact-Raum öffnet sich…" sitzt
+//   im versteckten Tab-Div (opacity 0), also unsichtbar. Safari-Sicherheit:
+//   makeChunkReload fängt Chunk-404 nach OTA-Deploys (gleiches Muster wie die
+//   13 lazy-Routes in App.jsx).
 import DiscoverPage from "./DiscoverPage.jsx"; // direkt (kein lazy) → kein Suspense-Spinner beim ersten Tab-Wechsel
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
-import ImpactPage    from './ImpactPage.jsx';
+const ImpactPage = lazy(() => import('./ImpactPage.jsx').catch(makeChunkReload("Home:ImpactPage")));
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
 import FavoritesPage from "./FavoritesPage.jsx";
 // ── Orb-Flows: lazy → nur bei Tap auf Orb-Node geladen ─────────

@@ -46,7 +46,13 @@ import Home              from './pages/Home';
 
 // Chunk-Mismatch Recovery
 
-import ImpactPage from './pages/ImpactPage';
+// PERF-TAB-CHUNKS-001 (16.09.): ImpactPage lazy — war statisch importiert und
+// zog 3.494 Zeilen eager ins Startup-Bundle, obwohl die /impact-Route nur einen
+// Redirect rendert (ImpactDeepLinkRedirect, siehe unten) und die eigentliche
+// Seite über Home.jsx läuft. APP_ROUTES (component:ImpactPage) bleibt als
+// Übergangsstruktur UNVERÄNDERT — eine lazy-Komponente ist dort eine valide
+// Referenz. Falls APP_ROUTES jemals gerendert wird: HuiSuspense-Kontext nötig.
+const ImpactPage = lazy(() => import('./pages/ImpactPage').catch(makeChunkReload("App:ImpactPage")));
 const Admin             = lazy(() => import('./pages/Admin').catch(makeChunkReload("App:Admin")))
 
 // ── HUI Website Admin Pages ──
