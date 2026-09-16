@@ -17,6 +17,35 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.607 — von Michael am 16.09.2026 freigegeben ("deploy mit text").
+  // Sammel-OTA (6 Commits): IMPACT-EDIT-SNAPSHOT-001 (32a515bb: Projekt-Edit
+  // schreibt edit_snapshot + optionalen Änderungsgrund; SADB-Diff-Ansicht
+  // a751ccc bereits DB-/Admin-seitig live seit 16.09. ~14:05),
+  // PUSH-SETTINGS-BUNDLE-001 (58a2d8cf: Push-Block kompakt, Dropdown),
+  // PERF-I18N-SPLIT-001 (b7735c93: 8 Sprachen hybrid lazy/eager, Start-JS
+  // App-Chunk 658→116 KB gzip), PERF-IMPACT-LAZY-001 (a1e5986a),
+  // PERF-DISCOVER-LAZY-001 (b24625c6), PERF-DISCOVER-PARALLEL-001
+  // (5bf0a2c0: 7 Discover-Queries parallel, gegen Prod-DB gemessen
+  // 1.267ms → 313ms = −75%). Startup-Graph gesamt: ~1.411 → 847 KB gzip
+  // (−40%). Pro-Block-Fehlerbehandlung: eine fehlgeschlagene Query killt
+  // nicht mehr die restlichen Discover-Sektionen.
+  "2.1.607": {
+    de: [
+      "Projekte überarbeiten: Genehmigte Impact-Projekte lassen sich jetzt bearbeiten — dein Änderungsgrund geht mit zur Prüfung, mit klarer Vorher-Nachher-Ansicht.",
+      "Benachrichtigungen aufgeräumt: Die Push-Einstellungen sind jetzt kompakt hinter einer Zeile zusammengefasst — ein Tipp öffnet alle Schalter.",
+      "Schnellerer App-Start: Die App lädt rund 40 % weniger Daten beim Start — deine Sprache ist sofort da, weitere Sprachpakete kommen nur bei Bedarf.",
+      "Entdecken deutlich schneller: Alle Bereiche laden jetzt gleichzeitig statt nacheinander — der Tab ist spürbar schneller da.",
+      "Robuster gegen Fehler: Schlägt eine einzelne Abfrage fehl, zeigen die übrigen Bereiche trotzdem ihre Inhalte.",
+    ],
+    en: [
+      "Editing projects: Approved impact projects can now be revised — your reason for the change goes to review, with a clear before-and-after view.",
+      "Notifications tidied up: Push settings are now compact behind a single line — one tap opens all switches.",
+      "Faster app start: The app loads about 40% less data at startup — your language is there instantly, other language packs only load when needed.",
+      "Discover much faster: All sections now load at the same time instead of one after another — the tab appears noticeably faster.",
+      "More robust against errors: If a single request fails, the other sections still show their content.",
+    ],
+  },
+
   // 2.1.604 — von Michael am 15.09.2026 freigegeben ("deploy mit Version
   // Pump? und 8 Text hinzu"). Versions-Korrektur: Das stille Sammel-Release
   // 2.1.603 (Commit 9e6fa37e, 13:43 UTC deployed) gab den OTA-Geraeten schon
