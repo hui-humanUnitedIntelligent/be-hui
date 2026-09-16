@@ -31,9 +31,9 @@
 // Tap sonstwo → schließt.
 //
 // Geometrie: Nav-Orb Ø102px (ORB_D, LOCKED), Zentrum ~52px über dem
-// Viewport-Grund. Mini-Orbs Ø46px auf Bogen R=112px, Winkel ±18°/±54°
+// Viewport-Grund. Mini-Orbs Ø56px auf Bogen R=112px, Winkel ±18°/±54°
 // (drei gleiche 36°-Schritte) — Abstand zwischen benachbarten Orbs
-// überall identisch (~69px Zentrum-zu-Zentrum), Luft zum Nav-Orb ~38px,
+// überall identisch (~69px Zentrum-zu-Zentrum), Luft zum Nav-Orb ~33px,
 // Luft zwischen den Mini-Orbs ~13px (kein Überlappen).
 //
 // Portal-Regel: createPortal auf document.body + zIndex >= 10500
@@ -55,7 +55,7 @@ import {
 /* ── Geometrie-Konstanten (von navigationGeometry.js abgeleitet) ── */
 const NAV_ORB_CENTER_BOTTOM = 52;   // px über Viewport-Grund (Orb-Zentrum)
 const ARC_R                 = 112;  // Bogenradius — dicht am Nav-Orb, alle 4 gleich weit
-const MINI_ORB_D            = 46;   // Ø Mini-Orb
+const MINI_ORB_D            = 56;   // Ø Mini-Orb (46→56, Michael 16.09.: "mach die Kreise etwas grösser, damit die Schrift Platz hat" — Geometrie-Check: 13.2px Luft zwischen benachbarten Orbs, 33px zum Nav-Orb, kein Überlappen)
 const ANGLES                = [-54, -18, 18, 54]; // ° — GLEICHMÄSSIGE 36°-Schritte
 
 /* ── Farb-Helfer: Hex → rgba mit Alpha (fuer den Leucht-Verlauf) ── */
@@ -199,15 +199,15 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
             }}
           >
             {/* Echtes SVG-Icon statt Emoji — Design-System-SSOT */}
-            <OrbIcon size={17} style={{ color: type.tint }} />
+            <OrbIcon size={19} style={{ color: type.tint }} />
             {/* Kurzes Substantiv IM Orb — bestehende i18n-Keys wiederverwendet */}
             <span style={{
-              fontSize: 8.5,
+              fontSize: 9.5,
               fontWeight: 700,
               color: type.tint,
               letterSpacing: -0.1,
               lineHeight: 1,
-              maxWidth: 40,
+              maxWidth: 48,
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
