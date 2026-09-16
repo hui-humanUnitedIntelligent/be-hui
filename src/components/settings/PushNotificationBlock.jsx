@@ -1,5 +1,7 @@
 // src/components/settings/PushNotificationBlock.jsx
 // Ein/Aus-Steuerung für Push-Notifications in den App-Einstellungen.
+// PUSH-SETTINGS-BUNDLE-001 (2026-09-16): Detail-Schalter gebündelt in einem
+// Dropdown — Klick auf die Zeile öffnet/schließt die Einstellungen.
 // RESONANZ-BUCHUNG-001 (2026-08-08): + 3 einzeln deaktivierbare Kategorien
 // (Buchungen / Kauf & Verkauf / Informativ), synchron zum Resonanzzentrum.
 
@@ -59,6 +61,11 @@ export default function PushNotificationBlock() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [savingCat, setSavingCat] = useState(null);
+
+  // PUSH-SETTINGS-BUNDLE-001: Einstellungen gebündelt hinter einem Dropdown —
+  // Detail-Schalter (3 Push-Kategorien + 6 Benachrichtigungstypen) erscheinen
+  // erst nach Klick auf die Zeile (default: zu).
+  const [open, setOpen] = useState(false);
 
   // ── NOTIF-TYPE-PREFS-001: 6 Typ-Präferenzen (Buchungen, Kommentare, Likes,
   // Follower, System, Sonstige) — SSOT-Spalten notif_* (Migration 139).
@@ -131,6 +138,15 @@ export default function PushNotificationBlock() {
 
   const isNative = Capacitor.isNativePlatform();
 
+  // PUSH-SETTINGS-BUNDLE-001: Zusammenfassung fuer die Dropdown-Zeile —
+  // wie viele der 6 Benachrichtigungstypen stehen aktuell auf aktiv.
+  const ACTIVE_TYPE_KEYS = ["bookings", "comments", "likes", "followers", "system", "other"];
+  const activeTypeCount = ACTIVE_TYPE_KEYS.reduce(
+    (n, k) => n + (notifTypes[k] === true ? 1 : 0), 0);
+  const typeSummary = activeTypeCount === ACTIVE_TYPE_KEYS.length
+    ? t("sm.push.alleAktiv")
+    : t("sm.push.teilAktiv", { n: activeTypeCount });
+
   return (
     <div style={{
       padding: "16px 16px 14px",
@@ -186,9 +202,47 @@ export default function PushNotificationBlock() {
         </div>
       )}
 
+      {/* ── PUSH-SETTINGS-BUNDLE-001: Dropdown-Zeile — Klick öffnet/schließt
+          die gebündelten Benachrichtigungs-Einstellungen. ─────────────────── */}
+      {!loading && (
+        <button
+          onClick={() => setOpen(o => !o)}
+          aria-expanded={open}
+          style={{
+            width: "100%", display: "flex", alignItems: "center",
+            justifyContent: "space-between", gap: 12,
+            marginTop: 8, paddingTop: 10, paddingBottom: open ? 2 : 12,
+            background: "none", border: "none",
+            borderTop: "1px solid rgba(26,26,24,0.06)",
+            cursor: "pointer", textAlign: "left", WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A18" }}>
+              {t("sm.push.anpassen")}
+            </div>
+            <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+              {typeSummary}
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"
+            style={{
+              flexShrink: 0,
+              transform: open ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+            }}>
+            <path d="M4 6.5 L8 10.5 L12 6.5" fill="none" stroke="#999"
+              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      )}
+
+      {/* ── Gebündelte Detail-Schalter — nur bei geöffnetem Dropdown ─────── */}
+      {open && !loading && (<>
+
       {/* RESONANZ-BUCHUNG-001: Einzeln deaktivierbare Kategorien — nur sichtbar
           wenn Push grundsätzlich aktiv ist (sonst irrelevant, alles ist stumm). */}
-      {isNative && enabled && !loading && (
+      {isNative && enabled && (
         <div style={{ marginTop: 10, paddingTop: 6, borderTop: "1px solid rgba(26,26,24,0.06)" }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "#999", textTransform: "uppercase", letterSpacing: "0.4px", marginBottom: 2 }}>
             {t("sm.push.einzelSteuerbar")}
@@ -252,6 +306,10 @@ export default function PushNotificationBlock() {
             onChange={() => handleNotifTypeToggle("other")}
           />
         </div>
+      )}
+
+      </>
+
       )}
     </div>
   );
