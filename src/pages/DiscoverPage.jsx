@@ -11,6 +11,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspens
 import { useNavigate }   from "react-router-dom";
 import { NAV_CONTENT_SPACER_CSS } from "../components/home/navigation/navigationGeometry.js";
 import { supabase }      from "../lib/supabaseClient.js";
+import { sentryCapture } from "../lib/sentry.js";
 import { getOptimalPageSize } from "../lib/deviceTier.js";
 import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
@@ -296,407 +297,446 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       _discoverCache.loadingTs = Date.now();
 
       try {
-        // People — sortiert nach Beliebtheit (Follower + Likes kombiniert) via RPC
-        const { data: profiles } = await supabase
-          .rpc("rpc_discover_people", { p_sort: "popular", p_limit: getOptimalPageSize(12), p_offset: 0 });
+        // ── PERF-DISCOVER-PARALLEL-001 (16.09., Punkt 3/3 API): Die 7 Discover-
+        // Sektionen sind inhaltlich UNABHAENGIG (keine Query braucht das Ergebnis
+        // einer anderen) und liefen bisher strikt SEQUENZIELL in einem try-Block —
+        // auf 4G summierten sich die 7+ DB-Roundtrips zu einem ~1-2s-Waterfall,
+        // jede Sektion wartete auf den Abschluss der vorherigen. Jetzt: jede
+        // Sektion eine eigene async-Funktion, alle 7 via Promise.all parallel.
+        // Zwei bewusste Verbesserungen gegenueber dem alten Muster:
+        // (1) Ein Query-Fehler bricht nicht mehr die restlichen Sektionen ab
+        //     (vorher: Exception in Block 2 killte Bloecke 3-7 komplett).
+        // (2) Sentry-Performance-Warnung erst ab 1s (Anomalie, nicht Normalfall).
+        async function loadPeople() {
+          // People — sortiert nach Beliebtheit (Follower + Likes kombiniert) via RPC
+          const { data: profiles } = await supabase
+            .rpc("rpc_discover_people", { p_sort: "popular", p_limit: getOptimalPageSize(12), p_offset: 0 });
 
-        if (!cancelled && profiles?.length > 0) {
-          // Feed-Profile in Cache schreiben → Profil-Tap ist instant (kein DB-Request mehr)
-          ProfileService.prewarm(profiles);
-          setPeople(profiles.map(p => ({
-            id:           p.id,
-            name:         safeStr(p.full_name || p.display_name || p.username) || null,
-            bio:          safeStr(p.bio),
-            location:     safeStr(p.location_label), // Identity Contract v1.0
-            avatar:       safeStr(p.avatar_url),
-            impact:       safeNum(p.impact_eur, 0),
-            followers:    safeNum(p.followers_count, 0),
-            likes:        safeNum(p.total_likes, 0),
-            last_seen_at: null, // last_seen_at nicht im Identity Contract
-            interests:    [], // dna_tags/skills nicht im Identity Contract
-          })));
-        }
-
-        // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
-        // REGIONFILTER-BBOX-001: Momente haben KEIN lat/lng in der DB -> kein
-        // Bbox-Filter moeglich, displayMomente bleibt bewusst global (siehe
-        // Aufgabe 3). Limit hier BEWUSST NICHT auf queryLimit(100) angehoben:
-        // jedes Moment loest 2 zusaetzliche RPC-Calls aus (reaction_counts +
-        // count_comments, siehe beitrEngagement unten) UND wird ungekuerzt
-        // gerendert (kein slice() am Call-Ort) -- eine Anhebung auf 100 haette
-        // bei aktivem Radius 200 statt 16 RPC-Roundtrips pro Discover-Load
-        // bedeutet, ohne jeden Nutzen (die Sektion bleibt ohnehin unfiltriert).
-        const { data: beitr } = await supabase
-          .from("beitraege")
-          .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count,thumbnail_url")
-          .order("created_at", { ascending:false })
-          .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken (Regel: nur Home-Feed)
-          .limit(getOptimalPageSize(8));
-
-        if (!cancelled && beitr?.length > 0) {
-          // Profile nachladen
-          const beitrUserIds = [...new Set(beitr.map(b => b.user_id).filter(Boolean))];
-          let beitrProfileMap = {};
-          if (beitrUserIds.length > 0) {
-            const { data: bpros } = await supabase
-              .from("public_profiles")
-              .select("id,display_name,full_name,avatar_url")
-              .in("id", beitrUserIds);
-            if (bpros) beitrProfileMap = Object.fromEntries(bpros.map(p => [p.id, p]));
-          }
-          // Echte Like-/Kommentar-Zahlen nachladen — dieselbe SSOT wie ueberall
-          // sonst im System: reaction_counts(post_id).inspire fuer das Herz-Icon
-          // (identisch zum likes_count-Trigger auf works/experiences, siehe
-          // BaseFeedCard.jsx ActionBtn Icon={HUIHeartIcon} count={inspireCount}),
-          // count_comments(post_id, 'moment') fuer die Sprechblase. Vorher wurden
-          // hier deterministische Fake-Zahlen aus der charCodeAt der ID erzeugt.
-          const beitrEngagement = await Promise.all(beitr.map(async (b) => {
-            // Supabase JS v2 .rpc() hat keine .catch() Methode — try/await statt .catch()
-            let rc = null, cc = null;
-            try { rc = (await supabase.rpc("reaction_counts", { p_post_id: b.id }))?.data; } catch {}
-            try { cc = (await supabase.rpc("count_comments", { p_post_id: b.id, p_post_type: "moment" }))?.data; } catch {}
-            return { id: b.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
-          }));
-          const beitrEngagementMap = Object.fromEntries(beitrEngagement.map(e => [e.id, e]));
-
-          if (!cancelled) setMomente(beitr.map(b => {
-            const bp = beitrProfileMap[b.user_id] || {};
-            const eng = beitrEngagementMap[b.id] || { likes:0, comments:0 };
-            return {
-            id:         b.id,
-            user_id:    b.user_id,
-            src:        safeStr(b.src),
-            thumbnail_url: safeStr(b.thumbnail_url),
-            caption:    safeStr(b.caption, _t("discover.fallbackMoment")),
-            type:       safeStr(b.type, "foto"),
-            created_at: b.created_at,
-            name:       safeStr(bp.full_name || bp.display_name, _t("discover.fallbackMember")),
-            avatar_url: bp.avatar_url || null,
-            location:   "",
-            likes:      eng.likes,
-            comments:   eng.comments,
-            views:      b.views_count || 0,
-          };
-          }));
-        }
-
-        // Werke — 2-Schritt-Query (kein FK von works.user_id → profiles)
-        // Schritt 1: Werke laden
-        // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
-        // (language.eq.<appLang> OR language.is.null — NULL-BestandContent bleibt sichtbar)
-        let wsQuery = supabase
-          .from("works")
-          .select("id,title,cover_url,thumbnail_url,category,file_format,tags,description,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count,language")
-          .eq("status", "published")
-          .eq("approval_status", "approved")
-          .eq("visibility", "public");
-        if (bbox) {
-          wsQuery = wsQuery
-            .gte("lat", bbox.latMin).lte("lat", bbox.latMax)
-            .gte("lng", bbox.lngMin).lte("lng", bbox.lngMax);
-        }
-        if (langFilterRef.current) wsQuery = wsQuery.or(langFilterRef.current);
-        const { data: ws, error: wsErr } = await wsQuery
-          .order("likes_count", { ascending:false })
-          .limit(queryLimit);
-
-        if (!cancelled && ws?.length > 0) {
-          // Schritt 2: Profile für alle Autoren nachladen (public_profiles = öffentlich lesbar)
-          const FILE_FORMAT_LABEL = {
-            original: _t("discover.fileFormatOriginal"),
-            druck:    _t("discover.fileFormatDruck"),
-            digital:  _t("discover.fileFormatDigital"),
-          };
-          const userIds = [...new Set(ws.map(w => w.user_id).filter(Boolean))];
-          let profileMap = {};
-          if (userIds.length > 0) {
-            const { data: profs } = await supabase
-              .from("public_profiles")
-              .select("id,display_name,full_name,avatar_url")
-              .in("id", userIds);
-            if (profs) profileMap = Object.fromEntries(profs.map(p => [p.id, p]));
-          }
-          setWerke(ws.map(w => {
-            const prof = profileMap[w.user_id] || {};
-            return {
-              id:        w.id,
-              user_id:   w.user_id,
-              title:     safeStr(w.title, _t("discover.fallbackWerk")),
-              cover:     safeStr(w.thumbnail_url || w.cover_url),
-              medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, _t("discover.fallbackWerk")),
-              // CATEGORY-WELLNESS-001: Suchfelder durchreichen — Werke-Tags
-              // (freie Begriffe aus dem WerkWizard) waren bisher NICHT durchsuchbar.
-              category:  safeStr(w.category),
-              description: safeStr(w.description),
-              tags:      Array.isArray(w.tags) ? w.tags : [],
-              price:     w.price != null ? safeNum(w.price, 0) : null,
-              location:  safeStr(w.location_text),
-              lat:       Number.isFinite(w.lat) ? w.lat : null,
-              lng:       Number.isFinite(w.lng) ? w.lng : null,
-              author:    safeStr(prof.full_name || prof.display_name, _t("discover.fallbackTalent")),
-              avatar_url: prof.avatar_url || null,
-              likes:     w.likes_count || 0,
-              comments:  0,  // Werke haben keine Kommentarfunktion -> statisch 0
-              views:     w.views_count || 0,
-            };
-          }));
-
-          // WORK-SALE-STATUS-001: Verkauft/Reserviert-Status non-blocking nachladen
-          // (gleiche SSOT-RPC wie im öffentlichen Profil / WerkeAllModal).
-          const werkIds = ws.map(w => w.id).filter(Boolean);
-          if (werkIds.length > 0) {
-            supabase
-              .rpc("rpc_get_works_sale_status", { p_work_ids: werkIds })
-              .then(({ data: statusRows }) => {
-                if (cancelled) return;
-                const statusMap = {};
-                (statusRows || []).forEach(r => {
-                  if (r.sale_status) statusMap[r.work_id] = r.sale_status;
-                });
-                setWerkeSaleStatus(statusMap);
-              })
-              .catch(() => {}); // Non-blocking — kein Status = kein Badge
-          }
-        } else if (!wsErr) {
-          // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
-          if (!cancelled) setWerke([]);
-        }
-
-        // Talente — freigegebene Dienstleistungsangebote (TALENT-OFFERS-001/TALENT-SERVICES-001)
-        // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
-        // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
-        let talQuery = supabase
-          .from("talents")
-          .select("id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count,language")
-          .eq("status", "approved");
-        if (bbox) {
-          // Online-Talente immer einschliessen (kein Standortbezug) --
-          // sonst wuerden Online-Angebote bei aktivem Radius verschwinden.
-          talQuery = talQuery.or(`location_type.eq.online,and(lat.gte.${bbox.latMin},lat.lte.${bbox.latMax},lng.gte.${bbox.lngMin},lng.lte.${bbox.lngMax})`);
-        }
-        if (langFilterRef.current) talQuery = talQuery.or(langFilterRef.current);
-        const { data: tal, error: talErr } = await talQuery
-          .order("created_at", { ascending:false })
-          .limit(queryLimit);
-
-        if (talErr) {
-        }
-
-        if (!cancelled && tal?.length > 0) {
-          // Anbieternamen nachladen (kein FK-Embed, eigene Anfrage — gleiches Muster wie "People")
-          const providerIds = [...new Set(tal.map(t => t.user_id).filter(Boolean))];
-          let providerMap = {};
-          if (providerIds.length > 0) {
-            const { data: provs } = await supabase
-              .from("profiles")
-              .select("id,display_name,full_name,username")
-              .in("id", providerIds);
-            providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.full_name || p.display_name || p.username, _t("discover.fallbackTalent"))]));
-          }
-          if (!cancelled) {
-            setTalente(tal.map(t => ({
-              id:                    t.id,
-              user_id:               t.user_id,
-              title:                 safeStr(t.title, _t("discover.fallbackTalentOffer")),
-              description:           safeStr(t.description),
-              cover:                 safeStr(t.thumbnail_url) || (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.thumbnail_url || t.images[0].url) : null,
-              category:              safeStr(t.category),
-              price_per_hour:        t.price_per_hour != null ? safeNum(t.price_per_hour, 0) : null,
-              price_per_session:     t.price_per_session != null ? safeNum(t.price_per_session, 0) : null,
-              currency:              safeStr(t.currency, "EUR"),
-              location_type:         safeStr(t.location_type),
-              location_address:      safeStr(t.location_address),
-              location_notes:        safeStr(t.location_notes),
-              map_link:              safeStr(t.map_link),
-              lat:                   Number.isFinite(t.lat) ? t.lat : null,
-              lng:                   Number.isFinite(t.lng) ? t.lng : null,
-              author:                providerMap[t.user_id] || _t("discover.fallbackTalent"),
-              // Buchungsdaten (TALENT-SERVICES-001) — fuer TalentBookingFlow
-              available_dates:       Array.isArray(t.available_dates) ? t.available_dates : [],
-              available_time_slots:  Array.isArray(t.available_time_slots) ? t.available_time_slots : [],
-              recurring:             safeStr(t.recurring),
-              duration_minutes:      t.duration_minutes != null ? safeNum(t.duration_minutes, 0) : null,
-              max_participants:      t.max_participants != null ? safeNum(t.max_participants, 1) : 1,
-              min_participants:      t.min_participants != null ? safeNum(t.min_participants, 1) : 1,
-              booking_type:          safeStr(t.booking_type, "einzel"),
-              booking_window_start:  safeStr(t.booking_window_start),
-              booking_window_end:    safeStr(t.booking_window_end),
-              likes:                 0,  // Talente haben keine Likes-Funktion -> statisch 0
-              comments:              0,  // Talente haben keine Kommentarfunktion -> statisch 0
-              views:                 t.views_count || 0,
+          if (!cancelled && profiles?.length > 0) {
+            // Feed-Profile in Cache schreiben → Profil-Tap ist instant (kein DB-Request mehr)
+            ProfileService.prewarm(profiles);
+            setPeople(profiles.map(p => ({
+              id:           p.id,
+              name:         safeStr(p.full_name || p.display_name || p.username) || null,
+              bio:          safeStr(p.bio),
+              location:     safeStr(p.location_label), // Identity Contract v1.0
+              avatar:       safeStr(p.avatar_url),
+              impact:       safeNum(p.impact_eur, 0),
+              followers:    safeNum(p.followers_count, 0),
+              likes:        safeNum(p.total_likes, 0),
+              last_seen_at: null, // last_seen_at nicht im Identity Contract
+              interests:    [], // dna_tags/skills nicht im Identity Contract
             })));
           }
-        } else if (!talErr) {
-          if (!cancelled) setTalente([]);
         }
 
-        // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
-        // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
-        let expsQuery = supabase
-          .from("experiences")
-          .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,tags,description,caption,lat,lng,user_id,created_at,likes_count,views_count,language")
-          .eq("status", "published")
-          .eq("approval_status", "approved");
-        if (bbox) {
-          // Online-Erlebnisse immer einschliessen (kein Standortbezug)
-          expsQuery = expsQuery.or(`format.eq.online,and(lat.gte.${bbox.latMin},lat.lte.${bbox.latMax},lng.gte.${bbox.lngMin},lng.lte.${bbox.lngMax})`);
-        }
-        if (langFilterRef.current) expsQuery = expsQuery.or(langFilterRef.current);
-        const { data: exps, error: expsErr } = await expsQuery
-          .order("likes_count", { ascending:false })
-          .limit(queryLimit);
+        async function loadMomente() {
+          // Momente (beitraege) — 2-Schritt-Query (kein FK beitraege.user_id → profiles)
+          // REGIONFILTER-BBOX-001: Momente haben KEIN lat/lng in der DB -> kein
+          // Bbox-Filter moeglich, displayMomente bleibt bewusst global (siehe
+          // Aufgabe 3). Limit hier BEWUSST NICHT auf queryLimit(100) angehoben:
+          // jedes Moment loest 2 zusaetzliche RPC-Calls aus (reaction_counts +
+          // count_comments, siehe beitrEngagement unten) UND wird ungekuerzt
+          // gerendert (kein slice() am Call-Ort) -- eine Anhebung auf 100 haette
+          // bei aktivem Radius 200 statt 16 RPC-Roundtrips pro Discover-Load
+          // bedeutet, ohne jeden Nutzen (die Sektion bleibt ohnehin unfiltriert).
+          const { data: beitr } = await supabase
+            .from("beitraege")
+            .select("id,src,type,moment_source,linked_project_id,caption,content,created_at,user_id,views_count,thumbnail_url")
+            .order("created_at", { ascending:false })
+            .neq("user_id", SYSTEM_USER_ID) // System-Bot nicht im Entdecken (Regel: nur Home-Feed)
+            .limit(getOptimalPageSize(8));
 
-        if (expsErr) {
-        }
+          if (!cancelled && beitr?.length > 0) {
+            // Profile nachladen
+            const beitrUserIds = [...new Set(beitr.map(b => b.user_id).filter(Boolean))];
+            // PERF-DISCOVER-PARALLEL-001: Profil- und Engagement-Load parallel —
+            // beide haengen nur von 'beitr' ab, nicht voneinander (spart 1 Roundtrip).
+            // Echte Like-/Kommentar-Zahlen via dieselbe SSOT wie ueberall sonst im
+            // System: reaction_counts(post_id).inspire fuer das Herz-Icon,
+            // count_comments(post_id, 'moment') fuer die Sprechblase.
+            const [bprosRes, beitrEngagement] = await Promise.all([
+              beitrUserIds.length > 0
+                ? supabase
+                    .from("public_profiles")
+                    .select("id,display_name,full_name,avatar_url")
+                    .in("id", beitrUserIds)
+                : Promise.resolve({ data: null }),
+              Promise.all(beitr.map(async (b) => {
+                // Supabase JS v2 .rpc() hat keine .catch() Methode — try/await statt .catch()
+                let rc = null, cc = null;
+                try { rc = (await supabase.rpc("reaction_counts", { p_post_id: b.id }))?.data; } catch {}
+                try { cc = (await supabase.rpc("count_comments", { p_post_id: b.id, p_post_type: "moment" }))?.data; } catch {}
+                return { id: b.id, likes: rc?.inspire ?? 0, comments: typeof cc === "number" ? cc : 0 };
+              })),
+            ]);
+            const bpros = bprosRes?.data;
+            const beitrProfileMap = {};
+            if (bpros) bpros.forEach(p => beitrProfileMap[p.id] = p);
+            const beitrEngagementMap = Object.fromEntries(beitrEngagement.map(e => [e.id, e]));
 
-        if (!cancelled && exps?.length > 0) {
-          setErlebnisse(exps.map(e => {
-            const d = e.date ? new Date(e.date) : null;
-            const now = new Date();
-            // Status ableiten
-            let statusLabel = "Aktiv";
-            let statusColor = "#16A34A";
-            if (d && d > now) { statusLabel = "Geplant";       statusColor = "#D97706"; }
-            if (d && d < now) { statusLabel = "Abgeschlossen"; statusColor = "#55556B"; }
-
-            // Typ-Label
-            const typeRaw = e.experience_type || e.category || "";
-            const typeMap = { workshop:"Workshop", event:"Event", ausstellung:"Ausstellung",
-              projekt:"Projekt", kurs:"Kurs", online:"Online" };
-            const typeLabel = typeMap[typeRaw.toLowerCase()] || typeRaw || "Erlebnis";
-
-            // Datum
-            const dateStr = d ?formatDateDE(d, { day:"numeric", month:"short" }) : null;
-            const dayNum  = d ? String(d.getDate()).padStart(2,"0") : null;
-            const monthSh = d ? d.toLocaleString("de",{month:"short"}) : null;
-
-            return {
-              id:          e.id,
-              user_id:     e.user_id,
-              title:       safeStr(e.title, "Erlebnis"),
-              cover:       safeStr(e.thumbnail_url || e.cover_url),
-              // CATEGORY-WELLNESS-001: Suchfelder durchreichen (freie Topic-Tags)
-              description: safeStr(e.description),
-              caption:     safeStr(e.caption),
-              tags:        Array.isArray(e.tags) ? e.tags : [],
-              date:        dayNum,
-              month:       monthSh,
-              dateStr,
-              dayLabel:    dateStr || "",
-              time:        safeStr(e.duration),
-              location:    safeStr(e.location_text),
-              spots:       safeNum(e.max_participants, 0),
-              statusLabel,
-              statusColor,
-              typeLabel,
-              format:      safeStr(e.format),
-              lat:         Number.isFinite(e.lat) ? e.lat : null,
-              lng:         Number.isFinite(e.lng) ? e.lng : null,
-              likes:       e.likes_count || 0,
-              comments:    0,  // Erlebnisse haben keine Kommentarfunktion -> statisch 0
-              views:       e.views_count || 0,
+            if (!cancelled) setMomente(beitr.map(b => {
+              const bp = beitrProfileMap[b.user_id] || {};
+              const eng = beitrEngagementMap[b.id] || { likes:0, comments:0 };
+              return {
+              id:         b.id,
+              user_id:    b.user_id,
+              src:        safeStr(b.src),
+              thumbnail_url: safeStr(b.thumbnail_url),
+              caption:    safeStr(b.caption, _t("discover.fallbackMoment")),
+              type:       safeStr(b.type, "foto"),
+              created_at: b.created_at,
+              name:       safeStr(bp.full_name || bp.display_name, _t("discover.fallbackMember")),
+              avatar_url: bp.avatar_url || null,
+              location:   "",
+              likes:      eng.likes,
+              comments:   eng.comments,
+              views:      b.views_count || 0,
             };
-          }));
-        } else if (!expsErr) {
-          if (!cancelled) setErlebnisse([]);
-        }
-
-        // SYS-REFACTOR-023: totes impact_pool-Query entfernt (Ergebnis 'imp' wurde nie gelesen, keine Verhaltensaenderung)
-
-        // Impact-Projekte — nach Stimmen/Rank sortiert (Projekt der Woche = #1)
-        // Spalten: project_name (nicht name), rank (Trigger aktuell via impact_votes)
-        const { data: projRaw } = await supabase
-          .from("impact_applications")
-          .select("id,project_name,short_desc,cover_url,location,rank,funding_goal,current_amount_eur,status,created_at")
-          .eq("status","approved")
-          .order("rank", { ascending:true, nullsFirst:false })
-          .order("created_at", { ascending:true })
-          .limit(10);
-
-        // vote_count per Projekt via RPC (FIX 2026-08-15, Migration 119: RLS-Bug)
-        let voteMap = {};
-        if (projRaw && projRaw.length > 0) {
-          const ids = projRaw.map(p => p.id);
-          const { data: voteRows } = await supabase
-            .rpc("rpc_get_vote_counts", { p_project_ids: ids, p_pool_month: null });
-          if (voteRows) {
-            voteRows.forEach(v => { voteMap[v.project_id] = Number(v.vote_count) || 0; });
+            }));
           }
         }
-        // null-rank Projekte ans Ende, nach votes sortieren
-        const projData = projRaw
-          ? [...projRaw].sort((a, b) => {
-              const aRank = a.rank ?? 9999;
-              const bRank = b.rank ?? 9999;
-              if (aRank !== bRank) return aRank - bRank;
-              return (voteMap[b.id] || 0) - (voteMap[a.id] || 0);
-            })
-          : null;
 
-        if (!cancelled && projData?.length > 0) {
-          const CAT_COLOR = {
-            natur:    { bg:"rgba(22,163,74,0.12)", text:"#16A34A" },
-            tiere:    { bg:"rgba(217,119,6,0.12)",  text:"#D97706" },
-            umwelt:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
-            kultur:   { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
-            bildung:  { bg:"rgba(232,87,58,0.12)",  text:"#F47355" },
-            sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
-          };
-          // Kategorie aus location (Fallback: "Impact")
-          const CAT_COLOR_EXT = {
-            ...CAT_COLOR,
-            impact:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
-            sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
-            gesundheit: { bg:"rgba(239,68,68,0.12)", text:"#EF4444" },
-            community: { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
-          };
-          // BILD-PLATZHALTER-REGEL (2026-09-04): Kein Stockfoto-Pool mehr —
-          // ProjektSection.jsx hat bereits eine korrekte HUILogo-Fallback-Logik
-          // (imgErr-State), die aber nie griff weil hier immer ein Fake-Cover
-          // gesetzt wurde. Jetzt: cover bleibt null wenn kein echtes Bild da ist.
-          setProjekte(projData.map((p, idx) => {
-            // Kategorie: aus Beschreibung/Name ableiten oder "Impact" als Fallback
-            let catRaw = "";
-            const nameLower = (p.project_name || "").toLowerCase();
-            if (nameLower.includes("tier") || nameLower.includes("hund") || nameLower.includes("dog")) catRaw = "tiere";
-            else if (nameLower.includes("garten") || nameLower.includes("natur") || nameLower.includes("grün")) catRaw = "natur";
-            else if (nameLower.includes("meer") || nameLower.includes("küste") || nameLower.includes("umwelt") || nameLower.includes("klima")) catRaw = "umwelt";
-            else if (nameLower.includes("kind") || nameLower.includes("lern") || nameLower.includes("schule") || nameLower.includes("bildung")) catRaw = "bildung";
-            else if (nameLower.includes("musik") || nameLower.includes("kunst") || nameLower.includes("kultur")) catRaw = "kultur";
-            else if (nameLower.includes("sozial") || nameLower.includes("obdach") || nameLower.includes("mahlzeit") || nameLower.includes("mensch")) catRaw = "sozial";
-            else catRaw = "impact";
-            const cc = CAT_COLOR_EXT[catRaw] || { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" };
-            const catLabel = catRaw.charAt(0).toUpperCase() + catRaw.slice(1);
-            const votes = voteMap[p.id] || 0;
-            return {
-              id:       p.id,
-              title:    p.project_name || "Projekt",
-              desc:     p.short_desc || "",
-              cat:      catLabel,
-              catColor: cc,
-              cover:    p.cover_url || null,
-              members:  votes,
-              rank:     p.rank || 0,
-              funding_goal:       p.funding_goal || 0,
-              current_amount_eur: p.current_amount_eur || 0,
-              _raw:     p,
+        async function loadWerke() {
+          // Werke — 2-Schritt-Query (kein FK von works.user_id → profiles)
+          // Schritt 1: Werke laden
+          // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
+          // (language.eq.<appLang> OR language.is.null — NULL-BestandContent bleibt sichtbar)
+          let wsQuery = supabase
+            .from("works")
+            .select("id,title,cover_url,thumbnail_url,category,file_format,tags,description,status,approval_status,visibility,price,location_text,lat,lng,user_id,created_at,likes_count,views_count,language")
+            .eq("status", "published")
+            .eq("approval_status", "approved")
+            .eq("visibility", "public");
+          if (bbox) {
+            wsQuery = wsQuery
+              .gte("lat", bbox.latMin).lte("lat", bbox.latMax)
+              .gte("lng", bbox.lngMin).lte("lng", bbox.lngMax);
+          }
+          if (langFilterRef.current) wsQuery = wsQuery.or(langFilterRef.current);
+          const { data: ws, error: wsErr } = await wsQuery
+            .order("likes_count", { ascending:false })
+            .limit(queryLimit);
+
+          if (!cancelled && ws?.length > 0) {
+            // Schritt 2: Profile für alle Autoren nachladen (public_profiles = öffentlich lesbar)
+            const FILE_FORMAT_LABEL = {
+              original: _t("discover.fileFormatOriginal"),
+              druck:    _t("discover.fileFormatDruck"),
+              digital:  _t("discover.fileFormatDigital"),
             };
-          }));
+            const userIds = [...new Set(ws.map(w => w.user_id).filter(Boolean))];
+            let profileMap = {};
+            if (userIds.length > 0) {
+              const { data: profs } = await supabase
+                .from("public_profiles")
+                .select("id,display_name,full_name,avatar_url")
+                .in("id", userIds);
+              if (profs) profileMap = Object.fromEntries(profs.map(p => [p.id, p]));
+            }
+            setWerke(ws.map(w => {
+              const prof = profileMap[w.user_id] || {};
+              return {
+                id:        w.id,
+                user_id:   w.user_id,
+                title:     safeStr(w.title, _t("discover.fallbackWerk")),
+                cover:     safeStr(w.thumbnail_url || w.cover_url),
+                medium:    FILE_FORMAT_LABEL[w.file_format] || safeStr(w.category, _t("discover.fallbackWerk")),
+                // CATEGORY-WELLNESS-001: Suchfelder durchreichen — Werke-Tags
+                // (freie Begriffe aus dem WerkWizard) waren bisher NICHT durchsuchbar.
+                category:  safeStr(w.category),
+                description: safeStr(w.description),
+                tags:      Array.isArray(w.tags) ? w.tags : [],
+                price:     w.price != null ? safeNum(w.price, 0) : null,
+                location:  safeStr(w.location_text),
+                lat:       Number.isFinite(w.lat) ? w.lat : null,
+                lng:       Number.isFinite(w.lng) ? w.lng : null,
+                author:    safeStr(prof.full_name || prof.display_name, _t("discover.fallbackTalent")),
+                avatar_url: prof.avatar_url || null,
+                likes:     w.likes_count || 0,
+                comments:  0,  // Werke haben keine Kommentarfunktion -> statisch 0
+                views:     w.views_count || 0,
+              };
+            }));
+
+            // WORK-SALE-STATUS-001: Verkauft/Reserviert-Status non-blocking nachladen
+            // (gleiche SSOT-RPC wie im öffentlichen Profil / WerkeAllModal).
+            const werkIds = ws.map(w => w.id).filter(Boolean);
+            if (werkIds.length > 0) {
+              supabase
+                .rpc("rpc_get_works_sale_status", { p_work_ids: werkIds })
+                .then(({ data: statusRows }) => {
+                  if (cancelled) return;
+                  const statusMap = {};
+                  (statusRows || []).forEach(r => {
+                    if (r.sale_status) statusMap[r.work_id] = r.sale_status;
+                  });
+                  setWerkeSaleStatus(statusMap);
+                })
+                .catch(() => {}); // Non-blocking — kein Status = kein Badge
+            }
+          } else if (!wsErr) {
+            // Keine Werke in DB → setWerke([]) → displayWerke fällt auf SEED zurück
+            if (!cancelled) setWerke([]);
+          }
         }
 
-        // Orte — echte Standort-Gruppen aus Profilen/Werken/Erlebnissen (rpc_discover_places)
-        const { data: placesData } = await supabase
-          .rpc("rpc_discover_places", { p_sort: "active", p_limit: 8, p_offset: 0 });
-        if (!cancelled && placesData) {
-          setOrte(placesData.map(p => ({
-            place_key:         p.place_key,
-            people_count:      p.people_count || 0,
-            works_count:       p.works_count || 0,
-            experiences_count: p.experiences_count || 0,
-            talents_count:     p.talents_count || 0,
-            total_count:       p.total_count || 0,
-          })));
+        async function loadTalente() {
+          // Talente — freigegebene Dienstleistungsangebote (TALENT-OFFERS-001/TALENT-SERVICES-001)
+          // Oeffentlich sichtbar nur status='approved' (RLS deckt das zusaetzlich ab)
+          // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
+          let talQuery = supabase
+            .from("talents")
+            .select("id,title,description,category,images,thumbnail_url,price_per_hour,price_per_session,currency,location_type,location_address,location_notes,map_link,lat,lng,user_id,created_at,available_dates,available_time_slots,recurring,duration_minutes,max_participants,min_participants,booking_type,booking_window_start,booking_window_end,views_count,language")
+            .eq("status", "approved");
+          if (bbox) {
+            // Online-Talente immer einschliessen (kein Standortbezug) --
+            // sonst wuerden Online-Angebote bei aktivem Radius verschwinden.
+            talQuery = talQuery.or(`location_type.eq.online,and(lat.gte.${bbox.latMin},lat.lte.${bbox.latMax},lng.gte.${bbox.lngMin},lng.lte.${bbox.lngMax})`);
+          }
+          if (langFilterRef.current) talQuery = talQuery.or(langFilterRef.current);
+          const { data: tal, error: talErr } = await talQuery
+            .order("created_at", { ascending:false })
+            .limit(queryLimit);
+
+          if (talErr) {
+          }
+
+          if (!cancelled && tal?.length > 0) {
+            // Anbieternamen nachladen (kein FK-Embed, eigene Anfrage — gleiches Muster wie "People")
+            const providerIds = [...new Set(tal.map(t => t.user_id).filter(Boolean))];
+            let providerMap = {};
+            if (providerIds.length > 0) {
+              const { data: provs } = await supabase
+                .from("profiles")
+                .select("id,display_name,full_name,username")
+                .in("id", providerIds);
+              providerMap = Object.fromEntries((provs || []).map(p => [p.id, safeStr(p.full_name || p.display_name || p.username, _t("discover.fallbackTalent"))]));
+            }
+            if (!cancelled) {
+              setTalente(tal.map(t => ({
+                id:                    t.id,
+                user_id:               t.user_id,
+                title:                 safeStr(t.title, _t("discover.fallbackTalentOffer")),
+                description:           safeStr(t.description),
+                cover:                 safeStr(t.thumbnail_url) || (Array.isArray(t.images) && t.images[0]?.url) ? safeStr(t.thumbnail_url || t.images[0].url) : null,
+                category:              safeStr(t.category),
+                price_per_hour:        t.price_per_hour != null ? safeNum(t.price_per_hour, 0) : null,
+                price_per_session:     t.price_per_session != null ? safeNum(t.price_per_session, 0) : null,
+                currency:              safeStr(t.currency, "EUR"),
+                location_type:         safeStr(t.location_type),
+                location_address:      safeStr(t.location_address),
+                location_notes:        safeStr(t.location_notes),
+                map_link:              safeStr(t.map_link),
+                lat:                   Number.isFinite(t.lat) ? t.lat : null,
+                lng:                   Number.isFinite(t.lng) ? t.lng : null,
+                author:                providerMap[t.user_id] || _t("discover.fallbackTalent"),
+                // Buchungsdaten (TALENT-SERVICES-001) — fuer TalentBookingFlow
+                available_dates:       Array.isArray(t.available_dates) ? t.available_dates : [],
+                available_time_slots:  Array.isArray(t.available_time_slots) ? t.available_time_slots : [],
+                recurring:             safeStr(t.recurring),
+                duration_minutes:      t.duration_minutes != null ? safeNum(t.duration_minutes, 0) : null,
+                max_participants:      t.max_participants != null ? safeNum(t.max_participants, 1) : 1,
+                min_participants:      t.min_participants != null ? safeNum(t.min_participants, 1) : 1,
+                booking_type:          safeStr(t.booking_type, "einzel"),
+                booking_window_start:  safeStr(t.booking_window_start),
+                booking_window_end:    safeStr(t.booking_window_end),
+                likes:                 0,  // Talente haben keine Likes-Funktion -> statisch 0
+                comments:              0,  // Talente haben keine Kommentarfunktion -> statisch 0
+                views:                 t.views_count || 0,
+              })));
+            }
+          } else if (!talErr) {
+            if (!cancelled) setTalente([]);
+          }
         }
+
+        async function loadErlebnisse() {
+          // Erlebnisse — korrigierte Feldnamen: location_text, max_participants
+          // MULTILANG-CONTENT-001: language ins select + bedingter Sprach-Filter
+          let expsQuery = supabase
+            .from("experiences")
+            .select("id,title,cover_url,thumbnail_url,date,duration,location_text,max_participants,status,approval_status,category,experience_type,format,tags,description,caption,lat,lng,user_id,created_at,likes_count,views_count,language")
+            .eq("status", "published")
+            .eq("approval_status", "approved");
+          if (bbox) {
+            // Online-Erlebnisse immer einschliessen (kein Standortbezug)
+            expsQuery = expsQuery.or(`format.eq.online,and(lat.gte.${bbox.latMin},lat.lte.${bbox.latMax},lng.gte.${bbox.lngMin},lng.lte.${bbox.lngMax})`);
+          }
+          if (langFilterRef.current) expsQuery = expsQuery.or(langFilterRef.current);
+          const { data: exps, error: expsErr } = await expsQuery
+            .order("likes_count", { ascending:false })
+            .limit(queryLimit);
+
+          if (expsErr) {
+          }
+
+          if (!cancelled && exps?.length > 0) {
+            setErlebnisse(exps.map(e => {
+              const d = e.date ? new Date(e.date) : null;
+              const now = new Date();
+              // Status ableiten
+              let statusLabel = "Aktiv";
+              let statusColor = "#16A34A";
+              if (d && d > now) { statusLabel = "Geplant";       statusColor = "#D97706"; }
+              if (d && d < now) { statusLabel = "Abgeschlossen"; statusColor = "#55556B"; }
+
+              // Typ-Label
+              const typeRaw = e.experience_type || e.category || "";
+              const typeMap = { workshop:"Workshop", event:"Event", ausstellung:"Ausstellung",
+                projekt:"Projekt", kurs:"Kurs", online:"Online" };
+              const typeLabel = typeMap[typeRaw.toLowerCase()] || typeRaw || "Erlebnis";
+
+              // Datum
+              const dateStr = d ?formatDateDE(d, { day:"numeric", month:"short" }) : null;
+              const dayNum  = d ? String(d.getDate()).padStart(2,"0") : null;
+              const monthSh = d ? d.toLocaleString("de",{month:"short"}) : null;
+
+              return {
+                id:          e.id,
+                user_id:     e.user_id,
+                title:       safeStr(e.title, "Erlebnis"),
+                cover:       safeStr(e.thumbnail_url || e.cover_url),
+                // CATEGORY-WELLNESS-001: Suchfelder durchreichen (freie Topic-Tags)
+                description: safeStr(e.description),
+                caption:     safeStr(e.caption),
+                tags:        Array.isArray(e.tags) ? e.tags : [],
+                date:        dayNum,
+                month:       monthSh,
+                dateStr,
+                dayLabel:    dateStr || "",
+                time:        safeStr(e.duration),
+                location:    safeStr(e.location_text),
+                spots:       safeNum(e.max_participants, 0),
+                statusLabel,
+                statusColor,
+                typeLabel,
+                format:      safeStr(e.format),
+                lat:         Number.isFinite(e.lat) ? e.lat : null,
+                lng:         Number.isFinite(e.lng) ? e.lng : null,
+                likes:       e.likes_count || 0,
+                comments:    0,  // Erlebnisse haben keine Kommentarfunktion -> statisch 0
+                views:       e.views_count || 0,
+              };
+            }));
+          } else if (!expsErr) {
+            if (!cancelled) setErlebnisse([]);
+          }
+        }
+
+        async function loadProjekte() {
+          // SYS-REFACTOR-023: totes impact_pool-Query entfernt (Ergebnis 'imp' wurde nie gelesen, keine Verhaltensaenderung)
+
+          // Impact-Projekte — nach Stimmen/Rank sortiert (Projekt der Woche = #1)
+          // Spalten: project_name (nicht name), rank (Trigger aktuell via impact_votes)
+          const { data: projRaw } = await supabase
+            .from("impact_applications")
+            .select("id,project_name,short_desc,cover_url,location,rank,funding_goal,current_amount_eur,status,created_at")
+            .eq("status","approved")
+            .order("rank", { ascending:true, nullsFirst:false })
+            .order("created_at", { ascending:true })
+            .limit(10);
+
+          // vote_count per Projekt via RPC (FIX 2026-08-15, Migration 119: RLS-Bug)
+          let voteMap = {};
+          if (projRaw && projRaw.length > 0) {
+            const ids = projRaw.map(p => p.id);
+            const { data: voteRows } = await supabase
+              .rpc("rpc_get_vote_counts", { p_project_ids: ids, p_pool_month: null });
+            if (voteRows) {
+              voteRows.forEach(v => { voteMap[v.project_id] = Number(v.vote_count) || 0; });
+            }
+          }
+          // null-rank Projekte ans Ende, nach votes sortieren
+          const projData = projRaw
+            ? [...projRaw].sort((a, b) => {
+                const aRank = a.rank ?? 9999;
+                const bRank = b.rank ?? 9999;
+                if (aRank !== bRank) return aRank - bRank;
+                return (voteMap[b.id] || 0) - (voteMap[a.id] || 0);
+              })
+            : null;
+
+          if (!cancelled && projData?.length > 0) {
+            const CAT_COLOR = {
+              natur:    { bg:"rgba(22,163,74,0.12)", text:"#16A34A" },
+              tiere:    { bg:"rgba(217,119,6,0.12)",  text:"#D97706" },
+              umwelt:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+              kultur:   { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
+              bildung:  { bg:"rgba(232,87,58,0.12)",  text:"#F47355" },
+              sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+            };
+            // Kategorie aus location (Fallback: "Impact")
+            const CAT_COLOR_EXT = {
+              ...CAT_COLOR,
+              impact:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+              sozial:   { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" },
+              gesundheit: { bg:"rgba(239,68,68,0.12)", text:"#EF4444" },
+              community: { bg:"rgba(99,102,241,0.12)", text:"#6366F1" },
+            };
+            // BILD-PLATZHALTER-REGEL (2026-09-04): Kein Stockfoto-Pool mehr —
+            // ProjektSection.jsx hat bereits eine korrekte HUILogo-Fallback-Logik
+            // (imgErr-State), die aber nie griff weil hier immer ein Fake-Cover
+            // gesetzt wurde. Jetzt: cover bleibt null wenn kein echtes Bild da ist.
+            setProjekte(projData.map((p, idx) => {
+              // Kategorie: aus Beschreibung/Name ableiten oder "Impact" als Fallback
+              let catRaw = "";
+              const nameLower = (p.project_name || "").toLowerCase();
+              if (nameLower.includes("tier") || nameLower.includes("hund") || nameLower.includes("dog")) catRaw = "tiere";
+              else if (nameLower.includes("garten") || nameLower.includes("natur") || nameLower.includes("grün")) catRaw = "natur";
+              else if (nameLower.includes("meer") || nameLower.includes("küste") || nameLower.includes("umwelt") || nameLower.includes("klima")) catRaw = "umwelt";
+              else if (nameLower.includes("kind") || nameLower.includes("lern") || nameLower.includes("schule") || nameLower.includes("bildung")) catRaw = "bildung";
+              else if (nameLower.includes("musik") || nameLower.includes("kunst") || nameLower.includes("kultur")) catRaw = "kultur";
+              else if (nameLower.includes("sozial") || nameLower.includes("obdach") || nameLower.includes("mahlzeit") || nameLower.includes("mensch")) catRaw = "sozial";
+              else catRaw = "impact";
+              const cc = CAT_COLOR_EXT[catRaw] || { bg:"rgba(14,196,184,0.12)", text:"#0DC4B5" };
+              const catLabel = catRaw.charAt(0).toUpperCase() + catRaw.slice(1);
+              const votes = voteMap[p.id] || 0;
+              return {
+                id:       p.id,
+                title:    p.project_name || "Projekt",
+                desc:     p.short_desc || "",
+                cat:      catLabel,
+                catColor: cc,
+                cover:    p.cover_url || null,
+                members:  votes,
+                rank:     p.rank || 0,
+                funding_goal:       p.funding_goal || 0,
+                current_amount_eur: p.current_amount_eur || 0,
+                _raw:     p,
+              };
+            }));
+          }
+        }
+
+        async function loadOrte() {
+          // Orte — echte Standort-Gruppen aus Profilen/Werken/Erlebnissen (rpc_discover_places)
+          const { data: placesData } = await supabase
+            .rpc("rpc_discover_places", { p_sort: "active", p_limit: 8, p_offset: 0 });
+          if (!cancelled && placesData) {
+            setOrte(placesData.map(p => ({
+              place_key:         p.place_key,
+              people_count:      p.people_count || 0,
+              works_count:       p.works_count || 0,
+              experiences_count: p.experiences_count || 0,
+              talents_count:     p.talents_count || 0,
+              total_count:       p.total_count || 0,
+            })));
+          }
+        }
+
+        const __t0 = performance.now();
+        await Promise.all(
+          [loadPeople, loadMomente, loadWerke, loadTalente, loadErlebnisse, loadProjekte, loadOrte]
+            .map(async (fn) => {
+              try { await fn(); }
+              catch (e) { console.warn(`[DiscoverPage] ${fn.name} error:`, e?.message); }
+            })
+        );
+        // Performance-Anomalie-Log: nur wenn der PARALLELE Load wirklich > 1s braucht
+        const __dur = performance.now() - __t0;
+        if (__dur > 1000) sentryCapture(new Error(`Discover load slow: ${Math.round(__dur)}ms`), { section: "discover_parallel_load" });
+
 
       } catch (e) {
         console.warn("[DiscoverPage] load error:", e?.message);
