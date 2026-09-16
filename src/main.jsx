@@ -13,6 +13,7 @@ import { initOTA, autoCheckOTA, confirmAppReady } from './lib/otaUpdate.js'
 import { initGlobalKeyboardHandling } from './lib/globalKeyboardHandler.js'
 import { initErrorReporting, reportError } from './lib/errorReporter.js'
 import ErrorReportToast from './lib/ErrorReportToast.jsx'
+import { ensureLanguageLoaded, detectSystemLang } from './i18n/index.js'
 import { APP_VERSION } from './version.js'
 
 // ── Production Console Silencer (2026-08-12) ─────────────────────
@@ -101,6 +102,19 @@ window.addEventListener('error', (event) => {
 // confirmAppReady global verfügbar machen — App.jsx ruft es nach erstem Render
 window.__HUI_CONFIRM_APP_READY__ = confirmAppReady;
 
+// PERF-I18N-SPLIT-001 (2026-09-16): Aktive Sprache VOR React-Render laden.
+// Roher dynamic import() in der Registry (KEIN React.lazy, KEIN Suspense —
+// umgeht die dokumentierte __vitePreload-Hang-Falle). Deutsch ist eager und
+// immer verfügbar; dieser Await füllt nur die Registry für die aktive Sprache,
+// BEVOR die erste Komponente rendert → kein Sprach-Flash. Fehlerfall: de-Fallback
+// (in ensureLanguageLoaded abgefangen), Bootstrap blockt nie.
+(async () => {
+  try {
+    await ensureLanguageLoaded(detectSystemLang());
+  } catch (e) {
+    console.error('[HUI] i18n bootstrap failed (non-fatal, de verfügbar):', e);
+  }
+
 // Punkt 10.2: try-catch um createRoot — kein Crash vor React-Mount möglich
 try {
   ReactDOM.createRoot(document.getElementById('root')).render(
@@ -124,3 +138,4 @@ try {
       '</div>';
   }
 }
+})();

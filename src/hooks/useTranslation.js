@@ -5,7 +5,7 @@
 // CustomEvent-basiert: Sprachwechsel ohne Reload, ohne White Screen.
 
 import { useState, useCallback, useEffect } from 'react';
-import { t, SUPPORTED_LANGS, detectSystemLang } from '../i18n/index.js';
+import { t, SUPPORTED_LANGS, detectSystemLang, ensureLanguageLoaded } from '../i18n/index.js';
 import { setFormatLocale } from '../lib/formatters.js';
 
 const LANG_CHANGE_EVENT = 'hui_lang_change';
@@ -37,8 +37,18 @@ export function useTranslation() {
     [lang]
   );
 
-  const changeLang = useCallback((newLang) => {
+  // PERF-I18N-SPLIT-001: ASYNC — lädt den Sprach-Chunk VOR dem Speichern und
+  // Event-Feuern. Erst wenn der Chunk (oder der de-Fallback) in der Registry
+  // liegt, wird gehui_lang_change dispatched → alle Hooks rendern SYNCHRON in
+  // der neuen Sprache. Kein Flash, keine Roh-Keys.
+  const changeLang = useCallback(async (newLang) => {
     if (!SUPPORTED_LANGS.includes(newLang)) return;
+    try {
+      await ensureLanguageLoaded(newLang);
+    } catch (e) {
+      console.error('[HUI i18n] changeLang chunk load failed:', e);
+      // ensureLanguageLoaded fängt selbst ab (de-Fallback) — weiter im Fluss.
+    }
     localStorage.setItem('hui_lang', newLang);
     setFormatLocale(newLang);
     window.dispatchEvent(
