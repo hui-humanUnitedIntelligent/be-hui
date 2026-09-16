@@ -3801,6 +3801,8 @@ export default {
   'ipt.editSubmitting': 'Gönderiliyor…',
 
   'ipt.editSaved': 'Değişiklikler gönderildi — projen tekrar incelenecek.',
+  'ipt.editReasonLabel': 'Değişiklik nedeni (isteğe bağlı)',
+  'ipt.editReasonPlaceholder': 'örn. güncellenmiş fiyatlar, yeni görseller…',
 
   'ipt.editSaveError': 'Kaydedilemedi. Lütfen tekrar dene.',
 

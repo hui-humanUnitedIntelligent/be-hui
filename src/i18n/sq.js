@@ -2300,6 +2300,8 @@ export default {
   'ipt.editSubmitting': 'Po dërgohet…',
 
   'ipt.editSaved': 'Ndryshimet u dërguan — projekti yt do të rishikohet.',
+  'ipt.editReasonLabel': 'Arsyeja e ndryshimit (opsionale)',
+  'ipt.editReasonPlaceholder': 'p.sh. çmime të përditësuara, imazhe të reja…',
 
   'ipt.editSaveError': 'Ruajtja dështoi. Provo përsëri.',
 

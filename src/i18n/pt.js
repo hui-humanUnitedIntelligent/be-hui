@@ -3801,6 +3801,8 @@ export default {
   'ipt.editSubmitting': 'Enviando…',
 
   'ipt.editSaved': 'Alterações enviadas — o seu projeto será analisado novamente.',
+  'ipt.editReasonLabel': 'Motivo da alteração (opcional)',
+  'ipt.editReasonPlaceholder': 'ex.: preços atualizados, novas imagens…',
 
   'ipt.editSaveError': 'Falha ao salvar. Tente novamente.',
 

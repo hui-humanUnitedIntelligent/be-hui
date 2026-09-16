@@ -3825,6 +3825,8 @@ export default {
   'ipt.editSubmitting': 'Sending…',
 
   'ipt.editSaved': 'Changes submitted — your project will be reviewed again.',
+  'ipt.editReasonLabel': 'Reason for the change (optional)',
+  'ipt.editReasonPlaceholder': 'e.g. updated prices, new images…',
 
   'ipt.editSaveError': 'Saving failed. Please try again.',
 

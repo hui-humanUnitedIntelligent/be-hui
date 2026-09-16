@@ -28,6 +28,13 @@
 // 4. Während der Prüfung (status='pending') ist das Projekt öffentlich
 //    unsichtbar (ImpactPage-Queries filtern status='approved') und der
 //    Bearbeiten-Button verschwindet (kein Doppel-Edit).
+// 5. IMPACT-EDIT-SNAPSHOT-001 (2026-09-16): Vor dem Update wird der
+//    serverseitige Vor-Zustand (== letzter genehmigter Stand) als
+//    edit_snapshot JSONB mitgeschrieben (nur falls noch keiner existiert —
+//    die SADB-Freigabe leert das Feld, damit der naechste Edit-Zyklus
+//    wieder frisch snapshottet). Optionaler edit_reason fuer den Admin.
+//    Ermöglicht die Diff-Ansicht im SADB ohne neue Tabelle
+//    (Architektur-Charta: Erweitern statt duplizieren).
 // ────────────────────────────────────────────────────────────────
 import React from "react";
 import { createPortal } from "react-dom";
@@ -71,6 +78,7 @@ export default function ImpactProjectEditSheet({ projectId, onClose, onSaved }) 
   const [imagesUploading, setImagesUploading] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [formError, setFormError] = React.useState(null);
+  const [editReason, setEditReason] = React.useState("");
 
   const coverRef = React.useRef();
   const imagesRef = React.useRef();
@@ -83,7 +91,7 @@ export default function ImpactProjectEditSheet({ projectId, onClose, onSaved }) 
     (async () => {
       const { data, error } = await supabase
         .from("impact_applications")
-        .select("id,user_id,project_name,short_desc,problem,vision,funding_goal,cover_url,media_urls,status,is_completed")
+        .select("id,user_id,project_name,short_desc,problem,vision,funding_goal,cover_url,media_urls,status,is_completed,edit_snapshot")
         .eq("id", projectId)
         .maybeSingle();
       if (dead) return;
@@ -168,6 +176,22 @@ export default function ImpactProjectEditSheet({ projectId, onClose, onSaved }) 
     setSaving(true);
     try {
       const now = new Date().toISOString();
+      // IMPACT-EDIT-SNAPSHOT-001: Server-Vorzustand (letzter genehmigter
+      // Stand) als Diff-Basis fuer den Admin. Nur schreiben, wenn noch kein
+      // Snapshot existiert (SADB-Freigabe leert edit_snapshot + edit_reason,
+      // -> jeder neue Edit-Zyklus snapshottet wieder den frisch genehmigten
+      // Stand).
+      const snapshotUpdate = row.edit_snapshot ? {} : {
+        edit_snapshot: {
+          project_name: row.project_name || null,
+          short_desc:    row.short_desc    || null,
+          problem:       row.problem       || null,
+          vision:        row.vision       || null,
+          funding_goal:  row.funding_goal  ?? null,
+          cover_url:     row.cover_url    || null,
+          media_urls:    row.media_urls   || null,
+        },
+      };
       const { error: updateErr } = await supabase
         .from("impact_applications")
         .update({
@@ -181,6 +205,8 @@ export default function ImpactProjectEditSheet({ projectId, onClose, onSaved }) 
           media_urls:    mediaUrls.length ? mediaUrls : null,
           status:        "pending",
           submitted_at:  now,
+          ...snapshotUpdate,
+          edit_reason:   editReason.trim() || null,
         })
         .eq("id", projectId);
       if (updateErr) throw updateErr;
@@ -326,6 +352,12 @@ export default function ImpactProjectEditSheet({ projectId, onClose, onSaved }) 
             <input type="text" inputMode="numeric" value={funding}
               placeholder="2.000"
               onChange={(e) => setFunding(e.target.value)} style={INPUT_STYLE} />
+
+            {/* Änderungsgrund (optional, für den Admin im SADB) */}
+            <label style={LABEL_STYLE}>{t("ipt.editReasonLabel")}</label>
+            <input type="text" value={editReason} maxLength={300}
+              placeholder={t("ipt.editReasonPlaceholder")}
+              onChange={(e) => setEditReason(e.target.value)} style={INPUT_STYLE} />
 
             {/* Bilder */}
             <label style={LABEL_STYLE}>{t("ipt.editImagesLabel")}</label>

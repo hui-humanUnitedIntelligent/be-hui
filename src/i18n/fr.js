@@ -3802,6 +3802,8 @@ export default {
   'ipt.editSubmitting': 'Envoi…',
 
   'ipt.editSaved': 'Modifications envoyées — votre projet sera à nouveau vérifié.',
+  'ipt.editReasonLabel': 'Raison du changement (facultatif)',
+  'ipt.editReasonPlaceholder': 'ex. prix mis à jour, nouvelles images…',
 
   'ipt.editSaveError': 'Échec de l\'enregistrement. Veuillez réessayer.',
 

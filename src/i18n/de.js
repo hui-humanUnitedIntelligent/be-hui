@@ -3817,6 +3817,8 @@ export default {
   'ipt.editSubmitting': 'Wird gesendet…',
 
   'ipt.editSaved': 'Änderung eingereicht — dein Projekt wird erneut geprüft.',
+  'ipt.editReasonLabel': 'Grund der Änderung (optional)',
+  'ipt.editReasonPlaceholder': 'z.B. Kaffeepreise aktualisiert, neue Bilder…',
 
   'ipt.editSaveError': 'Speichern fehlgeschlagen. Bitte versuche es erneut.',
 
