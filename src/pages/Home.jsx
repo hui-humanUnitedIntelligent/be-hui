@@ -54,17 +54,17 @@ import UnterstutzenFlow from "../components/commerce/UnterstutzenFlow.jsx"; // K
 import { clearCartAfterSuccess }        from "../components/commerce/commerceUtils.js";    // KORB-02
 import ExperienceBookingFlow  from "../components/commerce/ExperienceBookingFlow.jsx"; // COMMERCE-01
 // ── Tab-Pages: lazy → eigene Chunks, nur bei Bedarf geladen ────
-// PHASE 17.3 (Teilweise superseded durch PERF-TAB-CHUNKS-001, 16.09.):
-//   DiscoverPage BLEIBT direkt (kein lazy) → kein Suspense-Spinner beim ersten
-//   Tab-Wechsel (begründet in PHASE 17.3, unverändert gültig).
-//   ImpactPage ist JETZT lazy (PERF-Punkt 2/3): 3.494 Zeilen aus dem Startup-
-//   Bundle raus. Die 4 Tabs sind Keep-Alive-gemountet (tabVisibilityController),
-//   d.h. der Chunk lädt async direkt nach dem ersten Render — NICHT blockierend
-//   für den sichtbaren Feed. Suspense-Fallback "Impact-Raum öffnet sich…" sitzt
-//   im versteckten Tab-Div (opacity 0), also unsichtbar. Safari-Sicherheit:
-//   makeChunkReload fängt Chunk-404 nach OTA-Deploys (gleiches Muster wie die
-//   13 lazy-Routes in App.jsx).
-import DiscoverPage from "./DiscoverPage.jsx"; // direkt (kein lazy) → kein Suspense-Spinner beim ersten Tab-Wechsel
+// PHASE 17.3 VOLLSTÄNDIG SUPERSEDED durch PERF-TAB-CHUNKS-001 (16.09.,
+// Michaels explizite Freigabe): DiscoverPage UND ImpactPage sind jetzt lazy.
+// Die alte PHASE-17.3-Begründung ("kein Suspense-Spinner beim ersten
+// Tab-Wechsel") ist durch die Keep-Alive-Architektur obsolet: Alle 4 Tabs sind
+// gemountet (tabVisibilityController), der Chunk lädt also async DIREKT nach
+// dem ersten Render — NICHT blockierend für den sichtbaren Feed, und das
+// Suspense-Fallback ("Entdecken öffnet sich…" / "Impact-Raum öffnet sich…")
+// sitzt im versteckten Tab-Div (opacity 0) und ist unsichtbar. Safari-Sicherheit:
+// makeChunkReload fängt Chunk-404 nach OTA-Deploys (gleiches Muster wie die
+// 13 lazy-Routes in App.jsx). DiscoverPage = 164 KB gzip aus dem Startup-Graph.
+const DiscoverPage = lazy(() => import('./DiscoverPage.jsx').catch(makeChunkReload("Home:DiscoverPage")));
 import HuiLiveTicker    from "../components/shared/HuiLiveTicker.jsx"; // LIVETICKER.1 2026-07-08 -- ersetzt AmbientWorldBar (war Fake-Daten)
 const ImpactPage = lazy(() => import('./ImpactPage.jsx').catch(makeChunkReload("Home:ImpactPage")));
 // PHASE 18: FavoritesPage direkte import (Safari-safe)
