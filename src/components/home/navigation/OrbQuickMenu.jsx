@@ -58,38 +58,63 @@ const ARC_R                 = 112;  // Bogenradius — dicht am Nav-Orb, alle 4 
 const MINI_ORB_D            = 46;   // Ø Mini-Orb
 const ANGLES                = [-54, -18, 18, 54]; // ° — GLEICHMÄSSIGE 36°-Schritte
 
-/* ── Typen — je eigene, aber SANFTE Farb-Welt (weiß + Bleed-Glow) ── */
+/* ── Farb-Helfer: Hex → rgba mit Alpha (fuer den Leucht-Verlauf) ── */
+function hexToRgba(hex, alpha) {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+/* ── Typen — echte HUI-Markenfarben aus dem Design-System (SSOT) ── */
 function getTypes(t) {
-  // ORB-SOFTTINT-001 (2026-09-15, Michael-Entscheid "Variante B — Zarte
-  // Toenung"): Glow voellig entfernt (Michael: "mir gefaellt der Glow nicht").
-  // Statt radialem Bleed-Glow FLACHE Toenung (kein Verlauf) — Icon + Label
-  // in Originalfarbe, KEIN Halo noetig.
+  // Design-Kette 2026-09-15/16 (Michael): "zu transparent" → 24%/65% →
+  // "mach viel mehr deckkraft… nicht transparent" → ORB-SOLID-FILL
+  // (volldeckend) → "das ist ja sowas von Nicht HUI style" → "die Farben
+  // mehr leuchtend und weniger Deckkraft aber leserlich" →
   //
-  // ORB-SOLID-FILL (2026-09-15, Michael-Entscheid "mach viel mehr deckkraft
-  // das wirkt zu schwach und ich denke die Prozente sind auch zu wenig. und
-  // nicht transparent"): Transparenz KOMPLETT raus. Die Mini-Orbs bekommen
-  // VOLL DECKENDE Markenfarbe (Fill = reiner Farbton, alpha 1.0 — kein
-  // rgba-Mix mehr, der auf hellem Grund wie dem Discover-Hintergrund
-  // unsichtbar verschwimmt). Rand = weiss 90% fuer klare Kante auf jedem
-  // Hintergrund. Icon + Label weiss fuer Kontrast auf der Vollfarbe.
-  // Weiterhin FLACH (kein Verlauf, kein Glow, kein Halo) — B-Version-Geist,
-  // aber satt sichtbar.
+  // ORB-SOFT-BORDER (2026-09-16, Michael-Input "Soft-Border Redesign"):
+  // Grundidee aus Michaels Vorlage uebernommen (pastellner Hintergrund +
+  // farbiger 2px-Rand + Icon/Label in der Markenfarbe statt Weiss auf
+  // Vollton), ABER bewusst an HUI-Standards angepasst:
+  //   - KEINE frei erfundenen Hex-Werte aus der Vorlage (#fff5f2, #a866ff,
+  //     …) — genau die hatten den "nicht HUI style"-Eindruck erzeugt.
+  //     Stattdessen die kanonischen *Pale-Hintergrund-Tokens des Design-
+  //     Systems (tealPale/goldPale/coralPale/violetPale — dafuer sind sie
+  //     da) + Deep-Tones fuer Text (maximal lesbar auf Pale-Grund).
+  //   - KEINE Emojis (Michaels Beschluss 15.09.: "Emojis entfernen, mit
+  //     Icons arbeiten") — HUI-SVG-Icons bleiben.
+  //   - Geometrie/Flows/Keys unveraendert (46px-Faecher, Bogen R=112,
+  //     bestehende i18n-Keys) — nur Farben/Styling.
+  // "Weniger Deckkraft": Pale-Grund statt Vollton; "leuchtend": satte
+  // Deep-Farben fuer Icon+Label; "leserlich": Deep-auf-Pale = hoher
+  // Kontrast. Rand = 45% Markenfarbe (zwischen alter 35%- und 65%-
+  // Stufe). Kein Glow, kein Halo, kein Verlauf.
   return [
     {
       key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"),
-      tint: "#FFFFFF", fill: HUI.COLOR.teal, ring: "rgba(255,255,255,0.9)",
+      fill: HUI.COLOR.tealPale,
+      ring: hexToRgba(HUI.COLOR.teal, 0.45),
+      tint: HUI.COLOR.tealDeep,
     },
     {
       key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"),
-      tint: "#FFFFFF", fill: "#38BDF8",      ring: "rgba(255,255,255,0.9)",
+      fill: HUI.COLOR.goldPale,
+      ring: hexToRgba(HUI.COLOR.gold, 0.45),
+      tint: HUI.COLOR.gold,
     },
     {
       key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"),
-      tint: "#FFFFFF", fill: HUI.COLOR.coral, ring: "rgba(255,255,255,0.9)",
+      fill: HUI.COLOR.coralPale,
+      ring: hexToRgba(HUI.COLOR.coral, 0.45),
+      tint: HUI.COLOR.coralDeep,
     },
     {
       key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"),
-      tint: "#FFFFFF", fill: "#8B5CF6",      ring: "rgba(255,255,255,0.9)",
+      fill: HUI.COLOR.violetPale,
+      ring: hexToRgba(HUI.COLOR.violet, 0.45),
+      tint: HUI.COLOR.violetDeep,
     },
   ];
 }
@@ -156,13 +181,11 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
               borderRadius: "50%",
               padding: 0,
               margin: 0,
-              // ORB-SOFTTINT-VISIBILITY-FIX (2026-09-15): FLACHE Toenung,
-              // aber deutlich kraeftiger (24% Fill / 65% Ring) als die
-              // urspruengliche B-Auslegung, damit die Orbs auf JEDEM
-              // Hintergrund (v.a. helle Discover-Karten) klar erkennbar
-              // sind. Weiterhin kein Verlauf, kein Glow, kein Halo.
+              // ORB-SOFT-BORDER (2026-09-16): type.fill = Pale-Design-Token,
+              // type.ring = 45%-Markenfarbe, type.tint = Deep-Ton für
+              // Icon+Label — siehe getTypes-Kommentar für die Entscheidung.
               background: type.fill,
-              boxShadow: `0 3px 10px rgba(20,20,34,0.16)`,
+              boxShadow: `0 2px 8px rgba(20,20,34,0.10)`,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -181,7 +204,7 @@ export default function OrbQuickMenu({ onSelect, onClose }) {
             <span style={{
               fontSize: 8.5,
               fontWeight: 700,
-              color: "#FFFFFF",
+              color: type.tint,
               letterSpacing: -0.1,
               lineHeight: 1,
               maxWidth: 40,
