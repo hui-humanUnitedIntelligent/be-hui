@@ -69,32 +69,59 @@ function hexToRgba(hex, alpha) {
 
 /* ── Typen — echte HUI-Markenfarben aus dem Design-System (SSOT) ── */
 function getTypes(t) {
-  // Design-Kette 2026-09-15/16 (Michael): 10%-Tönung → "zu transparent" →
-  // 24%/65% → "mehr Deckkraft, nicht transparent" → ORB-SOLID-FILL →
-  // "sowas von Nicht HUI style" (erfundene #38BDF8/#8B5CF6) → Soft-Border
-  // mit Pale-Tokens ("gefällt mir") →
+  // Design-Kette 2026-09-15/16 (Michael): "zu transparent" → 24%/65% →
+  // "mach viel mehr deckkraft… nicht transparent" → ORB-SOLID-FILL
+  // (volldeckend) → "das ist ja sowas von Nicht HUI style" → "die Farben
+  // mehr leuchtend und weniger Deckkraft aber leserlich" →
   //
-  // ORB-MONOCHROME-NAVBAR (2026-09-16, Michael): "die Farben weglassen und
-  // alles einfarbig machen, damit es aussieht wie die Navbar — das Weiss
-  // mit dem Türkis". Alle 4 Orbs einheitlich im Navbar-Look:
-  //   - fill  = HUI.COLOR.creamSoft — EXAKT der TABBAR_FILL der
-  //     HUIBottomNavigation (#FDFBF8, SSOT-Referenz dort Zeile 63)
-  //   - ring  = 45% Marken-Teal (wie vom Soft-Border genehmigt)
-  //   - tint  = tealDeep für Icon+Label (Türkis-Familie, maximal lesbar
-  //     auf dem hellen Grund; reines #0DC4B5 wäre bei 9.5px Label zu
-  //     kontrastschwach)
-  // Icons pro Typ bleiben verschieden (SVG-Icon-Identität), NUR die
-  // Farben sind einfarbig. Geometrie/Flows/i18n-Keys unverändert.
-  const MONO = {
-    fill: HUI.COLOR.creamSoft,
-    ring: hexToRgba(HUI.COLOR.teal, 0.45),
-    tint: HUI.COLOR.tealDeep,
-  };
+  // ORB-MONOCHROME-ZWISCHENSCHRITT (2026-09-16, kurz getestet, dann VERWORFEN):
+  // Michael testete kurz eine einfarbige Navbar-Look-Variante (creamSoft +
+  // Türkis), entschied sich nach dem Vercel-Preview-Vergleich aber für die
+  // FARBIGE Soft-Border-Version zurück ("baue mir das mit den farbigen" +
+  // Screenshot der farbigen Preview). Ab hier wieder die finale Version:
+  //
+  // ORB-SOFT-BORDER (2026-09-16, Michael-Input "Soft-Border Redesign"):
+  // Grundidee aus Michaels Vorlage uebernommen (pastellner Hintergrund +
+  // farbiger 2px-Rand + Icon/Label in der Markenfarbe statt Weiss auf
+  // Vollton), ABER bewusst an HUI-Standards angepasst:
+  //   - KEINE frei erfundenen Hex-Werte aus der Vorlage (#fff5f2, #a866ff,
+  //     …) — genau die hatten den "nicht HUI style"-Eindruck erzeugt.
+  //     Stattdessen die kanonischen *Pale-Hintergrund-Tokens des Design-
+  //     Systems (tealPale/goldPale/coralPale/violetPale — dafuer sind sie
+  //     da) + Deep-Tones fuer Text (maximal lesbar auf Pale-Grund).
+  //   - KEINE Emojis (Michaels Beschluss 15.09.: "Emojis entfernen, mit
+  //     Icons arbeiten") — HUI-SVG-Icons bleiben.
+  //   - Geometrie/Flows/Keys unveraendert (46px-Faecher, Bogen R=112,
+  //     bestehende i18n-Keys) — nur Farben/Styling.
+  // "Weniger Deckkraft": Pale-Grund statt Vollton; "leuchtend": satte
+  // Deep-Farben fuer Icon+Label; "leserlich": Deep-auf-Pale = hoher
+  // Kontrast. Rand = 45% Markenfarbe (zwischen alter 35%- und 65%-
+  // Stufe). Kein Glow, kein Halo, kein Verlauf.
   return [
-    { key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"), ...MONO },
-    { key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"), ...MONO },
-    { key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"), ...MONO },
-    { key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"), ...MONO },
+    {
+      key: "moment", Icon: HUIMomenteIcon, label: t("feed.createMoment"),
+      fill: HUI.COLOR.tealPale,
+      ring: hexToRgba(HUI.COLOR.teal, 0.45),
+      tint: HUI.COLOR.tealDeep,
+    },
+    {
+      key: "experience", Icon: HUIKalenderIcon, label: t("profile.erlebnisLabel"),
+      fill: HUI.COLOR.goldPale,
+      ring: hexToRgba(HUI.COLOR.gold, 0.45),
+      tint: HUI.COLOR.gold,
+    },
+    {
+      key: "work", Icon: HUIWerkeIcon, label: t("profile.werkLabel"),
+      fill: HUI.COLOR.coralPale,
+      ring: hexToRgba(HUI.COLOR.coral, 0.45),
+      tint: HUI.COLOR.coralDeep,
+    },
+    {
+      key: "talent", Icon: HUITalentStarIcon, label: t("profile.talentLabel"),
+      fill: HUI.COLOR.violetPale,
+      ring: hexToRgba(HUI.COLOR.violet, 0.45),
+      tint: HUI.COLOR.violetDeep,
+    },
   ];
 }
 
