@@ -381,9 +381,9 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
                 />
               </FieldGroup>
 
-              <FieldGroup label={t("pbm.fieldBio")} hint={`${bio.length}/200`}>
+              <FieldGroup label={t("pbm.fieldBio")} hint={`${bio.length}/400`} hintColor={bio.length > 400 ? T.coral : undefined}>
                 <Textarea value={bio} onChange={setBio}
-                  placeholder={t("pbm.phBio")} rows={4} maxLength={200} />
+                  placeholder={t("pbm.phBio")} rows={4} maxLength={400} />
               </FieldGroup>
 
               {/* "Fokus / Bereich" entfernt 2026-08-06 — profiles.focus_type ist
@@ -674,10 +674,25 @@ function Input({
 }
 
 function Textarea({ value, onChange, placeholder, rows, maxLength }) {
+  // BIO-SAVE-FIX (2026-09-18): Vorher kappte value.slice(0, maxLength) bei JEDEM
+  // Tastendruck — ein Bestandswert ÜBER dem Limit (Legacy-Bio, z.B. 396 Zeichen)
+  // wurde beim ersten Tippen still auf 200 Zeichen verstümmelt und gespeichert.
+  // Neue Logik: Bestand wird NIEMALS gekappt. Das Limit greift nur für Wachstum
+  // aus einem Zustand UNTER dem Limit (dort unverändert wie vorher). Überlange
+  // Legacy-Werte bleiben editier- und speicherbar; sinkt der Wert unter das
+  // Limit, greift die Kappe wieder wie gehabt.
+  const handleTextChange = (e) => {
+    const v = e.target.value;
+    if (maxLength && v.length > maxLength && value.length <= maxLength) {
+      onChange(v.slice(0, maxLength));
+    } else {
+      onChange(v);
+    }
+  };
   return (
     <textarea
       value={value}
-      onChange={e => onChange(e.target.value.slice(0, maxLength))}
+      onChange={handleTextChange}
       placeholder={placeholder}
       rows={rows || 4}
       style={{

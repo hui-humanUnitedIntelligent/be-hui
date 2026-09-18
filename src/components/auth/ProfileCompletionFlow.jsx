@@ -8,7 +8,6 @@ import { MAX_IMAGE_BYTES } from "../../lib/uploadUtils.js";
 import { supabase }           from "../../lib/supabaseClient.js";
 import { useAuth }            from "../../lib/AuthContext.jsx";
 import { UsernameInput, validateUsername } from "../../lib/useUsernameCheck.jsx";
-import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 
 const TEAL  = "#16D7C5";
@@ -281,7 +280,7 @@ export default function ProfileCompletionFlow({ onComplete }) {
               <p style={{fontSize:14,color:"#55556B",margin:"0 0 12px",lineHeight:1.6}}>
                 {t("pcf.bioHint")}
               </p>
-              <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={300} rows={4}
+              <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={400} rows={4}
                 placeholder={t("pcf.bioPlaceholder")}
                 style={{
                   width:"100%",padding:"14px 16px",
