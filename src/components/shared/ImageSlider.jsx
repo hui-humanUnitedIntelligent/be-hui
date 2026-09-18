@@ -137,6 +137,26 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
   // VIDEO-SOUND-TOGGLE-001: Ton-Button oben rechts auf dem Video (nur wenn
   // der AKTUELLE Slide ein Video ist). Semi-transparent dunkler Kreis +
   // weisses Lautsprecher-SVG. stopPropagation → kein Lightbox/Player-Tap.
+  //
+  // MOBILE-SOUND-BTN-HITBOX-FIX (2026-09-18, Michael-Report: "auf dem Handy
+  // öffnet sich das Video, wenn ich oben rechts auf das Symbol klicke. web
+  // Version funktioniert"): Zwei kombinierte Root Causes, beide NUR auf
+  // echten Touch-Geräten (nicht im Desktop-Browser) wirksam:
+  // (1) Touch-Target war 30x30px — unter dem 44px-Mindeststandard (siehe
+  //     auch Memory #786, SADB-Regel für Touch-Flächen). Mausklick trifft
+  //     pixelgenau, ein Finger trifft leicht daneben → Tap landet auf dem
+  //     darunterliegenden Video/Slide-Div → dessen onClick (handleClick)
+  //     öffnet die Lightbox statt nur den Ton umzuschalten.
+  // (2) Bekannter Android-WebView/Chromium-Bug: <video>-Elemente bekommen
+  //     eine eigene Hardware-Compositing-Ebene, die unabhängig vom CSS
+  //     z-index gerendert werden kann — Overlay-Buttons OBEN im DOM-Baum
+  //     können dadurch optisch/touch-technisch "durchgereicht" werden.
+  //     Fix: den Button per transform explizit auf eine eigene GPU-Ebene
+  //     heben (translateZ(0)), das erzwingt korrekte Stapelreihenfolge
+  //     über dem <video> auf JEDEM Android-WebView.
+  // Fix: Button 30→44px (Icon 15→18px, Standard-Touch-Target), zusätzlich
+  // GPU-Layer-Promotion. stopPropagation bleibt (normale Web-Klicks waren
+  // nie das Problem, nur die mobile Treffergenauigkeit).
   var renderSoundButton = function() {
     return React.createElement("button", {
       key: "hui-sound-btn",
@@ -144,24 +164,29 @@ function ImageSlider({ images, height, borderRadius, showDots, objectFit, videoO
       "aria-label": soundOn ? t("media.soundOff") : t("media.soundOn"),
       onClick: function(e) {
         if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+        if (e && typeof e.preventDefault === "function") e.preventDefault();
         // Klick = User-Gesture → Unmuting ist browser-erlaubt
         setSoundOn(!soundOn);
       },
       style: {
-        position: "absolute", top: 10, right: 10, zIndex: 7,
-        width: 30, height: 30, borderRadius: "50%", padding: 0,
+        position: "absolute", top: 8, right: 8, zIndex: 9,
+        width: 44, height: 44, borderRadius: "50%", padding: 0,
         border: "none", cursor: "pointer", touchAction: "manipulation",
         background: "rgba(20,20,34,0.42)",
         display: "flex", alignItems: "center", justifyContent: "center",
         WebkitTapHighlightColor: "transparent",
+        // GPU-Layer-Promotion — siehe Kommentar oben (2): erzwingt eine
+        // eigene Compositing-Ebene ÜBER dem <video> auf Android-WebViews.
+        transform: "translateZ(0)", WebkitTransform: "translateZ(0)",
+        WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden",
       },
     },
       soundOn
-        ? React.createElement("svg", { width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "#FFFFFF", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" },
+        ? React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "#FFFFFF", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" },
             React.createElement("path", { d: "M11 5 6 9H3v6h3l5 4V5z" }),
             React.createElement("path", { d: "M15.5 8.5a5 5 0 0 1 0 7" }),
             React.createElement("path", { d: "M18.5 5.5a9 9 0 0 1 0 13" }))
-        : React.createElement("svg", { width: 15, height: 15, viewBox: "0 0 24 24", fill: "none", stroke: "#FFFFFF", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" },
+        : React.createElement("svg", { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "#FFFFFF", strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" },
             React.createElement("path", { d: "M11 5 6 9H3v6h3l5 4V5z" }),
             React.createElement("line", { x1: 16, y1: 9, x2: 22, y2: 15 }),
             React.createElement("line", { x1: 22, y1: 9, x2: 16, y2: 15 }))
