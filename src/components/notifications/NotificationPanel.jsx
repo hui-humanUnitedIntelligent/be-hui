@@ -266,15 +266,24 @@ function DetailModal({ n, onClose, onAction }) {
     }
 
     // BUG-RESOLVED-NOTIFY-001 (2026-09-06): gemeldeter Fehler wurde behoben
+    // BUG-RESOLVED-FULLTEXT-FIX (2026-09-18, Michael: "mache oben den grünen
+    // Text weg und dafür den ganzen Fehlerbericht unten in 'Deine Meldung'"):
+    // Vorher stand der (auf 140 Zeichen gekürzte) description_excerpt SOWOHL
+    // im grünen Kopf-Zitat ALS AUCH nochmal im "Deine Meldung"-Block —
+    // doppelt UND gekürzt. Backend (sadb-work bug-reports/route.ts) schreibt
+    // description_full seit demselben Commit bereits mit in metadata/data,
+    // nur die App nutzte ihn nie. Fix: Kein Kopf-Zitat mehr (headerSubtitle
+    // entfernt), "Deine Meldung" zeigt jetzt description_full komplett
+    // (Fallback auf den alten description_excerpt für ältere, bereits
+    // zugestellte Notifications ohne description_full).
     if (nType === "bug_report_resolved") {
-      const excerpt = md.description_excerpt || n.body || "";
+      const fullText = md.description_full || md.description_excerpt || n.body || "";
       return {
         accentColor: "#22C55E",
         headerIcon: "✅",
         headerTitle: t("notif.bugReportResolved.title"),
-        headerSubtitle: excerpt ? `„${excerpt}"` : "",
         blocks: [
-          ...(excerpt ? [{ type:"label-text", label:t("notif.bugReportResolved.yourReport"), text: excerpt, color:"#22C55E", bg:"rgba(34,197,94,0.06)", border:"rgba(34,197,94,0.22)" }] : []),
+          ...(fullText ? [{ type:"label-text", label:t("notif.bugReportResolved.yourReport"), text: fullText, color:"#22C55E", bg:"rgba(34,197,94,0.06)", border:"rgba(34,197,94,0.22)" }] : []),
           { type:"info", text: t("notif.bugReportResolved.retest") },
         ],
       };
