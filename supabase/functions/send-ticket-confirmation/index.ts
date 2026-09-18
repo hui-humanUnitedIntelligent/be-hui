@@ -109,6 +109,12 @@ const CONTENT: Record<Lang, TicketContent> = {
 // ── Konstanten ────────────────────────────────────────────────────────
 
 const FROM = "HUI Support <noreply@be-hui.com>";
+// ADMIN-TICKET-REPLYTO-003 (2026-09-18, Michael: "im namen von support@be-hui.com
+// ... ich kann dann auf die mail antworten und er bekommt eine mail von
+// support@be-hui.com mit dem Admin Text"): eigener Absender NUR fuer die
+// Admin-Benachrichtigung (Kunden-Bestaetigung bleibt bewusst bei noreply@ --
+// keine Aenderung an etwas, das nicht angefragt wurde).
+const ADMIN_FROM = "HUI Support <support@be-hui.com>";
 const LOGO_URL = "https://be-hui.vercel.app/assets/brand/hui-logo.png";
 const BANNER_BG = "#0EC4B8";
 const TEXT_DARK = "#1A1A2E";
@@ -306,7 +312,7 @@ function buildHtml(
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 
-async function sendViaResend(to: string, subject: string, html: string, replyTo?: string): Promise<{ ok: boolean; id?: string; error?: string }> {
+async function sendViaResend(to: string, subject: string, html: string, replyTo?: string, fromOverride?: string): Promise<{ ok: boolean; id?: string; error?: string }> {
   if (!RESEND_API_KEY) {
     return { ok: false, error: "RESEND_API_KEY nicht konfiguriert" };
   }
@@ -320,7 +326,11 @@ async function sendViaResend(to: string, subject: string, html: string, replyTo?
       // ADMIN-TICKET-REPLYTO-001 (2026-09-18): replyTo optional — nur die
       // NEUE Admin-Benachrichtigung (siehe unten) nutzt es, die bestehende
       // Kunden-Bestätigung bleibt unverändert (kein replyTo übergeben).
-      body: JSON.stringify(replyTo ? { from: FROM, to, subject, html, reply_to: replyTo } : { from: FROM, to, subject, html }),
+      body: JSON.stringify(
+        replyTo
+          ? { from: fromOverride || FROM, to, subject, html, reply_to: replyTo }
+          : { from: fromOverride || FROM, to, subject, html }
+      ),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -396,6 +406,7 @@ serve(async (req) => {
         `Neues Support-Ticket [${ticketNumber}]${subject ? " - " + subject : ""}`,
         adminHtml,
         email, // reply_to → Klick auf "Antworten" geht direkt an den Kunden
+        ADMIN_FROM, // ADMIN-TICKET-REPLYTO-003: Absender support@be-hui.com statt noreply@
       );
       if (!adminResult.ok) {
         console.warn(`[send-ticket-confirmation] Admin-Mail FAILED: ${adminResult.error}`);
