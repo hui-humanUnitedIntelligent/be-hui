@@ -142,7 +142,20 @@ const FOOTER: Record<Lang, string> = {
 // den Kunden, nicht an noreply@. Bestehende Kunden-Bestätigung, Telegram-
 // Alert UND die SADB-Chat-Antwortfunktion bleiben unverändert (Erweitern
 // statt duplizieren, HUI-Architektur-Charta Prinzip 1).
-const ADMIN_NOTIFY_EMAIL = Deno.env.get("ADMIN_NOTIFY_EMAIL") ?? "ms88@hotmail.de";
+//
+// KORREKTUR (2026-09-18, Michael: "jetzt bekomme ich zwei emails auf meine
+// email... bitte nur eine mail, dafür kommt keine bei huiwirken@gmail.com
+// an.. da soll auch eine mail auftauchen, damit ich auf diese mail antworten
+// kann"): Beim Selbst-Test mit der eigenen Adresse als Ticket-Ersteller
+// erschienen BEIDE Mails (Kunden-Bestätigung an den Ersteller + diese
+// Admin-Mail) in Michaels Postfach ms88@hotmail.de — kein Duplikat, sondern
+// zwei unterschiedliche, aber beide fälschlich an dieselbe Adresse gingen.
+// Fix: Admin-Mail-Ziel von ms88@hotmail.de auf huiwirken@gmail.com geändert
+// (weiterhin per ADMIN_NOTIFY_EMAIL-Env-Var überschreibbar). Ab jetzt: ein
+// echter Kunde bekommt weiterhin nur seine eigene Bestätigung an seine
+// Adresse, Michael bekommt die separate Admin-Mail ausschließlich unter
+// huiwirken@gmail.com (reply_to bleibt der Ticket-Ersteller).
+const ADMIN_NOTIFY_EMAIL = Deno.env.get("ADMIN_NOTIFY_EMAIL") ?? "huiwirken@gmail.com";
 
 function buildAdminHtml(
   name: string,
