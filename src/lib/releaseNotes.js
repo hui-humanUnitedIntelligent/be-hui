@@ -17,6 +17,33 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.608 — von Michael am 18.09.2026 freigegeben ("sammel OTA mit text
+  // Deployen"). Sammel-OTA (6 Commits seit 2.1.607/5d09edb3):
+  // INTRO-VIDEO-UPSCALE-001 (1b32b649: Lanczos-Upscale auf 1080x1920 +
+  // Nachschaerfung, 646 KB — laeuft ueber CDN, NICHT im OTA-Bundle, siehe
+  // generate-ota-bundle.sh Exklusion), MOBILE-SOUND-BTN-HITBOX-FIX
+  // (fb9525a5: Ton-Button 30->44px Touch-Flaeche + translateZ(0) GPU-Layer
+  // gegen Android-WebView-Layering-Bug), BUG-RESOLVED-FULLTEXT-FIX
+  // (fb3df756: Gruenes Kopf-Zitat aus MeineTickets entfernt, Volltext im
+  // "Deine Meldung"-Block), ADMIN-TICKET-REPLYTO-001..003 (14493121,
+  // 9cb13368, 5d41847d: Admin-Mail bei neuem Ticket an huiwirken@gmail.com
+  // mit Absender support@be-hui.com + Reply-To=Ticket-Ersteller — Gmail
+  // mit Resend-SMTP-Alias, 18.09. eingerichtet).
+  "2.1.608": {
+    de: [
+      "Neuer App-Auftakt: Das Intro-Video begrüßt dich jetzt in gestochen scharfer Full-HD-Qualität.",
+      "Ton-Button zuverlässiger: Der Sound-Schalter auf Feed-Videos reagiert jetzt auf jeden Tipp — auch auf Android.",
+      "Support aufgeräumt: Deine komplette Meldung ist jetzt sauber an einem Ort lesbar — ohne doppelten Text im Ticketkopf.",
+      "Schnellere Hilfe: Deine Anfragen erreichen unser Team jetzt direkt im Postfach — Antworten kommen zeitnaher zurück.",
+    ],
+    en: [
+      "New app intro: The intro video now greets you in crisp full HD quality.",
+      "More reliable sound button: The sound switch on feed videos now responds to every tap — on Android too.",
+      "Tidied-up support: Your full message is now readable in one clean place — no duplicated text in the ticket header.",
+      "Faster help: Your requests now reach our team's inbox directly — replies come back sooner.",
+    ],
+  },
+
   // 2.1.607 — von Michael am 16.09.2026 freigegeben ("deploy mit text").
   // Sammel-OTA (6 Commits): IMPACT-EDIT-SNAPSHOT-001 (32a515bb: Projekt-Edit
   // schreibt edit_snapshot + optionalen Änderungsgrund; SADB-Diff-Ansicht
