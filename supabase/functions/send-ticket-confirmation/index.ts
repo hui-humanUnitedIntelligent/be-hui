@@ -127,6 +127,87 @@ const FOOTER: Record<Lang, string> = {
   sq: "Ky mesazh u gjenerua automatikisht nga HUI – Human United Intelligence.",
 };
 
+// ── ADMIN-TICKET-REPLYTO-001 (2026-09-18, Michael: "wenn jemand ein Support
+// Ticket macht, bekomme ich eine Email, das ist super, aber ich möchte auch
+// auf die Mail antworten, aber der Empfänger ist meine eigene Adresse... ich
+// möchte direkt die Mail des Absenders sehen, damit ich eine Antwort geben
+// kann"): Root Cause — bisher gab es KEINE Admin-Benachrichtigungs-E-Mail bei
+// neuem Ticket, nur die Kunden-Bestätigung (an den Ersteller) + ein Telegram-
+// Alert (SadbAlert weiter unten, unverändert). Michael sah beim Selbst-Test
+// (eigene Adresse als Ersteller) nur die Kunden-Bestätigung — deren "Antworten"
+// geht zwangsläufig an noreply@be-hui.com zurück (Standard-Mailverhalten,
+// kein Bug für DIESE Mail). Fix: eine ZUSÄTZLICHE, separate Admin-Mail an
+// Michael mit `reply_to` = die tatsächliche Absender-Adresse des Tickets —
+// klickt er in SEINEM Postfach auf "Antworten", geht die Antwort direkt an
+// den Kunden, nicht an noreply@. Bestehende Kunden-Bestätigung, Telegram-
+// Alert UND die SADB-Chat-Antwortfunktion bleiben unverändert (Erweitern
+// statt duplizieren, HUI-Architektur-Charta Prinzip 1).
+const ADMIN_NOTIFY_EMAIL = Deno.env.get("ADMIN_NOTIFY_EMAIL") ?? "ms88@hotmail.de";
+
+function buildAdminHtml(
+  name: string,
+  email: string,
+  ticketNumber: string,
+  subject: string,
+  message: string,
+  category: string,
+  priority: string,
+): string {
+  const safeName    = name || "(kein Name angegeben)";
+  const safeSubject = subject || "(kein Betreff)";
+  return `<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:${BG_BODY};font-family:Inter,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${BG_BODY};padding:24px 0;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="background:${BG_CARD};border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <tr><td style="background:${BANNER_BG};padding:24px 40px;text-align:center;">
+          <img src="${LOGO_URL}" alt="HUI" width="70" style="margin:0 auto;display:block;"/>
+        </td></tr>
+        <tr><td style="padding:28px 40px 8px;">
+          <h1 style="margin:0;font-size:20px;font-weight:700;color:${TEXT_DARK};letter-spacing:-0.3px;">
+            Neues Support-Ticket
+          </h1>
+          <p style="margin:6px 0 0;font-size:13px;color:${TEXT_MUTED};">
+            Antworten direkt an ${safeName} &lt;${email}&gt; — einfach auf "Antworten" klicken.
+          </p>
+        </td></tr>
+        <tr><td style="padding:16px 40px 0;">
+          <div style="background:#F8F9FA;border-radius:10px;padding:14px 18px;">
+            <p style="margin:0 0 4px;font-size:11px;font-weight:600;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:0.06em;">Ticket-Nummer</p>
+            <p style="margin:0;font-size:15px;font-weight:700;color:${TEXT_DARK};font-family:monospace;">${ticketNumber}</p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:12px 40px 0;">
+          <p style="margin:0;font-size:14px;color:${TEXT_DARK};"><strong>${safeSubject}</strong></p>
+          <p style="margin:4px 0 0;font-size:12px;color:${TEXT_MUTED};">
+            Von: ${safeName} · ${email}${category ? " · Kategorie: " + category : ""}${priority && priority !== "normal" ? " · Priorität: " + priority : ""}
+          </p>
+        </td></tr>
+        <tr><td style="padding:8px 40px 0;">
+          <div style="background:#F8F9FA;border-radius:10px;padding:14px 18px;">
+            <p style="margin:0 0 6px;font-size:11px;font-weight:600;color:${TEXT_MUTED};text-transform:uppercase;letter-spacing:0.06em;">Nachricht</p>
+            <p style="margin:0;font-size:13px;color:${TEXT_DARK};line-height:1.6;white-space:pre-wrap;">${message}</p>
+          </div>
+        </td></tr>
+        <tr><td style="padding:16px 40px 8px;">
+          <p style="margin:0;font-size:13px;color:${TEXT_MUTED};line-height:1.6;">
+            Diese Mail direkt beantworten (Reply-To ist auf ${email} gesetzt) — oder im SADB unter "Support-Tickets" bearbeiten, dort bleibt der volle Thread-Verlauf sichtbar.
+          </p>
+        </td></tr>
+        <tr><td style="padding:20px 40px 28px;border-top:1px solid #EEE;">
+          <p style="margin:0;font-size:12px;color:${TEXT_MUTED};text-align:center;line-height:1.5;">
+            Diese Nachricht wurde automatisch von HUI – Human United Intelligence generiert.
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ── HTML Template ─────────────────────────────────────────────────────
 
 function buildHtml(
@@ -212,7 +293,7 @@ function buildHtml(
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 
-async function sendViaResend(to: string, subject: string, html: string): Promise<{ ok: boolean; id?: string; error?: string }> {
+async function sendViaResend(to: string, subject: string, html: string, replyTo?: string): Promise<{ ok: boolean; id?: string; error?: string }> {
   if (!RESEND_API_KEY) {
     return { ok: false, error: "RESEND_API_KEY nicht konfiguriert" };
   }
@@ -223,7 +304,10 @@ async function sendViaResend(to: string, subject: string, html: string): Promise
         "Authorization": `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from: FROM, to, subject, html }),
+      // ADMIN-TICKET-REPLYTO-001 (2026-09-18): replyTo optional — nur die
+      // NEUE Admin-Benachrichtigung (siehe unten) nutzt es, die bestehende
+      // Kunden-Bestätigung bleibt unverändert (kein replyTo übergeben).
+      body: JSON.stringify(replyTo ? { from: FROM, to, subject, html, reply_to: replyTo } : { from: FROM, to, subject, html }),
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -280,6 +364,34 @@ serve(async (req) => {
     }
 
     console.log(`[send-ticket-confirmation] Sent to ${email}, ticket=${ticketNumber}, id=${result.id}`);
+
+    // ── ADMIN-TICKET-REPLYTO-001: Admin-Mail an Michael, reply_to = Kunde ──
+    // Non-blocking (wie SadbAlert darunter): ein Fehler hier darf die
+    // Ticket-Erstellung und die Kunden-Bestätigung NIE blockieren.
+    try {
+      const adminHtml = buildAdminHtml(
+        String(name || ""),
+        String(email),
+        String(ticketNumber),
+        String(subject || ""),
+        String(message || "").slice(0, 1000),
+        String(body?.category || ""),
+        String(body?.priority || "normal"),
+      );
+      const adminResult = await sendViaResend(
+        ADMIN_NOTIFY_EMAIL,
+        `Neues Support-Ticket [${ticketNumber}]${subject ? " - " + subject : ""}`,
+        adminHtml,
+        email, // reply_to → Klick auf "Antworten" geht direkt an den Kunden
+      );
+      if (!adminResult.ok) {
+        console.warn(`[send-ticket-confirmation] Admin-Mail FAILED: ${adminResult.error}`);
+      } else {
+        console.log(`[send-ticket-confirmation] Admin-Mail sent to ${ADMIN_NOTIFY_EMAIL}, reply_to=${email}, id=${adminResult.id}`);
+      }
+    } catch (adminErr) {
+      console.warn("[send-ticket-confirmation] Admin-Mail (non-blocking):", adminErr);
+    }
 
     // ── Base44 SadbAlert: Michael per Telegram benachrichtigen ──
     // Non-blocking: Fehler beim Alert-Aufruf blockieren NICHT die Ticket-Erstellung.
