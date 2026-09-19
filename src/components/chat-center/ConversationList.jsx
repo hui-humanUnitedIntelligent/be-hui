@@ -131,6 +131,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
     ? openChats.filter(c => {
         const hay = [
           c.name, c.title, c.display_name, c.username,
+          c.full_name, c.other_profile?.full_name,
           c.other_profile?.display_name, c.other_profile?.username,
         ].filter(Boolean).join(" ").toLowerCase();
         return hay.includes(q);
@@ -141,6 +142,7 @@ export default function ConversationList({ chats, loading, onOpen, onDiscover, c
     ? closedChats.filter(c => {
         const hay = [
           c.name, c.title, c.display_name, c.username,
+          c.full_name, c.other_profile?.full_name,
           c.other_profile?.display_name, c.other_profile?.username,
         ].filter(Boolean).join(" ").toLowerCase();
         return hay.includes(q);

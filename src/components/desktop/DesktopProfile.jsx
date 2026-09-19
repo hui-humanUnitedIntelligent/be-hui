@@ -35,7 +35,7 @@ function ProfileLoading() {
 
 function ProfileSidebar({ profile, followCounts, isOwner, onNavigate }) {
   if (!profile) return <ProfileLoading />;
-  const displayName = profile.display_name || profile.username || 'HUI Mitglied';
+  const displayName = profile.full_name || profile.display_name || profile.username || 'HUI Mitglied';
 
   return (
     <div className="prof-side">
@@ -142,7 +142,7 @@ export default function DesktopProfile() {
           </section>
           <section>
             <h2 className="prof-section-title">Empfehlungen</h2>
-            <RecommendationsSection recommendations={recommendations} isOwner={isOwner} loading={loadingLazy} profileOwnerId={profileId} profileOwnerName={profile?.display_name || ''} />
+            <RecommendationsSection recommendations={recommendations} isOwner={isOwner} loading={loadingLazy} profileOwnerId={profileId} profileOwnerName={profile?.full_name || profile?.display_name || ''} />
           </section>
         </div>
       </div>

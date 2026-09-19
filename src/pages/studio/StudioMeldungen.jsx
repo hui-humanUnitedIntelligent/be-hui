@@ -32,7 +32,7 @@ export default function StudioMeldungen() {
     try {
       const { data, error } = await supabase
         .from('comment_reports')
-        .select('id, comment_id, reporter_id, reason, status, created_at, comment:post_comments(id, text, user_id, author:profiles!post_comments_user_id_fkey(id, display_name, username))')
+        .select('id, comment_id, reporter_id, reason, status, created_at, comment:post_comments(id, text, user_id, author:profiles!post_comments_user_id_fkey(id, full_name, display_name, username))')
         .eq('status', 'open')
         .order('created_at', { ascending: false })
         .limit(100);
@@ -98,7 +98,7 @@ export default function StudioMeldungen() {
                   fontSize: 13, color: C.ink,
                 }}>
                   <div style={{ fontWeight: 500, marginBottom: 4 }}>
-                    {r.comment.author?.display_name || r.comment.author?.username || 'Unbekannt'}
+                    {r.comment.author?.full_name || r.comment.author?.display_name || r.comment.author?.username || 'Unbekannt'}
                   </div>
                   <div style={{ color: C.muted }}>{r.comment.content || t("sm.contentUnavailable")}</div>
                 </div>

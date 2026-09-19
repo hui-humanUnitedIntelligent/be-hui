@@ -49,9 +49,13 @@ export const createProfileItem = (raw = {}) => {
     ? String(raw.id || raw.user_id)
     : (typeof crypto !== 'undefined' ? crypto.randomUUID() : Math.random().toString(36).slice(2));
 
+  // IDENTITY-NAME-SSOT (2026-09-18): full_name ("Öffentlicher Name") hat
+  // Vorrang — vorher stand display_name zuerst, wodurch ein aktualisierter
+  // full_name (z.B. via ProfilBearbeitenModal "Öffentlicher Name") hier nie
+  // ankam, solange ein älterer display_name-Wert existierte.
   const displayName = safeStr(
-    raw.displayName  || raw.display_name ||
-    raw.full_name    || raw.name         || raw.username,
+    raw.full_name    || raw.displayName  ||
+    raw.display_name || raw.name         || raw.username,
     'Unbekannt'
   );
 

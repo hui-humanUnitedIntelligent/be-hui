@@ -231,7 +231,7 @@ function VisitorHero({ profile, onClose, onBook, onChat, onSupport, currentUserI
 
   const heroImg  = safeStr(profile?.header_img, HERO_IMG_FB);
   const avatar   = safeStr(profile?.img || profile?.avatar_url, AVATAR_FB);
-  const name     = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const name     = safeStr(profile?.full_name || profile?.display_name || profile?.name || profile?.username);
   const phil     = safeStr(profile?.bio);
   const tags     = safeArr(profile?.dna_tags || profile?.interests).length
     ? safeArr(profile?.interests || profile?.dna_tags).slice(0,5).map(t => ({ icon:"✦", label: typeof t === "string" ? t : t?.label || t }))
@@ -565,7 +565,7 @@ function WirkungSection({ profile, wirkerProfile, followerCount = 0 }) {
   const { t } = useTranslation();
   const aboutActions = useHuiActions();
   const { ref, style } = useEntry(40);
-  const name      = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const name      = safeStr(profile?.full_name || profile?.display_name || profile?.name || profile?.username);
   const bio       = safeStr(profile?.bio);
   // Sprint F.9A: echte Felder statt Hardcoded Fallbacks
   const impact    = safeNum(profile?.impact_eur, 0);
@@ -858,7 +858,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
   const isOwner = !!authUser?.id && !!profile?.id && authUser.id === profile.id;
 
   // Profil-Felder mit Fallbacks für UI-Stabilität
-  const name = safeStr(profile?.display_name || profile?.name || profile?.username);
+  const name = safeStr(profile?.full_name || profile?.display_name || profile?.name || profile?.username);
 
   const handleClose = useCallback(() => { onClose?.(); }, [onClose]);
 
@@ -878,7 +878,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
       actions[A.OPEN_CHAT]({
         recipient: {
           id:           profile?.id || profile?.user_id,
-          display_name: profile?.display_name || profile?.name || t("visitor.creator"),
+          display_name: profile?.full_name || profile?.display_name || profile?.name || t("visitor.creator"),
           avatar_url:   profile?.img || profile?.avatar_url || null,
           talent:       profile?.talent || null,
         },

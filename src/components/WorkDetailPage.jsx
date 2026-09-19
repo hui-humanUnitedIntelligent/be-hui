@@ -418,9 +418,9 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const postSnapshot = useMemo(() => ({
     cover_url:   werk?.cover_url || null,
     title:       werk?.title || null,
-    author_name: creator?.display_name || creator?.username || null,
+    author_name: creator?.full_name || creator?.display_name || creator?.username || null,
     user_id:     creator?.id || null,
-  }), [werk?.cover_url, werk?.title, creator?.display_name, creator?.username, creator?.id]);
+  }), [werk?.cover_url, werk?.title, creator?.full_name, creator?.display_name, creator?.username, creator?.id]);
 
   const { counts: reactionCounts, myTypes: reactionTypes, toggle: toggleReaction } =
     useSingleReaction(id, "work", creator?.id, postSnapshot);
@@ -631,7 +631,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const forSale      = werk.for_sale;
   const stockAvailRaw = werk.stock_available;
   const isSoldOut    = forSale === false || (stockAvailRaw != null && stockAvailRaw <= 0);
-  const displayName = creator?.display_name || creator?.username || "Unbekannter Creator";
+  const displayName = creator?.full_name || creator?.display_name || creator?.username || "Unbekannter Creator";
   const username    = creator?.username || "hui-user";
   const avatarUrl   = creator?.avatar_url || null;
 

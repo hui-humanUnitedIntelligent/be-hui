@@ -62,7 +62,7 @@ function MyRecommendationsModal({ userId, onClose = () => {} }) {
           const meta = {};
           (profs || []).forEach(p => {
             meta[p.id] = {
-              name: p.display_name || p.username || p.nickname || "Mitglied",
+              name: p.full_name || p.display_name || p.username || p.nickname || "Mitglied",
               avatar: p.avatar_url || null,
               username: p.username || null,
             };

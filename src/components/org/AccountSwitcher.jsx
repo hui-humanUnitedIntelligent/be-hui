@@ -120,7 +120,7 @@ export default function AccountSwitcher({ open, onClose }) {
   // ── Persönliches Profil + Org-Profile kombinieren ────────────────
   const personalEntry = profile ? {
     id: profile.id,
-    name: profile.display_name || profile.username || t("org.switcher.personal"),
+    name: profile.full_name || profile.display_name || profile.username || t("org.switcher.personal"),
     avatar_url: profile.avatar_url,
     type: "personal",
   } : null;

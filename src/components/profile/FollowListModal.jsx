@@ -44,7 +44,7 @@ function initialsOf(name) {
 }
 
 function PersonRow({ person, onPress }) {
-  const name = person.display_name || person.username || "HUI Mitglied";
+  const name = person.full_name || person.display_name || person.username || "HUI Mitglied";
   return (
     <button
       onClick={onPress}
@@ -124,7 +124,7 @@ export default function FollowListModal({ userId, initialTab = "followers", onCl
       // werden in oeffentlichen Follower-/Folgt-Listen NICHT aufgelistet.
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id,display_name,username,avatar_url,account_type,org_type,is_talent,focus_type")
+        .select("id,full_name,display_name,username,avatar_url,account_type,org_type,is_talent,focus_type")
         .in("id", ids)
         .or("focus_type.is.null,focus_type.neq.private")
         .limit(500);

@@ -282,8 +282,8 @@ export default function ProjekteAllModal({ isOpen, onClose, onPressItem }) {
         let nameMap = {};
         if (uids.length > 0) {
           const { data: profs } = await supabase
-            .from("profiles").select("id,display_name,username").in("id", uids);
-          nameMap = Object.fromEntries((profs||[]).map(p => [p.id, p.display_name || p.username || null]));
+            .from("profiles").select("id,full_name,display_name,username").in("id", uids);
+          nameMap = Object.fromEntries((profs||[]).map(p => [p.id, p.full_name || p.display_name || p.username || null]));
         }
         filtered = filtered.map(p => ({
           ...p,

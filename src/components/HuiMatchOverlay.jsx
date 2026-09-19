@@ -217,7 +217,7 @@ function ResultCard({ item, idx, onOpen, moodColor }) {
   // Fallback — HUILogo wenn kein echtes Bild vorhanden ist oder es fehlschlägt.
   const rawImg   = item.avatar_url || item.cover_url || item.img || null;
   const img      = (!imgErr && rawImg) ? rawImg : null;
-  const name     = item.display_name || item.name || item.title || "—";
+  const name     = item.full_name || item.display_name || item.name || item.title || "—";
   const sub      = item.talent || item.bio?.slice(0,55) || item.description?.slice(0,55) || "";
 
   return (

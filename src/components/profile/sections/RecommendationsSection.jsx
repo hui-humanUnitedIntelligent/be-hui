@@ -188,7 +188,7 @@ export function RecommendationsSection({
         <div className="rs-hscroll" style={{ display:"flex", gap:12, padding:`0 ${T.px}px 4px` }}>
           {recommendations.slice(0,5).map((rec,i) => {
             // from_profile wird via Batch-Query in useProfileData.js geladen (FK zu auth.users)
-            const authorName   = rec.from_profile?.display_name || "Mitglied";
+            const authorName   = rec.from_profile?.full_name || rec.from_profile?.display_name || "Mitglied";
             const authorAvatar = rec.from_profile?.avatar_url   || null;
             return (
             <div key={rec.id||i}

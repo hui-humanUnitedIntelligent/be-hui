@@ -39,7 +39,7 @@ const F = {
   // Identity Contract — einziges kanonisches Profil-Fieldset
   profile:      IDENTITY_CONTRACT,
   // profileMin: für Chat/Notifications (Avatar + Name) — bewusst minimal
-  profileMin:   'id,display_name,username,avatar_url',
+  profileMin:   'id,full_name,display_name,username,avatar_url',
   // DEEPLINK.1 (2026-07-09): +slug fuer /werke/:slug (Migration 074)
   work:         'id,user_id,title,cover_url,media_url,price,category,medium,status,likes_count,location_text,created_at,slug',
   experience:   'id,user_id,title,cover_url,price,duration,spots_available,location_text,status,created_at',

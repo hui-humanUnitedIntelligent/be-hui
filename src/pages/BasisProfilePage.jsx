@@ -430,7 +430,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
     if (!profile?.id || !setShowChat) return;
     setChatRecipient?.({
       id:           profile.id,
-      display_name: profile.display_name || profile.username || t("bpp.member"),
+      display_name: profile.full_name || profile.display_name || profile.username || t("bpp.member"),
       avatar_url:   profile.avatar_url || null,
     });
     if (onClose) onClose();   // Profil zuerst schließen
@@ -574,7 +574,7 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
             loading={loadingLazy}
             onShowAll={null}
             profileOwnerId={profile?.id || ""}
-            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+            profileOwnerName={profile?.full_name || profile?.display_name || profile?.nickname || ""}
           />
         <Gap h={24}/>
 

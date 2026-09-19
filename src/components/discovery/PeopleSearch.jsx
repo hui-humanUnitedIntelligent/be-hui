@@ -3,6 +3,7 @@
 // Warm, editorial, menschlich — kein LinkedIn-Directory
 
 import React, { useEffect, useRef, useState } from "react";
+import { resolveDisplayName } from "../../lib/profileMedia.js";
 import { HUI }            from "../../design/hui.design.js";
 import { useUserSearch, loadFeaturedCreators }
                            from "../../features/discovery/userSearch.js";
@@ -23,7 +24,7 @@ function PresenceDot({ available }) {
 function PersonCard({ person, onOpenProfile, onOpenChat }) {
   const [pressed, setPressed] = useState(false);
   const followStatus = useFollowStatus(person.id);
-  const initials = (person.display_name || "?")
+  const initials = (resolveDisplayName(person, "?"))
     .split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
   return (
@@ -74,7 +75,7 @@ function PersonCard({ person, onOpenProfile, onOpenChat }) {
           <span style={{
             fontSize: 15, fontWeight: 600, color: C.ink,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>{person.display_name}</span>
+          }}>{resolveDisplayName(person)}</span>
           {person.is_wirker && (
             <span style={{
               fontSize: 10, fontWeight: 600, color: C.teal,

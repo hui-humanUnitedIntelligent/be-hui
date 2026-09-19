@@ -49,7 +49,7 @@ const SORT_OPTIONS = [
 function PersonCardItem({ p, onPress, followers=0, likes=0, membershipType="base" }) {
   const [imgErr, setImgErr] = useState(false);
   const av = (!imgErr && p.avatar_url) ? p.avatar_url : null;
-  const name = p.display_name || p.username || "HUI Mitglied";
+  const name = p.full_name || p.display_name || p.username || "HUI Mitglied";
   return (
     <div onClick={() => onPress?.(p)} style={{
       background:T.white, borderRadius:16, overflow:"hidden",

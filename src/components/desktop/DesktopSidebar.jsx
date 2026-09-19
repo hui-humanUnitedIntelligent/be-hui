@@ -128,7 +128,7 @@ export default function DesktopSidebar({ onOpenChat, chatUnread = 0 }) {
     catch (e) { console.error('[HUI Web] Logout:', e); }
   }
 
-  const displayName = profile?.display_name || profile?.username || 'HUI Mitglied';
+  const displayName = profile?.full_name || profile?.display_name || profile?.username || 'HUI Mitglied';
   const impactLevel = profile?.membership_type && profile.membership_type !== 'free'
     ? (profile.membership_type === 'premium' ? 'Premium' : profile.membership_type)
     : 'Mitglied';

@@ -16,7 +16,7 @@ import { createProfileItem } from "../../lib/factories/createProfileItem.js";
 
 // ── Felder die wir brauchen (kein select *) ─────────────────────
 // Identity Contract v1.0: SEARCH_FIELDS → CANONICAL
-const SEARCH_FIELDS = "id,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views";
+const SEARCH_FIELDS = "id,full_name,display_name,username,avatar_url,bio,location_label,member_since,role,has_talent_profile,talent,membership_type,membership_active,followers_count,impact_eur,profile_views";
 
 // ── Normalisierung ───────────────────────────────────────────────
 function normalizeResult(raw) {
@@ -24,7 +24,8 @@ function normalizeResult(raw) {
   const item = createProfileItem(raw);
   return {
     id:           raw.id,
-    display_name: raw.display_name || "HUI Creator",
+    // IDENTITY-NAME-SSOT (2026-09-18): full_name vor display_name.
+    display_name: raw.full_name || raw.display_name || raw.username || "HUI Creator",
     username:     raw.username     || null,
     avatar_url:   raw.avatar_url   || null,
     bio:          raw.bio          || null,

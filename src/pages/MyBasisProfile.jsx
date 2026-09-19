@@ -949,7 +949,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 recommendations={recommendations}
                 isOwner={true}
                 profileOwnerId={profile?.id || ""}
-                profileOwnerName={profile?.display_name || profile?.nickname || ""}
+                profileOwnerName={profile?.full_name || profile?.display_name || profile?.nickname || ""}
               />
         <Gap h={24}/>
 
@@ -979,7 +979,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
                 recommendations={recommendations}
                 isOwner={true}
                 profileOwnerId={profile?.id || ""}
-                profileOwnerName={profile?.display_name || profile?.nickname || ""}
+                profileOwnerName={profile?.full_name || profile?.display_name || profile?.nickname || ""}
               />
         <Gap h={24}/>
 

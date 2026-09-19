@@ -252,7 +252,7 @@ export default function MerkenSection({ onOpenProfile = () => {}, onOpenDiscover
   // MERKLISTE.2: kein getCover(post_data) mehr -- Bild kommt live aus
   // originalCovers (siehe Effect oben), NIE aus der gespeicherten Kopie.
   const getTitle   = (item) => { const d = item.post_data || {}; return d.title || d.caption || d.name || "Gespeicherter Inhalt"; };
-  const getCreator = (item) => { const d = item.post_data || {}; return d.author_name || d.creator_name || d.display_name || d.username || null; };
+  const getCreator = (item) => { const d = item.post_data || {}; return d.author_name || d.creator_name || d.full_name || d.display_name || d.username || null; };
   const formatDate = (iso)  => { if (!iso) return ""; const d = new Date(iso); return formatDateDE(d, { day:"numeric", month:"short", year:"numeric" }); };
 
   const filtered = React.useMemo(() => {

@@ -148,11 +148,11 @@ export default function WirkungPage() {
     if (nonAnonSupporterIds.length) {
       const { data: pf } = await supabase
         .from("profiles")
-        .select("id,display_name")
+        .select("id,full_name,display_name")
         .in("id", nonAnonSupporterIds)
         .or("focus_type.is.null,focus_type.neq.private")
         .limit(100);
-      supporterNames = Object.fromEntries((pf || []).map(p => [p.id, p.display_name]));
+      supporterNames = Object.fromEntries((pf || []).map(p => [p.id, p.full_name || p.display_name]));
     }
     const votes = votesRes.data || [];
     const bookings = bookingsRes.data || [];

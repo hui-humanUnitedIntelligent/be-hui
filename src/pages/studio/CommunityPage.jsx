@@ -70,7 +70,7 @@ export default function CommunityPage() {
     ] = await Promise.all([
       // Aktive Mitglieder — die letzten 12 mit activity (nicht nach followers sortiert)
       supabase.from('profiles')
-        .select('id, display_name, avatar_url, role, is_talent, membership_active, updated_at')
+        .select('id, full_name, display_name, avatar_url, role, is_talent, membership_active, updated_at')
         .eq('membership_active', true)
         .order('updated_at', { ascending: false })
         .limit(12),
@@ -114,7 +114,7 @@ export default function CommunityPage() {
       const [supportersRes, projectsRes] = await Promise.all([
         supporterIds.length > 0
           ? supabase.from('profiles')
-              .select('id, display_name, avatar_url')
+              .select('id, full_name, display_name, avatar_url')
               .in('id', supporterIds)
           : Promise.resolve({ data: [] }),
 
@@ -131,7 +131,7 @@ export default function CommunityPage() {
       )];
       const creatorsRes = creatorIds.length > 0
         ? await supabase.from('profiles')
-            .select('id, display_name, avatar_url')
+            .select('id, full_name, display_name, avatar_url')
             .in('id', creatorIds)
         : { data: [] };
 
@@ -307,11 +307,11 @@ function MemberCard({ member = {} }) {
           margin: '0 auto 10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 18, color: C.muted,
         }}>
-          {(member.display_name || '?')[0]}
+          {(member.full_name || member.display_name || '?')[0]}
         </div>
       )}
       <div style={{ fontSize: 13, fontWeight: 600, color: C.ink, marginBottom: 2 }}>
-        {member.display_name || 'Mitglied'}
+        {member.full_name || member.display_name || 'Mitglied'}
       </div>
       <div style={{ fontSize: 11, color: C.muted }}>
         {roleLabel}

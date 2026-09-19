@@ -67,7 +67,7 @@ export default function VerbindenModal({
 
   if (!open) return null;
 
-  const displayName = otherUser?.display_name || otherUser?.name || "diese Person";
+  const displayName = otherUser?.full_name || otherUser?.display_name || otherUser?.name || "diese Person";
 
   async function handleConnect() {
     if (!user?.id || !otherUser?.id) return;

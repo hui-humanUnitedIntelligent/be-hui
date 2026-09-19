@@ -39,7 +39,7 @@ export default function StudioOverviewPage({ onNavigate }) {
   const isTalent = isProfileTalent(profile);
   const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
 
-  const displayName = profile?.display_name || profile?.username || 'Mitglied';
+  const displayName = profile?.full_name || profile?.display_name || profile?.username || 'Mitglied';
 
   // Verantwortungs-Status
   const responsibilities = [];

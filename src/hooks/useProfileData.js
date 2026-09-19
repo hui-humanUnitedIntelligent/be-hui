@@ -325,7 +325,7 @@ export function useProfileData(profileId, includePrivate = false) {
         const fromIds = [...new Set(recsRaw.map(r => r.from_user_id).filter(Boolean))];
         supabase
           .from("profiles")
-          .select("id,display_name,username,avatar_url")
+          .select("id,full_name,display_name,username,avatar_url")
           .in("id", fromIds.slice(0, 20))
           .then(({ data: authorProfiles }) => {
             if (myId !== lazyRequestId.current) return;

@@ -155,8 +155,8 @@ export default function ErlebnisseAllModal({ isOpen, onClose, onPressItem }) {
       const uids = [...new Set(mapped.map(e => e.user_id).filter(Boolean))];
       if (uids.length > 0) {
         const { data: profs } = await supabase
-          .from("profiles").select("id,display_name,username").in("id", uids);
-        const nMap = Object.fromEntries((profs||[]).map(p => [p.id, p.display_name || p.username || null]));
+          .from("profiles").select("id,full_name,display_name,username").in("id", uids);
+        const nMap = Object.fromEntries((profs||[]).map(p => [p.id, p.full_name || p.display_name || p.username || null]));
         mapped = mapped.map(e => ({ ...e, _authorName: nMap[e.user_id] || null }));
       }
       setItems(prev => pageNum === 0 ? mapped : [...prev, ...mapped]);

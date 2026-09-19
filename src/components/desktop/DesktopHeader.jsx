@@ -36,7 +36,7 @@ function AvatarDropdown({ profile, onNavigate, onLogout, onClose }) {
             </div>
           )}
           <div>
-            <div className="hd-dropdown-name">{profile?.display_name || profile?.username || 'HUI Mitglied'}</div>
+            <div className="hd-dropdown-name">{profile?.full_name || profile?.display_name || profile?.username || 'HUI Mitglied'}</div>
             <div className="hd-dropdown-handle">{profile?.username ? `@${profile.username}` : ''}</div>
           </div>
         </div>

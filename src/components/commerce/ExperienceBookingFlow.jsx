@@ -66,7 +66,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                   || expObj?._raw?.creator_id || expObj?._raw?.user_id
                   || expObj?.creator_id;
   const title     = expObj?.title || expObj?._raw?.title || t("ebf.defaultTitle");
-  const creatorName = crObj?.display_name || crObj?.name || expObj?.author?.name || t("ebf.defaultCreator");
+  const creatorName = crObj?.full_name || crObj?.display_name || crObj?.name || expObj?.author?.name || t("ebf.defaultCreator");
   const rawPrice  = expObj?._raw?.price ?? expObj?.price ?? null;
   const amount    = typeof rawPrice === "number" ? rawPrice
                   : typeof rawPrice === "string"

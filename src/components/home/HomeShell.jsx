@@ -113,6 +113,7 @@ export default function HomeShell({ children }) {
     if (authProfile) {
       setCurrentUser(authProfile);
       setUserName(
+        authProfile.full_name ||
         authProfile.display_name ||
         authProfile.email?.split("@")[0] ||
         ""

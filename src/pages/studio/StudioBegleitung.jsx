@@ -38,7 +38,7 @@ export default function StudioBegleitung() {
     setLoading(true);
     const { data } = await supabase
       .from('profiles')
-      .select('id, display_name, username, avatar_url, is_talent, role, membership_active, membership_type, profile_modules, created_at')
+      .select('id, full_name, display_name, username, avatar_url, is_talent, role, membership_active, membership_type, profile_modules, created_at')
       .order('created_at', { ascending: false })
       .limit(200);
     setMembers(data || []);
@@ -63,7 +63,7 @@ export default function StudioBegleitung() {
         await sendNotification(member.id, 'responsibility_granted',
           `Du hast eine neue Verantwortung erhalten`,
           `Dir wurde die Verantwortung „${label}" anvertraut. Willkommen in dieser Rolle.`);
-        setToast({ text: `${label}-Verantwortung an ${member.display_name || member.username || 'Mitglied'} vergeben.`, type: 'success' });
+        setToast({ text: `${label}-Verantwortung an ${member.full_name || member.display_name || member.username || 'Mitglied'} vergeben.`, type: 'success' });
       } else {
         await sendNotification(member.id, 'responsibility_revoked',
           `Deine Verantwortung wurde angepasst`,
@@ -86,7 +86,7 @@ export default function StudioBegleitung() {
 
   const q = search.toLowerCase();
   const matchesSearch = m => !search ||
-    (m.display_name || '').toLowerCase().includes(q) ||
+    (m.full_name || m.display_name || '').toLowerCase().includes(q) ||
     (m.username || '').toLowerCase().includes(q);
 
   return (
@@ -155,7 +155,7 @@ export default function StudioBegleitung() {
 }
 
 function MemberRow({ member, expanded, onToggleExpand, onToggleResp, updating }) {
-  const name = member.display_name || member.username || 'Unbekannt';
+  const name = member.full_name || member.display_name || member.username || 'Unbekannt';
   const initials = name.charAt(0).toUpperCase();
 
   return (

@@ -83,7 +83,7 @@ function WerkHero({ work, navigate }) {
 // ── Talent des Tages ────────────────────────────────────────────────────────────
 function TalentHero({ talent, navigate }) {
   if (!talent) return null;
-  const name = talent.display_name || talent.username || 'Ein Wirker';
+  const name = talent.full_name || talent.display_name || talent.username || 'Ein Wirker';
   return (
     <div className="hero-card hero-card-talent" onClick={() => navigate(`/profile/${talent.username || talent.id}`)} role="button" tabIndex={0}>
       <div className="hero-talent-visual">
@@ -162,7 +162,7 @@ export default function DesktopHome() {
   const { discover, activity, impact, bookings } = useDesktopData();
   useEffect(() => { if (discover.works?.length || discover.talents?.length) ; }, [discover.works, discover.talents]);
 
-  const firstName = (profile?.display_name || profile?.username || '').split(' ')[0] || '';
+  const firstName = (profile?.full_name || profile?.display_name || profile?.username || '').split(' ')[0] || '';
 
   // ── Hero rotation: baue Liste verfügbarer Hero-Inhalte ──────────────────────
   const heroes = useMemo(() => {

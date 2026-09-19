@@ -61,7 +61,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
   if (!visible || !creator) return null;
 
   const creatorId = creator.id || creator.user_id;
-  const creatorName = creator.display_name || creator.name || "dieses Talent";
+  const creatorName = creator.full_name || creator.display_name || creator.name || "dieses Talent";
   const finalAmount = custom ? parseFloat(custom.replace(",", ".")) : amount;
 
   async function handleSupport() {
@@ -128,7 +128,7 @@ export default function SupportFlow({ creator, visible, onClose, sourceType="pro
     await supabase.from("notifications").insert({
       user_id:    creatorId,
       type:       "support_received",
-      text:       `${finalAmount.toFixed(2).replace(".", ",")} € Unterstützung von ${user?.display_name || "einem Mitglied"}`,
+      text:       `${finalAmount.toFixed(2).replace(".", ",")} € Unterstützung von ${user?.full_name || user?.display_name || "einem Mitglied"}`,
       read:       false,
       actor_id:   user.id,
       created_at: new Date().toISOString(),

@@ -182,11 +182,11 @@ function MeineKaeufe({ userId, onCloseModal }) {
     const sellerIds = [...new Set((data || []).map(o => o.order_items?.[0]?.seller_id).filter(Boolean))];
     if (sellerIds.length) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username, avatar_url, email, website")
+        .select("id, full_name, display_name, username, avatar_url, email, website")
         .in("id", sellerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || t("fz.seller"), avatar: p.img || p.avatar_url || null, website: p.website || null, username: p.username || null };
+        map[p.id] = { name: p.full_name || p.display_name || p.username || t("fz.seller"), avatar: p.img || p.avatar_url || null, website: p.website || null, username: p.username || null };
       });
       setSellerMap(map);
     }
@@ -543,11 +543,11 @@ function MeineVerkaeufe({ userId, onCloseModal }) {
     const buyerIds = [...new Set((data || []).map(i => i.orders?.customer_id).filter(Boolean))];
     if (buyerIds.length) {
       const { data: profs } = await supabase.from("profiles")
-        .select("id, display_name, username, avatar_url, email, website")
+        .select("id, full_name, display_name, username, avatar_url, email, website")
         .in("id", buyerIds);
       const map = {};
       (profs || []).forEach(p => {
-        map[p.id] = { name: p.display_name || p.username || t("fz.buyer"), avatar: p.img || p.avatar_url || null };
+        map[p.id] = { name: p.full_name || p.display_name || p.username || t("fz.buyer"), avatar: p.img || p.avatar_url || null };
       });
       setBuyerMap(map);
     }
@@ -699,8 +699,8 @@ function MeineBuchungen({ userId, onCloseModal }) {
     const sellerIds = [...new Set((data || []).map(b => b.seller_id).filter(Boolean))];
     let nameMap = {};
     if (sellerIds.length) {
-      const { data: profs } = await supabase.from("profiles").select("id, display_name, username, email, website").in("id", sellerIds);
-      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.display_name || p.username || t("fz.provider"), website: p.website || null, username: p.username || null }]));
+      const { data: profs } = await supabase.from("profiles").select("id, full_name, display_name, username, email, website").in("id", sellerIds);
+      nameMap = Object.fromEntries((profs || []).map(p => [p.id, { name: p.full_name || p.display_name || p.username || t("fz.provider"), website: p.website || null, username: p.username || null }]));
     }
     setBookings((data || []).map(b => { const sm = nameMap[b.seller_id] || { name: t("fz.provider") }; return { ...b, seller_name: sm.name || t("fz.provider"), seller_website: sm.website || null, seller_username: sm.username || null }; }));
 

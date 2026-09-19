@@ -30,7 +30,7 @@ function ChatList({ chats, activeChatId, onSelect, loading }) {
     <div className="chat-list">
       {chats.map(chat => {
         const other = chat.other_profile;
-        const name = other?.display_name || chat.booking_title || 'Konversation';
+        const name = other?.full_name || other?.display_name || chat.booking_title || 'Konversation';
         return (
           <button key={chat.id} className={`chat-list-item ${activeChatId === chat.id ? 'active' : ''}`} onClick={() => onSelect(chat)}>
             <div className="chat-avatar">

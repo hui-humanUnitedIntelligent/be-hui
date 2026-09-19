@@ -305,10 +305,10 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
       let customerName = user?.email?.split("@")[0] || t("tbf.notifDefaultName");
       const { data: custProf } = await supabase
         .from("profiles")
-        .select("display_name, username")
+        .select("full_name, display_name, username")
         .eq("id", user.id)
         .maybeSingle();
-      if (custProf?.display_name) customerName = custProf.display_name;
+      if (custProf?.full_name || custProf?.display_name) customerName = custProf.full_name || custProf.display_name;
       else if (custProf?.username) customerName = custProf.username;
 
       // Datum formatieren (z.B. "13. September")

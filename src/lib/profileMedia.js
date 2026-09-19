@@ -59,10 +59,27 @@ export function sv(val, fallback = "") {
 
 // ── Profil-Felder aufloesen ──────────────────────────────────────────
 /**
- * Loesung Anzeigenamen: display_name → username → fallback
+ * IDENTITY-NAME-SSOT (2026-09-18): Kanonische Namensauflösung für JEDE
+ * Stelle in der App, die einen einzelnen Namensstring für ein Profil zeigt
+ * (Feed-Karten, Chat, Kommentare, Notifications, Discover-Listen, Admin,
+ * Desktop-UI). full_name ("Öffentlicher Name") hat Vorrang vor display_name
+ * ("Anzeigename/Spitzname") vor username — das war VORHER die Minderheit-
+ * Logik (nur DiscoverPage/CommentsSheet/ConversationCard nutzten diese
+ * Reihenfolge inline), ~45 andere Stellen lasen NUR display_name und
+ * ignorierten full_name komplett. Root Cause des Bugs "Name wird nicht
+ * überall aktualisiert" (Michael-Report 18.09., Test full_name="Michael
+ * Mathi" erschien nur auf den Discover-Karten, nicht in Menschen-Liste/
+ * Chat/Notifications/Desktop, weil die dortigen Reads bei display_name
+ * stehenblieben). Diese Funktion ist ab jetzt die EINZIGE erlaubte Quelle
+ * für Namensauflösung — niemals wieder eine eigene Fallback-Kette
+ * (X.display_name || X.username) inline schreiben, sondern resolveDisplayName
+ * importieren. Funktioniert sicher auf JEDER Objektform (Profile, Snapshots,
+ * Chat-Partner) — fehlende Felder liefern einfach undefined, sv() fällt
+ * dann auf den fallback zurück.
+ * Loesung Anzeigenamen: full_name → display_name → username → fallback
  */
 export function resolveDisplayName(profile, fallback = "–") {
-  return sv(profile?.display_name || profile?.username, fallback);
+  return sv(profile?.full_name || profile?.display_name || profile?.username, fallback);
 }
 
 /**

@@ -442,7 +442,7 @@ export function MeinBereichMenu({
             recommendations={recommendations}
             isOwner={true}
             profileOwnerId={profile?.id || ""}
-            profileOwnerName={profile?.display_name || profile?.nickname || ""}
+            profileOwnerName={profile?.full_name || profile?.display_name || profile?.nickname || ""}
           />
         </MeinBereichDrawer>
       )}

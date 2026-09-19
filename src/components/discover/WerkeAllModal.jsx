@@ -144,8 +144,8 @@ export default function WerkeAllModal({ isOpen, onClose, onPressItem }) {
       let nameMap = {};
       if (uids.length > 0) {
         const { data: profs } = await supabase
-          .from("profiles").select("id,display_name,username").in("id", uids);
-        (profs || []).forEach(p => { nameMap[p.id] = p.display_name || p.username || null; });
+          .from("profiles").select("id,full_name,display_name,username").in("id", uids);
+        (profs || []).forEach(p => { nameMap[p.id] = p.full_name || p.display_name || p.username || null; });
       }
       const enriched = data.map(w => ({ ...w, _authorName: nameMap[w.user_id] || null }));
       setItems(prev => pageNum === 0 ? enriched : [...prev, ...enriched]);

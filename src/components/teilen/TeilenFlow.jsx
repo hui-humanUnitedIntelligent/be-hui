@@ -452,7 +452,7 @@ function StepCreate({ mode, data, onChange }) {
 function StepPreview({ mode, data, profile, onPublish, publishing }) {
   const { t } = useTranslation();
   const isStory = mode === "story";
-  const name    = profile?.display_name || profile?.email?.split("@")[0] || "Du";
+  const name    = profile?.full_name || profile?.display_name || profile?.email?.split("@")[0] || "Du";
   const avatar  = profile?.avatar_url || null;
   const now     = "Gerade eben";
 

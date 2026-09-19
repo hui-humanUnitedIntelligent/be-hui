@@ -1393,11 +1393,11 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
         if (senderIds.length) {
           const { data: pf } = await supabase
             .from("profiles")
-            .select("id,display_name")
+            .select("id,full_name,display_name")
             .in("id", senderIds)
             .or("focus_type.is.null,focus_type.neq.private")
             .limit(100);
-          const nameMap = Object.fromEntries((pf || []).map(p => [p.id, p.display_name]));
+          const nameMap = Object.fromEntries((pf || []).map(p => [p.id, p.full_name || p.display_name]));
           enriched = data.map(n => ({ ...n, _actorName: nameMap[n.sender_id] || null }));
         }
         setNotifs(enriched);
@@ -1426,11 +1426,11 @@ export default function NotificationPanel({ userId, onClose, onUnreadChange, onA
               const incoming = payload.new;
               if (incoming?.sender_id) {
                 supabase.from("profiles")
-                  .select("id,display_name").eq("id", incoming.sender_id)
+                  .select("id,full_name,display_name").eq("id", incoming.sender_id)
                   .or("focus_type.is.null,focus_type.neq.private")
                   .maybeSingle()
                   .then(({ data: p }) => {
-                    setNotifs(prev => [{ ...incoming, _actorName: p?.display_name || null }, ...prev]);
+                    setNotifs(prev => [{ ...incoming, _actorName: (p?.full_name || p?.display_name) || null }, ...prev]);
                   });
               } else {
                 setNotifs(prev => [incoming, ...prev]);

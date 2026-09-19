@@ -129,8 +129,8 @@ export default function TalenteAllModal({ isOpen, onClose, onPressTalent }) {
       let pMap = {};
       if (ids.length > 0) {
         const { data: provs } = await supabase.from("profiles")
-          .select("id,display_name,username").in("id", ids);
-        pMap = Object.fromEntries((provs||[]).map(p => [p.id, p.display_name || p.username || "HUI Talent"]));
+          .select("id,full_name,display_name,username").in("id", ids);
+        pMap = Object.fromEntries((provs||[]).map(p => [p.id, p.full_name || p.display_name || p.username || "HUI Talent"]));
       }
 
       const enriched = data.map(t => ({ ...t, _author: pMap[t.user_id] || "HUI Talent" }));

@@ -62,7 +62,7 @@ export function StoryBar({ onStoryClick }) {
       .select(`
         id, user_id, media_url, media_type, caption, text_overlay,
         is_highlight, created_at, expires_at,
-        profile:user_id(display_name, avatar_url)
+        profile:user_id(full_name, display_name, avatar_url)
       `)
       .or(`expires_at.is.null,expires_at.gt.${now}`)
       .order('created_at', { ascending: false })
@@ -86,7 +86,7 @@ export function StoryBar({ onStoryClick }) {
     const map = {};
     for (const s of data) {
       const uid = s.user_id;
-      const displayName = s.profile?.display_name || t("story.anonym");
+      const displayName = s.profile?.full_name || s.profile?.display_name || t("story.anonym");
       const avatarUrl   = s.profile?.avatar_url   || null;
       if (!map[uid]) map[uid] = { uid, username: displayName, avatar_url: avatarUrl, stories: [] };
       map[uid].stories.push({ ...s, username: displayName, avatar_url: avatarUrl });
@@ -704,7 +704,7 @@ export function HighlightsRow({ userId }) {
       .select(`
         id, user_id, media_url, media_type, caption, text_overlay,
         is_highlight, created_at, expires_at,
-        profile:user_id(display_name, avatar_url)
+        profile:user_id(full_name, display_name, avatar_url)
       `)
       .eq('user_id', userId)
       .eq('is_highlight', true)

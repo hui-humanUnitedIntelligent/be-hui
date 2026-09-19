@@ -202,7 +202,7 @@ const CSS_DIALOG = `
 function VerbindungsDialog({ profile, currentUserId, onClose, onSuccess }) {
   const { t } = useTranslation();
   const intentions = getIntentions(t);
-  const name = s(profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
+  const name = s(profile?.full_name || profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
   const [intention,   setIntention]   = React.useState(null);
   const [message,     setMessage]     = React.useState("");
   const [sending,     setSending]     = React.useState(false);
@@ -485,7 +485,7 @@ function KompassActionSheet({ profile, isWatching, onWatch, onClose, onSupport =
           margin:"0 auto 18px",
         }}/>
         <div style={{fontSize:15, fontWeight: 600, color:"#55556B", marginBottom:18, textAlign:"center"}}>
-          {profile?.display_name || t("tpp.kompass.creator")}
+          {profile?.full_name || profile?.display_name || t("tpp.kompass.creator")}
         </div>
         <button
           onClick={() => { onWatch?.(); onClose(); }}
@@ -582,7 +582,7 @@ function ActionButtons({ profile, currentUserId, loading, onOpenChat, onOpenKomp
       notifyWatcher({
         watcherId:   currentUserId,
         profileId:   profile.id,
-        watcherName: authProfile?.display_name || t('common.someone'),
+        watcherName: authProfile?.full_name || authProfile?.display_name || t('common.someone'),
       }).catch(() => {});
       rel.refetch();
     } else {
@@ -889,7 +889,7 @@ function NaechsteErlebnisseSection({ experiences, loading }) {
 // ══════════════════════════════════════════════════════════════
 function AbschlussBar({ profile, loading }) {
   const { t } = useTranslation();
-  const name = s(profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
+  const name = s(profile?.full_name || profile?.display_name || profile?.username, t("tpp.dialog.fallbackName"));
 
   return (
     <div style={{
@@ -946,7 +946,7 @@ function AbschlussButtons({ profile, currentUserId, onOpenChat }) {
       notifyWatcher({
         watcherId:   currentUserId,
         profileId:   profile.id,
-        watcherName: authProfile?.display_name || t('common.someone'),
+        watcherName: authProfile?.full_name || authProfile?.display_name || t('common.someone'),
       }).catch(() => {});
       rel.refetch();
     } else {
@@ -1279,7 +1279,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
     if (!profile?.id) return;
     setChatRecipient({
       id:           profile.id,
-      display_name: profile.display_name || profile.username || "Talent",
+      display_name: profile.full_name || profile.display_name || profile.username || "Talent",
       avatar_url:   profile.avatar_url || null,
     });
     if (onClose) onClose();   // Profil zuerst schließen
