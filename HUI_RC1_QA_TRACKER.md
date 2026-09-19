@@ -1,10 +1,9 @@
 # HUI RC1 — QA Tracker
 
 **Repository:** be-hui  
-**RC1-Integrationsstand:** PR #139  
+**RC1-Integrationsstand:** PR #139 (gemergt 2026-07-15)  
 **Freeze ab:** 2026-07-15  
-**Integrations-Branch:** `cursor/hui-rc1-integration-f69f`  
-**Vercel Preview:** [PR #139 Deploy](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/139)
+**`main` Commit:** `6f56aa08`
 
 ---
 
@@ -14,8 +13,8 @@
 |---|---|---|
 | `npm install` | Integration (#139) | ✅ PASS (376 packages) |
 | `npm run build` | Integration (#139) | ✅ PASS (804 modules, 5.16s) |
-| `npm install` | `main` | ❌ FAIL — `stripe-js@^1.54.0` 404 |
-| `npm run build` | `main` | ❌ FAIL — blockiert durch Dependencies |
+| `npm install` | `main` @ `6f56aa08` | ✅ PASS (376 packages) |
+| `npm run build` | `main` @ `6f56aa08` | ✅ PASS (804 modules, 5.26s) |
 | Feed Reality Check | Integration (#139) | ✅ PASS — Realtime-Verlust behoben, IO-Root korrekt |
 | ESLint `src/feed/` | Integration (#139) | ⚠️ PRE-EXISTING — `react-hooks/exhaustive-deps` Regel nicht konfiguriert |
 
@@ -164,7 +163,7 @@ Für jeden gefundenen Fehler:
 
 | ID | Prio | Bereich | Gerät | Browser | Reproduzierbar | Root Cause | PR | Status |
 |---|---|---|---|---|---|---|---|---|
-| RC1-001 | P0 | Build | Cloud CI | — | Ja — `npm install` auf `main` | `package.json` referenziert nicht existierendes Paket `stripe-js@^1.54.0`; fehlende Peer-Deps | [#139](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/139) | Behoben |
+| RC1-001 | P0 | Build | Cloud CI | — | Ja — `npm install` auf `main` | `package.json` referenziert nicht existierendes Paket `stripe-js@^1.54.0`; fehlende Peer-Deps | [#139](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/139) | Verifiziert |
 | RC1-002 | P3 | Build | Cloud CI | — | Ja — `npx eslint src/feed/` | ESLint-Plugin `react-hooks/exhaustive-deps` in `eslint.config.js` nicht registriert | — | Offen |
 
 ### Bug-Eintrag Vorlage
@@ -190,7 +189,7 @@ RC1 gilt als freigegeben, wenn alle Punkte erfüllt sind:
 
 | Kriterium | Status |
 |---|---|
-| Build stabil | ⏳ Integration ✅ — Merge #139 → `main` ausstehend |
+| Build stabil | ✅ `main` @ `6f56aa08` — npm install + build PASS |
 | Feed stabil | ⏳ Automatisiert ✅ — Geräte-QA ausstehend |
 | Safari stabil | ☐ |
 | Firefox stabil | ☐ |
@@ -209,3 +208,4 @@ RC1 gilt als freigegeben, wenn alle Punkte erfüllt sind:
 | 2026-07-15 | RC1-001 | Build-Blocker auf `main` identifiziert; Fix in Integrations-Branch verifiziert | [#139](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/139) |
 | 2026-07-15 | — | Feed Reality Check + Build auf Integrations-Branch bestanden | [#139](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/139) |
 | 2026-07-15 | RC1-002 | ESLint-Konfigurationsfehler dokumentiert (nicht RC1-blockierend) | — |
+| 2026-07-15 | RC1-001 | PR #139 gemergt; Build auf `main` erneut verifiziert | [#139](https://github.com/hui-humanUnitedIntelligent/be-hui/pull/139) |
