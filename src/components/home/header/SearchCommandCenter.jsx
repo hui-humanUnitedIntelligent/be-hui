@@ -17,6 +17,9 @@ import { HUILocationIcon } from '../../../design/icons/HuiSystemIcons.jsx';
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal }          from "react-dom";
 import { supabase }              from "../../../lib/supabaseClient.js";
+// MIC-PERMISSION-SSOT (2026-09-19): lokales Duplikat entfernt — SSOT ist
+// jetzt src/lib/micPermission.js (geteilt mit ChatInput-Voice-Nachrichten).
+import { requestMicPermission }     from "../../../lib/micPermission.js";
 import { FEATURED_CATEGORIES, searchCategories, getCategoryLabel } from "../../../lib/categories.js";
 import { NAV_RESERVED_HEIGHT_CSS } from "../navigation/navigationGeometry.js";
 import { useRadiusFilter, radiusLabel } from "../../../hooks/useRadiusFilter.js";
@@ -808,44 +811,6 @@ export default function SearchCommandCenter({
   // ── Spracherkennung (Web Speech API) — 2026-08-12, Michael-Auftrag ──
   // Mikrofon-Icon rechts neben der Suchleiste startet/stoppt die
   // Spracherkennung. Erkannter Text wird direkt ins Suchfeld geschrieben.
-  // ── Mikrofon-Berechtigung anfordern (Android Runtime Permission) ──
-  // Nutzt native Bridge (__HUI_MIC) falls verfügbar (Capacitor/Android),
-  // fällt zurück auf Web API (navigator.mediaDevices.getUserMedia) für
-  // Browser. Gibt true/false zurück.
-  async function requestMicPermission() {
-    // 1. Native Android Bridge (Capacitor)
-    if (window.__HUI_MIC && typeof window.__HUI_MIC.requestPermission === "function") {
-      return new Promise((resolve) => {
-        window.__HUI_MIC_PERMISSION_RESULT = (granted) => {
-          resolve(granted === true || granted === "true");
-          window.__HUI_MIC_PERMISSION_RESULT = null;
-        };
-        try {
-          window.__HUI_MIC.requestPermission();
-        } catch {
-          resolve(false);
-        }
-        // Timeout: 10s
-        setTimeout(() => {
-          if (window.__HUI_MIC_PERMISSION_RESULT) {
-            window.__HUI_MIC_PERMISSION_RESULT = null;
-            resolve(false);
-          }
-        }, 10000);
-      });
-    }
-    // 2. Web Fallback (Browser)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        return true;
-      } catch { return false; }
-    }
-    // 3. Keine Methode verfügbar
-    return false;
-  }
-
   function toggleVoiceInput(){
     // Bereits aktiv → stoppen
     if (recognitionRef.current) {

@@ -14,11 +14,31 @@
 //     ersten Lade-Fehler wird EINMAL mit Cache-Buster (?hui-retry=<ts>)
 // // neu geladen — eine andere URL umgeht den defekten Cache-Eintrag.
 //     Erst beim zweiten Fehlschlag erscheint der HUILogo-Fallback.
-import React, { useState } from "react";
+//
+// SIGNED-URL-RESIGN-FIX (2026-09-19, Michael-Report "Bilder werden nicht
+// angezeigt" + Screenshot Chat mit Linda): Root Cause per DB-Verifikation
+// gefunden — chat-media-Bilder werden mit EINER signierten URL verschickt,
+// die (Stand ChatInput.jsx uploadChatMedia) nur 24h gueltig war. Nach 24h
+// liefert die Storage-URL 400/403 — das Bild ist PERMANENT unerreichbar,
+// auch wenn die Datei selbst unveraendert im Bucket liegt (verifiziert:
+// Nachricht vom 15.09. 18:08, Token exp=16.09. 18:08, seither tot). Bisher
+// wurde das nur als endgueltiger Fehlschlag behandelt (isSigned → sofort
+// setFailed, kein Retry). FIX: Bei einer abgelaufenen signierten URL wird
+// jetzt EINMAL automatisch neu signiert — Bucket + Pfad werden aus der
+// bestehenden /object/sign/<bucket>/<pfad>-URL extrahiert (kein DB-Schema-
+// Wechsel notwendig, die Original-URL bleibt die einzige gespeicherte
+// Quelle), createSignedUrl liefert einen frischen Token, EIN Retry mit der
+// neuen URL. Schlaegt auch das fehl (Datei wirklich geloescht o.ae.), erst
+// dann der HUILogo-Fallback. Ergaenzend: die Upload-Seite (ChatInput.jsx)
+// vergibt jetzt eine deutlich laengere Erst-TTL — dieser Re-Sign-Mechanismus
+// ist die dauerhafte Absicherung fuer JEDE bereits verschickte URL, unabhaengig
+// von der urspruenglichen TTL.
+import React, { useState, useRef } from "react";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useMediaLoad } from "../../hooks/useMediaLoad.js";
 import { validateStorageUrl } from "../../lib/storageDebug.js";
 import { optimizeImageUrl } from "../../lib/imageOptimization.js";
+import { resignStorageUrl } from "../../lib/storageResign.js";
 
 /**
  * @param {string}  src     — Bild-URL (Storage oder extern)
@@ -34,8 +54,9 @@ export default function MediaImage({
   optimizeWidth = 800, optimizeQuality = 80, skipOptimize = false,
   imgProps = {},
 }) {
-  const [retryUrl, setRetryUrl]   = useState(null);  // Cache-Bypass-URL (1 Versuch)
-  const [failed, setFailed]       = useState(false); // beide Versuche gescheitert
+  const [retryUrl, setRetryUrl]   = useState(null);  // Cache-Bypass- ODER Re-Sign-URL
+  const [failed, setFailed]       = useState(false); // alle Versuche gescheitert
+  const resignedRef = useRef(false); // Re-Sign nur EINMAL pro <img>-Instanz
   const { isLoading, handleLoad } = useMediaLoad(src, "image");
 
   if (!src || failed) {
@@ -76,13 +97,28 @@ export default function MediaImage({
         loading="lazy"
         decoding="async"
         onLoad={handleLoad}
-        onError={() => {
-          // Sign-URLs (privater chat-media-Bucket) duerfen KEINEN Cache-Buster
-          // bekommen — Query-Anhaenge brechen die Signatur. Direkt zum Fallback.
+        onError={async () => {
           const isSigned = src.includes("/object/sign/");
+
+          // SIGNED-URL-RESIGN-FIX: abgelaufene/ungueltige signierte URL —
+          // einmalig frisch signieren statt sofort aufzugeben.
+          if (isSigned && !resignedRef.current) {
+            resignedRef.current = true;
+            const freshUrl = await resignStorageUrl(src);
+            if (freshUrl) {
+              console.warn("[HUI Media] signed URL expired — re-signed, retrying:", src);
+              setRetryUrl(freshUrl);
+              return;
+            }
+            console.error("[HUI Media] signed URL failed, re-sign not possible:", src);
+            setFailed(true);
+            return;
+          }
+
+          // Nicht-signierte URLs (public/CDN): CACHE-BYPASS-RETRY wie bisher —
+          // einmalig mit Cache-Buster neu laden, umgeht defekte WebView-Cache-
+          // Eintraege (net::ERR_CACHE_OPERATION_NOT_SUPPORTED).
           if (!retryUrl && !isSigned) {
-            // CACHE-BYPASS-RETRY: einmalig mit frischer URL am defekten
-            // WebView-Cache-Eintrag vorbei (ERR_CACHE_OPERATION_NOT_SUPPORTED)
             console.warn("[HUI Media] image failed — retrying with cache-buster:", src);
             setRetryUrl(`${src}${src.includes("?") ? "&" : "?"}hui-retry=${Date.now()}`);
           } else {

@@ -18,15 +18,22 @@
 // noetig). Nur Video-Bildschirmgroesse ist erlaubt zu passen; KEIN Retry mit
 // Cache-Buster (Range-Request + frische URL = kompletter Neuladen eines
 // 50MB-Videos — der Fehler-Fallback genuegt hier).
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { HUILogo } from "../brand/HUILogo.jsx";
 import { useMediaLoad } from "../../hooks/useMediaLoad.js";
 import { validateStorageUrl } from "../../lib/storageDebug.js";
+// SIGNED-URL-RESIGN-FIX (2026-09-19): abgelaufene signierte Chat-Media-URLs
+// werden einmalig neu signiert (SSOT: lib/storageResign.js) — gleiche
+// Absicherung wie MediaImage.jsx. KEIN Cache-Buster (siehe unten), die
+// Neu-Signierung ist eine ANDERE URL mit frischem Token.
+import { resignStorageUrl } from "../../lib/storageResign.js";
 
 
 export default function MediaVideo({ src, poster, style = {}, controls = true }) {
   const [failed, setFailed] = useState(false);
   const [aspect, setAspect] = useState(null);
+  const [retryUrl, setRetryUrl] = useState(null);   // Re-Sign-URL (1 Versuch)
+  const resignedRef = useRef(false);                 // Re-Sign nur EINMAL
   const { handleLoad, handleError } = useMediaLoad(src, "video");
 
   if (!src || failed) {
@@ -43,9 +50,11 @@ export default function MediaVideo({ src, poster, style = {}, controls = true })
 
   validateStorageUrl(src);
 
+  const effectiveSrc = retryUrl || src;
+
   return (
     <video
-      src={src}
+      src={effectiveSrc}
       poster={poster}
       controls={controls}
       preload="metadata"
@@ -58,7 +67,22 @@ export default function MediaVideo({ src, poster, style = {}, controls = true })
         }
         handleLoad();
       }}
-      onError={(e) => { handleError(e); setFailed(true); }}
+      onError={async (e) => {
+        handleError(e);
+        // SIGNED-URL-RESIGN-FIX: abgelaufene signierte URL → einmalig neu
+        // signieren (Datei existiert i.d.R. noch im Bucket, nur der Token
+        // ist tot — DB-verifiziert 19.09.). Erst danach endgültiger Fallback.
+        if (src.includes("/object/sign/") && !resignedRef.current) {
+          resignedRef.current = true;
+          const freshUrl = await resignStorageUrl(src);
+          if (freshUrl) {
+            console.warn("[HUI Media] video signed URL expired — re-signed, retrying:", src);
+            setRetryUrl(freshUrl);
+            return;
+          }
+        }
+        setFailed(true);
+      }}
       style={{
         width: "100%",
         display: "block",

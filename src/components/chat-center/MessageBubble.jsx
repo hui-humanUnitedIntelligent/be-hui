@@ -74,12 +74,33 @@ function MessageActionModal({ msg = {}, position = {}, onEdit = () => {}, onDele
         background:"rgba(0,0,0,0.08)",
       }}/>
       {/* Modal */}
-      <div style={{
+      {/* MSG-ACTION-KBD-FIX (2026-09-19): data-hui-kbd-self-managed -> der
+          globale Keyboard-Handler (adjustFixedElements) behandelt kleine
+          fixed-Elemente als "schmale Leiste" und setzt bottom:<inset>px --
+          das WUERDE dieses top/left-positionierte Modal von top bis
+          (Viewport-inset) aufspannen (verzerrtes Riesen-Panel, sobald die
+          Tastatur im Edit-Mode aufspringt). Self-managed: Position bleibt
+          unangetastet. ZUSÄTZLICH: Edit-Mode positioniert sich als
+          zentriertes Mini-Sheet MITTELS var(--hui-keyboard-inset) ueber der
+          Tastatur -- Textfeld + Speichern-Button sind damit IMMER sichtbar
+          (ohne transform, weil die mb-modal-in-Animation per fill-mode:both
+          die finale transform dauerhaft haelt und translateX(-50%)
+          ueberschreiben wuerde). */}
+      <div data-hui-kbd-self-managed style={{
         position:"fixed", zIndex:10500,
-        top: Math.min(position.y, window.innerHeight - 180),
-        left: own
-          ? Math.min(position.x - 160, window.innerWidth - 180)
-          : Math.max(position.x - 10, 10),
+        ...(editMode ? {
+          // Edit-Mode: zentriert unten, ueber der Tastatur
+          top: "auto",
+          left: "max(16px, calc(50vw - 190px))",
+          width: "min(380px, calc(100vw - 32px))",
+          bottom: "calc(16px + var(--hui-keyboard-inset, 0px))",
+        } : {
+          // Action-Mode: wie bisher an der getippten Bubble
+          top: Math.min(position.y, window.innerHeight - 180),
+          left: own
+            ? Math.min(position.x - 160, window.innerWidth - 180)
+            : Math.max(position.x - 10, 10),
+        }),
         background:"rgba(255,255,255,0.96)",
         backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)",
         borderRadius:16, padding:"6px 0",
@@ -392,12 +413,28 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
   const [reactionAnchor, setReactionAnchor] = useState(null); // DOMRect-Snapshot | null
   const bubbleRef = useRef(null);
   const longPressTimer = useRef(null);
+  // LONGPRESS-CLICK-FIX (2026-09-19, Michael-Report "emojis sind nicht am
+  // richtigen Ort wenn man den Text liked und bearbeiten geht auch nicht"):
+  // Nach 500ms Long-Press feuert Android beim Loslassen ZUSÄTLICHlich ein
+  // click-Event auf die Bubble. handlePress öffnete darauf das Bearbeiten/
+  // Löschen-Modal ZUR GLEICHEN Zeit wie die schon offene Emoji-Leiste --
+  // beide lagen überlappend am selben Ort (Bar 5px über der Bubble,
+  // Modal bei rect.bottom+6), die Emoji-Buttons mischten sich mit Bearbeiten/
+  // Löschen, ein Emoji-Tipp schloss nur die Bar und ließ das Modal
+  // verwaist offen stehen. Fix: longPressFired-Flag unterdrückt den
+  // nachfolgenden Click zuverlässig (Standard-Pattern).
+  const longPressFired = useRef(false);
   const touchStartPos = useRef({ x:0, y:0 });
 
   const isDeleted    = msg.is_deleted;
   const hasMedia     = !!(msg.media_url);
 
   const handlePress = useCallback((e) => {
+    // LONGPRESS-CLICK-FIX: Click direkt nach Long-Press ignorieren
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      return;
+    }
     // Nicht auf Audio/Video-Controls triggern
     if (e.target.closest("audio,video,button,a")) return;
     const rect = bubbleRef.current?.getBoundingClientRect();
@@ -416,8 +453,10 @@ export default function MessageBubble({ msg, onDelete, onEdit, onReact }) {
     const x = touch.clientX || 0;
     const y = touch.clientY || 0;
     touchStartPos.current = { x, y };
+    longPressFired.current = false;
     clearTimeout(longPressTimer.current);
     longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
       // EMOJI-POS-FIX: echte Bubble-Position im Moment des Öffnens snapshotten
       const rect = bubbleRef.current?.getBoundingClientRect();
       if (rect) {

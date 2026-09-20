@@ -9,6 +9,10 @@ import { HUI } from "../../design/hui.design.js";
 import { supabase } from "../../lib/supabaseClient.js";
 import { UPLOAD_LIMITS, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { toast } from "../../lib/useToast.jsx";
+// MIC-PERMISSION-FIX (2026-09-19): Mikrofon-Berechtigung NUR über die SSOT-
+// Lib — auf Android erscheint damit der Runtime-Permission-Dialog
+// (window.__HUI_MIC-Bridge in MainActivity), BEVOR getUserMedia startet.
+import { requestMicPermission } from "../../lib/micPermission.js";
 
 const C = {
   teal:  HUI.COLOR.teal,
@@ -32,7 +36,13 @@ async function uploadChatMedia(file, type) {
   if (error) throw error;
   const { data: signed } = await supabase.storage
     .from("chat-media")
-    .createSignedUrl(path, 24 * 60 * 60); // SICHERHEITSFIX (2026-08-26): 24h TTL statt 365 Tage (on-demand re-signing = TODO)
+    .createSignedUrl(path, 30 * 24 * 60 * 60);
+  // SICHERHEITSFIX (2026-08-26): signierte URL statt 365 Tage Dauer-Token.
+  // CHAT-MEDIA-TTL-FIX (2026-09-19): 24h → 30 Tage Erst-TTL. Der einst geplante
+  // on-demand re-signing ist jetzt realisiert (SSOT: lib/storageResign.js,
+  // genutzt von MediaImage/MediaVideo) — ablaufende URLs regenerieren sich
+  // beim Anzeigen selbst. 30 Tage Erst-TTL reduziert die Re-Sign-Häufigkeit;
+  // bereits verschickte Alt-URLs (z.B. 24h) bleiben durch den Re-Sign abgedeckt.
   return { url: signed?.signedUrl || "", path }; // path für künftiges on-demand re-signing
 }
 
@@ -132,6 +142,18 @@ export default function ChatInput({ onSend, sending = false, disabled = false, p
   }
 
   const startRecording = useCallback(async () => {
+    // MIC-PERMISSION-FIX (2026-09-19, Michael-Report "Mikrofon funktioniert
+    // nicht — Nutzer-Bewilligung einholen"): Vor JEDER Aufnahme die Android-
+    // Runtime-Permission anfordern (System-Dialog). Ohne erteilte Runtime-
+    // Permission liefert der WebView trotz onPermissionRequest-Grant in
+    // MainActivity keinen funktionierenden Mic-Stream — getUserMedia schlug
+    // bisher still fehl. Dialog kommt nur, wenn noch nicht erteilt; danach
+    // speichert Android die Entscheidung dauerhaft pro App.
+    const granted = await requestMicPermission();
+    if (!granted) {
+      toast.error("Mikrofon-Zugriff verweigert — bitte in den Geräte-Einstellungen für HUI erlauben");
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
       streamRef.current = stream;
