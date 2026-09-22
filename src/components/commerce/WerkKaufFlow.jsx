@@ -25,7 +25,7 @@ import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { autoCreateOrReopenChat } from "../../lib/chatContext.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
-import { IMPACT_RATE } from "./commerceUtils.js";
+import { IMPACT_RATE, notifyPurchasedItems } from "./commerceUtils.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
 import { postToEdgeFunction } from "../../lib/authFetch.js";
@@ -190,6 +190,10 @@ export default function WerkKaufFlow({ werk, onClose = () => {} }) {
   }
 
   async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
+    // PURCHASED-CART-CLEANUP-001: Falls das Werk parallel noch im
+    // persistenten Warenkorb liegt, nach bestaetigter Zahlung entfernen.
+    notifyPurchasedItems([{ id: workId, type: "work" }]);
+
     // Notification an Creator
     // FIX (2026-08-16): text/read → title/body/is_read (gleicher Bug wie
     // order_shipped) — useNotifications.jsx select() liest title,body,is_read.

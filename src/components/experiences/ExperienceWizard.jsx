@@ -1037,7 +1037,9 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
         price:                existingExp.price               ? String(existingExp.price) : "",
         currency:             existingExp.currency            || "EUR",
         price_per:            existingExp.price_per           || "",
-        max_participants:     existingExp.max_participants     ? String(existingExp.max_participants) : "",
+        // EXPERIENCE-MULTI-BOOKING-001: Alte Datensaetze nutzten teils nur
+        // participant_limit/spots_available; alle auf EIN sichtbares Feld mappen.
+        max_participants:     String(existingExp.max_participants || existingExp.participant_limit || existingExp.spots_available || existingExp.stock_total || ""),
         registration_required: existingExp.registration_required ?? false,
         visibility:           existingExp.visibility          || "public",
         description:          existingExp.description         || "",
@@ -1176,6 +1178,17 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       geoLng = geo?.lng ?? null;
     }
 
+    // EXPERIENCE-MULTI-BOOKING-001 (2026-09-22): Erlebnisse sind keine
+    // einmaligen Werke. Die Teilnehmerzahl ist der Bestand. Neue Erlebnisse
+    // erhalten ohne explizites Limit 10 Plaetze (entspricht dem bestehenden
+    // DB-Default spots_available=10). Beim Editieren bleiben bereits belegte
+    // Plaetze erhalten; eine Limitaenderung setzt sie nicht versehentlich frei.
+    const experienceCapacity = Math.max(1, parseInt(form.max_participants, 10) || 10);
+    const existingTotal = Math.max(0, Number(existingExp?.stock_total || 0));
+    const existingAvailable = Math.max(0, Number(existingExp?.stock_available || 0));
+    const alreadyBooked = existingExp?.id ? Math.max(0, existingTotal - existingAvailable) : 0;
+    const availableCapacity = Math.max(0, experienceCapacity - alreadyBooked);
+
     const payload = {
       user_id:               userId,
       title:                 form.title               || "",
@@ -1201,7 +1214,14 @@ export default function ExperienceWizard({ userId, existingExp = null, onClose, 
       price:                 form.price ? parseFloat(form.price) : null,
       currency:              form.currency            || "EUR",
       price_per:             form.price_per           || null,
-      max_participants:      form.max_participants ? parseInt(form.max_participants, 10) : null,
+      max_participants:      experienceCapacity,
+      participant_limit:     experienceCapacity,
+      // Kapazitaet statt Einmal-Bestand: weitere Teilnehmer koennen buchen,
+      // bis die echte Teilnehmergrenze erreicht ist.
+      is_unique:             false,
+      stock_total:           experienceCapacity,
+      stock_available:       availableCapacity,
+      spots_available:       availableCapacity,
       registration_required: form.registration_required ?? false,
       visibility:            form.visibility          || "public",
       // MULTILANG-CONTENT-001: "" → NULL = keine Angabe = fuer alle sichtbar

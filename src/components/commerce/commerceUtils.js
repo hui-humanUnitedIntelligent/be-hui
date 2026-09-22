@@ -175,6 +175,27 @@ export function clearCartAfterSuccess(setCart) {
   setCart([]);
 }
 
+/**
+ * PURCHASED-CART-CLEANUP-001 (2026-09-22): Meldet zentral, welche Inhalte
+ * nach einer von Stripe bestaetigten Zahlung aus einem eventuell persistenten
+ * Warenkorb entfernt werden muessen. Der Home-Warenkorb ist heute Werke-first;
+ * die typoffene Payload schuetzt aber auch Erlebnis-/Talent-Einstiege vor
+ * liegengebliebenen Positionen. Momente besitzen bewusst keinen Kauf-Flow.
+ */
+export function notifyPurchasedItems(items = []) {
+  if (typeof window === "undefined") return;
+  const normalized = (Array.isArray(items) ? items : [items])
+    .map(item => ({
+      id: item?.id || item?.item_id || item?._raw?.id || null,
+      type: item?.type || item?.item_type || item?._raw?.type || null,
+    }))
+    .filter(item => Boolean(item.id));
+  if (!normalized.length) return;
+  window.dispatchEvent(new CustomEvent("hui:commerce:payment-success", {
+    detail: { items: normalized },
+  }));
+}
+
 // ── Quantity Logic (v3.1) ─────────────────────────────────────────
 /**
  * Bestimmt ob ein Item einen Mengenwähler anzeigen soll.

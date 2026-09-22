@@ -223,20 +223,20 @@ export function normalizeExperiencePayload(raw, userId, uploadedUrls = []) {
     available_days:   available_days.length > 0 ? available_days : null,
     experience_type,
     participant_limit,
+    max_participants: participant_limit || 10,
     booking_mode,
     cover_url,
     media_url,
     images,           // JSONB: [{ url, type, alt }]
     visibility,
     status:           "published",
-    // COMMERCE-STOCK-001: Verfügbarkeit & Bestand
-    is_unique:        (f.availabilityMode || "unique") !== "copies",
-    stock_total:      (f.availabilityMode || "unique") === "copies"
-                        ? Math.max(1, parseInt(f.stockCount, 10) || 1)
-                        : (f.booking_type === "once" ? 1 : Math.max(1, parseInt(f.maxParticipants || f.participant_limit, 10) || 1)),
-    stock_available:  (f.availabilityMode || "unique") === "copies"
-                        ? Math.max(1, parseInt(f.stockCount, 10) || 1)
-                        : (f.booking_type === "once" ? 1 : Math.max(1, parseInt(f.maxParticipants || f.participant_limit, 10) || 1)),
+    // EXPERIENCE-MULTI-BOOKING-001 (2026-09-22): Erlebnisse sind
+    // grundsätzlich mehrfach bis zur Teilnehmergrenze buchbar. Ohne explizite
+    // Grenze gilt der bestehende Plattform-Default von 10 Plaetzen.
+    is_unique:        false,
+    stock_total:      participant_limit || 10,
+    stock_available:  participant_limit || 10,
+    spots_available:  participant_limit || 10,
     // created_at + updated_at: auto-filled by DB
   };
 }

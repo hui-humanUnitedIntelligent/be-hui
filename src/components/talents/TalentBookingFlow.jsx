@@ -24,7 +24,7 @@ import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import StripePaymentStep from "../commerce/StripePaymentStep.jsx";
-import { IMPACT_RATE } from "../commerce/commerceUtils.js";
+import { IMPACT_RATE, notifyPurchasedItems } from "../commerce/commerceUtils.js";
 import AvailabilityCalendar from "./AvailabilityCalendar.jsx";
 import LocationAutocompleteInput from "../shared/LocationAutocompleteInput.jsx";
 import { distanceKm } from "../../lib/geocoding.js";
@@ -297,6 +297,10 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
   }, [user, talent, canSubmit, selectedDate, selectedSlot, participants, note, isHomeVisit, homeVisitAddressMissing, homeVisitOutOfRange, homeVisitDistanceKm, customerAddress, customerGeo]);
 
   const handleStripeSuccess = useCallback(async () => {
+    // PURCHASED-CART-CLEANUP-001: Falls dieses Talent-Angebot in einem
+    // persistenten Warenkorb liegt, nach bestaetigter Zahlung entfernen.
+    notifyPurchasedItems([{ id: talent?.id, type: "talent" }]);
+
     // FREIE-BUCHUNG-001 / TALENT-BOOKING-NOTIFY (2026-08-20):
     // Buchungs-Bestätigung an den Talent-Inhaber (Initiator) senden.
     // Format: "Buchung für [Talent-Titel] am [Datum] von [Kundenname]"

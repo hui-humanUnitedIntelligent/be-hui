@@ -21,7 +21,7 @@ import { EASE, DUR } from "../../design/hui.interaction.js";
 import {
   C,
   haptic, calcTotalWithQty, calcImpact, calcPlatformFee,
-  uniquePeople, clearCartAfterSuccess,
+  uniquePeople, clearCartAfterSuccess, notifyPurchasedItems,
 } from "./commerceUtils.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { resolveShippingStrategy, orderService } from "../../services/commerceEngine.js";
@@ -676,6 +676,11 @@ export default function UnterstutzenFlow({
 
   async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
     haptic("success");
+    // PURCHASED-CART-CLEANUP-001: Zahlung ist von Stripe bestaetigt — die
+    // bezahlten Positionen SOFORT aus React-State + localStorage entfernen,
+    // nicht erst spaeter beim Klick auf "Entdecken" im Danke-Screen.
+    onClearCart?.();
+    notifyPurchasedItems(items);
     try { await onUnterstuetzen?.(items, {}, "stripe"); } catch {}
     goTo(1);
   }

@@ -405,6 +405,29 @@ function HomeInner() {
     });
   }, [currentUser?.id, setCart]);
 
+  // PURCHASED-CART-CLEANUP-001 (2026-09-22): EIN zentraler Listener fuer
+  // alle Stripe-Erfolgsflows. Entfernt nur tatsaechlich bezahlte IDs aus dem
+  // persistenten Warenkorb; andere Positionen bleiben erhalten. setCart aus
+  // useCartPersistence schreibt den bereinigten Stand synchron in localStorage.
+  useEffect(() => {
+    if (!setCart) return undefined;
+    const onPaymentSuccess = (event) => {
+      const paidIds = new Set((event?.detail?.items || [])
+        .map(item => item?.id != null ? String(item.id) : null)
+        .filter(Boolean));
+      if (!paidIds.size) return;
+      setCart(prev => {
+        const clean = prev.filter(item => {
+          const id = item?.id || item?.item_id || item?._raw?.id;
+          return id == null || !paidIds.has(String(id));
+        });
+        return clean.length === prev.length ? prev : clean;
+      });
+    };
+    window.addEventListener("hui:commerce:payment-success", onPaymentSuccess);
+    return () => window.removeEventListener("hui:commerce:payment-success", onPaymentSuccess);
+  }, [setCart]);
+
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
   // Ermöglicht Guards aus beliebigen Komponenten: window.__HUI_OPEN_TALENT_FLOW?.()

@@ -26,7 +26,7 @@ import { invalidateOrbStageCache } from "../../hooks/useOrbGrowthStage.js";
 import { autoCreateOrReopenChat } from "../../lib/chatContext.js";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
-import { IMPACT_RATE } from "./commerceUtils.js";
+import { IMPACT_RATE, notifyPurchasedItems } from "./commerceUtils.js";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock.js";
 import StripePaymentStep from "./StripePaymentStep.jsx";
 import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
@@ -190,6 +190,11 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   }
 
   async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
+    // PURCHASED-CART-CLEANUP-001: Entfernt nur die bezahlte Position aus
+    // einem eventuell typoffenen persistenten Warenkorb. Das Erlebnis selbst
+    // bleibt im Feed und in der DB sichtbar/buchbar.
+    notifyPurchasedItems([{ id: expId, type: "experience" }]);
+
     // CHECKOUT-SMOOTH-001: Stripe hat die Zahlung bereits final bestätigt.
     // Sofort sichtbare Resonanz geben, statt erst auf Notification/Chat/DB-
     // Nebenarbeiten zu warten. Der Beleg wird direkt als Vorschau erzeugt.
