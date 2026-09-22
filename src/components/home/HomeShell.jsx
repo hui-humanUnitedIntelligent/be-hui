@@ -152,6 +152,34 @@ export default function HomeShell({ children }) {
     _setShowChatRaw(next);
   }, []);
   const [chatRecipient,          setChatRecipient]         = useState(null);  // Phase 23: direkter Chat-Einstieg
+  // CHAT-OPEN-SSOT-001 (2026-09-22): EIN portal-sicherer Einstieg für alle
+  // Chat-CTAs. Viele Aufrufer schließen im selben Klick ein Beleg-, Profil-
+  // oder Finanz-Portal. Öffnete der Chat synchron im selben React-Batch,
+  // konnte er technisch aktiv sein, aber hinter dem noch gemounteten Portal
+  // mit gleichem/höherem zIndex unsichtbar bleiben. Der nächste Animation-
+  // Frame läuft garantiert nach dem Close-Commit. Mehrfachaufrufe vor diesem
+  // Frame werden dedupliziert; der letzte Zielnutzer gewinnt.
+  const chatOpenFrameRef = React.useRef(null);
+  const openChatRecipient = React.useCallback((recipient = null) => {
+    const commitOpen = () => {
+      chatOpenFrameRef.current = null;
+      setChatRecipient(recipient || null);
+      setShowChat(true);
+    };
+    if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+      commitOpen();
+      return;
+    }
+    if (chatOpenFrameRef.current != null) {
+      window.cancelAnimationFrame?.(chatOpenFrameRef.current);
+    }
+    chatOpenFrameRef.current = window.requestAnimationFrame(commitOpen);
+  }, [setShowChat]);
+  React.useEffect(() => () => {
+    if (chatOpenFrameRef.current != null) {
+      window.cancelAnimationFrame?.(chatOpenFrameRef.current);
+    }
+  }, []);
 
   // ── Overlay State (22 Overlays) ────────────────────────────────
   const [showNotifs,             setShowNotifs]            = useState(false);
@@ -433,6 +461,7 @@ export default function HomeShell({ children }) {
     openProfileById,       closeProfileById,
     showChat,              setShowChat,
     chatRecipient,         setChatRecipient,
+    openChatRecipient,
     showNotifs,            setShowNotifs,
     showMap,               setShowMap,
     showMatch,             setShowMatch,
@@ -488,7 +517,7 @@ export default function HomeShell({ children }) {
     showWirker, selectedProfileId,
     showCreatorDashboard, openCreatorDashboard,
     openProfileById, closeProfileById,
-    showChat, chatRecipient,
+    showChat, chatRecipient, openChatRecipient,
     showNotifs, showMap, showMatch, showMembership,
     showPlusSheet, showCreateFlow, showConnect,
     showTeilen, showTalentFlow, showStoryComposer,

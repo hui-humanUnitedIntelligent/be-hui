@@ -1274,17 +1274,16 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
   const handleBack = useCallback(() => { onClose?.(); }, [onClose]);
 
   // Chat via CCO (identisch zu bisheriger Logik)
-  const { setShowChat, setChatRecipient } = useHome() || {};
+  const { openChatRecipient } = useHome() || {};
   const handleOpenChat = useCallback(() => {
-    if (!profile?.id) return;
-    setChatRecipient({
+    if (!profile?.id || typeof openChatRecipient !== "function") return;
+    if (onClose) onClose();   // Profil zuerst schließen
+    openChatRecipient({
       id:           profile.id,
       display_name: profile.full_name || profile.display_name || profile.username || "Talent",
       avatar_url:   profile.avatar_url || null,
     });
-    if (onClose) onClose();   // Profil zuerst schließen
-    setShowChat(true);        // Dann Chat öffnen
-  }, [profile, setChatRecipient, setShowChat, onClose]);
+  }, [profile, openChatRecipient, onClose]);
 
   // Avatar/Cover-Update → sofortiger AuthContext-Update + reload
   // Sprint F.4D.1: setAuthProfile sofort aufrufen — kein Reload nötig

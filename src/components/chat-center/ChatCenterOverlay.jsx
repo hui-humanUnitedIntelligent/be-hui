@@ -224,7 +224,10 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
   // nur bestehende Chats oeffnen, keine Neuerstellung ohne Buchungskontext.
   const bookingCtxOf = (rec) => rec?._raw?.booking_id || rec?.booking_id || null;
 
-  // AUTO-OPEN: initialRecipient beim Mount vorhanden → direkt ConversationRoom öffnen.
+  // AUTO-OPEN: initialRecipient vorhanden → direkt ConversationRoom öffnen.
+  // CHAT-OPEN-SSOT-001: Nicht nur beim Mount. Wenn der Chat bereits als Liste
+  // offen ist und ein anderer System-CTA einen Zielnutzer setzt, muss der
+  // Effekt erneut laufen. Dasselbe gilt, wenn user.id erst nach Mount ankommt.
   // Fallback auf Banner-Tap wenn user?.id noch nicht verfügbar.
   React.useEffect(() => {
     if (!initialRecipient?.id) return;
@@ -300,7 +303,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
         setLoadingConv(false);
       }
     })();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialRecipient?.id, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function openPendingChat() {
     if (!pendingRecipient?.id || !user?.id) return;

@@ -131,6 +131,7 @@ export function buildActions(shell) {
     // Chat
     setShowChat,
     setChatRecipient,
+    openChatRecipient,
     // Role
     isTalent,
     // Overlays
@@ -229,7 +230,9 @@ export function buildActions(shell) {
         ...rest,
       } : null);
       const rec = rawRec ? normalizeRecipient(rawRec) : null;
-      if (rec) setChatRecipient?.(rec);
+      // Recipient nicht mehr hier direkt setzen. openChatRecipient() führt
+      // Recipient + Overlay atomar und portal-sicher im nächsten Frame aus.
+      // Fallback bleibt nur für fremde/ältere Shell-Kontexte erhalten.
       // Semantic guard (DEV): prüft ob der Chat-Payload vollständig ist
       checkSemantics("OPEN_CHAT", { recipient: rec, source: payload?.source || S.SYSTEM });
       // Phase 2: wenn Profil offen war → Return merken
@@ -237,7 +240,12 @@ export function buildActions(shell) {
       const chatSource = payload?.source || S.SYSTEM;
       logFlow(chatSource, S.CHAT);
       flowStore?.push({ surface: S.CHAT, recipient: rec, source: chatSource });
-      setShowChat?.(true);
+      if (typeof openChatRecipient === "function") {
+        openChatRecipient(rec);
+      } else {
+        if (rec) setChatRecipient?.(rec);
+        setShowChat?.(true);
+      }
     },
 
     [A.CLOSE_CHAT]: () => {

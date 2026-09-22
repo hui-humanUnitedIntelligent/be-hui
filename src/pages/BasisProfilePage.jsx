@@ -425,17 +425,16 @@ export default function BasisProfilePage({ profileId, onClose, publicView = fals
   const handleBack = useCallback(()=>{ if(onClose) onClose(); }, [onClose]);
 
   // P3: Chat-Einstieg — Profil schließen DANN Chat öffnen
-  const { setShowChat, setChatRecipient } = useHome() || {};
+  const { openChatRecipient } = useHome() || {};
   const handleOpenChat = useCallback(() => {
-    if (!profile?.id || !setShowChat) return;
-    setChatRecipient?.({
+    if (!profile?.id || typeof openChatRecipient !== "function") return;
+    if (onClose) onClose();   // Profil zuerst schließen
+    openChatRecipient({
       id:           profile.id,
       display_name: profile.full_name || profile.display_name || profile.username || t("bpp.member"),
       avatar_url:   profile.avatar_url || null,
     });
-    if (onClose) onClose();   // Profil zuerst schließen
-    setShowChat(true);        // Dann Chat öffnen
-  }, [profile, setChatRecipient, setShowChat, onClose]);
+  }, [profile, openChatRecipient, onClose]);
 
   // ── Sprint F.5.3 / F.9G.1: onSave-Handler + error-check ──
   const handleBioSave = useCallback(async (bio) => {

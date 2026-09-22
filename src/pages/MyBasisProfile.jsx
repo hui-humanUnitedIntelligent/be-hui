@@ -121,6 +121,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     switchTab         = () => {},
     setChatRecipient  = () => {},
     setShowChat       = () => {},
+    openChatRecipient = null,
     setShowWerkDetail = () => {},
     setShowTalentFlow = () => {},
   } = useHome?.() || {};
@@ -179,8 +180,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
     if (n._openChat) {
       setShowNotifications(false);
       const chatObj = typeof n._openChat === "object" ? n._openChat : { id: n._openChat, display_name: null };
-      setChatRecipient(chatObj);
-      setShowChat(true);
+      if (typeof openChatRecipient === "function") openChatRecipient(chatObj);
+      else {
+        setChatRecipient(chatObj);
+        setShowChat(true);
+      }
       return;
     }
     // BANKDATEN-LINK (2026-08-16): "Bankdaten hinterlegen" aus
@@ -229,7 +233,11 @@ export default function MyBasisProfile({ onClose, profileId }) {
       case "message":
       case "new_message":
         setShowNotifications(false);
-        if (targetId) { setChatRecipient(targetId); setShowChat(true); }
+        if (targetId) {
+          const recipient = { id: targetId, display_name: meta.actor_name || null };
+          if (typeof openChatRecipient === "function") openChatRecipient(recipient);
+          else { setChatRecipient(recipient); setShowChat(true); }
+        }
         break;
 
       // ── Tab-Navigation ──────────────────────────────────────────────────

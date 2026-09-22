@@ -236,6 +236,7 @@ function HomeInner() {
     openProfileById,
     showChat,          setShowChat,
     chatRecipient,     setChatRecipient,   // Phase 23: direkter Chat-Einstieg
+    openChatRecipient,                       // CHAT-OPEN-SSOT-001
     showNotifs,        setShowNotifs,
     showMap,           setShowMap,
     showMatch,         setShowMatch,
@@ -314,12 +315,11 @@ function HomeInner() {
       try {
         const recipient = JSON.parse(raw);
         if (recipient?.id) {
-          setChatRecipient?.(recipient);
-          setShowChat?.(true);
+          openChatRecipient?.(recipient);
         }
       } catch { /* kaputtes JSON ignorieren */ }
     }
-  }, [setChatRecipient, setShowChat]);
+  }, [openChatRecipient]);
 
   // SHARE.2: hui:share CustomEvent → HuiShareModal öffnen
   React.useEffect(() => {
@@ -439,10 +439,7 @@ function HomeInner() {
     // aus MomentContent.jsx → öffnet Chat mit einem bestimmten Nutzer.
     // Wird von VerbindenModal nach erfolgreicher createMomentChat() aufgerufen.
     window.__HUI_OPEN_CHAT_WITH__     = (recipient) => {
-      if (recipient?.id) {
-        setChatRecipient?.(recipient);
-        setShowChat?.(true);
-      }
+      if (recipient?.id) openChatRecipient?.(recipient);
     };
     // BANKDATEN-LINK (2026-08-16): Öffnet Profil → Settings → Bankdaten-Modal.
     // Wird von der "Bankdaten fehlen"-Notification im Resonanzzentrum aufgerufen.
@@ -464,7 +461,7 @@ function HomeInner() {
       delete window.__HUI_OPEN_CHAT_WITH__;
       delete window.__HUI_OPEN_BANKDATEN__;
     };
-    }, [setShowMembership, setShowCreatorDash, setShowCreatorDashboard, openProfileById, setChatRecipient, setShowChat]);  // ─────────────────────────────────────────────────────────────
+    }, [setShowMembership, setShowCreatorDash, setShowCreatorDashboard, openProfileById, openChatRecipient, setChatRecipient, setShowChat]);  // ─────────────────────────────────────────────────────────────
 
   // Phase 2: Flow Memory System
   const flow = useHuiFlow();
