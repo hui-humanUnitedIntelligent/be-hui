@@ -508,7 +508,27 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
       // scheiterte rpc_seller_mark_shipped (WHERE escrow_status='holding')
       // lautlos für JEDEN Verkauf seit Einführung des Escrow-Systems.
       // auto_confirm_at (14 Tage Auto-Bestätigung) ergänzt.
-      const orderUpdate: Record<string, any> = {
+      // ERLEBNIS-INSTANT-SETTLEMENT-001 (2026-09-22, Michael-Entscheidung):
+      // Erlebnisse haben KEIN Versand-/Lieferrisiko wie physische Werke — die
+      // Teilnahme ist mit der Buchung selbst bereits "erhalten". Ein Order
+      // gilt hier als reine Erlebnis-Buchung, wenn ALLE seine order_items
+      // item_type='experience' sind (Werke-Warenkorb und ExperienceBookingFlow
+      // erzeugen nie gemischte Orders, siehe SELF-COMMERCE-GUARD-001-Analyse).
+      // Fuer solche Orders wird die Zahlung SOFORT final abgewickelt (kein
+      // 'holding'/'Ware erhalten'-Schritt) — Talent-Buchungen und Werke-Kaeufe
+      // bleiben unveraendert beim bestehenden Escrow-Flow.
+      const isExperienceOnlyOrder = (orderItems || []).length > 0
+        && (orderItems || []).every((i: any) => i.item_type === 'experience')
+
+      const orderUpdate: Record<string, any> = isExperienceOnlyOrder ? {
+        state:                'completed',
+        payment_confirmed_at: new Date().toISOString(),
+        contact_email:        pi.receipt_email ?? null,
+        escrow_status:        'released',
+        delivery_status:      'confirmed',
+        buyer_confirmed_at:   new Date().toISOString(),
+        escrow_released_at:   new Date().toISOString(),
+      } : {
         state:                'paid',
         payment_confirmed_at: new Date().toISOString(),
         contact_email:        pi.receipt_email ?? null,
@@ -519,6 +539,72 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
       if (stripeShipping) orderUpdate.shipping_address = stripeShipping;
       if (stripeName)     orderUpdate.contact_name     = stripeName;
       await supabase.from('orders').update(orderUpdate).eq('id', order.id).eq('state', 'pending'); // doppelter Guard
+
+      // Sofort-Abwicklung: Seller-Transfer + Impact-/Ambassador-Fees JETZT,
+      // nicht erst nach einer (fuer Erlebnisse nicht mehr existierenden)
+      // Kaeufer-Bestaetigung. Exakt dieselbe Transfer-Logik wie in
+      // confirm-and-transfer (SELLER_RATE 0.80, idempotenter Stripe-Key,
+      // idempotente rpc_process_order_fees) — nur zeitlich vorgezogen.
+      if (isExperienceOnlyOrder) {
+        try {
+          const expSellerIdForTransfer = orderItems?.[0]?.seller_id || null
+          let sellerStripeAccountId: string | null = null
+          if (expSellerIdForTransfer) {
+            const { data: sellerProfileForTransfer } = await supabase
+              .from('profiles').select('stripe_account_id').eq('id', expSellerIdForTransfer).maybeSingle()
+            sellerStripeAccountId = sellerProfileForTransfer?.stripe_account_id ?? null
+          }
+          const stripeChargeIdForTransfer = (pi as any).latest_charge ?? null
+          const SELLER_RATE = 0.80
+          const transferAmountCents = Math.round(Number(order.total_eur) * SELLER_RATE * 100)
+          let transferId: string | null = null
+          const idempotencyKey = `hui-transfer-${order.id}`
+
+          if (sellerStripeAccountId && transferAmountCents > 0) {
+            try {
+              const transfer = await stripe.transfers.create({
+                amount: transferAmountCents,
+                currency: 'eur',
+                destination: sellerStripeAccountId,
+                source_transaction: stripeChargeIdForTransfer ?? undefined,
+                metadata: { order_id: order.id, hui_release: 'experience_instant_settlement' },
+              }, { idempotencyKey })
+              transferId = transfer.id
+            } catch (transferErr) {
+              console.error('[ERLEBNIS-INSTANT] Stripe-Transfer fehlgeschlagen:', String(transferErr))
+            }
+          } else {
+            console.log('[ERLEBNIS-INSTANT] Kein Stripe-Connect-Account fuer Seller — Transfer manuell noetig')
+          }
+
+          const payoutStatus = transferId ? 'transferred' : 'manual_required'
+          const itemUpdate: Record<string, any> = { payout_status: payoutStatus, updated_at: new Date().toISOString() }
+          if (transferId) { itemUpdate.stripe_transfer_id = transferId; itemUpdate.payout_paid_at = new Date().toISOString() }
+          await supabase.from('order_items').update(itemUpdate).eq('order_id', order.id)
+          await supabase.from('orders').update({ seller_transfer_id: transferId }).eq('id', order.id)
+
+          const { data: existingPool } = await supabase.from('stripe_impact_pool').select('id').eq('order_id', order.id).maybeSingle()
+          if (!existingPool) {
+            const { data: feeResult, error: feeErr } = await supabase.rpc('rpc_process_order_fees', { p_order_id: order.id })
+            if (feeErr) console.error('[ERLEBNIS-INSTANT] rpc_process_order_fees failed:', feeErr.message)
+            else {
+              await supabase.from('commerce_events').insert({
+                event_type: 'impact_credited', order_id: order.id, actor_type: 'system',
+                payload: { ...feeResult, via: 'erlebnis_instant_settlement' },
+              })
+            }
+          }
+          await supabase.from('commerce_events').insert({
+            event_type: 'escrow_released', order_id: order.id, actor_type: 'system',
+            payload: { via: 'erlebnis_instant_settlement', transfer_id: transferId, payout_status: payoutStatus },
+          })
+        } catch (settleErr) {
+          // Best-effort: ein Fehler hier darf die bereits erfolgreich verifizierte
+          // Zahlung nicht zurueckrollen. Manuelle Nachbearbeitung bleibt moeglich
+          // (payout_status bleibt 'held'/'manual_required', DB-Order bleibt 'completed').
+          console.error('[ERLEBNIS-INSTANT] settlement failed (non-critical):', (settleErr as any)?.message)
+        }
+      }
 
       // ── Commerce Event ────────────────────────────────────────
       const { error: confirmEventErr } = await supabase.from('commerce_events').insert({

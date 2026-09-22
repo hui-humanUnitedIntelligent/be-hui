@@ -172,7 +172,7 @@ function MeineKaeufe({ userId, onCloseModal }) {
     setLoading(true);
     const { data } = await supabase
       .from("orders")
-      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status, order_items(id, snapshot, unit_price_eur, payout_eur, shipping_eur, impact_eur, seller_id, work_id, variant_id, variant_name)")
+      .select("id, state, total_eur, created_at, contact_name, escrow_status, buyer_confirmed_at, auto_confirm_at, delivery_status, dispute_open, buyer_confirmed, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status, order_items(id, snapshot, unit_price_eur, payout_eur, shipping_eur, impact_eur, seller_id, work_id, item_type, variant_id, variant_name)")
       .eq("customer_id", userId)
       .in("state", ["paid", "completed"])
       .order("created_at", { ascending: false });
@@ -312,9 +312,16 @@ function MeineKaeufe({ userId, onCloseModal }) {
     const variantName = item?.variant_name || null;
     const titleWithVariant = variantName ? `${title} · ${variantName}` : title;
     const image = item?.snapshot?.cover_url || null;
+    // ERLEBNIS-INSTANT-SETTLEMENT-001 (2026-09-22): Erlebnis-Buchungen laufen
+    // seit dem Webhook-Fix nicht mehr durch den Escrow-Bestaetigungsschritt —
+    // die Zahlung wird sofort final abgewickelt. Das "Bestätigung erforderlich"
+    // -Modal ("Ware erhalten") darf fuer Erlebnisse daher NIE erscheinen, auch
+    // nicht fuer aeltere Buchungen, die noch mit escrow_status='holding' in der
+    // DB stehen (die werden separat einmalig nachtraeglich abgewickelt).
+    const isExperience = item?.item_type === "experience";
     const confirmed = confirmDone[o.id] || !!o.buyer_confirmed_at || !!o.buyer_confirmed;
     const isDisputed = disputeDone[o.id] || !!o.dispute_open || o.escrow_status === "disputed";
-    const needsConfirm = (o.escrow_status === "holding" || !o.escrow_status) && !confirmed && !isDisputed;
+    const needsConfirm = !isExperience && (o.escrow_status === "holding" || !o.escrow_status) && !confirmed && !isDisputed;
     const sellerId = item?.seller_id;
     const sInfo = sellerId ? sellerMap[sellerId] : null;
 
@@ -354,7 +361,7 @@ function MeineKaeufe({ userId, onCloseModal }) {
     ] : [];
 
     return {
-      id: o.id, kind: "werk", kindLabel: t("fz.detailPurchase"), title: titleWithVariant, image,
+      id: o.id, kind: isExperience ? "experience" : "werk", kindLabel: t("fz.detailPurchase"), title: titleWithVariant, image,
       amount: o.total_eur, amountLabel: t("fz.detailPaid"),
       dateLabel: dt(o.created_at), statusChips, breakdown, revenueSplit, needsConfirm,
       meta: [
@@ -371,7 +378,7 @@ function MeineKaeufe({ userId, onCloseModal }) {
         receiptConfirmed: confirmed,
         onDispute: needsConfirm ? (note) => handleDispute(o.id, note) : null,
         disputing: disputingId === o.id,
-        disputeOpen: isDisputed,
+        disputeOpen: !isExperience && isDisputed,
         // BOOKING-CHAT-002 (2026-09-14, Karen-Report 8a8662d4): FinanzuebersichtModal
         // (zIndex 10500, eigener document.body-Portal) blieb beim Chat-Oeffnen
         // GEMOUNTET -- ChatCenterOverlay hat DENSELBEN zIndex 10500, verliert die
@@ -533,9 +540,13 @@ function MeineVerkaeufe({ userId, onCloseModal }) {
     setLoading(true);
     const { data } = await supabase
       .from("order_items")
-      .select("id, order_id, snapshot, unit_price_eur, payout_eur, fulfillment_status, payout_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status)")
+      .select("id, order_id, item_type, snapshot, unit_price_eur, payout_eur, fulfillment_status, payout_status, created_at, variant_id, variant_name, orders!inner(id, state, total_eur, customer_id, escrow_status, delivery_status, buyer_confirmed_at, buyer_confirmed, dispute_open, payout_requested_at, auto_confirm_at, shipped_at, delivered_at, shipping_address, tracking_number, purchase_status)")
       .eq("seller_id", userId)
-      .eq("orders.state", "paid")
+      // ERLEBNIS-INSTANT-SETTLEMENT-001 (2026-09-22): reine Erlebnis-Orders
+      // landen nach der Zahlung direkt bei state='completed' (kein 'paid'-
+      // Zwischenschritt mehr) -- ohne 'completed' in diesem Filter wuerden
+      // solche Verkaeufe hier nie erscheinen.
+      .in("orders.state", ["paid", "completed"])
       .order("created_at", { ascending: false });
     setItems(data || []);
 
@@ -563,6 +574,11 @@ function MeineVerkaeufe({ userId, onCloseModal }) {
     const payoutReq = !!s.orders?.payout_requested_at;
     const buyerId = s.orders?.customer_id;
     const bInfo = buyerId ? buyerMap[buyerId] : null;
+    // ERLEBNIS-INSTANT-SETTLEMENT-001 (2026-09-22): Erlebnis-Verkaeufe haben
+    // keinen "Versendet"-Schritt mehr — die Auszahlung laeuft sofort ueber
+    // den Webhook. Der Versand-Hinweis/-Button darf hier nicht erscheinen,
+    // unabhaengig vom (bei Erlebnissen ohnehin sofort released) escrow_status.
+    const isExperience = s.item_type === "experience";
 
     const statusChips = [];
     if (escrow === "holding" && !payoutReq) statusChips.push({ label: t("fz.statusPaymentOpen"), color: T.amber, bg: T.amberSoft });
@@ -591,7 +607,7 @@ function MeineVerkaeufe({ userId, onCloseModal }) {
     // (tx.shippingAddress → TransactionDetailSheet) — nicht mehr als MetaRow verstecken.
     const addrParts = [];
     return {
-      id: s.id, kind: "werk", kindLabel: t("fz.detailSale"), title: (s.snapshot?.title || s.snapshot?.name || t("fz.work")) + (s.variant_name ? " · " + s.variant_name : ""), image,
+      id: s.id, kind: isExperience ? "experience" : "werk", kindLabel: t("fz.detailSale"), title: (s.snapshot?.title || s.snapshot?.name || t("fz.work")) + (s.variant_name ? " · " + s.variant_name : ""), image,
       amount: s.payout_eur, amountLabel: t("fz.detailEarned"),
       dateLabel: dt(s.created_at), statusChips,
       breakdown: [
@@ -612,10 +628,10 @@ function MeineVerkaeufe({ userId, onCloseModal }) {
         // BOOKING-CHAT-002 (2026-09-14): siehe MeineKaeufe -- gleiches Muster.
         onChat: (buyerId && bInfo) ? () => { onCloseModal?.(); actions[A.OPEN_CHAT]?.({ recipient: { id: buyerId, display_name: bInfo.name, avatar_url: bInfo.avatar }, source: S.SYSTEM }); } : null,
         onViewProfile: buyerId ? () => window.__HUI_OPEN_PROFILE__?.(buyerId) : null,
-        onMarkShipped: (!s.orders?.shipped_at && escrowHolding) ? () => handleShip(s.orders?.id) : null,
+        onMarkShipped: (!isExperience && !s.orders?.shipped_at && escrowHolding) ? () => handleShip(s.orders?.id) : null,
         shipping: shippingId === s.orders?.id,
-        shipped: !!s.orders?.shipped_at,
-        shippedAt: s.orders?.shipped_at ? dt(s.orders.shipped_at) : null,
+        shipped: !isExperience && !!s.orders?.shipped_at,
+        shippedAt: (!isExperience && s.orders?.shipped_at) ? dt(s.orders.shipped_at) : null,
       },
     };
   };

@@ -26,7 +26,11 @@ export function useMySales(userId) {
       .from("order_items")
       .select("id, order_id, work_id, snapshot, quantity, unit_price_eur, payout_eur, fulfillment_status, created_at, orders!inner(id, state, created_at, contact_name, total_eur, escrow_status, delivery_status, buyer_confirmed_at, payout_requested_at, auto_confirm_at, shipped_at, tracking_number, shipping_address, purchase_status)")
       .eq("seller_id", userId)
-      .eq("orders.state", "paid")
+      // ERLEBNIS-INSTANT-SETTLEMENT-001 (2026-09-22): reine Erlebnis-Orders
+      // landen nach der Zahlung direkt bei state='completed' (kein 'paid'-
+      // Zwischenschritt mehr) -- ohne 'completed' in diesem Filter wuerden
+      // solche Verkaeufe hier nie erscheinen.
+      .in("orders.state", ["paid", "completed"])
       .order("created_at", { ascending: false });
     if (err) {
       console.error("[useMySales] load:", err.message);
