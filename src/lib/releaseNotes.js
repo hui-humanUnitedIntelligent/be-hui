@@ -17,9 +17,27 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
-  // 2.1.611 — Sammel-OTA-Queue vom 19.-22.09.2026. Der Eintrag ist fuer
-  // das naechste freigegebene OTA vorbereitet; die Version selbst wird erst
-  // bei Michaels explizitem "deploy" hochgezaehlt und ausgerollt.
+  // 2.1.612 — Sammel-OTA vom 22.09.2026: Erlebnis-Erstellung und
+  // -Darstellung, Buchungsdetails, Profilbearbeitung und systemweite
+  // Chat-Oeffnung. Freigegeben von Michael: "deploy mit liste".
+  "2.1.612": {
+    de: [
+      `Teilnehmerzahl direkt an der richtigen Stelle: Beim Erstellen eines Erlebnisses legst du die maximale Teilnehmerzahl jetzt in „Wann & Wo“ zwischen Uhrzeit und Ort fest. Der Vorschlag ist 10, deine eigene Zahl bleibt frei wählbar.`,
+      `Erlebnisse korrekt dargestellt: Touren werden im öffentlichen Profil nicht mehr als Projekte bezeichnet. Beim Öffnen erscheint zuverlässig der registrierte Name statt „Mitglied“.`,
+      `Übersichtlichere Buchungsbestätigungen: Datum und Ort sind kompakter lesbar. Mit „Zur Buchung“ gelangen Käufer und Anbieter direkt in den passenden Buchungsbereich. Das wirkungslose optionale Nachrichtenfeld wurde entfernt.`,
+      `Stabilere Profilbearbeitung: Das Löschen des optionalen Anzeigenamens verursacht keinen Red Screen mehr und wird jetzt korrekt gespeichert.`,
+      `Chat-Buttons systemweit repariert: Aus Buchungsbelegen, Bestätigungen, Profilen und der Finanzübersicht öffnet sich der richtige Nutzerchat jetzt zuverlässig und bleibt nicht mehr unsichtbar hinter einem Fenster.`,
+    ],
+    en: [
+      `Participant limits in the right place: When creating an experience, you now set the maximum number of participants in “When & Where” between the time and location. The suggested value is 10, and you can freely enter your own number.`,
+      `Experiences displayed correctly: Tours are no longer labelled as projects on public profiles. Opening an experience now reliably shows the registered name instead of “Member”.`,
+      `Clearer booking confirmations: Dates and locations are easier to read. “Go to booking” takes buyers and providers directly to the relevant booking area. The ineffective optional message field has been removed.`,
+      `More stable profile editing: Removing the optional display name no longer causes a red screen and is now saved correctly.`,
+      `Chat buttons fixed throughout the app: The correct user chat now opens reliably from booking receipts, confirmations, profiles and the finance overview, without remaining hidden behind another window.`,
+    ],
+  },
+
+  // 2.1.611 — Sammel-OTA vom 19.-22.09.2026, live seit 22.09.2026.
   "2.1.611": {
     de: [
       `Erlebnisse direkt aus dem Feed buchen: "Teilnehmen" öffnet jetzt zuverlässig den vollständigen Buchungs- und Bezahlvorgang.`,
