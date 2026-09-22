@@ -50,6 +50,19 @@ export function AppStateProvider({ children }) {
   const [unreadNotifCount, setUnreadNotifCount] = useState(0);
   const notifTimerRef = useRef(null);
 
+  // BELL-CHAT-SPLIT-001 (2026-09-22, Michael-Report): Die Resonanzzentrum-
+  // Glocke zählte bisher ALLE unread notifications mit — inklusive type=
+  // "message" (wird bei jeder Chat-Nachricht in notificationService.js
+  // notifyMessage() eingefügt, ausschließlich damit die DB-Push-Pipeline
+  // (trg_queue_push_notification liest direkt aus notifications) beim
+  // Empfänger einen Push auslösen kann, siehe trg_notifications_to_outbox).
+  // Dieselbe Zeile zählte damit ZWEIMAL: einmal am Chat-Bubble-Icon
+  // (unreadTotal aus useChatList, echte SSOT für Chat) und einmal an der
+  // Glocke — Michael sah 3+3 statt einmal 3. Fix: Glocke zählt ab jetzt nur
+  // noch Nicht-Chat-Notifications (Momente/Werke/Talente-Interaktionen,
+  // Systemnachrichten etc.). Der notifications-Insert selbst bleibt
+  // unverändert (Push-Pipeline funktioniert weiter) — nur die Bell-Zählung
+  // filtert type="message" heraus.
   const fetchNotifCount = useCallback(async () => {
     if (!user?.id) return;
     try {
@@ -57,7 +70,8 @@ export function AppStateProvider({ children }) {
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("is_read", false);
+        .eq("is_read", false)
+        .neq("type", "message");
       setUnreadNotifCount(count || 0);
     } catch {
       // silent — kein crash
