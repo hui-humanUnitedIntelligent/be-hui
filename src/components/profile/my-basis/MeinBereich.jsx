@@ -291,6 +291,11 @@ export function MeinBereichMenu({
   const [showFinanzModal, setShowFinanzModal] = useState(false); // Finanzübersicht Modal
   const [finanzInitialTab, setFinanzInitialTab] = useState("kaeufe");
   const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact | buchungen
+  // BOOKINGS-EVERYWHERE-001 (2026-09-22, Michael-Report): "Buchungen"-Tab
+  // (bisher nur im Erlebnisse&Projekte-Drawer) zusätzlich in Werke- und
+  // Talente-Drawer -- eigene Tab-States, weil es unabhängige Drawer sind.
+  const [activeWerkeTab, setActiveWerkeTab] = useState("werke"); // werke | buchungen
+  const [activeTalenteTab, setActiveTalenteTab] = useState("talente"); // talente | buchungen
   const [showUpdateSheet, setShowUpdateSheet] = useState(false);
   const [updateTargetProject, setUpdateTargetProject] = useState(null);
   const [showProfilEdit, setShowProfilEdit] = useState(false);
@@ -327,6 +332,29 @@ export function MeinBereichMenu({
       ? targetTab : "buchungen");
     setShowFinanzModal(true);
   };
+
+  // BOOKINGS-EVERYWHERE-001 (2026-09-22): geteilter Buchungen-Einstieg für
+  // Erlebnisse-, Werke- und Talente-Drawer -- öffnet dasselbe generische
+  // FinanzübersichtModal (Buchungen sind nicht nach Inhaltstyp gefiltert).
+  // FARB-FIX (Michael-Report, Screenshot): beide Buttons waren zuvor
+  // uneinheitlich (Meine Buchungen teal-getönt, Wer hat mich gebucht weiß) --
+  // jetzt beide identisch weiß/neutral wie der Rest des Drawers.
+  function BuchungenButtons() {
+    return (
+      <div style={{ padding:"12px 20px 24px", display:"grid", gap:10 }}>
+        <button onClick={() => openFinanceBookings("buchungen")} style={{
+          width:"100%", padding:"14px 16px", borderRadius:12,
+          background:"white", border:"1px solid rgba(26,26,24,0.12)",
+          color:T.ink, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
+        }}>Meine Buchungen</button>
+        <button onClick={() => openFinanceBookings("gebucht")} style={{
+          width:"100%", padding:"14px 16px", borderRadius:12,
+          background:"white", border:"1px solid rgba(26,26,24,0.12)",
+          color:T.ink, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
+        }}>Wer hat mich gebucht</button>
+      </div>
+    );
+  }
 
   // ── Back-Button: MeinBereichMenu Sub-Modals registrieren ────────
   // BACK-BUTTON-FIX (2026-08-11): MeinBereichDrawer muss registriert werden
@@ -376,22 +404,60 @@ export function MeinBereichMenu({
       {/* ── Talent-Angebote ─────────────────────────────────── */}
       {activeDrawer === "talente" && (
         <MeinBereichDrawer title={t("meinBereich.talentAngebote")} icon={<HUITalentIcon size={18}/>} subtitle={t("meinBereich.talentAngeboteSub")} onClose={close} footer={false}>
-          <TalentAngeboteSection
-            talents={talents}
-            onTalentWizard={onTalentWizard}
-            onDeleteTalent={onDeleteTalent}
-          />
+          {/* BOOKINGS-EVERYWHERE-001: Tab-Switcher analog zu Erlebnisse & Projekte */}
+          <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
+            {[["talente",t("meinBereich.tabTalente")],["buchungen",t("fz.tabBuchungen")]].map(([key,label]) => (
+              <button key={key} onClick={() => setActiveTalenteTab(key)} style={{
+                flex:1, padding:"8px 4px", borderRadius:10, border:"none",
+                background: activeTalenteTab===key ? "white" : "transparent",
+                color: activeTalenteTab===key ? "#0DC4B5" : "#666",
+                fontSize:13, fontWeight:600,
+                cursor:"pointer", fontFamily:"inherit",
+                boxShadow: activeTalenteTab===key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                transition:"all 0.2s"
+              }}>{label}</button>
+            ))}
+          </div>
+
+          {activeTalenteTab === "talente" ? (
+            <TalentAngeboteSection
+              talents={talents}
+              onTalentWizard={onTalentWizard}
+              onDeleteTalent={onDeleteTalent}
+            />
+          ) : (
+            <BuchungenButtons />
+          )}
         </MeinBereichDrawer>
       )}
 
       {/* ── Meine Werke ──────────────────────────────────────── */}
       {activeDrawer === "werke" && (
         <MeinBereichDrawer title={t("meinBereich.meineWerke")} icon={<HUIWerkeIcon size={18}/>} subtitle={t("meinBereich.meineWerkeSub")} onClose={close} footer={false}>
-          <MeineWerkeSection
-            works={works}
-            onWerkWizard={onWerkWizard}
-            onDeleteWerk={onDeleteWerk}
-          />
+          {/* BOOKINGS-EVERYWHERE-001: Tab-Switcher analog zu Erlebnisse & Projekte */}
+          <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
+            {[["werke",t("meinBereich.tabWerke")],["buchungen",t("fz.tabBuchungen")]].map(([key,label]) => (
+              <button key={key} onClick={() => setActiveWerkeTab(key)} style={{
+                flex:1, padding:"8px 4px", borderRadius:10, border:"none",
+                background: activeWerkeTab===key ? "white" : "transparent",
+                color: activeWerkeTab===key ? "#0DC4B5" : "#666",
+                fontSize:13, fontWeight:600,
+                cursor:"pointer", fontFamily:"inherit",
+                boxShadow: activeWerkeTab===key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                transition:"all 0.2s"
+              }}>{label}</button>
+            ))}
+          </div>
+
+          {activeWerkeTab === "werke" ? (
+            <MeineWerkeSection
+              works={works}
+              onWerkWizard={onWerkWizard}
+              onDeleteWerk={onDeleteWerk}
+            />
+          ) : (
+            <BuchungenButtons />
+          )}
         </MeinBereichDrawer>
       )}
 
@@ -426,18 +492,7 @@ export function MeinBereichMenu({
               onUpdateClick={(proj) => { setUpdateTargetProject(proj); setShowUpdateSheet(true); }}
             />
           ) : (
-            <div style={{ padding:"12px 20px 24px", display:"grid", gap:10 }}>
-              <button onClick={() => openFinanceBookings("buchungen")} style={{
-                width:"100%", padding:"14px 16px", borderRadius:12,
-                background:"rgba(14,196,184,0.08)", border:"1.5px solid rgba(14,196,184,0.35)",
-                color:"#0AA99C", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
-              }}>Meine Buchungen</button>
-              <button onClick={() => openFinanceBookings("gebucht")} style={{
-                width:"100%", padding:"14px 16px", borderRadius:12,
-                background:"white", border:"1px solid rgba(26,26,24,0.12)",
-                color:T.ink, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
-              }}>Wer hat mich gebucht</button>
-            </div>
+            <BuchungenButtons />
           )}
 
           {showUpdateSheet && updateTargetProject && (

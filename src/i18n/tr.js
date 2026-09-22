@@ -1819,6 +1819,8 @@ export default {
   'meinBereich.unterstuetzteProjekte': 'Desteklediğim projeler',
   'meinBereich.tabErlebnisse': 'Deneyimler',
   'meinBereich.tabImpactProjekte': 'Etki Projeleri',
+  'meinBereich.tabWerke': 'Eserler',
+  'meinBereich.tabTalente': 'Yetenekler',
   'discover.fallbackMoment': 'Bir an',
   'discover.fallbackMember': 'HUI Üyesi',
   'discover.fileFormatOriginal': 'Orijinal',

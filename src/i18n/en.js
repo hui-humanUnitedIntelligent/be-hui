@@ -1835,6 +1835,8 @@ export default {
   'meinBereich.unterstuetzteProjekte': 'My supported projects',
   'meinBereich.tabErlebnisse': 'Experiences',
   'meinBereich.tabImpactProjekte': 'Impact Projects',
+  'meinBereich.tabWerke': 'Works',
+  'meinBereich.tabTalente': 'Talents',
   'discover.fallbackMoment': 'A moment',
   'discover.fallbackMember': 'HUI Member',
   'discover.fileFormatOriginal': 'Original',

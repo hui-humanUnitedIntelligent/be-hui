@@ -1820,6 +1820,8 @@ export default {
   'meinBereich.unterstuetzteProjekte': 'Mes projets soutenus',
   'meinBereich.tabErlebnisse': 'Expériences',
   'meinBereich.tabImpactProjekte': 'Projets Impact',
+  'meinBereich.tabWerke': 'Œuvres',
+  'meinBereich.tabTalente': 'Talents',
   'discover.fallbackMoment': 'Un moment',
   'discover.fallbackMember': 'Membre HUI',
   'discover.fileFormatOriginal': 'Original',

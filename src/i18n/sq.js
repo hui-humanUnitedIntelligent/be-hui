@@ -2718,6 +2718,8 @@ export default {
   'meinBereich.showAll': 'Të gjithashfaq >',
   'meinBereich.tabErlebnisse': 'Përvojat',
   'meinBereich.tabImpactProjekte': 'Ndikim Projektet',
+  'meinBereich.tabWerke': 'Vepra',
+  'meinBereich.tabTalente': 'Talente',
   'meinBereich.talentAngebote': 'Oferta talentesh',
   'meinBereich.talentAngeboteSub': 'Dnjë buchbaren Leistungen & Dienstleistungen.',
   'meinBereich.talentOffers': 'Oferta talentesh',
