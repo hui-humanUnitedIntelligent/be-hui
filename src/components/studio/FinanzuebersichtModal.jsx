@@ -375,7 +375,9 @@ function MeineKaeufe({ userId, onCloseModal }) {
       actions: {
         onConfirmReceipt: needsConfirm ? () => handleConfirm(o.id) : null,
         confirmingReceipt: confirmingId === o.id,
-        receiptConfirmed: confirmed,
+        // Erlebnis-Buchungen sind direkt final abgewickelt. Auch die grüne
+        // Nachher-Box "Erhalt bestätigt" ist dort ein falscher Waren-Flow.
+        receiptConfirmed: !isExperience && confirmed,
         onDispute: needsConfirm ? (note) => handleDispute(o.id, note) : null,
         disputing: disputingId === o.id,
         disputeOpen: !isExperience && isDisputed,
