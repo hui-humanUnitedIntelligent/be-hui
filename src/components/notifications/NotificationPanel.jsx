@@ -450,7 +450,17 @@ function DetailModal({ n, onClose, onAction }) {
         chatUserId: otherUserId,
         chatUserName: otherUserLabel,
         // BOOKING-CHAT-001: Buchungs-ID fuer direkten 1:1-Chat
-        bookingId: md.booking_id || n.entity_id || null,
+        bookingId: md.booking_id || md.order_id || n.entity_id || null,
+        // BOOKING-DIRECT-LINK-001 (2026-09-22, Bugreport a989b884):
+        // Talentbuchungen: Käufer zu „Meine Buchungen“, Verkäufer zu „Wer hat
+        // mich gebucht“. Erlebnisbuchungen liegen dagegen als orders/order_items
+        // vor und müssen in „Meine Käufe“/„Meine Verkäufe“ geöffnet werden,
+        // sonst wäre die konkrete Buchung dort nicht sichtbar. Alle Ziele bleiben
+        // in der kanonischen Finanzübersicht; Mein Bereich → Erlebnisse →
+        // Buchungen ist nur der Einstieg und erzeugt keine zweite Finanzlogik.
+        bookingsTargetTab: isTalent
+          ? (isSellerView ? "gebucht" : "buchungen")
+          : (isSellerView ? "verkaeufe" : "kaeufe"),
         // BELEG-001: Beleg-Button nur in der Kaeufer-Sicht
         receiptData: !isSellerView ? {
           offerTitle: offerTitle || t("notif.meta.talentUnavailable"),
@@ -926,9 +936,12 @@ function DetailModal({ n, onClose, onAction }) {
             </div>
           );
           if (block.type === "stat") return (
-            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 14px", background:"rgba(14,196,184,0.05)", borderRadius:10, marginBottom:10 }}>
-              <span style={{ fontSize:12, color:"#888", fontWeight:600 }}>{block.label}</span>
-              <span style={{ fontSize:16, fontWeight: 600, color:"#1a1a18" }}>{block.value}</span>
+            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, padding:"10px 14px", background:"rgba(14,196,184,0.05)", borderRadius:10, marginBottom:10 }}>
+              <span style={{ fontSize:11, lineHeight:1.45, color:"#888", fontWeight:600, flexShrink:0 }}>{block.label}</span>
+              {/* BOOKING-DETAIL-TEXT-FIT-001: 16px war bei langen Wann-/Wo-
+                  Werten im schmalen Modal zu groß; Screenshot a989b884 zeigte
+                  versetzte Umbrüche. Kompakter Wert, kontrollierte rechte Spalte. */}
+              <span style={{ fontSize:13, lineHeight:1.45, fontWeight:600, color:"#1a1a18", textAlign:"right", maxWidth:"72%", overflowWrap:"anywhere" }}>{block.value}</span>
             </div>
           );
           if (block.type === "info") return (
@@ -967,6 +980,25 @@ function DetailModal({ n, onClose, onAction }) {
             }}
           >
             {cfg.actionLabel}
+          </button>
+        )}
+
+        {/* ── BOOKING-DIRECT-LINK-001: Käufer/Verkäufer zum passenden Buchungs-Tab ── */}
+        {cfg.bookingsTargetTab && (
+          <button
+            onClick={() => {
+              onClose();
+              onAction({ ...n, _openBookings: { targetTab: cfg.bookingsTargetTab, bookingId: cfg.bookingId || null } });
+            }}
+            style={{
+              width:"100%", padding:"13px", borderRadius:99,
+              background:"rgba(14,196,184,0.08)",
+              border:"1.5px solid rgba(14,196,184,0.35)",
+              color:"#0EC4B8", fontSize:14, fontWeight:600,
+              cursor:"pointer", fontFamily:"inherit", marginBottom:10,
+            }}
+          >
+            Zur Buchung
           </button>
         )}
 

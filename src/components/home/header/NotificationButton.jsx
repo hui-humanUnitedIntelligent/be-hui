@@ -9,6 +9,7 @@ import { useHuiActions, A } from "../../../core/hui.actions.js";
 import { useContentPreview } from "../../../context/ContentPreviewContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { S } from "../../../core/hui.sources.js";
+import { useHome } from "../HomeShell.jsx";
 
 // WICHTIG: kein useNotifications() hier — würde Channel notif:X doppelt öffnen.
 // unread kommt als Prop von HomeHeader (notifCount).
@@ -29,6 +30,7 @@ export default function NotificationButton({ count = 0, userId = "" }) {
   }, [count]);
 
   const actions = useHuiActions();
+  const { openCreatorDashboard } = useHome();
   const { openRef } = useContentPreview();
   const navigate = useNavigate();
 
@@ -55,6 +57,19 @@ export default function NotificationButton({ count = 0, userId = "" }) {
     const meta = n.metadata || {};
     const targetId = meta.target_id || meta.actor_id || n.actor_id || null;
     const werkId  = meta.werk_id   || null;
+
+    // BOOKING-DIRECT-LINK-001: Ziel vor dem Profil-Mount persistent ablegen,
+    // dann den kanonischen Mein-Bereich-Einstieg öffnen. MeinBereichMenu
+    // konsumiert den Key einmalig und öffnet Erlebnisse → Buchungen.
+    if (n._openBookings) {
+      setOpen(false);
+      const requestedTab = n._openBookings?.targetTab;
+      const targetTab = ["kaeufe", "verkaeufe", "buchungen", "gebucht"].includes(requestedTab)
+        ? requestedTab : "buchungen";
+      try { sessionStorage.setItem("hui_pending_bookings_tab", targetTab); } catch { /* Best-Effort */ }
+      openCreatorDashboard?.();
+      return;
+    }
 
     // ── "Mit Nutzer chatten" aus Buchungsdetail-Modal (typunabhängig, Vorrang) ──
     if (n._openChat) {
@@ -232,7 +247,7 @@ export default function NotificationButton({ count = 0, userId = "" }) {
         break;
       }
     }
-  }, [actions, openRef, navigate]);
+  }, [actions, openCreatorDashboard, openRef, navigate]);
 
   return (
     <>

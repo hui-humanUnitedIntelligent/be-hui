@@ -1288,12 +1288,14 @@ function MeineSupports({ userId }) {
 // ──────────────────────────────────────────────────────────────────────
 // HAUPT-EXPORT
 // ──────────────────────────────────────────────────────────────────────
-export default function FinanzuebersichtModal({ profile, onClose = () => {} }) {
+export default function FinanzuebersichtModal({ profile, initialTab = "kaeufe", onClose = () => {} }) {
   const { t } = useTranslation();
   const TABS = getTabs(t);
   useModalRegistration(true, onClose, "FinanzuebersichtModal");
   const { dragHandlers, sheetTransform, sheetTransition } = useSheetDrag(onClose);
-  const [tab, setTab] = useState("kaeufe");
+  const [tab, setTab] = useState(
+    ["kaeufe", "verkaeufe", "buchungen", "gebucht"].includes(initialTab) ? initialTab : "kaeufe",
+  );
   const userId = profile?.id;
 
   const modal = (

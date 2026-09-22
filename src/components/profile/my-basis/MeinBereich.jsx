@@ -289,10 +289,44 @@ export function MeinBereichMenu({
   const [impactDetail, setImpactDetail] = useState(null); // stimmen|projekte
   const [empfehlungDetail, setEmpfehlungDetail] = useState(null); // incoming|outgoing
   const [showFinanzModal, setShowFinanzModal] = useState(false); // Finanzübersicht Modal
-  const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact
+  const [finanzInitialTab, setFinanzInitialTab] = useState("kaeufe");
+  const [activeTab, setActiveTab] = useState("erlebnisse"); // erlebnisse | impact | buchungen
   const [showUpdateSheet, setShowUpdateSheet] = useState(false);
   const [updateTargetProject, setUpdateTargetProject] = useState(null);
   const [showProfilEdit, setShowProfilEdit] = useState(false);
+
+  // BOOKING-DIRECT-LINK-001: ein gemeinsamer Einstieg für Header-Glocke
+  // (sessionStorage überbrückt den Profil-Mount) und die Glocke im bereits
+  // geöffneten Profil (CustomEvent). Die sichtbare Route bleibt
+  // Mein Bereich → Erlebnisse → Buchungen; die eigentliche Verwaltung öffnet
+  // gemäß Architekturregel ausschließlich das FinanzübersichtModal.
+  useEffect(() => {
+    const openBookings = (targetTabRaw) => {
+      const targetTab = ["kaeufe", "verkaeufe", "buchungen", "gebucht"].includes(targetTabRaw)
+        ? targetTabRaw : "buchungen";
+      setActiveDrawer("erlebnisse");
+      setActiveTab("buchungen");
+      setFinanzInitialTab(targetTab);
+      setShowFinanzModal(true);
+    };
+    const onOpenBookings = (event) => openBookings(event?.detail?.targetTab);
+    window.addEventListener("hui:open-bookings", onOpenBookings);
+    try {
+      const pending = sessionStorage.getItem("hui_pending_bookings_tab");
+      if (pending) {
+        sessionStorage.removeItem("hui_pending_bookings_tab");
+        openBookings(pending);
+      }
+    } catch { /* sessionStorage nicht verfügbar */ }
+    return () => window.removeEventListener("hui:open-bookings", onOpenBookings);
+  }, []);
+
+  const openFinanceBookings = (targetTab) => {
+    setActiveTab("buchungen");
+    setFinanzInitialTab(["kaeufe", "verkaeufe", "buchungen", "gebucht"].includes(targetTab)
+      ? targetTab : "buchungen");
+    setShowFinanzModal(true);
+  };
 
   // ── Back-Button: MeinBereichMenu Sub-Modals registrieren ────────
   // BACK-BUTTON-FIX (2026-08-11): MeinBereichDrawer muss registriert werden
@@ -366,8 +400,8 @@ export function MeinBereichMenu({
         <MeinBereichDrawer title={t("meinBereich.erlebnisseProjekte")} icon={<HUIErlebnisIcon size={18}/>} subtitle={t("meinBereich.erlebnisseProjekteSub")} onClose={close} footer={false} fullScreen>
           {/* Tab-Switcher */}
           <div style={{ display:"flex", gap:0, margin:"0 20px 16px", background:"rgba(0,0,0,0.05)", borderRadius:12, padding:4 }}>
-            {[["erlebnisse",t("meinBereich.tabErlebnisse")],["impact",t("meinBereich.tabImpactProjekte")]].map(([key,label]) => (
-              <button key={key} onClick={() => setActiveTab(key)} style={{
+            {[["erlebnisse",t("meinBereich.tabErlebnisse")],["impact",t("meinBereich.tabImpactProjekte")],["buchungen","Buchungen"]].map(([key,label]) => (
+              <button key={key} onClick={() => key === "buchungen" ? openFinanceBookings("buchungen") : setActiveTab(key)} style={{
                 flex:1, padding:"8px 4px", borderRadius:10, border:"none",
                 background: activeTab===key ? "white" : "transparent",
                 color: activeTab===key ? "#0DC4B5" : "#666",
@@ -385,12 +419,25 @@ export function MeinBereichMenu({
               onErlebnisWizard={onErlebnisWizard}
               onDeleteErlebnis={onDeleteErlebnis}
             />
-          ) : (
+          ) : activeTab === "impact" ? (
             <ImpactProjekteTab
               profile={profile}
               supabase={supabase}
               onUpdateClick={(proj) => { setUpdateTargetProject(proj); setShowUpdateSheet(true); }}
             />
+          ) : (
+            <div style={{ padding:"12px 20px 24px", display:"grid", gap:10 }}>
+              <button onClick={() => openFinanceBookings("buchungen")} style={{
+                width:"100%", padding:"14px 16px", borderRadius:12,
+                background:"rgba(14,196,184,0.08)", border:"1.5px solid rgba(14,196,184,0.35)",
+                color:"#0AA99C", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
+              }}>Meine Buchungen</button>
+              <button onClick={() => openFinanceBookings("gebucht")} style={{
+                width:"100%", padding:"14px 16px", borderRadius:12,
+                background:"white", border:"1px solid rgba(26,26,24,0.12)",
+                color:T.ink, fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"inherit",
+              }}>Wer hat mich gebucht</button>
+            </div>
           )}
 
           {showUpdateSheet && updateTargetProject && (
@@ -481,7 +528,7 @@ export function MeinBereichMenu({
 
       {/* ── Finanzübersicht (neues Unified-Modal) ───────── */}
       {showFinanzModal && (
-        <FinanzuebersichtModal profile={profile} onClose={() => setShowFinanzModal(false)} />
+        <FinanzuebersichtModal profile={profile} initialTab={finanzInitialTab} onClose={() => setShowFinanzModal(false)} />
       )}
 
       {/* ── Profil bearbeiten ───────────────────────────────── */}

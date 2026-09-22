@@ -163,6 +163,17 @@ export default function MyBasisProfile({ onClose, profileId }) {
     const targetId = meta.target_id || meta.actor_id || n.actor_id || null;
     const werkId   = meta.werk_id   || null;
 
+    // BOOKING-DIRECT-LINK-001: Profil ist bereits gemountet; das
+    // MeinBereichMenu direkt zum kanonischen Buchungsziel aufwecken.
+    if (n._openBookings) {
+      setShowNotifications(false);
+      const requestedTab = n._openBookings?.targetTab;
+      const targetTab = ["kaeufe", "verkaeufe", "buchungen", "gebucht"].includes(requestedTab)
+        ? requestedTab : "buchungen";
+      window.dispatchEvent(new CustomEvent("hui:open-bookings", { detail: { targetTab } }));
+      return;
+    }
+
     // ── RESONANZ-BUCHUNG-001 (2026-08-08): "Mit Nutzer chatten" aus dem
     //    Buchungsdetail-Modal — typunabhängig, hat Vorrang vor dem Switch ──
     if (n._openChat) {
