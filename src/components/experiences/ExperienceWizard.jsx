@@ -700,7 +700,7 @@ function S1({ data, onChange, userId, onCoverThumbFrame, existingThumbnailUrl, o
 
 // ══════════════════════════════════════════════════════════════
 // SCHRITT 2 — WANN & WO
-// Datum · Beginn · Ende · Ort · Vor Ort / Online
+// Datum · Beginn · Ende · Teilnehmerzahl · Ort · Vor Ort / Online
 // ══════════════════════════════════════════════════════════════
 function S2({ data, onChange, onPickLocation }) {
   const { t } = useTranslation();
@@ -752,6 +752,28 @@ function S2({ data, onChange, onPickLocation }) {
         </div>
       </div>
 
+      {/* TEILNEHMERZAHL-IN-WANNWO-001 (2026-09-22, Michael-Screenshot): Michael
+          vermisste die Teilnehmerzahl im Schritt "Wann & Wo" -- sie stand bisher
+          nur im Schritt 3 "Teilnahme". Feld hierher verschoben (nicht dupliziert,
+          SSOT bleibt data.max_participants), Position exakt wie gewuenscht:
+          zwischen Beginn/Ende-Uhrzeiten und Ort. Freier Zahlen-Input (kein
+          Dropdown) -- der Nutzer tippt die Zahl selbst ein, Platzhalter zeigt
+          nur den Vorschlag "10" (greift serverseitig ohnehin als Default beim
+          Veroeffentlichen, siehe experienceCapacity-Fallback weiter unten). */}
+      <Field label={t("ew.s3.label.maxTeiln")} hint={t("ew.s3.maxTeiln.hint")}>
+        <div style={{ position: "relative" }}>
+          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIPersonenIcon size={18}/></span>
+          <input
+            type="number" min="1" max="9999"
+            inputMode="numeric"
+            value={data.max_participants || ""}
+            onChange={e => onChange({ max_participants: e.target.value })}
+            placeholder="10"
+            style={{ ...INP_BASE, paddingLeft: 46, fontSize: 20, fontWeight: 600 }}
+          />
+        </div>
+      </Field>
+
       {/* Ort */}
       <Field label={t("ew.s2.label.ort")} req hint={t("ew.s2.ort.hint")}>
         <div style={{ position: "relative" }}>
@@ -779,7 +801,7 @@ function S2({ data, onChange, onPickLocation }) {
 
 // ══════════════════════════════════════════════════════════════
 // SCHRITT 3 — TEILNAHME
-// Preis · Währung · Preis gilt pro · Teilnehmerzahl · Anmeldung
+// Preis · Währung · Preis gilt pro · Anmeldung (Teilnehmerzahl jetzt in S2 "Wann & Wo")
 // ══════════════════════════════════════════════════════════════
 function S3({ data, onChange }) {
   const { t } = useTranslation();
@@ -842,21 +864,6 @@ function S3({ data, onChange }) {
             {parseFloat(data.price).toFixed(2).replace(".", ",")} {data.currency || "EUR"} pro {data.price_per}
           </div>
         )}
-      </Field>
-
-      {/* Max. Teilnehmerzahl */}
-      <Field label={t("ew.s3.label.maxTeiln")} hint={t("ew.s3.maxTeiln.hint")}>
-        <div style={{ position: "relative" }}>
-          <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", color:C.inkFade, pointerEvents:"none" }}><HUIPersonenIcon size={18}/></span>
-          <input
-            type="number" min="1" max="9999"
-            inputMode="numeric"
-            value={data.max_participants || ""}
-            onChange={e => onChange({ max_participants: e.target.value })}
-            placeholder="12"
-            style={{ ...INP_BASE, paddingLeft: 46, fontSize: 20, fontWeight: 600 }}
-          />
-        </div>
       </Field>
 
       {/* Anmeldung erforderlich */}
