@@ -89,6 +89,31 @@ export function useProfileData(profileId, includePrivate = false) {
   const [worksSaleStatus, setWorksSaleStatus] = useState({}); // {workId: "verkauft"|"reserviert"|null}
   const [followCounts,    setFollowCounts]    = useState({ followers: 0, following: 0 });
 
+  // EXPERIENCE-OWNER-PENDING-SYNC-001 (2026-09-22, Sascha-Report):
+  // Eigene neu gespeicherte Erlebnisse müssen SOFORT im "Mein Bereich"-
+  // State landen. Zuvor war die Anzeige ausschließlich von loadLazy()
+  // abhängig. Lief dort gerade ein Request, verwarf dessen inFlight-Guard
+  // den Refresh vollständig; zusätzlich lauschte MyBasisProfile nur auf
+  // UPDATE/DELETE, nicht INSERT. Ergebnis: Der korrekt gespeicherte
+  // pending_review-Datensatz blieb bis zu einem späteren Voll-Reload unsichtbar.
+  // Diese beiden Mutatoren sind die zentrale, idempotente State-Synchronisation
+  // für Wizard-Ergebnis UND Realtime INSERT/UPDATE/DELETE.
+  const upsertExperience = useCallback((experience) => {
+    if (!experience?.id) return;
+    setExperiences(prev => {
+      const index = prev.findIndex(item => item.id === experience.id);
+      if (index < 0) return [experience, ...prev];
+      const next = [...prev];
+      next[index] = { ...next[index], ...experience };
+      return next;
+    });
+  }, []);
+
+  const removeExperience = useCallback((experienceId) => {
+    if (!experienceId) return;
+    setExperiences(prev => prev.filter(item => item.id !== experienceId));
+  }, []);
+
   // Phase-1 = Profil + followCounts loaded; Phase-2 = lazy content loaded
   const [loading,         setLoading]         = useState(!!profileId);
   const [loadingLazy,     setLoadingLazy]     = useState(false);
@@ -393,6 +418,8 @@ export function useProfileData(profileId, includePrivate = false) {
     error,
     reload: load,
     loadLazy, // neu: von Sections aufzurufen
+    upsertExperience,
+    removeExperience,
   };
 }
 

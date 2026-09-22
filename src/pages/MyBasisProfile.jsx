@@ -412,7 +412,9 @@ export default function MyBasisProfile({ onClose, profileId }) {
     reload,
     loadLazy,
     followCounts,
-  } = useProfileData(user?.id, true); // includePrivate=true → phone für eigenes Profil
+    upsertExperience,
+    removeExperience,
+  } = useProfileData(user?.id, true); // includePrivate=true → eigene Profilinhalte inkl. Pending
 
   // TDZ-FIX (2026-08-30): effectiveProfile/effectiveUserId GEHÖREN hierher —
   // `profile` existiert erst NACH useProfileData() (siehe F.9C-HOTFIX-Kommentar
@@ -509,14 +511,22 @@ export default function MyBasisProfile({ onClose, profileId }) {
           event: "UPDATE", schema: "public", table: "works",
           filter: "user_id=eq." + profile.id,
         }, () => reload())
+        // EXPERIENCE-OWNER-PENDING-SYNC-001: INSERT fehlte vollständig.
+        // UPDATE rief bisher nur reload() auf; reload() lädt aber ausschließlich
+        // Phase 1 (Profilkopf), NICHT die Lazy-Inhalte. Beide Events werden nun
+        // direkt und idempotent in den zentralen Experiences-State übernommen.
+        .on("postgres_changes", {
+          event: "INSERT", schema: "public", table: "experiences",
+          filter: "user_id=eq." + profile.id,
+        }, (payload) => upsertExperience(payload.new))
         .on("postgres_changes", {
           event: "UPDATE", schema: "public", table: "experiences",
           filter: "user_id=eq." + profile.id,
-        }, () => reload())
-        // Admin Hard-Delete → sofort neu laden
+        }, (payload) => upsertExperience(payload.new))
+        // Admin/Owner Hard-Delete → sofort lokal entfernen
         .on("postgres_changes", {
           event: "DELETE", schema: "public", table: "experiences",
-        }, () => reload())
+        }, (payload) => removeExperience(payload.old?.id))
         .on("postgres_changes", {
           event: "DELETE", schema: "public", table: "projects",
         }, () => reload())
@@ -525,7 +535,7 @@ export default function MyBasisProfile({ onClose, profileId }) {
     }
 
     return () => { if (createdHere && channel) supabase.removeChannel(channel); };
-  }, [profile?.id, reload]);
+  }, [profile?.id, reload, upsertExperience, removeExperience]);
 
   // Auto-save on bio/interests/visibility change (debounced 1.2s)
   // ── Sprint F.7D Phase 3: Explizite Save-Handler (autoSave entfernt) ─────
@@ -1185,7 +1195,15 @@ export default function MyBasisProfile({ onClose, profileId }) {
             userId={effectiveUserId}
             existingExp={editingExp}
             onClose={() => { setShowExpWizard(false); setEditingExp(null); }}
-            onSaved={() => { setShowExpWizard(false); setEditingExp(null); reload(); loadLazy?.(); }}
+            onSaved={(saved) => {
+              // EXPERIENCE-OWNER-PENDING-SYNC-001: Das vollständig von der DB
+              // zurückgegebene Erlebnis sofort in "Mein Bereich" einsetzen.
+              // Kein Warten auf Profil-/Lazy-Reload, kein Timing-Race.
+              upsertExperience(saved);
+              setShowExpWizard(false);
+              setEditingExp(null);
+              loadLazy?.(); // Hintergrund-Abgleich aller Profilinhalte
+            }}
           />
         ,
         document.body
