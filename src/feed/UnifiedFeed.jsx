@@ -30,7 +30,6 @@ import CommentsSheet            from "../components/shared/CommentsSheet.jsx";
 import { countComments, getComments } from "../lib/commentsService.js";
 import { prefetchComments } from "../lib/commentsPrefetchCache.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
-import FeedImpactTicker from "./FeedImpactTicker.jsx";
 import { useTranslation } from "../hooks/useTranslation.js";
 import { useIsTabletScreen } from "../lib/useIsTabletScreen.js";
 
@@ -1005,10 +1004,13 @@ export default function UnifiedFeed({
         </SectionBoundary>
       )}
 
-      {/* ── IMPACT TRANSPARENCY TICKER (2026-08-24) ── */}
-      <SectionBoundary name="impactTicker">
-        <FeedImpactTicker />
-      </SectionBoundary>
+      {/* HOME-IMPACT-TICKER-REMOVED-001 (2026-09-22, Michael-Screenshot): Der
+          Impact-Pool-Verteilungen-Ticker poppte nach jeder Transaktion im
+          Home-Feed auf. Michael will das nur noch im Impact-Bereich ganz
+          unten sehen — dort existiert bereits derselbe globale Ticker
+          (PoolTransparenzTicker, Datenquelle usePoolDistributionsTicker,
+          identische impact_distributions-Query). Deshalb hier ersatzlos
+          entfernt statt dupliziert. */}
 
       {/* ── MAIN FEED — vertical timeline, stable, always renders ── */}
 
