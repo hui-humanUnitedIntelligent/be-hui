@@ -3,6 +3,8 @@ import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { formatDateDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { isOwnContent } from "../../lib/contentOwnership.js";
 
 const TEAL = "#0DC4B5";
 const INK  = "#1A1A2E";
@@ -10,6 +12,7 @@ const INK3 = "#55556B";
 
 export default function ExperienceContent({ item, onProfile, onReaction, onShare, onBook }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   if (!item) return null;
   const { open } = useContentPreview(); // OPEN.1 2026-07-08 -- Karte oeffnet jetzt Vorschau statt nichts zu tun
 
@@ -28,6 +31,8 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
       dateStr =formatDateDE(d, { day:"numeric", month:"long" });
     } catch { dateStr = item._raw.date; }
   }
+  // SELF-COMMERCE-GUARD-001: Eigene Erlebnisse sind nicht buchbar.
+  const isOwn = isOwnContent(item, user?.id);
   const metaParts = [
     category,
     dateStr && timeDisplay ? `${dateStr}, ${timeDisplay}` : (dateStr || timeDisplay),
@@ -89,7 +94,7 @@ export default function ExperienceContent({ item, onProfile, onReaction, onShare
       })()}
 
       {/* Teilnehmen-Button — eigene Zeile, rechtsbündig */}
-      {onBook && (
+      {onBook && !isOwn && (
         <div style={{ display:"flex", justifyContent:"center", marginBottom: metaParts.length > 0 ? 6 : 0 }}>
           <button
             onClick={(e) => { e.stopPropagation(); onBook(item); }}

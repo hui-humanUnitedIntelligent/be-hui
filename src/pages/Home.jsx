@@ -38,6 +38,7 @@ import HUIBottomNavigation       from "../components/home/navigation/HUIBottomNa
 import ProfileLauncher           from "../components/home/profile/ProfileLauncher.jsx";
 import UnifiedFeed from "../feed/UnifiedFeed.jsx";
 import { shareContent } from "../lib/shareContent.js"; // SHARE.2 2026-07-22
+import { isOwnContent } from "../lib/contentOwnership.js";
 import { HuiShareModal } from "../components/shared/HuiShareModal.jsx";
 import BugReportButton from "../components/bug-report/BugReportButton.jsx";
 import BugReportModal from "../components/bug-report/BugReportModal.jsx";
@@ -372,6 +373,12 @@ function HomeInner() {
   useEffect(() => {
     const pending = location?.state?.pendingWerkKauf;
     if (pending && setCart) {
+      // SELF-COMMERCE-GUARD-001: Ein eigener Werk-Deep-Link darf nie den
+      // persistenten Werke-Korb verunreinigen.
+      if (isOwnContent(pending, currentUser?.id)) {
+        try { window.history.replaceState({}, document.title, window.location.pathname); } catch { /* best effort */ }
+        return;
+      }
       // KORB-RESTORE (2026-08-10): WorkDetailPage "Kaufen" → in Korb legen
       // (statt direkten WerkKaufFlow zu öffnen)
       // BUGFIX v2 (2026-08-10): pending aus WorkDetailPage hatte author=null
@@ -386,7 +393,17 @@ function HomeInner() {
       // Router-State sofort leeren damit Reload nicht erneut öffnet
       try { window.history.replaceState({}, document.title, window.location.pathname); } catch {}
     }
-  }, [location?.state?.pendingWerkKauf, setCart]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+  }, [location?.state?.pendingWerkKauf, setCart, currentUser?.id]); // eslint-disable-line  // Activity Tracking: App-Start, Foreground, Heartbeat
+
+  // SELF-COMMERCE-GUARD-001: Bereits lokal persistierte eigene Werke aus
+  // älteren/fehlerhaften Klicks einmalig aus dem Warenkorb entfernen.
+  useEffect(() => {
+    if (!currentUser?.id || !setCart) return;
+    setCart(prev => {
+      const clean = prev.filter(item => !isOwnContent(item, currentUser.id));
+      return clean.length === prev.length ? prev : clean;
+    });
+  }, [currentUser?.id, setCart]);
 
 
   // ── Phase 4C: Talent Flow global registrieren ────────────────
@@ -629,15 +646,14 @@ function HomeInner() {
                     // bereits bestehenden, in DiscoverPage verifiziert
                     // funktionierenden ExperienceBookingFlow-Pfad (setShowBookingFlow),
                     // exakt dieselbe Instanz wie unten bei DiscoverPage.onBook.
+                    if (!item?.id || isOwnContent(item, currentUser?.id)) return;
                     if (kind === "experience") {
-                      if (!item?.id) return;
                       setShowBookingFlow(item._raw || item);
                       return;
                     }
                     // KORB-RESTORE (2026-08-10): "Kaufen" im Feed legt das Werk
                     // in den Werkekorb — der Korb-Button erscheint, Nutzer
                     // sehen sofort was passiert und können mehrere Werke sammeln.
-                    if (!item?.id) return;
                     // BUGFIX (2026-08-10): item._raw enthält NUR die rohe DB-Zeile
                     // (title/price/cover_url) — das normalisierte item.author
                     // {id,name,avatar} wurde dabei verworfen → WerkeKorb zeigte

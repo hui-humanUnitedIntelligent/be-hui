@@ -7,6 +7,7 @@ import { ProfileService } from '../services/db';
 import { supabase } from "../lib/supabaseClient";
 import { normalizeProfileInput } from '../lib/perfUtils';
 import { useAuth } from "../lib/AuthContext";
+import { isOwnContent } from "../lib/contentOwnership.js";
 import { useAppState } from "../lib/AppStateContext";
 import { HUI } from "../design/hui.design.js";
 // HUI Interaction Language v1.0 (2026-07-05) — Single Source of Truth,
@@ -631,6 +632,9 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
   const forSale      = werk.for_sale;
   const stockAvailRaw = werk.stock_available;
   const isSoldOut    = forSale === false || (stockAvailRaw != null && stockAvailRaw <= 0);
+  // SELF-COMMERCE-GUARD-001: Auf der Detailseite eigener Werke existiert
+  // kein Kaufen-CTA; der Home-Cart-Guard bleibt die zweite Absicherung.
+  const isOwnWork     = isOwnContent(werk, user?.id);
   const displayName = creator?.full_name || creator?.display_name || creator?.username || "Unbekannter Creator";
   const username    = creator?.username || "hui-user";
   const avatarUrl   = creator?.avatar_url || null;
@@ -927,6 +931,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
               fontWeight: 600, cursor:"pointer", fontFamily:"inherit" }}>
             {saved ? t("tbf.detail.saved") : t("tbf.detail.save")}
           </button>
+          {!isOwnWork && (
           <button
             onClick={() => {
               if (isSoldOut) return;
@@ -948,6 +953,7 @@ export default function WorkDetailPage({ onBuyWerk, onAddToKorb, onViewCreator }
               boxShadow: isSoldOut ? "none" : `0 4px 18px ${C.coralGlow}` }}>
             {isSoldOut ? t("common.sold") : "Jetzt kaufen ✦"}
           </button>
+          )}
         </div>
 
         {/* Bottom-Spacer -- haelt die Commerce-Bar (jetzt im Content-Fluss)

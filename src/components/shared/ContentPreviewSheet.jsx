@@ -37,6 +37,7 @@ import { prefetchComments } from "../../lib/commentsPrefetchCache.js";
 import CommentsSheet from "./CommentsSheet.jsx";
 import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { isOwnContent } from "../../lib/contentOwnership.js";
 import { CAT_KEY_MAP, WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const T = {
@@ -93,6 +94,9 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
   const postId    = item?.id || null;
   const postType  = item?.type || "post";
   const authorId  = item?.author?.id || null;
+  // SELF-COMMERCE-GUARD-001: Vorschau darf eigene Angebote/Erlebnisse
+  // nicht in einen Buchungsflow weiterleiten.
+  const isOwn = isOwnContent(item, user?.id);
   const snapshot  = useMemo(() => item ? ({
     cover_url: item.media?.[0]?.url || null, title: item.title, author_name: item.author?.name || null, user_id: authorId,
   }) : null, [item, authorId]);
@@ -474,7 +478,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                   <span>{t("cps.pastExperience")}</span>
                 </div>
               )}
-              {(item.type === "experience" || item.type === "erlebnis") && !isPastExperience && item.price != null && Number(item.price) > 0 && (
+              {(item.type === "experience" || item.type === "erlebnis") && !isOwn && !isPastExperience && item.price != null && Number(item.price) > 0 && (
                 <button
                   className="cps-btn"
                   onClick={() => { onClose?.(); onBookExperience(item); }}
@@ -586,7 +590,7 @@ export default function ContentPreviewSheet({ item, loading, onClose, onBookTale
                     const tStock = item._raw?.stock_available;
                     const tFull   = tStock != null && tStock <= 0;
                     const hasPrice = item._raw?.price_per_hour != null || item._raw?.price_per_session != null;
-                    if (!hasPrice) return null;
+                    if (!hasPrice || isOwn) return null;
                     if (tFull) return (
                       <div style={{
                         width:"100%", marginBottom:10, padding:"14px", borderRadius:14,

@@ -10,6 +10,8 @@ import React from "react";
 import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { isOwnContent } from "../../lib/contentOwnership.js";
 
 const PURPLE      = "rgba(139,92,246,1)";
 const PURPLE_SOFT = "rgba(139,92,246,0.10)";
@@ -36,6 +38,7 @@ function locLabel(type, t) {
 
 export default function TalentContent({ item, onProfile, onReaction, onShare }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   if (!item) return null;
 
   const raw      = item._raw || {};
@@ -63,6 +66,8 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
   // (z.B. Einzelbuchung ohne Limit) → gilt NICHT als ausgebucht.
   const stockAvailRaw = raw.stock_available;
   const isFullyBooked = stockAvailRaw != null && stockAvailRaw <= 0;
+  // SELF-COMMERCE-GUARD-001: Eigene Talent-Angebote zeigen keinen Buchen-CTA.
+  const isOwn = isOwnContent(item, user?.id);
 
   const handleBookClick = (e) => {
     e.stopPropagation();
@@ -136,6 +141,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
       {/* Buchen-Button — eigene Zeile, rechtsbündig (analog "Kaufen"/"Teilnehmen").
           FEED-SOLD-MARK-002: bei isFullyBooked durch deaktivierte
           "Ausgebucht"-Pille ersetzt, analog zum Verkauft-Badge in WorkContent. */}
+      {!isOwn && (
       <div style={{ display:"flex", justifyContent:"center", marginBottom: (locType || category) ? 6 : 0 }}>
         {isFullyBooked ? (
           <span style={{
@@ -168,6 +174,7 @@ export default function TalentContent({ item, onProfile, onReaction, onShare }) 
           </button>
         )}
       </div>
+      )}
 
       {/* Meta: Ort + Kategorie */}
       {(locType || category) && (

@@ -3,6 +3,8 @@ import BaseFeedCard from "./BaseFeedCard.jsx";
 import { useContentPreview } from "../../context/ContentPreviewContext.jsx";
 import { formatNumberDE } from "../../lib/formatters.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useAuth } from "../../lib/AuthContext.jsx";
+import { isOwnContent } from "../../lib/contentOwnership.js";
 import { WERK_CAT_KEY_MAP, translateCategory } from "../../lib/categoryMaps.js";
 
 const CORAL  = "#F47355";
@@ -19,6 +21,7 @@ function formatPrice(val) {
 
 export default function WorkContent({ item, onProfile, onReaction, onShare, onBuyWerk, onDetail }) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   if (!item) return null;
 
   const title    = item.title || item.text || "";
@@ -41,6 +44,10 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
   const stockAvailRaw = item._raw?.stock_available;
   const isSoldOut = stockAvailRaw != null && stockAvailRaw <= 0;
   const isBuyable = forSale !== false && !isSoldOut;
+  // SELF-COMMERCE-GUARD-001: Eigene Werke zeigen keinen Kaufen-CTA.
+  // Der zentrale Home-Guard verhindert zusaetzlich jede Cart-Insertion.
+  const isOwn = isOwnContent(item, user?.id);
+  const canBuy = isBuyable && !isOwn;
 
   // OPEN.1 (2026-07-08): Karte antippen -> geteilte Vorschau (einheitlich
   // mit allen anderen Feed-Typen). Von dort aus fuehrt "Vollstaendige
@@ -168,9 +175,9 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       })()}
 
       {/* CTA-Zeile — rechtsbündig, eigene Zeile */}
-      {((onBuyWerk && isBuyable) || (onBuyWerk && !isBuyable && priceStr)) && (
+      {((onBuyWerk && canBuy) || (onBuyWerk && !isBuyable && priceStr)) && (
         <div style={{ display:"flex", justifyContent:"center", marginBottom: category || priceStr ? 6 : 0 }}>
-          {onBuyWerk && isBuyable && (
+          {onBuyWerk && canBuy && (
             <button
               onClick={(e) => { e.stopPropagation(); onBuyWerk(item); }}
               onTouchEnd={(e) => { e.stopPropagation(); }}
@@ -207,7 +214,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
       )}
 
       {/* Kategorie + Preis (Metazeile) */}
-      {(category || priceStr) && !(onBuyWerk && isBuyable) && (
+      {(category || priceStr) && !(onBuyWerk && canBuy) && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:2 }}>
           {category && <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>}
 
@@ -219,7 +226,7 @@ export default function WorkContent({ item, onProfile, onReaction, onShare, onBu
           die Wiederholung direkt darunter ("Handwerk 20 €") war redundant.
           Gilt nur für Werke-Karten (diese Datei) — Talente/Momente/Erlebnisse
           unverändert, siehe deren eigene Card-Komponenten. */}
-      {category && onBuyWerk && isBuyable && (
+      {category && onBuyWerk && canBuy && (
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6, marginBottom:2 }}>
           <span style={{ fontSize:12.5, fontWeight:600, color:CORAL }}>{category}</span>
         </div>

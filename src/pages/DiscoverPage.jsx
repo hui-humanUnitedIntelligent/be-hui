@@ -17,6 +17,8 @@ import { searchPlaces, distanceKm } from "../lib/geocoding.js";
 import { filterDiscoveryItems, hasActiveSearchFilter } from "../lib/searchFilter.js";
 import { useRadiusFilter } from "../hooks/useRadiusFilter.js";
 import { useAuthGate }    from "../components/auth/AuthGate.jsx";
+import { useAuth } from "../lib/AuthContext.jsx";
+import { isOwnContent } from "../lib/contentOwnership.js";
 import TalentAnfrageFlow  from "../components/talents/TalentAnfrageFlow.jsx";
 import TalentBookingFlow from "../components/talents/TalentBookingFlow.jsx";
 import HuiLiveTicker from "../components/shared/HuiLiveTicker.jsx";
@@ -255,6 +257,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
   const [talentInquiry, setTalentInquiry] = useState(null);
   const [talentBooking, setTalentBooking] = useState(null); // ausgewaehltes Talent fuer Anfrage-Modal
   const { requireAuth } = useAuthGate();
+  const { user } = useAuth();
 
   // ── DISCOVER-STALE-DELETE-FIX (2026-09-08, Report cd6e89af) ──
   // Ref auf forceLoad — ermöglicht Event-getriebene Revalidierung (Tab-Rückkehr,
@@ -941,11 +944,11 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       setTalente(prev => prev.map(t => t.id === talentId ? { ...t, views: (t.views || 0) + 1 } : t));
     }
     requireAuth(hasPrice ? "ein Talent zu buchen" : "ein Talent zu kontaktieren", () => {
-      if (!isRealId) return;
+      if (!isRealId || isOwnContent(talent, user?.id)) return;
       if (hasPrice) setTalentBooking(talent);
       else setTalentInquiry(talent);
     });
-  }, [requireAuth]);
+  }, [requireAuth, user?.id]);
 
   // Moment-Karte (OPEN.1, 2026-07-08): oeffnet jetzt die geteilte Vorschau
   // des Moments selbst statt direkt zum Profil zu springen -- der bisherige
@@ -981,12 +984,12 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
       try { supabase.rpc("increment_experience_views", { experience_id: erlebnis.id }); } catch {}
       setErlebnisse(prev => prev.map(e => e.id === erlebnis.id ? { ...e, views: (e.views || 0) + 1 } : e));
     }
-    if (isRealId) {
+    if (isRealId && !isOwnContent(erlebnis, user?.id)) {
       if (typeof onBook === "function") { onBook(erlebnis); return; }
     }
     const profileId = erlebnis.user_id;
     if (profileId && typeof onView === "function") onView(profileId);
-  }, [onBook, onView]);
+  }, [onBook, onView, user?.id]);
 
   // MULTILANG-CONTENT-001: Sprach-Filter-Toggle (persistiert)
   const toggleShowAllLangs = useCallback(() => {
