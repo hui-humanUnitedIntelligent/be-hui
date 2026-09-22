@@ -3,7 +3,7 @@
 // SSOT: "Was ist neu"-Highlights pro App-Version (Michael 08.09.2026)
 // ═══════════════════════════════════════════════════════════════════
 // Der Agent pflegt bei JEDEM OTA-Release hier die Nutzer-sichtbaren
-// Highlights der neuen Version (kurz, max. 5-6 Punkte, keine Details).
+// Highlights der neuen Version (kurz, nutzerverständlich, ohne technische Details).
 // Die WhatsNewModal-Komponente zeigt die Einträge beim ersten Start der
 // neuen Version genau einmal (localStorage-Merker).
 //
@@ -17,6 +17,42 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.611 — Sammel-OTA-Queue vom 19.-22.09.2026. Der Eintrag ist fuer
+  // das naechste freigegebene OTA vorbereitet; die Version selbst wird erst
+  // bei Michaels explizitem "deploy" hochgezaehlt und ausgerollt.
+  "2.1.611": {
+    de: [
+      `Erlebnisse direkt aus dem Feed buchen: "Teilnehmen" öffnet jetzt zuverlässig den vollständigen Buchungs- und Bezahlvorgang.`,
+      `Klarer Zahlungsabschluss: Nach erfolgreicher Zahlung erscheinen sofort eine Bestätigung und der vollständige Beleg. Zusätzlich erhältst du eine E-Mail, sobald der Beleg verfügbar ist.`,
+      `Einfachere Erlebnisbuchungen: Bezahlte Erlebnisse werden direkt abgeschlossen. Zusätzliche Versand- oder Erhalt-bestätigt-Schritte entfallen.`,
+      `Erlebnisse bleiben für weitere Teilnehmer sichtbar: Ein Erlebnis verschwindet nicht mehr nach der ersten Buchung, sondern bleibt bis zur Teilnehmergrenze buchbar.`,
+      `Warenkorb automatisch bereinigt: Erfolgreich bezahlte Werke, Talente und Erlebnisse werden sofort aus dem Warenkorb entfernt.`,
+      `Eigene Angebote besser geschützt: Eigene Werke, Talente und Erlebnisse können nicht mehr versehentlich gekauft oder gebucht werden.`,
+      `Verbesserter Chat: Ältere Bilder und Videos werden wieder zuverlässig angezeigt. Mikrofonfreigabe, Reaktionen und das Bearbeiten eigener Nachrichten wurden verbessert.`,
+      `Klare Benachrichtigungen: Neue Chatnachrichten werden nur noch am Chat-Symbol gezählt. Die Glocke zeigt ausschließlich Resonanzen, Interaktionen und Systemmeldungen.`,
+      `Stabilere Profilnavigation: Profile aus "Menschen entdecken" lassen sich jetzt zuverlässig öffnen, ohne dass die App zur Anmeldung zurückspringt.`,
+      `Aufgeräumter Home-Feed: Impact-Pool-Verteilungen erscheinen nicht mehr im Home-Feed. Die vollständige Übersicht bleibt im Impact-Bereich verfügbar.`,
+      `Neue Erlebnisse sofort im eigenen Bereich: Eingereichte Erlebnisse erscheinen bereits während der Prüfung zuverlässig unter "Mein Bereich".`,
+      `Mehr Schutz in Kommentaren: Sexualisierte und unangemessene Anfragen werden jetzt konsequenter erkannt und blockiert.`,
+      `Schnellerer Start auf mobilen Verbindungen: Sprachdateien werden bedarfsgerecht geladen. Dadurch startet HUI besonders über 4G schneller.`,
+    ],
+    en: [
+      `Book experiences directly from the feed: "Join" now reliably opens the full booking and payment flow.`,
+      `Clear payment completion: After a successful payment, confirmation and the full receipt appear immediately. You also receive an email when the receipt is ready.`,
+      `Simpler experience bookings: Paid experiences are completed immediately. Extra shipping or receipt-confirmation steps are no longer required.`,
+      `Experiences stay visible for more participants: An experience no longer disappears after the first booking and remains available until its participant limit is reached.`,
+      `Automatic cart cleanup: Successfully paid works, talents and experiences are removed from the cart immediately.`,
+      `Better protection for your own offers: Your own works, talents and experiences can no longer be purchased or booked by mistake.`,
+      `Improved chat: Older images and videos display reliably again. Microphone permission, reactions and editing your own messages have also been improved.`,
+      `Clearer notifications: New chat messages are counted only on the chat icon. The bell now shows resonance, interactions and system messages only.`,
+      `More stable profile navigation: Profiles from "Discover people" now open reliably without sending you back to sign-in.`,
+      `Cleaner Home feed: Impact Pool distributions no longer appear in the Home feed. The full overview remains available in the Impact section.`,
+      `New experiences appear immediately in your area: Submitted experiences are shown reliably in "My Area" while they are still under review.`,
+      `More protection in comments: Sexualized and inappropriate requests are now detected and blocked more consistently.`,
+      `Faster startup on mobile connections: Language files load only when needed, helping HUI start faster, especially on 4G.`,
+    ],
+  },
+
   // 2.1.608 — von Michael am 18.09.2026 freigegeben ("sammel OTA mit text
   // Deployen"). Sammel-OTA (6 Commits seit 2.1.607/5d09edb3):
   // INTRO-VIDEO-UPSCALE-001 (1b32b649: Lanczos-Upscale auf 1080x1920 +
