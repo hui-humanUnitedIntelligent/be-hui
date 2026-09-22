@@ -38,6 +38,68 @@ function formatGermanDate(isoDate: string | null | undefined): string {
   return monthName ? `${day}. ${monthName}` : isoDate
 }
 
+// CHECKOUT-SMOOTH-001: Käufer-E-Mail ist eine nicht-blockierende Folgeaktion
+// des bereits verifizierten Stripe-Webhooks. Ein Mail-Fehler darf niemals eine
+// erfolgreiche Zahlung zurückrollen oder Stripe zu Doppelverarbeitung verleiten.
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;').replaceAll("'", '&#039;')
+}
+
+async function sendReceiptReadyEmail(args: {
+  to: string | null | undefined
+  buyerName: string
+  orderId: string
+  totalEur: number
+  lines: Array<{ title: string; quantity: number; unitPriceEur: number; totalEur: number }>
+}): Promise<void> {
+  const resendKey = Deno.env.get('RESEND_API_KEY') || ''
+  if (!resendKey || !args.to) {
+    console.warn('[RECEIPT-EMAIL] skipped:', !resendKey ? 'RESEND_API_KEY missing' : 'buyer email missing')
+    return
+  }
+
+  const shortId = String(args.orderId).slice(0, 8).toUpperCase()
+  const rows = args.lines.map((line) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #e9eeec;color:#1a1a2e">${escapeHtml(line.quantity)} × ${escapeHtml(line.title)}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #e9eeec;color:#1a1a2e;text-align:right;white-space:nowrap">${line.totalEur.toFixed(2).replace('.', ',')} €</td>
+    </tr>`).join('')
+
+  const html = `<!doctype html><html><body style="margin:0;background:#f7f8f6;font-family:Arial,sans-serif;color:#1a1a2e">
+    <div style="max-width:600px;margin:0 auto;padding:28px 18px">
+      <div style="background:#ffffff;border-radius:18px;padding:28px;border:1px solid #e6ece9">
+        <div style="font-size:24px;font-weight:800;color:#0ec4b8;margin-bottom:18px">HUI</div>
+        <h1 style="font-size:22px;margin:0 0 10px">Deine Buchung ist bezahlt ✓</h1>
+        <p style="font-size:15px;line-height:1.6;color:#55556b;margin:0 0 18px">Hallo ${escapeHtml(args.buyerName)}, deine Zahlung wurde erfolgreich bestätigt. Dein Beleg ist jetzt in HUI zum Download verfügbar.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
+          <tr><td style="padding:14px 0 0;font-weight:700">Gesamt</td><td style="padding:14px 0 0;text-align:right;font-weight:700">${args.totalEur.toFixed(2).replace('.', ',')} €</td></tr>
+        </table>
+        <p style="font-size:12px;color:#808098;margin:16px 0 20px">Buchungs-ID: ${escapeHtml(shortId)}</p>
+        <a href="https://www.be-hui.app" style="display:inline-block;background:#0ec4b8;color:#fff;text-decoration:none;font-weight:700;padding:13px 18px;border-radius:12px">HUI öffnen und Beleg laden</a>
+        <p style="font-size:12px;line-height:1.5;color:#808098;margin:18px 0 0">Du findest den Beleg auch jederzeit im Resonanzzentrum bei deiner Buchungsbestätigung.</p>
+      </div>
+    </div></body></html>`
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'HUI <noreply@be-hui.com>',
+      to: [args.to],
+      subject: 'Dein HUI-Beleg ist zum Download bereit',
+      html,
+      text: `Hallo ${args.buyerName}, deine Zahlung wurde erfolgreich bestätigt. Dein Beleg zur Buchung ${shortId} ist jetzt im HUI Resonanzzentrum zum Download verfügbar. Gesamt: ${args.totalEur.toFixed(2).replace('.', ',')} €.`,
+    }),
+  })
+  if (!response.ok) {
+    console.warn('[RECEIPT-EMAIL] Resend failed:', response.status, await response.text())
+    return
+  }
+  console.log('[RECEIPT-EMAIL] sent for order:', args.orderId)
+}
+
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -419,7 +481,7 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
 
       const { data: orderItems } = await supabase
         .from('order_items')
-        .select('id, seller_id, item_type, work_id, snapshot')
+        .select('id, seller_id, item_type, item_id, work_id, quantity, unit_price_eur, snapshot')
         .eq('order_id', order.id)
 
       // ── Amount-Verification ──────────────────────────────────
@@ -471,7 +533,7 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
       //    mit Titel/Käufer/Termin/Ort angereichert statt generischer Body-Text) ──
       const { data: orderBuyerProfile } = await supabase
         .from('profiles')
-        .select('display_name, full_name, username')
+        .select('display_name, full_name, username, email')
         .eq('id', order.customer_id)
         .maybeSingle()
       const orderBuyerName = orderBuyerProfile?.full_name || orderBuyerProfile?.display_name || orderBuyerProfile?.username || 'Jemand'
@@ -642,6 +704,17 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
           expSellerEmail   = expSellerProfile?.email || null
           expSellerWebsite = expSellerProfile?.website || null
         }
+        const expLineItems = expTitles.map((item: any) => {
+          const quantity = Number(item.quantity || item.snapshot?.quantity || 1)
+          const unitPriceEur = Number(item.unit_price_eur ?? item.snapshot?.price_eur ?? 0)
+          return {
+            title: item.snapshot?.title || 'Erlebnis',
+            quantity,
+            unitPriceEur,
+            totalEur: +(quantity * unitPriceEur).toFixed(2),
+          }
+        })
+        const expTotalEur = +expLineItems.reduce((sum: number, line: any) => sum + line.totalEur, 0).toFixed(2)
         const buyerExpMeta = {
           order_id: order.id, item_titles: expTitleList,
           offer_id: exp?.id || null,
@@ -651,6 +724,9 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
           seller_email: expSellerEmail,
           seller_website: expSellerWebsite,
           other_user_id: expSellerId,
+          amount_eur: expTotalEur,
+          participants: expLineItems.reduce((sum: number, line: any) => sum + line.quantity, 0),
+          line_items: expLineItems,
           date: exp?.date || null,
           time: (exp?.time_start ? `${exp.time_start}${exp.time_end ? ' – ' + exp.time_end : ''}` : null),
           location: exp?.location_text || exp?.meeting_point || null,
@@ -665,6 +741,21 @@ const tBuyerName  = tBuyerProfile?.full_name || tBuyerProfile?.display_name || t
           read: false, is_read: false,
         })
         if (expNotifErr) console.warn('[NOTIF]', expNotifErr.message)
+
+        // E-Mail erst NACH erfolgreicher, serverseitig verifizierter Zahlung.
+        // Best-effort: Zahlungsstatus und Webhook-Abschluss bleiben unabhängig.
+        let buyerEmail = orderBuyerProfile?.email || pi.receipt_email || null
+        if (!buyerEmail) {
+          const { data: authBuyer } = await supabase.auth.admin.getUserById(order.customer_id)
+          buyerEmail = authBuyer?.user?.email || null
+        }
+        await sendReceiptReadyEmail({
+          to: buyerEmail,
+          buyerName: orderBuyerName,
+          orderId: order.id,
+          totalEur: expTotalEur,
+          lines: expLineItems,
+        }).catch((mailErr) => console.warn('[RECEIPT-EMAIL] non-critical:', mailErr?.message))
       }
     }
 

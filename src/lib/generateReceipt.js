@@ -38,7 +38,7 @@ function isNativeDownloadAvailable() {
   } catch { return false; }
 }
 
-export async function generateReceipt(data) {
+export async function generateReceipt(data, options = {}) {
   try {
     const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
@@ -233,6 +233,35 @@ export async function generateReceipt(data) {
       y += 8;
     }
 
+    // CHECKOUT-SMOOTH-001: Einzelpositionen statt nur einer Gesamtsumme.
+    // So ist bei Erlebnis-/Talent-Buchungen und Werke-Käufen nachvollziehbar,
+    // welche Einheit in welcher Menge bezahlt wurde.
+    if (Array.isArray(data.lineItems) && data.lineItems.length > 0) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(26, 26, 26);
+      doc.text("Positionen:", M, y);
+      y += 7;
+      data.lineItems.forEach(function(line) {
+        var qty = Number(line.quantity || 1);
+        var unit = Number(line.unitPriceEur || 0);
+        var total = line.totalEur != null ? Number(line.totalEur) : qty * unit;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(26, 26, 26);
+        var lineTitle = qty + " x " + (line.title || data.offerTitle || "Angebot");
+        var titleLines = doc.splitTextToSize(lineTitle, 115);
+        doc.text(titleLines, M, y);
+        doc.text(total.toFixed(2).replace(".", ",") + " EUR", W - M - 34, y);
+        y += Math.max(titleLines.length * 5, 5) + 3;
+        doc.setFontSize(8);
+        doc.setTextColor(120, 120, 120);
+        doc.text("Einzelpreis: " + unit.toFixed(2).replace(".", ",") + " EUR", M + 5, y);
+        y += 7;
+      });
+      y += 2;
+    }
+
     // Trennlinie
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.3);
@@ -293,6 +322,14 @@ export async function generateReceipt(data) {
     const pdfBlob = doc.output("blob");
     const blobUrl = URL.createObjectURL(pdfBlob);
 
+    // CHECKOUT-SMOOTH-001: Beim automatischen Beleg-Modal zunächst NUR
+    // erzeugen, nicht ungefragt speichern. Der Nutzer entscheidet im Modal
+    // über "Auf Handy speichern". Bestehende Aufrufer behalten den bisherigen
+    // Auto-Download, weil autoDownload standardmäßig true bleibt.
+    if (options.autoDownload === false) {
+      return { fileName, uri: null, blobUrl, base64, native: isNative(), autoDownloaded: false, receiptData: data };
+    }
+
     // ── Plattform-spezifischer Download ──────────────────────────
     // BELEG-009 (2026-08-26): Priority chain:
     // 1. window.__HUI_DOWNLOAD.saveToDownloads() — native Java interface,
@@ -311,10 +348,10 @@ export async function generateReceipt(data) {
       } else {
         toast.info("Beleg heruntergeladen ✓", { duration: 2000 });
       }
-      return { fileName, uri: saved.uri, blobUrl, base64, native: true, receiptData: data };
+      return { fileName, uri: saved.uri, blobUrl, base64, native: true, autoDownloaded: true, receiptData: data };
     } else {
       doc.save(fileName);
-      return { fileName, uri: null, blobUrl, base64, native: false, receiptData: data };
+      return { fileName, uri: null, blobUrl, base64, native: false, autoDownloaded: true, receiptData: data };
     }
   } catch (err) {
     console.error("[generateReceipt] Failed:", err);

@@ -28,6 +28,7 @@ import { createPortal } from "react-dom";
 import { formatDateDE } from "../../lib/formatters.js";
 import { shareReceiptFile, downloadReceiptFile } from "../../lib/generateReceipt.js";
 import { useTranslation } from "../../hooks/useTranslation.js";
+import { useModalRegistration } from "../../hooks/useModalRegistration.js";
 
 function Row({ label, value }) {
   if (!value) return null;
@@ -45,11 +46,12 @@ function Row({ label, value }) {
 
 export default function BelegViewerModal({ result, onClose = () => {} }) {
   const { t } = useTranslation();
+  useModalRegistration(true, onClose, "BelegViewerModal");
   const [downloading, setDownloading] = React.useState(false);
   const [sharing, setSharing] = React.useState(false);
 
   if (!result) return null;
-  const { fileName, uri, blobUrl, native, receiptData: d = {} } = result;
+  const { fileName, uri, blobUrl, native, autoDownloaded = true, receiptData: d = {} } = result;
 
   const sellerLabel = d.offerType === "werk" ? "Verkauft von" : "Gebucht bei";
   const offerLabel = d.offerType === "werk" ? "Gekauftes Werk" : "Gebuchtes Angebot";
@@ -132,6 +134,36 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
         <Row label={offerLabel} value={d.offerTitle} />
         <Row label="Typ" value={typeLabel} />
         <Row label="Betrag" value={amountStr} />
+
+        {/* CHECKOUT-SMOOTH-001: Einzelne bezahlte Einheiten sichtbar machen. */}
+        {Array.isArray(d.lineItems) && d.lineItems.length > 0 && (
+          <div style={{
+            margin:"12px 0", padding:"12px 14px", borderRadius:12,
+            background:"rgba(14,196,184,0.05)", border:"1px solid rgba(14,196,184,0.16)",
+          }}>
+            <div style={{ fontSize:12, fontWeight:700, color:"#55556B", marginBottom:8 }}>Positionen</div>
+            {d.lineItems.map((line, index) => {
+              const quantity = Number(line.quantity || 1);
+              const unitPrice = Number(line.unitPriceEur || 0);
+              const lineTotal = line.totalEur != null ? Number(line.totalEur) : quantity * unitPrice;
+              return (
+                <div key={`${line.title || "Position"}-${index}`} style={{
+                  display:"grid", gridTemplateColumns:"1fr auto", gap:10,
+                  padding:index > 0 ? "9px 0 0" : 0,
+                  marginTop:index > 0 ? 9 : 0,
+                  borderTop:index > 0 ? "1px solid rgba(14,196,184,0.12)" : "none",
+                }}>
+                  <div>
+                    <div style={{ fontSize:13, fontWeight:600, color:"#1a1a18" }}>{quantity} × {line.title || d.offerTitle || "Angebot"}</div>
+                    <div style={{ fontSize:11, color:"#808098", marginTop:2 }}>Einzelpreis: {unitPrice.toFixed(2).replace(".", ",")} €</div>
+                  </div>
+                  <div style={{ fontSize:13, fontWeight:700, color:"#1a1a18" }}>{lineTotal.toFixed(2).replace(".", ",")} €</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <Row label="Erstellt am" value={dateStr} />
         {bookingShort && <Row label="Buchungs-ID" value={bookingShort} />}
 
@@ -141,9 +173,11 @@ export default function BelegViewerModal({ result, onClose = () => {} }) {
           marginTop: 12, marginBottom: 16, padding: "10px 12px",
           background: "rgba(0,0,0,0.03)", borderRadius: 10,
         }}>
-          {native
-            ? <>{t("receipt.pdfSaved")}<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
-            : <>PDF wurde in deinen Download-Ordner heruntergeladen:<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
+          {!autoDownloaded
+            ? <>Dein PDF-Beleg ist bereit.<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
+            : native
+              ? <>{t("receipt.pdfSaved")}<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
+              : <>PDF wurde in deinen Download-Ordner heruntergeladen:<br /><span style={{ fontWeight: 600, color: "#555" }}>{fileName}</span></>
           }
         </div>
 

@@ -33,6 +33,8 @@ import { useSavedPostsContext } from "../../context/SavedPostsContext.jsx";
 import { useHuiActions, A } from "../../core/hui.actions.js";
 import { S } from "../../core/hui.sources.js";
 import { generateReceipt } from "../../lib/generateReceipt.js";
+import BelegViewerModal from "../notifications/BelegViewerModal.jsx";
+import { toast } from "../../lib/useToast.jsx";
 import { optimizeCard } from "../../lib/perfUtils.js";
 import { useSheetDrag } from "../../hooks/useSheetDrag.js";
 
@@ -53,6 +55,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const [publishableKey, setPublishableKey] = useState(null);
   const [orderId, setOrderId] = useState(null);
   const [showChatConfirm, setShowChatConfirm] = useState(false);
+  const [receiptPreview, setReceiptPreview] = useState(null);
+  const [receiptGenerating, setReceiptGenerating] = useState(false);
   const actions = useHuiActions();
 
   if (!experience) return null;
@@ -74,6 +78,44 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                     : 0;
   const priceStr  = amount > 0 ? `${amount.toFixed(2).replace(".",",")} €` : null;
   const coverUrl  = expObj?._raw?.cover_url || expObj?.cover_url || expObj?.img;
+  const rawExp    = expObj?._raw || expObj || {};
+  const receiptData = {
+    offerTitle: title || t("ebf.defaultOfferTitle"),
+    sellerName: creatorName || t("ebf.defaultSellerName"),
+    sellerWebsite: crObj?.website || null,
+    amountEur: amount,
+    bookingId: orderId || null,
+    offerId: expId || null,
+    offerType: "experience",
+    date: rawExp.date || null,
+    time: rawExp.time_start
+      ? `${rawExp.time_start}${rawExp.time_end ? ` – ${rawExp.time_end}` : ""}`
+      : null,
+    location: rawExp.location_text || rawExp.meeting_point || null,
+    participants: 1,
+    lineItems: [{
+      title: title || t("ebf.defaultOfferTitle"),
+      quantity: 1,
+      unitPriceEur: amount,
+      totalEur: amount,
+    }],
+  };
+
+  async function openReceiptPreview(bookingIdOverride = null) {
+    if (receiptGenerating) return;
+    setReceiptGenerating(true);
+    try {
+      const result = await generateReceipt({
+        ...receiptData,
+        bookingId: bookingIdOverride || receiptData.bookingId,
+      }, { autoDownload: false });
+      setReceiptPreview(result);
+    } catch (e) {
+      console.warn("[CHECKOUT-SMOOTH-001] Receipt preview failed:", e);
+    } finally {
+      setReceiptGenerating(false);
+    }
+  }
 
   const saved = isSaved(expId);
   const handleSave = () => {
@@ -148,6 +190,13 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   }
 
   async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
+    // CHECKOUT-SMOOTH-001: Stripe hat die Zahlung bereits final bestätigt.
+    // Sofort sichtbare Resonanz geben, statt erst auf Notification/Chat/DB-
+    // Nebenarbeiten zu warten. Der Beleg wird direkt als Vorschau erzeugt.
+    setPhase("success");
+    toast.success("Zahlung erfolgreich. Dein Beleg ist bereit.", { duration: 4500 });
+    const receiptPromise = openReceiptPreview(oid || orderId || null);
+
     // Notification an Creator
     if (message.trim()) {
       await supabase.from("notifications").insert({
@@ -189,7 +238,9 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
       }).catch((e) => console.warn("[CHAT-V2] autoCreateOrReopenChat:", e?.message));
     }
 
-    setPhase("success");
+    // Das Stripe-Formular darf erst entsperren, wenn die lokale Belegvorschau
+    // fertig erzeugt oder kontrolliert fehlgeschlagen ist.
+    await receiptPromise;
   }
 
   // ── Render ──────────────────────────────────────────────────────
@@ -348,23 +399,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               Fertig
             </button>
             <button
-              onClick={async () => {
-                try {
-                  const { data: prof } = await supabase.from("profiles")
-                    .select("email, website").eq("id", creatorId).maybeSingle();
-                  await generateReceipt({
-                    offerTitle: title || t("ebf.defaultOfferTitle"),
-                    sellerName: creatorName || t("ebf.defaultSellerName"),
-                    // BELEG-013: sellerEmail wird nicht mehr übergeben — generateReceipt.js
-                    // zeigt jetzt IMMER support@be-hui.com als Kontakt (SSOT, Datenschutz).
-                    sellerWebsite: prof?.website || null,
-                    amountEur: amount,
-                    bookingId: null,
-                    offerId: expId || null,
-                    offerType: "experience",
-                  });
-                } catch (e) { console.warn("Receipt failed:", e); }
-              }}
+              onClick={() => openReceiptPreview(orderId)}
+              disabled={receiptGenerating}
               style={{
                 width: "100%", marginTop: 10, padding: "14px 0",
                 borderRadius: 14, border: "1.5px solid rgba(34,197,94,0.35)",
@@ -373,7 +409,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
                 WebkitTapHighlightColor: "transparent",
               }}
             >
-              Beleg herunterladen
+              {receiptGenerating ? "Beleg wird erstellt …" : "Beleg anzeigen"}
             </button>
             {creatorId && (
               <button
@@ -451,6 +487,13 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               </div>
             </div>
           </div>
+        )}
+
+        {receiptPreview && (
+          <BelegViewerModal
+            result={receiptPreview}
+            onClose={() => setReceiptPreview(null)}
+          />
         )}
 
         {/* ── ERROR ── */}

@@ -462,7 +462,16 @@ function DetailModal({ n, onClose, onAction }) {
           location: md.location || null,
           amountEur: md.amount_eur || null,
           participants: md.participants || null,
-          bookingId: md.booking_id || n.entity_id || null,
+          // CHECKOUT-SMOOTH-001: Webhook liefert die servervalidierten
+          // Einzelpositionen; Beleg aus dem Resonanzzentrum zeigt dieselben
+          // Einheiten wie das automatische Modal direkt nach der Zahlung.
+          lineItems: Array.isArray(md.line_items) ? md.line_items.map(line => ({
+            title: line.title,
+            quantity: line.quantity,
+            unitPriceEur: line.unitPriceEur ?? line.unit_price_eur,
+            totalEur: line.totalEur ?? line.total_eur,
+          })) : null,
+          bookingId: md.booking_id || md.order_id || n.entity_id || null,
           offerId,
           offerType,
         } : null,
