@@ -64,6 +64,13 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const [showChatConfirm, setShowChatConfirm] = useState(false);
   const [receiptPreview, setReceiptPreview] = useState(null);
   const [receiptGenerating, setReceiptGenerating] = useState(false);
+  // PARTICIPANT-COUNT-001 (2026-09-22, Michael-Report): Teilnehmerzahl war
+  // im Buchungsvorgang fest auf 1 verdrahtet (orderItems quantity:1,
+  // receiptData.participants:1) -- Nutzer konnten fuer mehrere Personen
+  // buchen wollen, hatten aber keine Auswahl. create-payment-intent
+  // unterstuetzt quantity 1-99 inkl. serverseitiger stock_available-Prüfung
+  // bereits vollstaendig (COMMERCE-STOCK-001) -- reine Frontend-Ergaenzung.
+  const [quantity, setQuantity] = useState(1);
   const actions = useHuiActions();
 
   if (!experience) return null;
@@ -73,9 +80,20 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const crObj     = experience?.creator    || experience?.author || null;
 
   const expId     = expObj?.id || expObj?._raw?.id;
+  // BOOKING-CREATORID-002 (2026-09-22, Michael-Report + Screenshot "Creator-ID
+  // fehlt" beim Buchen von Saschas Erlebnis aus dem Home-Feed): Home.jsx und
+  // DiscoverPage rufen setShowBookingFlow(item) mit der ROHEN experiences-
+  // Datenzeile auf (Supabase .select(...user_id...)) -- diese Zeile hat den
+  // Ersteller ausschliesslich als TOP-LEVEL `user_id`, NIE als `.creator_id`
+  // oder `._raw.user_id`. Die bisherige Kette prüfte genau diese beiden nie
+  // vorhandenen Felder und liess den einzigen tatsächlich befüllten Fall
+  // (expObj.user_id direkt) komplett aus -- jede Buchung aus Feed/Discover
+  // war dadurch blockiert, nicht nur Saschas Erlebnis. ContentPreviewSheet
+  // funktionierte weiterhin (übergibt ein normalisiertes Preview-Item mit
+  // .author + ._raw.user_id). Fix: expObj?.user_id zusätzlich prüfen.
   const creatorId = crObj?.id  || expObj?.author?.id
                   || expObj?._raw?.creator_id || expObj?._raw?.user_id
-                  || expObj?.creator_id;
+                  || expObj?.creator_id       || expObj?.user_id;
   const title     = expObj?.title || expObj?._raw?.title || t("ebf.defaultTitle");
   const creatorName = crObj?.full_name || crObj?.display_name || crObj?.name || expObj?.author?.name || t("ebf.defaultCreator");
   const rawPrice  = expObj?._raw?.price ?? expObj?.price ?? null;
@@ -86,11 +104,28 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   const priceStr  = amount > 0 ? `${amount.toFixed(2).replace(".",",")} €` : null;
   const coverUrl  = expObj?._raw?.cover_url || expObj?.cover_url || expObj?.img;
   const rawExp    = expObj?._raw || expObj || {};
+
+  // PARTICIPANT-COUNT-001: stock_total/stock_available sind seit
+  // OTA 2.1.611 die SSOT-Kapazitätsfelder für Erlebnisse (ExperienceWizard
+  // schreibt max_participants dorthin, siehe TEILNEHMERZAHL-IN-WANNWO-001).
+  const spotsTotalRaw     = rawExp?.stock_total;
+  const spotsAvailableRaw = rawExp?.stock_available;
+  const hasSpotsInfo   = spotsAvailableRaw != null && spotsTotalRaw != null;
+  const spotsAvailable = hasSpotsInfo ? Math.max(0, Number(spotsAvailableRaw)) : null;
+  const spotsTotal      = hasSpotsInfo ? Math.max(0, Number(spotsTotalRaw)) : null;
+  const soldOut = spotsAvailable !== null && spotsAvailable <= 0;
+  const maxQty  = spotsAvailable !== null ? Math.max(1, Math.min(99, spotsAvailable)) : 99;
+  const safeQty = Math.min(Math.max(1, quantity), maxQty);
+  const totalAmount = +(amount * safeQty).toFixed(2);
+  const totalPriceStr = totalAmount > 0 ? `${totalAmount.toFixed(2).replace(".",",")} €` : null;
   const receiptData = {
     offerTitle: title || t("ebf.defaultOfferTitle"),
     sellerName: creatorName || t("ebf.defaultSellerName"),
     sellerWebsite: crObj?.website || null,
-    amountEur: amount,
+    // PARTICIPANT-COUNT-001: generateReceipt.js erwartet in amountEur den
+    // GESAMTBETRAG (rechnet "Pro Teilnehmer" selbst per amountEur/participants
+    // aus) -- amount ist nur der Einzelpreis pro Person, totalAmount ist korrekt.
+    amountEur: totalAmount,
     bookingId: orderId || null,
     offerId: expId || null,
     offerType: "experience",
@@ -99,12 +134,12 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
       ? `${rawExp.time_start}${rawExp.time_end ? ` – ${rawExp.time_end}` : ""}`
       : null,
     location: rawExp.location_text || rawExp.meeting_point || null,
-    participants: 1,
+    participants: safeQty,
     lineItems: [{
       title: title || t("ebf.defaultOfferTitle"),
-      quantity: 1,
+      quantity: safeQty,
       unitPriceEur: amount,
-      totalEur: amount,
+      totalEur: totalAmount,
     }],
   };
 
@@ -136,6 +171,10 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
     if (!creatorId)   { setErrMsg(t("ebf.errCreatorId")); setPhase("error"); return; }
     if (user.id === creatorId) { setErrMsg(t("ebf.errSelfBook")); setPhase("error"); return; }
     if (amount <= 0)  { setErrMsg(t("ebf.errNoPrice")); setPhase("error"); return; }
+    if (safeQty < 1)  { setErrMsg(t("ebf.errMinParticipants")); setPhase("error"); return; }
+    if (spotsAvailable !== null && safeQty > spotsAvailable) {
+      setErrMsg(t("ebf.errNotEnoughSpots")); setPhase("error"); return;
+    }
 
     setPhase("loading");
     setErrMsg("");
@@ -160,7 +199,7 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
         orderItems: [{
           item_id: expId,
           item_type: "experience",
-          quantity: 1,
+          quantity: safeQty,
         }],
       });
 
@@ -213,7 +252,9 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
     await supabase.from("notifications").insert({
       user_id:    creatorId,
       type:       "experience_booked",
-      text:       `Dein Erlebnis "${title}" wurde gebucht.`,
+      text:       safeQty > 1
+        ? `Dein Erlebnis "${title}" wurde für ${safeQty} Personen gebucht.`
+        : `Dein Erlebnis "${title}" wurde gebucht.`,
       read:       false,
       actor_id:   user.id,
       created_at: new Date().toISOString(),
@@ -283,8 +324,61 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             <div style={{ fontSize: 18, fontWeight: 600, color: "#1A1A2E", marginBottom: 4 }}>{title}</div>
             <div style={{ fontSize: 13, color: "#55556B", marginBottom: 16 }}>von {creatorName}</div>
             {priceStr && (
-              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 4 }}>
+                {totalPriceStr}
+                {safeQty > 1 && (
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "#55556B", marginLeft: 8 }}>
+                    ({priceStr} {t("ebf.perPerson")})
+                  </span>
+                )}
+              </div>
             )}
+
+            {/* PARTICIPANT-COUNT-001 (2026-09-22, Michael-Report): Teilnehmerzahl
+                waehlbar direkt im Buchungsvorgang, gedeckelt durch die echten
+                freien Plaetze (stock_available), gleiches Stepper-Muster wie
+                WerkeKorb.jsx (−/Zahl/+, Teal-Akzent, disabled an den Grenzen). */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
+                {t("ebf.participants")}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <button
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  disabled={safeQty <= 1}
+                  aria-label={t("wk.less")}
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    border: "1px solid rgba(22,215,197,0.30)",
+                    background: "rgba(22,215,197,0.06)",
+                    color: safeQty <= 1 ? "rgba(26,26,46,0.25)" : TEAL,
+                    fontSize: 18, fontWeight: 400, cursor: safeQty <= 1 ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+                  }}
+                >−</button>
+                <span style={{ fontSize: 16, fontWeight: 600, color: "#1A1A2E", minWidth: 24, textAlign: "center" }}>
+                  {safeQty}
+                </span>
+                <button
+                  onClick={() => setQuantity(q => Math.min(maxQty, q + 1))}
+                  disabled={safeQty >= maxQty}
+                  aria-label={t("wk.more")}
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    border: "1px solid rgba(22,215,197,0.30)",
+                    background: "rgba(22,215,197,0.06)",
+                    color: safeQty >= maxQty ? "rgba(26,26,46,0.25)" : TEAL,
+                    fontSize: 18, fontWeight: 400, cursor: safeQty >= maxQty ? "default" : "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+                  }}
+                >+</button>
+                {hasSpotsInfo && (
+                  <span style={{ fontSize: 12.5, color: soldOut ? "#E24C4C" : "#55556B", marginLeft: 4 }}>
+                    {t("feed.slotsAvailable", { avail: spotsAvailable, total: spotsTotal })}
+                  </span>
+                )}
+              </div>
+            </div>
 
             <div style={{
               background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "14px 16px",
@@ -296,13 +390,15 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
 
             <button
               onClick={handleBuchen}
+              disabled={soldOut}
               style={{
                 width: "100%", padding: "16px", borderRadius: 14, border: "none",
-                background: TEAL, color: "#fff", fontSize: 16, fontWeight: 600,
-                cursor: "pointer", transition: "opacity 0.2s",
+                background: soldOut ? "rgba(26,26,46,0.15)" : TEAL,
+                color: "#fff", fontSize: 16, fontWeight: 600,
+                cursor: soldOut ? "default" : "pointer", transition: "opacity 0.2s",
               }}
             >
-              {priceStr ? `${priceStr}  ${t("tbf.btn.book")}` : t("tbf.btn.book")}
+              {soldOut ? t("ebf.errNotEnoughSpots") : (totalPriceStr ? `${totalPriceStr}  ${t("tbf.btn.book")}` : t("tbf.btn.book"))}
             </button>
           </>
         )}
@@ -324,8 +420,8 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             Kontext und einen Hook-Order-Crash (React #310). */}
         {phase === "payment" && clientSecret && (
             <StripePaymentStep
-              total={amount}
-              impact={+(amount * IMPACT_RATE).toFixed(2)}
+              total={totalAmount}
+              impact={+(totalAmount * IMPACT_RATE).toFixed(2)}
               clientSecret={clientSecret}
               publishableKey={publishableKey}
               orderId={orderId}
@@ -355,9 +451,14 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                 <span style={{ fontWeight: 600 }}>Anbieter:</span> {creatorName}
               </div>
-              {amount > 0 && (
+              {safeQty > 1 && (
                 <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Betrag:</span> {amount.toFixed(2).replace(".", ",")} €
+                  <span style={{ fontWeight: 600 }}>{t("ebf.participants")}:</span> {safeQty}
+                </div>
+              )}
+              {totalAmount > 0 && (
+                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600 }}>Betrag:</span> {totalAmount.toFixed(2).replace(".", ",")} €
                 </div>
               )}
               <div style={{ fontSize: 13, color: "#55556B", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
