@@ -155,6 +155,13 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
   }, [isTalent, profile?.id]);
 
   // ── Username-Check (debounced) ───────────────────────────────────
+  // PROFILE-DISPLAYNAME-TDZ-001 (2026-09-22, Bugreport da8bb334): Die
+  // Timeout-ID hieß zuvor ebenfalls `t` und überschattete damit die äußere
+  // Übersetzungsfunktion aus useTranslation(). Sobald ein Validierungszweig
+  // t(...) aufrief, bevor `const t = setTimeout(...)` initialisiert war,
+  // crashte das gesamte Profilmodal per TDZ-ReferenceError („Cannot access
+  // 'n' before initialization“ im minifizierten Live-Bundle). Eindeutiger
+  // Name `usernameCheckTimer` beseitigt die Schattenvariable vollständig.
   useEffect(() => {
     const orig = profile?.username || "";
     if (username === orig) { setUsernameErr(""); setUsernameOk(false); return; }
@@ -164,7 +171,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       setUsernameOk(false); return;
     }
     setCheckingUname(true);
-    const t = setTimeout(async () => {
+    const usernameCheckTimer = setTimeout(async () => {
       const { data } = await supabase
         .from("profiles")
         .select("id")
@@ -180,7 +187,7 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
         setUsernameOk(true);
       }
     }, 600);
-    return () => clearTimeout(t);
+    return () => clearTimeout(usernameCheckTimer);
   }, [username, profile?.username, profile?.id]);
 
 
@@ -225,7 +232,10 @@ export default function ProfilBearbeitenModal({ profile, onClose, onProfileUpdat
       // 1. Basis-Profil-Felder (immer)
       const profileUpdates = {
         full_name:      fullName.trim(),
-        display_name:   displayName.trim() || fullName.trim(),
+        // Anzeigename/Spitzname ist optional (DB-Spalte nullable). Ein leeres
+        // Feld muss wirklich löschbar bleiben; die UI nutzt systemweit bereits
+        // full_name → display_name → username als Anzeige-Fallback.
+        display_name:   displayName.trim() || null,
         username:       username.trim().toLowerCase(),
         bio:            bio.trim(),
         location:       locationLabel.trim(), // SSOT: profiles.location
