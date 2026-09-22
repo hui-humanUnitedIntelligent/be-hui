@@ -7,7 +7,15 @@
 // Edge Function + StripePaymentStep.
 //
 // Ablauf:
-//   1. form → User sieht Erlebnis + Preis, schreibt optionale Nachricht, klickt "Buchen"
+// EBF-NACHRICHT-DEADEND-001 (2026-09-22, Michael-Report + Screenshot): Das
+// "Nachricht an Creator (optional)"-Feld wurde entfernt. Die Nachricht landete
+// nur als Rohtext-Suffix in notifications.text -- NotificationPanel.jsx liest
+// aber ausschliesslich n.title/n.body (kein Handler fuer "experience_booked",
+// Fallback-Block filtert n.body, das Feld hiess nie so) -- die eingetippte
+// Nachricht wurde dem Creator NIRGENDS angezeigt. Root Cause verifiziert, kein
+// bestehender Anzeige-Pfad reparierbar ohne neue Notification-Infrastruktur;
+// Michaels Entscheidung: Feld ganz raus statt eine Anzeige nachzuruesten.
+//   1. form → User sieht Erlebnis + Preis, klickt "Buchen"
 //   2. loading → create-payment-intent Edge Function → clientSecret
 //   3. payment → StripePaymentStep (Stripe Elements)
 //   4. success → Bestätigung + Notification an Creator
@@ -48,7 +56,6 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
   useWizardBodyLock();
   const { isSaved, toggleSave } = useSavedPostsContext();
 
-  const [message, setMessage] = useState("");
   const [phase, setPhase] = useState("form"); // form | loading | payment | success | error
   const [errMsg, setErrMsg] = useState("");
   const [clientSecret, setClientSecret] = useState(null);
@@ -203,29 +210,16 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
     const receiptPromise = openReceiptPreview(oid || orderId || null);
 
     // Notification an Creator
-    if (message.trim()) {
-      await supabase.from("notifications").insert({
-        user_id:    creatorId,
-        type:       "experience_booked",
-        text:       `Erlebnis "${title}" wurde gebucht. Nachricht: ${message.trim().slice(0, 100)}`,
-        read:       false,
-        actor_id:   user.id,
-        created_at: new Date().toISOString(),
-        entity_id:  expId,
-        entity_type: "experience",
-      }).catch(() => {});
-    } else {
-      await supabase.from("notifications").insert({
-        user_id:    creatorId,
-        type:       "experience_booked",
-        text:       `Dein Erlebnis "${title}" wurde gebucht.`,
-        read:       false,
-        actor_id:   user.id,
-        created_at: new Date().toISOString(),
-        entity_id:  expId,
-        entity_type: "experience",
-      }).catch(() => {});
-    }
+    await supabase.from("notifications").insert({
+      user_id:    creatorId,
+      type:       "experience_booked",
+      text:       `Dein Erlebnis "${title}" wurde gebucht.`,
+      read:       false,
+      actor_id:   user.id,
+      created_at: new Date().toISOString(),
+      entity_id:  expId,
+      entity_type: "experience",
+    }).catch(() => {});
 
     // FIX (2026-08-13): Buchung zaehlt in rpc_get_orb_growth_stage als
     // Aktivitaet -> Cache invalidieren, sonst haengt der Orb bis zu
@@ -291,25 +285,6 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
             {priceStr && (
               <div style={{ fontSize: 22, fontWeight: 600, color: TEAL, marginBottom: 20 }}>{priceStr}</div>
             )}
-
-            {/* Nachricht an Creator */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
-                Nachricht an {creatorName} (optional)
-              </div>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="z.B. Terminwünsche, Fragen zum Erlebnis…"
-                maxLength={500}
-                style={{
-                  width: "100%", minHeight: 80, padding: "12px 14px",
-                  borderRadius: 12, border: "1px solid rgba(26,26,46,0.12)",
-                  fontSize: 14, fontFamily: "inherit", resize: "none",
-                  outline: "none", boxSizing: "border-box",
-                }}
-              />
-            </div>
 
             <div style={{
               background: "rgba(22,215,197,0.06)", borderRadius: 12, padding: "14px 16px",
@@ -383,11 +358,6 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
               {amount > 0 && (
                 <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
                   <span style={{ fontWeight: 600 }}>Betrag:</span> {amount.toFixed(2).replace(".", ",")} €
-                </div>
-              )}
-              {message.trim() && (
-                <div style={{ fontSize: 13, color: "#55556B", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600 }}>Nachricht:</span> {message.trim().length > 80 ? message.trim().slice(0, 80) + "…" : message.trim()}
                 </div>
               )}
               <div style={{ fontSize: 13, color: "#55556B", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(22,215,197,0.12)" }}>
