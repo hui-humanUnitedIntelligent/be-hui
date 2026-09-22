@@ -24,16 +24,23 @@ const T = {
 };
 
 function catLabel(cat, t) {
-  if (!cat) return t('exp.typeProjekt');
+  // EXPERIENCE-TYPE-NAME-FIX-001 (2026-09-22, Bugreport ec62f519):
+  // "tour" und jeder unbekannte/leere Erlebnis-Typ fielen bisher auf
+  // "Projekt" zurück. Dadurch zeigte das öffentliche Profil Saschas echtes
+  // Erlebnis "Arkamas - Blue Lagoon Ausflug" fälschlich als Projekt.
+  // Nur der explizite Typ "projekt" darf Projekt heißen; neutraler Fallback
+  // ist immer "Erlebnis". Die Tour nutzt den bereits globalen i18n-Key.
+  if (!cat) return t('common.experience');
   const CAT_MAP = {
     workshop: t('exp.typeWorkshop'), kurs: t('exp.typeWorkshop'), malen: t('exp.typeWorkshop'),
     event: t('exp.typeEvent'), festival: t('exp.typeEvent'), konzert: t('exp.typeEvent'),
     ausstellung: t('exp.typeAusstellung'), galerie: t('exp.typeAusstellung'),
+    tour: t('erlebnis.typeTour'),
     projekt: t('exp.typeProjekt'), community: t('exp.typeProjekt'),
   };
-  const k = cat.toLowerCase();
+  const k = String(cat).toLowerCase();
   for (const [key, val] of Object.entries(CAT_MAP)) { if (k.includes(key)) return val; }
-  return t('exp.typeProjekt');
+  return t('common.experience');
 }
 function fmtDate(d) {
   if (!d) return "";
@@ -61,6 +68,7 @@ function Sk({ w, h, r=8 }) {
 
 export function ExperiencesSection({
   experiences = [],
+  profile     = null,
   isOwner     = false,
   loading     = false,
   onAddExperience = null,
@@ -142,7 +150,18 @@ export function ExperiencesSection({
         <div className="es-hscroll" style={{ display:"flex", gap:10, padding:`0 ${T.px}px 4px` }}>
           {visible.slice(0,6).map((ex,i) => (
             <div key={ex.id||i} className="es-press"
-              onClick={() => { const item = normalizePostForPreview(ex, "experience"); if (item) openPreview(item); }}
+              onClick={() => {
+                // PUBLIC-EXPERIENCE-AUTHOR-FIX-001 (2026-09-22, Bugreport
+                // ec62f519): Profilsektionen halten rohe experiences-Zeilen ohne
+                // Profile-Join. Der Normalizer fiel deshalb auf "Mitglied" zurück.
+                // Das bereits geladene Profil wird injiziert (full_name-first via
+                // unifiedNormalizer/getFullDisplayName, keine zweite Namenslogik).
+                const item = normalizePostForPreview(
+                  profile ? { ...ex, profile } : ex,
+                  "experience",
+                );
+                if (item) openPreview(item);
+              }}
               style={{ flexShrink:0, width:100, cursor:"pointer" }}>
               <div style={{ width:100, height:100, borderRadius:T.r16, overflow:"hidden",
                 background:"linear-gradient(135deg,#2C3B2D,#8B7355)", marginBottom:6, position:"relative" }}>
@@ -166,7 +185,7 @@ export function ExperiencesSection({
                 WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>
                 {ex.title || "Erlebnis"}
               </div>
-              <div style={{ fontSize:10.5, color:T.inkFaint }}>{catLabel(ex.category, t)}</div>
+              <div style={{ fontSize:10.5, color:T.inkFaint }}>{catLabel(ex.experience_type || ex.category, t)}</div>
               <div style={{ fontSize:10, color:T.inkFaint }}>{fmtDate(ex.date || ex.created_at)}</div>
             </div>
           ))}

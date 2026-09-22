@@ -732,7 +732,7 @@ export default function PublicProfilePage({ profileId, onClose = () => {} }) {
               {loadingLazy ? (
                 <div style={{display:"flex",gap:10,overflowX:"auto"}}>{[1,2].map(i=><Skel key={i} w={180} h={110} r={T.r12}/>)}</div>
               ) : experiences.length > 0 ? (
-                  <ExperiencesSection experiences={experiences} isOwner={false} loading={false} />
+                  <ExperiencesSection experiences={experiences} profile={profile} isOwner={false} loading={false} />
               ) : (
                 <div style={{ padding:"16px 0", textAlign:"center", color:T.inkFaint, fontSize:13 }}>
                   {t('pub.emptyExperiences')}

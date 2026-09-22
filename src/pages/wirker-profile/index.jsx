@@ -940,7 +940,7 @@ export default function WirkerProfilePage({ wirker: wirkerProp, profileId: profi
 
       <VisitorHero   profile={profile} onClose={handleClose} onBook={handleBook} onChat={handleChat} onSupport={handleSupport} currentUserId={currentUserId}/>
       <StatsStrip    profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
-      <ExperiencesSection experiences={experiences || []} isOwner={isOwner} loading={loading}/>
+      <ExperiencesSection experiences={experiences || []} profile={profile} isOwner={isOwner} loading={loading}/>
       <WirkungSection  profile={profile} wirkerProfile={wirkerProfile} followerCount={followCounts?.followers ?? 0}/>
       <MomentsSection moments={moments || []} loading={loading} isOwner={isOwner}/>
       <ResonanceCommunity community={null}/>

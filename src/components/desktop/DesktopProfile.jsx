@@ -138,7 +138,7 @@ export default function DesktopProfile() {
           </section>
           <section>
             <h2 className="prof-section-title">Erlebnisse</h2>
-            {experiences.length > 0 ? <ExperiencesSection experiences={experiences} isOwner={isOwner} loading={loadingLazy} /> : <p className="v3-empty">Noch keine Erlebnisse angeboten.</p>}
+            {experiences.length > 0 ? <ExperiencesSection experiences={experiences} profile={profile} isOwner={isOwner} loading={loadingLazy} /> : <p className="v3-empty">Noch keine Erlebnisse angeboten.</p>}
           </section>
           <section>
             <h2 className="prof-section-title">Empfehlungen</h2>

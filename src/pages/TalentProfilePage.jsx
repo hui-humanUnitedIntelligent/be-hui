@@ -1542,6 +1542,7 @@ export default function TalentProfilePage({ profileId, onClose, publicView = fal
         {/* ── 9. Erlebnisse → ExperiencesSection ───────────── */}
         <ExperiencesSection
             experiences={experiences}
+            profile={profile}
             isOwner={isOwner}
             loading={loading}
             onShowAll={() => {}}
