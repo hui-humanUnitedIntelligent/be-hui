@@ -75,6 +75,22 @@ const KEYWORD_CATEGORIES = {
     'frauen gehören in die küche', 'frauen können nicht',
     'geh zurück an den herd', 'dumme frau', 'weiber taugen nichts',
   ],
+  // SEXUAL-GUARD-STRENGTHEN-001 (2026-09-22, Michael-Report, Beweisfall:
+  // Kommentare "Kann man da auch penise sehen?" / "kann man titten sehen?"
+  // liefen auf Werk-/Erlebnis-Posts unmoderiert durch, weil der bisherige
+  // Wortkatalog nur Slurs (schlampe/hure/...) abdeckte, aber KEINE expliziten
+  // Aufforderungen/Anfragen nach Nacktheit/Sexualinhalten. Neue eigene
+  // Kategorie (statt in "sexism" zu mischen — andere Bedeutung, eigene
+  // SADB-Auswertbarkeit), 1 Treffer reicht bereits für is_flagged=true
+  // (siehe isFlagged = allFlags.length > 0 unten) — komplett unabhängig von
+  // Rolle/Kontext IMMER blockierend, kein "manche Nutzer dürfen".
+  sexual_solicitation: [
+    'penis', 'schwanz zeigen', 'titten', 'brüste', 'busen', 'muschi',
+    'vagina', 'eier zeigen', 'arsch zeigen', 'nacktbilder', 'nacktbild',
+    'nacktfoto', 'nacktfotos', 'nudes', 'sexbilder', 'sex bilder',
+    'zeig mir deine', 'zeigst du mir deine', 'schick mir nackt',
+    'schick nacktbilder', 'onlyfans', 'porno', 'pornos', 'blasen',
+  ],
   // Gewaltverherrlichung / Drohungen
   violence: [
     'ich bring dich um', 'ich töte dich', 'stirb', 'erschieß',
