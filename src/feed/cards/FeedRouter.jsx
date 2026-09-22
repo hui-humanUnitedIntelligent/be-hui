@@ -114,8 +114,18 @@ export default function FeedRouter({ item: rawItem, onProfile, onReaction, onBoo
   return (
     <CardErrorBoundary itemId={item.id} itemType={type} authorName={authorName} text={text}>
       <Suspense fallback={<CardSkeleton/>}>
-        {type === "experience" ? <ExperienceContent {...shared} onBook={()=>onBook?.(rawItem)}/> :
-         type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(item)} onBuyWerk={onBook ? ()=>onBook(rawItem) : undefined}/> : /* COMMERCE-01 W-5 */
+        {/* BOOK-TYPE-DISPATCH-001 (2026-09-22, Michael-Bugreport): onBook wird
+            von Home.jsx für ALLE Kartentypen geteilt (Werke-Kaufen UND Erlebnis-
+            Teilnehmen). Ohne einen Typ-Hinweis landete "Teilnehmen" auf einem
+            Erlebnis fälschlich in der Werke-Warenkorb-Logik (item wurde stumm
+            in setCart gepusht, KEIN ExperienceBookingFlow öffnete sich — für
+            den Nutzer sah es aus wie ein toter Button). Zweiter Parameter
+            "experience"/"work" macht den echten FeedRouter-Typ für den
+            Aufrufer sichtbar, ohne dass eine der beiden bestehenden
+            Single-Argument-Callsites (DiscoverPage, ContentPreviewSheet)
+            etwas davon merkt — die ignorieren zusätzliche Argumente einfach. */}
+        {type === "experience" ? <ExperienceContent {...shared} onBook={()=>onBook?.(rawItem, "experience")}/> :
+         type === "work"       ? <WorkContent {...shared} onDetail={()=>onDetail?.(item)} onBuyWerk={onBook ? ()=>onBook(rawItem, "work") : undefined}/> : /* COMMERCE-01 W-5 */
          type === "event"      ? <EventContent {...shared}/> :
          type === "talent"     ? <TalentContent {...shared}/> : /* FEED-GLOBAL-001 */
          type === "impact"     ? <ImpactContent {...shared}/> : /* FEED-GLOBAL-001 */

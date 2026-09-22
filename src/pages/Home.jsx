@@ -614,7 +614,26 @@ function HomeInner() {
                   locationQuery={searchState.locationQuery}
                   sort={searchState.sort}
                   onProfile={(id) => { if(id) openProfileById(id); }} /* Autor-Name klickbar → öffnet Profil direkt */
-                  onBook={(item) => {
+                  onBook={(item, kind) => {
+                    // BOOK-TYPE-DISPATCH-001 (2026-09-22, Michael-Bugreport
+                    // "Teilnehmen-Button funktioniert nicht" auf einem
+                    // Erlebnis-Post im Home-Feed): Dieser Handler ist über
+                    // UnifiedFeed → FeedRouter für ALLE Kartentypen verdrahtet
+                    // (Werke-Kaufen UND Erlebnis-Teilnehmen), implementierte
+                    // aber ausschließlich die Werke-Warenkorb-Logik. Ein Klick
+                    // auf "Teilnehmen" landete dadurch stumm im Werke-Korb statt
+                    // den ExperienceBookingFlow zu öffnen — aus Nutzersicht ein
+                    // komplett totes Feature (kein Fehler, keine Buchung, keine
+                    // Bestätigung an den Ersteller). FeedRouter liefert jetzt den
+                    // echten Typ als zweites Argument; Erlebnisse gehen auf den
+                    // bereits bestehenden, in DiscoverPage verifiziert
+                    // funktionierenden ExperienceBookingFlow-Pfad (setShowBookingFlow),
+                    // exakt dieselbe Instanz wie unten bei DiscoverPage.onBook.
+                    if (kind === "experience") {
+                      if (!item?.id) return;
+                      setShowBookingFlow(item._raw || item);
+                      return;
+                    }
                     // KORB-RESTORE (2026-08-10): "Kaufen" im Feed legt das Werk
                     // in den Werkekorb — der Korb-Button erscheint, Nutzer
                     // sehen sofort was passiert und können mehrere Werke sammeln.
