@@ -1016,6 +1016,33 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
 
   // Modal-States (lazy — erst beim Öffnen initialisiert)
   const [showMenschenModal,   setShowMenschenModal]   = useState(false);
+  const menschenProfileOpenTimerRef = useRef(null);
+
+  // RESONANZ-MENSCHEN-PROFILE-CRASH-001 (2026-09-22): Der Sonderweg
+  // Chat/Resonanz → Menschen entdecken → MenschenAllModal öffnete das Profil
+  // synchron im selben React-Commit, in dem das Fullscreen-Portal geschlossen
+  // wurde. Damit überlappten kurzzeitig Wizard-Body-Lock, Modal-Backstack und
+  // ProfileLauncher-Portal. Der stabile Chat→Profil-Pfad in Home.jsx macht den
+  // Übergang bereits zweiphasig (erst Overlay schließen, dann nach 50 ms das
+  // Profil öffnen). Exakt dasselbe Muster gilt hier; zusätzlich läuft der Klick
+  // durch handlePersonPress und damit durch denselben UUID-Guard wie die normalen
+  // Menschen-Karten.
+  const handleMenschenModalPersonPress = useCallback((person) => {
+    setShowMenschenModal(false);
+    if (menschenProfileOpenTimerRef.current) {
+      clearTimeout(menschenProfileOpenTimerRef.current);
+    }
+    menschenProfileOpenTimerRef.current = window.setTimeout(() => {
+      menschenProfileOpenTimerRef.current = null;
+      handlePersonPress(person);
+    }, 50);
+  }, [handlePersonPress]);
+
+  useEffect(() => () => {
+    if (menschenProfileOpenTimerRef.current) {
+      clearTimeout(menschenProfileOpenTimerRef.current);
+    }
+  }, []);
 
   // ── Deep-Link: "Menschen entdecken"-Button im Chat (ImpactCard) ──────────
   // openMenschenSignal ist ein hochzählender Counter aus Home.jsx. DiscoverPage
@@ -1287,10 +1314,7 @@ export default function DiscoverPage({ onView, onMap, onBook, openMenschenSignal
         <MenschenAllModal
           isOpen={showMenschenModal}
           onClose={() => setShowMenschenModal(false)}
-          onPressPerson={(person) => {
-            setShowMenschenModal(false);
-            if (person?.id && typeof onView === "function") onView(person.id);
-          }}
+          onPressPerson={handleMenschenModalPersonPress}
         />
         <MomenteAllModal
           isOpen={showMomenteModal}
