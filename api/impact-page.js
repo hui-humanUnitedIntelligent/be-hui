@@ -35,7 +35,7 @@ module.exports = async (req, res) => {
     const cards = projects.map((p) => {
       const img = p.cover_url || (Array.isArray(p.media_urls) && p.media_urls[0]) || null;
       const imgHtml = img
-        ? `<div class="imp-card-img" style="background-image:url('${esc(img)}')" role="img" aria-label="${esc(p.project_name)}"></div>`
+        ? `<img class="imp-card-img" src="${esc(img)}" alt="" loading="lazy" decoding="async">`
         : `<div class="imp-card-img imp-card-img-empty"><div class="imp-card-dot" aria-hidden="true">${esc((p.project_name || '◦').trim().charAt(0))}</div></div>`;
 
       const completed = p.is_completed === true;
@@ -62,13 +62,12 @@ module.exports = async (req, res) => {
       <article class="imp-card reveal">
         ${imgHtml}
         <h3>${esc(p.project_name)}</h3>
-        ${p.short_desc ? `<p class="imp-card-desc">${esc(p.short_desc)}</p>` : ''}
-        ${meta.length > 0 ? `<div class="imp-card-meta">${meta.map((m) => `<span>${m}</span>`).join('')}</div>` : ''}
-        ${goal > 0 && !completed ? `
-        <div class="imp-progress">
-          <div class="imp-progress-bar" style="width:${progress}%"></div>
+        <div class="imp-card-desc">${p.short_desc ? esc(p.short_desc) : ''}</div>
+        <div class="imp-card-meta">${meta.map((m) => `<span>${m}</span>`).join('')}</div>
+        <div class="imp-card-progress${goal > 0 ? '' : ' imp-card-progress-empty'}">
+          <div class="imp-progress">${goal > 0 ? `<div class="imp-progress-bar" style="width:${progress}%"></div>` : ''}</div>
+          <div class="imp-progress-label">${goal > 0 ? `<span>${fmtEur(received)}</span><span>${pct(progress)}%</span>` : ''}</div>
         </div>
-        <div class="imp-progress-label"><span>${fmtEur(received)}</span><span>${pct(progress)}%</span></div>` : ''}
         ${actions}
       </article>`;
     }).join('');
@@ -100,7 +99,7 @@ module.exports = async (req, res) => {
     </div>
   </section>
 
-  <section class="imp-section" id="projekte">
+  <section class="imp-section imp-projects" id="projekte">
     <div class="imp-section-head reveal">
       <p class="section-kicker" data-i18n="impact.projects.kicker">HUI Impact</p>
       <h2 data-i18n="impact.projects.h2">Aktuelle Impact-Projekte</h2>
@@ -109,7 +108,7 @@ module.exports = async (req, res) => {
     ${projectsHtml}
   </section>
 
-  <section class="imp-section">
+  <section class="imp-section imp-process">
     <div class="imp-section-head reveal">
       <p class="section-kicker" data-i18n="impact.how.kicker">Transparenz</p>
       <h2 data-i18n="impact.how.h2">Wie Impact bei HUI entsteht</h2>
