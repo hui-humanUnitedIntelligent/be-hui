@@ -198,20 +198,6 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     return null;
   }, [talent, participants]);
 
-  // BUG 9 (4bd73f49): Preis-Herleitung fuer den Gesamtbetrag — Basis folgt
-  // exakt der previewAmount-Prioritaet, damit Karte, Herleitung und Summe
-  // dieselbe Wahrheit zeigen (Report: 20 EUR/Std-Anzeige vs. 100 EUR Gesamt
-  // ohne erkennbaren Zusammenhang).
-  const persCount = Math.max(1, participants || 1);
-  let priceBasis = null;
-  if (talent?.price_per_session != null) {
-    priceBasis = `${fmtEur(talent.price_per_session)}/${t("common.perSession")}`;
-  } else if (talent?.price_per_hour != null && talent.duration_minutes) {
-    const hours = talent.duration_minutes / 60;
-    priceBasis = `${formatNumberDE(hours, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${t("common.perHour")} × ${fmtEur(talent.price_per_hour)}/${t("common.perHour")}`;
-  }
-  if (priceBasis && persCount > 1) priceBasis += ` × ${persCount} ${t("common.people")}`;
-
   useEffect(() => {
     if (!talent?.id || !selectedDate || !isGruppe) { setAvailability(null); return; }
     let cancelled = false;
@@ -379,13 +365,10 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
 
   if (!talent) return null;
 
-  // BUG 9 (4bd73f49): Preis-Anzeige folgt jetzt exakt der previewAmount-
-  // Prioritaet (price_per_session zuerst) — vorher zeigte die Karte
-  // "20,00 EUR/Std" waehrend 100,00 EUR pro Termin berechnet wurden.
-  const priceStr = talent.price_per_session != null
-    ? `${fmtEur(talent.price_per_session)}/${t("common.perSession")}`
-    : talent.price_per_hour != null
-      ? `${fmtEur(talent.price_per_hour)}/${t("common.perHour")}`
+  const priceStr = talent.price_per_hour != null
+    ? `${fmtEur(talent.price_per_hour)}/${t("common.perHour")}`
+    : talent.price_per_session != null
+      ? `${fmtEur(talent.price_per_session)}/Termin`
       : null;
 
   return createPortal(
@@ -932,21 +915,15 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 }}
               />
 
-              {/* Vorschau Gesamtbetrag — mit Preis-Herleitung (BUG 9) */}
+              {/* Vorschau Gesamtbetrag */}
               {previewAmount != null && (
                 <div style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
                   padding: "12px 16px", borderRadius: 14, background: "rgba(255,138,107,0.08)",
                   border: "1px solid rgba(255,138,107,0.18)",
                 }}>
-                  {priceBasis && (
-                    <div style={{ fontSize: 11.5, color: "#55556B", marginBottom: 4, textAlign: "right" }}>
-                      {priceBasis}
-                    </div>
-                  )}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 13, color: "#55556B" }}>{t("tbf.detail.total")}</span>
-                    <span style={{ fontSize: 20, fontWeight: 600, color: CORAL }}>{fmtEur(previewAmount)}</span>
-                  </div>
+                  <span style={{ fontSize: 13, color: "#55556B" }}>{t("tbf.detail.total")}</span>
+                  <span style={{ fontSize: 20, fontWeight: 600, color: CORAL }}>{fmtEur(previewAmount)}</span>
                 </div>
               )}
 

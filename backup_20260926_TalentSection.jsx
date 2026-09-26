@@ -18,11 +18,10 @@ export function TalentCard({ talent, delay=0, onPress, onAuthorPress }) {
   // VIDEO-THUMBNAIL-001 (2026-08-31): thumbnail_url hat Prioritaet
   const cover  = (!imgErr && (talent.thumbnail_url || talent.cover)) ? (talent.thumbnail_url || talent.cover) : null;
   const medCol = MEDIUM_COLOR[talent.category] || { bg:T.tealSoft, text:T.teal };
-  // BUG 9 (4bd73f49): session-first, konsistent zur Buchungsberechnung
-  const priceStr = talent.price_per_session != null
-    ?formatNumberDE(parseFloat(talent.price_per_session), { minimumFractionDigits:0 }) + ` €/${t("common.perSession")}`
-    : talent.price_per_hour != null
-      ?formatNumberDE(parseFloat(talent.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`
+  const priceStr = talent.price_per_hour != null
+    ?formatNumberDE(parseFloat(talent.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`
+    : talent.price_per_session != null
+      ?formatNumberDE(parseFloat(talent.price_per_session), { minimumFractionDigits:0 }) + ` €/${t("common.perSession")}`
       : null;
   const locationLabel = TALENT_LOCATION_LABEL[talent.location_type] || null;
 
@@ -259,10 +258,10 @@ export function TalenteSection({
               ))
             : talente.map((t) => {
                 const medCol = MEDIUM_COLOR[t.category] || { bg:T.tealSoft, text:T.teal };
-                const priceStr = t.price_per_session != null
-                  ?formatNumberDE(parseFloat(t.price_per_session), { minimumFractionDigits:0 }) + ` €/${t("common.perSession")}`
-                  : t.price_per_hour != null
-                    ?formatNumberDE(parseFloat(t.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`
+                const priceStr = t.price_per_hour != null
+                  ?formatNumberDE(parseFloat(t.price_per_hour), { minimumFractionDigits:0 }) + ` €/${t("common.perHour")}`
+                  : t.price_per_session != null
+                    ?formatNumberDE(parseFloat(t.price_per_session), { minimumFractionDigits:0 }) + ` €/${t("common.perSession")}`
                     : null;
                 return (
                   <div key={t.id} className="dp-list-card" onClick={() => onPress?.(t)} role="button" tabIndex={0}>
