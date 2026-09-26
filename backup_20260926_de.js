@@ -3273,7 +3273,7 @@ export default {
   'wk.successChat': 'Verbinden',
   'wk.successDiscover': 'Weiter entdecken',
   'wk.impactMain': 'Gemeinsam Wirkung schaffen — ',
-  'wk.impactDesc': 'Von deinem Einkauf fließen {hui} € (20 %) an HUI — davon gehen {impact} € (30 %) direkt in Impact-Projekte.',
+  'wk.impactDesc': 'HUI investiert {hui} € (20 %) aus den eigenen Einnahmen — davon {impact} € direkt in Impact-Projekte.',
   'wk.impactHint': 'Für dich entstehen keine zusätzlichen Kosten.',
   'wk.priceYourSelection': 'Deine Auswahl',
   'wk.priceWerke': 'Werke',

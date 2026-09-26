@@ -916,7 +916,7 @@ function ImpactZeile({ impactEur, huiEur }) {
             color:      C.muted,
             lineHeight: 1.5,
           }}>
-            Von deinem Einkauf fließen {huiStr} € (20 %) an HUI — davon gehen {impactStr} € (30 %) direkt in Impact-Projekte.
+            HUI investiert {huiStr} € (20 %) aus den eigenen Einnahmen — davon {impactStr} € direkt in Impact-Projekte.
           </span>
         </div>
       </div>

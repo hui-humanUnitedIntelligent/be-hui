@@ -3265,7 +3265,7 @@ export default {
   'wk.successChat': 'Ligar',
   'wk.successDiscover': 'Continuar a descobrir',
   'wk.impactMain': 'Criar impacto juntos — ',
-  'wk.impactDesc': 'Da tua compra, {hui} € (20%) vai para a HUI — dos quais {impact} € (30%) vão diretamente para projetos Impact.',
+  'wk.impactDesc': 'HUI investe {hui} € (20%) das suas receitas — {impact} € diretamente em projetos Impact.',
   'wk.impactHint': 'Sem custos adicionais para si.',
   'wk.priceYourSelection': 'A sua seleção',
   'wk.priceWerke': 'Obras',

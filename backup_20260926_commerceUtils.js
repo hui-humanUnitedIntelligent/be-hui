@@ -43,7 +43,7 @@ export function getTypeMeta(t) {
 }
 
 // ── Impact-Konstante ──────────────────────────────────────────────
-// Impact-Pool: 30 % des 20-%-HUI-Anteils (= 6 % vom Einkauf) — kein Aufschlag für Käufer
+// HUI investiert 7 % der eigenen Einnahmen — kein Aufschlag für Käufer
 export const IMPACT_RATE = 0.06; // 30% von 20% HUI-Anteil (Balanced Growth, vorher 0.0225)
 
 // ── Preis-Utilities ───────────────────────────────────────────────

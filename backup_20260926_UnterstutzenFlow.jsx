@@ -64,7 +64,7 @@ function ImpactKarte({ impactEur = 0, huiEur = 0 }) {
           Gemeinsam Wirkung schaffen
         </div>
         <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.6 }}>
-          Von deinem Einkauf fließen {huiStr} € (20 %) an HUI — davon gehen {str} € (30 %) direkt in Impact-Projekte.
+          HUI investiert {huiStr}{" "}€ (20 %) aus den eigenen Einnahmen — davon {str}{" "}€ direkt in Impact-Projekte.
         </div>
       </div>
     </div>

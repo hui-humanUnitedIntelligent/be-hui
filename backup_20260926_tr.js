@@ -3265,7 +3265,7 @@ export default {
   'wk.successChat': 'Bağlan',
   'wk.successDiscover': 'Keşfetmeye devam et',
   'wk.impactMain': 'Birlikte etki yarat — ',
-  'wk.impactDesc': 'Alışverişinden {hui} € (%20) HUI payı olarak ayrılır — bunun {impact} € (%30) doğrudan Impact projelerine gider.',
+  'wk.impactDesc': 'HUI kendi gelirinden {hui} € (20%) yatırır — {impact} € doğrudan Impact projelerine.',
   'wk.impactHint': 'Senin için ek ücret yok.',
   'wk.priceYourSelection': 'Seçimin',
   'wk.priceWerke': 'Eserler',
