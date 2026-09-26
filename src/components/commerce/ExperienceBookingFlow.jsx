@@ -180,16 +180,24 @@ export default function ExperienceBookingFlow({ experience, onClose = () => {} }
     setErrMsg("");
 
     try {
-      // ── Sichtbarkeit-Gate: Verbindungen/Privat-Profile sind nicht buchbar
-      // (server-seitig ohnehin über commerce_price_authority-View geblockt,
-      // hier nur für eine klare, verständliche Fehlermeldung) ──
-      const { data: sellerProfile } = await supabase
-        .from("profiles").select("focus_type").eq("id", creatorId).maybeSingle();
-      if (sellerProfile && sellerProfile.focus_type && sellerProfile.focus_type !== "public") {
-        setErrMsg(t("ebf.errNotPublic"));
-        setPhase("error");
-        return;
-      }
+      // COMMERCE-VIEW-FIX-EBF (2026-09-26, Bugreport 426b507e, Lars Platin,
+      // 24.09., Mac Web, v2.1.612: "Wenn ich ein Erlebnis buchen möchte,
+      // dann klappt es mit dem buchen nicht") ──────────────────────────
+      // focus_type-Gate entfernt — exakt derselbe Fix wie im WerkKaufFlow
+      // (COMMERCE-VIEW-FIX, 2026-08-16, Commit-Kommentar dort: "Das
+      // focus_type='public'-Filter blockierte legitime Verkäufer mit
+      // hybrid"). Beide Gates stammen aus demselben Commit a973d15d
+      // (Sichtbarkeits-System), aber der 16.08.-Fix wurde nur auf den
+      // WerkKaufFlow angewendet und hier nie nachgezogen.
+      // DB-Beweis: Lars versuchte Kays Erlebnis "Fest der Menschen"
+      // (b765bfd1, published, approved, in commerce_price_authority) zu
+      // buchen → Kay hat focus_type="hybrid" → Gate blockierte mit
+      // "Dieses Profil ist nicht öffentlich". 7 Minuten später kaufte er
+      // problemlos Kays Werk (WerkKaufFlow ohne Gate, Order 009a0c72,
+      // paid). focus_type-Verteilung: 21/29 Profile sind "hybrid" — das
+      // Gate blockierte damit fast JEDEN Erlebnis-Anbieter.
+      // commerce_price_authority View (status published/approved) bleibt
+      // die serverseitige Preis-/Verfügbarkeits-Autorität.
 
       // ── Stripe PaymentIntent über Edge Function ──
       // AUTH-401-RECOVERY-001 (2026-08-28): postToEdgeFunction versucht bei
