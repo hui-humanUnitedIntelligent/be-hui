@@ -3796,6 +3796,7 @@ export default {
   'tbf.detail.at': 'te {name}',
   'tbf.detail.checkingAvail': 'duke kontrolluar disponueshmërinë…',
   'tbf.detail.chooseDate': 'Zgjidh takim',
+  'tbf.detail.singleDay': 'Data e vetme e disponueshme',
   'tbf.detail.full': 'i mbushur',
   'tbf.detail.notePlaceholder': 'Mesazh për ofruesin (opsionale)…',
   'tbf.detail.outside': '✗ {distance} km larg — jashtë rrezes së veprimit prej {radius} km. Kjo rezervim nuk është e mundur.',

@@ -2739,6 +2739,7 @@ export default {
   'tbf.detail.within': '✓ {distance} km entfernt — innerhalb des Aktionsradius.',
   'tbf.detail.outside': '✗ {distance} km entfernt — außerhalb des Aktionsradius von {radius} km. Diese Buchung ist nicht möglich.',
   'tbf.detail.chooseDate': 'Termin wählen',
+  'tbf.detail.singleDay': 'Einziger buchbarer Termin',
   'tbf.detail.allSlotsPast': 'Für heute sind alle Zeiten bereits vorbei — bitte wähle einen anderen Tag.',
   'tbf.detail.participants': 'Teilnehmer',
   'tbf.detail.checkingAvail': 'prüfe Verfügbarkeit…',

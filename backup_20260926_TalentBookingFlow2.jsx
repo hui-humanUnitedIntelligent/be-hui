@@ -159,16 +159,6 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     () => Object.keys(monthAvail).filter(d => monthAvail[d]?.is_full),
     [monthAvail]
   );
-
-  // BUG 10 (0f8505db): Bei Einzeltags-Talenten wird der Monatskalender
-  // durch eine Datum-Box ersetzt — onMonthChange (und damit der
-  // is_full-Ladevorgang) feuert dann nie. Hier explizit nachziehen, damit
-  // das Ausgebucht-Gate (selectedDateFullNoSlots) weiterhin funktioniert.
-  useEffect(() => {
-    if (expandedDates.length === 1) {
-      loadMonthAvailability(expandedDates[0].slice(0, 7));
-    }
-  }, [expandedDates, loadMonthAvailability]);
   const slotAvailability = selectedDate ? monthAvail[selectedDate]?.slots : null;
 
   const isSelectedToday = selectedDate === todayIso();
@@ -805,49 +795,21 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#1A1A2E", marginBottom: 8 }}>
                   {t("tbf.detail.chooseDate")}
                 </div>
-                {/* BUG 10 (0f8505db): Nur ein buchbarer Tag → Datum direkt
-                    anzeigen statt ganzem Monatskalender (Lars: "verwirrt nur.
-                    Datum anzeigen, wann das ist, das reicht"). */}
-                {expandedDates.length === 1 ? (
-                  <div style={{
-                    background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
-                    padding: "14px 14px", display: "flex", alignItems: "center", gap: 10,
-                  }}>
-                    <span style={{
-                      width: 34, height: 34, borderRadius: 12, background: "rgba(13,196,181,0.10)",
-                      display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                    }}>
-                      <svg width={16} height={16} viewBox="0 0 16 16" fill="none">
-                        <rect x="1.5" y="3" width="13" height="11.5" rx="2" stroke="#0DC4B5" strokeWidth="1.5"/>
-                        <path d="M1.5 6.5h13M4.5 1.5v3M11.5 1.5v3" stroke="#0DC4B5" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    </span>
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontSize: 14.5, fontWeight: 600, color: "#1A1A2E", letterSpacing: -0.2 }}>
-                        {dateInfo ? `${dateInfo.weekday}, ${dateInfo.full}` : ""}
-                      </div>
-                      <div style={{ fontSize: 11.5, color: "#55556B", marginTop: 2 }}>
-                        {t("tbf.detail.singleDay")}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{
-                    background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
-                    padding: "14px 12px",
-                  }}>
-                    <AvailabilityCalendar
-                      mode={hasDates ? "book" : "free"}
-                      availableDates={expandedDates}
-                      selectedDate={selectedDate}
-                      onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
-                      fullDates={fullDates}
-                      onMonthChange={loadMonthAvailability}
-                      minDate={minDate}
-                      maxDate={maxDate}
-                    />
-                  </div>
-                )}
+                <div style={{
+                  background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
+                  padding: "14px 12px",
+                }}>
+                  <AvailabilityCalendar
+                    mode={hasDates ? "book" : "free"}
+                    availableDates={expandedDates}
+                    selectedDate={selectedDate}
+                    onSelectDate={(d) => { setSelectedDate(d); setSelectedSlot(null); }}
+                    fullDates={fullDates}
+                    onMonthChange={loadMonthAvailability}
+                    minDate={minDate}
+                    maxDate={maxDate}
+                  />
+                </div>
                 {/* Wochentag-Feedback unter dem Kalender nach Auswahl */}
                 {dateInfo && (
                   <div style={{

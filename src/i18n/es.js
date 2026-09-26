@@ -2731,6 +2731,7 @@ export default {
   'tbf.detail.within': '✓ a {distance} km — dentro del radio de acción.',
   'tbf.detail.outside': '✗ a {distance} km — fuera del radio de acción de {radius} km. Esta reserva no es posible.',
   'tbf.detail.chooseDate': 'Elegir fecha',
+  'tbf.detail.singleDay': 'Único día disponible',
   'tbf.detail.allSlotsPast': 'Todas las horas de hoy ya han pasado — elige otro día por favor.',
   'tbf.detail.participants': 'Participantes',
   'tbf.detail.checkingAvail': 'comprobando disponibilidad…',

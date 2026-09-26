@@ -2747,6 +2747,7 @@ export default {
   'tbf.detail.within': '✓ {distance} km away — within the service radius.',
   'tbf.detail.outside': '✗ {distance} km away — outside the service radius of {radius} km. This booking is not possible.',
   'tbf.detail.chooseDate': 'Choose date',
+  'tbf.detail.singleDay': 'Only available date',
   'tbf.detail.allSlotsPast': 'All times for today have already passed — please choose another day.',
   'tbf.detail.participants': 'Participants',
   'tbf.detail.checkingAvail': 'checking availability…',

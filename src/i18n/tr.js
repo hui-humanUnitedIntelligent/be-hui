@@ -2731,6 +2731,7 @@ export default {
   'tbf.detail.within': '✓ {distance} km uzakta — hizmet yarıçapı içinde.',
   'tbf.detail.outside': '✗ {distance} km uzakta — {radius} km\'lik hizmet yarıçapının dışında. Bu rezervasyon mümkün değil.',
   'tbf.detail.chooseDate': 'Tarih seç',
+  'tbf.detail.singleDay': 'Tek müsait gün',
   'tbf.detail.allSlotsPast': 'Bugün için tüm zamanlar geçti — lütfen başka bir gün seç.',
   'tbf.detail.participants': 'Katılımcılar',
   'tbf.detail.checkingAvail': 'uygunluk kontrol ediliyor…',
