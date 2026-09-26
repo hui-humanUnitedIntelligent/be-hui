@@ -17,6 +17,29 @@
 // ═══════════════════════════════════════════════════════════════════
 
 export const RELEASE_NOTES = {
+  // 2.1.613 — Sammel-OTA vom 26.09.2026: Buchungen, Uploads, Chat-Liste,
+  // Verein-Anlegen und der neue Privatmodus (Server-seitig).
+  "2.1.613": {
+    de: [
+      `Erlebnisbuchung: Kontakt zum richtigen Anbieter. Nach dem Buchen eines Erlebnisses öffnet der Chat aus der Buchungsbestätigung jetzt immer den Anbieter — nicht mehr versehentlich dich selbst.`,
+      `Buchen jetzt für alle öffentlichen Profile möglich: Erlebnisse und Talente lassen sich bei allen Anbietern mit öffentlichem Profil zuverlässig buchen. Eine interne Sperre hatte vorher manche Anbieter fälschlich blockiert.`,
+      `Zuverlässigere Uploads bei wackliger Verbindung: Videos und Bilder werden nach einem Verbindungsabbruch automatisch ein weiteres Mal hochgeladen. Für seltene bleibende Fehler erscheint eine verständliche Meldung. Das gilt auch für Anhänge in Support-Reports.`,
+      `Verein anlegen ohne Verdeckung: Bei offener Tastatur bleiben Registernummer, Vereinsnummer und Beschreibung vollständig sichtbar und erreichbar — auf iPhone und Android.`,
+      `Chat-Liste zeigt den neuesten Text: Statt „Eine Verbindung ist entstanden“ erscheint jetzt der zuletzt geschriebene Text als Vorschau, und die Chats sortieren sich danach.`,
+      `Gelesen bleibt gelesen: Der Ungelesen-Punkt in der Chat-Übersicht verschwindet sofort, wenn du eine Nachricht geöffnet und geantwortet hast — auch ohne die App neu zu laden.`,
+      `Neuer Privatmodus: Wenn du dein Profil auf privat stellst, sind deine Werke, Talente und Lebensmomente für andere nicht mehr sichtbar und nicht buchbar — auch nicht in der Suche, bei Orten und im Dashboard. Für dich selbst bleibt alles unverändert sichtbar.`,
+    ],
+    en: [
+      `Experience bookings: contact the right provider. After booking an experience, the chat from the booking confirmation now always opens the provider — no longer yourself by mistake.`,
+      `Booking works for all public profiles: experiences and talents can now be booked reliably from every provider with a public profile. An internal lock had previously blocked some providers incorrectly.`,
+      `More reliable uploads on unstable connections: videos and images are automatically retried after a connection drop. Rare persistent failures now show a clear message. This also applies to attachments in support reports.`,
+      `Creating an organisation without hidden fields: with the keyboard open, the registration number, organisation number and description stay fully visible and reachable — on iPhone and Android.`,
+      `Chat list shows the latest text: instead of “A connection was made”, the last written text now appears as the preview, and chats are sorted by it.`,
+      `Read stays read: the unread dot in the chat overview disappears immediately when you have opened and answered a message — without reloading the app.`,
+      `New private mode: when you set your profile to private, your works, talents and life moments are no longer visible or bookable to others — including search, places and the dashboard. Everything stays unchanged for you.`,
+    ],
+  },
+
   // 2.1.612 — Sammel-OTA vom 22.09.2026: Erlebnis-Erstellung und
   // -Darstellung, Buchungsdetails, Profilbearbeitung und systemweite
   // Chat-Oeffnung. Freigegeben von Michael: "deploy mit liste".
