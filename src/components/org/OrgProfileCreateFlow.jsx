@@ -8,6 +8,8 @@
 import React, { useState, useCallback, useRef } from "react";
 import { toSafeUploadBody } from "../../lib/uploadBody.js";
 import { createPortal } from "react-dom";
+import { Capacitor } from "@capacitor/core";
+import { useKeyboardInset } from "../../hooks/useKeyboardInset.js";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../lib/AuthContext";
 import { useWizardBodyLock } from "../../lib/wizardBodyLock";
@@ -55,11 +57,15 @@ function ProgressBar({ step }) {
   );
 }
 
+// ── ORG-KBD-SHEET-FIX: Plattform-Konstante (identisch zu BugReportModal) ──
+const IS_IOS = typeof window !== "undefined" && Capacitor.getPlatform?.() === "ios";
+
 // ── Haupt-Komponente ────────────────────────────────────────────────
 export default function OrgProfileCreateFlow({ open, onClose }) {
   const { t } = useTranslation();
   const { user, profile, loadOrgProfiles, switchProfile } = useAuth();
   useWizardBodyLock(open);
+  const kbdInset = useKeyboardInset(); // ORG-KBD-SHEET-FIX: Tastatur-Inset (SSOT-Hook)
 
   // PROJEKT-ORG-TYPE (2026-08-31): Zentrale Label-Auflösung statt
   // wiederholter Verein/Unternehmen-Ternaries — 1 Stelle, 3 Typen.
@@ -418,20 +424,61 @@ export default function OrgProfileCreateFlow({ open, onClose }) {
     </div>
   );
 
+  // ── ORG-KBD-SHEET-FIX (2026-09-26, Bugreport "Verein anlegen: Ich
+  // kann nicht sehen, was ich schreibe", Tilo, iPhone iOS 18.7, v2.1.612) ──
+  // Root Cause: Sheet-maxHeight starr 92dvh OHNE Tastatur-Abzug. Bei offener
+  // Tastatur schiebt der globale Handler (UNIVERSAL-PADDING-FIX) den
+  // Backdrop per paddingBottom um das Inset hoch — das volle 92dvh-Sheet
+  // blieb in voller Höhe stehen und lief oben über den Bildschirmrand:
+  // Header + Registernummer/Vereinsnummer/Beschreibung unerreichbar
+  // ("ich sehe nicht, was ich schreibe"). Exakt das bewiesene Muster aus
+  // ANDROID-KBD-SHEET-FIX (BugReportModal, Report 31d3e529, 2026-09-11).
+  //
+  // Fix nach Referenz BugReportModal.jsx (siehe rules/keyboard-safety.md):
+  // 1. maxHeight: calc(92dvh - var(--hui-keyboard-inset, 0px)) — bei
+  //    geschlossener Tastatur (inset=0) EXAKT der alte Wert (92dvh),
+  //    bei offener passt das Sheet vollständig über die Tastatur.
+  //    Gilt BEIDEN Plattformen (Regel: jedes maxHeight in vh/dvh MUSS
+  //    den Inset abziehen).
+  // 2. Die 88px-Navbar-Clearance im Sheet-Padding ist bei offener
+  //    Tastatur verschwendet (Navbar via body.hui-keyboard-open global
+  //    ausgeblendet) → auf 20px reduzieren (Zusatz der
+  //    ANDROID-KBD-SHEET-FIX-Regel, beide Plattformen).
+  // 3. NUR iOS: data-hui-kbd-self-managed auf den Backdrop + eigenes
+  //    paddingBottom direkt aus der SSOT-CSS-Var --hui-keyboard-inset
+  //    (mit kurzer Chase-Transition gegen WebKit-Stufen-Zucken, siehe
+  //    IOS-JITTER-FIX v2). Grund: ALLE Formularfelder liegen hier — wie
+  //    im BugReportModal vor dessen Fix — in EINEM overflowY:"auto"-
+  //    Sheet; der globale scrollIntoView konkurriert dort mit WebKits
+  //    nativem Autoscroll = sichtbares Zucken. Self-managed entflechtet
+  //    die beiden Mechanismen. Android: globaler Handler unverändert.
+  const iosKbdStyle = IS_IOS
+    ? {
+        paddingBottom: "calc(var(--hui-keyboard-inset, 0px) + env(safe-area-inset-bottom, 0px))",
+        transition: "padding-bottom 0.16s ease-out",
+      }
+    : {};
+  const sheetPaddingBottom = (kbdInset > 0)
+    ? "calc(20px + env(safe-area-inset-bottom, 0px))"
+    : "calc(88px + env(safe-area-inset-bottom, 0px))";
+
   // ── Render ────────────────────────────────────────────────────────
   return createPortal(
-    <div style={{
-      position:"fixed", inset:0, zIndex:10500,
-      background:"rgba(0,0,0,0.55)",
-      display:"flex", alignItems:"flex-end",
-      animation:"org-toIn .3s ease",
-    }}>
+    <div
+      {...(IS_IOS ? { "data-hui-kbd-self-managed": "" } : {})}
+      style={{
+        position:"fixed", inset:0, zIndex:10500,
+        background:"rgba(0,0,0,0.55)",
+        display:"flex", alignItems:"flex-end",
+        animation:"org-toIn .3s ease",
+        ...iosKbdStyle,
+      }}>
       <style>{CSS}</style>
       <div style={{
         width:"100%", maxWidth:480, margin:"0 auto",
         background:T.cream, borderRadius:"24px 24px 0 0",
-        padding:"24px 20px calc(88px + env(safe-area-inset-bottom, 0px))",
-        maxHeight:"92dvh", overflowY:"auto",
+        padding:`24px 20px ${sheetPaddingBottom}`,
+        maxHeight:"calc(92dvh - var(--hui-keyboard-inset, 0px))", overflowY:"auto",
         className:"org-scroll",
       }}
       className="org-scroll">
