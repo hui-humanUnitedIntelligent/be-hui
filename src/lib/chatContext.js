@@ -480,6 +480,42 @@ export function useChatThread(chatId) {
         m.id === tempId ? { ...m, id: insertedData?.id || tempId, _optimistic: false } : m
       ));
 
+      // ── CHAT-PREVIEW-005 (2026-09-26, Bugreport 34c9e8f2, Lars Platin,
+      // 24.09., Mac Web, v2.1.612: "Es steht immer 'eine Verbindung ist
+      // entstanden'. Es wäre schöner, wenn der letzte Text der geschrieben
+      // wurde dastehen würde") ─────────────────────────────────────────
+      // Root Cause: sendMessage aktualisierte NIE chats.last_message /
+      // last_message_at → die Chat-Liste zeigte für immer den statischen
+      // Fallback aus ConversationCard (conv.last_message || t(
+      // 'chat.connectionCreated')) und sortierte nach dem Erstellungsdatum
+      // statt der letzten Nachricht. DB-Beweis: Lars' Kay-Chat (b7b3bca5)
+      // hatte 2 echte Nachrichten am 24.09., aber last_message=NULL und
+      // last_message_at=09.09. (Erstellungsdatum).
+      // Fix: nach erfolgreichem Insert die chats-Zeile aktualisieren
+      // (RLS chats_update_own: auth.uid() = ANY(participant_ids) —
+      // verifiziert in Migration 118-Kommentar). last_message_at IMMER
+      // (Sortier-SSOT der Chat-Liste); last_message nur bei echtem Text —
+      // reine Medien-Nachrichten behalten den letzten Text-Preview
+      // (Michaels Anforderung: "der letzte TEXT der geschrieben wurde").
+      // Fire-and-forget, nicht blockierend. Das realtime chats-UPDATE-
+      // Event triggert load() in ALLEN useChatList-Instanzen → Vorschau
+      // und Sortierung aktualisieren sich überall live.
+      Promise.resolve().then(async () => {
+        try {
+          const updates = { last_message_at: new Date().toISOString() };
+          if (payload.text) updates.last_message = payload.text;
+          const { error: chatUpdErr } = await supabase
+            .from("chats")
+            .update(updates)
+            .eq("id", chatId);
+          if (chatUpdErr) {
+            console.warn("[CHATLIST] last_message-Update fehlgeschlagen:", chatUpdErr?.message);
+          }
+        } catch (chatUpdE) {
+          console.warn("[CHATLIST] last_message-Update-Exception:", chatUpdE?.message);
+        }
+      });
+
       // CONTENT-GUARD-001 (2026-09-15): Sender-Seite — gesendete Text-
       // Nachrichten auf Off-App-Transaktions-Keywords pruefen; Awareness-
       // System-Nachricht NICHT blockierend (Chat laeuft weiter, kein Modal,

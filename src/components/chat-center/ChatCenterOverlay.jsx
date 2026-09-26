@@ -185,7 +185,7 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  const { chats: rawChats, loading } = useChatList("cco");
+  const { chats: rawChats, loading, markChatRead: ccoMarkChatRead } = useChatList("cco");
   const chats = rawChats;
 
   // ── Neueste Verbindungen — echte Chat-Partner, chronologisch (neueste zuerst) ──
@@ -377,6 +377,21 @@ export default function ChatCenterOverlay({ onClose = () => {}, initialRecipient
     });
     // Phase 8: Chat als gelesen markieren — aktualisiert unread_count + Header Badge
     if (onMarkRead) onMarkRead(realId);
+    // ── CHAT-UNREAD-005 (2026-09-26, Bugreport 34c9e8f2, Lars Platin,
+    // 24.09.: "habe Kay seine Nachricht aufgemacht und geantwortet, bin
+    // wieder raus aus dem Chat und jetzt steht es noch als ungelesene
+    // Nachricht da") ─────────────────────────────────────────────────
+    // Root Cause: ZWEI getrennte useChatList-Instanzen mit eigenem State —
+    // Home.jsx nutzt "home" (Tab-Badge), ChatCenterOverlay nutzt "cco"
+    // (rendert DIESE sichtbare Liste). onMarkRead = die home-Instanz:
+    // DB-Upsert + home-State wurden korrekt aktualisiert (DB-Beweis:
+    // Lars' chat_participants.last_read_at = 07:04:33, Antwort 07:05:00),
+    // aber der cco-Listen-State bekam das Optimistic-Update NIE → der
+    // Unread-Badge blieb auf der Karte stehen, bis ein Neuladen passierte.
+    // Fix: die EIGENE cco-Instanz hier zusätzlich aktualisieren. Der DB-
+    // Upsert ist idempotent (onConflict chat_id,user_id), das doppelte
+    // Setzen ist also harmlos.
+    ccoMarkChatRead(realId);
   }
 
   // ── Ladescreen ──
