@@ -81,29 +81,81 @@ export async function uploadMediaVerified({ path, file, contentType, bucket = "m
     (file?.size != null)        ? file.size       :
     0;
 
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(path, body, { contentType, upsert, cacheControl });
-  if (error) {
-    // ── SYMPTOM-FIX (STORAGE-NET-001, 2026-09-06) ──────────────────────
-    // CapacitorHttp-Bridge: FileReader-Fehler (reader.onerror = reject)
-    // reichen das rohe ProgressEvent als Rejection durch — storage-js
-    // stringifyt es per JSON.stringify → "{"isTrusted":true}" landete
-    // WÖRTLICH in Karens Fehler-Toast. Solche Event-Objekte (kein .message,
-    // kein .msg) sind Transport-Fehler der Bridge, keine Supabase-Fehler.
-    // Ergänzend mit dem STORAGE-BRIDGE-BYPASS in supabaseClient.js sollte
-    // dieser Fall nie mehr auftreten — die Erkennung bleibt als Absicherung.
-    const rawMsg = error?.message || "";
+  // ── UPLOAD-RETRY-001 (2026-09-26, Bugreport e7f6dff7 "Video-Upload
+  // funktioniert nicht", Tilo Juncken, iPhone iOS 18.7, v2.1.612) ─────────
+  // BEWEISLAGE (nicht geraten): Moment-Share brach mit "Fehler beim Teilen:
+  // Load failed" ab (Screenshot-OCR); NICHTS im media-Bucket (moments/-Ordner
+  // leer, Upload kam nie an); Datei war ausgewählt und unter dem 50MB-Limit
+  // (Preview-Phase 1/10, kein Größen-Reject). "Load failed" ist die
+  // fetch-TypeError-Meldung von WebKit — storage-js kapselt sie als
+  // StorageUnknownError (message="Load failed", KEIN statusCode, mit
+  // .originalError = der TypeError; verifiziert in storage-js dist:
+  // handleError() → StorageUnknownError, handleOperation() → { error }).
+  // Am selben Abend fiel auch im BugReportModal 1 von 2 Anhängen aus —
+  // iOS-Transport-Unzuverlässigkeit, KEIN Größenproblem.
+  //
+  // FIX (SSOT — profitieren ALLE ~22 Caller):
+  //   1. EIN automatischer Retry (1.5s Verzögerung) bei Transport-Fehlern
+  //      (fetch-TypeError / Bridge-Event). Kein Retry bei echten
+  //      HTTP-Fehlern (die tragen statusCode 4xx/5xx).
+  //   2. "Duplicate"-Behandlung: Kommt der Retry mit "Duplicate" zurück, ist
+  //      der ERSTE Versuch serverseitig DURCHGEKOMMEN (nur die Response ging
+  //      verloren) → KEIN Fehler, weiter zur Größen-Verifizierung unten —
+  //      die exakte Byte-Prüfung fängt jeden Fake ab (storedBytes !==
+  //      expectedBytes → Objekt wird gelöscht + Fehler geworfen). Der Pfad
+  //      enthält timestamp+random → eine echte Fremd-Kollision ist praktisch
+  //      ausgeschlossen; "Duplicate" kann nur von unserem eigenen ersten
+  //      Versuch stammen.
+  //   3. Verständliche deutsche Fehlermeldung statt rohem "Load failed".
+  const _isTransportError = (err) => {
+    if (!err) return false;
+    if (err.originalError != null) return true; // StorageUnknownError (fetch-TypeError)
+    const msg = String(err.message || "").trim();
+    if (/^\{"isTrusted":(true|false)\}$/.test(msg)) return true; // CapacitorHttp-Bridge-Event
+    return /^(load failed|failed to fetch|network request failed|networkerror when attempting to fetch resource|cancelled|aborterror)/i.test(msg);
+  };
+  const _isDuplicate = (err) => /duplicate/i.test(String(err?.message || ""));
+
+  let uploadErr = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(path, body, { contentType, upsert, cacheControl });
+    if (!error) { uploadErr = null; break; }
+    uploadErr = error;
+    // Duplicate: erster Versuch ist durchgekommen → Erfolg (Bytes-Check unten)
+    if (_isDuplicate(error)) { uploadErr = null; break; }
+    // Transport-Fehler: genau 1x mit Verzögerung retryen
+    if (_isTransportError(error) && attempt === 1) {
+      console.warn(`[uploadBody] Transport-Fehler beim Upload (Versuch ${attempt}), Retry in 1.5s:`, error?.message);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      continue;
+    }
+    break; // echter HTTP-Fehler (statusCode 4xx/5xx) — kein Retry
+  }
+
+  if (uploadErr) {
+    // (CapacitorHttp-Bridge-Fehler bleiben behandelt wie bisher — STORAGE-NET-001,
+    // Details im Header-Kommentar von supabaseClient.js STORAGE-BRIDGE-BYPASS)
+    const rawMsg = uploadErr?.message || "";
     const isBridgeEvent = /^\{"isTrusted":(true|false)\}$/.test(rawMsg);
     if (isBridgeEvent) {
       console.error("[uploadBody] Transport-Fehler der CapacitorHttp-Bridge " +
-        "(FileReader/base64-Stufe) statt Supabase-Fehler:", { path, statusCode: error.statusCode ?? null });
+        "(FileReader/base64-Stufe) statt Supabase-Fehler:", { path, statusCode: uploadErr.statusCode ?? null });
       throw Object.assign(
         new Error("Upload konnte nicht gestartet werden (Verbindungs-/Gerätefehler) — bitte erneut versuchen"),
-        { statusCode: error.statusCode ?? 901, transportError: true }
+        { statusCode: uploadErr.statusCode ?? 901, transportError: true }
       );
     }
-    throw Object.assign(new Error(error.message), { statusCode: error.statusCode });
+    if (_isTransportError(uploadErr)) {
+      console.error("[uploadBody] Upload-Transport endgültig fehlgeschlagen (2 Versuche):",
+        { path, statusCode: uploadErr.statusCode ?? null });
+      throw Object.assign(
+        new Error("Upload abgebrochen (Netzwerkfehler) — bitte erneut versuchen oder WLAN nutzen"),
+        { statusCode: uploadErr.statusCode ?? 902, transportError: true }
+      );
+    }
+    throw Object.assign(new Error(uploadErr.message), { statusCode: uploadErr.statusCode });
   }
 
   // ── EXAKTE Größen-Verifizierung (AVATAR-MANGLE-001) ──
