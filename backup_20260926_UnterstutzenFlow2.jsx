@@ -405,12 +405,6 @@ export default function UnterstutzenFlow({
   const [orderId,      setOrderId]      = useState(null);
   const [stripeError,  setStripeError]  = useState(null);
   const [piLoading,    setPiLoading]    = useState(false);
-  // DANKE-SNAPSHOT (Bug 8, ff54173e/a35eb97d-Verwandt): PURCHASED-CART-CLEANUP-001
-  // leert den Warenkorb SOFORT bei Stripe-Erfolg. Der Danke-Screen darf aber
-  // nicht aus dem geleerten Korb lesen (Zeigte sonst "Du hast heute 0 Menschen
-  // unterstuetzt" + Impact 0,00 EUR). Snapshot NUR fuer die Erfolg-Anzeige;
-  // Cleanup-Verhalten (Korb leeren) bleibt unveraendert.
-  const [purchased, setPurchased] = useState(null);
   // FIX (2026-08-16): Session-Expired getrennt vom generischen Fehler -- Retry
   // mit derselben toten Session brachte den User in eine 401-Loop ("Erneut
   // versuchen" rief createPaymentIntent() erneut mit demselben Token auf).
@@ -682,10 +676,6 @@ export default function UnterstutzenFlow({
 
   async function handleStripeSuccess({ orderId: oid, paymentIntentId }) {
     haptic("success");
-    // DANKE-SNAPSHOT: Erfolg-Daten festhalten, BEVOR der Korb geleert wird —
-    // der Danke-Screen zeigt sonst 0 Menschen / 0,00 EUR (Regression durch
-    // PURCHASED-CART-CLEANUP-001, Lars-Report 24.09., Screenshot "0 Menschen").
-    setPurchased({ items, impact, huiTotal, total });
     // PURCHASED-CART-CLEANUP-001: Zahlung ist von Stripe bestaetigt — die
     // bezahlten Positionen SOFORT aus React-State + localStorage entfernen,
     // nicht erst spaeter beim Klick auf "Entdecken" im Danke-Screen.
@@ -878,10 +868,10 @@ export default function UnterstutzenFlow({
             {/* Step 1: Danke */}
             {step === 1 && (
               <DankeScreen
-                items={purchased?.items ?? items}
-                impact={purchased?.impact ?? impact}
-                total={purchased?.total ?? total}
-                huiTotal={purchased?.huiTotal ?? huiTotal}
+                items={items}
+                impact={impact}
+                total={total}
+                huiTotal={huiTotal}
                 onDiscover={() => { onClearCart?.(); onClose?.(); onDiscover?.(); }}
                 onClose={onClose}
               />
