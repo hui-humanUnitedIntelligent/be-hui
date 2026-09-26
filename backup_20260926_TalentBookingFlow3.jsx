@@ -160,19 +160,15 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
     [monthAvail]
   );
 
-  // BUG 10 (0f8505db) + BUG 11 (ad656a45): Bei konkreten Talent-Tagen
-  // wird der Monatskalender durch Datum-Box (1 Tag) bzw. Tag-Chips
-  // (mehrere Tage) ersetzt — onMonthChange (und damit der
+  // BUG 10 (0f8505db): Bei Einzeltags-Talenten wird der Monatskalender
+  // durch eine Datum-Box ersetzt — onMonthChange (und damit der
   // is_full-Ladevorgang) feuert dann nie. Hier explizit nachziehen, damit
-  // die Ausgebucht-Markierung + das Gate (selectedDateFullNoSlots)
-  // weiterhin funktionieren.
+  // das Ausgebucht-Gate (selectedDateFullNoSlots) weiterhin funktioniert.
   useEffect(() => {
     if (expandedDates.length === 1) {
       loadMonthAvailability(expandedDates[0].slice(0, 7));
-    } else if (expandedDates.length > 1 && selectedDate) {
-      loadMonthAvailability(selectedDate.slice(0, 7));
     }
-  }, [expandedDates, selectedDate, loadMonthAvailability]);
+  }, [expandedDates, loadMonthAvailability]);
   const slotAvailability = selectedDate ? monthAvail[selectedDate]?.slots : null;
 
   const isSelectedToday = selectedDate === todayIso();
@@ -835,57 +831,7 @@ export default function TalentBookingFlow({ talent, onClose = () => {} }) {
                       </div>
                     </div>
                   </div>
-                ) : expandedDates.length > 1 ? (
-                  /* BUG 11 (ad656a45): Nur die buchbaren Tage zeigen statt
-                     ganzem Monatskalender (Lars: "es macht so oder so nur
-                     Sinn, die Tage zu zeigen, wo das Talent Zeit hat").
-                     Farbwelt 1:1 aus AvailabilityCalendar (selected/available/
-                     full), Ausgebucht-Label via feed.booked. */
-                  <div style={{
-                    background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
-                    padding: "12px",
-                  }}>
-                    <div style={{
-                      display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2,
-                      WebkitOverflowScrolling: "touch", scrollbarWidth: "none",
-                    }}>
-                      {expandedDates.map((d) => {
-                        const dt = new Date(d + "T00:00:00");
-                        if (Number.isNaN(dt.getTime())) return null;
-                        const full = monthAvail[d]?.is_full === true;
-                        const sel  = selectedDate === d;
-                        return (
-                          <button key={d} type="button"
-                            onClick={() => { if (!full) { setSelectedDate(d); setSelectedSlot(null); } }}
-                            style={{
-                              flexShrink: 0, minWidth: 64, padding: "8px 10px", borderRadius: 12,
-                              border: `1.5px solid ${sel ? "#0EC4B8" : full ? "rgba(232,58,58,0.15)" : "rgba(26,26,24,0.12)"}`,
-                              background: sel ? "#0EC4B8" : full ? "rgba(232,58,58,0.06)" : "rgba(14,196,184,0.10)",
-                              color: sel ? "#fff" : full ? "rgba(232,58,58,0.55)" : "#0EC4B8",
-                              fontWeight: 600, cursor: full ? "not-allowed" : "pointer",
-                              textAlign: "center", lineHeight: 1.3, outline: "none",
-                              WebkitTapHighlightColor: "transparent",
-                            }}
-                          >
-                            <div style={{ fontSize: 11, opacity: 0.85 }}>
-                              {formatDateDE(dt, { weekday: "short" })}
-                            </div>
-                            <div style={{ fontSize: 14 }}>
-                              {formatDateDE(dt, { day: "numeric", month: "short" })}
-                            </div>
-                            {full && (
-                              <div style={{ fontSize: 9.5, marginTop: 1, fontWeight: 500 }}>
-                                {t("feed.booked")}
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
                 ) : (
-                  /* Free-Mode (keine available_dates): beliebiger Tag waehlbar —
-                     Kalender bleibt hier, da es nichts einzugrenzen gibt. */
                   <div style={{
                     background: "#fff", border: "1.5px solid rgba(26,26,46,0.10)", borderRadius: 14,
                     padding: "14px 12px",
