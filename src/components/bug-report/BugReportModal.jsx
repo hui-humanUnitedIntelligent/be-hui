@@ -7,7 +7,7 @@
 // - Speichert in bug_reports Tabelle + uploads in Supabase Storage
 // Additiv — keine bestehenden Funktionen werden berührt.
 import React, { useState, useRef, useCallback } from "react";
-import { toSafeUploadBody } from "../../lib/uploadBody.js";
+import { uploadMediaVerified } from "../../lib/uploadBody.js";
 import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "../../lib/uploadUtils.js";
 import { createPortal } from "react-dom";
 import { Capacitor } from "@capacitor/core";
@@ -162,15 +162,25 @@ export default function BugReportModal({ open = false, onClose = () => {}, user 
     // HEADER-CACHE-FIX NACHTRAG (2026-09-06): diese Stelle wurde bei der
     // Vereinheitlichung (c8d98fb2) übersehen — hatte noch das alte
     // cacheControl:'3600'. Jetzt SSOT-Wert wie alle anderen Upload-Stellen.
-    const { error: upErr } = await supabase.storage
-      .from("media")
-      .upload(path, await toSafeUploadBody(file), {
-        contentType: file.type || "application/octet-stream",
-        cacheControl: "public, max-age=31536000, immutable",
-        upsert: false,
-      });
-    if (upErr) throw upErr;
-    const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(path);
+    // BUGREPORT-RETRY-002 (2026-09-26, Bugreport 08115b53 "Zwei Bilder
+    // gleichzeitig mag er nicht hochladen", Tilo, iPhone iOS 18.7, v2.1.612):
+    // Dieser Pfad rief bisher supabase.storage.upload() DIREKT auf — der
+    // UPLOAD-RETRY-001-Fix (automatischer Transport-Retry 1,5s, gebaut für
+    // Bug e7f6dff7 "Video-Upload") lebte nur in uploadMediaVerified() und
+    // griff hier NICHT. Genau deshalb fiel am 23.09. 1 von 2 Anhängen aus:
+    // iOS-WebKit-Transportfehler ("Load failed") ohne zweiten Versuch.
+    // Fix: Upload durch die SSOT-Funktion routen — der Bugreport-Upload
+    // profitiert damit vom automatischen Retry, der Duplicate-Erkennung
+    // UND der exakten Größen-Verifizierung (AVATAR-MANGLE-001). cacheControl
+    // (HEADER-CACHE-FIX NACHTRAG 2026-09-06) bleibt identisch — es ist der
+    // SSOT-Default von uploadMediaVerified.
+    const { publicUrl } = await uploadMediaVerified({
+      path,
+      file,
+      contentType: file.type || "application/octet-stream",
+      bucket: "media",
+      upsert: false,
+    });
     return { name: file.name, url: publicUrl, type: file.type, size: file.size };
   }, []);
 
